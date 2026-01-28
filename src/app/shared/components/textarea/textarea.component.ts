@@ -25,7 +25,7 @@ import { FormsModule } from '@angular/forms';
         [attr.aria-required]="required()"
         [attr.aria-invalid]="!!error()"
         [attr.aria-describedby]="describedBy()"
-        class="w-full px-4 py-3 text-sm bg-white border transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed placeholder:text-zinc-400 min-h-[100px] resize-y"
+        class="w-full px-4 py-3 text-sm bg-white border transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed placeholder:text-zinc-400 min-h-25 resize-y"
         [class.border-zinc-200]="!error()"
         [class.focus:border-black]="!error()"
         [class.border-red-500]="!!error()"
@@ -52,7 +52,7 @@ import { FormsModule } from '@angular/forms';
   `,
 })
 export class TextareaComponent {
-  value = model.required<string>();
+  value = model<string>('');
   id = input<string | undefined>(undefined);
   label = input<string>('');
   placeholder = input('');

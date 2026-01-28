@@ -52,7 +52,7 @@ import { FormsModule } from '@angular/forms';
   `,
 })
 export class InputComponent {
-  value = model.required<string>();
+  value = model<string>('');
   id = input<string | undefined>(undefined);
   label = input<string>('');
   type = input('text');

@@ -1,0 +1,103 @@
+<div class="flex flex-col w-full gap-1.5 text-left">
+  @if (label()) {
+    <label [for]="uid" class="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+      {{ label() }}
+      @if (required()) {
+        <span class="text-red-500" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <div class="relative w-full" cdkOverlayOrigin #origin="cdkOverlayOrigin">
+    <button
+      #trigger
+      type="button"
+      role="combobox"
+      [id]="uid"
+      [disabled]="disabled()"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-haspopup]="'listbox'"
+      [attr.aria-controls]="listboxId"
+      [attr.aria-activedescendant]="activeDescendant"
+      [attr.aria-required]="required() || null"
+      [attr.aria-invalid]="!!error() || null"
+      [attr.aria-describedby]="describedBy()"
+      (click)="toggle()"
+      (keydown)="onKeydown($event)"
+      class="w-full px-4 py-3 text-sm bg-white border cursor-pointer transition-all duration-200 focus:outline-none focus:border-black disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
+      [class.border-zinc-200]="!error() && !isOpen()"
+      [class.border-black]="isOpen() && !error()"
+      [class.border-red-500]="!!error()"
+    >
+      <span class="truncate" [class.text-zinc-400]="!displayValue()">
+        {{ displayValue() || placeholder() }}
+      </span>
+      <svg
+        class="w-4 h-4 text-zinc-400 transition-transform duration-200 shrink-0 ml-2"
+        [class.rotate-180]="isOpen()"
+        fill="none"
+        viewBox="0 0 24 24"
+        stroke="currentColor"
+        aria-hidden="true"
+      >
+        <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M19 9l-7 7-7-7" />
+      </svg>
+    </button>
+
+    <ng-template
+      cdkConnectedOverlay
+      [cdkConnectedOverlayOrigin]="origin"
+      [cdkConnectedOverlayOpen]="isOpen()"
+      [cdkConnectedOverlayWidth]="trigger.offsetWidth"
+      (overlayOutsideClick)="close()"
+      (detach)="close()"
+    >
+      <ul
+        role="listbox"
+        [id]="listboxId"
+        [attr.aria-labelledby]="uid"
+        tabindex="-1"
+        class="bg-white border border-black shadow-xl mt-px max-h-60 overflow-y-auto focus:outline-none"
+      >
+        @for (option of options(); track option.value; let i = $index) {
+          <li
+            role="option"
+            tabindex="0"
+            [id]="getOptionId(i)"
+            [attr.aria-selected]="value() === option.value"
+            (click)="selectOption(option)"
+            (keydown)="onOptionKeydown($event, option, i)"
+            (focus)="activeIndex.set(i)"
+            (mouseenter)="activeIndex.set(i)"
+            class="px-4 py-3 text-sm cursor-pointer transition-colors duration-150 outline-none"
+            [class.bg-black]="value() === option.value"
+            [class.text-white]="value() === option.value"
+            [class.bg-zinc-100]="activeIndex() === i && value() !== option.value"
+            [class.hover:bg-zinc-100]="value() !== option.value"
+          >
+            <div class="flex justify-between items-center">
+              <span>{{ option.label }}</span>
+              @if (value() === option.value) {
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+              }
+            </div>
+          </li>
+        } @empty {
+          <li class="px-4 py-3 text-sm text-zinc-400 italic">No options</li>
+        }
+      </ul>
+    </ng-template>
+  </div>
+
+  @if (error()) {
+    <p [id]="errorId" class="text-[10px] uppercase font-bold text-red-500 tracking-wide mt-1">
+      {{ error() }}
+    </p>
+  } @else if (hint()) {
+    <p [id]="hintId" class="text-[10px] uppercase font-medium text-zinc-400 tracking-wide mt-1">
+      {{ hint() }}
+    </p>
+  }
+</div>

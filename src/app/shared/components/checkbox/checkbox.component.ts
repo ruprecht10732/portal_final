@@ -74,7 +74,7 @@ import { FormsModule } from '@angular/forms';
   `,
 })
 export class CheckboxComponent {
-  checked = model.required<boolean>();
+  checked = model<boolean>(false);
   id = input<string | undefined>(undefined);
   label = input<string>('');
   disabled = input(false);

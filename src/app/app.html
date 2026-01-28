@@ -8,34 +8,60 @@
 
     <shared-tabs>
       <div 
-        ngTabList 
-        [(selectedTab)]="activeTab"
+        role="tablist"
         class="flex border-b border-zinc-200 mb-8 overflow-x-auto no-scrollbar"
       >
-        <button ngTab value="profile" class="px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all duration-200 outline-none"
+        <button 
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'profile'"
+          [attr.aria-controls]="'panel-profile'"
+          id="tab-profile"
+          (click)="activeTab.set('profile')"
+          class="px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all duration-200 outline-none"
           [class.border-black]="activeTab() === 'profile'"
-          [class.border-transparent]="activeTab() === 'profile' === false"
+          [class.border-transparent]="activeTab() !== 'profile'"
           [class.text-black]="activeTab() === 'profile'"
-          [class.text-zinc-400]="activeTab() === 'profile' === false">
+          [class.text-zinc-400]="activeTab() !== 'profile'">
           Profile
         </button>
-        <button ngTab value="security" class="px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all duration-200 outline-none"
+        <button 
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'security'"
+          [attr.aria-controls]="'panel-security'"
+          id="tab-security"
+          (click)="activeTab.set('security')"
+          class="px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all duration-200 outline-none"
           [class.border-black]="activeTab() === 'security'"
-          [class.border-transparent]="activeTab() === 'security' === false"
+          [class.border-transparent]="activeTab() !== 'security'"
           [class.text-black]="activeTab() === 'security'"
-          [class.text-zinc-400]="activeTab() === 'security' === false">
+          [class.text-zinc-400]="activeTab() !== 'security'">
           Security
         </button>
-        <button ngTab value="settings" class="px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all duration-200 outline-none"
+        <button 
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'settings'"
+          [attr.aria-controls]="'panel-settings'"
+          id="tab-settings"
+          (click)="activeTab.set('settings')"
+          class="px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all duration-200 outline-none"
           [class.border-black]="activeTab() === 'settings'"
-          [class.border-transparent]="activeTab() === 'settings' === false"
+          [class.border-transparent]="activeTab() !== 'settings'"
           [class.text-black]="activeTab() === 'settings'"
-          [class.text-zinc-400]="activeTab() === 'settings' === false">
+          [class.text-zinc-400]="activeTab() !== 'settings'">
           Settings
         </button>
       </div>
 
-      <div ngTabPanel value="profile" #profile="ngTabPanel" [hidden]="!profile.visible()" class="space-y-6">
+      <div 
+        role="tabpanel" 
+        id="panel-profile" 
+        [attr.aria-labelledby]="'tab-profile'" 
+        [hidden]="activeTab() !== 'profile'" 
+        class="space-y-6"
+      >
         <div class="bg-white p-8 border border-zinc-200 space-y-8">
           <div class="space-y-6 text-left">
             <shared-input 
@@ -44,6 +70,13 @@
               placeholder="name@example.com"
               hint="We'll never share your email with anyone else."
               [required]="true"
+            />
+
+            <shared-select 
+              [(value)]="country" 
+              [options]="countryOptions" 
+              label="Location"
+              placeholder="Select your country"
             />
 
             <shared-checkbox 
@@ -65,7 +98,13 @@
         </div>
       </div>
 
-      <div ngTabPanel value="security" #security="ngTabPanel" [hidden]="!security.visible()" class="space-y-6">
+      <div 
+        role="tabpanel" 
+        id="panel-security" 
+        [attr.aria-labelledby]="'tab-security'" 
+        [hidden]="activeTab() !== 'security'" 
+        class="space-y-6"
+      >
         <div class="bg-white p-8 border border-zinc-200 space-y-8">
           <shared-input 
             [(value)]="password" 
@@ -82,7 +121,13 @@
         </div>
       </div>
 
-      <div ngTabPanel value="settings" #settings="ngTabPanel" [hidden]="!settings.visible()" class="space-y-6">
+      <div 
+        role="tabpanel" 
+        id="panel-settings" 
+        [attr.aria-labelledby]="'tab-settings'" 
+        [hidden]="activeTab() !== 'settings'" 
+        class="space-y-6"
+      >
         <div class="bg-white p-8 border border-zinc-200 space-y-8">
           <shared-textarea 
             [(value)]="bio" 
