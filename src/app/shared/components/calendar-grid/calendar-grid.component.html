@@ -1,48 +1,67 @@
 <div class="calendar basic-calendar">
   <div class="calendar-header">
-    <div class="calendar-title">
-      <h3 [id]="gridLabelId" aria-live="polite">{{ headerLabel() }}</h3>
+    <div class="calendar-header-row">
+      @if (showNav()) {
+        <button class="month-control" aria-label="previous" (click)="previousPeriod()">
+          <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_left</span>
+          <span class="visually-hidden">Previous</span>
+        </button>
+      }
+      <div class="calendar-title">
+        <h3 [id]="gridLabelId" aria-live="polite">{{ headerLabel() }}</h3>
+      </div>
+      @if (showNav()) {
+        <button class="month-control" aria-label="next" (click)="nextPeriod()">
+          <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_right</span>
+          <span class="visually-hidden">Next</span>
+        </button>
+      }
     </div>
-    <div class="calendar-views" role="tablist" aria-label="Calendar views">
-      <button
-        type="button"
-        role="tab"
-        [attr.aria-selected]="view() === 'day'"
-        (click)="view.set('day')"
-        class="view-button"
-      >
-        Day
-      </button>
-      <button
-        type="button"
-        role="tab"
-        [attr.aria-selected]="view() === 'week'"
-        (click)="view.set('week')"
-        class="view-button"
-      >
-        Week
-      </button>
-      <button
-        type="button"
-        role="tab"
-        [attr.aria-selected]="view() === 'month'"
-        (click)="view.set('month')"
-        class="view-button"
-      >
-        Month
-      </button>
+
+    <div class="calendar-header-row secondary">
+      @if (showViews()) {
+        <div class="calendar-views" role="tablist" aria-label="Calendar views">
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="view() === 'day'"
+            (click)="view.set('day')"
+            class="view-button"
+          >
+            Day
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="view() === 'week'"
+            (click)="view.set('week')"
+            class="view-button"
+          >
+            Week
+          </button>
+          <button
+            type="button"
+            role="tab"
+            [attr.aria-selected]="view() === 'month'"
+            (click)="view.set('month')"
+            class="view-button"
+          >
+            Month
+          </button>
+        </div>
+      }
+      @if (showToday()) {
+        <button type="button" class="today-button" (click)="selectToday()">Today</button>
+      }
     </div>
-    <div class="calendar-actions">
-      <button class="month-control" aria-label="previous" (click)="previousPeriod()">
-        <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_left</span>
-        <span class="visually-hidden">Previous month</span>
-      </button>
-      <button type="button" class="today-button" (click)="selectToday()">Today</button>
-      <button class="month-control" aria-label="next" (click)="nextPeriod()">
-        <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_right</span>
-        <span class="visually-hidden">Next month</span>
-      </button>
-    </div>
+
+    @if (showLegend()) {
+      <div class="calendar-legend" aria-hidden="true">
+        <span class="legend-item"><span class="legend-swatch is-selected"></span>Selected</span>
+        <span class="legend-item"><span class="legend-swatch in-range"></span>Range</span>
+        <span class="legend-item"><span class="legend-swatch is-unavailable"></span>Unavailable</span>
+      </div>
+    }
   </div>
 
   <p [id]="instructionsId" class="visually-hidden">
@@ -103,8 +122,11 @@
                  [attr.data-day]="day.day"
                  (click)="selectDay(day)"
                  (keydown.enter)="selectDay(day)"
+                 (mouseenter)="onDayHover(day)"
+                 (mouseleave)="clearHover()"
                  class="day-button"
                  [class.in-range]="isInRange(day)"
+                 [class.is-preview]="isInPreviewRange(day)"
                  [class.is-selected]="isSelected(day)"
                  [class.range-start]="isRangeStart(day)"
                  [class.range-end]="isRangeEnd(day)"
@@ -163,8 +185,11 @@
                    [attr.data-day]="day.day"
                    (click)="selectDay(day)"
                    (keydown.enter)="selectDay(day)"
+                   (mouseenter)="onDayHover(day)"
+                   (mouseleave)="clearHover()"
                    class="day-button"
                    [class.in-range]="isInRange(day)"
+                   [class.is-preview]="isInPreviewRange(day)"
                    [class.is-selected]="isSelected(day)"
                    [class.range-start]="isRangeStart(day)"
                    [class.range-end]="isRangeEnd(day)"

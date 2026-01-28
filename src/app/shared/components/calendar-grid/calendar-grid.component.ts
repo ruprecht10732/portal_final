@@ -30,10 +30,15 @@ export class CalendarGridComponent {
   protected readonly currentMonth = signal(new Date());
   protected readonly selectedStart = signal<string | null>(null);
   protected readonly selectedEnd = signal<string | null>(null);
+  protected readonly hoverIso = signal<string | null>(null);
   readonly view = model<'day' | 'week' | 'month'>('month');
   readonly firstDayOfWeek = input(0);
   readonly allowRange = input(true);
   readonly unavailableDates = input<readonly string[]>([]);
+  readonly showViews = input(true);
+  readonly showToday = input(true);
+  readonly showLegend = input(true);
+  readonly showNav = input(true);
 
   private readonly uid = 'calendar-' + Math.random().toString(36).substring(2, 9);
   protected readonly gridLabelId = `${this.uid}-label`;
@@ -181,6 +186,7 @@ export class CalendarGridComponent {
 
   protected selectDay(day: CalendarDay): void {
     if (this.isUnavailable(day)) return;
+    this.hoverIso.set(null);
     if (!this.allowRange()) {
       this.selectedStart.set(day.iso);
       this.selectedEnd.set(null);
@@ -219,6 +225,17 @@ export class CalendarGridComponent {
     return this.compareIso(day.iso, start) >= 0 && this.compareIso(day.iso, end) <= 0;
   }
 
+  protected isInPreviewRange(day: CalendarDay): boolean {
+    if (!this.allowRange()) return false;
+    const start = this.selectedStart();
+    const end = this.selectedEnd();
+    const hover = this.hoverIso();
+    if (!start || end || !hover) return false;
+    const min = this.compareIso(start, hover) <= 0 ? start : hover;
+    const max = this.compareIso(start, hover) <= 0 ? hover : start;
+    return this.compareIso(day.iso, min) >= 0 && this.compareIso(day.iso, max) <= 0;
+  }
+
   protected isRangeStart(day: CalendarDay): boolean {
     return this.selectedStart() === day.iso;
   }
@@ -234,6 +251,18 @@ export class CalendarGridComponent {
 
   protected isUnavailable(day: CalendarDay): boolean {
     return this.unavailableDates().includes(day.iso);
+  }
+
+  protected onDayHover(day: CalendarDay): void {
+    if (!this.allowRange()) return;
+    if (this.selectedEnd()) return;
+    if (!this.selectedStart()) return;
+    if (this.isUnavailable(day)) return;
+    this.hoverIso.set(day.iso);
+  }
+
+  protected clearHover(): void {
+    this.hoverIso.set(null);
   }
 
   protected selectToday(): void {
