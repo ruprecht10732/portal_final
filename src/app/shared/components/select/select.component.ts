@@ -76,6 +76,11 @@ export class SelectComponent<T = unknown> {
     this.activeIndex.set(-1);
   }
 
+  private openWithDefaultActiveIndex(): void {
+    this.isOpen.set(true);
+    this.activeIndex.set(Math.max(0, this.selectedIndex()));
+  }
+
   protected selectOption(option: SelectOption<T>): void {
     this.value.set(option.value);
     this.close();
@@ -88,44 +93,73 @@ export class SelectComponent<T = unknown> {
 
     switch (event.key) {
       case 'ArrowDown':
-        event.preventDefault();
-        if (!this.isOpen()) {
-          this.isOpen.set(true);
-          this.activeIndex.set(Math.max(0, this.selectedIndex()));
-        } else {
-          this.activeIndex.update(i => Math.min(i + 1, opts.length - 1));
-        }
+        this.handleArrowDown(event, opts);
         break;
       case 'ArrowUp':
-        event.preventDefault();
-        if (!this.isOpen()) {
-          this.isOpen.set(true);
-          this.activeIndex.set(Math.max(0, this.selectedIndex()));
-        } else {
-          this.activeIndex.update(i => Math.max(i - 1, 0));
-        }
+        this.handleArrowUp(event, opts);
         break;
       case 'Enter':
       case ' ':
-        event.preventDefault();
-        if (this.isOpen() && this.activeIndex() >= 0) {
-          this.selectOption(opts[this.activeIndex()]);
-        } else {
-          this.toggle();
-        }
+        this.handleSelectKey(event, opts);
         break;
       case 'Escape':
-        event.preventDefault();
-        this.close();
+        this.handleEscape(event);
         break;
       case 'Home':
-        event.preventDefault();
-        if (this.isOpen()) this.activeIndex.set(0);
+        this.handleHome(event);
         break;
       case 'End':
-        event.preventDefault();
-        if (this.isOpen()) this.activeIndex.set(opts.length - 1);
+        this.handleEnd(event, opts);
         break;
+    }
+  }
+
+  private handleArrowDown(event: KeyboardEvent, opts: readonly SelectOption<T>[]): void {
+    event.preventDefault();
+    if (this.isOpen()) {
+      this.activeIndex.update(i => Math.min(i + 1, opts.length - 1));
+      return;
+    }
+    this.openWithDefaultActiveIndex();
+  }
+
+  private handleArrowUp(event: KeyboardEvent, opts: readonly SelectOption<T>[]): void {
+    event.preventDefault();
+    if (this.isOpen()) {
+      this.activeIndex.update(i => Math.max(i - 1, 0));
+      return;
+    }
+    this.openWithDefaultActiveIndex();
+  }
+
+  private handleSelectKey(event: KeyboardEvent, opts: readonly SelectOption<T>[]): void {
+    event.preventDefault();
+    if (this.isOpen()) {
+      const index = this.activeIndex();
+      if (index >= 0) {
+        this.selectOption(opts[index]);
+      }
+      return;
+    }
+    this.toggle();
+  }
+
+  private handleEscape(event: KeyboardEvent): void {
+    event.preventDefault();
+    this.close();
+  }
+
+  private handleHome(event: KeyboardEvent): void {
+    event.preventDefault();
+    if (this.isOpen()) {
+      this.activeIndex.set(0);
+    }
+  }
+
+  private handleEnd(event: KeyboardEvent, opts: readonly SelectOption<T>[]): void {
+    event.preventDefault();
+    if (this.isOpen()) {
+      this.activeIndex.set(opts.length - 1);
     }
   }
 
