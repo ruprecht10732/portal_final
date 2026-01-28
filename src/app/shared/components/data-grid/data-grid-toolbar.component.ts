@@ -93,6 +93,11 @@ export class DataGridToolbarComponent<T = unknown> {
     this.searchChange.emit(value);
   }
 
+  protected clearSearch(): void {
+    this.localSearchTerm.set('');
+    this.searchChange.emit('');
+  }
+
   protected toggleFilters(): void {
     this.showFilters.update(v => !v);
   }
@@ -122,6 +127,9 @@ export class DataGridToolbarComponent<T = unknown> {
     
     this.activeFilterColumn.set(null);
     this.filterValue.set('');
+    if (this.isMobile()) {
+      this.closeFilters();
+    }
   }
 
   protected removeFilter(columnId: string): void {

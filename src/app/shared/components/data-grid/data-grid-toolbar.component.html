@@ -2,13 +2,13 @@
   <!-- Left section: Search and filters -->
   <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
     <!-- Search input -->
-    <div class="relative">
+    <div class="relative w-full sm:w-auto">
       <input
         type="search"
         [value]="localSearchTerm()"
         (input)="onSearchInput($event)"
         placeholder="Search..."
-        class="w-full sm:w-64 pl-9 pr-4 py-2 text-sm bg-white border border-zinc-200 focus:outline-none focus:border-black transition-colors"
+        class="w-full sm:w-64 pl-9 pr-10 py-2 min-h-11 text-sm bg-white border border-zinc-200 focus:outline-none focus:border-black transition-colors"
         aria-label="Search grid"
       />
       <svg 
@@ -20,6 +20,18 @@
       >
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
       </svg>
+      @if (localSearchTerm()) {
+        <button
+          type="button"
+          (click)="clearSearch()"
+          class="absolute right-2 top-1/2 -translate-y-1/2 p-2 min-w-8 min-h-8 text-zinc-500 hover:text-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+          aria-label="Clear search"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+        </button>
+      }
     </div>
 
     <!-- Filter toggle button -->
@@ -27,7 +39,7 @@
       <button
         type="button"
         (click)="toggleFilters()"
-        class="flex items-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-wide transition-colors"
+        class="flex items-center gap-2 px-3 py-2 min-h-11 text-xs font-semibold uppercase tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
         [class.text-black]="showFilters() || hasActiveFilters()"
         [class.text-zinc-500]="!showFilters() && !hasActiveFilters()"
         [class.hover:text-black]="!showFilters()"
@@ -51,7 +63,7 @@
       <button
         type="button"
         (click)="onClearAll()"
-        class="px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:text-black transition-colors"
+        class="px-3 py-2 min-h-11 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
       >
         Clear All
       </button>
@@ -77,6 +89,7 @@
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
           </svg>
+          <span class="sm:hidden">Cols</span>
           <span class="hidden sm:inline">Columns</span>
         </button>
 
@@ -158,6 +171,7 @@
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
+      <span class="sm:hidden">Add</span>
       <span class="hidden sm:inline">Add Row</span>
     </button>
 
@@ -173,6 +187,7 @@
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
+        <span class="sm:hidden">Save</span>
         <span class="hidden sm:inline">Save</span>
       </button>
     }
@@ -188,6 +203,7 @@
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
+        <span class="sm:hidden">Delete</span>
         <span class="hidden sm:inline">Delete ({{ selectedCount() }})</span>
       </button>
     }
@@ -286,6 +302,15 @@
       id="filter-panel"
       class="flex flex-col gap-3 p-4"
     >
+      @if (hasActiveFilters()) {
+        <button
+          type="button"
+          (click)="onClearAll()"
+          class="w-full px-3 py-2 text-sm font-semibold uppercase tracking-wide text-zinc-600 hover:text-black border border-zinc-200"
+        >
+          Clear all filters
+        </button>
+      }
       <!-- Active filters -->
       @if (filters().length > 0) {
         <div class="flex flex-wrap gap-2">
@@ -353,7 +378,8 @@
               <button
                 type="button"
                 (click)="applyFilter()"
-                class="flex-1 px-3 py-2 text-sm font-semibold text-white bg-black hover:bg-zinc-800"
+                [disabled]="!filterValue().trim()"
+                class="flex-1 px-3 py-2 text-sm font-semibold text-white bg-black hover:bg-zinc-800 disabled:bg-zinc-300 disabled:text-zinc-500 disabled:cursor-not-allowed"
               >
                 Apply
               </button>
