@@ -2,10 +2,6 @@
   display: table-header-group;
 }
 
-th {
-  white-space: nowrap;
-}
-
 /* Checkbox styling */
 input[type="checkbox"] {
   appearance: none;
