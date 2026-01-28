@@ -6,6 +6,7 @@ import { CheckboxComponent } from './shared/components/checkbox/checkbox.compone
 import { SelectComponent } from './shared/components/select/select.component';
 import { MultiSelectComponent } from './shared/components/multiselect/multiselect.component';
 import { AutocompleteComponent } from './shared/components/autocomplete/autocomplete.component';
+import { CalendarGridComponent } from './shared/components/calendar-grid/calendar-grid.component';
 import { TabsComponent } from './shared/components/tabs/tabs.component';
 
 @Component({
@@ -18,6 +19,7 @@ import { TabsComponent } from './shared/components/tabs/tabs.component';
     SelectComponent,
     MultiSelectComponent,
     AutocompleteComponent,
+    CalendarGridComponent,
     TabsComponent,
   ],
   templateUrl: './app.html'
