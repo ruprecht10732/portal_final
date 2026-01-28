@@ -109,52 +109,22 @@
                 {{ column.header }}
               </dt>
               <dd class="mt-0.5 text-sm text-black">
-                @if (isEditing(rowIndex) && column.editable) {
-                  <!-- Edit mode -->
-                  @if (column.cellType === 'boolean') {
-                    <input
-                      type="checkbox"
-                      [checked]="getCellValue(row, column)"
-                      (change)="onCellChange(rowIndex, column, $event)"
-                      class="w-5 h-5 accent-black"
-                    />
-                  } @else if (column.cellType === 'select') {
-                    <select
-                      [value]="getInputValue(row, column)"
-                      (change)="onCellChange(rowIndex, column, $event)"
-                      class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
-                    >
-                      @for (option of column.selectOptions; track option.value) {
-                        <option [value]="option.value">{{ option.label }}</option>
-                      }
-                    </select>
+                @if (column.cellType === 'boolean') {
+                  @if (getCellValue(row, column)) {
+                    <svg class="w-5 h-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
                   } @else {
-                    <input
-                      [type]="column.cellType === 'number' ? 'number' : 'text'"
-                      [value]="getInputValue(row, column)"
-                      (input)="onCellChange(rowIndex, column, $event)"
-                      class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
-                    />
+                    <svg class="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
                   }
+                } @else if (column.cellType === 'select') {
+                  <span>{{ column.selectOptions | optionLabel:getCellValue(row, column) }}</span>
                 } @else {
-                  <!-- Read mode -->
-                  @if (column.cellType === 'boolean') {
-                    @if (getCellValue(row, column)) {
-                      <svg class="w-5 h-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                      </svg>
-                    } @else {
-                      <svg class="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
-                    }
-                  } @else if (column.cellType === 'select') {
-                    <span>{{ column.selectOptions | optionLabel:getCellValue(row, column) }}</span>
-                  } @else {
-                    <span [title]="formatValue(getCellValue(row, column), column)">
-                      {{ formatValue(getCellValue(row, column), column) }}
-                    </span>
-                  }
+                  <span [title]="formatValue(getCellValue(row, column), column)">
+                    {{ formatValue(getCellValue(row, column), column) }}
+                  </span>
                 }
               </dd>
             </div>
@@ -194,52 +164,22 @@
                     {{ column.header }}
                   </dt>
                   <dd class="mt-0.5 text-sm text-black">
-                    @if (isEditing(rowIndex) && column.editable) {
-                      <!-- Edit mode -->
-                      @if (column.cellType === 'boolean') {
-                        <input
-                          type="checkbox"
-                          [checked]="getCellValue(row, column)"
-                          (change)="onCellChange(rowIndex, column, $event)"
-                          class="w-5 h-5 accent-black"
-                        />
-                      } @else if (column.cellType === 'select') {
-                        <select
-                          [value]="getInputValue(row, column)"
-                          (change)="onCellChange(rowIndex, column, $event)"
-                          class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
-                        >
-                          @for (option of column.selectOptions; track option.value) {
-                            <option [value]="option.value">{{ option.label }}</option>
-                          }
-                        </select>
+                    @if (column.cellType === 'boolean') {
+                      @if (getCellValue(row, column)) {
+                        <svg class="w-5 h-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                        </svg>
                       } @else {
-                        <input
-                          [type]="column.cellType === 'number' ? 'number' : 'text'"
-                          [value]="getInputValue(row, column)"
-                          (input)="onCellChange(rowIndex, column, $event)"
-                          class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
-                        />
+                        <svg class="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
                       }
+                    } @else if (column.cellType === 'select') {
+                      <span>{{ column.selectOptions | optionLabel:getCellValue(row, column) }}</span>
                     } @else {
-                      <!-- Read mode -->
-                      @if (column.cellType === 'boolean') {
-                        @if (getCellValue(row, column)) {
-                          <svg class="w-5 h-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                          </svg>
-                        } @else {
-                          <svg class="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                          </svg>
-                        }
-                      } @else if (column.cellType === 'select') {
-                        <span>{{ column.selectOptions | optionLabel:getCellValue(row, column) }}</span>
-                      } @else {
-                        <span [title]="formatValue(getCellValue(row, column), column)">
-                          {{ formatValue(getCellValue(row, column), column) }}
-                        </span>
-                      }
+                      <span [title]="formatValue(getCellValue(row, column), column)">
+                        {{ formatValue(getCellValue(row, column), column) }}
+                      </span>
                     }
                   </dd>
                 </div>
@@ -255,6 +195,68 @@
           {{ row.error }}
         </div>
       }
+
+      <!-- Edit bottom sheet -->
+      <app-bottom-sheet
+        [isOpen]="isEditing(rowIndex)"
+        [title]="'Edit ' + (formatValue(getCellValue(row, titleColumn()), titleColumn()) || 'Row')"
+        (close)="closeEdit()"
+      >
+        <div class="flex flex-col gap-4 p-4">
+          @if (editableColumns().length === 0) {
+            <p class="text-sm text-zinc-500">No editable fields</p>
+          } @else {
+            @for (column of editableColumns(); track column.id) {
+              <div class="flex flex-col gap-2">
+                <label
+                  class="text-xs font-semibold uppercase tracking-wide text-zinc-500"
+                  [attr.for]="'edit-' + rowIndex + '-' + column.id"
+                >
+                  {{ column.header }}
+                </label>
+                @if (column.cellType === 'boolean') {
+                  <div class="flex items-center gap-3">
+                    <input
+                      type="checkbox"
+                      [id]="'edit-' + rowIndex + '-' + column.id"
+                      [checked]="getCellValue(row, column)"
+                      (change)="onCellChange(rowIndex, column, $event)"
+                      class="w-5 h-5 accent-black"
+                    />
+                    <span class="text-sm text-zinc-700">Toggle</span>
+                  </div>
+                } @else if (column.cellType === 'select') {
+                  <select
+                    [id]="'edit-' + rowIndex + '-' + column.id"
+                    [value]="getInputValue(row, column)"
+                    (change)="onCellChange(rowIndex, column, $event)"
+                    class="w-full px-3 py-2 text-sm bg-white border border-zinc-200 focus:outline-none focus:border-black"
+                  >
+                    @for (option of column.selectOptions; track option.value) {
+                      <option [value]="option.value">{{ option.label }}</option>
+                    }
+                  </select>
+                } @else {
+                  <input
+                    [id]="'edit-' + rowIndex + '-' + column.id"
+                    [type]="column.cellType === 'number' ? 'number' : 'text'"
+                    [value]="getInputValue(row, column)"
+                    (input)="onCellChange(rowIndex, column, $event)"
+                    class="w-full px-3 py-2 text-sm bg-white border border-zinc-200 focus:outline-none focus:border-black"
+                  />
+                }
+              </div>
+            }
+          }
+          <button
+            type="button"
+            (click)="closeEdit()"
+            class="w-full px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white bg-black hover:bg-zinc-800"
+          >
+            Done
+          </button>
+        </div>
+      </app-bottom-sheet>
     </article>
   }
 

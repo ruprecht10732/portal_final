@@ -194,8 +194,8 @@
   </div>
 </div>
 
-<!-- Filter panel -->
-@if (showFilters()) {
+<!-- Filter panel (Desktop) -->
+@if (showFilters() && !isMobile()) {
   <div 
     id="filter-panel"
     class="flex flex-wrap items-center gap-2 p-3 border-b border-zinc-200 bg-white"
@@ -273,4 +273,101 @@
       }
     </div>
   </div>
+}
+
+<!-- Filter panel (Mobile bottom sheet) -->
+@if (isMobile()) {
+  <app-bottom-sheet
+    [isOpen]="showFilters()"
+    title="Filters"
+    (close)="closeFilters()"
+  >
+    <div 
+      id="filter-panel"
+      class="flex flex-col gap-3 p-4"
+    >
+      <!-- Active filters -->
+      @if (filters().length > 0) {
+        <div class="flex flex-wrap gap-2">
+          @for (filter of filters(); track filter.columnId) {
+            <div class="flex items-center gap-1.5 pl-3 pr-1 py-1 text-xs bg-zinc-100">
+              <span class="font-medium">
+                {{ columns() | columnLabel:filter.columnId }}:
+              </span>
+              <span class="text-zinc-700">{{ filter.value }}</span>
+              <button
+                type="button"
+                (click)="removeFilter(filter.columnId)"
+                class="ml-1 p-1.5 min-w-[32px] min-h-[32px] flex items-center justify-center text-zinc-500 hover:text-black hover:bg-zinc-200 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1 transition-colors"
+                [attr.aria-label]="'Remove ' + (columns() | columnLabel:filter.columnId) + ' filter'"
+              >
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Add filter dropdown -->
+      <div class="flex flex-col gap-3">
+        @if (!activeFilterColumn()) {
+          <label for="add-filter-select-mobile" class="text-xs font-semibold uppercase tracking-wide text-zinc-500">
+            Add Filter
+          </label>
+          <div class="relative">
+            <select
+              id="add-filter-select-mobile"
+              (change)="selectFilterColumn($any($event.target).value)"
+              class="w-full appearance-none px-3 py-2 pr-8 text-sm bg-white border border-zinc-200 focus:outline-none focus:border-black cursor-pointer"
+            >
+              <option value="">Select column</option>
+              @for (col of filterableColumns(); track col.id) {
+                <option [value]="col.id">{{ col.header }}</option>
+              }
+            </select>
+            <svg 
+              class="absolute right-2 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400 pointer-events-none" 
+              fill="none" 
+              viewBox="0 0 24 24" 
+              stroke="currentColor"
+            >
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          </div>
+        } @else {
+          <div class="flex flex-col gap-3">
+            <span class="text-sm font-medium text-zinc-700">
+              {{ activeFilterColumnData()?.header }}
+            </span>
+            <input
+              type="text"
+              [(ngModel)]="filterValue"
+              (keydown.enter)="applyFilter()"
+              placeholder="Enter value..."
+              class="w-full px-3 py-2 text-sm bg-white border border-zinc-200 focus:outline-none focus:border-black"
+              [attr.aria-label]="'Filter value for ' + activeFilterColumnData()?.header"
+            />
+            <div class="flex gap-2">
+              <button
+                type="button"
+                (click)="applyFilter()"
+                class="flex-1 px-3 py-2 text-sm font-semibold text-white bg-black hover:bg-zinc-800"
+              >
+                Apply
+              </button>
+              <button
+                type="button"
+                (click)="activeFilterColumn.set(null)"
+                class="flex-1 px-3 py-2 text-sm font-semibold text-zinc-600 hover:text-black border border-zinc-200"
+              >
+                Cancel
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </app-bottom-sheet>
 }

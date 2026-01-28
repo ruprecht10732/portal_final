@@ -7,7 +7,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
-  effect,
   input,
   output,
   signal,
@@ -96,6 +95,12 @@ export class DataGridToolbarComponent<T = unknown> {
 
   protected toggleFilters(): void {
     this.showFilters.update(v => !v);
+  }
+
+  protected closeFilters(): void {
+    this.showFilters.set(false);
+    this.activeFilterColumn.set(null);
+    this.filterValue.set('');
   }
 
   protected selectFilterColumn(columnId: string): void {

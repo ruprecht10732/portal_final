@@ -15,12 +15,13 @@ import {
 import { FormsModule } from '@angular/forms';
 import { GridColumn, RowState, CellEditEvent } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
+import { BottomSheetComponent } from '../bottom-sheet';
 
 @Component({
   selector: 'data-grid-cards',
   templateUrl: './data-grid-cards.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, OptionLabelPipe],
+  imports: [FormsModule, OptionLabelPipe, BottomSheetComponent],
 })
 export class DataGridCardsComponent<T extends Record<string, unknown>> {
   // ============ Inputs ============
@@ -62,8 +63,8 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   /** Track which cards are expanded */
   protected readonly expandedCards = signal<Set<number>>(new Set());
   
-  /** Track which cards are in edit mode */
-  protected readonly editingCards = signal<Set<number>>(new Set());
+  /** Track which card is in edit mode */
+  protected readonly editingCardIndex = signal<number | null>(null);
 
   // ============ Computed Values ============
   
@@ -88,6 +89,11 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
       .filter(col => col.visible !== false && col.field !== titleField)
       .slice(count);
   });
+
+  /** Editable columns (visible) */
+  protected readonly editableColumns = computed(() =>
+    this.columns().filter(col => col.visible !== false && col.editable)
+  );
 
   /** Whether cards have expandable content */
   protected readonly hasExpandableContent = computed(() => 
@@ -145,22 +151,23 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   /** Toggle edit mode for card */
   protected toggleEdit(index: number, event: Event): void {
     event.stopPropagation();
-    this.editingCards.update(set => {
-      const newSet = new Set(set);
-      if (newSet.has(index)) {
-        newSet.delete(index);
-      } else {
-        newSet.add(index);
-        // Also expand when editing
-        this.expandedCards.update(s => new Set(s).add(index));
-      }
-      return newSet;
-    });
+    const current = this.editingCardIndex();
+    if (current === index) {
+      this.editingCardIndex.set(null);
+      return;
+    }
+    this.editingCardIndex.set(index);
+    // Also expand when editing
+    this.expandedCards.update(s => new Set(s).add(index));
   }
 
   /** Check if card is in edit mode */
   protected isEditing(index: number): boolean {
-    return this.editingCards().has(index);
+    return this.editingCardIndex() === index;
+  }
+
+  protected closeEdit(): void {
+    this.editingCardIndex.set(null);
   }
 
   /** Handle row selection */
