@@ -1,0 +1,61 @@
+<main class="min-h-screen bg-zinc-50 flex flex-col">
+  <section class="flex-1 flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md bg-white border border-zinc-200 p-6 sm:p-8 space-y-6">
+      <header class="space-y-2 text-left">
+        <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Welcome back</p>
+        <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Sign In</h1>
+        <p class="text-sm text-zinc-500">Use your account credentials to continue.</p>
+      </header>
+
+      @if (globalError()) {
+        <div
+          role="alert"
+          aria-live="polite"
+          class="border border-red-200 bg-red-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-red-600"
+        >
+          {{ globalError() }}
+        </div>
+      }
+
+      <form class="space-y-5" (submit)="onSubmit($event)">
+        <shared-input
+          [(value)]="email"
+          label="Email"
+          placeholder="name@company.com"
+          [required]="true"
+          [error]="emailError()"
+        />
+
+        <shared-input
+          [(value)]="password"
+          label="Password"
+          placeholder="••••••••"
+          type="password"
+          [required]="true"
+          [passwordToggle]="true"
+          [clearable]="false"
+          [error]="passwordError()"
+        />
+
+        <div class="flex items-center justify-between text-xs uppercase tracking-widest font-semibold text-zinc-400">
+          <span>Secure access</span>
+          <a class="text-black hover:text-zinc-600" routerLink="/forgot-password">Forgot password?</a>
+        </div>
+
+        <shared-button
+          [type]="'submit'"
+          [loading]="isSubmitting()"
+          [disabled]="!canSubmit()"
+          ariaLabel="Sign in"
+        >
+          Sign In
+        </shared-button>
+      </form>
+
+      <footer class="text-xs uppercase tracking-widest font-semibold text-zinc-400">
+        New here?
+        <a class="text-black hover:text-zinc-600" routerLink="/sign-up">Create an account</a>
+      </footer>
+    </div>
+  </section>
+</main>

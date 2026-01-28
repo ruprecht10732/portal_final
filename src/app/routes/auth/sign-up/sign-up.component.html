@@ -1,0 +1,70 @@
+<main class="min-h-screen bg-zinc-50 flex flex-col">
+  <section class="flex-1 flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md bg-white border border-zinc-200 p-6 sm:p-8 space-y-6">
+      <header class="space-y-2 text-left">
+        <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Create account</p>
+        <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Sign Up</h1>
+        <p class="text-sm text-zinc-500">Start your portal workspace in minutes.</p>
+      </header>
+
+      <form class="space-y-5" (submit)="onSubmit($event)">
+        <shared-input
+          [(value)]="email"
+          label="Email"
+          placeholder="name@company.com"
+          [required]="true"
+          [error]="emailError()"
+        />
+
+        <shared-input
+          [(value)]="password"
+          label="Password"
+          placeholder="Create a password"
+          type="password"
+          [required]="true"
+          [passwordToggle]="true"
+          [clearable]="false"
+          [error]="passwordError()"
+        />
+
+        <div class="space-y-2">
+          <p class="text-[10px] uppercase tracking-widest font-semibold text-zinc-400">Password checklist</p>
+          <ul class="space-y-2">
+            @for (rule of passwordRules(); track rule.label) {
+              <li class="flex items-center gap-2 text-xs uppercase tracking-wide font-semibold"
+                  [class.text-emerald-600]="rule.met"
+                  [class.text-red-500]="!rule.met">
+                <span class="inline-flex h-4 w-4 items-center justify-center border"
+                      [class.border-emerald-600]="rule.met"
+                      [class.border-red-500]="!rule.met">
+                  @if (rule.met) {
+                    <svg class="w-3 h-3" viewBox="0 0 20 20" fill="currentColor">
+                      <path fill-rule="evenodd" d="M16.704 5.296a1 1 0 010 1.408l-7.25 7.25a1 1 0 01-1.408 0l-3.75-3.75a1 1 0 111.408-1.408l3.046 3.046 6.546-6.546a1 1 0 011.408 0z" clip-rule="evenodd" />
+                    </svg>
+                  } @else {
+                    <span class="w-2 h-2 bg-red-500"></span>
+                  }
+                </span>
+                {{ rule.label }}
+              </li>
+            }
+          </ul>
+        </div>
+
+        <shared-button
+          [type]="'submit'"
+          [loading]="isSubmitting()"
+          [disabled]="!canSubmit()"
+          ariaLabel="Create account"
+        >
+          Create account
+        </shared-button>
+      </form>
+
+      <footer class="text-xs uppercase tracking-widest font-semibold text-zinc-400">
+        Already have an account?
+        <a class="text-black hover:text-zinc-600" routerLink="/sign-in">Sign in</a>
+      </footer>
+    </div>
+  </section>
+</main>

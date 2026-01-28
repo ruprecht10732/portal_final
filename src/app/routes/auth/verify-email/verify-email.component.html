@@ -1,0 +1,43 @@
+<main class="min-h-screen bg-zinc-50 flex flex-col">
+  <section class="flex-1 flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-md bg-white border border-zinc-200 p-6 sm:p-8 space-y-6 text-left">
+      @if (isMissing()) {
+        <header class="space-y-2">
+          <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Invalid link</p>
+          <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Verification failed</h1>
+          <p class="text-sm text-zinc-500">Your verification link is missing or invalid.</p>
+        </header>
+        <div class="border border-red-200 bg-red-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-red-600">
+          Please request a new verification email.
+        </div>
+        <shared-button routerLink="/check-email" ariaLabel="Request verification email">
+          Request new email
+        </shared-button>
+      } @else if (isExpired()) {
+        <header class="space-y-2">
+          <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Link expired</p>
+          <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Verification expired</h1>
+          <p class="text-sm text-zinc-500">Your verification link expired. Request a new one.</p>
+        </header>
+        <div class="border border-amber-200 bg-amber-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-amber-600">
+          For security, links only work for a limited time.
+        </div>
+        <shared-button routerLink="/check-email" ariaLabel="Request new verification email">
+          Request new email
+        </shared-button>
+      } @else {
+        <header class="space-y-2">
+          <p class="text-[10px] uppercase tracking-[0.35em] text-emerald-500 font-semibold">Success</p>
+          <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Email verified</h1>
+          <p class="text-sm text-zinc-500">Your account is ready to use.</p>
+        </header>
+        <div class="border border-emerald-200 bg-emerald-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-emerald-600">
+          You can now sign in with your credentials.
+        </div>
+        <shared-button routerLink="/sign-in" ariaLabel="Go to login">
+          Go to login
+        </shared-button>
+      }
+    </div>
+  </section>
+</main>

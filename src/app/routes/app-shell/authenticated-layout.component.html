@@ -1,0 +1,39 @@
+<main class="min-h-screen bg-zinc-50 flex flex-col">
+  <header class="border-b border-zinc-200 bg-white">
+    <div class="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
+      <div class="space-y-1">
+        <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Portal</p>
+        <h1 class="text-lg font-bold uppercase tracking-tight">Authenticated</h1>
+      </div>
+      <div class="flex items-center gap-3">
+        <shared-button variant="ghost" size="compact" (clicked)="openTimeoutWarning()" ariaLabel="Show session warning">
+          Session warning
+        </shared-button>
+        <shared-button variant="secondary" size="compact" routerLink="/sign-in" ariaLabel="Sign out">
+          Sign out
+        </shared-button>
+      </div>
+    </div>
+  </header>
+
+  <section class="flex-1">
+    <router-outlet />
+  </section>
+
+  @if (showTimeoutWarning()) {
+    <dialog open class="fixed inset-0 bg-black/50 flex items-center justify-center p-4">
+      <div class="w-full max-w-md bg-white border border-zinc-200 p-6 space-y-4">
+        <h2 class="text-xl font-bold uppercase tracking-tight">Session expiring</h2>
+        <p class="text-sm text-zinc-500">Your session is about to expire due to inactivity.</p>
+        <div class="grid grid-cols-2 gap-3">
+          <shared-button variant="secondary" (clicked)="closeTimeoutWarning()" ariaLabel="Stay signed in">
+            Stay signed in
+          </shared-button>
+          <shared-button variant="danger" routerLink="/sign-in" ariaLabel="Sign out now">
+            Sign out
+          </shared-button>
+        </div>
+      </div>
+    </dialog>
+  }
+</main>
