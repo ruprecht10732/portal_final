@@ -32,6 +32,7 @@ export class CalendarGridComponent {
   protected readonly selectedStart = signal<string | null>(null);
   protected readonly selectedEnd = signal<string | null>(null);
   protected readonly hoverIso = signal<string | null>(null);
+  readonly selectedTime = model<number | null>(null);
   readonly view = model<'day' | 'week' | 'month'>('month');
   readonly firstDayOfWeek = input(0);
   readonly allowRange = input(true);
@@ -193,6 +194,7 @@ export class CalendarGridComponent {
   protected selectDay(day: CalendarDay): void {
     if (this.isUnavailable(day)) return;
     this.hoverIso.set(null);
+    this.selectedTime.set(null);
     if (!this.allowRange()) {
       this.selectedStart.set(day.iso);
       this.selectedEnd.set(null);

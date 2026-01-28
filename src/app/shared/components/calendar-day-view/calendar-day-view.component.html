@@ -14,11 +14,15 @@
     @for (hour of hours(); track hour.value) {
       <li class="day-row">
         <div class="time-label">{{ hour.label }}</div>
-        <div
+        <button
+          type="button"
           class="time-slot"
           [class.is-blocked]="isBlocked(hour.value)"
-          [attr.aria-label]="isBlocked(hour.value) ? 'Unavailable time' : null"
-        ></div>
+          [class.is-selected]="selectedTime() === hour.value"
+          [disabled]="isBlocked(hour.value)"
+          (click)="selectHour(hour.value)"
+          [attr.aria-label]="isBlocked(hour.value) ? 'Unavailable time' : 'Select time'"
+        ></button>
       </li>
     }
   </ul>

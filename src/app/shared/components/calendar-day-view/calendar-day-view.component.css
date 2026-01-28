@@ -67,6 +67,25 @@
   height: 2rem;
   border: 1px dashed #e4e4e7;
   background: linear-gradient(90deg, #fafafa, #fff);
+  width: 100%;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.time-slot:hover {
+  border-color: #18181b;
+}
+
+.time-slot.is-selected {
+  border-style: solid;
+  border-color: #18181b;
+  background: #18181b;
+  color: #fff;
+}
+
+.time-slot:focus-visible {
+  outline: 2px solid #18181b;
+  outline-offset: 2px;
 }
 
 .time-slot.is-blocked {
@@ -79,6 +98,7 @@
     #e4e4e7 6px,
     #e4e4e7 12px
   );
+  cursor: not-allowed;
 }
 
 @media (min-width: 640px) {

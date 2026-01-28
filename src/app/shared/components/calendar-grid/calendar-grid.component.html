@@ -78,7 +78,9 @@
         [hourStep]="dayViewHourStep()"
         [blockedHours]="dayViewBlockedHours()"
         [blockedRanges]="dayViewBlockedRanges()"
+        [selectedTime]="selectedTime()"
         (selected)="selectDay($event)"
+        (timeSelected)="selectedTime.set($event)"
       />
     }
     @case ('week') {
