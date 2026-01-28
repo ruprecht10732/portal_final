@@ -69,6 +69,18 @@
   background: linear-gradient(90deg, #fafafa, #fff);
 }
 
+.time-slot.is-blocked {
+  border-style: solid;
+  border-color: #a1a1aa;
+  background: repeating-linear-gradient(
+    135deg,
+    #f4f4f5,
+    #f4f4f5 6px,
+    #e4e4e7 6px,
+    #e4e4e7 12px
+  );
+}
+
 @media (min-width: 640px) {
   .day-summary {
     align-items: center;

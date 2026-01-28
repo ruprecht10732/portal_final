@@ -26,6 +26,8 @@ export class CalendarDayViewComponent {
   readonly startHour = input(8);
   readonly endHour = input(18);
   readonly hourStep = input(1);
+  readonly blockedHours = input<readonly number[]>([]);
+  readonly blockedRanges = input<readonly { start: number; end: number }[]>([]);
   readonly selected = output<CalendarDayViewModel>();
 
   protected readonly dayTitle = computed(() => {
@@ -65,5 +67,10 @@ export class CalendarDayViewComponent {
     const day = this.day();
     if (!day || this.isUnavailable()) return;
     this.selected.emit(day);
+  }
+
+  protected isBlocked(hour: number): boolean {
+    if (this.blockedHours().includes(hour)) return true;
+    return this.blockedRanges().some(range => hour >= range.start && hour < range.end);
   }
 }

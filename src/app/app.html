@@ -95,7 +95,19 @@
               hint="Autocomplete uses Angular Aria combobox patterns."
             />
 
-            <shared-calendar-grid [unavailableDates]="unavailableDates" />
+            <shared-calendar-grid
+              [unavailableDates]="unavailableDates"
+              [showLegend]="true"
+              [showViews]="true"
+              [showToday]="true"
+              [showNav]="true"
+              [(view)]="calendarView"
+              [dayViewStartHour]="dayViewStartHour"
+              [dayViewEndHour]="dayViewEndHour"
+              [dayViewHourStep]="dayViewHourStep"
+              [dayViewBlockedHours]="dayViewBlockedHours"
+              [dayViewBlockedRanges]="dayViewBlockedRanges"
+            />
 
             <shared-checkbox 
               [(checked)]="agreeToTerms" 

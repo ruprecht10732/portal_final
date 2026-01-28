@@ -14,7 +14,11 @@
     @for (hour of hours(); track hour.value) {
       <li class="day-row">
         <div class="time-label">{{ hour.label }}</div>
-        <div class="time-slot" aria-hidden="true"></div>
+        <div
+          class="time-slot"
+          [class.is-blocked]="isBlocked(hour.value)"
+          [attr.aria-label]="isBlocked(hour.value) ? 'Unavailable time' : null"
+        ></div>
       </li>
     }
   </ul>

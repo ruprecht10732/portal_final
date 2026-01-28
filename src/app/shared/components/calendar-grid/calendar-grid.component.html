@@ -73,6 +73,11 @@
       <shared-calendar-day-view
         [day]="activeDay()"
         [isUnavailable]="isUnavailable(activeDay())"
+        [startHour]="dayViewStartHour()"
+        [endHour]="dayViewEndHour()"
+        [hourStep]="dayViewHourStep()"
+        [blockedHours]="dayViewBlockedHours()"
+        [blockedRanges]="dayViewBlockedRanges()"
         (selected)="selectDay($event)"
       />
     }

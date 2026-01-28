@@ -31,6 +31,7 @@ export class App {
   country = signal('us');
   resources = signal<string[]>([]);
   framework = signal('');
+  calendarView = signal<'day' | 'week' | 'month'>('day');
   agreeToTerms = signal(false);
   activeTab = signal('profile');
 
@@ -105,5 +106,14 @@ export class App {
     '2026-01-14',
     '2026-01-21',
     '2026-01-26',
+  ];
+
+  dayViewStartHour = 8;
+  dayViewEndHour = 20;
+  dayViewHourStep = 1;
+  dayViewBlockedHours = [12, 13, 17];
+  dayViewBlockedRanges = [
+    { start: 9, end: 10 },
+    { start: 15, end: 16 },
   ];
 }

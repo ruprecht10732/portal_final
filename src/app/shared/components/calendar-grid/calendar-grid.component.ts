@@ -40,6 +40,11 @@ export class CalendarGridComponent {
   readonly showToday = input(true);
   readonly showLegend = input(true);
   readonly showNav = input(true);
+  readonly dayViewStartHour = input(8);
+  readonly dayViewEndHour = input(18);
+  readonly dayViewHourStep = input(1);
+  readonly dayViewBlockedHours = input<readonly number[]>([]);
+  readonly dayViewBlockedRanges = input<readonly { start: number; end: number }[]>([]);
 
   private readonly uid = 'calendar-' + Math.random().toString(36).substring(2, 9);
   protected readonly gridLabelId = `${this.uid}-label`;
