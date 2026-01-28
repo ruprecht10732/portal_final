@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   input,
+  model,
   signal,
   viewChildren,
 } from '@angular/core';
@@ -29,6 +30,7 @@ export class CalendarGridComponent {
   protected readonly currentMonth = signal(new Date());
   protected readonly selectedStart = signal<string | null>(null);
   protected readonly selectedEnd = signal<string | null>(null);
+  readonly view = model<'day' | 'week' | 'month'>('month');
   readonly firstDayOfWeek = input(0);
   readonly allowRange = input(true);
   readonly unavailableDates = input<readonly string[]>([]);
@@ -40,6 +42,62 @@ export class CalendarGridComponent {
   protected readonly monthLabel = computed(() => {
     const date = this.currentMonth();
     return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
+  });
+
+  protected readonly activeDate = computed(() => {
+    const selected = this.selectedStart();
+    if (selected) return new Date(selected);
+    return new Date();
+  });
+
+  protected readonly activeDay = computed<CalendarDay>(() => {
+    const date = this.activeDate();
+    return {
+      displayName: String(date.getDate()),
+      ariaLabel: date.toLocaleDateString('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }),
+      iso: date.toISOString().slice(0, 10),
+      inMonth: true,
+      day: date.getDate(),
+    };
+  });
+
+  protected readonly activeDayTitle = computed(() => {
+    const date = this.activeDate();
+    return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
+  });
+
+  protected readonly activeDaySubtitle = computed(() => {
+    const date = this.activeDate();
+    return new Intl.DateTimeFormat('en-US', {
+      month: 'long',
+      day: 'numeric',
+      year: 'numeric',
+    }).format(date);
+  });
+
+  protected readonly headerLabel = computed(() => {
+    const view = this.view();
+    const active = this.activeDate();
+    if (view === 'day') {
+      return new Intl.DateTimeFormat('en-US', {
+        weekday: 'long',
+        month: 'long',
+        day: 'numeric',
+        year: 'numeric',
+      }).format(active);
+    }
+    if (view === 'week') {
+      const [start, end] = this.weekRange(active);
+      const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
+      const year = new Intl.DateTimeFormat('en-US', { year: 'numeric' }).format(active);
+      return `${formatter.format(start)} - ${formatter.format(end)}, ${year}`;
+    }
+    return this.monthLabel();
   });
 
   private readonly firstWeekOffset = computed(() => {
@@ -98,11 +156,35 @@ export class CalendarGridComponent {
     return weeks;
   });
 
+  protected readonly weekDays = computed(() => {
+    const active = this.activeDate();
+    const [start] = this.weekRange(active);
+    const days: CalendarDay[] = [];
+    for (let i = 0; i < 7; i++) {
+      const date = new Date(start);
+      date.setDate(start.getDate() + i);
+      days.push({
+        displayName: String(date.getDate()),
+        ariaLabel: date.toLocaleDateString('en-US', {
+          weekday: 'long',
+          month: 'long',
+          day: 'numeric',
+          year: 'numeric',
+        }),
+        iso: date.toISOString().slice(0, 10),
+        inMonth: date.getMonth() === this.currentMonth().getMonth(),
+        day: date.getDate(),
+      });
+    }
+    return days;
+  });
+
   protected selectDay(day: CalendarDay): void {
     if (this.isUnavailable(day)) return;
     if (!this.allowRange()) {
       this.selectedStart.set(day.iso);
       this.selectedEnd.set(null);
+      this.currentMonth.set(new Date(day.iso));
       return;
     }
 
@@ -122,6 +204,7 @@ export class CalendarGridComponent {
     }
 
     this.selectedEnd.set(day.iso);
+    this.currentMonth.set(new Date(day.iso));
   }
 
   protected isSelected(day: CalendarDay): boolean {
@@ -171,6 +254,32 @@ export class CalendarGridComponent {
     this.currentMonth.set(new Date(date.getFullYear(), date.getMonth() + 1, 1));
   }
 
+  protected previousPeriod(): void {
+    const view = this.view();
+    if (view === 'month') {
+      this.previousMonth();
+      return;
+    }
+    if (view === 'week') {
+      this.shiftActiveDate(-7);
+      return;
+    }
+    this.shiftActiveDate(-1);
+  }
+
+  protected nextPeriod(): void {
+    const view = this.view();
+    if (view === 'month') {
+      this.nextMonth();
+      return;
+    }
+    if (view === 'week') {
+      this.shiftActiveDate(7);
+      return;
+    }
+    this.shiftActiveDate(1);
+  }
+
   protected scrollDown(): void {
     this.nextMonth();
     setTimeout(() => this.dayButtons()[0]?.element.focus());
@@ -201,6 +310,25 @@ export class CalendarGridComponent {
   private daysInViewMonth(): number {
     const date = this.currentMonth();
     return new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate();
+  }
+
+  private weekRange(date: Date): [Date, Date] {
+    const firstDay = this.firstDayOfWeek();
+    const start = new Date(date);
+    const offset = (7 + start.getDay() - firstDay) % 7;
+    start.setDate(start.getDate() - offset);
+    const end = new Date(start);
+    end.setDate(start.getDate() + 6);
+    return [start, end];
+  }
+
+  private shiftActiveDate(days: number): void {
+    const active = this.activeDate();
+    active.setDate(active.getDate() + days);
+    const iso = active.toISOString().slice(0, 10);
+    this.selectedStart.set(iso);
+    this.selectedEnd.set(null);
+    this.currentMonth.set(new Date(active.getFullYear(), active.getMonth(), 1));
   }
 
   private compareIso(a: string, b: string): number {

@@ -1,15 +1,44 @@
 <div class="calendar basic-calendar">
   <div class="calendar-header">
     <div class="calendar-title">
-      <h3 [id]="gridLabelId" aria-live="polite">{{ monthLabel() }}</h3>
+      <h3 [id]="gridLabelId" aria-live="polite">{{ headerLabel() }}</h3>
+    </div>
+    <div class="calendar-views" role="tablist" aria-label="Calendar views">
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="view() === 'day'"
+        (click)="view.set('day')"
+        class="view-button"
+      >
+        Day
+      </button>
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="view() === 'week'"
+        (click)="view.set('week')"
+        class="view-button"
+      >
+        Week
+      </button>
+      <button
+        type="button"
+        role="tab"
+        [attr.aria-selected]="view() === 'month'"
+        (click)="view.set('month')"
+        class="view-button"
+      >
+        Month
+      </button>
     </div>
     <div class="calendar-actions">
-      <button class="month-control" aria-label="previous month" (click)="previousMonth()">
+      <button class="month-control" aria-label="previous" (click)="previousPeriod()">
         <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_left</span>
         <span class="visually-hidden">Previous month</span>
       </button>
       <button type="button" class="today-button" (click)="selectToday()">Today</button>
-      <button class="month-control" aria-label="next month" (click)="nextMonth()">
+      <button class="month-control" aria-label="next" (click)="nextPeriod()">
         <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_right</span>
         <span class="visually-hidden">Next month</span>
       </button>
@@ -20,43 +49,53 @@
     Use arrow keys to move between days. Press Enter to select. Use the Today button to jump to the current date.
   </p>
 
-  <table
-    ngGrid
-    colWrap="continuous"
-    rowWrap="nowrap"
-    [enableSelection]="true"
-    [softDisabled]="false"
-    selectionMode="explicit"
-    (keydown)="onKeyDown($event)"
-    [attr.aria-labelledby]="gridLabelId"
-    [attr.aria-describedby]="instructionsId"
-  >
-    <thead>
-      <tr>
-        @for (day of weekdays(); track day.long; let i = $index) {
-          <th scope="col">
-            <span class="visually-hidden">{{ day.long }}</span>
-            <span aria-hidden="true">{{ day.narrow }}</span>
-          </th>
-        }
-      </tr>
-    </thead>
-    @for (week of weeks(); track $index; let rowIndex = $index) {
-      <tr ngGridRow>
-        @if ($first) {
-          @for (day of daysFromPrevMonth(); track day) {
-            <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ day }}</td>
-          }
-        }
-        @for (day of week; track day.iso; let colIndex = $index) {
-          <td
-            ngGridCell
-            #cell="ngGridCell"
-            [rowIndex]="rowIndex"
-            [colIndex]="colIndex"
-            [selected]="isSelected(day)"
-            [class.is-active]="cell.active()"
-             [attr.aria-disabled]="isUnavailable(day) || null">
+  @switch (view()) {
+    @case ('day') {
+      <div class="day-view" [attr.aria-labelledby]="gridLabelId">
+        <button
+          type="button"
+          class="day-button day-view-button"
+          [attr.aria-label]="activeDay().ariaLabel"
+          [disabled]="isUnavailable(activeDay())"
+          (click)="selectDay(activeDay())"
+          [class.is-unavailable]="isUnavailable(activeDay())"
+        >
+          {{ activeDayTitle() }}
+          <span class="day-view-date">{{ activeDaySubtitle() }}</span>
+        </button>
+      </div>
+    }
+    @case ('week') {
+      <table
+        ngGrid
+        colWrap="continuous"
+        rowWrap="nowrap"
+        [enableSelection]="true"
+        [softDisabled]="false"
+        selectionMode="explicit"
+        [attr.aria-labelledby]="gridLabelId"
+        [attr.aria-describedby]="instructionsId"
+      >
+        <thead>
+          <tr>
+            @for (day of weekdays(); track day.long; let i = $index) {
+              <th scope="col">
+                <span class="visually-hidden">{{ day.long }}</span>
+                <span aria-hidden="true">{{ day.narrow }}</span>
+              </th>
+            }
+          </tr>
+        </thead>
+        <tr ngGridRow>
+          @for (day of weekDays(); track day.iso; let colIndex = $index) {
+            <td
+              ngGridCell
+              #cell="ngGridCell"
+              [rowIndex]="0"
+              [colIndex]="colIndex"
+              [selected]="isSelected(day)"
+              [class.is-active]="cell.active()"
+              [attr.aria-disabled]="isUnavailable(day) || null">
                <button
                  type="button"
                  ngGridCellWidget
@@ -74,14 +113,76 @@
                >
                  {{ day.displayName }}
                </button>
-          </td>
-        }
-        @if ($last && week.length + daysFromPrevMonth().length < 7) {
-          @for (day of [].constructor(7 - week.length - daysFromPrevMonth().length); track $index) {
-            <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ $index + 1 }}</td>
+            </td>
           }
-        }
-      </tr>
+        </tr>
+      </table>
     }
-  </table>
+    @default {
+      <table
+        ngGrid
+        colWrap="continuous"
+        rowWrap="nowrap"
+        [enableSelection]="true"
+        [softDisabled]="false"
+        selectionMode="explicit"
+        (keydown)="onKeyDown($event)"
+        [attr.aria-labelledby]="gridLabelId"
+        [attr.aria-describedby]="instructionsId"
+      >
+        <thead>
+          <tr>
+            @for (day of weekdays(); track day.long; let i = $index) {
+              <th scope="col">
+                <span class="visually-hidden">{{ day.long }}</span>
+                <span aria-hidden="true">{{ day.narrow }}</span>
+              </th>
+            }
+          </tr>
+        </thead>
+        @for (week of weeks(); track $index; let rowIndex = $index) {
+          <tr ngGridRow>
+            @if ($first) {
+              @for (day of daysFromPrevMonth(); track day) {
+                <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ day }}</td>
+              }
+            }
+            @for (day of week; track day.iso; let colIndex = $index) {
+              <td
+                ngGridCell
+                #cell="ngGridCell"
+                [rowIndex]="rowIndex"
+                [colIndex]="colIndex"
+                [selected]="isSelected(day)"
+                [class.is-active]="cell.active()"
+                [attr.aria-disabled]="isUnavailable(day) || null">
+                 <button
+                   type="button"
+                   ngGridCellWidget
+                   [attr.aria-label]="day.ariaLabel"
+                   [attr.data-day]="day.day"
+                   (click)="selectDay(day)"
+                   (keydown.enter)="selectDay(day)"
+                   class="day-button"
+                   [class.in-range]="isInRange(day)"
+                   [class.is-selected]="isSelected(day)"
+                   [class.range-start]="isRangeStart(day)"
+                   [class.range-end]="isRangeEnd(day)"
+                   [class.is-today]="isToday(day)"
+                   [class.is-unavailable]="isUnavailable(day)"
+                 >
+                   {{ day.displayName }}
+                 </button>
+              </td>
+            }
+            @if ($last && week.length + daysFromPrevMonth().length < 7) {
+              @for (day of [].constructor(7 - week.length - daysFromPrevMonth().length); track $index) {
+                <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ $index + 1 }}</td>
+              }
+            }
+          </tr>
+        }
+      </table>
+    }
+  }
 </div>
