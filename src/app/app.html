@@ -79,6 +79,14 @@
               placeholder="Select your country"
             />
 
+            <shared-multiselect
+              [(value)]="resources"
+              [options]="resourceOptions"
+              label="Angular Resources"
+              placeholder="Select topics"
+              hint="Choose multiple topics to follow."
+            />
+
             <shared-checkbox 
               [(checked)]="agreeToTerms" 
               label="I agree to the terms of service"
