@@ -208,53 +208,33 @@
           } @else {
             @for (column of editableColumns(); track column.id) {
               <div class="flex flex-col gap-2">
-                <label
-                  class="text-xs font-semibold uppercase tracking-wide text-zinc-500"
-                  [attr.for]="'edit-' + rowIndex + '-' + column.id"
-                >
-                  {{ column.header }}
-                </label>
                 @if (column.cellType === 'boolean') {
-                  <div class="flex items-center gap-3">
-                    <input
-                      type="checkbox"
-                      [id]="'edit-' + rowIndex + '-' + column.id"
-                      [checked]="getCellValue(row, column)"
-                      (change)="onCellChange(rowIndex, column, $event)"
-                      class="w-5 h-5 accent-black"
-                    />
-                    <span class="text-sm text-zinc-700">Toggle</span>
-                  </div>
+                  <shared-checkbox
+                    [checked]="!!getCellValue(row, column)"
+                    (checkedChange)="onCellValueChange(rowIndex, column, $event)"
+                    [label]="column.header"
+                  />
                 } @else if (column.cellType === 'select') {
-                  <select
-                    [id]="'edit-' + rowIndex + '-' + column.id"
+                  <shared-select
+                    [options]="column.selectOptions ?? []"
                     [value]="getInputValue(row, column)"
-                    (change)="onCellChange(rowIndex, column, $event)"
-                    class="w-full px-3 py-2 text-sm bg-white border border-zinc-200 focus:outline-none focus:border-black"
-                  >
-                    @for (option of column.selectOptions; track option.value) {
-                      <option [value]="option.value">{{ option.label }}</option>
-                    }
-                  </select>
+                    (valueChange)="onCellValueChange(rowIndex, column, $event)"
+                    [label]="column.header"
+                    placeholder="Select an option"
+                  />
                 } @else {
-                  <input
-                    [id]="'edit-' + rowIndex + '-' + column.id"
+                  <shared-input
                     [type]="column.cellType === 'number' ? 'number' : 'text'"
-                    [value]="getInputValue(row, column)"
-                    (input)="onCellChange(rowIndex, column, $event)"
-                    class="w-full px-3 py-2 text-sm bg-white border border-zinc-200 focus:outline-none focus:border-black"
+                    [value]="getInputString(row, column)"
+                    (valueChange)="onCellValueChange(rowIndex, column, $event)"
+                    [label]="column.header"
+                    placeholder="Enter value"
                   />
                 }
               </div>
             }
           }
-          <button
-            type="button"
-            (click)="closeEdit()"
-            class="w-full px-4 py-2 text-sm font-semibold uppercase tracking-wide text-white bg-black hover:bg-zinc-800"
-          >
-            Done
-          </button>
+          <shared-button (clicked)="closeEdit()">Done</shared-button>
         </div>
       </app-bottom-sheet>
     </article>

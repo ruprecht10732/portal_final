@@ -16,12 +16,24 @@ import { FormsModule } from '@angular/forms';
 import { GridColumn, RowState, CellEditEvent } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
 import { BottomSheetComponent } from '../bottom-sheet';
+import { InputComponent } from '../input/input.component';
+import { SelectComponent } from '../select/select.component';
+import { CheckboxComponent } from '../checkbox/checkbox.component';
+import { ButtonComponent } from '../button/button.component';
 
 @Component({
   selector: 'data-grid-cards',
   templateUrl: './data-grid-cards.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FormsModule, OptionLabelPipe, BottomSheetComponent],
+  imports: [
+    FormsModule,
+    OptionLabelPipe,
+    BottomSheetComponent,
+    InputComponent,
+    SelectComponent,
+    CheckboxComponent,
+    ButtonComponent,
+  ],
 })
 export class DataGridCardsComponent<T extends Record<string, unknown>> {
   // ============ Inputs ============
@@ -124,6 +136,11 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     return value as string | number;
   }
 
+  protected getInputString(row: RowState<T>, column: GridColumn<T>): string {
+    const value = this.getInputValue(row, column);
+    return value === '' ? '' : String(value);
+  }
+
   /** Get row ID */
   protected getRowId(row: RowState<T>): string | number {
     const field = this.rowIdField();
@@ -177,25 +194,24 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   }
 
   /** Handle cell value change */
-  protected onCellChange(
-    rowIndex: number, 
-    column: GridColumn<T>, 
-    event: Event
+  protected onCellValueChange(
+    rowIndex: number,
+    column: GridColumn<T>,
+    value: unknown
   ): void {
-    const target = event.target as HTMLInputElement | HTMLSelectElement;
-    let value: unknown = target.value;
-    
-    // Convert value based on cell type
+    let nextValue: unknown = value;
+
     if (column.cellType === 'number') {
-      value = target.value === '' ? null : Number(target.value);
+      const raw = value as string | number | null | undefined;
+      nextValue = raw === '' || raw === null || raw === undefined ? null : Number(raw);
     } else if (column.cellType === 'boolean') {
-      value = (target as HTMLInputElement).checked;
+      nextValue = !!value;
     }
-    
+
     this.cellValueChange.emit({
       rowIndex,
       columnId: column.id,
-      value,
+      value: nextValue,
     });
   }
 
