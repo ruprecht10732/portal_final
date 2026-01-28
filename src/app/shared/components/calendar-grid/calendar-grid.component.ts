@@ -32,6 +32,10 @@ export class CalendarGridComponent {
   protected readonly firstDayOfWeek = input(0);
   protected readonly allowRange = input(true);
 
+  private readonly uid = 'calendar-' + Math.random().toString(36).substring(2, 9);
+  protected readonly gridLabelId = `${this.uid}-label`;
+  protected readonly instructionsId = `${this.uid}-instructions`;
+
   protected readonly monthLabel = computed(() => {
     const date = this.currentMonth();
     return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
@@ -128,6 +132,19 @@ export class CalendarGridComponent {
     const end = this.selectedEnd();
     if (!start || !end) return false;
     return this.compareIso(day.iso, start) >= 0 && this.compareIso(day.iso, end) <= 0;
+  }
+
+  protected isRangeStart(day: CalendarDay): boolean {
+    return this.selectedStart() === day.iso;
+  }
+
+  protected isRangeEnd(day: CalendarDay): boolean {
+    return this.selectedEnd() === day.iso;
+  }
+
+  protected isToday(day: CalendarDay): boolean {
+    const todayIso = new Date().toISOString().slice(0, 10);
+    return day.iso === todayIso;
   }
 
   protected selectToday(): void {

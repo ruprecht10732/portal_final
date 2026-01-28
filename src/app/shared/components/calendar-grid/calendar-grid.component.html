@@ -2,15 +2,21 @@
   <div class="calendar-header">
     <button class="month-control" aria-label="previous month" (click)="previousMonth()">
       <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_left</span>
+      <span class="visually-hidden">Previous month</span>
     </button>
     <div class="calendar-title">
-      <h3>{{ monthLabel() }}</h3>
+      <h3 [id]="gridLabelId" aria-live="polite">{{ monthLabel() }}</h3>
       <button type="button" class="today-button" (click)="selectToday()">Today</button>
     </div>
     <button class="month-control" aria-label="next month" (click)="nextMonth()">
       <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_right</span>
+      <span class="visually-hidden">Next month</span>
     </button>
   </div>
+
+  <p [id]="instructionsId" class="visually-hidden">
+    Use arrow keys to move between days. Press Enter to select. Use the Today button to jump to the current date.
+  </p>
 
   <table
     ngGrid
@@ -20,6 +26,8 @@
     [softDisabled]="false"
     selectionMode="explicit"
     (keydown)="onKeyDown($event)"
+    [attr.aria-labelledby]="gridLabelId"
+    [attr.aria-describedby]="instructionsId"
   >
     <thead>
       <tr>
@@ -35,7 +43,7 @@
       <tr ngGridRow>
         @if ($first) {
           @for (day of daysFromPrevMonth(); track day) {
-            <td ngGridCell disabled>{{ day }}</td>
+            <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ day }}</td>
           }
         }
         @for (day of week; track day.iso; let colIndex = $index) {
@@ -57,6 +65,9 @@
               class="day-button"
               [class.in-range]="isInRange(day)"
               [class.is-selected]="isSelected(day)"
+              [class.range-start]="isRangeStart(day)"
+              [class.range-end]="isRangeEnd(day)"
+              [class.is-today]="isToday(day)"
             >
               {{ day.displayName }}
             </button>
@@ -64,7 +75,7 @@
         }
         @if ($last && week.length + daysFromPrevMonth().length < 7) {
           @for (day of [].constructor(7 - week.length - daysFromPrevMonth().length); track $index) {
-            <td ngGridCell disabled>{{ $index + 1 }}</td>
+            <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ $index + 1 }}</td>
           }
         }
       </tr>
