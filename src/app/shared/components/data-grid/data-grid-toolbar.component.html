@@ -1,97 +1,94 @@
 <div class="flex flex-col gap-3 p-3 border-b border-zinc-200 bg-zinc-50 sm:flex-row sm:items-center sm:justify-between">
   <!-- Left section: Search and filters -->
-  <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+  <div class="flex flex-col gap-2 sm:flex-row sm:items-center w-full sm:w-auto">
     <!-- Search input -->
-    <div class="relative w-full sm:w-auto">
-      <input
-        type="search"
+    <div class="flex items-center gap-2 w-full sm:w-auto">
+      <shared-input
+        class="flex-1"
         [value]="localSearchTerm()"
-        (input)="onSearchInput($event)"
+        (valueChange)="onSearchValueChange($event)"
         placeholder="Search..."
-        class="w-full sm:w-64 pl-9 pr-10 py-2 min-h-11 text-sm bg-white border border-zinc-200 focus:outline-none focus:border-black transition-colors"
-        aria-label="Search grid"
+        ariaLabel="Search grid"
       />
-      <svg 
-        class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-zinc-400" 
-        fill="none" 
-        viewBox="0 0 24 24" 
-        stroke="currentColor"
-        aria-hidden="true"
-      >
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
-      </svg>
-      @if (localSearchTerm()) {
-        <button
-          type="button"
-          (click)="clearSearch()"
-          class="absolute right-2 top-1/2 -translate-y-1/2 p-2 min-w-8 min-h-8 text-zinc-500 hover:text-black focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-          aria-label="Clear search"
-        >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
-      }
     </div>
+  </div>
 
+  <!-- Right section: Action buttons -->
+  <div class="flex items-center gap-2 w-full sm:w-auto overflow-x-auto sm:overflow-visible">
     <!-- Filter toggle button -->
     @if (filterableColumns().length > 0) {
-      <button
-        type="button"
-        (click)="toggleFilters()"
-        class="flex items-center gap-2 px-3 py-2 min-h-11 text-xs font-semibold uppercase tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-        [class.text-black]="showFilters() || hasActiveFilters()"
-        [class.text-zinc-500]="!showFilters() && !hasActiveFilters()"
-        [class.hover:text-black]="!showFilters()"
-        [attr.aria-expanded]="showFilters()"
-        aria-controls="filter-panel"
+      <shared-button
+        variant="ghost"
+        size="compact"
+        [fullWidth]="false"
+        [active]="showFilters() || hasActiveFilters()"
+        [iconOnly]="isMobile()"
+        [ariaExpanded]="showFilters()"
+        ariaControls="filter-panel"
+        ariaLabel="Toggle filters"
+        (clicked)="toggleFilters()"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
         </svg>
-        Filters
-        @if (filters().length > 0) {
-          <span class="flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-black rounded-full">
-            {{ filters().length }}
-          </span>
+        @if (!isMobile()) {
+          Filters
+          @if (filters().length > 0) {
+            <span class="flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-black rounded-full">
+              {{ filters().length }}
+            </span>
+          }
+        } @else {
+          <span class="sr-only">Filters</span>
         }
-      </button>
+      </shared-button>
     }
 
     <!-- Clear all button -->
     @if (hasActiveFilters()) {
-      <button
-        type="button"
-        (click)="onClearAll()"
-        class="px-3 py-2 min-h-11 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:text-black transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+      <shared-button
+        variant="ghost"
+        size="compact"
+        [fullWidth]="false"
+        [iconOnly]="isMobile()"
+        ariaLabel="Clear filters"
+        (clicked)="onClearAll()"
       >
-        Clear All
-      </button>
+        @if (!isMobile()) {
+          Clear All
+        } @else {
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+          </svg>
+          <span class="sr-only">Clear filters</span>
+        }
+      </shared-button>
     }
-  </div>
 
-  <!-- Right section: Action buttons -->
-  <div class="flex items-center gap-2">
     <!-- Column visibility picker -->
     @if (columnPickerEnabled() && allColumns().length > 0) {
       <div class="relative">
-        <button
-          type="button"
-          (click)="toggleColumnPicker()"
-          class="flex items-center gap-1.5 px-3 py-2 min-h-11 sm:min-h-0 text-xs font-semibold uppercase tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-          [class.text-black]="showColumnPicker()"
-          [class.text-zinc-500]="!showColumnPicker()"
-          [class.bg-zinc-200]="showColumnPicker()"
-          [attr.aria-expanded]="showColumnPicker()"
-          aria-haspopup="true"
-          aria-label="Toggle column visibility"
+        <shared-button
+          variant="ghost"
+          size="compact"
+          [fullWidth]="false"
+          [active]="showColumnPicker()"
+          [iconOnly]="isMobile()"
+          [ariaExpanded]="showColumnPicker()"
+          ariaHaspopup="true"
+          ariaLabel="Toggle column visibility"
+          (clicked)="toggleColumnPicker()"
         >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
           </svg>
-          <span class="sm:hidden">Cols</span>
-          <span class="hidden sm:inline">Columns</span>
-        </button>
+          @if (!isMobile()) {
+            <span class="sm:hidden">Cols</span>
+            <span class="hidden sm:inline">Columns</span>
+          } @else {
+            <span class="sr-only">Columns</span>
+          }
+        </shared-button>
 
         <!-- Desktop: Column picker dropdown -->
         @if (showColumnPicker() && !isMobile()) {
@@ -162,18 +159,23 @@
     }
 
     <!-- Add row button -->
-    <button
-      type="button"
-      (click)="onAddRow()"
-      class="flex items-center gap-1.5 px-3 py-2 min-h-11 sm:min-h-0 text-xs font-semibold uppercase tracking-wide text-white bg-black hover:bg-zinc-800 transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
-      aria-label="Add new row"
+    <shared-button
+      [fullWidth]="false"
+      size="compact"
+      [iconOnly]="isMobile()"
+      ariaLabel="Add new row"
+      (clicked)="onAddRow()"
     >
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <svg class="w-4 h-4" [class.mr-2]="!isMobile()" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
       </svg>
-      <span class="sm:hidden">Add</span>
-      <span class="hidden sm:inline">Add Row</span>
-    </button>
+      @if (!isMobile()) {
+        <span class="sm:hidden">Add</span>
+        <span class="hidden sm:inline">Add Row</span>
+      } @else {
+        <span class="sr-only">Add Row</span>
+      }
+    </shared-button>
 
     <!-- Save button -->
     @if (hasDirtyRows()) {

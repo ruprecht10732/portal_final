@@ -11,8 +11,29 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
       [attr.aria-label]="ariaLabel()"
       [attr.aria-disabled]="disabled() || loading()"
       [attr.aria-busy]="loading()"
+      [attr.aria-expanded]="ariaExpanded()"
+      [attr.aria-controls]="ariaControls()"
+      [attr.aria-haspopup]="ariaHaspopup()"
       (click)="!loading() && clicked.emit($event)"
-      class="relative flex items-center justify-center w-full px-6 py-3 text-sm font-medium tracking-tight uppercase transition-all duration-200 sm:w-auto overflow-hidden"
+      class="relative flex items-center justify-center gap-2 uppercase transition-all duration-200 overflow-hidden"
+      [class.gap-0]="iconOnly()"
+      [class.px-6]="size() === 'default'"
+      [class.py-3]="size() === 'default'"
+      [class.text-sm]="size() === 'default'"
+      [class.min-h-11]="size() === 'default'"
+      [class.font-medium]="size() === 'default'"
+      [class.tracking-tight]="size() === 'default'"
+      [class.px-3]="size() === 'compact'"
+      [class.py-2]="size() === 'compact'"
+      [class.text-xs]="size() === 'compact'"
+      [class.font-semibold]="size() === 'compact'"
+      [class.tracking-wide]="size() === 'compact'"
+      [class.min-h-11]="size() === 'compact'"
+      [class.px-2.5]="iconOnly()"
+      [class.min-w-11]="iconOnly()"
+      [class.w-full]="fullWidth()"
+      [class.sm:w-auto]="fullWidth()"
+      [class.w-auto]="!fullWidth()"
       [class.bg-black]="variant() === 'primary'"
       [class.text-white]="variant() === 'primary'"
       [class.hover:bg-zinc-800]="variant() === 'primary'"
@@ -21,6 +42,10 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
       [class.hover:bg-zinc-100]="variant() === 'secondary'"
       [class.border]="variant() === 'secondary'"
       [class.border-black]="variant() === 'secondary'"
+      [class.text-zinc-500]="variant() === 'ghost' && !active()"
+      [class.text-black]="variant() === 'ghost' && active()"
+      [class.hover:text-black]="variant() === 'ghost'"
+      [class.bg-zinc-200]="variant() === 'ghost' && active()"
       [class.opacity-50]="disabled() || loading()"
       [class.cursor-not-allowed]="disabled() || loading()"
     >
@@ -39,23 +64,22 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
     </button>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
-  styles: `
-    :host {
-      display: inline-block;
-      width: 100%;
-    }
-    @media (min-width: 640px) {
-      :host {
-        width: auto;
-      }
-    }
-  `,
+  host: {
+    '[style.display]': "'inline-block'",
+  },
 })
 export class ButtonComponent {
-  variant = input<'primary' | 'secondary'>('primary');
+  variant = input<'primary' | 'secondary' | 'ghost'>('primary');
+  size = input<'default' | 'compact'>('default');
   type = input<'button' | 'submit' | 'reset'>('button');
   disabled = input(false);
   loading = input(false);
+  fullWidth = input(true);
+  iconOnly = input(false);
+  active = input(false);
   ariaLabel = input<string | undefined>(undefined);
+  ariaExpanded = input<string | boolean | null | undefined>(undefined);
+  ariaControls = input<string | null | undefined>(undefined);
+  ariaHaspopup = input<string | boolean | null | undefined>(undefined);
   clicked = output<MouseEvent>();
 }

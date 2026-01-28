@@ -15,10 +15,12 @@ import { FormsModule } from '@angular/forms';
 import { FilterConfig, GridColumn } from './data-grid.types';
 import { ColumnLabelPipe } from './data-grid.pipes';
 import { BottomSheetComponent } from '../bottom-sheet';
+import { InputComponent } from '../input/input.component';
+import { ButtonComponent } from '../button/button.component';
 
 @Component({
   selector: 'data-grid-toolbar',
-  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent],
+  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent, InputComponent, ButtonComponent],
   templateUrl: './data-grid-toolbar.component.html',
   styleUrl: './data-grid-toolbar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -89,6 +91,11 @@ export class DataGridToolbarComponent<T = unknown> {
   
   protected onSearchInput(event: Event): void {
     const value = (event.target as HTMLInputElement).value;
+    this.localSearchTerm.set(value);
+    this.searchChange.emit(value);
+  }
+
+  protected onSearchValueChange(value: string): void {
     this.localSearchTerm.set(value);
     this.searchChange.emit(value);
   }
