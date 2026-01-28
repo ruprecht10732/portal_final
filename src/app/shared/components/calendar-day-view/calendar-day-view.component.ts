@@ -23,6 +23,9 @@ export interface CalendarDayViewModel {
 export class CalendarDayViewComponent {
   readonly day = input<CalendarDayViewModel | null>(null);
   readonly isUnavailable = input(false);
+  readonly startHour = input(8);
+  readonly endHour = input(18);
+  readonly hourStep = input(1);
   readonly selected = output<CalendarDayViewModel>();
 
   protected readonly dayTitle = computed(() => {
@@ -42,13 +45,20 @@ export class CalendarDayViewComponent {
   });
 
   protected readonly hours = computed(() => {
-    return Array.from({ length: 24 }, (_, index) => ({
-      label: new Intl.DateTimeFormat('en-US', {
-        hour: 'numeric',
-        hour12: true,
-      }).format(new Date(2026, 0, 1, index, 0)),
-      value: index,
-    }));
+    const start = Math.max(0, Math.min(23, this.startHour()));
+    const end = Math.max(0, Math.min(24, this.endHour()));
+    const step = Math.max(1, this.hourStep());
+    const hours: { label: string; value: number }[] = [];
+    for (let hour = start; hour < end; hour += step) {
+      hours.push({
+        label: new Intl.DateTimeFormat('en-US', {
+          hour: 'numeric',
+          hour12: true,
+        }).format(new Date(2026, 0, 1, hour, 0)),
+        value: hour,
+      });
+    }
+    return hours;
   });
 
   protected handleSelect(): void {

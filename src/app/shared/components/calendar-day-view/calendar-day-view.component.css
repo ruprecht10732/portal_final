@@ -44,6 +44,9 @@
   list-style: none;
   padding: 0;
   margin: 0;
+  max-height: 360px;
+  overflow-y: auto;
+  padding-right: 0.25rem;
 }
 
 .day-row {
