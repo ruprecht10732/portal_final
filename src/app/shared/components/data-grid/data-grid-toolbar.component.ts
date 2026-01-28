@@ -18,10 +18,11 @@ import { BottomSheetComponent } from '../bottom-sheet';
 import { InputComponent } from '../input/input.component';
 import { ButtonComponent } from '../button/button.component';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
+import { SelectComponent } from '../select/select.component';
 
 @Component({
   selector: 'data-grid-toolbar',
-  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent, InputComponent, ButtonComponent, CheckboxComponent],
+  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent, InputComponent, ButtonComponent, CheckboxComponent, SelectComponent],
   templateUrl: './data-grid-toolbar.component.html',
   styleUrl: './data-grid-toolbar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -88,6 +89,10 @@ export class DataGridToolbarComponent<T = unknown> {
     return this.columns().find(col => col.id === id) ?? null;
   });
 
+  protected readonly filterableColumnOptions = computed(() =>
+    this.filterableColumns().map(col => ({ label: col.header, value: col.id }))
+  );
+
   // ============ Methods ============
   
   protected onSearchInput(event: Event): void {
@@ -116,7 +121,8 @@ export class DataGridToolbarComponent<T = unknown> {
     this.filterValue.set('');
   }
 
-  protected selectFilterColumn(columnId: string): void {
+  protected selectFilterColumn(columnId: string | null): void {
+    if (!columnId) return;
     this.activeFilterColumn.set(columnId);
     this.filterValue.set('');
   }

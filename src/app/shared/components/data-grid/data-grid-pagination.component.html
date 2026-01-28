@@ -18,16 +18,13 @@
     <!-- Page size selector -->
     <div class="flex items-center gap-2">
       <label for="page-size" class="sr-only">Items per page</label>
-      <select
-        id="page-size"
+      <shared-select
+        [options]="pageSizeOptions()"
         [value]="pagination().pageSize"
-        (change)="onPageSizeChange($event)"
-        class="appearance-none px-2 py-1 pr-7 text-xs bg-white border border-zinc-200 focus:outline-none focus:border-black cursor-pointer"
-      >
-        @for (size of pagination().pageSizeOptions; track size) {
-          <option [value]="size">{{ size }} / page</option>
-        }
-      </select>
+        (valueChange)="onPageSizeValueChange($event)"
+        placeholder="Items per page"
+        ariaLabel="Items per page"
+      />
     </div>
   </div>
 

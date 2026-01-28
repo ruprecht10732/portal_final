@@ -6,7 +6,13 @@ import { FormsModule } from '@angular/forms';
   standalone: true,
   imports: [FormsModule],
   template: `
-    <label class="group flex items-start gap-3 cursor-pointer select-none text-left">
+    <label
+      class="group flex cursor-pointer select-none text-left"
+      [class.items-center]="dense()"
+      [class.items-start]="!dense()"
+      [class.gap-2]="dense()"
+      [class.gap-3]="!dense()"
+    >
       <div class="relative flex items-center justify-center">
         <input
           type="checkbox"
@@ -17,6 +23,8 @@ import { FormsModule } from '@angular/forms';
           [attr.aria-required]="required()"
           [attr.aria-invalid]="!!error()"
           [attr.aria-describedby]="describedBy()"
+          [attr.aria-label]="ariaLabel() || label() || undefined"
+          [indeterminate]="indeterminate()"
           class="peer sr-only"
         />
         
@@ -81,6 +89,9 @@ export class CheckboxComponent {
   required = input(false);
   hint = input<string>('');
   error = input<string>('');
+  ariaLabel = input<string | undefined>(undefined);
+  indeterminate = input(false);
+  dense = input(false);
 
   protected readonly uid = this.id() || 'checkbox-' + Math.random().toString(36).substring(2, 9);
   protected readonly hintId = this.uid + '-hint';

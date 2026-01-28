@@ -42,6 +42,12 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
       [class.hover:bg-zinc-100]="variant() === 'secondary'"
       [class.border]="variant() === 'secondary'"
       [class.border-black]="variant() === 'secondary'"
+      [class.bg-green-700]="variant() === 'success'"
+      [class.text-white]="variant() === 'success'"
+      [class.hover:bg-green-800]="variant() === 'success'"
+      [class.bg-red-700]="variant() === 'danger'"
+      [class.text-white]="variant() === 'danger'"
+      [class.hover:bg-red-800]="variant() === 'danger'"
       [class.text-zinc-500]="variant() === 'ghost' && !active()"
       [class.text-black]="variant() === 'ghost' && active()"
       [class.hover:text-black]="variant() === 'ghost'"
@@ -58,7 +64,10 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
           <span class="sr-only">Loading...</span>
         </div>
       }
-      <span [class.opacity-0]="loading()">
+      <span
+        [class.opacity-0]="loading()"
+        [class.text-white]="variant() === 'primary' || variant() === 'success' || variant() === 'danger'"
+      >
         <ng-content />
       </span>
     </button>
@@ -69,7 +78,7 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
   },
 })
 export class ButtonComponent {
-  variant = input<'primary' | 'secondary' | 'ghost'>('primary');
+  variant = input<'primary' | 'secondary' | 'ghost' | 'success' | 'danger'>('primary');
   size = input<'default' | 'compact'>('default');
   type = input<'button' | 'submit' | 'reset'>('button');
   disabled = input(false);

@@ -31,6 +31,8 @@ export class SelectComponent<T = unknown> {
   label = input<string>('');
   /** Placeholder when no value selected */
   placeholder = input('Select an option');
+  /** Accessible label when no visible label is provided */
+  ariaLabel = input<string | undefined>(undefined);
   /** Whether the select is disabled */
   disabled = input(false);
   /** Whether a selection is required */

@@ -25,12 +25,11 @@
           class="w-12 px-3 py-3 border-b border-zinc-100 sticky left-0 z-10 bg-inherit"
         >
           <div class="flex items-center justify-center min-w-11 min-h-11">
-            <input
-              type="checkbox"
+            <shared-checkbox
               [checked]="row.selected"
-              (change)="onRowSelect(rowIndex)"
-              class="w-5 h-5 accent-black cursor-pointer"
-              [attr.aria-label]="'Select row ' + (rowIndex + 1)"
+              [ariaLabel]="'Select row ' + (rowIndex + 1)"
+              [dense]="true"
+              (checkedChange)="onRowSelect(rowIndex)"
             />
           </div>
         </td>

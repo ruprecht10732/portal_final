@@ -203,8 +203,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   }
 
   /** Handle row selection */
-  protected onSelect(index: number, event: Event): void {
-    event.stopPropagation();
+  protected onSelect(index: number): void {
     this.rowSelect.emit(index);
   }
 

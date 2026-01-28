@@ -21,6 +21,7 @@ import { DataGridBodyComponent } from './data-grid-body.component';
 import { DataGridPaginationComponent } from './data-grid-pagination.component';
 import { DataGridToolbarComponent } from './data-grid-toolbar.component';
 import { DataGridCardsComponent } from './data-grid-cards.component';
+import { ButtonComponent } from '../button/button.component';
 
 import {
   BulkOperationResult,
@@ -52,6 +53,7 @@ import { Observable, Subject } from 'rxjs';
     DataGridPaginationComponent,
     DataGridToolbarComponent,
     DataGridCardsComponent,
+    ButtonComponent,
   ],
   host: {
     'class': 'block w-full',

@@ -11,10 +11,11 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { PaginationConfig } from './data-grid.types';
+import { SelectComponent, SelectOption } from '../select/select.component';
 
 @Component({
   selector: 'data-grid-pagination',
-  imports: [FormsModule],
+  imports: [FormsModule, SelectComponent],
   templateUrl: './data-grid-pagination.component.html',
   styleUrl: './data-grid-pagination.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -38,9 +39,18 @@ export class DataGridPaginationComponent {
     this.pageChange.emit(page);
   }
 
-  protected onPageSizeChange(event: Event): void {
-    const size = Number.parseInt((event.target as HTMLSelectElement).value, 10);
-    this.pageSizeChange.emit(size);
+  protected onPageSizeValueChange(value: unknown): void {
+    const size = Number(value);
+    if (!Number.isNaN(size)) {
+      this.pageSizeChange.emit(size);
+    }
+  }
+
+  protected pageSizeOptions(): SelectOption<number>[] {
+    return this.pagination().pageSizeOptions.map(size => ({
+      label: `${size} / page`,
+      value: size,
+    }));
   }
 
   protected get startItem(): number {

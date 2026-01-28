@@ -6,21 +6,20 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   input,
   output,
-  viewChild,
 } from '@angular/core';
 import { GridColumn, SortConfig } from './data-grid.types';
+import { CheckboxComponent } from '../checkbox/checkbox.component';
 
 @Component({
-  selector: 'thead[data-grid-header]',
+  selector: '[data-grid-header]',
   templateUrl: './data-grid-header.component.html',
   styleUrl: './data-grid-header.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [CheckboxComponent],
   host: {
-    'role': 'rowgroup',
-    'class': 'bg-zinc-100 border-b-2 border-zinc-300 sticky top-0 z-10',
+    'role': 'row',
   },
 })
 export class DataGridHeaderComponent<T = unknown> {
@@ -36,10 +35,6 @@ export class DataGridHeaderComponent<T = unknown> {
   
   readonly sortChange = output<string>();
   readonly selectAll = output<void>();
-
-  // ============ View Children ============
-  
-  private readonly headerCheckbox = viewChild<ElementRef<HTMLInputElement>>('headerCheckbox');
 
   // ============ Methods ============
   

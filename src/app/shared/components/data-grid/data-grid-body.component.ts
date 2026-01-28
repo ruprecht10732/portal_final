@@ -20,10 +20,11 @@ import {
   RowState,
 } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
+import { CheckboxComponent } from '../checkbox/checkbox.component';
 
 @Component({
   selector: 'data-grid-body',
-  imports: [FormsModule, OptionLabelPipe],
+  imports: [FormsModule, OptionLabelPipe, CheckboxComponent],
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
