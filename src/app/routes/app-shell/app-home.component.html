@@ -6,4 +6,23 @@
       This is the authenticated shell. Add your internal routes and widgets here.
     </p>
   </div>
+
+  <div class="bg-white border border-zinc-200 p-6 sm:p-8 space-y-4">
+    <div class="flex flex-col gap-1">
+      <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Overview</p>
+      <h3 class="text-lg font-semibold">Team roster</h3>
+      <p class="text-sm text-zinc-500">
+        Review, filter, and update team records directly in the grid.
+      </p>
+    </div>
+
+    <shared-data-grid
+      [columns]="columns()"
+      [data]="rows()"
+      [config]="gridConfig"
+      ariaLabel="Team roster grid"
+      (saveRows)="onSaveRows($event)"
+      (deleteRows)="onDeleteRows($event)"
+    ></shared-data-grid>
+  </div>
 </section>
