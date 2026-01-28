@@ -142,11 +142,17 @@
   width: 2.5rem;
 }
 
+.grid-scroll {
+  width: 100%;
+  overflow-x: auto;
+}
+
 table[ngGrid] {
   width: 100%;
   border-collapse: collapse;
   border: 1px solid #18181b;
   font-size: 0.875rem;
+  table-layout: fixed;
 }
 
 th,
@@ -262,6 +268,16 @@ td.is-active {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
+}
+
+@media (max-width: 639px) {
+  .week-number {
+    display: none;
+  }
+
+  .holiday-label {
+    display: none;
+  }
 }
 
 .day-button:focus-visible,

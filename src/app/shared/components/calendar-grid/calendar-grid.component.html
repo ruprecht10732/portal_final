@@ -88,115 +88,39 @@
       />
     }
     @case ('week') {
-      <table
-        ngGrid
-        colWrap="continuous"
-        rowWrap="nowrap"
-        [enableSelection]="true"
-        [softDisabled]="false"
-        selectionMode="explicit"
-        [attr.aria-labelledby]="gridLabelId"
-        [attr.aria-describedby]="instructionsId"
-      >
-        <thead>
-          <tr>
-            @if (showWeekNumbers()) {
-              <th scope="col" class="week-number">Wk</th>
-            }
-            @for (day of weekdays(); track day.long; let i = $index) {
-              <th scope="col">
-                <span class="visually-hidden">{{ day.long }}</span>
-                <span aria-hidden="true">{{ day.narrow }}</span>
-              </th>
-            }
-          </tr>
-        </thead>
-        <tr ngGridRow>
-          @if (showWeekNumbers()) {
-            <td class="week-number">{{ activeWeekNumber() }}</td>
-          }
-          @for (day of weekDays(); track day.iso; let colIndex = $index) {
-            <td
-              ngGridCell
-              #cell="ngGridCell"
-              [rowIndex]="0"
-              [colIndex]="colIndex"
-              [selected]="isSelected(day)"
-              [class.is-active]="cell.active()"
-              [attr.aria-disabled]="isUnavailable(day) || null">
-               <button
-                 type="button"
-                 ngGridCellWidget
-                 [attr.aria-label]="holidayName(day) ? day.ariaLabel + ' — ' + holidayName(day) : day.ariaLabel"
-                 [attr.title]="holidayName(day) || null"
-                 [attr.data-day]="day.day"
-                 (click)="selectDay(day)"
-                 (keydown.enter)="selectDay(day)"
-                 (mouseenter)="onDayHover(day)"
-                 (mouseleave)="clearHover()"
-                 class="day-button"
-                 [class.in-range]="isInRange(day)"
-                 [class.is-preview]="isInPreviewRange(day)"
-                 [class.is-selected]="isSelected(day)"
-                 [class.range-start]="isRangeStart(day)"
-                 [class.range-end]="isRangeEnd(day)"
-                 [class.is-today]="isToday(day)"
-                 [class.is-unavailable]="isUnavailable(day)"
-                [class.is-holiday]="isHoliday(day)"
-               >
-                {{ day.displayName }}
-                @if (isHoliday(day)) {
-                  <span class="holiday-label">{{ holidayName(day) }}</span>
-                }
-                @if (isHoliday(day)) {
-                  <span class="holiday-dot" [attr.aria-label]="holidayName(day)" aria-hidden="true"></span>
-                }
-               </button>
-            </td>
-          }
-        </tr>
-      </table>
-    }
-    @default {
-      <table
-        ngGrid
-        colWrap="continuous"
-        rowWrap="nowrap"
-        [enableSelection]="true"
-        [softDisabled]="false"
-        selectionMode="explicit"
-        (keydown)="onKeyDown($event)"
-        [attr.aria-labelledby]="gridLabelId"
-        [attr.aria-describedby]="instructionsId"
-      >
-        <thead>
-          <tr>
-            @if (showWeekNumbers()) {
-              <th scope="col" class="week-number">Wk</th>
-            }
-            @for (day of weekdays(); track day.long; let i = $index) {
-              <th scope="col">
-                <span class="visually-hidden">{{ day.long }}</span>
-                <span aria-hidden="true">{{ day.narrow }}</span>
-              </th>
-            }
-          </tr>
-        </thead>
-        @for (week of weeks(); track $index; let rowIndex = $index) {
+      <div class="grid-scroll">
+        <table
+          ngGrid
+          colWrap="continuous"
+          rowWrap="nowrap"
+          [enableSelection]="true"
+          [softDisabled]="false"
+          selectionMode="explicit"
+          [attr.aria-labelledby]="gridLabelId"
+          [attr.aria-describedby]="instructionsId"
+        >
+          <thead>
+            <tr>
+              @if (showWeekNumbers()) {
+                <th scope="col" class="week-number">Wk</th>
+              }
+              @for (day of weekdays(); track day.long; let i = $index) {
+                <th scope="col">
+                  <span class="visually-hidden">{{ day.long }}</span>
+                  <span aria-hidden="true">{{ day.narrow }}</span>
+                </th>
+              }
+            </tr>
+          </thead>
           <tr ngGridRow>
             @if (showWeekNumbers()) {
-              <td class="week-number">{{ weekNumbers()[rowIndex] }}</td>
+              <td class="week-number">{{ activeWeekNumber() }}</td>
             }
-            @if ($first) {
-              @for (day of daysFromPrevMonth(); track day) {
-                <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ day }}</td>
-              }
-            }
-            @for (day of week; track day.iso; let colIndex = $index) {
+            @for (day of weekDays(); track day.iso; let colIndex = $index) {
               <td
                 ngGridCell
                 #cell="ngGridCell"
-                [rowIndex]="rowIndex"
+                [rowIndex]="0"
                 [colIndex]="colIndex"
                 [selected]="isSelected(day)"
                 [class.is-active]="cell.active()"
@@ -231,14 +155,94 @@
                  </button>
               </td>
             }
-            @if ($last && week.length + daysFromPrevMonth().length < 7) {
-              @for (day of [].constructor(7 - week.length - daysFromPrevMonth().length); track $index) {
-                <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ $index + 1 }}</td>
-              }
-            }
           </tr>
-        }
-      </table>
+        </table>
+      </div>
+    }
+    @default {
+      <div class="grid-scroll">
+        <table
+          ngGrid
+          colWrap="continuous"
+          rowWrap="nowrap"
+          [enableSelection]="true"
+          [softDisabled]="false"
+          selectionMode="explicit"
+          (keydown)="onKeyDown($event)"
+          [attr.aria-labelledby]="gridLabelId"
+          [attr.aria-describedby]="instructionsId"
+        >
+          <thead>
+            <tr>
+              @if (showWeekNumbers()) {
+                <th scope="col" class="week-number">Wk</th>
+              }
+              @for (day of weekdays(); track day.long; let i = $index) {
+                <th scope="col">
+                  <span class="visually-hidden">{{ day.long }}</span>
+                  <span aria-hidden="true">{{ day.narrow }}</span>
+                </th>
+              }
+            </tr>
+          </thead>
+          @for (week of weeks(); track $index; let rowIndex = $index) {
+            <tr ngGridRow>
+              @if (showWeekNumbers()) {
+                <td class="week-number">{{ weekNumbers()[rowIndex] }}</td>
+              }
+              @if ($first) {
+                @for (day of daysFromPrevMonth(); track day) {
+                  <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ day }}</td>
+                }
+              }
+              @for (day of week; track day.iso; let colIndex = $index) {
+                <td
+                  ngGridCell
+                  #cell="ngGridCell"
+                  [rowIndex]="rowIndex"
+                  [colIndex]="colIndex"
+                  [selected]="isSelected(day)"
+                  [class.is-active]="cell.active()"
+                  [attr.aria-disabled]="isUnavailable(day) || null">
+                   <button
+                     type="button"
+                     ngGridCellWidget
+                     [attr.aria-label]="holidayName(day) ? day.ariaLabel + ' — ' + holidayName(day) : day.ariaLabel"
+                     [attr.title]="holidayName(day) || null"
+                     [attr.data-day]="day.day"
+                     (click)="selectDay(day)"
+                     (keydown.enter)="selectDay(day)"
+                     (mouseenter)="onDayHover(day)"
+                     (mouseleave)="clearHover()"
+                     class="day-button"
+                     [class.in-range]="isInRange(day)"
+                     [class.is-preview]="isInPreviewRange(day)"
+                     [class.is-selected]="isSelected(day)"
+                     [class.range-start]="isRangeStart(day)"
+                     [class.range-end]="isRangeEnd(day)"
+                     [class.is-today]="isToday(day)"
+                     [class.is-unavailable]="isUnavailable(day)"
+                     [class.is-holiday]="isHoliday(day)"
+                   >
+                     {{ day.displayName }}
+                     @if (isHoliday(day)) {
+                       <span class="holiday-label">{{ holidayName(day) }}</span>
+                     }
+                     @if (isHoliday(day)) {
+                       <span class="holiday-dot" [attr.aria-label]="holidayName(day)" aria-hidden="true"></span>
+                     }
+                   </button>
+                </td>
+              }
+              @if ($last && week.length + daysFromPrevMonth().length < 7) {
+                @for (day of [].constructor(7 - week.length - daysFromPrevMonth().length); track $index) {
+                  <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ $index + 1 }}</td>
+                }
+              }
+            </tr>
+          }
+        </table>
+      </div>
     }
   }
 </div>
