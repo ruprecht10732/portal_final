@@ -75,9 +75,17 @@
 
       <div ngTabPanel value="settings" #settings="ngTabPanel" [hidden]="!settings.visible()" class="space-y-6">
         <div class="bg-white p-8 border border-zinc-200 space-y-8">
-          <p class="text-sm text-zinc-600 leading-relaxed uppercase tracking-tight">
+          <shared-textarea 
+            [(value)]="bio" 
+            label="User Biography" 
+            placeholder="Tell us about yourself..." 
+            hint="Maximum 500 characters."
+          />
+          
+          <p class="text-xs text-zinc-500 leading-relaxed uppercase tracking-tight">
             Review your minimalist setup. Everything is zero-radius, signal-driven, and aria-enhanced.
           </p>
+          
           <shared-button variant="primary" (clicked)="activeTab.set('profile')" class="w-full">
             Back to Profile
           </shared-button>
