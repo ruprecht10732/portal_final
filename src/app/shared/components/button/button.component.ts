@@ -65,6 +65,7 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
         </div>
       }
       <span
+        class="inline-flex items-center gap-2 whitespace-nowrap"
         [class.opacity-0]="loading()"
         [class.text-white]="variant() === 'primary' || variant() === 'success' || variant() === 'danger'"
       >
