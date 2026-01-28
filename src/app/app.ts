@@ -186,7 +186,7 @@ export class App {
     navigationMode: 'pagination',
   };
 
-  sampleUsers: User[] = [
+  sampleUsers = signal<User[]>([
     { id: 1, name: 'Alice Johnson', email: 'alice@example.com', role: 'admin', status: 'active', department: 'Engineering' },
     { id: 2, name: 'Bob Smith', email: 'bob@example.com', role: 'editor', status: 'active', department: 'Marketing' },
     { id: 3, name: 'Carol White', email: 'carol@example.com', role: 'viewer', status: 'inactive', department: 'Sales' },
@@ -197,5 +197,32 @@ export class App {
     { id: 8, name: 'Henry Davis', email: 'henry@example.com', role: 'viewer', status: 'inactive', department: 'Marketing' },
     { id: 9, name: 'Ivy Chen', email: 'ivy@example.com', role: 'admin', status: 'active', department: 'Operations' },
     { id: 10, name: 'Jack Taylor', email: 'jack@example.com', role: 'editor', status: 'pending', department: 'Sales' },
-  ];
+  ]);
+
+  onSaveRows(rows: User[]): void {
+    const current = this.sampleUsers();
+    const maxId = current.reduce((max, user) => Math.max(max, user.id), 0);
+    let nextId = maxId + 1;
+
+    const updated = [...current];
+    for (const row of rows) {
+      if (!row.id || typeof row.id !== 'number') {
+        updated.unshift({ ...row, id: nextId++ });
+        continue;
+      }
+      const index = updated.findIndex(user => user.id === row.id);
+      if (index >= 0) {
+        updated[index] = { ...updated[index], ...row };
+      } else {
+        updated.unshift(row);
+      }
+    }
+
+    this.sampleUsers.set(updated);
+  }
+
+  onDeleteRows(rows: User[]): void {
+    const ids = new Set(rows.map(row => row.id));
+    this.sampleUsers.set(this.sampleUsers().filter(user => !ids.has(user.id)));
+  }
 }

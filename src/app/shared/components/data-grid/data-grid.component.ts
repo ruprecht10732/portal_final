@@ -280,7 +280,11 @@ export class DataGridComponent<T extends Record<string, unknown>> {
   protected onCardDelete(rowIndex: number): void {
     const row = this.store.rows()[rowIndex];
     if (row) {
-      this.deleteRows.emit([row.current]);
+      if (row.isNew) {
+        this.store.removeNewRow(rowIndex);
+      } else {
+        this.deleteRows.emit([row.current]);
+      }
     }
   }
 }

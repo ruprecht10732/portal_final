@@ -210,7 +210,9 @@
         <shared-data-grid
           [columns]="userColumns"
           [config]="userGridConfig"
-          [data]="sampleUsers"
+          [data]="sampleUsers()"
+          (saveRows)="onSaveRows($event)"
+          (deleteRows)="onDeleteRows($event)"
           ariaLabel="Users"
         />
       </div>

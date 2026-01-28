@@ -17,10 +17,11 @@ import { ColumnLabelPipe } from './data-grid.pipes';
 import { BottomSheetComponent } from '../bottom-sheet';
 import { InputComponent } from '../input/input.component';
 import { ButtonComponent } from '../button/button.component';
+import { CheckboxComponent } from '../checkbox/checkbox.component';
 
 @Component({
   selector: 'data-grid-toolbar',
-  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent, InputComponent, ButtonComponent],
+  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent, InputComponent, ButtonComponent, CheckboxComponent],
   templateUrl: './data-grid-toolbar.component.html',
   styleUrl: './data-grid-toolbar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
