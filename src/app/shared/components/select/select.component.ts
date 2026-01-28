@@ -133,16 +133,11 @@ export class SelectComponent<T = unknown> {
     return `${this.listboxId}-option-${index}`;
   }
 
-  protected onOptionKeydown(event: KeyboardEvent, option: SelectOption<T>, index: number): void {
+  protected onOptionKeydown(event: KeyboardEvent, option: SelectOption<T>): void {
     if (event.key === 'Enter' || event.key === ' ') {
       event.preventDefault();
       this.selectOption(option);
     }
-  }
-
-  protected get activeDescendant(): string | null {
-    const idx = this.activeIndex();
-    return idx >= 0 ? this.getOptionId(idx) : null;
   }
 
   protected describedBy(): string | undefined {

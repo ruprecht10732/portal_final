@@ -12,13 +12,11 @@
     <button
       #trigger
       type="button"
-      role="combobox"
       [id]="uid"
       [disabled]="disabled()"
       [attr.aria-expanded]="isOpen()"
       [attr.aria-haspopup]="'listbox'"
       [attr.aria-controls]="listboxId"
-      [attr.aria-activedescendant]="activeDescendant"
       [attr.aria-required]="required() || null"
       [attr.aria-invalid]="!!error() || null"
       [attr.aria-describedby]="describedBy()"
@@ -52,24 +50,22 @@
       (overlayOutsideClick)="close()"
       (detach)="close()"
     >
-      <ul
-        role="listbox"
+      <div
         [id]="listboxId"
         [attr.aria-labelledby]="uid"
         tabindex="-1"
         class="bg-white border border-black shadow-xl mt-px max-h-60 overflow-y-auto focus:outline-none"
       >
         @for (option of options(); track option.value; let i = $index) {
-          <li
-            role="option"
-            tabindex="0"
+            <button
+            type="button"
             [id]="getOptionId(i)"
             [attr.aria-selected]="value() === option.value"
             (click)="selectOption(option)"
-            (keydown)="onOptionKeydown($event, option, i)"
+            (keydown)="onOptionKeydown($event, option)"
             (focus)="activeIndex.set(i)"
             (mouseenter)="activeIndex.set(i)"
-            class="px-4 py-3 text-sm cursor-pointer transition-colors duration-150 outline-none"
+            class="w-full text-left px-4 py-3 text-sm cursor-pointer transition-colors duration-150 outline-none"
             [class.bg-black]="value() === option.value"
             [class.text-white]="value() === option.value"
             [class.bg-zinc-100]="activeIndex() === i && value() !== option.value"
@@ -83,11 +79,11 @@
                 </svg>
               }
             </div>
-          </li>
+            </button>
         } @empty {
-          <li class="px-4 py-3 text-sm text-zinc-400 italic">No options</li>
+          <div class="px-4 py-3 text-sm text-zinc-400 italic">No options</div>
         }
-      </ul>
+      </div>
     </ng-template>
   </div>
 
