@@ -7,7 +7,7 @@
         scope="col"
         class="w-12 px-2 py-2 sm:px-3 sm:py-3 text-left sticky left-0 z-20 bg-zinc-100"
       >
-        <div class="flex items-center justify-center min-w-[44px] min-h-[44px]">
+        <div class="flex items-center justify-center min-w-11 min-h-11">
           <input
             #headerCheckbox
             type="checkbox"
@@ -45,7 +45,7 @@
           <button
             type="button"
             (click)="onSort(column)"
-            class="flex items-center justify-between gap-2 w-full min-h-[44px] min-w-[44px] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+            class="flex items-center justify-between gap-2 w-full min-h-11 min-w-11 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
             [attr.aria-label]="getSortAriaLabel(column)"
           >
             <span class="truncate" [title]="column.header">{{ column.header }}</span>

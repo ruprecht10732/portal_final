@@ -38,7 +38,7 @@
       type="button"
       (click)="onPageChange(1)"
       [disabled]="pagination().page === 1"
-      class="min-w-[44px] h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
+      class="min-w-11 h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
       aria-label="Go to first page"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,7 +51,7 @@
       type="button"
       (click)="onPageChange(pagination().page - 1)"
       [disabled]="pagination().page === 1"
-      class="min-w-[44px] h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
+      class="min-w-11 h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
       aria-label="Go to previous page"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -98,7 +98,7 @@
       type="button"
       (click)="onPageChange(pagination().page + 1)"
       [disabled]="pagination().page === totalPages()"
-      class="min-w-[44px] h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
+      class="min-w-11 h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
       aria-label="Go to next page"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -111,7 +111,7 @@
       type="button"
       (click)="onPageChange(totalPages())"
       [disabled]="pagination().page === totalPages()"
-      class="min-w-[44px] h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
+      class="min-w-11 h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
       aria-label="Go to last page"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
