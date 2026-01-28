@@ -8,6 +8,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   input,
   output,
   signal,
@@ -77,6 +78,20 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   
   /** Track which card is in edit mode */
   protected readonly editingCardIndex = signal<number | null>(null);
+
+  private readonly autoOpenedNewRows = new WeakSet<RowState<T>>();
+
+  constructor() {
+    effect(() => {
+      if (this.editingCardIndex() !== null) return;
+      const rows = this.rows();
+      const newRowIndex = rows.findIndex(row => row.isNew && !this.autoOpenedNewRows.has(row));
+      if (newRowIndex >= 0) {
+        this.autoOpenedNewRows.add(rows[newRowIndex]);
+        this.editingCardIndex.set(newRowIndex);
+      }
+    });
+  }
 
   // ============ Computed Values ============
   

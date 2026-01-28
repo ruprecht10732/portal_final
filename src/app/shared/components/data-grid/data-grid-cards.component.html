@@ -199,7 +199,7 @@
       <!-- Edit bottom sheet -->
       <app-bottom-sheet
         [isOpen]="isEditing(rowIndex)"
-        [title]="'Edit ' + (formatValue(getCellValue(row, titleColumn()), titleColumn()) || 'Row')"
+        [title]="row.isNew ? 'Add Row' : 'Edit ' + (formatValue(getCellValue(row, titleColumn()), titleColumn()) || 'Row')"
         (close)="closeEdit()"
       >
         <div class="flex flex-col gap-4 p-4">
@@ -234,7 +234,9 @@
               </div>
             }
           }
-          <shared-button (clicked)="closeEdit()">Done</shared-button>
+          <shared-button (clicked)="closeEdit()">
+            {{ row.isNew ? 'Add' : 'Done' }}
+          </shared-button>
         </div>
       </app-bottom-sheet>
     </article>
