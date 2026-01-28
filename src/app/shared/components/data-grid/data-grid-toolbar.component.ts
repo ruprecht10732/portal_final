@@ -26,6 +26,10 @@ export class DataGridToolbarComponent<T = unknown> {
   // ============ Inputs ============
   
   readonly columns = input<GridColumn<T>[]>([]);
+  /** All columns (including hidden) for column picker */
+  readonly allColumns = input<GridColumn<T>[]>([]);
+  /** Whether column picker is enabled */
+  readonly columnPickerEnabled = input<boolean>(true);
   readonly searchTerm = input<string>('');
   readonly filters = input<FilterConfig[]>([]);
   readonly hasSelection = input<boolean>(false);
@@ -42,6 +46,8 @@ export class DataGridToolbarComponent<T = unknown> {
   readonly addRow = output<void>();
   readonly saveRequest = output<void>();
   readonly deleteRequest = output<void>();
+  /** Emitted when column visibility is toggled */
+  readonly columnVisibilityChange = output<string>();
 
   // ============ Internal State ============
   
@@ -49,6 +55,7 @@ export class DataGridToolbarComponent<T = unknown> {
   protected readonly showFilters = signal(false);
   protected readonly activeFilterColumn = signal<string | null>(null);
   protected readonly filterValue = signal('');
+  protected readonly showColumnPicker = signal(false);
 
   // ============ Computed Values ============
   
@@ -123,5 +130,19 @@ export class DataGridToolbarComponent<T = unknown> {
 
   protected onDelete(): void {
     this.deleteRequest.emit();
+  }
+
+  // ============ Column Picker Methods ============
+
+  protected toggleColumnPicker(): void {
+    this.showColumnPicker.update(v => !v);
+  }
+
+  protected onColumnVisibilityToggle(columnId: string): void {
+    this.columnVisibilityChange.emit(columnId);
+  }
+
+  protected isColumnVisible(column: GridColumn<T>): boolean {
+    return column.visible !== false;
   }
 }

@@ -76,6 +76,26 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     return row.current[column.field as keyof T];
   }
 
+  /** Get display value as string for title attribute */
+  protected getCellDisplayValue(row: RowState<T>, column: GridColumn<T>): string {
+    const value = row.current[column.field as keyof T];
+    
+    if (value === null || value === undefined || value === '') {
+      return '';
+    }
+    
+    if (column.cellType === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+    
+    if (column.cellType === 'select' && column.selectOptions) {
+      const option = column.selectOptions.find(o => o.value === value);
+      return option?.label ?? String(value);
+    }
+    
+    return String(value);
+  }
+
   protected getCellError(row: RowState<T>, columnId: string): string | null {
     return row.cellErrors[columnId] ?? null;
   }
@@ -231,5 +251,21 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   protected trackByRowId(index: number, row: RowState<T>): string | number {
     return row.current[this.rowIdField()] as string | number ?? index;
+  }
+
+  /** Calculate left position for frozen columns */
+  protected getFrozenColumnLeft(columnIndex: number): string {
+    const cols = this.columns();
+    let left = this.selectable() ? 48 : 0; // checkbox column width
+    
+    for (let i = 0; i < columnIndex; i++) {
+      if (cols[i]?.frozen) {
+        // Use minWidth or default
+        const width = cols[i].minWidth ?? cols[i].width ?? '150px';
+        left += Number.parseInt(width, 10) || 150;
+      }
+    }
+    
+    return `${left}px`;
   }
 }

@@ -1,11 +1,11 @@
 <thead class="bg-zinc-100 border-b-2 border-zinc-300 sticky top-0 z-10">
   <tr role="row">
-    <!-- Selection checkbox column -->
+    <!-- Selection checkbox column (always frozen if present) -->
     @if (selectable()) {
       <th
         role="columnheader"
         scope="col"
-        class="w-12 px-3 py-3 text-left"
+        class="w-12 px-3 py-3 text-left sticky left-0 z-20 bg-zinc-100"
       >
         <div class="flex items-center justify-center min-w-[44px] min-h-[44px]">
           <input
@@ -22,15 +22,20 @@
     }
 
     <!-- Data columns -->
-    @for (column of columns(); track column.id) {
+    @for (column of columns(); track column.id; let colIndex = $index) {
       <th
         role="columnheader"
         scope="col"
         [attr.aria-sort]="getSortDirection(column.id) === 'asc' ? 'ascending' : getSortDirection(column.id) === 'desc' ? 'descending' : null"
         class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-left text-zinc-700"
+        [class.sticky]="column.frozen"
+        [class.z-20]="column.frozen"
+        [class.bg-zinc-100]="column.frozen"
+        [class.shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]]="column.frozen"
         [style.width]="column.width"
         [style.min-width]="column.minWidth"
         [style.max-width]="column.maxWidth"
+        [style.left]="column.frozen ? getFrozenColumnLeft(colIndex) : null"
         [class.text-center]="column.align === 'center'"
         [class.text-right]="column.align === 'right'"
       >

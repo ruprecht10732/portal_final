@@ -8,6 +8,8 @@
   @if (showToolbar()) {
     <data-grid-toolbar
       [columns]="store.visibleColumns()"
+      [allColumns]="store.columns()"
+      [columnPickerEnabled]="store.config().columnPickerEnabled"
       [searchTerm]="store.searchTerm()"
       [filters]="store.filters()"
       [hasSelection]="store.hasSelection()"
@@ -21,6 +23,7 @@
       (addRow)="onAddRow()"
       (saveRequest)="onSaveRequest(getDirtyRows())"
       (deleteRequest)="onDeleteRequest(getSelectedRows())"
+      (columnVisibilityChange)="store.toggleColumnVisibility($event)"
     />
   }
 
@@ -103,44 +106,80 @@
 
   <!-- Main grid content -->
   @if (store.loadingState() !== 'loading') {
-    <section 
-      class="overflow-x-auto"
-      [attr.aria-label]="ariaLabel() + ' table'"
-    >
-      <table
-        [attr.aria-rowcount]="store.pagination().totalItems"
-        [attr.aria-colcount]="store.visibleColumns().length + 1"
-        class="w-full min-w-full"
-      >
-        <!-- Header -->
-        <data-grid-header
-          [columns]="store.visibleColumns()"
-          [sort]="store.sort()"
-          [allSelected]="store.allSelected()"
-          [partiallySelected]="store.partiallySelected()"
-          [selectable]="store.config().selectable"
-          (sortChange)="onSortChange($event)"
-          (selectAll)="store.toggleAllSelection()"
-        />
+    <!-- Card View (Mobile) -->
+    @if (store.showCardView()) {
+      <data-grid-cards
+        [columns]="store.visibleColumns()"
+        [rows]="store.rows()"
+        [selectable]="store.config().selectable"
+        [rowIdField]="store.config().rowIdField"
+        [cardTitleField]="store.config().cardTitleField"
+        [previewFieldCount]="store.config().cardPreviewFieldCount"
+        (rowSelect)="store.toggleRowSelection($event)"
+        (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
+        (cellEditEvent)="onCellEdit($event)"
+        (deleteRow)="onCardDelete($event)"
+      />
+    } @else {
+      <!-- Table View (Tablet/Desktop) -->
+      <div class="relative">
+        <!-- Left scroll indicator -->
+        @if (store.canScrollLeft()) {
+          <div 
+            class="absolute left-0 top-0 bottom-0 w-8 bg-gradient-to-r from-black/10 to-transparent pointer-events-none z-30"
+            aria-hidden="true"
+          ></div>
+        }
+        
+        <!-- Right scroll indicator -->
+        @if (store.canScrollRight()) {
+          <div 
+            class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/10 to-transparent pointer-events-none z-30"
+            aria-hidden="true"
+          ></div>
+        }
 
-        <!-- Body -->
-        <data-grid-body
-          [columns]="store.visibleColumns()"
-          [rows]="store.rows()"
-          [focusedCell]="store.focusedCell()"
-          [editingCell]="store.editingCell()"
-          [selectable]="store.config().selectable"
-          [rowIdField]="store.config().rowIdField"
-          (cellFocus)="store.setFocusedCell($event)"
-          (cellEdit)="store.startCellEdit($event.rowIndex, $event.columnIndex)"
-          (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
-          (cellEditComplete)="store.completeCellEdit($event)"
-          (rowSelect)="store.toggleRowSelection($event)"
-          (navigate)="store.navigateCell($event)"
-          (cellEditEvent)="onCellEdit($event)"
-        />
-      </table>
-    </section>
+        <section 
+          class="overflow-x-auto max-h-[70vh] overflow-y-auto"
+          [attr.aria-label]="ariaLabel() + ' table'"
+          (scroll)="onTableScroll($event)"
+        >
+          <table
+            [attr.aria-rowcount]="store.pagination().totalItems"
+            [attr.aria-colcount]="store.visibleColumns().length + 1"
+            class="w-full min-w-full"
+          >
+            <!-- Header -->
+            <data-grid-header
+              [columns]="store.visibleColumns()"
+              [sort]="store.sort()"
+              [allSelected]="store.allSelected()"
+              [partiallySelected]="store.partiallySelected()"
+              [selectable]="store.config().selectable"
+              (sortChange)="onSortChange($event)"
+              (selectAll)="store.toggleAllSelection()"
+            />
+
+            <!-- Body -->
+            <data-grid-body
+              [columns]="store.visibleColumns()"
+              [rows]="store.rows()"
+              [focusedCell]="store.focusedCell()"
+              [editingCell]="store.editingCell()"
+              [selectable]="store.config().selectable"
+              [rowIdField]="store.config().rowIdField"
+              (cellFocus)="store.setFocusedCell($event)"
+              (cellEdit)="store.startCellEdit($event.rowIndex, $event.columnIndex)"
+              (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
+              (cellEditComplete)="store.completeCellEdit($event)"
+              (rowSelect)="store.toggleRowSelection($event)"
+              (navigate)="store.navigateCell($event)"
+              (cellEditEvent)="onCellEdit($event)"
+            />
+          </table>
+        </section>
+      </div>
+    }
 
     <!-- Empty state -->
     @if (store.rows().length === 0) {

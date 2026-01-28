@@ -1,0 +1,270 @@
+<!-- Card List Container -->
+<div 
+  role="list"
+  class="flex flex-col gap-3 p-3"
+  aria-label="Data cards"
+>
+  @for (row of rows(); track trackByRowId($index, row); let rowIndex = $index) {
+    <article
+      role="listitem"
+      class="border border-l-4 transition-all duration-200"
+      [class]="getStatusClass(row) + ' ' + getBgClass(row)"
+      [attr.aria-selected]="row.selected"
+    >
+      <!-- Card Header -->
+      <header class="flex items-center justify-between gap-3 px-4 py-3 border-b border-zinc-100">
+        <!-- Left: Checkbox + Title -->
+        <div class="flex items-center gap-3 min-w-0 flex-1">
+          @if (selectable()) {
+            <div class="flex items-center justify-center min-w-[44px] min-h-[44px]">
+              <input
+                type="checkbox"
+                [checked]="row.selected"
+                (change)="onSelect(rowIndex, $event)"
+                class="w-5 h-5 accent-black cursor-pointer"
+                [attr.aria-label]="'Select ' + getCellValue(row, titleColumn())"
+              />
+            </div>
+          }
+          
+          <div class="flex flex-col min-w-0">
+            <h3 class="text-sm font-bold text-black truncate">
+              {{ getCellValue(row, titleColumn()) }}
+            </h3>
+            
+            <!-- Status badges -->
+            <div class="flex items-center gap-2 mt-0.5">
+              @if (row.isNew) {
+                <span class="px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-blue-800 bg-blue-100">
+                  New
+                </span>
+              }
+              @if (row.recentlyUpdated) {
+                <span class="px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-green-800 bg-green-100 animate-pulse">
+                  Updated
+                </span>
+              }
+              @if (row.dirty && !row.isNew) {
+                <span class="px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-amber-800 bg-amber-100">
+                  Modified
+                </span>
+              }
+              @if (row.error) {
+                <span class="px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-red-800 bg-red-100">
+                  Error
+                </span>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Action buttons -->
+        <div class="flex items-center gap-1">
+          @if (isEditing(rowIndex)) {
+            <!-- Done editing button -->
+            <button
+              type="button"
+              (click)="toggleEdit(rowIndex, $event)"
+              class="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-green-700 hover:bg-green-100 transition-colors focus:outline-none focus:ring-2 focus:ring-green-700 focus:ring-offset-1"
+              aria-label="Done editing"
+            >
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+              </svg>
+            </button>
+          } @else {
+            <!-- Edit button -->
+            <button
+              type="button"
+              (click)="toggleEdit(rowIndex, $event)"
+              class="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-500 hover:text-black hover:bg-zinc-100 transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
+              aria-label="Edit"
+            >
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+              </svg>
+            </button>
+          }
+          
+          <!-- Delete button -->
+          <button
+            type="button"
+            (click)="onDelete(rowIndex, $event)"
+            class="p-2 min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-500 hover:text-red-700 hover:bg-red-50 transition-colors focus:outline-none focus:ring-2 focus:ring-red-700 focus:ring-offset-1"
+            aria-label="Delete"
+          >
+            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        </div>
+      </header>
+
+      <!-- Card Body: Preview Fields -->
+      <div class="px-4 py-3">
+        <dl class="grid grid-cols-2 gap-x-4 gap-y-2">
+          @for (column of previewColumns(); track column.id) {
+            <div class="flex flex-col">
+              <dt class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                {{ column.header }}
+              </dt>
+              <dd class="mt-0.5 text-sm text-black">
+                @if (isEditing(rowIndex) && column.editable) {
+                  <!-- Edit mode -->
+                  @if (column.cellType === 'boolean') {
+                    <input
+                      type="checkbox"
+                      [checked]="getCellValue(row, column)"
+                      (change)="onCellChange(rowIndex, column, $event)"
+                      class="w-5 h-5 accent-black"
+                    />
+                  } @else if (column.cellType === 'select') {
+                    <select
+                      [value]="getCellValue(row, column)"
+                      (change)="onCellChange(rowIndex, column, $event)"
+                      class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
+                    >
+                      @for (option of column.selectOptions; track option.value) {
+                        <option [value]="option.value">{{ option.label }}</option>
+                      }
+                    </select>
+                  } @else {
+                    <input
+                      [type]="column.cellType === 'number' ? 'number' : 'text'"
+                      [value]="getCellValue(row, column)"
+                      (input)="onCellChange(rowIndex, column, $event)"
+                      class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
+                    />
+                  }
+                } @else {
+                  <!-- Read mode -->
+                  @if (column.cellType === 'boolean') {
+                    @if (getCellValue(row, column)) {
+                      <svg class="w-5 h-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                      </svg>
+                    } @else {
+                      <svg class="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    }
+                  } @else if (column.cellType === 'select') {
+                    <span>{{ column.selectOptions | optionLabel:getCellValue(row, column) }}</span>
+                  } @else {
+                    <span [title]="getCellValue(row, column)">
+                      {{ formatValue(getCellValue(row, column), column) }}
+                    </span>
+                  }
+                }
+              </dd>
+            </div>
+          }
+        </dl>
+      </div>
+
+      <!-- Expand/Collapse Section -->
+      @if (hasExpandableContent()) {
+        <!-- Expand Toggle Button -->
+        <button
+          type="button"
+          (click)="toggleExpanded(rowIndex)"
+          [attr.aria-expanded]="isExpanded(rowIndex)"
+          class="w-full flex items-center justify-center gap-2 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-500 hover:text-black hover:bg-zinc-50 border-t border-zinc-100 transition-colors focus:outline-none focus:ring-2 focus:ring-inset focus:ring-black"
+        >
+          @if (isExpanded(rowIndex)) {
+            <span>Show Less</span>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7" />
+            </svg>
+          } @else {
+            <span>Show More ({{ expandedColumns().length }})</span>
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+            </svg>
+          }
+        </button>
+
+        <!-- Expanded Content -->
+        @if (isExpanded(rowIndex)) {
+          <div class="px-4 py-3 bg-zinc-50/50 border-t border-zinc-100">
+            <dl class="grid grid-cols-2 gap-x-4 gap-y-2">
+              @for (column of expandedColumns(); track column.id) {
+                <div class="flex flex-col">
+                  <dt class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                    {{ column.header }}
+                  </dt>
+                  <dd class="mt-0.5 text-sm text-black">
+                    @if (isEditing(rowIndex) && column.editable) {
+                      <!-- Edit mode -->
+                      @if (column.cellType === 'boolean') {
+                        <input
+                          type="checkbox"
+                          [checked]="getCellValue(row, column)"
+                          (change)="onCellChange(rowIndex, column, $event)"
+                          class="w-5 h-5 accent-black"
+                        />
+                      } @else if (column.cellType === 'select') {
+                        <select
+                          [value]="getCellValue(row, column)"
+                          (change)="onCellChange(rowIndex, column, $event)"
+                          class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
+                        >
+                          @for (option of column.selectOptions; track option.value) {
+                            <option [value]="option.value">{{ option.label }}</option>
+                          }
+                        </select>
+                      } @else {
+                        <input
+                          [type]="column.cellType === 'number' ? 'number' : 'text'"
+                          [value]="getCellValue(row, column)"
+                          (input)="onCellChange(rowIndex, column, $event)"
+                          class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
+                        />
+                      }
+                    } @else {
+                      <!-- Read mode -->
+                      @if (column.cellType === 'boolean') {
+                        @if (getCellValue(row, column)) {
+                          <svg class="w-5 h-5 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                          </svg>
+                        } @else {
+                          <svg class="w-5 h-5 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                          </svg>
+                        }
+                      } @else if (column.cellType === 'select') {
+                        <span>{{ column.selectOptions | optionLabel:getCellValue(row, column) }}</span>
+                      } @else {
+                        <span [title]="getCellValue(row, column)">
+                          {{ formatValue(getCellValue(row, column), column) }}
+                        </span>
+                      }
+                    }
+                  </dd>
+                </div>
+              }
+            </dl>
+          </div>
+        }
+      }
+
+      <!-- Error message -->
+      @if (row.error) {
+        <div class="px-4 py-2 text-xs font-medium text-red-700 bg-red-50 border-t border-red-100">
+          {{ row.error }}
+        </div>
+      }
+    </article>
+  }
+
+  <!-- Empty state -->
+  @if (rows().length === 0) {
+    <div class="flex flex-col items-center justify-center p-8 text-zinc-500">
+      <svg class="w-12 h-12 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+      </svg>
+      <span class="text-sm font-medium uppercase tracking-wide">No data</span>
+    </div>
+  }
+</div>

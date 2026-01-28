@@ -193,6 +193,21 @@ export interface GridConfig<T> {
   offlineQueue: boolean;
   /** Max offline queue size */
   maxOfflineQueueSize: number;
+  
+  // ============ Mobile/Card View Configuration ============
+  
+  /** Enable card view on mobile (switches from table to cards below breakpoint) */
+  cardViewEnabled: boolean;
+  /** Breakpoint (px) below which card view is used */
+  mobileBreakpoint: number;
+  /** Field to use as card title/header */
+  cardTitleField?: keyof T;
+  /** Number of fields to show before "expand" in card view */
+  cardPreviewFieldCount: number;
+  /** Enable column visibility picker in toolbar */
+  columnPickerEnabled: boolean;
+  /** Maximum columns visible on mobile (table view) */
+  maxMobileColumns: number;
 }
 
 /** Default grid configuration */
@@ -211,6 +226,14 @@ export const DEFAULT_GRID_CONFIG: GridConfig<unknown> = {
   staleDataThreshold: 300000, // 5 minutes
   offlineQueue: true,
   maxOfflineQueueSize: 100,
+  
+  // Mobile/Card View defaults
+  cardViewEnabled: true,
+  mobileBreakpoint: 640, // Tailwind 'sm' breakpoint
+  cardTitleField: undefined,
+  cardPreviewFieldCount: 3,
+  columnPickerEnabled: true,
+  maxMobileColumns: 4,
 };
 
 /** Keyboard navigation direction */

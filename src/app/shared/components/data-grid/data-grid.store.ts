@@ -56,6 +56,10 @@ export class DataGridStore<T extends Record<string, unknown>> {
   // ============ Announcements ============
   private readonly _announcements = signal<AriaAnnouncement[]>([]);
 
+  // ============ Viewport/Mobile State ============
+  private readonly _viewportWidth = signal(typeof window === 'undefined' ? 1024 : window.innerWidth);
+  private readonly _scrollState = signal({ scrollLeft: 0, scrollWidth: 0, clientWidth: 0 });
+
   // ============ Observables for data fetching ============
   private readonly _dataRequest$ = new BehaviorSubject<DataRequest | null>(null);
   private readonly _refreshTrigger$ = new Subject<void>();
@@ -75,8 +79,36 @@ export class DataGridStore<T extends Record<string, unknown>> {
   readonly isOnline = this._isOnline.asReadonly();
   readonly offlineQueue = this._offlineQueue.asReadonly();
   readonly announcements = this._announcements.asReadonly();
+  readonly viewportWidth = this._viewportWidth.asReadonly();
+  readonly scrollState = this._scrollState.asReadonly();
 
   // ============ Computed Signals ============
+
+  /** Whether we're in mobile view (below breakpoint) */
+  readonly isMobileView = computed(() => 
+    this._viewportWidth() < this._config().mobileBreakpoint
+  );
+
+  /** Whether to show card view (mobile + card view enabled) */
+  readonly showCardView = computed(() => 
+    this.isMobileView() && this._config().cardViewEnabled
+  );
+
+  /** Whether there's content to scroll left */
+  readonly canScrollLeft = computed(() => 
+    this._scrollState().scrollLeft > 0
+  );
+
+  /** Whether there's content to scroll right */
+  readonly canScrollRight = computed(() => {
+    const { scrollLeft, scrollWidth, clientWidth } = this._scrollState();
+    return scrollLeft + clientWidth < scrollWidth - 1; // -1 for rounding
+  });
+
+  /** Frozen columns (for sticky positioning) */
+  readonly frozenColumns = computed(() => 
+    this._columns().filter(col => col.frozen && col.visible !== false)
+  );
 
   /** Visible columns only */
   readonly visibleColumns = computed(() => 
@@ -180,6 +212,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
 
   constructor() {
     this.setupNetworkListeners();
+    this.setupViewportListener();
   }
 
   // ============ Configuration Methods ============
@@ -828,5 +861,67 @@ export class DataGridStore<T extends Record<string, unknown>> {
       this._isOnline.set(false);
       this.announce('Connection lost. Changes will be queued.', 'assertive');
     });
+  }
+
+  private setupViewportListener(): void {
+    if (globalThis.window === undefined) return;
+    
+    const updateWidth = () => this._viewportWidth.set(window.innerWidth);
+    
+    // Use ResizeObserver if available for better performance
+    if ('ResizeObserver' in window) {
+      const observer = new ResizeObserver(updateWidth);
+      observer.observe(document.documentElement);
+    } else {
+      globalThis.addEventListener('resize', updateWidth);
+    }
+  }
+
+  // ============ Viewport/Scroll Methods ============
+
+  /** Update scroll state (called from component on scroll event) */
+  updateScrollState(scrollLeft: number, scrollWidth: number, clientWidth: number): void {
+    this._scrollState.set({ scrollLeft, scrollWidth, clientWidth });
+  }
+
+  /** Update viewport width manually (for SSR or testing) */
+  setViewportWidth(width: number): void {
+    this._viewportWidth.set(width);
+  }
+
+  // ============ Column Visibility Methods ============
+
+  /** Toggle column visibility */
+  toggleColumnVisibility(columnId: string): void {
+    this._columns.update(cols => 
+      cols.map(col => 
+        col.id === columnId 
+          ? { ...col, visible: col.visible === false ? true : false }
+          : col
+      )
+    );
+    
+    const column = this._columns().find(c => c.id === columnId);
+    const state = column?.visible !== false ? 'shown' : 'hidden';
+    this.announce(`${column?.header ?? columnId} column ${state}`, 'polite');
+  }
+
+  /** Set multiple columns visibility at once */
+  setColumnsVisibility(visibilityMap: Record<string, boolean>): void {
+    this._columns.update(cols => 
+      cols.map(col => 
+        Object.hasOwn(visibilityMap, col.id)
+          ? { ...col, visible: visibilityMap[col.id] }
+          : col
+      )
+    );
+  }
+
+  /** Show all columns */
+  showAllColumns(): void {
+    this._columns.update(cols => 
+      cols.map(col => ({ ...col, visible: true }))
+    );
+    this.announce('All columns visible', 'polite');
   }
 }

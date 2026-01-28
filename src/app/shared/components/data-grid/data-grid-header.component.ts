@@ -68,4 +68,20 @@ export class DataGridHeaderComponent<T = unknown> {
     }
     return `${column.header}, click to sort ascending`;
   }
+
+  /** Calculate left position for frozen columns */
+  protected getFrozenColumnLeft(columnIndex: number): string {
+    const cols = this.columns();
+    let left = this.selectable() ? 48 : 0; // checkbox column width
+    
+    for (let i = 0; i < columnIndex; i++) {
+      if (cols[i]?.frozen) {
+        // Use minWidth or default
+        const width = cols[i].minWidth ?? cols[i].width ?? '150px';
+        left += Number.parseInt(width, 10) || 150;
+      }
+    }
+    
+    return `${left}px`;
+  }
 }

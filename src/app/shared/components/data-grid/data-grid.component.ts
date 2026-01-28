@@ -20,6 +20,7 @@ import { DataGridHeaderComponent } from './data-grid-header.component';
 import { DataGridBodyComponent } from './data-grid-body.component';
 import { DataGridPaginationComponent } from './data-grid-pagination.component';
 import { DataGridToolbarComponent } from './data-grid-toolbar.component';
+import { DataGridCardsComponent } from './data-grid-cards.component';
 
 import {
   BulkOperationResult,
@@ -50,6 +51,7 @@ import { Observable, Subject } from 'rxjs';
     DataGridBodyComponent,
     DataGridPaginationComponent,
     DataGridToolbarComponent,
+    DataGridCardsComponent,
   ],
   host: {
     'class': 'block w-full',
@@ -266,5 +268,19 @@ export class DataGridComponent<T extends Record<string, unknown>> {
 
   protected onClearFilters(): void {
     this.store.clearFilters();
+  }
+
+  /** Handle horizontal scroll for scroll indicators */
+  protected onTableScroll(event: Event): void {
+    const el = event.target as HTMLElement;
+    this.store.updateScrollState(el.scrollLeft, el.scrollWidth, el.clientWidth);
+  }
+
+  /** Handle row delete from card view */
+  protected onCardDelete(rowIndex: number): void {
+    const row = this.store.rows()[rowIndex];
+    if (row) {
+      this.deleteRows.emit([row.current]);
+    }
   }
 }

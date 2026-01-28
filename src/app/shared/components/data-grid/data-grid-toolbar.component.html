@@ -60,6 +60,64 @@
 
   <!-- Right section: Action buttons -->
   <div class="flex items-center gap-2">
+    <!-- Column visibility picker -->
+    @if (columnPickerEnabled() && allColumns().length > 0) {
+      <div class="relative">
+        <button
+          type="button"
+          (click)="toggleColumnPicker()"
+          class="flex items-center gap-1.5 px-3 py-2 min-h-[44px] sm:min-h-0 text-xs font-semibold uppercase tracking-wide transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+          [class.text-black]="showColumnPicker()"
+          [class.text-zinc-500]="!showColumnPicker()"
+          [class.bg-zinc-200]="showColumnPicker()"
+          [attr.aria-expanded]="showColumnPicker()"
+          aria-haspopup="true"
+          aria-label="Toggle column visibility"
+        >
+          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
+          </svg>
+          <span class="hidden sm:inline">Columns</span>
+        </button>
+
+        <!-- Column picker dropdown -->
+        @if (showColumnPicker()) {
+          <div 
+            class="absolute right-0 mt-1 w-56 max-h-64 overflow-y-auto bg-white border border-zinc-200 shadow-lg z-50"
+            role="menu"
+          >
+            <div class="p-2 border-b border-zinc-100">
+              <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
+                Show/Hide Columns
+              </span>
+            </div>
+            <div class="py-1">
+              @for (column of allColumns(); track column.id) {
+                <label
+                  class="flex items-center gap-3 px-3 py-2 hover:bg-zinc-50 cursor-pointer"
+                  role="menuitemcheckbox"
+                  [attr.aria-checked]="isColumnVisible(column)"
+                >
+                  <input
+                    type="checkbox"
+                    [checked]="isColumnVisible(column)"
+                    (change)="onColumnVisibilityToggle(column.id)"
+                    class="w-4 h-4 accent-black cursor-pointer"
+                  />
+                  <span class="text-sm text-zinc-700">{{ column.header }}</span>
+                  @if (column.frozen) {
+                    <span class="ml-auto text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
+                      Frozen
+                    </span>
+                  }
+                </label>
+              }
+            </div>
+          </div>
+        }
+      </div>
+    }
+
     <!-- Add row button -->
     <button
       type="button"
