@@ -70,19 +70,11 @@
 
   @switch (view()) {
     @case ('day') {
-      <div class="day-view" [attr.aria-labelledby]="gridLabelId">
-        <button
-          type="button"
-          class="day-button day-view-button"
-          [attr.aria-label]="activeDay().ariaLabel"
-          [disabled]="isUnavailable(activeDay())"
-          (click)="selectDay(activeDay())"
-          [class.is-unavailable]="isUnavailable(activeDay())"
-        >
-          {{ activeDayTitle() }}
-          <span class="day-view-date">{{ activeDaySubtitle() }}</span>
-        </button>
-      </div>
+      <shared-calendar-day-view
+        [day]="activeDay()"
+        [isUnavailable]="isUnavailable(activeDay())"
+        (selected)="selectDay($event)"
+      />
     }
     @case ('week') {
       <table

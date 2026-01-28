@@ -8,6 +8,7 @@ import {
   viewChildren,
 } from '@angular/core';
 import { Grid, GridCell, GridCellWidget, GridRow } from '@angular/aria/grid';
+import { CalendarDayViewComponent } from '../calendar-day-view/calendar-day-view.component';
 
 interface CalendarDay {
   displayName: string;
@@ -19,7 +20,7 @@ interface CalendarDay {
 
 @Component({
   selector: 'shared-calendar-grid',
-  imports: [Grid, GridRow, GridCell, GridCellWidget],
+  imports: [Grid, GridRow, GridCell, GridCellWidget, CalendarDayViewComponent],
   templateUrl: './calendar-grid.component.html',
   styleUrl: './calendar-grid.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

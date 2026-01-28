@@ -1,0 +1,21 @@
+<section class="day-view">
+  <button
+    type="button"
+    class="day-summary"
+    [attr.aria-label]="day()?.ariaLabel"
+    [disabled]="isUnavailable()"
+    (click)="handleSelect()"
+  >
+    <span class="day-title">{{ dayTitle() }}</span>
+    <span class="day-subtitle">{{ daySubtitle() }}</span>
+  </button>
+
+  <ul class="day-grid">
+    @for (hour of hours(); track hour.value) {
+      <li class="day-row">
+        <div class="time-label">{{ hour.label }}</div>
+        <div class="time-slot" aria-hidden="true"></div>
+      </li>
+    }
+  </ul>
+</section>
