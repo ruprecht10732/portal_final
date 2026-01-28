@@ -1,5 +1,9 @@
 <main class="min-h-screen bg-zinc-50 flex flex-col p-4 sm:p-8">
-  <div class="max-w-md w-full mx-auto space-y-12 py-12 text-left">
+  <div 
+    class="w-full mx-auto space-y-12 py-12 text-left transition-all duration-300"
+    [class.max-w-md]="activeTab() !== 'data'"
+    [class.max-w-6xl]="activeTab() === 'data'"
+  >
     <!-- Header -->
     <header class="space-y-2">
       <h1 class="text-3xl font-bold tracking-tighter uppercase italic">Portal</h1>
@@ -52,6 +56,20 @@
           [class.text-black]="activeTab() === 'settings'"
           [class.text-zinc-400]="activeTab() !== 'settings'">
           Settings
+        </button>
+        <button 
+          type="button"
+          role="tab"
+          [attr.aria-selected]="activeTab() === 'data'"
+          [attr.aria-controls]="'panel-data'"
+          id="tab-data"
+          (click)="activeTab.set('data')"
+          class="px-6 py-4 text-xs font-bold uppercase tracking-widest border-b-2 transition-all duration-200 outline-none"
+          [class.border-black]="activeTab() === 'data'"
+          [class.border-transparent]="activeTab() !== 'data'"
+          [class.text-black]="activeTab() === 'data'"
+          [class.text-zinc-400]="activeTab() !== 'data'">
+          Data Grid
         </button>
       </div>
 
@@ -180,6 +198,21 @@
             Back to Profile
           </shared-button>
         </div>
+      </div>
+
+      <div 
+        role="tabpanel" 
+        id="panel-data" 
+        [attr.aria-labelledby]="'tab-data'" 
+        [hidden]="activeTab() !== 'data'" 
+        class="space-y-6"
+      >
+        <shared-data-grid
+          [columns]="userColumns"
+          [config]="userGridConfig"
+          [data]="sampleUsers"
+          ariaLabel="Users"
+        />
       </div>
     </shared-tabs>
 

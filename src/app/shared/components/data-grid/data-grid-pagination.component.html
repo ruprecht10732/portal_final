@@ -1,0 +1,122 @@
+<nav 
+  class="flex flex-col gap-3 px-4 py-3 border-t border-zinc-200 bg-zinc-50 sm:flex-row sm:items-center sm:justify-between"
+  role="navigation"
+  aria-label="Pagination"
+>
+  <!-- Left: Item count and page size -->
+  <div class="flex flex-col gap-2 text-xs text-zinc-600 sm:flex-row sm:items-center sm:gap-4">
+    <!-- Item count -->
+    <span class="font-medium">
+      Showing 
+      <span class="text-black">{{ startItem }}</span>
+      –
+      <span class="text-black">{{ endItem }}</span>
+      of
+      <span class="text-black">{{ pagination().totalItems }}</span>
+    </span>
+
+    <!-- Page size selector -->
+    <div class="flex items-center gap-2">
+      <label for="page-size" class="sr-only">Items per page</label>
+      <select
+        id="page-size"
+        [value]="pagination().pageSize"
+        (change)="onPageSizeChange($event)"
+        class="appearance-none px-2 py-1 pr-7 text-xs bg-white border border-zinc-200 focus:outline-none focus:border-black cursor-pointer"
+      >
+        @for (size of pagination().pageSizeOptions; track size) {
+          <option [value]="size">{{ size }} / page</option>
+        }
+      </select>
+    </div>
+  </div>
+
+  <!-- Right: Page navigation -->
+  <div class="flex items-center gap-1">
+    <!-- First page -->
+    <button
+      type="button"
+      (click)="onPageChange(1)"
+      [disabled]="pagination().page === 1"
+      class="p-2 text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+      aria-label="Go to first page"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
+      </svg>
+    </button>
+
+    <!-- Previous page -->
+    <button
+      type="button"
+      (click)="onPageChange(pagination().page - 1)"
+      [disabled]="pagination().page === 1"
+      class="p-2 text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+      aria-label="Go to previous page"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+
+    <!-- Page numbers -->
+    <div class="hidden sm:flex items-center gap-1">
+      @if (pageNumbers()[0] > 1) {
+        <span class="px-2 text-zinc-400">...</span>
+      }
+      
+      @for (page of pageNumbers(); track page) {
+        <button
+          type="button"
+          (click)="onPageChange(page)"
+          [attr.aria-current]="pagination().page === page ? 'page' : null"
+          [attr.aria-label]="getPageAriaLabel(page)"
+          class="min-w-8 h-8 px-2 text-xs font-medium transition-colors"
+          [class.bg-black]="pagination().page === page"
+          [class.text-white]="pagination().page === page"
+          [class.text-zinc-600]="pagination().page !== page"
+          [class.hover:bg-zinc-200]="pagination().page !== page"
+        >
+          {{ page }}
+        </button>
+      }
+      
+      @if (pageNumbers()[pageNumbers().length - 1] < totalPages()) {
+        <span class="px-2 text-zinc-400">...</span>
+      }
+    </div>
+
+    <!-- Mobile page indicator -->
+    <div class="flex sm:hidden items-center px-3">
+      <span class="text-xs font-medium text-zinc-600">
+        Page {{ pagination().page }} of {{ totalPages() }}
+      </span>
+    </div>
+
+    <!-- Next page -->
+    <button
+      type="button"
+      (click)="onPageChange(pagination().page + 1)"
+      [disabled]="pagination().page === totalPages()"
+      class="p-2 text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+      aria-label="Go to next page"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+      </svg>
+    </button>
+
+    <!-- Last page -->
+    <button
+      type="button"
+      (click)="onPageChange(totalPages())"
+      [disabled]="pagination().page === totalPages()"
+      class="p-2 text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+      aria-label="Go to last page"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />
+      </svg>
+    </button>
+  </div>
+</nav>

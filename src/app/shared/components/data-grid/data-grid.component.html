@@ -1,0 +1,202 @@
+<!-- Data Grid Container -->
+<div 
+  #gridContainer
+  class="flex flex-col w-full bg-white border border-zinc-200"
+  [attr.aria-label]="ariaLabel()"
+>
+  <!-- Toolbar with search and filters -->
+  @if (showToolbar()) {
+    <data-grid-toolbar
+      [columns]="store.visibleColumns()"
+      [searchTerm]="store.searchTerm()"
+      [filters]="store.filters()"
+      [hasSelection]="store.hasSelection()"
+      [selectedCount]="store.selectedCount()"
+      [hasDirtyRows]="store.hasDirtyRows()"
+      [isOnline]="store.isOnline()"
+      [hasPendingOps]="store.hasPendingOfflineOps()"
+      (searchChange)="onSearchChange($event)"
+      (filterChange)="onFilterChange($event)"
+      (clearFilters)="onClearFilters()"
+      (addRow)="onAddRow()"
+      (saveRequest)="onSaveRequest(getDirtyRows())"
+      (deleteRequest)="onDeleteRequest(getSelectedRows())"
+    />
+  }
+
+  <!-- Loading overlay -->
+  @if (store.loadingState() === 'loading') {
+    <output 
+      class="flex items-center justify-center p-8 text-zinc-500"
+      aria-live="polite"
+    >
+      <svg class="w-6 h-6 mr-3 animate-spin" viewBox="0 0 24 24" fill="none">
+        <circle 
+          class="opacity-25" 
+          cx="12" cy="12" r="10" 
+          stroke="currentColor" 
+          stroke-width="4"
+        />
+        <path 
+          class="opacity-75" 
+          fill="currentColor" 
+          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+        />
+      </svg>
+      <span class="text-sm font-medium uppercase tracking-wide">Loading...</span>
+    </output>
+  }
+
+  <!-- Error state -->
+  @if (store.loadingState() === 'error' && error()) {
+    <div 
+      class="flex items-center justify-center p-8 text-red-500 bg-red-50"
+      role="alert"
+      aria-live="assertive"
+    >
+      <svg class="w-5 h-5 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+      </svg>
+      <span class="text-sm font-medium">{{ error() }}</span>
+    </div>
+  }
+
+  <!-- Offline indicator -->
+  @if (!store.isOnline()) {
+    <output 
+      class="flex items-center justify-between px-4 py-2 text-amber-700 bg-amber-50 border-b border-amber-200"
+      aria-live="polite"
+    >
+      <span class="flex items-center">
+        <svg class="w-4 h-4 mr-2" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3" />
+        </svg>
+        <span class="text-xs font-semibold uppercase tracking-wide">
+          Offline Mode
+        </span>
+      </span>
+      @if (store.hasPendingOfflineOps()) {
+        <span class="text-xs">
+          {{ store.offlineQueue().length }} changes pending
+        </span>
+      }
+    </output>
+  }
+
+  <!-- Stale data warning -->
+  @if (store.isDataStale()) {
+    <output 
+      class="flex items-center justify-between px-4 py-2 text-blue-700 bg-blue-50 border-b border-blue-200"
+    >
+      <span class="text-xs font-semibold uppercase tracking-wide">
+        Data may be outdated
+      </span>
+      <button
+        type="button"
+        (click)="refresh()"
+        class="text-xs font-semibold uppercase tracking-wide hover:underline"
+      >
+        Refresh
+      </button>
+    </output>
+  }
+
+  <!-- Main grid content -->
+  @if (store.loadingState() !== 'loading') {
+    <section 
+      class="overflow-x-auto"
+      [attr.aria-label]="ariaLabel() + ' table'"
+    >
+      <table
+        [attr.aria-rowcount]="store.pagination().totalItems"
+        [attr.aria-colcount]="store.visibleColumns().length + 1"
+        class="w-full min-w-full"
+      >
+        <!-- Header -->
+        <data-grid-header
+          [columns]="store.visibleColumns()"
+          [sort]="store.sort()"
+          [allSelected]="store.allSelected()"
+          [partiallySelected]="store.partiallySelected()"
+          [selectable]="store.config().selectable"
+          (sortChange)="onSortChange($event)"
+          (selectAll)="store.toggleAllSelection()"
+        />
+
+        <!-- Body -->
+        <data-grid-body
+          [columns]="store.visibleColumns()"
+          [rows]="store.rows()"
+          [focusedCell]="store.focusedCell()"
+          [editingCell]="store.editingCell()"
+          [selectable]="store.config().selectable"
+          [rowIdField]="store.config().rowIdField"
+          (cellFocus)="store.setFocusedCell($event)"
+          (cellEdit)="store.startCellEdit($event.rowIndex, $event.columnIndex)"
+          (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
+          (cellEditComplete)="store.completeCellEdit($event)"
+          (rowSelect)="store.toggleRowSelection($event)"
+          (navigate)="store.navigateCell($event)"
+          (cellEditEvent)="onCellEdit($event)"
+        />
+      </table>
+    </section>
+
+    <!-- Empty state -->
+    @if (store.rows().length === 0) {
+      <output 
+        class="flex flex-col items-center justify-center p-12 text-zinc-400"
+      >
+        <svg class="w-12 h-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
+        </svg>
+        <span class="text-sm font-medium uppercase tracking-wide">No data</span>
+        <span class="text-xs mt-1">
+          @if (store.filters().length > 0 || store.searchTerm()) {
+            Try adjusting your filters
+          } @else {
+            Add a new row to get started
+          }
+        </span>
+      </output>
+    }
+
+    <!-- Pagination -->
+    @if (store.rows().length > 0 && store.config().navigationMode === 'pagination') {
+      <data-grid-pagination
+        [pagination]="store.pagination()"
+        [totalPages]="store.totalPages()"
+        [pageNumbers]="store.pageNumbers()"
+        (pageChange)="onPageChange($event)"
+        (pageSizeChange)="onPageSizeChange($event)"
+      />
+    }
+
+    <!-- Infinite scroll trigger -->
+    @if (store.config().navigationMode === 'infinite-scroll') {
+      @if (store.pagination().page < store.totalPages()) {
+        <div class="flex justify-center p-4">
+          <button
+            type="button"
+            (click)="onPageChange(store.pagination().page + 1)"
+            class="px-6 py-2 text-sm font-semibold uppercase tracking-wide text-zinc-600 hover:text-black transition-colors"
+          >
+            Load More
+          </button>
+        </div>
+      }
+    }
+  }
+
+  <!-- Screen reader announcements -->
+  <output
+    #announcer
+    class="sr-only"
+    [attr.aria-live]="currentAnnouncement() ? currentAnnouncement().politeness : 'polite'"
+    aria-atomic="true"
+  >
+    @if (currentAnnouncement()) {
+      {{ currentAnnouncement().message }}
+    }
+  </output>
+</div>

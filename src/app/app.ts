@@ -8,6 +8,16 @@ import { MultiSelectComponent } from './shared/components/multiselect/multiselec
 import { AutocompleteComponent } from './shared/components/autocomplete/autocomplete.component';
 import { CalendarGridComponent } from './shared/components/calendar-grid/calendar-grid.component';
 import { TabsComponent } from './shared/components/tabs/tabs.component';
+import { DataGridComponent, DataGridStore, GridColumn, GridConfig } from './shared/components/data-grid';
+
+interface User extends Record<string, unknown> {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+  status: string;
+  department: string;
+}
 
 @Component({
   selector: 'app-root',
@@ -21,7 +31,9 @@ import { TabsComponent } from './shared/components/tabs/tabs.component';
     AutocompleteComponent,
     CalendarGridComponent,
     TabsComponent,
+    DataGridComponent,
   ],
+  providers: [DataGridStore],
   templateUrl: './app.html'
 })
 export class App {
@@ -129,5 +141,61 @@ export class App {
     { iso: '2026-01-01', name: 'New Year\'s Day' },
     { iso: '2026-07-04', name: 'Independence Day' },
     { iso: '2026-12-25', name: 'Christmas Day' },
+  ];
+
+  // Data Grid Configuration
+  userColumns: GridColumn<User>[] = [
+    { id: 'name', field: 'name', header: 'Name', sortable: true, filterable: true, editable: true, minWidth: '150px' },
+    { id: 'email', field: 'email', header: 'Email', sortable: true, filterable: true, editable: true, minWidth: '200px' },
+    { 
+      id: 'role', 
+      field: 'role', 
+      header: 'Role', 
+      sortable: true, 
+      filterable: true, 
+      editable: true, 
+      cellType: 'select',
+      selectOptions: [
+        { label: 'Admin', value: 'admin' },
+        { label: 'Editor', value: 'editor' },
+        { label: 'Viewer', value: 'viewer' },
+      ],
+      minWidth: '120px'
+    },
+    { 
+      id: 'status', 
+      field: 'status', 
+      header: 'Status', 
+      sortable: true, 
+      filterable: true, 
+      editable: true,
+      cellType: 'select',
+      selectOptions: [
+        { label: 'Active', value: 'active' },
+        { label: 'Inactive', value: 'inactive' },
+        { label: 'Pending', value: 'pending' },
+      ],
+      minWidth: '100px'
+    },
+    { id: 'department', field: 'department', header: 'Department', sortable: true, filterable: true, editable: true, minWidth: '130px' },
+  ];
+
+  userGridConfig: Partial<GridConfig<User>> = {
+    rowIdField: 'id',
+    selectable: true,
+    navigationMode: 'pagination',
+  };
+
+  sampleUsers: User[] = [
+    { id: 1, name: 'Alice Johnson', email: 'alice@example.com', role: 'admin', status: 'active', department: 'Engineering' },
+    { id: 2, name: 'Bob Smith', email: 'bob@example.com', role: 'editor', status: 'active', department: 'Marketing' },
+    { id: 3, name: 'Carol White', email: 'carol@example.com', role: 'viewer', status: 'inactive', department: 'Sales' },
+    { id: 4, name: 'David Brown', email: 'david@example.com', role: 'editor', status: 'active', department: 'Engineering' },
+    { id: 5, name: 'Eva Martinez', email: 'eva@example.com', role: 'admin', status: 'pending', department: 'HR' },
+    { id: 6, name: 'Frank Wilson', email: 'frank@example.com', role: 'viewer', status: 'active', department: 'Finance' },
+    { id: 7, name: 'Grace Lee', email: 'grace@example.com', role: 'editor', status: 'active', department: 'Engineering' },
+    { id: 8, name: 'Henry Davis', email: 'henry@example.com', role: 'viewer', status: 'inactive', department: 'Marketing' },
+    { id: 9, name: 'Ivy Chen', email: 'ivy@example.com', role: 'admin', status: 'active', department: 'Operations' },
+    { id: 10, name: 'Jack Taylor', email: 'jack@example.com', role: 'editor', status: 'pending', department: 'Sales' },
   ];
 }

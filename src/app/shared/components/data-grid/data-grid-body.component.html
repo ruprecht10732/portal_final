@@ -1,0 +1,206 @@
+<tbody>
+  @for (row of rows(); track trackByRowId($index, row); let rowIndex = $index) {
+    <tr
+      role="row"
+      [attr.aria-selected]="row.selected"
+      [attr.aria-rowindex]="rowIndex + 2"
+      class="group transition-colors duration-200"
+      [class.bg-green-50]="row.recentlyUpdated"
+      [class.bg-red-50]="row.error"
+      [class.bg-amber-50]="row.dirty && !row.isNew"
+      [class.bg-blue-50]="row.isNew"
+      [class.hover:bg-zinc-50]="!row.recentlyUpdated && !row.error && !row.dirty && !row.isNew"
+    >
+      <!-- Selection checkbox -->
+      @if (selectable()) {
+        <td
+          role="gridcell"
+          class="w-12 px-3 py-3 border-b border-zinc-100"
+        >
+          <div class="flex items-center justify-center">
+            <input
+              type="checkbox"
+              [checked]="row.selected"
+              (change)="onRowSelect(rowIndex)"
+              class="w-4 h-4 accent-black cursor-pointer"
+              [attr.aria-label]="'Select row ' + (rowIndex + 1)"
+            />
+          </div>
+        </td>
+      }
+
+      <!-- Data cells -->
+      @for (column of columns(); track column.id; let colIndex = $index) {
+        <td
+          #cellRef
+          role="gridcell"
+          [attr.aria-colindex]="colIndex + 2"
+          [attr.tabindex]="isCellFocused(rowIndex, colIndex) ? 0 : -1"
+          (click)="onCellClick(rowIndex, colIndex)"
+          (dblclick)="onCellDoubleClick(rowIndex, colIndex)"
+          (keydown)="onCellKeydown($event, rowIndex, colIndex)"
+          (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
+          class="px-4 py-3 text-sm border-b border-zinc-100 transition-all duration-150 outline-none"
+          [class.text-center]="column.align === 'center'"
+          [class.text-right]="column.align === 'right'"
+          [class.ring-2]="isCellFocused(rowIndex, colIndex)"
+          [class.ring-black]="isCellFocused(rowIndex, colIndex)"
+          [class.ring-inset]="isCellFocused(rowIndex, colIndex)"
+          [class.bg-white]="isCellEditing(rowIndex, colIndex)"
+        >
+          @if (isCellEditing(rowIndex, colIndex)) {
+            <!-- Edit mode -->
+            <div class="flex flex-col gap-1">
+              @if (column.cellType === 'select') {
+                <select
+                  #inputRef
+                  [value]="getCellValue(row, column)"
+                  (change)="onInputChange(rowIndex, column.id, $event)"
+                  (blur)="onInputBlur(rowIndex, colIndex)"
+                  (keydown)="onCellKeydown($event, rowIndex, colIndex)"
+                  class="w-full px-2 py-1 text-sm bg-white border border-black focus:outline-none"
+                  [class.border-red-500]="getCellError(row, column.id)"
+                >
+                  @for (option of column.selectOptions; track option.value) {
+                    <option [value]="option.value">{{ option.label }}</option>
+                  }
+                </select>
+              } @else if (column.cellType === 'boolean') {
+                <input
+                  #inputRef
+                  type="checkbox"
+                  [checked]="getCellValue(row, column)"
+                  (change)="onInputChange(rowIndex, column.id, $event)"
+                  (blur)="onInputBlur(rowIndex, colIndex)"
+                  (keydown)="onCellKeydown($event, rowIndex, colIndex)"
+                  class="w-4 h-4 accent-black cursor-pointer"
+                />
+              } @else {
+                <input
+                  #inputRef
+                  [type]="getInputType(column)"
+                  [value]="getCellValue(row, column)"
+                  (input)="onInputChange(rowIndex, column.id, $event)"
+                  (blur)="onInputBlur(rowIndex, colIndex)"
+                  (keydown)="onCellKeydown($event, rowIndex, colIndex)"
+                  class="w-full px-2 py-1 text-sm bg-white border border-black focus:outline-none"
+                  [class.border-red-500]="getCellError(row, column.id)"
+                />
+              }
+              
+              <!-- Validation error -->
+              @if (getCellError(row, column.id)) {
+                <span 
+                  class="text-[10px] font-semibold uppercase tracking-wide text-red-500"
+                  role="alert"
+                >
+                  {{ getCellError(row, column.id) }}
+                </span>
+              }
+            </div>
+          } @else {
+            <!-- Read mode -->
+            <div class="flex items-center justify-between gap-2">
+              <span 
+                class="truncate"
+                [class.text-zinc-400]="getCellValue(row, column) === null || getCellValue(row, column) === undefined || getCellValue(row, column) === ''"
+              >
+                @if (column.cellType === 'boolean') {
+                  @if (getCellValue(row, column)) {
+                    <svg class="w-4 h-4 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                    </svg>
+                  } @else {
+                    <svg class="w-4 h-4 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                    </svg>
+                  }
+                } @else if (column.cellType === 'select') {
+                  {{ column.selectOptions | optionLabel:getCellValue(row, column) }}
+                } @else {
+                  {{ getCellValue(row, column) ?? '—' }}
+                }
+              </span>
+              
+              <!-- Edit indicator on hover -->
+              @if (column.editable) {
+                <button
+                  type="button"
+                  (click)="onCellDoubleClick(rowIndex, colIndex); $event.stopPropagation()"
+                  class="opacity-0 group-hover:opacity-100 p-1 text-zinc-400 hover:text-black transition-opacity"
+                  tabindex="-1"
+                  [attr.aria-label]="'Edit ' + column.header"
+                >
+                  <svg class="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
+                  </svg>
+                </button>
+              }
+            </div>
+          }
+        </td>
+      }
+
+      <!-- Actions column -->
+      <td
+        role="gridcell"
+        class="w-20 px-3 py-3 border-b border-zinc-100"
+      >
+        <div class="flex items-center justify-end gap-1">
+          <!-- Saving indicator -->
+          @if (row.saving) {
+            <div class="flex items-center gap-1 text-zinc-500">
+              <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+              <span class="sr-only">Saving</span>
+            </div>
+          }
+
+          <!-- Error indicator -->
+          @if (row.error) {
+            <button
+              type="button"
+              class="p-1 text-red-500"
+              [attr.aria-label]="'Error: ' + row.error"
+              [title]="row.error"
+            >
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+              </svg>
+            </button>
+          }
+
+          <!-- Dirty indicator -->
+          @if (row.dirty && !row.saving && !row.error) {
+            <span 
+              class="w-2 h-2 bg-amber-500 rounded-full"
+              [attr.aria-label]="'Row has unsaved changes'"
+            ></span>
+          }
+
+          <!-- New row indicator -->
+          @if (row.isNew) {
+            <span 
+              class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-blue-600 bg-blue-100"
+            >
+              New
+            </span>
+          }
+
+          <!-- Recently updated indicator -->
+          @if (row.recentlyUpdated) {
+            <span 
+              class="px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wide text-green-600 bg-green-100 animate-pulse"
+            >
+              Updated
+            </span>
+          }
+        </div>
+      </td>
+    </tr>
+  } @empty {
+    <!-- Empty state handled by parent -->
+  }
+</tbody>
