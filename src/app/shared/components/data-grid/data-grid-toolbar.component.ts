@@ -7,6 +7,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  effect,
   input,
   output,
   signal,
@@ -14,10 +15,11 @@ import {
 import { FormsModule } from '@angular/forms';
 import { FilterConfig, GridColumn } from './data-grid.types';
 import { ColumnLabelPipe } from './data-grid.pipes';
+import { BottomSheetComponent } from '../bottom-sheet';
 
 @Component({
   selector: 'data-grid-toolbar',
-  imports: [FormsModule, ColumnLabelPipe],
+  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent],
   templateUrl: './data-grid-toolbar.component.html',
   styleUrl: './data-grid-toolbar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -56,6 +58,17 @@ export class DataGridToolbarComponent<T = unknown> {
   protected readonly activeFilterColumn = signal<string | null>(null);
   protected readonly filterValue = signal('');
   protected readonly showColumnPicker = signal(false);
+  protected readonly isMobile = signal(window.innerWidth < 640);
+
+  constructor() {
+    // Track viewport changes
+    if (typeof window !== 'undefined') {
+      const resizeObserver = new ResizeObserver(() => {
+        this.isMobile.set(window.innerWidth < 640);
+      });
+      resizeObserver.observe(document.body);
+    }
+  }
 
   // ============ Computed Values ============
   
@@ -136,6 +149,10 @@ export class DataGridToolbarComponent<T = unknown> {
 
   protected toggleColumnPicker(): void {
     this.showColumnPicker.update(v => !v);
+  }
+
+  protected closeColumnPicker(): void {
+    this.showColumnPicker.set(false);
   }
 
   protected onColumnVisibilityToggle(columnId: string): void {

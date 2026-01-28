@@ -76,6 +76,15 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     return row.current[column.field as keyof T];
   }
 
+  /** Get safe value for input binding (avoids "undefined" string) */
+  protected getInputValue(row: RowState<T>, column: GridColumn<T>): string | number {
+    const value = row.current[column.field as keyof T];
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return value as string | number;
+  }
+
   /** Get display value as string for title attribute */
   protected getCellDisplayValue(row: RowState<T>, column: GridColumn<T>): string {
     const value = row.current[column.field as keyof T];

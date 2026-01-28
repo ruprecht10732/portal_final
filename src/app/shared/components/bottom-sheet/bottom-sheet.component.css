@@ -1,0 +1,8 @@
+:host {
+  display: contents;
+}
+
+/* Safe area padding for iOS devices */
+:host ::ng-deep [bottomSheetFooter] {
+  padding-bottom: env(safe-area-inset-bottom, 0);
+}

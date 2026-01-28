@@ -109,6 +109,15 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     return row.current[field];
   }
 
+  /** Get safe value for input binding (avoids "undefined" string) */
+  protected getInputValue(row: RowState<T>, column: GridColumn<T>): string | number {
+    const value = this.getCellValue(row, column);
+    if (value === null || value === undefined) {
+      return '';
+    }
+    return value as string | number;
+  }
+
   /** Get row ID */
   protected getRowId(row: RowState<T>): string | number {
     const field = this.rowIdField();

@@ -66,7 +66,7 @@
               @if (column.cellType === 'select') {
                 <select
                   #inputRef
-                  [value]="getCellValue(row, column)"
+                  [value]="getInputValue(row, column)"
                   (change)="onInputChange(rowIndex, column.id, $event)"
                   (blur)="onInputBlur(rowIndex, colIndex)"
                   (keydown)="onCellKeydown($event, rowIndex, colIndex)"
@@ -91,7 +91,7 @@
                 <input
                   #inputRef
                   [type]="getInputType(column)"
-                  [value]="getCellValue(row, column)"
+                  [value]="getInputValue(row, column)"
                   (input)="onInputChange(rowIndex, column.id, $event)"
                   (blur)="onInputBlur(rowIndex, colIndex)"
                   (keydown)="onCellKeydown($event, rowIndex, colIndex)"

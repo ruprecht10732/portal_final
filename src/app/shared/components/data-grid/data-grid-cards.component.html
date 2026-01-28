@@ -29,7 +29,7 @@
           
           <div class="flex flex-col min-w-0">
             <h3 class="text-sm font-bold text-black truncate">
-              {{ getCellValue(row, titleColumn()) }}
+              {{ formatValue(getCellValue(row, titleColumn()), titleColumn()) || 'Untitled' }}
             </h3>
             
             <!-- Status badges -->
@@ -120,7 +120,7 @@
                     />
                   } @else if (column.cellType === 'select') {
                     <select
-                      [value]="getCellValue(row, column)"
+                      [value]="getInputValue(row, column)"
                       (change)="onCellChange(rowIndex, column, $event)"
                       class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
                     >
@@ -131,7 +131,7 @@
                   } @else {
                     <input
                       [type]="column.cellType === 'number' ? 'number' : 'text'"
-                      [value]="getCellValue(row, column)"
+                      [value]="getInputValue(row, column)"
                       (input)="onCellChange(rowIndex, column, $event)"
                       class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
                     />
@@ -151,7 +151,7 @@
                   } @else if (column.cellType === 'select') {
                     <span>{{ column.selectOptions | optionLabel:getCellValue(row, column) }}</span>
                   } @else {
-                    <span [title]="getCellValue(row, column)">
+                    <span [title]="formatValue(getCellValue(row, column), column)">
                       {{ formatValue(getCellValue(row, column), column) }}
                     </span>
                   }
@@ -205,7 +205,7 @@
                         />
                       } @else if (column.cellType === 'select') {
                         <select
-                          [value]="getCellValue(row, column)"
+                          [value]="getInputValue(row, column)"
                           (change)="onCellChange(rowIndex, column, $event)"
                           class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
                         >
@@ -216,7 +216,7 @@
                       } @else {
                         <input
                           [type]="column.cellType === 'number' ? 'number' : 'text'"
-                          [value]="getCellValue(row, column)"
+                          [value]="getInputValue(row, column)"
                           (input)="onCellChange(rowIndex, column, $event)"
                           class="w-full px-2 py-1 text-sm bg-white border border-zinc-300 focus:outline-none focus:border-black"
                         />
@@ -236,7 +236,7 @@
                       } @else if (column.cellType === 'select') {
                         <span>{{ column.selectOptions | optionLabel:getCellValue(row, column) }}</span>
                       } @else {
-                        <span [title]="getCellValue(row, column)">
+                        <span [title]="formatValue(getCellValue(row, column), column)">
                           {{ formatValue(getCellValue(row, column), column) }}
                         </span>
                       }
