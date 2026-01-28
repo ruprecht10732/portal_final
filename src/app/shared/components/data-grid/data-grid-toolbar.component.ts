@@ -60,13 +60,13 @@ export class DataGridToolbarComponent<T = unknown> {
   protected readonly activeFilterColumn = signal<string | null>(null);
   protected readonly filterValue = signal('');
   protected readonly showColumnPicker = signal(false);
-  protected readonly isMobile = signal(window.innerWidth < 640);
+  protected readonly isMobile = signal(globalThis.window?.innerWidth < 640);
 
   constructor() {
     // Track viewport changes
-    if (typeof window !== 'undefined') {
+    if (globalThis.window) {
       const resizeObserver = new ResizeObserver(() => {
-        this.isMobile.set(window.innerWidth < 640);
+        this.isMobile.set(globalThis.window.innerWidth < 640);
       });
       resizeObserver.observe(document.body);
     }

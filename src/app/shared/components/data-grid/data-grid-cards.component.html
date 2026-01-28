@@ -1,16 +1,15 @@
 <!-- Card List Container -->
-<div 
-  role="list"
+<ul 
   class="flex flex-col gap-3 p-3"
   aria-label="Data cards"
 >
   @for (row of rows(); track trackByRowId($index, row); let rowIndex = $index) {
-    <article
-      role="listitem"
-      class="border border-l-4 transition-all duration-200"
-      [class]="getStatusClass(row) + ' ' + getBgClass(row)"
-      [attr.aria-selected]="row.selected"
-    >
+    <li>
+      <article
+        class="border border-l-4 transition-all duration-200"
+        [class]="getStatusClass(row) + ' ' + getBgClass(row)"
+        [attr.aria-selected]="row.selected"
+      >
       <!-- Card Header -->
       <header class="flex items-center justify-between gap-3 px-4 py-3 border-b border-zinc-100">
         <!-- Left: Checkbox + Title -->
@@ -239,7 +238,8 @@
           </shared-button>
         </div>
       </app-bottom-sheet>
-    </article>
+      </article>
+    </li>
   }
 
   <!-- Empty state -->
@@ -251,4 +251,4 @@
       <span class="text-sm font-medium uppercase tracking-wide">No data</span>
     </div>
   }
-</div>
+</ul>

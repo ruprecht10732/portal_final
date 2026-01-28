@@ -271,6 +271,22 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
       return ''; // Will use icon instead
     }
     
-    return String(value);
+    if (typeof value === 'object') {
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return '—';
+      }
+    }
+
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+      return value.toString();
+    }
+    if (typeof value === 'symbol') {
+      return value.description ?? '—';
+    }
+
+    return '—';
   }
 }

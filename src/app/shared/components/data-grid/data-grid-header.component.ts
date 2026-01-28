@@ -14,12 +14,13 @@ import {
 import { GridColumn, SortConfig } from './data-grid.types';
 
 @Component({
-  selector: 'data-grid-header',
+  selector: 'thead[data-grid-header]',
   templateUrl: './data-grid-header.component.html',
   styleUrl: './data-grid-header.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'role': 'rowgroup',
+    'class': 'bg-zinc-100 border-b-2 border-zinc-300 sticky top-0 z-10',
   },
 })
 export class DataGridHeaderComponent<T = unknown> {

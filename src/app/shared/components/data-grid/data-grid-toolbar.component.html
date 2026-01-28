@@ -24,7 +24,7 @@
         [active]="showFilters() || hasActiveFilters()"
         [iconOnly]="isMobile()"
         [ariaExpanded]="showFilters()"
-        ariaControls="filter-panel"
+        [ariaControls]="isMobile() ? 'filter-panel-mobile' : 'filter-panel'"
         ariaLabel="Toggle filters"
         (clicked)="toggleFilters()"
       >
@@ -94,7 +94,6 @@
         @if (showColumnPicker() && !isMobile()) {
           <div 
             class="absolute right-0 mt-1 w-56 max-h-64 overflow-y-auto bg-white border border-zinc-200 shadow-lg z-50"
-            role="menu"
           >
             <div class="p-2 border-b border-zinc-100">
               <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
@@ -105,8 +104,6 @@
               @for (column of allColumns(); track column.id) {
                 <label
                   class="flex items-center gap-3 px-3 py-2 hover:bg-zinc-50 cursor-pointer"
-                  role="menuitemcheckbox"
-                  [attr.aria-checked]="isColumnVisible(column)"
                 >
                   <input
                     type="checkbox"
@@ -292,7 +289,7 @@
     (close)="closeFilters()"
   >
     <div 
-      id="filter-panel"
+      id="filter-panel-mobile"
       class="flex flex-col gap-3 p-4"
     >
       @if (hasActiveFilters()) {

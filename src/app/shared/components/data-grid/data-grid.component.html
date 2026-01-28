@@ -134,7 +134,7 @@
         <!-- Right scroll indicator -->
         @if (store.canScrollRight()) {
           <div 
-            class="absolute right-0 top-0 bottom-0 w-8 bg-gradient-to-l from-black/10 to-transparent pointer-events-none z-30"
+            class="absolute right-0 top-0 bottom-0 w-8 bg-linear-to-l from-black/10 to-transparent pointer-events-none z-30"
             aria-hidden="true"
           ></div>
         }
@@ -150,7 +150,7 @@
             class="w-full min-w-full"
           >
             <!-- Header -->
-            <data-grid-header
+            <thead data-grid-header
               [columns]="store.visibleColumns()"
               [sort]="store.sort()"
               [allSelected]="store.allSelected()"
@@ -158,7 +158,7 @@
               [selectable]="store.config().selectable"
               (sortChange)="onSortChange($event)"
               (selectAll)="store.toggleAllSelection()"
-            />
+            ></thead>
 
             <!-- Body -->
             <data-grid-body
