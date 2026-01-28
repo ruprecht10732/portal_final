@@ -37,19 +37,28 @@
 
       <div ngTabPanel value="profile" #profile="ngTabPanel" [hidden]="!profile.visible()" class="space-y-6">
         <div class="bg-white p-8 border border-zinc-200 space-y-8">
-          <shared-input 
-            [(value)]="email" 
-            label="Email Address" 
-            placeholder="name@example.com"
-            hint="We'll never share your email with anyone else."
-            [required]="true"
-          />
+          <div class="space-y-6 text-left">
+            <shared-input 
+              [(value)]="email" 
+              label="Email Address" 
+              placeholder="name@example.com"
+              hint="We'll never share your email with anyone else."
+              [required]="true"
+            />
+
+            <shared-checkbox 
+              [(checked)]="agreeToTerms" 
+              label="I agree to the terms of service"
+              hint="Privacy policy applies."
+              [required]="true"
+            />
+          </div>
           
           <div class="grid grid-cols-2 gap-4">
-            <shared-button variant="secondary" (clicked)="email.set('')">
+            <shared-button variant="secondary" (clicked)="email.set(''); agreeToTerms.set(false)">
               Clear
             </shared-button>
-            <shared-button (clicked)="activeTab.set('security')">
+            <shared-button [disabled]="!agreeToTerms()" (clicked)="activeTab.set('security')">
               Next Step
             </shared-button>
           </div>
