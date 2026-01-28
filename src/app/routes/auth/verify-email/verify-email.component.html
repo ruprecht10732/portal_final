@@ -26,17 +26,40 @@
           Request new email
         </shared-button>
       } @else {
-        <header class="space-y-2">
-          <p class="text-[10px] uppercase tracking-[0.35em] text-emerald-500 font-semibold">Success</p>
-          <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Email verified</h1>
-          <p class="text-sm text-zinc-500">Your account is ready to use.</p>
-        </header>
-        <div class="border border-emerald-200 bg-emerald-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-emerald-600">
-          You can now sign in with your credentials.
-        </div>
-        <shared-button routerLink="/sign-in" ariaLabel="Go to login">
-          Go to login
-        </shared-button>
+        @if (isVerifying()) {
+          <header class="space-y-2">
+            <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Please wait</p>
+            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Verifying email</h1>
+            <p class="text-sm text-zinc-500">We are confirming your email address.</p>
+          </header>
+          <div class="border border-zinc-200 bg-zinc-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-zinc-600">
+            This usually takes a few seconds.
+          </div>
+        } @else if (globalError()) {
+          <header class="space-y-2">
+            <p class="text-[10px] uppercase tracking-[0.35em] text-red-500 font-semibold">Verification failed</p>
+            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">We could not verify</h1>
+            <p class="text-sm text-zinc-500">Please request a new verification email.</p>
+          </header>
+          <div class="border border-red-200 bg-red-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-red-600">
+            {{ globalError() }}
+          </div>
+          <shared-button routerLink="/check-email" ariaLabel="Request new verification email">
+            Request new email
+          </shared-button>
+        } @else if (isVerified()) {
+          <header class="space-y-2">
+            <p class="text-[10px] uppercase tracking-[0.35em] text-emerald-500 font-semibold">Success</p>
+            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Email verified</h1>
+            <p class="text-sm text-zinc-500">Your account is ready to use.</p>
+          </header>
+          <div class="border border-emerald-200 bg-emerald-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-emerald-600">
+            You can now sign in with your credentials.
+          </div>
+          <shared-button routerLink="/sign-in" ariaLabel="Go to login">
+            Go to login
+          </shared-button>
+        }
       }
     </div>
   </section>

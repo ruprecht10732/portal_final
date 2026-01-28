@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, finalize, EMPTY } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'auth-forgot-password',
@@ -13,10 +16,11 @@ import { InputComponent } from '../../../shared/components/input/input.component
 export class ForgotPasswordComponent {
   protected readonly email = signal('');
   protected readonly isSubmitting = signal(false);
+  protected readonly globalError = signal('');
 
-  private submitTimeoutId: number | null = null;
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly authService = inject(AuthService);
 
   protected readonly emailError = computed(() => {
     const value = this.email();
@@ -29,26 +33,26 @@ export class ForgotPasswordComponent {
     !this.isSubmitting() && !!this.email() && !this.emailError()
   );
 
-  constructor() {
-    this.destroyRef.onDestroy(() => {
-      if (this.submitTimeoutId !== null) {
-        globalThis.clearTimeout(this.submitTimeoutId);
-      }
-    });
-  }
+  constructor() {}
 
   protected onSubmit(event: Event): void {
     event.preventDefault();
     if (!this.canSubmit()) return;
 
+    this.globalError.set('');
     this.isSubmitting.set(true);
-    if (this.submitTimeoutId !== null) {
-      globalThis.clearTimeout(this.submitTimeoutId);
-    }
 
-    this.submitTimeoutId = globalThis.setTimeout(() => {
-      this.isSubmitting.set(false);
-      this.router.navigate(['/check-email'], { queryParams: { mode: 'reset' } });
-    }, 1200);
+    this.authService.forgotPassword({ email: this.email() })
+      .pipe(
+        catchError(error => {
+          this.globalError.set(this.authService.getErrorMessage(error));
+          return EMPTY;
+        }),
+        finalize(() => this.isSubmitting.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        void this.router.navigate(['/check-email'], { queryParams: { mode: 'reset' } });
+      });
   }
 }

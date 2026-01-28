@@ -1,7 +1,10 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
+import { Router, RouterLink } from '@angular/router';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, finalize, EMPTY } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { AuthService } from '../../../core/services/auth.service';
 
 @Component({
   selector: 'auth-sign-in',
@@ -16,8 +19,9 @@ export class SignInComponent {
   protected readonly isSubmitting = signal(false);
   protected readonly globalError = signal('');
 
-  private submitTimeoutId: number | null = null;
   private readonly destroyRef = inject(DestroyRef);
+  private readonly authService = inject(AuthService);
+  private readonly router = inject(Router);
 
   protected readonly emailError = computed(() => {
     const value = this.email();
@@ -36,14 +40,7 @@ export class SignInComponent {
     !this.isSubmitting() && !!this.email() && !!this.password() && !this.emailError() && !this.passwordError()
   );
 
-  constructor() {
-    this.destroyRef.onDestroy(() => {
-      if (this.submitTimeoutId !== null) {
-        globalThis.clearTimeout(this.submitTimeoutId);
-      }
-    });
-
-  }
+  constructor() {}
 
   protected onSubmit(event: Event): void {
     event.preventDefault();
@@ -52,13 +49,17 @@ export class SignInComponent {
     this.globalError.set('');
     this.isSubmitting.set(true);
 
-    if (this.submitTimeoutId !== null) {
-      globalThis.clearTimeout(this.submitTimeoutId);
-    }
-
-    this.submitTimeoutId = globalThis.setTimeout(() => {
-      this.isSubmitting.set(false);
-      this.globalError.set('Invalid credentials. Please try again.');
-    }, 1200);
+    this.authService.signIn({ email: this.email(), password: this.password() })
+      .pipe(
+        catchError(error => {
+          this.globalError.set(this.authService.getErrorMessage(error));
+          return EMPTY;
+        }),
+        finalize(() => this.isSubmitting.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        void this.router.navigate(['/app']);
+      });
   }
 }

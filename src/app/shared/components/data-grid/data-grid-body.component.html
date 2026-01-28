@@ -43,7 +43,6 @@
           [attr.aria-colindex]="colIndex + 2"
           [attr.tabindex]="isCellFocused(rowIndex, colIndex) ? 0 : -1"
           (click)="onCellClick(rowIndex, colIndex)"
-          (dblclick)="onCellDoubleClick(rowIndex, colIndex)"
           (keydown)="onCellKeydown($event, rowIndex, colIndex)"
           (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
           class="px-2 py-2 sm:px-4 sm:py-3 text-sm border-b border-zinc-100 transition-all duration-150 outline-none"
@@ -57,17 +56,15 @@
           [class.ring-2]="isCellFocused(rowIndex, colIndex)"
           [class.ring-black]="isCellFocused(rowIndex, colIndex)"
           [class.ring-inset]="isCellFocused(rowIndex, colIndex)"
-          [class.bg-white]="isCellEditing(rowIndex, colIndex)"
         >
-          @if (isCellEditing(rowIndex, colIndex)) {
-            <!-- Edit mode -->
+          @if (column.editable) {
+            <!-- Always-editable mode -->
             <div class="flex flex-col gap-1">
               @if (column.cellType === 'select') {
                 <select
                   #inputRef
                   [value]="getInputValue(row, column)"
-                  (change)="onInputChange(rowIndex, column.id, $event)"
-                  (blur)="onInputBlur(rowIndex, colIndex)"
+                  (change)="onInputChange(rowIndex, column, $event)"
                   (keydown)="onCellKeydown($event, rowIndex, colIndex)"
                   class="w-full px-2 py-1 text-sm bg-white border border-black focus:outline-none"
                   [class.border-red-500]="getCellError(row, column.id)"
@@ -81,8 +78,7 @@
                   #inputRef
                   type="checkbox"
                   [checked]="getCellValue(row, column)"
-                  (change)="onInputChange(rowIndex, column.id, $event)"
-                  (blur)="onInputBlur(rowIndex, colIndex)"
+                  (change)="onInputChange(rowIndex, column, $event)"
                   (keydown)="onCellKeydown($event, rowIndex, colIndex)"
                   class="w-4 h-4 accent-black cursor-pointer"
                 />
@@ -91,8 +87,7 @@
                   #inputRef
                   [type]="getInputType(column)"
                   [value]="getInputValue(row, column)"
-                  (input)="onInputChange(rowIndex, column.id, $event)"
-                  (blur)="onInputBlur(rowIndex, colIndex)"
+                  (input)="onInputChange(rowIndex, column, $event)"
                   (keydown)="onCellKeydown($event, rowIndex, colIndex)"
                   class="w-full px-2 py-1 text-sm bg-white border border-black focus:outline-none"
                   [class.border-red-500]="getCellError(row, column.id)"
@@ -111,7 +106,7 @@
             </div>
           } @else {
             <!-- Read mode -->
-            <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center gap-2">
               <span 
                 class="truncate"
                 [title]="getCellDisplayValue(row, column)"
@@ -133,21 +128,6 @@
                   {{ getCellValue(row, column) ?? '—' }}
                 }
               </span>
-              
-              <!-- Edit indicator - visible on touch, hover-reveal on desktop -->
-              @if (column.editable) {
-                <button
-                  type="button"
-                  (click)="onCellDoubleClick(rowIndex, colIndex); $event.stopPropagation()"
-                  class="opacity-100 sm:opacity-0 sm:group-hover:opacity-100 p-2 -m-1 text-zinc-500 hover:text-black transition-opacity focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
-                  tabindex="-1"
-                  [attr.aria-label]="'Edit ' + column.header"
-                >
-                  <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z" />
-                  </svg>
-                </button>
-              }
             </div>
           }
         </td>

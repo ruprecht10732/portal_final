@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
+import { map, catchError, finalize, EMPTY } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { AuthService } from '../../../core/services/auth.service';
 
 interface PasswordRule {
   label: string;
@@ -21,11 +22,12 @@ export class ResetPasswordComponent {
   protected readonly password = signal('');
   protected readonly confirmPassword = signal('');
   protected readonly isSubmitting = signal(false);
+  protected readonly globalError = signal('');
 
-  private submitTimeoutId: number | null = null;
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
 
   protected readonly token = toSignal(
     this.route.queryParamMap.pipe(map(params => params.get('token'))),
@@ -61,26 +63,29 @@ export class ResetPasswordComponent {
     this.isTokenValid() && !this.isSubmitting() && !!this.password() && !this.passwordError() && !this.confirmError()
   );
 
-  constructor() {
-    this.destroyRef.onDestroy(() => {
-      if (this.submitTimeoutId !== null) {
-        globalThis.clearTimeout(this.submitTimeoutId);
-      }
-    });
-  }
+  constructor() {}
 
   protected onSubmit(event: Event): void {
     event.preventDefault();
     if (!this.canSubmit()) return;
 
-    this.isSubmitting.set(true);
-    if (this.submitTimeoutId !== null) {
-      globalThis.clearTimeout(this.submitTimeoutId);
-    }
+    const tokenValue = this.token();
+    if (!tokenValue) return;
 
-    this.submitTimeoutId = globalThis.setTimeout(() => {
-      this.isSubmitting.set(false);
-      this.router.navigate(['/sign-in']);
-    }, 1200);
+    this.globalError.set('');
+    this.isSubmitting.set(true);
+
+    this.authService.resetPassword({ token: tokenValue, newPassword: this.password() })
+      .pipe(
+        catchError(error => {
+          this.globalError.set(this.authService.getErrorMessage(error));
+          return EMPTY;
+        }),
+        finalize(() => this.isSubmitting.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(() => {
+        void this.router.navigate(['/sign-in']);
+      });
   }
 }

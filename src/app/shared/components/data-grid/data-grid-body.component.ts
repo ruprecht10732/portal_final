@@ -9,7 +9,6 @@ import {
   ElementRef,
   input,
   output,
-  signal,
   viewChildren,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
@@ -57,20 +56,11 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   private readonly cellRefs = viewChildren<ElementRef<HTMLTableCellElement>>('cellRef');
   private readonly inputRefs = viewChildren<ElementRef<HTMLInputElement>>('inputRef');
 
-  // ============ Internal State ============
-  
-  protected readonly tempEditValue = signal<unknown>(null);
-
   // ============ Methods ============
   
   protected isCellFocused(rowIndex: number, columnIndex: number): boolean {
     const focused = this.focusedCell();
     return focused?.rowIndex === rowIndex && focused?.columnIndex === columnIndex;
-  }
-
-  protected isCellEditing(rowIndex: number, columnIndex: number): boolean {
-    const editing = this.editingCell();
-    return editing?.rowIndex === rowIndex && editing?.columnIndex === columnIndex;
   }
 
   protected getCellValue(row: RowState<T>, column: GridColumn<T>): unknown {
@@ -114,39 +104,30 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     this.cellFocus.emit({ rowIndex, columnIndex });
   }
 
-  protected onCellDoubleClick(rowIndex: number, columnIndex: number): void {
-    const column = this.columns()[columnIndex];
-    if (!column.editable) return;
-    
-    // Store original value for potential revert
-    const row = this.rows()[rowIndex];
-    this.tempEditValue.set(row.current[column.field as keyof T]);
-    
-    this.cellEdit.emit({ rowIndex, columnIndex });
-  }
-
   protected onCellKeydown(event: KeyboardEvent, rowIndex: number, columnIndex: number): void {
     const column = this.columns()[columnIndex];
-    const isEditing = this.isCellEditing(rowIndex, columnIndex);
+    const isInteractive = this.isInteractiveElement(event.target);
+
+    if (isInteractive) {
+      return;
+    }
     
     const handlers: Record<string, () => void> = {
       'ArrowUp': () => this.handleArrowNavigation(event, 'up'),
       'ArrowDown': () => this.handleArrowNavigation(event, 'down'),
-      'ArrowLeft': () => this.handleHorizontalNavigation(event, 'left', isEditing),
-      'ArrowRight': () => this.handleHorizontalNavigation(event, 'right', isEditing),
-      'Home': () => this.handleHomeEnd(event, 'home', isEditing),
-      'End': () => this.handleHomeEnd(event, 'end', isEditing),
-      'Enter': () => this.handleEnterKey(event, rowIndex, columnIndex, column, isEditing),
-      'Escape': () => this.handleEscapeKey(event, isEditing),
-      'Tab': () => this.handleTabKey(rowIndex, columnIndex, isEditing),
-      ' ': () => this.handleSpaceKey(event, rowIndex, isEditing),
+      'ArrowLeft': () => this.handleHorizontalNavigation(event, 'left'),
+      'ArrowRight': () => this.handleHorizontalNavigation(event, 'right'),
+      'Home': () => this.handleHomeEnd(event, 'home'),
+      'End': () => this.handleHomeEnd(event, 'end'),
+      'Enter': () => this.handleEnterKey(event, rowIndex, column, columnIndex),
+      ' ': () => this.handleSpaceKey(event, rowIndex),
     };
 
     const handler = handlers[event.key];
     if (handler) {
       handler();
     } else {
-      this.handleAlphanumericKey(event, rowIndex, columnIndex, column, isEditing);
+      this.handleAlphanumericKey(event, rowIndex, column, columnIndex);
     }
   }
 
@@ -155,97 +136,94 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     this.navigate.emit(direction);
   }
 
-  private handleHorizontalNavigation(event: KeyboardEvent, direction: 'left' | 'right', isEditing: boolean): void {
-    if (!isEditing) {
-      event.preventDefault();
-      this.navigate.emit(direction);
-    }
-  }
-
-  private handleHomeEnd(event: KeyboardEvent, direction: 'home' | 'end', isEditing: boolean): void {
-    if (event.ctrlKey || !isEditing) {
-      event.preventDefault();
-      this.navigate.emit(direction);
-    }
-  }
-
-  private handleEnterKey(event: KeyboardEvent, rowIndex: number, columnIndex: number, column: GridColumn<T>, isEditing: boolean): void {
+  private handleHorizontalNavigation(event: KeyboardEvent, direction: 'left' | 'right'): void {
     event.preventDefault();
-    if (isEditing) {
-      this.commitEdit(rowIndex, columnIndex);
-    } else if (column.editable) {
-      const row = this.rows()[rowIndex];
-      this.tempEditValue.set(row.current[column.field as keyof T]);
-      this.cellEdit.emit({ rowIndex, columnIndex });
-    }
+    this.navigate.emit(direction);
   }
 
-  private handleEscapeKey(event: KeyboardEvent, isEditing: boolean): void {
-    if (isEditing) {
+  private handleHomeEnd(event: KeyboardEvent, direction: 'home' | 'end'): void {
+    if (event.ctrlKey || event.key === 'Home' || event.key === 'End') {
       event.preventDefault();
-      this.cancelEdit();
+      this.navigate.emit(direction);
     }
   }
 
-  private handleTabKey(rowIndex: number, columnIndex: number, isEditing: boolean): void {
-    if (isEditing) {
-      this.commitEdit(rowIndex, columnIndex);
-    }
-  }
-
-  private handleSpaceKey(event: KeyboardEvent, rowIndex: number, isEditing: boolean): void {
-    if (!isEditing) {
+  private handleEnterKey(event: KeyboardEvent, rowIndex: number, column: GridColumn<T>, columnIndex: number): void {
+    if (!column.editable) return;
+    const control = this.getEditableControl(event);
+    if (control) {
       event.preventDefault();
-      this.rowSelect.emit(rowIndex);
+      control.focus();
+      if (control instanceof HTMLInputElement && control.type !== 'checkbox') {
+        control.setSelectionRange(control.value.length, control.value.length);
+      }
+    } else {
+      event.preventDefault();
+      this.navigate.emit('down');
     }
   }
 
-  private handleAlphanumericKey(event: KeyboardEvent, rowIndex: number, columnIndex: number, column: GridColumn<T>, isEditing: boolean): void {
-    if (column.editable && !isEditing && event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
-      this.tempEditValue.set(event.key);
-      this.cellEdit.emit({ rowIndex, columnIndex });
+  private handleSpaceKey(event: KeyboardEvent, rowIndex: number): void {
+    event.preventDefault();
+    this.rowSelect.emit(rowIndex);
+  }
+
+  private handleAlphanumericKey(event: KeyboardEvent, rowIndex: number, column: GridColumn<T>, columnIndex: number): void {
+    if (column.editable && event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+      const control = this.getEditableControl(event);
+      if (!control) return;
+
+      event.preventDefault();
+      control.focus();
+
+      if (control instanceof HTMLInputElement && control.type !== 'checkbox' && control.type !== 'date') {
+        control.value = event.key;
+        this.onInputChange(rowIndex, column, control);
+      }
     }
   }
 
-  protected onInputChange(rowIndex: number, columnId: string, event: Event): void {
-    const value = (event.target as HTMLInputElement).value;
-    this.cellValueChange.emit({ rowIndex, columnId, value });
-  }
+  protected onInputChange(
+    rowIndex: number,
+    column: GridColumn<T>,
+    eventOrTarget: Event | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
+  ): void {
+    const row = this.rows()[rowIndex];
+    const oldValue = row.current[column.field as keyof T];
+    const target = eventOrTarget instanceof Event
+      ? eventOrTarget.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      : eventOrTarget;
+    const value = column.cellType === 'boolean' && target instanceof HTMLInputElement
+      ? target.checked
+      : target.value;
 
-  protected onInputBlur(rowIndex: number, columnIndex: number): void {
-    // Commit on blur unless cancelled
-    const editing = this.editingCell();
-    if (editing?.rowIndex === rowIndex && editing?.columnIndex === columnIndex) {
-      this.commitEdit(rowIndex, columnIndex);
+    if (oldValue !== value) {
+      this.cellEditEvent.emit({
+        rowId: row.current[this.rowIdField()] as string | number,
+        columnId: column.id,
+        oldValue,
+        newValue: value,
+        row: row.current,
+      });
     }
+
+    this.cellValueChange.emit({ rowIndex, columnId: column.id, value });
   }
 
   protected onRowSelect(rowIndex: number): void {
     this.rowSelect.emit(rowIndex);
   }
 
-  private commitEdit(rowIndex: number, columnIndex: number): void {
-    const row = this.rows()[rowIndex];
-    const column = this.columns()[columnIndex];
-    const oldValue = this.tempEditValue();
-    const newValue = row.current[column.field as keyof T];
-    
-    // Emit cell edit event if value changed
-    if (oldValue !== newValue) {
-      this.cellEditEvent.emit({
-        rowId: row.current[this.rowIdField()] as string | number,
-        columnId: column.id,
-        oldValue,
-        newValue,
-        row: row.current,
-      });
-    }
-    
-    this.cellEditComplete.emit(true);
+  private isInteractiveElement(target: EventTarget | null): boolean {
+    return target instanceof HTMLInputElement
+      || target instanceof HTMLSelectElement
+      || target instanceof HTMLTextAreaElement;
   }
 
-  private cancelEdit(): void {
-    this.cellEditComplete.emit(false);
+  private getEditableControl(event: Event): HTMLInputElement | HTMLSelectElement | null {
+    const cell = event.currentTarget as HTMLElement | null;
+    if (!cell) return null;
+    return cell.querySelector('input, select, textarea');
   }
 
   protected getInputType(column: GridColumn<T>): string {
