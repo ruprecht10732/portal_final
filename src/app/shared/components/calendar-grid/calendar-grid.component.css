@@ -155,6 +155,14 @@ td {
   padding: 0.35rem;
 }
 
+.week-number {
+  font-size: 0.6rem;
+  text-transform: uppercase;
+  letter-spacing: 0.2em;
+  color: #71717a;
+  width: 2.5rem;
+}
+
 thead th {
   font-size: 0.625rem;
   letter-spacing: 0.2em;
@@ -180,6 +188,10 @@ td.is-active {
   background: transparent;
   cursor: pointer;
   transition: background 0.15s ease, color 0.15s ease, box-shadow 0.15s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.15rem;
 }
 
 .day-button:hover {
@@ -226,6 +238,30 @@ td.is-active {
 .day-button.is-today {
   font-weight: 700;
   box-shadow: inset 0 0 0 1px #18181b;
+}
+
+.day-button.is-holiday {
+  position: relative;
+}
+
+.holiday-dot {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  border-radius: 999px;
+  background: #ef4444;
+  margin-left: 4px;
+}
+
+.holiday-label {
+  font-size: 0.55rem;
+  color: #ef4444;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  max-width: 70px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .day-button:focus-visible,

@@ -102,11 +102,17 @@
               [showToday]="true"
               [showNav]="true"
               [(view)]="calendarView"
+              [showWeekNumbers]="calendarShowWeekNumbers"
+              [showHolidays]="calendarShowHolidays"
+              [holidays]="calendarHolidays"
               [dayViewStartHour]="dayViewStartHour"
               [dayViewEndHour]="dayViewEndHour"
               [dayViewHourStep]="dayViewHourStep"
+              [dayViewTimeSlotMinutes]="dayViewTimeSlotMinutes"
               [dayViewBlockedHours]="dayViewBlockedHours"
               [dayViewBlockedRanges]="dayViewBlockedRanges"
+              [dayViewBlockedTimes]="dayViewBlockedTimes"
+              [dayViewBlockedTimeRanges]="dayViewBlockedTimeRanges"
             />
 
             <shared-checkbox 

@@ -8,6 +8,9 @@
   >
     <span class="day-title">{{ dayTitle() }}</span>
     <span class="day-subtitle">{{ daySubtitle() }}</span>
+    @if (holidayName()) {
+      <span class="day-holiday">{{ holidayName() }}</span>
+    }
   </button>
 
   <ul class="day-grid">

@@ -38,6 +38,13 @@
   color: #71717a;
 }
 
+.day-holiday {
+  font-size: 0.7rem;
+  color: #ef4444;
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+}
+
 .day-grid {
   display: grid;
   gap: 0.5rem;

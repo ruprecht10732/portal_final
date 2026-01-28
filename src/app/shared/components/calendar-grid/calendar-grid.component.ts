@@ -46,6 +46,12 @@ export class CalendarGridComponent {
   readonly dayViewHourStep = input(1);
   readonly dayViewBlockedHours = input<readonly number[]>([]);
   readonly dayViewBlockedRanges = input<readonly { start: number; end: number }[]>([]);
+  readonly dayViewTimeSlotMinutes = input<number | null>(null);
+  readonly dayViewBlockedTimes = input<readonly number[]>([]);
+  readonly dayViewBlockedTimeRanges = input<readonly { start: number; end: number }[]>([]);
+  readonly showWeekNumbers = input(false);
+  readonly showHolidays = input(true);
+  readonly holidays = input<readonly { iso: string; name: string }[]>([]);
 
   private readonly uid = 'calendar-' + Math.random().toString(36).substring(2, 9);
   protected readonly gridLabelId = `${this.uid}-label`;
@@ -159,7 +165,7 @@ export class CalendarGridComponent {
           day: 'numeric',
           year: 'numeric',
         }),
-        iso: date.toISOString().slice(0, 10),
+        iso: this.formatLocalIso(date),
         inMonth: true,
         day: i + 1,
       });
@@ -183,12 +189,30 @@ export class CalendarGridComponent {
           day: 'numeric',
           year: 'numeric',
         }),
-        iso: date.toISOString().slice(0, 10),
+        iso: this.formatLocalIso(date),
         inMonth: date.getMonth() === this.currentMonth().getMonth(),
         day: date.getDate(),
       });
     }
     return days;
+  });
+
+  protected readonly weekNumbers = computed(() => {
+    const base = this.currentMonth();
+    const year = base.getFullYear();
+    const month = base.getMonth();
+    const offset = this.firstWeekOffset();
+    const startDate = new Date(year, month, 1 - offset);
+    const weeks = this.weeks();
+    return weeks.map((_, index) => {
+      const date = new Date(startDate);
+      date.setDate(startDate.getDate() + index * 7);
+      return this.getWeekNumber(date);
+    });
+  });
+
+  protected readonly activeWeekNumber = computed(() => {
+    return this.getWeekNumber(this.activeDate());
   });
 
   protected selectDay(day: CalendarDay): void {
@@ -253,12 +277,24 @@ export class CalendarGridComponent {
   }
 
   protected isToday(day: CalendarDay): boolean {
-    const todayIso = new Date().toISOString().slice(0, 10);
+    const todayIso = this.formatLocalIso(new Date());
     return day.iso === todayIso;
   }
 
   protected isUnavailable(day: CalendarDay): boolean {
     return this.unavailableDates().includes(day.iso);
+  }
+
+  protected holidayName(day: CalendarDay): string | null {
+    if (!this.showHolidays()) return null;
+    const custom = this.holidays();
+    const list = custom.length ? custom : this.defaultHolidays();
+    const match = list.find(holiday => holiday.iso === day.iso);
+    return match?.name ?? null;
+  }
+
+  protected isHoliday(day: CalendarDay): boolean {
+    return this.holidayName(day) !== null;
   }
 
   protected onDayHover(day: CalendarDay): void {
@@ -275,7 +311,7 @@ export class CalendarGridComponent {
 
   protected selectToday(): void {
     const today = new Date();
-    const iso = today.toISOString().slice(0, 10);
+    const iso = this.formatLocalIso(today);
     this.currentMonth.set(new Date(today.getFullYear(), today.getMonth(), 1));
     this.selectedStart.set(iso);
     this.selectedEnd.set(null);
@@ -362,10 +398,47 @@ export class CalendarGridComponent {
   private shiftActiveDate(days: number): void {
     const active = this.activeDate();
     active.setDate(active.getDate() + days);
-    const iso = active.toISOString().slice(0, 10);
+    const iso = this.formatLocalIso(active);
     this.selectedStart.set(iso);
     this.selectedEnd.set(null);
     this.currentMonth.set(new Date(active.getFullYear(), active.getMonth(), 1));
+  }
+
+  protected getWeekNumber(date: Date): number {
+    const temp = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    const dayNum = temp.getUTCDay() || 7;
+    temp.setUTCDate(temp.getUTCDate() + 4 - dayNum);
+    const yearStart = new Date(Date.UTC(temp.getUTCFullYear(), 0, 1));
+    const diff = temp.getTime() - yearStart.getTime();
+    return Math.ceil((diff / 86400000 + 1) / 7);
+  }
+
+  private defaultHolidays(): { iso: string; name: string }[] {
+    const year = this.currentMonth().getFullYear();
+    const newYears = new Date(year, 0, 1);
+    const independence = new Date(year, 6, 4);
+    const christmas = new Date(year, 11, 25);
+    const thanksgiving = this.nthWeekdayOfMonth(year, 10, 4, 4);
+    const list = [
+      { iso: this.formatLocalIso(newYears), name: 'New Year\'s Day' },
+      { iso: this.formatLocalIso(independence), name: 'Independence Day' },
+      { iso: this.formatLocalIso(thanksgiving), name: 'Thanksgiving' },
+      { iso: this.formatLocalIso(christmas), name: 'Christmas Day' },
+    ];
+    return list;
+  }
+
+  private formatLocalIso(date: Date): string {
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  }
+
+  private nthWeekdayOfMonth(year: number, month: number, weekday: number, nth: number): Date {
+    const first = new Date(year, month, 1);
+    const offset = (7 + weekday - first.getDay()) % 7;
+    return new Date(year, month, 1 + offset + (nth - 1) * 7);
   }
 
   private compareIso(a: string, b: string): number {

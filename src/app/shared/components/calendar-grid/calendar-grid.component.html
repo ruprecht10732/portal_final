@@ -73,11 +73,15 @@
       <shared-calendar-day-view
         [day]="activeDay()"
         [isUnavailable]="isUnavailable(activeDay())"
+        [holidayName]="holidayName(activeDay())"
         [startHour]="dayViewStartHour()"
         [endHour]="dayViewEndHour()"
         [hourStep]="dayViewHourStep()"
+        [timeSlotMinutes]="dayViewTimeSlotMinutes()"
         [blockedHours]="dayViewBlockedHours()"
         [blockedRanges]="dayViewBlockedRanges()"
+        [blockedTimes]="dayViewBlockedTimes()"
+        [blockedTimeRanges]="dayViewBlockedTimeRanges()"
         [selectedTime]="selectedTime()"
         (selected)="selectDay($event)"
         (timeSelected)="selectedTime.set($event)"
@@ -96,6 +100,9 @@
       >
         <thead>
           <tr>
+            @if (showWeekNumbers()) {
+              <th scope="col" class="week-number">Wk</th>
+            }
             @for (day of weekdays(); track day.long; let i = $index) {
               <th scope="col">
                 <span class="visually-hidden">{{ day.long }}</span>
@@ -105,6 +112,9 @@
           </tr>
         </thead>
         <tr ngGridRow>
+          @if (showWeekNumbers()) {
+            <td class="week-number">{{ activeWeekNumber() }}</td>
+          }
           @for (day of weekDays(); track day.iso; let colIndex = $index) {
             <td
               ngGridCell
@@ -117,7 +127,8 @@
                <button
                  type="button"
                  ngGridCellWidget
-                 [attr.aria-label]="day.ariaLabel"
+                 [attr.aria-label]="holidayName(day) ? day.ariaLabel + ' — ' + holidayName(day) : day.ariaLabel"
+                 [attr.title]="holidayName(day) || null"
                  [attr.data-day]="day.day"
                  (click)="selectDay(day)"
                  (keydown.enter)="selectDay(day)"
@@ -131,8 +142,15 @@
                  [class.range-end]="isRangeEnd(day)"
                  [class.is-today]="isToday(day)"
                  [class.is-unavailable]="isUnavailable(day)"
+                [class.is-holiday]="isHoliday(day)"
                >
-                 {{ day.displayName }}
+                {{ day.displayName }}
+                @if (isHoliday(day)) {
+                  <span class="holiday-label">{{ holidayName(day) }}</span>
+                }
+                @if (isHoliday(day)) {
+                  <span class="holiday-dot" [attr.aria-label]="holidayName(day)" aria-hidden="true"></span>
+                }
                </button>
             </td>
           }
@@ -153,6 +171,9 @@
       >
         <thead>
           <tr>
+            @if (showWeekNumbers()) {
+              <th scope="col" class="week-number">Wk</th>
+            }
             @for (day of weekdays(); track day.long; let i = $index) {
               <th scope="col">
                 <span class="visually-hidden">{{ day.long }}</span>
@@ -163,6 +184,9 @@
         </thead>
         @for (week of weeks(); track $index; let rowIndex = $index) {
           <tr ngGridRow>
+            @if (showWeekNumbers()) {
+              <td class="week-number">{{ weekNumbers()[rowIndex] }}</td>
+            }
             @if ($first) {
               @for (day of daysFromPrevMonth(); track day) {
                 <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ day }}</td>
@@ -180,7 +204,8 @@
                  <button
                    type="button"
                    ngGridCellWidget
-                   [attr.aria-label]="day.ariaLabel"
+                   [attr.aria-label]="holidayName(day) ? day.ariaLabel + ' — ' + holidayName(day) : day.ariaLabel"
+                   [attr.title]="holidayName(day) || null"
                    [attr.data-day]="day.day"
                    (click)="selectDay(day)"
                    (keydown.enter)="selectDay(day)"
@@ -194,8 +219,15 @@
                    [class.range-end]="isRangeEnd(day)"
                    [class.is-today]="isToday(day)"
                    [class.is-unavailable]="isUnavailable(day)"
+                   [class.is-holiday]="isHoliday(day)"
                  >
                    {{ day.displayName }}
+                   @if (isHoliday(day)) {
+                     <span class="holiday-label">{{ holidayName(day) }}</span>
+                   }
+                   @if (isHoliday(day)) {
+                     <span class="holiday-dot" [attr.aria-label]="holidayName(day)" aria-hidden="true"></span>
+                   }
                  </button>
               </td>
             }

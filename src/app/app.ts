@@ -111,9 +111,23 @@ export class App {
   dayViewStartHour = 8;
   dayViewEndHour = 20;
   dayViewHourStep = 1;
+  dayViewTimeSlotMinutes = 30;
   dayViewBlockedHours = [12, 13, 17];
   dayViewBlockedRanges = [
     { start: 9, end: 10 },
     { start: 15, end: 16 },
+  ];
+  dayViewBlockedTimes = [9 * 60 + 30, 14 * 60];
+  dayViewBlockedTimeRanges = [
+    { start: 11 * 60, end: 12 * 60 },
+    { start: 16 * 60, end: 17 * 60 },
+  ];
+
+  calendarShowWeekNumbers = true;
+  calendarShowHolidays = true;
+  calendarHolidays = [
+    { iso: '2026-01-01', name: 'New Year\'s Day' },
+    { iso: '2026-07-04', name: 'Independence Day' },
+    { iso: '2026-12-25', name: 'Christmas Day' },
   ];
 }

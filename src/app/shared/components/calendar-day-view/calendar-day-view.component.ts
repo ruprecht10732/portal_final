@@ -23,11 +23,15 @@ export interface CalendarDayViewModel {
 export class CalendarDayViewComponent {
   readonly day = input<CalendarDayViewModel | null>(null);
   readonly isUnavailable = input(false);
+  readonly holidayName = input<string | null>(null);
   readonly startHour = input(8);
   readonly endHour = input(18);
   readonly hourStep = input(1);
+  readonly timeSlotMinutes = input<number | null>(null);
   readonly blockedHours = input<readonly number[]>([]);
   readonly blockedRanges = input<readonly { start: number; end: number }[]>([]);
+  readonly blockedTimes = input<readonly number[]>([]);
+  readonly blockedTimeRanges = input<readonly { start: number; end: number }[]>([]);
   readonly selectedTime = input<number | null>(null);
   readonly selected = output<CalendarDayViewModel>();
   readonly timeSelected = output<number>();
@@ -49,20 +53,23 @@ export class CalendarDayViewComponent {
   });
 
   protected readonly hours = computed(() => {
-    const start = Math.max(0, Math.min(23, this.startHour()));
-    const end = Math.max(0, Math.min(24, this.endHour()));
-    const step = Math.max(1, this.hourStep());
-    const hours: { label: string; value: number }[] = [];
-    for (let hour = start; hour < end; hour += step) {
-      hours.push({
+    const startMinutes = Math.max(0, Math.min(23, this.startHour())) * 60;
+    const endMinutes = Math.max(0, Math.min(24, this.endHour())) * 60;
+    const stepMinutes = this.timeSlotMinutes() ?? Math.max(1, this.hourStep()) * 60;
+    const slots: { label: string; value: number }[] = [];
+    for (let minutes = startMinutes; minutes < endMinutes; minutes += stepMinutes) {
+      const hour = Math.floor(minutes / 60);
+      const minute = minutes % 60;
+      slots.push({
         label: new Intl.DateTimeFormat('en-US', {
           hour: 'numeric',
+          minute: '2-digit',
           hour12: true,
-        }).format(new Date(2026, 0, 1, hour, 0)),
-        value: hour,
+        }).format(new Date(2026, 0, 1, hour, minute)),
+        value: minutes,
       });
     }
-    return hours;
+    return slots;
   });
 
   protected handleSelect(): void {
@@ -76,7 +83,15 @@ export class CalendarDayViewComponent {
     this.timeSelected.emit(hour);
   }
 
-  protected isBlocked(hour: number): boolean {
+  protected isBlocked(minutes: number): boolean {
+    const blockedTimes = this.blockedTimes();
+    const blockedRanges = this.blockedTimeRanges();
+    if (blockedTimes.length || blockedRanges.length) {
+      if (blockedTimes.includes(minutes)) return true;
+      return blockedRanges.some(range => minutes >= range.start && minutes < range.end);
+    }
+
+    const hour = Math.floor(minutes / 60);
     if (this.blockedHours().includes(hour)) return true;
     return this.blockedRanges().some(range => hour >= range.start && hour < range.end);
   }
