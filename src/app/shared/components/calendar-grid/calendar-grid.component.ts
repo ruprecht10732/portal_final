@@ -29,8 +29,9 @@ export class CalendarGridComponent {
   protected readonly currentMonth = signal(new Date());
   protected readonly selectedStart = signal<string | null>(null);
   protected readonly selectedEnd = signal<string | null>(null);
-  protected readonly firstDayOfWeek = input(0);
-  protected readonly allowRange = input(true);
+  readonly firstDayOfWeek = input(0);
+  readonly allowRange = input(true);
+  readonly unavailableDates = input<readonly string[]>([]);
 
   private readonly uid = 'calendar-' + Math.random().toString(36).substring(2, 9);
   protected readonly gridLabelId = `${this.uid}-label`;
@@ -98,6 +99,7 @@ export class CalendarGridComponent {
   });
 
   protected selectDay(day: CalendarDay): void {
+    if (this.isUnavailable(day)) return;
     if (!this.allowRange()) {
       this.selectedStart.set(day.iso);
       this.selectedEnd.set(null);
@@ -145,6 +147,10 @@ export class CalendarGridComponent {
   protected isToday(day: CalendarDay): boolean {
     const todayIso = new Date().toISOString().slice(0, 10);
     return day.iso === todayIso;
+  }
+
+  protected isUnavailable(day: CalendarDay): boolean {
+    return this.unavailableDates().includes(day.iso);
   }
 
   protected selectToday(): void {

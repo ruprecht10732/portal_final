@@ -99,4 +99,11 @@ export class App {
     { label: 'Qwik', value: 'qwik' },
     { label: 'Astro', value: 'astro' },
   ];
+
+  unavailableDates = [
+    '2026-01-10',
+    '2026-01-14',
+    '2026-01-21',
+    '2026-01-26',
+  ];
 }

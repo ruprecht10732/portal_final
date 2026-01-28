@@ -56,23 +56,24 @@
             [colIndex]="colIndex"
             [selected]="isSelected(day)"
             [class.is-active]="cell.active()"
-          >
-            <button
-              type="button"
-              ngGridCellWidget
-              [attr.aria-label]="day.ariaLabel"
-              [attr.data-day]="day.day"
-              (click)="selectDay(day)"
-              (keydown.enter)="selectDay(day)"
-              class="day-button"
-              [class.in-range]="isInRange(day)"
-              [class.is-selected]="isSelected(day)"
-              [class.range-start]="isRangeStart(day)"
-              [class.range-end]="isRangeEnd(day)"
-              [class.is-today]="isToday(day)"
-            >
-              {{ day.displayName }}
-            </button>
+             [attr.aria-disabled]="isUnavailable(day) || null">
+               <button
+                 type="button"
+                 ngGridCellWidget
+                 [attr.aria-label]="day.ariaLabel"
+                 [attr.data-day]="day.day"
+                 (click)="selectDay(day)"
+                 (keydown.enter)="selectDay(day)"
+                 class="day-button"
+                 [class.in-range]="isInRange(day)"
+                 [class.is-selected]="isSelected(day)"
+                 [class.range-start]="isRangeStart(day)"
+                 [class.range-end]="isRangeEnd(day)"
+                 [class.is-today]="isToday(day)"
+                 [class.is-unavailable]="isUnavailable(day)"
+               >
+                 {{ day.displayName }}
+               </button>
           </td>
         }
         @if ($last && week.length + daysFromPrevMonth().length < 7) {

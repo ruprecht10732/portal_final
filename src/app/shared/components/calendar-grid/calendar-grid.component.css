@@ -121,6 +121,13 @@ td.is-active {
   color: #fff;
 }
 
+.day-button.is-unavailable {
+  color: #a1a1aa;
+  cursor: not-allowed;
+  pointer-events: none;
+  background: transparent;
+}
+
 .day-button.range-start,
 .day-button.range-end {
   background: #18181b;
