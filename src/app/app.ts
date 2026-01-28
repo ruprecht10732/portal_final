@@ -1,12 +1,17 @@
 import { Component, signal } from '@angular/core';
-import { RouterOutlet } from '@angular/router';
+import { ButtonComponent } from './shared/components/button/button.component';
+import { InputComponent } from './shared/components/input/input.component';
+import { TabsComponent } from './shared/components/tabs/tabs.component';
+import { TabList, Tab, TabPanel } from '@angular/aria/tabs';
 
 @Component({
   selector: 'app-root',
-  imports: [RouterOutlet],
-  templateUrl: './app.html',
-  styleUrl: './app.css'
+  standalone: true,
+  imports: [ButtonComponent, InputComponent, TabsComponent, TabList, Tab, TabPanel],
+  templateUrl: './app.html'
 })
 export class App {
-  protected readonly title = signal('my-portal-app');
+  email = signal('');
+  password = signal('');
+  activeTab = signal('profile');
 }
