@@ -1,17 +1,19 @@
 <div class="calendar basic-calendar">
   <div class="calendar-header">
-    <button class="month-control" aria-label="previous month" (click)="previousMonth()">
-      <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_left</span>
-      <span class="visually-hidden">Previous month</span>
-    </button>
     <div class="calendar-title">
       <h3 [id]="gridLabelId" aria-live="polite">{{ monthLabel() }}</h3>
-      <button type="button" class="today-button" (click)="selectToday()">Today</button>
     </div>
-    <button class="month-control" aria-label="next month" (click)="nextMonth()">
-      <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_right</span>
-      <span class="visually-hidden">Next month</span>
-    </button>
+    <div class="calendar-actions">
+      <button class="month-control" aria-label="previous month" (click)="previousMonth()">
+        <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_left</span>
+        <span class="visually-hidden">Previous month</span>
+      </button>
+      <button type="button" class="today-button" (click)="selectToday()">Today</button>
+      <button class="month-control" aria-label="next month" (click)="nextMonth()">
+        <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_right</span>
+        <span class="visually-hidden">Next month</span>
+      </button>
+    </div>
   </div>
 
   <p [id]="instructionsId" class="visually-hidden">
