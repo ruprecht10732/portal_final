@@ -1,4 +1,4 @@
-<thead class="bg-zinc-50 border-b border-zinc-200">
+<thead class="bg-zinc-100 border-b-2 border-zinc-300 sticky top-0 z-10">
   <tr role="row">
     <!-- Selection checkbox column -->
     @if (selectable()) {
@@ -7,14 +7,14 @@
         scope="col"
         class="w-12 px-3 py-3 text-left"
       >
-        <div class="flex items-center justify-center">
+        <div class="flex items-center justify-center min-w-[44px] min-h-[44px]">
           <input
             #headerCheckbox
             type="checkbox"
             [checked]="allSelected()"
             [indeterminate]="partiallySelected()"
             (change)="onSelectAll()"
-            class="w-4 h-4 accent-black cursor-pointer"
+            class="w-5 h-5 accent-black cursor-pointer"
             aria-label="Select all rows"
           />
         </div>
@@ -27,7 +27,7 @@
         role="columnheader"
         scope="col"
         [attr.aria-sort]="getSortDirection(column.id) === 'asc' ? 'ascending' : getSortDirection(column.id) === 'desc' ? 'descending' : null"
-        class="px-4 py-3 text-xs font-semibold uppercase tracking-wider text-left text-zinc-600"
+        class="px-4 py-3 text-xs font-bold uppercase tracking-wider text-left text-zinc-700"
         [style.width]="column.width"
         [style.min-width]="column.minWidth"
         [style.max-width]="column.maxWidth"
@@ -38,7 +38,7 @@
           <button
             type="button"
             (click)="onSort(column)"
-            class="flex items-center gap-1.5 group focus:outline-none focus:underline"
+            class="flex items-center gap-1.5 group min-h-[44px] focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
             [attr.aria-label]="getSortAriaLabel(column)"
           >
             <span>{{ column.header }}</span>

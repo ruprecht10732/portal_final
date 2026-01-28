@@ -38,7 +38,7 @@
       type="button"
       (click)="onPageChange(1)"
       [disabled]="pagination().page === 1"
-      class="p-2 text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+      class="min-w-[44px] h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
       aria-label="Go to first page"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -51,7 +51,7 @@
       type="button"
       (click)="onPageChange(pagination().page - 1)"
       [disabled]="pagination().page === 1"
-      class="p-2 text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+      class="min-w-[44px] h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
       aria-label="Go to previous page"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -62,7 +62,7 @@
     <!-- Page numbers -->
     <div class="hidden sm:flex items-center gap-1">
       @if (pageNumbers()[0] > 1) {
-        <span class="px-2 text-zinc-400">...</span>
+        <span class="px-2 text-zinc-500">...</span>
       }
       
       @for (page of pageNumbers(); track page) {
@@ -71,7 +71,7 @@
           (click)="onPageChange(page)"
           [attr.aria-current]="pagination().page === page ? 'page' : null"
           [attr.aria-label]="getPageAriaLabel(page)"
-          class="min-w-8 h-8 px-2 text-xs font-medium transition-colors"
+          class="min-w-8 h-8 px-2 text-xs font-medium transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
           [class.bg-black]="pagination().page === page"
           [class.text-white]="pagination().page === page"
           [class.text-zinc-600]="pagination().page !== page"
@@ -82,7 +82,7 @@
       }
       
       @if (pageNumbers()[pageNumbers().length - 1] < totalPages()) {
-        <span class="px-2 text-zinc-400">...</span>
+        <span class="px-2 text-zinc-500">...</span>
       }
     </div>
 
@@ -98,7 +98,7 @@
       type="button"
       (click)="onPageChange(pagination().page + 1)"
       [disabled]="pagination().page === totalPages()"
-      class="p-2 text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+      class="min-w-[44px] h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
       aria-label="Go to next page"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -111,7 +111,7 @@
       type="button"
       (click)="onPageChange(totalPages())"
       [disabled]="pagination().page === totalPages()"
-      class="p-2 text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:opacity-50 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors"
+      class="min-w-[44px] h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
       aria-label="Go to last page"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
