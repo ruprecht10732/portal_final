@@ -87,6 +87,14 @@
               hint="Choose multiple topics to follow."
             />
 
+            <shared-autocomplete
+              [(value)]="framework"
+              [options]="frameworkOptions"
+              label="Framework"
+              placeholder="Type to search"
+              hint="Autocomplete uses Angular Aria combobox patterns."
+            />
+
             <shared-checkbox 
               [(checked)]="agreeToTerms" 
               label="I agree to the terms of service"

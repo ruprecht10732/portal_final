@@ -5,6 +5,7 @@ import { TextareaComponent } from './shared/components/textarea/textarea.compone
 import { CheckboxComponent } from './shared/components/checkbox/checkbox.component';
 import { SelectComponent } from './shared/components/select/select.component';
 import { MultiSelectComponent } from './shared/components/multiselect/multiselect.component';
+import { AutocompleteComponent } from './shared/components/autocomplete/autocomplete.component';
 import { TabsComponent } from './shared/components/tabs/tabs.component';
 
 @Component({
@@ -16,6 +17,7 @@ import { TabsComponent } from './shared/components/tabs/tabs.component';
     CheckboxComponent,
     SelectComponent,
     MultiSelectComponent,
+    AutocompleteComponent,
     TabsComponent,
   ],
   templateUrl: './app.html'
@@ -26,6 +28,7 @@ export class App {
   bio = signal('');
   country = signal('us');
   resources = signal<string[]>([]);
+  framework = signal('');
   agreeToTerms = signal(false);
   activeTab = signal('profile');
 
@@ -81,5 +84,17 @@ export class App {
     { label: 'Aria Patterns — Tabs', value: 'aria-tabs' },
     { label: 'Aria Patterns — Toolbar', value: 'aria-toolbar' },
     { label: 'Aria Patterns — Tree', value: 'aria-tree' }
+  ];
+
+  frameworkOptions = [
+    { label: 'Angular', value: 'angular' },
+    { label: 'React', value: 'react' },
+    { label: 'Vue', value: 'vue' },
+    { label: 'Svelte', value: 'svelte' },
+    { label: 'Solid', value: 'solid' },
+    { label: 'Next.js', value: 'next' },
+    { label: 'Nuxt', value: 'nuxt' },
+    { label: 'Qwik', value: 'qwik' },
+    { label: 'Astro', value: 'astro' },
   ];
 }

@@ -1,0 +1,98 @@
+<div class="flex flex-col w-full gap-1.5 text-left">
+  @if (label()) {
+    <label [for]="uid" class="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+      {{ label() }}
+      @if (required()) {
+        <span class="text-red-500" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <div class="relative w-full" cdkOverlayOrigin #origin="cdkOverlayOrigin">
+    <div
+      ngCombobox
+      [filterMode]="filterMode()"
+      class="relative w-full"
+    >
+      <input
+        #input
+        ngComboboxInput
+        type="text"
+        [id]="uid"
+        [disabled]="disabled()"
+        [placeholder]="placeholder()"
+        [attr.aria-required]="required() || null"
+        [attr.aria-invalid]="!!error() || null"
+        [attr.aria-describedby]="describedBy()"
+        [(value)]="value"
+        (input)="onInput()"
+        (focus)="open()"
+        (keydown)="onKeydown($event)"
+        class="w-full px-4 py-3 text-sm bg-white border cursor-pointer transition-all duration-200 focus:outline-none focus:border-black disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed text-left"
+        [class.border-zinc-200]="!error() && !isOpen()"
+        [class.border-black]="isOpen() && !error()"
+        [class.border-red-500]="!!error()"
+      />
+      <button
+        type="button"
+        [disabled]="disabled()"
+        (click)="toggle()"
+        class="absolute right-2 top-1/2 -translate-y-1/2 text-zinc-400"
+        aria-hidden="true"
+        tabindex="-1"
+      >
+        <svg
+          class="w-4 h-4 transition-transform duration-200"
+          [class.rotate-180]="isOpen()"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </button>
+    </div>
+
+    <ng-template
+      cdkConnectedOverlay
+      [cdkConnectedOverlayOrigin]="origin"
+      [cdkConnectedOverlayOpen]="isOpen()"
+      [cdkConnectedOverlayWidth]="input.offsetWidth"
+      (overlayOutsideClick)="close()"
+      (detach)="close()"
+    >
+      <div ngComboboxPopup class="bg-white border border-black shadow-xl mt-px max-h-60 overflow-y-auto">
+        <div ngListbox [id]="listboxId" [attr.aria-labelledby]="uid">
+          @for (option of filteredOptions(); track option.value; let i = $index) {
+            <button
+              type="button"
+              ngOption
+              [value]="option.value"
+              [id]="getOptionId(i)"
+              (click)="selectOption(option)"
+              (mouseenter)="activeIndex.set(i)"
+              class="w-full text-left px-4 py-3 text-sm cursor-pointer transition-colors duration-150 outline-none"
+              [class.bg-black]="activeIndex() === i"
+              [class.text-white]="activeIndex() === i"
+              [class.hover:bg-zinc-100]="activeIndex() !== i"
+            >
+              {{ option.label }}
+            </button>
+          } @empty {
+            <div class="px-4 py-3 text-sm text-zinc-400 italic">No matches</div>
+          }
+        </div>
+      </div>
+    </ng-template>
+  </div>
+
+  @if (error()) {
+    <p [id]="errorId" class="text-[10px] uppercase font-bold text-red-500 tracking-wide mt-1">
+      {{ error() }}
+    </p>
+  } @else if (hint()) {
+    <p [id]="hintId" class="text-[10px] uppercase font-medium text-zinc-400 tracking-wide mt-1">
+      {{ hint() }}
+    </p>
+  }
+</div>
