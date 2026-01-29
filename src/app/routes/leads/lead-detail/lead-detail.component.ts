@@ -8,14 +8,11 @@ import type { UserProfile } from '../../../core/services/user.types';
 import { ActivityNotesComponent } from '../../../shared/components/activity-notes/activity-notes.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { CardComponent } from '../../../shared/components/card/card.component';
-import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ContactInfoComponent } from '../../../shared/components/contact-info/contact-info.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
 import { LeadServicesCardComponent } from '../../../shared/components/lead-services-card/lead-services-card.component';
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
-import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
-import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
+import { type SelectOption } from '../../../shared/components/select/select.component';
 import { VisitPanelComponent } from '../../../shared/components/visit-panel/visit-panel.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 
@@ -24,7 +21,7 @@ import { LeadDetailHeaderComponent } from './lead-detail-header.component';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, CardComponent, ButtonComponent, CheckboxComponent, ConfirmDialogComponent, ContactInfoComponent, InputComponent, LeadServicesCardComponent, MapPreviewComponent, SelectComponent, TextareaComponent, VisitPanelComponent, LeadDetailHeaderComponent],
+  imports: [ActivityNotesComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, VisitPanelComponent, LeadDetailHeaderComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -141,13 +138,6 @@ export class LeadDetailComponent implements OnInit {
     const service = this.selectedService();
     if (!service) return 'bg-zinc-100 text-zinc-600';
     return this.STATUS_COLORS[service.status];
-  });
-
-  protected readonly quickAction = computed<'log' | 'schedule' | 'none'>(() => {
-    const status = this.selectedService()?.status;
-    if (status === 'New') return 'log';
-    if (status === 'Attempted_Contact') return 'schedule';
-    return 'none';
   });
 
   protected readonly isVisitInFuture = computed(() => {
@@ -452,13 +442,11 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected logCall(): void {
+    if (this.noteSaving()) return;
     this.activeTab.set('activity');
+    this.noteText.set('Call logged.');
+    this.addNote();
     setTimeout(() => this.focusNoteBox(), 0);
-  }
-
-  protected openSchedule(): void {
-    this.activeTab.set('visit');
-    this.showScheduleForm.set(true);
   }
 
   protected updateStatus(statusOverride?: LeadStatus): void {

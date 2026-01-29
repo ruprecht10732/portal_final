@@ -26,13 +26,10 @@
     [statusOptions]="statusOptions()"
     [selectedStatus]="selectedService()?.status ?? null"
     [statusLabelMap]="headerStatusLabels()"
-    [quickAction]="quickAction()"
     (back)="goBack()"
     (toggleStatusMenu)="toggleStatusMenu()"
     (closeStatusMenu)="closeStatusMenu()"
     (selectStatus)="selectStatus($event)"
-    (logCall)="logCall()"
-    (openSchedule)="openSchedule()"
   ></app-lead-detail-header>
 
   @if (error()) {
@@ -167,9 +164,11 @@
                 [isSaving]="noteSaving()"
                 [activityFeed]="activityFeed()"
                 [formatTimestamp]="formatHumanDateTime"
+                [showLogCall]="true"
                 [showHeader]="false"
                 (noteTextChange)="noteText.set($event)"
                 (addNote)="addNote()"
+                (logCall)="logCall()"
               ></shared-activity-notes>
             </div>
           </details>
@@ -330,8 +329,10 @@
                 [isSaving]="noteSaving()"
                 [activityFeed]="activityFeed()"
                 [formatTimestamp]="formatHumanDateTime"
+                [showLogCall]="true"
                 (noteTextChange)="noteText.set($event)"
                 (addNote)="addNote()"
+                (logCall)="logCall()"
               ></shared-activity-notes>
             }
           </shared-card>

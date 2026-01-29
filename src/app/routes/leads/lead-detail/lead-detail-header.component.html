@@ -71,26 +71,6 @@
             </div>
           }
         </div>
-
-        @if (quickAction() === 'log') {
-          <shared-button
-            variant="primary"
-            [fullWidth]="false"
-            [uppercase]="false"
-            (clicked)="logCall.emit()"
-          >
-            Log Call
-          </shared-button>
-        } @else if (quickAction() === 'schedule') {
-          <shared-button
-            variant="primary"
-            [fullWidth]="false"
-            [uppercase]="false"
-            (clicked)="openSchedule.emit()"
-          >
-            Schedule Visit
-          </shared-button>
-        }
       </div>
     }
   </div>

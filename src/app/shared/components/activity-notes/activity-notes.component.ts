@@ -29,11 +29,14 @@ export class ActivityNotesComponent {
   canSubmit = input<boolean>(false);
   isSaving = input<boolean>(false);
   showHeader = input<boolean>(true);
+  showLogCall = input<boolean>(false);
+  logCallLabel = input<string>('Log Call');
   activityFeed = input<ActivityNoteEntry[]>([]);
   formatTimestamp = input<(value: string) => string>((value) => value);
 
   noteTextChange = output<string>();
   addNote = output<void>();
+  logCall = output<void>();
 
   protected readonly noteInput = viewChild<ElementRef<HTMLTextAreaElement>>('noteInput');
 

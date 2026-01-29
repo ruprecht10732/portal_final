@@ -36,16 +36,30 @@
     ></textarea>
     <div class="flex flex-wrap items-center justify-between gap-2">
       <p class="text-xs text-zinc-500">Share updates so the team stays aligned.</p>
-      <shared-button
-        variant="secondary"
-        size="compact"
-        [uppercase]="false"
-        [fullWidth]="false"
-        [disabled]="!canSubmit()"
-        (clicked)="addNote.emit()"
-      >
-        {{ isSaving() ? 'Adding...' : 'Add Note' }}
-      </shared-button>
+      <div class="flex flex-wrap items-center gap-2">
+        @if (showLogCall()) {
+          <shared-button
+            variant="ghost"
+            size="compact"
+            [uppercase]="false"
+            [fullWidth]="false"
+            [disabled]="isSaving()"
+            (clicked)="logCall.emit()"
+          >
+            {{ logCallLabel() }}
+          </shared-button>
+        }
+        <shared-button
+          variant="secondary"
+          size="compact"
+          [uppercase]="false"
+          [fullWidth]="false"
+          [disabled]="!canSubmit()"
+          (clicked)="addNote.emit()"
+        >
+          {{ isSaving() ? 'Adding...' : 'Add Note' }}
+        </shared-button>
+      </div>
     </div>
   </div>
 
