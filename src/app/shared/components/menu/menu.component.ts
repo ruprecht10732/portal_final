@@ -34,6 +34,11 @@ export interface MenuSection {
 export class MenuComponent {
   triggerLabel = input('Menu');
   ariaLabel = input<string | undefined>(undefined);
+  triggerVariant = input<'primary' | 'secondary' | 'ghost' | 'success' | 'danger'>('secondary');
+  triggerSize = input<'default' | 'compact'>('compact');
+  iconOnly = input(false);
+  showChevron = input(true);
+  fullWidth = input(false);
   sections = input<readonly MenuSection[]>([]);
   disabled = input(false);
   closeOnSelect = input(true);

@@ -1,8 +1,10 @@
 <div class="relative" cdkOverlayOrigin #origin="cdkOverlayOrigin">
   <shared-button
     #trigger
-    variant="secondary"
-    size="compact"
+    [variant]="triggerVariant()"
+    [size]="triggerSize()"
+    [iconOnly]="iconOnly()"
+    [fullWidth]="fullWidth()"
     [disabled]="disabled()"
     [ariaLabel]="ariaLabel() || triggerLabel()"
     [ariaExpanded]="isOpen()"
@@ -11,16 +13,23 @@
     (clicked)="toggle()"
     (keydown)="onTriggerKeydown($event)"
   >
-    <span class="text-xs font-semibold">{{ triggerLabel() }}</span>
-    <svg
-      class="w-4 h-4 text-zinc-500"
-      viewBox="0 0 24 24"
-      fill="none"
-      stroke="currentColor"
-      aria-hidden="true"
-    >
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
-    </svg>
+    @if (iconOnly()) {
+      <ng-content select="[menuTrigger]"></ng-content>
+      <span class="sr-only">{{ triggerLabel() }}</span>
+    } @else {
+      <span class="text-xs font-semibold">{{ triggerLabel() }}</span>
+      @if (showChevron()) {
+        <svg
+          class="w-4 h-4 text-zinc-500"
+          viewBox="0 0 24 24"
+          fill="none"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
+        </svg>
+      }
+    }
   </shared-button>
 
   <ng-template
@@ -38,21 +47,22 @@
       role="menu"
       tabindex="-1"
       (keydown)="onMenuKeydown($event)"
-      class="w-[22rem] max-w-[90vw] rounded-xl border border-zinc-200 bg-white p-3 text-sm text-zinc-900"
+      class="w-72 max-w-[90vw] rounded-xl border border-zinc-200 bg-white text-sm text-zinc-900 outline-none"
     >
       @if (sections().length) {
-        @for (section of sections(); track section.label ?? $index) {
-          <div class="space-y-2" role="presentation">
-            @if (section.label) {
-              <p class="px-2 text-[10px] font-semibold uppercase tracking-[0.32em] text-zinc-400">
-                {{ section.label }}
-              </p>
-            }
-            <ul class="space-y-1" role="presentation">
+        <div class="divide-y divide-zinc-100">
+          @for (section of sections(); track section.label ?? $index) {
+            <div class="px-2 py-2" role="presentation">
+              @if (section.label) {
+                <p class="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.32em] text-zinc-400">
+                  {{ section.label }}
+                </p>
+              }
+              <ul class="space-y-1" role="presentation">
               @for (item of section.items; track item.label) {
                 <li role="presentation">
                   @if (item.items?.length) {
-                    <div class="px-2 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-400">
+                    <div class="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
                       {{ item.label }}
                     </div>
                     <ul class="space-y-1" role="presentation">
@@ -66,7 +76,7 @@
                               [attr.aria-disabled]="isDisabled(child)"
                               [attr.tabindex]="isDisabled(child) ? -1 : 0"
                               (click)="selectItem(child)"
-                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors"
+                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                               [class.text-zinc-400]="isDisabled(child)"
                               [class.hover:bg-zinc-50]="!isDisabled(child)"
                             >
@@ -80,7 +90,7 @@
                               [attr.aria-disabled]="isDisabled(child)"
                               [attr.tabindex]="isDisabled(child) ? -1 : 0"
                               (click)="selectItem(child)"
-                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors"
+                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                               [class.text-zinc-400]="isDisabled(child)"
                               [class.hover:bg-zinc-50]="!isDisabled(child)"
                             >
@@ -94,7 +104,7 @@
                               [attr.aria-disabled]="isDisabled(child)"
                               [attr.tabindex]="isDisabled(child) ? -1 : 0"
                               (click)="selectItem(child)"
-                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors"
+                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                               [class.text-zinc-400]="isDisabled(child)"
                               [class.hover:bg-zinc-50]="!isDisabled(child)"
                             >
@@ -113,7 +123,7 @@
                         [attr.aria-disabled]="isDisabled(item)"
                         [attr.tabindex]="isDisabled(item) ? -1 : 0"
                         (click)="selectItem(item)"
-                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                         [class.text-zinc-400]="isDisabled(item)"
                         [class.hover:bg-zinc-50]="!isDisabled(item)"
                       >
@@ -127,7 +137,7 @@
                         [attr.aria-disabled]="isDisabled(item)"
                         [attr.tabindex]="isDisabled(item) ? -1 : 0"
                         (click)="selectItem(item)"
-                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                         [class.text-zinc-400]="isDisabled(item)"
                         [class.hover:bg-zinc-50]="!isDisabled(item)"
                       >
@@ -141,7 +151,7 @@
                         [attr.aria-disabled]="isDisabled(item)"
                         [attr.tabindex]="isDisabled(item) ? -1 : 0"
                         (click)="selectItem(item)"
-                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left transition-colors"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                         [class.text-zinc-400]="isDisabled(item)"
                         [class.hover:bg-zinc-50]="!isDisabled(item)"
                       >
@@ -152,8 +162,9 @@
                 </li>
               }
             </ul>
-          </div>
-        }
+            </div>
+          }
+        </div>
       } @else {
         <div class="px-3 py-2 text-sm text-zinc-400">No items</div>
       }
