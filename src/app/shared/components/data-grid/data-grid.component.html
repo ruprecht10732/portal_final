@@ -109,7 +109,7 @@
     <!-- Card View (Mobile) -->
     @if (store.showCardView()) {
       <data-grid-cards
-        [columns]="store.visibleColumns()"
+        [columns]="store.columns()"
         [rows]="store.rows()"
         [selectable]="store.config().selectable"
         [rowIdField]="store.config().rowIdField"

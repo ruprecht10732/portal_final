@@ -36,9 +36,10 @@ export class LeadListComponent implements OnInit {
   private readonly baseColumns: GridColumn<LeadRow>[] = [
     {
       id: 'fullName',
-      header: 'Full Name',
+      header: 'Name',
       field: 'fullName',
-      visible: false,
+      sortable: false,
+      width: '180px',
     },
     {
       id: 'firstName',
@@ -48,6 +49,7 @@ export class LeadListComponent implements OnInit {
       editable: true,
       width: '140px',
       cellType: 'text',
+      visible: false,
       validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
     },
     {
@@ -58,6 +60,7 @@ export class LeadListComponent implements OnInit {
       editable: true,
       width: '140px',
       cellType: 'text',
+      visible: false,
       validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
     },
     {
