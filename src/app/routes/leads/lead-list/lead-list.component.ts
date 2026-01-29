@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map, Observable } from 'rxjs';
+import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { LeadsService } from '../../../core/services/leads.service';
 import type { Lead, ListLeadsParams, SortField, CreateLeadRequest } from '../../../core/services/leads.types';
 import { STATUS_LABELS, STATUS_OPTIONS, SERVICE_TYPE_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
@@ -27,6 +28,7 @@ export class LeadListComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly total = signal(0);
   private ignoreNextRequest = true;
+  private readonly phoneRegion = 'NL';
 
   protected readonly columns: GridColumn<LeadRow>[] = [
     {
@@ -268,12 +270,22 @@ export class LeadListComponent implements OnInit {
         return trimmed || undefined;
       };
 
+      const normalizePhone = (value?: string | null): string | undefined => {
+        const trimmed = value?.trim();
+        if (!trimmed) return undefined;
+        const parsed = parsePhoneNumberFromString(trimmed, this.phoneRegion);
+        if (!parsed?.isValid()) {
+          return trimmed;
+        }
+        return parsed.number;
+      };
+
       if (row.id) {
         // Handle updates
         const updateRequest = {
           firstName: normalize(consumer.firstName),
           lastName: normalize(consumer.lastName),
-          phone: normalize(consumer.phone),
+          phone: normalizePhone(consumer.phone),
           email: normalize(consumer.email ?? undefined),
           consumerRole: consumer.role,
           street: normalize(address.street),
@@ -294,7 +306,7 @@ export class LeadListComponent implements OnInit {
         const leadRequest: CreateLeadRequest = {
           firstName: consumer.firstName ?? '',
           lastName: consumer.lastName ?? '',
-          phone: consumer.phone ?? '',
+          phone: normalizePhone(consumer.phone) ?? '',
           email: consumer.email,
           consumerRole: consumer.role ?? 'Owner',
           street: address.street ?? '',
