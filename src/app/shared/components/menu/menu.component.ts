@@ -62,7 +62,7 @@ export class MenuComponent {
 
   protected close(): void {
     this.isOpen.set(false);
-    this.trigger()?.nativeElement.focus();
+    this.trigger()?.nativeElement?.focus();
   }
 
   protected onTriggerKeydown(event: KeyboardEvent): void {
