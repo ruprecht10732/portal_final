@@ -130,6 +130,12 @@
                 <p class="text-sm text-zinc-600">
                   Scout: {{ getUserLabelById(l.visit.scoutId ?? selectedScout()) }}
                 </p>
+                @if (l.visit.notes && !l.visit.completedAt) {
+                  <div class="mt-2 pt-2 border-t border-zinc-200">
+                    <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">History</p>
+                    <p class="text-sm text-zinc-600 whitespace-pre-line">{{ l.visit.notes }}</p>
+                  </div>
+                }
               </div>
             }
 
@@ -186,7 +192,7 @@
                       <p class="mt-2 text-sm text-zinc-700">Notes: {{ l.visit.notes }}</p>
                     }
                   </div>
-                } @else if (!showSurveyForm()) {
+                } @else if (!showSurveyForm() && !showRescheduleForm()) {
                   <shared-button
                     variant="primary"
                     [uppercase]="false"
@@ -194,6 +200,71 @@
                   >
                     Complete Visit
                   </shared-button>
+                }
+                @if (!showRescheduleForm() && !showSurveyForm()) {
+                  <shared-button
+                    variant="secondary"
+                    [uppercase]="false"
+                    (clicked)="showRescheduleForm.set(true)"
+                  >
+                    Reschedule Visit
+                  </shared-button>
+                }
+                @if (showRescheduleForm()) {
+                  <div class="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                    <h4 class="text-sm font-semibold text-orange-800 mb-3">Reschedule Visit</h4>
+                    <label class="flex items-center gap-2 mb-3 cursor-pointer">
+                      <input
+                        type="checkbox"
+                        class="rounded border-zinc-300"
+                        [checked]="markAsNoShow()"
+                        (change)="markAsNoShow.set($any($event.target).checked)"
+                      />
+                      <span class="text-sm">Mark original appointment as No Show</span>
+                    </label>
+                    @if (markAsNoShow()) {
+                      <shared-textarea
+                        label="No Show Notes (optional)"
+                        [rows]="2"
+                        [value]="noShowNotes()"
+                        (valueChange)="noShowNotes.set($event)"
+                        placeholder="e.g., Customer not home, wrong address..."
+                      />
+                    }
+                    <div class="grid gap-3 mt-3">
+                      <shared-input
+                        label="New Date"
+                        type="date"
+                        [value]="rescheduleDate()"
+                        (valueChange)="rescheduleDate.set($event)"
+                      />
+                      <shared-input
+                        label="New Time"
+                        type="time"
+                        [value]="rescheduleTime()"
+                        (valueChange)="rescheduleTime.set($event)"
+                      />
+                      <shared-select
+                        label="Assign to"
+                        [options]="assigneeOptions()"
+                        [value]="selectedScout()"
+                        (valueChange)="selectedScout.set($event)"
+                      />
+                    </div>
+                    <div class="flex flex-wrap gap-2 mt-3">
+                      <shared-button
+                        variant="primary"
+                        [uppercase]="false"
+                        [disabled]="!rescheduleDate() || !rescheduleTime() || saving()"
+                        (clicked)="rescheduleVisit()"
+                      >
+                        {{ saving() ? 'Saving...' : 'Reschedule' }}
+                      </shared-button>
+                      <shared-button variant="secondary" [uppercase]="false" (clicked)="showRescheduleForm.set(false)">
+                        Cancel
+                      </shared-button>
+                    </div>
+                  </div>
                 }
                 @if (showSurveyForm()) {
                   <shared-textarea
@@ -239,6 +310,30 @@
                     </shared-button>
                   </div>
                 }
+              </div>
+            }
+
+            @if (visitHistory().length > 0) {
+              <div class="mt-4 pt-4 border-t border-zinc-200">
+                <h3 class="text-sm font-semibold text-zinc-700 mb-3">Previous Visits</h3>
+                <div class="grid gap-2">
+                  @for (visit of visitHistory(); track visit.id) {
+                    <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                      <div class="flex items-center justify-between">
+                        <p class="text-sm font-medium">{{ formatHumanDateTime(visit.scheduledDate) }}</p>
+                        <span class="text-xs px-2 py-1 rounded-full" [class]="getOutcomeColor(visit.outcome)">
+                          {{ getOutcomeLabel(visit.outcome) }}
+                        </span>
+                      </div>
+                      @if (visit.scoutId) {
+                        <p class="text-xs text-zinc-500 mt-1">Scout: {{ getUserLabelById(visit.scoutId) }}</p>
+                      }
+                      @if (visit.notes) {
+                        <p class="text-xs text-zinc-600 mt-1">{{ visit.notes }}</p>
+                      }
+                    </div>
+                  }
+                </div>
               </div>
             }
           </div>
@@ -456,6 +551,12 @@
                     <p class="text-sm text-zinc-600">
                       Scout: {{ getUserLabelById(l.visit.scoutId ?? selectedScout()) }}
                     </p>
+                    @if (l.visit.notes && !l.visit.completedAt) {
+                      <div class="mt-2 pt-2 border-t border-zinc-200">
+                        <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">History</p>
+                        <p class="text-sm text-zinc-600 whitespace-pre-line">{{ l.visit.notes }}</p>
+                      </div>
+                    }
                   </div>
                 }
 
@@ -514,7 +615,7 @@
                           <p class="mt-2 text-sm text-zinc-700">Notes: {{ l.visit.notes }}</p>
                         }
                       </div>
-                    } @else if (!showSurveyForm()) {
+                    } @else if (!showSurveyForm() && !showRescheduleForm()) {
                       <shared-button
                         variant="primary"
                         [uppercase]="false"
@@ -523,6 +624,76 @@
                       >
                         Complete Visit
                       </shared-button>
+                    }
+                    @if (!showRescheduleForm() && !showSurveyForm()) {
+                      <shared-button
+                        variant="secondary"
+                        [uppercase]="false"
+                        [fullWidth]="false"
+                        (clicked)="showRescheduleForm.set(true)"
+                      >
+                        Reschedule Visit
+                      </shared-button>
+                    }
+                    @if (showRescheduleForm()) {
+                      <div class="rounded-lg border border-orange-200 bg-orange-50 p-4">
+                        <h4 class="text-sm font-semibold text-orange-800 mb-3">Reschedule Visit</h4>
+                        <label class="flex items-center gap-2 mb-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            class="rounded border-zinc-300"
+                            [checked]="markAsNoShow()"
+                            (change)="markAsNoShow.set($any($event.target).checked)"
+                          />
+                          <span class="text-sm">Mark original appointment as No Show</span>
+                        </label>
+                        <div class="grid gap-3 sm:grid-cols-2">
+                          @if (markAsNoShow()) {
+                            <div class="sm:col-span-2">
+                              <shared-textarea
+                                label="No Show Notes (optional)"
+                                [rows]="2"
+                                [value]="noShowNotes()"
+                                (valueChange)="noShowNotes.set($event)"
+                                placeholder="e.g., Customer not home, wrong address..."
+                              />
+                            </div>
+                          }
+                          <shared-input
+                            label="New Date"
+                            type="date"
+                            [value]="rescheduleDate()"
+                            (valueChange)="rescheduleDate.set($event)"
+                          />
+                          <shared-input
+                            label="New Time"
+                            type="time"
+                            [value]="rescheduleTime()"
+                            (valueChange)="rescheduleTime.set($event)"
+                          />
+                          <div class="sm:col-span-2">
+                            <shared-select
+                              label="Assign to"
+                              [options]="assigneeOptions()"
+                              [value]="selectedScout()"
+                              (valueChange)="selectedScout.set($event)"
+                            />
+                          </div>
+                          <div class="sm:col-span-2 flex flex-wrap gap-2">
+                            <shared-button
+                              variant="primary"
+                              [uppercase]="false"
+                              [disabled]="!rescheduleDate() || !rescheduleTime() || saving()"
+                              (clicked)="rescheduleVisit()"
+                            >
+                              {{ saving() ? 'Saving...' : 'Reschedule' }}
+                            </shared-button>
+                            <shared-button variant="secondary" [uppercase]="false" (clicked)="showRescheduleForm.set(false)">
+                              Cancel
+                            </shared-button>
+                          </div>
+                        </div>
+                      </div>
                     }
                     @if (showSurveyForm()) {
                       <shared-textarea
@@ -568,6 +739,30 @@
                         </shared-button>
                       </div>
                     }
+                  </div>
+                }
+
+                @if (visitHistory().length > 0) {
+                  <div class="mt-4 pt-4 border-t border-zinc-200">
+                    <h3 class="text-sm font-semibold text-zinc-700 mb-3">Previous Visits</h3>
+                    <div class="grid gap-2">
+                      @for (visit of visitHistory(); track visit.id) {
+                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                          <div class="flex items-center justify-between">
+                            <p class="text-sm font-medium">{{ formatHumanDateTime(visit.scheduledDate) }}</p>
+                            <span class="text-xs px-2 py-1 rounded-full" [class]="getOutcomeColor(visit.outcome)">
+                              {{ getOutcomeLabel(visit.outcome) }}
+                            </span>
+                          </div>
+                          @if (visit.scoutId) {
+                            <p class="text-xs text-zinc-500 mt-1">Scout: {{ getUserLabelById(visit.scoutId) }}</p>
+                          }
+                          @if (visit.notes) {
+                            <p class="text-xs text-zinc-600 mt-1">{{ visit.notes }}</p>
+                          }
+                        </div>
+                      }
+                    </div>
                   </div>
                 }
               </div>

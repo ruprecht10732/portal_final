@@ -11,12 +11,14 @@ import type {
   ScheduleVisitRequest,
   CompleteSurveyRequest,
   MarkNoShowRequest,
+  RescheduleVisitRequest,
   CreateLeadNoteRequest,
   DuplicateCheckResponse,
   LeadNotesResponse,
   LeadNote,
   ListLeadsParams,
   BulkDeleteLeadsResponse,
+  VisitHistoryListResponse,
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
@@ -72,8 +74,16 @@ export class LeadsService {
     return this.http.post<Lead>(`${this.baseUrl}/${id}/no-show`, data);
   }
 
+  rescheduleVisit(id: string, data: RescheduleVisitRequest): Observable<Lead> {
+    return this.http.post<Lead>(`${this.baseUrl}/${id}/reschedule`, data);
+  }
+
   markViewed(id: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.baseUrl}/${id}/view`, {});
+  }
+
+  listVisitHistory(id: string): Observable<VisitHistoryListResponse> {
+    return this.http.get<VisitHistoryListResponse>(`${this.baseUrl}/${id}/visit-history`);
   }
 
   listNotes(id: string): Observable<LeadNotesResponse> {

@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, OnIni
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeadsService } from '../../../core/services/leads.service';
 import { UserService } from '../../../core/services/user.service';
-import type { Lead, LeadNote, LeadStatus, AccessDifficulty } from '../../../core/services/leads.types';
+import type { Lead, LeadNote, LeadStatus, AccessDifficulty, VisitHistory } from '../../../core/services/leads.types';
 import type { UserProfile } from '../../../core/services/user.types';
 import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -45,6 +45,13 @@ export class LeadDetailComponent implements OnInit {
   protected readonly scheduledDate = signal('');
   protected readonly scheduledTime = signal('');
 
+  // Reschedule visit
+  protected readonly showRescheduleForm = signal(false);
+  protected readonly rescheduleDate = signal('');
+  protected readonly rescheduleTime = signal('');
+  protected readonly noShowNotes = signal('');
+  protected readonly markAsNoShow = signal(false);
+
   // Survey form
   protected readonly showSurveyForm = signal(false);
   protected readonly measurements = signal('');
@@ -54,6 +61,7 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly noteText = signal('');
   protected readonly leadNotes = signal<LeadNote[]>([]);
+  protected readonly visitHistory = signal<VisitHistory[]>([]);
   protected readonly copiedAddress = signal(false);
   protected readonly noteBoxDesktop = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxDesktop');
   protected readonly noteBoxMobile = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxMobile');
@@ -127,7 +135,7 @@ export class LeadDetailComponent implements OnInit {
         entries.push({
           id: `scheduled-${lead.id}`,
           type: 'audit',
-          timestamp: lead.visit.scheduledDate,
+          timestamp: this.getScheduledEventTimestamp(lead) ?? lead.visit.scheduledDate,
           user: 'System',
           message: 'Visit scheduled',
         });
@@ -179,6 +187,7 @@ export class LeadDetailComponent implements OnInit {
         this.selectedScout.set(lead.visit?.scoutId ?? lead.assignedAgentId ?? null);
         this.loading.set(false);
         this.loadNotes(lead.id);
+        this.loadVisitHistory(lead.id);
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
       },
@@ -239,24 +248,40 @@ export class LeadDetailComponent implements OnInit {
     const date = new Date(dateStr);
     const now = new Date();
     const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfTomorrow = new Date(startOfToday);
+    startOfTomorrow.setDate(startOfTomorrow.getDate() + 1);
     const startOfYesterday = new Date(startOfToday);
     startOfYesterday.setDate(startOfYesterday.getDate() - 1);
     const timeLabel = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
 
-    if (date >= startOfToday) {
+    // Check if date is today (between start of today and start of tomorrow)
+    if (date >= startOfToday && date < startOfTomorrow) {
       return `Today at ${timeLabel}`;
     }
+    // Check if date is yesterday
     if (date >= startOfYesterday && date < startOfToday) {
       return `Yesterday at ${timeLabel}`;
     }
 
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    // For other dates, show full date with time
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ` at ${timeLabel}`;
   }
 
   private parseTimestamp(value: string | null | undefined): number {
     if (!value) return Number.NEGATIVE_INFINITY;
     const parsed = Date.parse(value);
     return Number.isNaN(parsed) ? Number.NEGATIVE_INFINITY : parsed;
+  }
+
+  protected getScheduledEventTimestamp(lead: Lead): string | undefined {
+    const scheduled = lead.visit?.scheduledDate;
+    if (!scheduled) return undefined;
+    const scheduledTime = Date.parse(scheduled);
+    const nowTime = Date.now();
+    if (!Number.isNaN(scheduledTime) && scheduledTime > nowTime) {
+      return lead.updatedAt ?? lead.createdAt ?? scheduled;
+    }
+    return scheduled;
   }
 
   protected getStatusLabel(status: LeadStatus): string {
@@ -419,6 +444,41 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
+  protected openRescheduleForm(): void {
+    this.activeTab.set('visit');
+    this.showRescheduleForm.set(true);
+  }
+
+  protected rescheduleVisit(): void {
+    const lead = this.lead();
+    if (!lead || !this.rescheduleDate() || !this.rescheduleTime()) return;
+
+    const scheduledDate = new Date(`${this.rescheduleDate()}T${this.rescheduleTime()}`).toISOString();
+
+    this.saving.set(true);
+    this.leadsService.rescheduleVisit(lead.id, {
+      scheduledDate,
+      scoutId: this.selectedScout() ?? undefined,
+      noShowNotes: this.noShowNotes() || undefined,
+      markAsNoShow: this.markAsNoShow(),
+    }).subscribe({
+      next: (updated) => {
+        this.lead.set(updated);
+        this.showRescheduleForm.set(false);
+        this.rescheduleDate.set('');
+        this.rescheduleTime.set('');
+        this.noShowNotes.set('');
+        this.markAsNoShow.set(false);
+        this.saving.set(false);
+        this.loadVisitHistory(lead.id);
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Failed to reschedule visit');
+        this.saving.set(false);
+      },
+    });
+  }
+
   protected goBack(): void {
     this.router.navigate(['/app/leads']);
   }
@@ -454,6 +514,17 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
+  private loadVisitHistory(id: string): void {
+    this.leadsService.listVisitHistory(id).subscribe({
+      next: (response) => {
+        this.visitHistory.set(response.items || []);
+      },
+      error: () => {
+        // Silently fail for visit history - not critical
+      },
+    });
+  }
+
   protected onPhotosSelected(files: FileList | null): void {
     if (!files) return;
     this.surveyPhotos.set(Array.from(files));
@@ -463,6 +534,26 @@ export class LeadDetailComponent implements OnInit {
     if (!id) return 'Unassigned';
     const match = this.assigneeOptions().find(option => option.value === id);
     return match?.label ?? 'Unassigned';
+  }
+
+  protected getOutcomeLabel(outcome: string): string {
+    const labels: Record<string, string> = {
+      completed: 'Completed',
+      no_show: 'No Show',
+      rescheduled: 'Rescheduled',
+      cancelled: 'Cancelled',
+    };
+    return labels[outcome] ?? outcome;
+  }
+
+  protected getOutcomeColor(outcome: string): string {
+    const colors: Record<string, string> = {
+      completed: 'bg-green-100 text-green-800',
+      no_show: 'bg-red-100 text-red-800',
+      rescheduled: 'bg-orange-100 text-orange-800',
+      cancelled: 'bg-zinc-100 text-zinc-600',
+    };
+    return colors[outcome] ?? 'bg-zinc-100 text-zinc-600';
   }
 }
 

@@ -29,6 +29,25 @@ export interface Visit {
   completedAt?: string;
 }
 
+export type VisitOutcome = 'completed' | 'no_show' | 'rescheduled' | 'cancelled';
+
+export interface VisitHistory {
+  id: string;
+  leadId: string;
+  scheduledDate: string;
+  scoutId?: string;
+  outcome: VisitOutcome;
+  measurements?: string;
+  accessDifficulty?: AccessDifficulty;
+  notes?: string;
+  completedAt?: string;
+  createdAt: string;
+}
+
+export interface VisitHistoryListResponse {
+  items: VisitHistory[];
+}
+
 export interface LeadNote {
   id: string;
   leadId: string;
@@ -111,6 +130,13 @@ export interface CompleteSurveyRequest {
 
 export interface MarkNoShowRequest {
   notes?: string;
+}
+
+export interface RescheduleVisitRequest {
+  noShowNotes?: string;
+  markAsNoShow?: boolean;
+  scheduledDate: string;
+  scoutId?: string;
 }
 
 export interface CreateLeadNoteRequest {
