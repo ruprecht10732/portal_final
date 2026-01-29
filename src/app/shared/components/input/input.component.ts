@@ -23,6 +23,8 @@ import { FormsModule } from '@angular/forms';
           [(ngModel)]="value"
           [disabled]="disabled()"
           [required]="required()"
+          [attr.min]="min() || null"
+          [attr.max]="max() || null"
           [attr.aria-required]="required()"
           [attr.aria-invalid]="!!error()"
           [attr.aria-label]="ariaLabel() || label() || placeholder()"
@@ -106,6 +108,8 @@ export class InputComponent {
   clearable = input(true);
   passwordToggle = input(false);
   passwordToggleLabel = input('Toggle password visibility');
+  min = input<string | undefined>(undefined);
+  max = input<string | undefined>(undefined);
 
   protected readonly isPasswordVisible = signal(false);
   protected readonly showPasswordToggle = computed(() => this.passwordToggle() && this.type() === 'password');

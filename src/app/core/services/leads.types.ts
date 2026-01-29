@@ -138,6 +138,7 @@ export interface ScheduleVisitRequest {
   serviceId: string;
   scheduledDate: string;
   scoutId?: string;
+  sendInvite?: boolean;
 }
 
 export interface CompleteSurveyRequest {
@@ -158,6 +159,7 @@ export interface RescheduleVisitRequest {
   markAsNoShow?: boolean;
   scheduledDate: string;
   scoutId?: string;
+  sendInvite?: boolean;
 }
 
 export interface CreateLeadNoteRequest {

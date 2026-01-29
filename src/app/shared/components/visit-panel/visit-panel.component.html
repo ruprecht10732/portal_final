@@ -40,6 +40,7 @@
         label="Date"
         type="date"
         [value]="scheduledDate()"
+        [min]="minDate()"
         (valueChange)="scheduledDateChange.emit($event)"
       />
       <shared-input
@@ -55,6 +56,18 @@
           [value]="selectedScout()"
           (valueChange)="selectedScoutChange.emit($event)"
         />
+      </div>
+      <div class="sm:col-span-2">
+        <shared-checkbox
+          label="Send visit invitation to lead"
+          [checked]="sendInvite()"
+          (checkedChange)="sendInviteChange.emit($event)"
+          [disabled]="!canSendInvite()"
+          [dense]="true"
+        />
+        @if (!canSendInvite()) {
+          <p class="text-xs text-zinc-400 mt-1">Lead has no email address</p>
+        }
       </div>
       <div class="sm:col-span-2 flex flex-wrap gap-2">
         <shared-button
@@ -157,6 +170,7 @@
               label="New Date"
               type="date"
               [value]="rescheduleDate()"
+              [min]="minDate()"
               (valueChange)="rescheduleDateChange.emit($event)"
             />
             <shared-input
@@ -172,6 +186,18 @@
                 [value]="selectedScout()"
                 (valueChange)="selectedScoutChange.emit($event)"
               />
+            </div>
+            <div class="sm:col-span-2">
+              <shared-checkbox
+                label="Send visit invitation to lead"
+                [checked]="sendInvite()"
+                (checkedChange)="sendInviteChange.emit($event)"
+                [disabled]="!canSendInvite()"
+                [dense]="true"
+              />
+              @if (!canSendInvite()) {
+                <p class="text-xs text-zinc-400 mt-1">Lead has no email address</p>
+              }
             </div>
             <div class="sm:col-span-2 flex flex-wrap gap-2">
               <shared-button

@@ -56,6 +56,16 @@ export class LeadDetailComponent implements OnInit {
   protected readonly rescheduleTime = signal('');
   protected readonly noShowNotes = signal('');
   protected readonly markAsNoShow = signal(false);
+  protected readonly sendInvite = signal(false);
+
+  // Computed min date for schedule/reschedule (today's date as YYYY-MM-DD)
+  protected readonly minDate = computed(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
+  });
+
+  // Computed: can send invite if lead has email
+  protected readonly canSendInvite = computed(() => !!this.lead()?.consumer?.email);
 
   // Survey form
   protected readonly showSurveyForm = signal(false);
@@ -491,12 +501,14 @@ export class LeadDetailComponent implements OnInit {
       serviceId: service.id,
       scheduledDate,
       scoutId: this.selectedScout() ?? undefined,
+      sendInvite: this.sendInvite() || undefined,
     }).subscribe({
       next: (updated) => {
         this.lead.set(updated);
         this.showScheduleForm.set(false);
         this.scheduledDate.set('');
         this.scheduledTime.set('');
+        this.sendInvite.set(false);
         this.saving.set(false);
         this.announce('Visit scheduled successfully');
       },
@@ -595,6 +607,7 @@ export class LeadDetailComponent implements OnInit {
       scoutId: this.selectedScout() ?? undefined,
       noShowNotes: this.noShowNotes() || undefined,
       markAsNoShow: this.markAsNoShow(),
+      sendInvite: this.sendInvite() || undefined,
     }).subscribe({
       next: (updated) => {
         this.lead.set(updated);
@@ -603,6 +616,7 @@ export class LeadDetailComponent implements OnInit {
         this.rescheduleTime.set('');
         this.noShowNotes.set('');
         this.markAsNoShow.set(false);
+        this.sendInvite.set(false);
         this.saving.set(false);
         this.loadVisitHistory(lead.id);
         this.announce('Visit rescheduled successfully');

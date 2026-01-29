@@ -22,6 +22,9 @@ export class VisitPanelComponent {
   selectedScout = input<string | null>(null);
   assigneeOptions = input<SelectOption<string | null>[]>([]);
   accessDifficultyOptions = input<SelectOption<AccessDifficulty>[]>([]);
+  minDate = input<string>('');
+  sendInvite = input(false);
+  canSendInvite = input(false);
 
   showScheduleForm = input(false);
   showRescheduleForm = input(false);
@@ -53,6 +56,7 @@ export class VisitPanelComponent {
   selectedScoutChange = output<string | null>();
   showScheduleFormChange = output<boolean>();
   scheduleVisit = output<void>();
+  sendInviteChange = output<boolean>();
 
   showSurveyFormChange = output<boolean>();
   editVisit = output<void>();
