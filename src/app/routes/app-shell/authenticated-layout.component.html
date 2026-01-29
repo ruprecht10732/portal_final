@@ -1,6 +1,6 @@
 <main class="min-h-screen bg-zinc-50">
   <div class="flex min-h-screen gap-4 p-4">
-    <app-authenticated-sidebar class="hidden lg:block" />
+    <app-authenticated-sidebar class="hidden lg:block"></app-authenticated-sidebar>
 
     <div class="flex min-h-full flex-1 flex-col rounded-tr-xl border border-zinc-200 bg-white">
       <header class="border-b border-zinc-100">
@@ -11,7 +11,7 @@
               class="lg:hidden inline-flex items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50 transition-colors"
               (click)="toggleMobileMenu()"
               [attr.aria-expanded]="mobileMenuOpen()"
-              aria-label="Toggle menu"
+              [attr.aria-label]="mobileMenuOpen() ? 'Close' : 'Menu'"
             >
               @if (mobileMenuOpen()) {
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
