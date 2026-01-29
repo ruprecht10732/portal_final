@@ -15,8 +15,12 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
       [attr.aria-controls]="ariaControls()"
       [attr.aria-haspopup]="ariaHaspopup()"
       (click)="!loading() && clicked.emit($event)"
-      class="relative flex items-center justify-center gap-2 uppercase transition-all duration-200 overflow-hidden cursor-pointer"
+      class="relative flex items-center justify-center gap-2 transition-all duration-200 overflow-hidden cursor-pointer"
       [class.gap-0]="iconOnly()"
+      [class.gap-1]="stacked()"
+      [class.flex-col]="stacked()"
+      [class.uppercase]="uppercase()"
+      [class.normal-case]="!uppercase()"
       [class.px-6]="size() === 'default'"
       [class.py-3]="size() === 'default'"
       [class.text-sm]="size() === 'default'"
@@ -67,6 +71,10 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
       <span
         class="inline-flex items-center gap-2 whitespace-nowrap"
         [class.opacity-0]="loading()"
+        [class.flex-col]="stacked()"
+        [class.items-center]="stacked()"
+        [class.text-center]="stacked()"
+        [class.gap-1]="stacked()"
         [class.text-white]="variant() === 'primary' || variant() === 'success' || variant() === 'danger'"
       >
         <ng-content />
@@ -87,6 +95,8 @@ export class ButtonComponent {
   fullWidth = input(true);
   iconOnly = input(false);
   active = input(false);
+  stacked = input(false);
+  uppercase = input(true);
   ariaLabel = input<string | undefined>(undefined);
   ariaExpanded = input<string | boolean | null | undefined>(undefined);
   ariaControls = input<string | null | undefined>(undefined);

@@ -19,15 +19,16 @@ interface MobileNavItem {
   template: `
     @if (showSectionMenu()) {
       <div
-        class="fixed bottom-16 left-0 right-0 z-50 border-t border-zinc-200 bg-white px-4 py-3 shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.35)] lg:hidden"
+        class="fixed bottom-16 left-0 right-0 z-50 rounded-t-2xl border-t border-zinc-200 bg-white px-4 py-4 shadow-[0_-12px_28px_-16px_rgba(0,0,0,0.4)] lg:hidden"
         aria-label="Quick links"
       >
-        <div class="flex items-center gap-2 overflow-x-auto pb-1">
+        <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-200"></div>
+        <div class="grid gap-2">
           @for (item of panelItems(); track item.route) {
             <shared-button
-              class="rounded-full"
               size="compact"
-              [fullWidth]="false"
+              [fullWidth]="true"
+              [uppercase]="false"
               [variant]="isRouteActive(item.route, item.exact ?? false) ? 'primary' : 'secondary'"
               [ariaLabel]="item.label"
               (clicked)="navigateTo(item.route)"
@@ -42,18 +43,22 @@ interface MobileNavItem {
       </div>
     }
     <nav
-      class="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center justify-around border-t border-zinc-200 bg-white lg:hidden"
+      class="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center gap-2 border-t border-zinc-200 bg-white px-2 lg:hidden"
       aria-label="Mobile navigation"
     >
       @for (item of items; track item.route) {
-        <a
+        <shared-button
+          class="flex-1"
+          [fullWidth]="true"
+          variant="ghost"
+          size="compact"
+          [active]="activeLink.isActive"
+          [stacked]="true"
+          [uppercase]="false"
+          [ariaLabel]="item.label"
           [routerLink]="item.route"
           routerLinkActive
           #activeLink="routerLinkActive"
-          class="flex flex-1 flex-col items-center justify-center gap-1 py-2 text-xs transition-colors"
-          [class.text-zinc-900]="activeLink.isActive"
-          [class.text-zinc-400]="!activeLink.isActive"
-          [attr.aria-current]="activeLink.isActive ? 'page' : null"
         >
           @switch (item.icon) {
             @case ('dashboard') {
@@ -66,8 +71,8 @@ interface MobileNavItem {
               <lucide-icon name="user" class="h-5 w-5"></lucide-icon>
             }
           }
-          <span>{{ item.label }}</span>
-        </a>
+          <span class="text-[10px]">{{ item.label }}</span>
+        </shared-button>
       }
     </nav>
   `,
