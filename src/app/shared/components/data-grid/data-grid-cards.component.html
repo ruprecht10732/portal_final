@@ -13,18 +13,6 @@
       >
         <!-- Main Card Content (Horizontal Layout) -->
         <div class="flex items-center gap-4 p-3 font-sans">
-          <!-- Selection (if enabled) -->
-          @if (selectable()) {
-            <div class="shrink-0">
-              <shared-checkbox
-                [checked]="row.selected"
-                [ariaLabel]="'Select ' + getTitleText(row)"
-                [dense]="true"
-                (checkedChange)="onSelect(rowIndex)"
-              />
-            </div>
-          }
-
           <!-- Avatar / Initials (Square) -->
           <div class="flex h-12 w-12 shrink-0 items-center justify-center bg-zinc-100 text-sm font-bold uppercase text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
             {{ getInitials(row) }}
@@ -81,65 +69,6 @@
             </div>
           </div>
         </div>
-
-        <!-- Card Actions -->
-        <div class="flex items-center justify-end gap-1 px-3 pb-3">
-          <button
-            type="button"
-            (click)="toggleEdit(rowIndex, $event)"
-            class="inline-flex h-9 items-center justify-center border border-zinc-200 bg-white px-3 text-[10px] font-bold uppercase tracking-widest text-zinc-600 transition-colors hover:bg-zinc-50 dark:border-zinc-700 dark:bg-zinc-800 dark:text-zinc-300 dark:hover:bg-zinc-700"
-            aria-label="Edit"
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            (click)="onDelete(rowIndex, $event)"
-            class="inline-flex h-9 items-center justify-center border border-red-100 bg-red-50 px-3 text-[10px] font-bold uppercase tracking-widest text-red-600 transition-colors hover:bg-red-100 dark:border-red-900/40 dark:bg-red-900/20 dark:text-red-300 dark:hover:bg-red-900/40"
-            aria-label="Delete"
-          >
-            Delete
-          </button>
-        </div>
-
-        <!-- Expand/Collapse Section -->
-        @if (hasExpandableContent()) {
-          <button
-            type="button"
-            (click)="toggleExpanded(rowIndex)"
-            [attr.aria-expanded]="isExpanded(rowIndex)"
-            class="flex w-full items-center justify-center gap-2 border-t border-zinc-100 px-4 py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-400 transition-colors hover:bg-zinc-50 dark:border-zinc-800 dark:text-zinc-500 dark:hover:bg-zinc-800/60"
-          >
-            @if (isExpanded(rowIndex)) {
-              <span>Less</span>
-              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M5 15l7-7 7 7" />
-              </svg>
-            } @else {
-              <span>Details ({{ expandedColumns().length }})</span>
-              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7" />
-              </svg>
-            }
-          </button>
-
-          @if (isExpanded(rowIndex)) {
-            <div class="border-t border-zinc-100 bg-zinc-50 p-4 dark:border-zinc-800 dark:bg-zinc-900">
-              <dl class="grid grid-cols-2 gap-x-4 gap-y-3">
-                @for (column of expandedColumns(); track column.id) {
-                  <div class="flex flex-col gap-0.5">
-                    <dt class="text-[10px] font-bold uppercase tracking-wider text-zinc-400 dark:text-zinc-500">
-                      {{ column.header }}
-                    </dt>
-                    <dd class="truncate text-sm font-medium text-zinc-900 dark:text-zinc-100">
-                      {{ formatValue(getCellValue(row, column), column) }}
-                    </dd>
-                  </div>
-                }
-              </dl>
-            </div>
-          }
-        }
 
         @if (row.error) {
           <div class="border-t border-red-200 bg-red-50 px-4 py-2 text-[10px] font-bold uppercase tracking-tight text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
