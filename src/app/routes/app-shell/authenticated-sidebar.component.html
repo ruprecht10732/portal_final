@@ -89,7 +89,12 @@
         <nav class="mt-3 flex flex-col gap-2">
           <a
             [routerLink]="'/app/leads'"
+            routerLinkActive
+            #leadOverviewActive="routerLinkActive"
+            [routerLinkActiveOptions]="{ exact: true }"
             class="flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-zinc-900"
+            [class.text-zinc-900]="leadOverviewActive.isActive"
+            [class.font-semibold]="leadOverviewActive.isActive"
           >
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M3 7h18" />
@@ -100,7 +105,11 @@
           </a>
           <a
             [routerLink]="'/app/leads/new'"
+            routerLinkActive
+            #leadCreateActive="routerLinkActive"
             class="flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-zinc-900"
+            [class.text-zinc-900]="leadCreateActive.isActive"
+            [class.font-semibold]="leadCreateActive.isActive"
           >
             <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
               <path d="M12 5v14" />
