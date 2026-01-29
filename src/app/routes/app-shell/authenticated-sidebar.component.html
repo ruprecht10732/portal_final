@@ -5,49 +5,56 @@
 
   <nav class="no-scrollbar flex flex-1 flex-col items-center gap-4 overflow-y-auto">
     @for (item of items; track item.route) {
-      <a
-        [routerLink]="item.route"
-        routerLinkActive="bg-zinc-900 shadow-sm"
-        #activeLink="routerLinkActive"
-        class="group relative flex h-12 w-12 items-center justify-center rounded-2xl transition-all duration-200 hover:bg-zinc-100 hover:text-zinc-900"
-        [class.text-white]="activeLink.isActive"
-        [class.text-zinc-500]="!activeLink.isActive"
-        [attr.aria-label]="item.label"
-      >
-        @switch (item.icon) {
-          @case ('dashboard') {
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 13h8V3H3v10z" />
-              <path d="M13 21h8v-8h-8v8z" />
-              <path d="M13 3h8v6h-8z" />
-              <path d="M3 21h8v-6H3z" />
-            </svg>
+      <div class="group relative">
+        <shared-button
+          class="sidebar-item"
+          [routerLink]="item.route"
+          routerLinkActive
+          #activeLink="routerLinkActive"
+          [variant]="activeLink.isActive ? 'primary' : 'ghost'"
+          size="compact"
+          [iconOnly]="true"
+          [fullWidth]="false"
+          [ariaLabel]="item.label"
+        >
+          @switch (item.icon) {
+            @case ('dashboard') {
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 13h8V3H3v10z" />
+                <path d="M13 21h8v-8h-8v8z" />
+                <path d="M13 3h8v6h-8z" />
+                <path d="M3 21h8v-6H3z" />
+              </svg>
+            }
+            @case ('leads') {
+              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                <path d="M3 7h18" />
+                <path d="M5 12h14" />
+                <path d="M7 17h10" />
+              </svg>
+            }
           }
-          @case ('leads') {
-            <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 7h18" />
-              <path d="M5 12h14" />
-              <path d="M7 17h10" />
-            </svg>
-          }
-        }
+        </shared-button>
         <span class="pointer-events-none absolute left-16 rounded bg-zinc-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
           {{ item.label }}
         </span>
-      </a>
+      </div>
     }
   </nav>
 
   <div class="mt-6 flex flex-col items-center gap-4 border-t border-zinc-100 pt-6">
-    <button
-      type="button"
-      class="flex h-12 w-12 items-center justify-center rounded-full border border-transparent text-zinc-500 transition-all duration-200 hover:border-zinc-200 hover:text-zinc-900"
-      aria-label="Profile"
+    <shared-button
+      class="profile-button"
+      variant="ghost"
+      size="compact"
+      [iconOnly]="true"
+      [fullWidth]="false"
+      ariaLabel="Profile"
     >
       <svg class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
         <path d="M20 21a8 8 0 10-16 0" />
         <circle cx="12" cy="7" r="4" />
       </svg>
-    </button>
+    </shared-button>
   </div>
 </aside>

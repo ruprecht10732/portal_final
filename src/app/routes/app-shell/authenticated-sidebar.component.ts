@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterLink, RouterLinkActive } from '@angular/router';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 
 interface SidebarItem {
   label: string;
@@ -9,7 +10,7 @@ interface SidebarItem {
 
 @Component({
   selector: 'app-authenticated-sidebar',
-  imports: [RouterLink, RouterLinkActive],
+  imports: [RouterLink, RouterLinkActive, ButtonComponent],
   templateUrl: './authenticated-sidebar.component.html',
   styleUrl: './authenticated-sidebar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
