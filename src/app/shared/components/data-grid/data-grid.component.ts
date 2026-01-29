@@ -115,6 +115,9 @@ export class DataGridComponent<T extends Record<string, unknown>> {
   /** Emitted when a row needs to be deleted */
   readonly deleteRows = output<T[]>();
   
+  /** Emitted when a row is double-clicked (for navigation) */
+  readonly rowDoubleClick = output<T>();
+  
   /** Emitted when sort changes */
   readonly sortChange = output<SortChangeEvent>();
   
@@ -285,6 +288,13 @@ export class DataGridComponent<T extends Record<string, unknown>> {
 
   protected onCellEdit(event: CellEditEvent<T>): void {
     this.cellEdit.emit(event);
+  }
+
+  protected onRowDoubleClick(rowIndex: number): void {
+    const row = this.store.rows()[rowIndex];
+    if (row) {
+      this.rowDoubleClick.emit(row.current);
+    }
   }
 
   protected onSaveRequest(rows: T[]): void {

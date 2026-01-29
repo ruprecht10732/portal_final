@@ -250,6 +250,12 @@ export class LeadListComponent implements OnInit {
     this.router.navigate(['/app/leads/new']);
   }
 
+  protected onLeadDoubleClick(lead: LeadRow): void {
+    if (lead.id) {
+      this.router.navigate(['/app/leads', lead.id]);
+    }
+  }
+
   protected onSaveLeads(rows: LeadRow[]): void {
     rows.forEach(row => {
       // If it's a new row, we need to create it

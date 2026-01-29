@@ -116,6 +116,7 @@
         [cardTitleField]="store.config().cardTitleField"
         [previewFieldCount]="store.config().cardPreviewFieldCount"
         (rowSelect)="store.toggleRowSelection($event)"
+        (rowDoubleClick)="onRowDoubleClick($event)"
         (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
         (cellEditEvent)="onCellEdit($event)"
         (deleteRow)="onCardDelete($event)"
@@ -204,6 +205,7 @@
               (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
               (cellEditComplete)="store.completeCellEdit($event)"
               (rowSelect)="store.toggleRowSelection($event)"
+              (rowDoubleClick)="onRowDoubleClick($event)"
               (navigate)="store.navigateCell($event)"
               (cellEditEvent)="onCellEdit($event)"
             />
