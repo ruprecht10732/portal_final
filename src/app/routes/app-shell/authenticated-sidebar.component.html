@@ -22,19 +22,10 @@
           >
             @switch (item.icon) {
               @case ('dashboard') {
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M3 13h8V3H3v10z" />
-                  <path d="M13 21h8v-8h-8v8z" />
-                  <path d="M13 3h8v6h-8z" />
-                  <path d="M3 21h8v-6H3z" />
-                </svg>
+                <lucide-icon name="layout-dashboard" class="h-5 w-5"></lucide-icon>
               }
               @case ('leads') {
-                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                  <path d="M3 7h18" />
-                  <path d="M5 12h14" />
-                  <path d="M7 17h10" />
-                </svg>
+                <lucide-icon name="users" class="h-5 w-5"></lucide-icon>
               }
             }
           </shared-button>
@@ -55,10 +46,7 @@
         [ariaLabel]="isExpanded() ? 'Collapse sidebar' : 'Expand sidebar'"
         (clicked)="toggleExpanded()"
       >
-        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M10 6l-4 6 4 6" />
-          <path d="M14 6l4 6-4 6" />
-        </svg>
+        <lucide-icon name="arrow-left-right" class="h-5 w-5"></lucide-icon>
       </shared-button>
       <shared-menu
         triggerLabel="Profile"
@@ -70,10 +58,7 @@
         [fullWidth]="false"
         [sections]="profileMenu"
       >
-        <svg menuTrigger class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M20 21a8 8 0 10-16 0" />
-          <circle cx="12" cy="7" r="4" />
-        </svg>
+        <lucide-icon menuTrigger name="user" class="h-6 w-6"></lucide-icon>
       </shared-menu>
     </div>
   </aside>
@@ -95,11 +80,7 @@
             [class.text-zinc-900]="leadOverviewActive.isActive"
             [class.font-semibold]="leadOverviewActive.isActive"
           >
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M3 7h18" />
-              <path d="M5 12h14" />
-              <path d="M7 17h10" />
-            </svg>
+            <lucide-icon name="list" class="h-4 w-4"></lucide-icon>
             Lead overview
           </a>
           <a
@@ -110,10 +91,7 @@
             [class.text-zinc-900]="leadCreateActive.isActive"
             [class.font-semibold]="leadCreateActive.isActive"
           >
-            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d="M12 5v14" />
-              <path d="M5 12h14" />
-            </svg>
+            <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
             Create lead
           </a>
         </nav>

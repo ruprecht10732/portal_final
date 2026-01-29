@@ -2,6 +2,15 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { filter, map } from 'rxjs';
+import {
+  ArrowLeftRight,
+  LayoutDashboard,
+  List,
+  LucideAngularModule,
+  Plus,
+  User,
+  Users,
+} from 'lucide-angular';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { MenuComponent, MenuSection } from '../../shared/components/menu/menu.component';
 
@@ -13,7 +22,7 @@ interface SidebarItem {
 
 @Component({
   selector: 'app-authenticated-sidebar',
-  imports: [RouterLink, RouterLinkActive, ButtonComponent, MenuComponent],
+  imports: [RouterLink, RouterLinkActive, ButtonComponent, MenuComponent, LucideAngularModule],
   templateUrl: './authenticated-sidebar.component.html',
   styleUrl: './authenticated-sidebar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -28,7 +37,7 @@ export class AuthenticatedSidebarComponent {
     { initialValue: this.router.url },
   );
 
-  protected readonly isExpanded = signal(false);
+  protected readonly isExpanded = signal(true);
 
   protected readonly items: SidebarItem[] = [
     {
