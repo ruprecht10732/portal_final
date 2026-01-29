@@ -6,7 +6,7 @@
       </div>
     </div>
 
-    <nav class="no-scrollbar flex flex-1 flex-col items-center gap-4 overflow-y-auto">
+    <nav class="no-scrollbar flex flex-1 flex-col items-center gap-4 overflow-y-auto" aria-label="Primary">
       @for (item of items; track item.route) {
         <div class="group relative">
           <shared-button
@@ -85,7 +85,7 @@
         {{ activeTitle() }}
       </div>
       @if (isLeadsRoute()) {
-        <nav class="mt-6 flex flex-col gap-2">
+        <nav class="mt-6 flex flex-col gap-2" aria-label="Leads">
           <a
             [routerLink]="'/app/leads'"
             routerLinkActive
