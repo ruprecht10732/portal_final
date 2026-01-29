@@ -165,12 +165,10 @@
                 [isSaving]="noteSaving()"
                 [activityFeed]="activityFeed()"
                 [formatTimestamp]="formatHumanDateTime"
-                [showLogCall]="true"
                 [showHeader]="false"
                 (noteTextChange)="noteText.set($event)"
                 (noteTypeChange)="noteType.set($event)"
                 (addNote)="addNote()"
-                (logCall)="logCall()"
               ></shared-activity-notes>
             </div>
           </details>
@@ -332,11 +330,9 @@
                 [isSaving]="noteSaving()"
                 [activityFeed]="activityFeed()"
                 [formatTimestamp]="formatHumanDateTime"
-                [showLogCall]="true"
                 (noteTextChange)="noteText.set($event)"
                 (noteTypeChange)="noteType.set($event)"
                 (addNote)="addNote()"
-                (logCall)="logCall()"
               ></shared-activity-notes>
             }
           </shared-card>

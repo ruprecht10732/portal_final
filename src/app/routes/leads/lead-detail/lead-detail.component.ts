@@ -442,12 +442,6 @@ export class LeadDetailComponent implements OnInit {
     setTimeout(() => this.focusNoteBox(), 0);
   }
 
-  protected logCall(): void {
-    this.activeTab.set('activity');
-    this.noteType.set('call');
-    setTimeout(() => this.focusNoteBox(), 0);
-  }
-
   protected updateStatus(statusOverride?: LeadStatus): void {
     const lead = this.lead();
     const status = statusOverride ?? this.newStatus();
