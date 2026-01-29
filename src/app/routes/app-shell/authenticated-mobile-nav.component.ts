@@ -3,6 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { filter, map } from 'rxjs';
+import { ButtonComponent } from '../../shared/components/button/button.component';
 import { SidebarPanelItem } from './sidebar-panel.config';
 
 interface MobileNavItem {
@@ -13,26 +14,29 @@ interface MobileNavItem {
 
 @Component({
   selector: 'app-authenticated-mobile-nav',
-  imports: [RouterLink, RouterLinkActive, LucideAngularModule],
+  imports: [RouterLink, RouterLinkActive, LucideAngularModule, ButtonComponent],
   styles: `:host { display: contents; }`,
   template: `
     @if (showSectionMenu()) {
       <div
         class="fixed bottom-16 left-0 right-0 z-50 border-t border-zinc-200 bg-white px-4 py-3 shadow-[0_-8px_24px_-16px_rgba(0,0,0,0.35)] lg:hidden"
-        aria-label="Section navigation"
+        aria-label="Quick links"
       >
-        <div class="mb-2 text-[10px] font-semibold uppercase tracking-[0.32em] text-zinc-400">Section</div>
         <div class="flex items-center gap-2 overflow-x-auto pb-1">
           @for (item of panelItems(); track item.route) {
-            <a
-              [routerLink]="item.route"
-              class="flex items-center gap-2 whitespace-nowrap rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700 transition-colors hover:text-zinc-900"
+            <shared-button
+              class="rounded-full"
+              size="compact"
+              [fullWidth]="false"
+              [variant]="isRouteActive(item.route, item.exact ?? false) ? 'primary' : 'secondary'"
+              [ariaLabel]="item.label"
+              (clicked)="navigateTo(item.route)"
             >
               @if (item.icon) {
                 <lucide-icon [name]="item.icon" class="h-4 w-4"></lucide-icon>
               }
               {{ item.label }}
-            </a>
+            </shared-button>
           }
         </div>
       </div>
@@ -72,6 +76,13 @@ interface MobileNavItem {
 export class AuthenticatedMobileNavComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
 
   protected readonly items: MobileNavItem[] = [
     { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
@@ -88,6 +99,15 @@ export class AuthenticatedMobileNavComponent {
   );
 
   protected readonly showSectionMenu = computed(() => this.panelItems().length > 0);
+
+  protected navigateTo(route: string): void {
+    this.router.navigateByUrl(route);
+  }
+
+  protected isRouteActive(route: string, exact: boolean): boolean {
+    const current = this.currentUrl();
+    return exact ? current === route : current.startsWith(route);
+  }
 
   private getPanelItemsFromRoute(): SidebarPanelItem[] {
     let currentRoute: ActivatedRoute | null = this.route.root;
