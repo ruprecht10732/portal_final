@@ -339,11 +339,11 @@ export class LeadListComponent implements OnInit {
         return parsed.number;
       };
 
+      const assigneeId = row.assignedAgentId;
+      const normalizedAssigneeId = assigneeId === '' || assigneeId === 'null' ? null : assigneeId;
+
       if (row.id) {
         // Handle updates
-        const assigneeId = row.assignedAgentId;
-        const normalizedAssigneeId = assigneeId === '' || assigneeId === 'null' ? null : assigneeId;
-
         const updateRequest: UpdateLeadRequest = {
           firstName: normalize(consumer.firstName),
           lastName: normalize(consumer.lastName),
@@ -378,6 +378,7 @@ export class LeadListComponent implements OnInit {
           zipCode: address.zipCode ?? '',
           city: address.city ?? '',
           serviceType: row.serviceType ?? 'Windows',
+          assigneeId: normalizedAssigneeId,
         };
 
         this.leadsService.create(leadRequest).subscribe({

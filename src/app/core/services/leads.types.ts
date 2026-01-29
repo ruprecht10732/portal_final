@@ -62,6 +62,7 @@ export interface CreateLeadRequest {
   zipCode: string;
   city: string;
   serviceType: ServiceType;
+  assigneeId?: string | null;
 }
 
 export interface UpdateLeadRequest {
