@@ -10,6 +10,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { ContactInfoComponent } from '../../../shared/components/contact-info/contact-info.component';
 import { LeadServicesCardComponent } from '../../../shared/components/lead-services-card/lead-services-card.component';
 import { ActivityNotesComponent } from '../../../shared/components/activity-notes/activity-notes.component';
+import { VisitPanelComponent } from '../../../shared/components/visit-panel/visit-panel.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -23,7 +24,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, CardComponent, ButtonComponent, CheckboxComponent, ConfirmDialogComponent, ContactInfoComponent, InputComponent, LeadServicesCardComponent, MapPreviewComponent, SelectComponent, TextareaComponent, LeadDetailHeaderComponent],
+  imports: [ActivityNotesComponent, CardComponent, ButtonComponent, CheckboxComponent, ConfirmDialogComponent, ContactInfoComponent, InputComponent, LeadServicesCardComponent, MapPreviewComponent, SelectComponent, TextareaComponent, VisitPanelComponent, LeadDetailHeaderComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

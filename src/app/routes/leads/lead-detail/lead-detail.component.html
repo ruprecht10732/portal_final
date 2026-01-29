@@ -63,243 +63,52 @@
 
       <div class="lg:hidden flex flex-col gap-4">
         <shared-card>
-          <h2 class="text-lg font-semibold mb-4">The Visit</h2>
-          <div class="grid gap-4">
-            @if (!selectedService()?.visit?.scheduledDate && !showScheduleForm()) {
-              <shared-button variant="secondary" [uppercase]="false" (clicked)="showScheduleForm.set(true)">
-                Schedule Visit
-              </shared-button>
-            }
-
-            @if (selectedService()?.visit?.scheduledDate) {
-              <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
-                <p class="text-sm font-semibold">
-                  Scheduled for {{ formatHumanDateTime(selectedService()?.visit?.scheduledDate) }}
-                </p>
-                <p class="text-sm text-zinc-600">
-                  Scout: {{ getUserLabelById(selectedService()?.visit?.scoutId ?? selectedScout()) }}
-                </p>
-                @if (selectedService()?.visit?.notes && !selectedService()?.visit?.completedAt) {
-                  <div class="mt-2 pt-2 border-t border-zinc-200">
-                    <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">History</p>
-                    <p class="text-sm text-zinc-600 whitespace-pre-line">{{ selectedService()?.visit?.notes }}</p>
-                  </div>
-                }
-              </div>
-            }
-
-            @if (showScheduleForm()) {
-              <div class="grid gap-3">
-                <shared-input
-                  label="Date"
-                  type="date"
-                  [value]="scheduledDate()"
-                  (valueChange)="scheduledDate.set($event)"
-                />
-                <shared-input
-                  label="Time"
-                  type="time"
-                  [value]="scheduledTime()"
-                  (valueChange)="scheduledTime.set($event)"
-                />
-                <shared-select
-                  label="Assign to"
-                  [options]="assigneeOptions()"
-                  [value]="selectedScout()"
-                  (valueChange)="selectedScout.set($event)"
-                />
-                <div class="flex flex-wrap gap-2">
-                  <shared-button
-                    variant="primary"
-                    [uppercase]="false"
-                    [disabled]="!scheduledDate() || !scheduledTime() || saving()"
-                    (clicked)="scheduleVisit()"
-                  >
-                    {{ saving() ? 'Saving...' : 'Save Schedule' }}
-                  </shared-button>
-                  <shared-button variant="secondary" [uppercase]="false" (clicked)="showScheduleForm.set(false)">
-                    Cancel
-                  </shared-button>
-                </div>
-              </div>
-            }
-
-            @if (selectedService()?.visit?.scheduledDate) {
-              <div class="grid gap-3">
-                @if ((selectedService()?.visit?.completedAt || selectedService()?.status === 'Surveyed') && !showSurveyForm()) {
-                  <div class="rounded-lg border border-green-200 bg-green-50 p-3">
-                    <div class="flex items-start justify-between">
-                      <p class="text-sm font-semibold text-green-800">
-                        Completed {{ formatHumanDateTime(selectedService()?.visit?.completedAt || l.updatedAt) }}
-                      </p>
-                      <button
-                        type="button"
-                        class="edit-link text-sm text-green-700 hover:text-green-900 font-medium"
-                        (click)="editVisit()"
-                      >
-                        Edit
-                      </button>
-                    </div>
-                    @if (selectedService()?.visit?.measurements) {
-                      <p class="mt-2 text-sm">Measurements: {{ selectedService()?.visit?.measurements }}</p>
-                    }
-                    @if (selectedService()?.visit?.accessDifficulty) {
-                      <p class="text-sm">Access Difficulty: {{ selectedService()?.visit?.accessDifficulty }}</p>
-                    }
-                    @if (selectedService()?.visit?.notes) {
-                      <p class="mt-2 text-sm text-zinc-700">Notes: {{ selectedService()?.visit?.notes }}</p>
-                    }
-                  </div>
-                } @else if (!showSurveyForm() && !showRescheduleForm()) {
-                  <div>
-                    <shared-button
-                      variant="primary"
-                      [uppercase]="false"
-                      [disabled]="isVisitInFuture()"
-                      (clicked)="showSurveyForm.set(true)"
-                    >
-                      Complete Visit
-                    </shared-button>
-                    @if (isVisitInFuture()) {
-                      <p class="text-sm text-amber-600 mt-2">
-                        Visit can be completed on or after the scheduled date
-                      </p>
-                    }
-                  </div>
-                }
-                @if (!showRescheduleForm() && !showSurveyForm()) {
-                  <shared-button
-                    variant="secondary"
-                    [uppercase]="false"
-                    (clicked)="showRescheduleForm.set(true)"
-                  >
-                    Reschedule Visit
-                  </shared-button>
-                }
-                @if (showRescheduleForm()) {
-                  <div class="rounded-lg border border-orange-200 bg-orange-50 p-4">
-                    <h4 class="text-sm font-semibold text-orange-800 mb-3">Reschedule Visit</h4>
-                    <shared-checkbox
-                      label="Mark original appointment as No Show"
-                      [checked]="markAsNoShow()"
-                      (checkedChange)="markAsNoShow.set($event)"
-                      [dense]="true"
-                    />
-                    @if (markAsNoShow()) {
-                      <shared-textarea
-                        label="No Show Notes (optional)"
-                        [rows]="2"
-                        [value]="noShowNotes()"
-                        (valueChange)="noShowNotes.set($event)"
-                        placeholder="e.g., Customer not home, wrong address..."
-                      />
-                    }
-                    <div class="grid gap-3 mt-3">
-                      <shared-input
-                        label="New Date"
-                        type="date"
-                        [value]="rescheduleDate()"
-                        (valueChange)="rescheduleDate.set($event)"
-                      />
-                      <shared-input
-                        label="New Time"
-                        type="time"
-                        [value]="rescheduleTime()"
-                        (valueChange)="rescheduleTime.set($event)"
-                      />
-                      <shared-select
-                        label="Assign to"
-                        [options]="assigneeOptions()"
-                        [value]="selectedScout()"
-                        (valueChange)="selectedScout.set($event)"
-                      />
-                    </div>
-                    <div class="flex flex-wrap gap-2 mt-3">
-                      <shared-button
-                        variant="primary"
-                        [uppercase]="false"
-                        [disabled]="!rescheduleDate() || !rescheduleTime() || saving()"
-                        (clicked)="rescheduleVisit()"
-                      >
-                        {{ saving() ? 'Saving...' : 'Reschedule' }}
-                      </shared-button>
-                      <shared-button variant="secondary" [uppercase]="false" (clicked)="showRescheduleForm.set(false)">
-                        Cancel
-                      </shared-button>
-                    </div>
-                  </div>
-                }
-                @if (showSurveyForm()) {
-                  <shared-textarea
-                    label="Measurements & Notes"
-                    [rows]="6"
-                    [value]="measurements()"
-                    (valueChange)="measurements.set($event)"
-                  />
-                  <shared-select
-                    label="Access Difficulty"
-                    [options]="accessDifficultyOptions()"
-                    [value]="accessDifficulty()"
-                    (valueChange)="accessDifficulty.set($event)"
-                  />
-                  <shared-textarea
-                    label="Additional Notes (optional)"
-                    [rows]="4"
-                    [value]="surveyNotes()"
-                    (valueChange)="surveyNotes.set($event)"
-                  />
-                  <label class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-3 text-sm font-semibold cursor-pointer">
-                    <input type="file" class="sr-only" multiple (change)="onPhotosSelected($event.target.files)" />
-                    Upload Site Photos
-                  </label>
-                  @if (surveyPhotos().length) {
-                    <ul class="text-xs text-zinc-500">
-                      @for (file of surveyPhotos(); track file.name) {
-                        <li>{{ file.name }}</li>
-                      }
-                    </ul>
-                  }
-                  <div class="flex flex-wrap gap-2">
-                    <shared-button
-                      variant="success"
-                      [uppercase]="false"
-                      [disabled]="!measurements() || !accessDifficulty() || saving()"
-                      (clicked)="completeSurvey()"
-                    >
-                      {{ saving() ? 'Saving...' : (isEditingVisit() ? 'Save Changes' : 'Complete Visit') }}
-                    </shared-button>
-                    <shared-button variant="secondary" [uppercase]="false" (clicked)="cancelEditVisit()">
-                      Cancel
-                    </shared-button>
-                  </div>
-                }
-              </div>
-            }
-
-            @if (visitHistory().length > 0) {
-              <div class="mt-4 pt-4 border-t border-zinc-200">
-                <h3 class="text-sm font-semibold text-zinc-700 mb-3">Previous Visits</h3>
-                <div class="grid gap-2">
-                  @for (visit of visitHistory(); track visit.id) {
-                    <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
-                      <div class="flex items-center justify-between">
-                        <p class="text-sm font-medium">{{ formatHumanDateTime(visit.scheduledDate) }}</p>
-                        <span class="text-xs px-2 py-1 rounded-full" [class]="getOutcomeColor(visit.outcome)">
-                          {{ getOutcomeLabel(visit.outcome) }}
-                        </span>
-                      </div>
-                      @if (visit.scoutId) {
-                        <p class="text-xs text-zinc-500 mt-1">Scout: {{ getUserLabelById(visit.scoutId) }}</p>
-                      }
-                      @if (visit.notes) {
-                        <p class="text-xs text-zinc-600 mt-1">{{ visit.notes }}</p>
-                      }
-                    </div>
-                  }
-                </div>
-              </div>
-            }
-          </div>
+          <shared-visit-panel
+            [selectedService]="selectedService()"
+            [selectedScout]="selectedScout()"
+            [assigneeOptions]="assigneeOptions()"
+            [accessDifficultyOptions]="accessDifficultyOptions()"
+            [showScheduleForm]="showScheduleForm()"
+            [showRescheduleForm]="showRescheduleForm()"
+            [showSurveyForm]="showSurveyForm()"
+            [isEditingVisit]="isEditingVisit()"
+            [isVisitInFuture]="isVisitInFuture()"
+            [saving]="saving()"
+            [scheduledDate]="scheduledDate()"
+            [scheduledTime]="scheduledTime()"
+            [rescheduleDate]="rescheduleDate()"
+            [rescheduleTime]="rescheduleTime()"
+            [noShowNotes]="noShowNotes()"
+            [markAsNoShow]="markAsNoShow()"
+            [measurements]="measurements()"
+            [accessDifficulty]="accessDifficulty()"
+            [surveyNotes]="surveyNotes()"
+            [surveyPhotos]="surveyPhotos()"
+            [visitHistory]="visitHistory()"
+            [formatHumanDateTime]="formatHumanDateTime"
+            [getUserLabelById]="getUserLabelById"
+            [getOutcomeLabel]="getOutcomeLabel"
+            [getOutcomeColor]="getOutcomeColor"
+            (scheduledDateChange)="scheduledDate.set($event)"
+            (scheduledTimeChange)="scheduledTime.set($event)"
+            (selectedScoutChange)="selectedScout.set($event)"
+            (showScheduleFormChange)="showScheduleForm.set($event)"
+            (scheduleVisit)="scheduleVisit()"
+            (showSurveyFormChange)="showSurveyForm.set($event)"
+            (editVisit)="editVisit()"
+            (cancelEditVisit)="cancelEditVisit()"
+            (completeSurvey)="completeSurvey()"
+            (measurementsChange)="measurements.set($event)"
+            (accessDifficultyChange)="accessDifficulty.set($event)"
+            (surveyNotesChange)="surveyNotes.set($event)"
+            (surveyPhotosChange)="onPhotosSelected($event)"
+            (showRescheduleFormChange)="showRescheduleForm.set($event)"
+            (rescheduleDateChange)="rescheduleDate.set($event)"
+            (rescheduleTimeChange)="rescheduleTime.set($event)"
+            (noShowNotesChange)="noShowNotes.set($event)"
+            (markAsNoShowChange)="markAsNoShow.set($event)"
+            (rescheduleVisit)="rescheduleVisit()"
+          ></shared-visit-panel>
         </shared-card>
 
         <shared-card padding="none">
@@ -368,7 +177,7 @@
 
         <shared-lead-services-card
           [services]="l.services"
-          [selectedServiceId]="selectedService()?.id ?? null"
+          [selectedServiceId]="selectedServiceId()"
           [serviceTypeLabels]="SERVICE_TYPE_LABELS"
           [statusLabels]="STATUS_LABELS"
           [statusColors]="STATUS_COLORS"
@@ -420,7 +229,7 @@
 
           <shared-lead-services-card
             [services]="l.services"
-            [selectedServiceId]="selectedService()?.id ?? null"
+            [selectedServiceId]="selectedServiceId()"
             [serviceTypeLabels]="SERVICE_TYPE_LABELS"
             [statusLabels]="STATUS_LABELS"
             [statusColors]="STATUS_COLORS"
@@ -463,258 +272,55 @@
                   Activity / Notes
                 </button>
               </div>
-              @if (activeTab() === 'visit' && !selectedService()?.visit?.scheduledDate && !showScheduleForm()) {
-                <shared-button
-                  variant="secondary"
-                  size="compact"
-                  [uppercase]="false"
-                  [fullWidth]="false"
-                  (clicked)="showScheduleForm.set(true)"
-                >
-                  Schedule Visit
-                </shared-button>
-              }
             </div>
 
             @if (activeTab() === 'visit') {
-              <div class="grid gap-4">
-                @if (selectedService()?.visit?.scheduledDate) {
-                  <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
-                    <p class="text-sm font-semibold">
-                      Scheduled for {{ formatHumanDateTime(selectedService()?.visit?.scheduledDate) }}
-                    </p>
-                    <p class="text-sm text-zinc-600">
-                      Scout: {{ getUserLabelById(selectedService()?.visit?.scoutId ?? selectedScout()) }}
-                    </p>
-                    @if (selectedService()?.visit?.notes && !selectedService()?.visit?.completedAt) {
-                      <div class="mt-2 pt-2 border-t border-zinc-200">
-                        <p class="text-xs font-medium text-zinc-500 uppercase tracking-wider mb-1">History</p>
-                        <p class="text-sm text-zinc-600 whitespace-pre-line">{{ selectedService()?.visit?.notes }}</p>
-                      </div>
-                    }
-                  </div>
-                }
-
-                @if (showScheduleForm()) {
-                  <div class="grid gap-3 sm:grid-cols-2">
-                    <shared-input
-                      label="Date"
-                      type="date"
-                      [value]="scheduledDate()"
-                      (valueChange)="scheduledDate.set($event)"
-                    />
-                    <shared-input
-                      label="Time"
-                      type="time"
-                      [value]="scheduledTime()"
-                      (valueChange)="scheduledTime.set($event)"
-                    />
-                    <div class="sm:col-span-2">
-                      <shared-select
-                        label="Assign to"
-                        [options]="assigneeOptions()"
-                        [value]="selectedScout()"
-                        (valueChange)="selectedScout.set($event)"
-                      />
-                    </div>
-                    <div class="sm:col-span-2 flex flex-wrap gap-2">
-                      <shared-button
-                        variant="primary"
-                        [uppercase]="false"
-                        [disabled]="!scheduledDate() || !scheduledTime() || saving()"
-                        (clicked)="scheduleVisit()"
-                      >
-                        {{ saving() ? 'Saving...' : 'Save Schedule' }}
-                      </shared-button>
-                      <shared-button variant="secondary" [uppercase]="false" (clicked)="showScheduleForm.set(false)">
-                        Cancel
-                      </shared-button>
-                    </div>
-                  </div>
-                }
-
-                @if (selectedService()?.visit?.scheduledDate) {
-                  <div class="grid gap-3">
-                    @if ((selectedService()?.visit?.completedAt || selectedService()?.status === 'Surveyed') && !showSurveyForm()) {
-                      <div class="rounded-lg border border-green-200 bg-green-50 p-3">
-                        <div class="flex items-start justify-between">
-                          <p class="text-sm font-semibold text-green-800">
-                            Completed {{ formatHumanDateTime(selectedService()?.visit?.completedAt || l.updatedAt) }}
-                          </p>
-                          <button
-                            type="button"
-                            class="edit-link text-sm text-green-700 hover:text-green-900 font-medium"
-                            (click)="editVisit()"
-                          >
-                            Edit
-                          </button>
-                        </div>
-                        @if (selectedService()?.visit?.measurements) {
-                          <p class="mt-2 text-sm">Measurements: {{ selectedService()?.visit?.measurements }}</p>
-                        }
-                        @if (selectedService()?.visit?.accessDifficulty) {
-                          <p class="text-sm">Access Difficulty: {{ selectedService()?.visit?.accessDifficulty }}</p>
-                        }
-                        @if (selectedService()?.visit?.notes) {
-                          <p class="mt-2 text-sm text-zinc-700">Notes: {{ selectedService()?.visit?.notes }}</p>
-                        }
-                      </div>
-                    } @else if (!showSurveyForm() && !showRescheduleForm()) {
-                      <div>
-                        <shared-button
-                          variant="primary"
-                          [uppercase]="false"
-                          [fullWidth]="false"
-                          [disabled]="isVisitInFuture()"
-                          (clicked)="showSurveyForm.set(true)"
-                        >
-                          Complete Visit
-                        </shared-button>
-                        @if (isVisitInFuture()) {
-                          <p class="text-sm text-amber-600 mt-2">
-                            Visit can be completed on or after the scheduled date
-                          </p>
-                        }
-                      </div>
-                    }
-                    @if (!showRescheduleForm() && !showSurveyForm()) {
-                      <shared-button
-                        variant="secondary"
-                        [uppercase]="false"
-                        [fullWidth]="false"
-                        (clicked)="showRescheduleForm.set(true)"
-                      >
-                        Reschedule Visit
-                      </shared-button>
-                    }
-                    @if (showRescheduleForm()) {
-                      <div class="rounded-lg border border-orange-200 bg-orange-50 p-4">
-                        <h4 class="text-sm font-semibold text-orange-800 mb-3">Reschedule Visit</h4>
-                        <shared-checkbox
-                          label="Mark original appointment as No Show"
-                          [checked]="markAsNoShow()"
-                          (checkedChange)="markAsNoShow.set($event)"
-                          [dense]="true"
-                        />
-                        <div class="grid gap-3 sm:grid-cols-2 mt-3">
-                          @if (markAsNoShow()) {
-                            <div class="sm:col-span-2">
-                              <shared-textarea
-                                label="No Show Notes (optional)"
-                                [rows]="2"
-                                [value]="noShowNotes()"
-                                (valueChange)="noShowNotes.set($event)"
-                                placeholder="e.g., Customer not home, wrong address..."
-                              />
-                            </div>
-                          }
-                          <shared-input
-                            label="New Date"
-                            type="date"
-                            [value]="rescheduleDate()"
-                            (valueChange)="rescheduleDate.set($event)"
-                          />
-                          <shared-input
-                            label="New Time"
-                            type="time"
-                            [value]="rescheduleTime()"
-                            (valueChange)="rescheduleTime.set($event)"
-                          />
-                          <div class="sm:col-span-2">
-                            <shared-select
-                              label="Assign to"
-                              [options]="assigneeOptions()"
-                              [value]="selectedScout()"
-                              (valueChange)="selectedScout.set($event)"
-                            />
-                          </div>
-                          <div class="sm:col-span-2 flex flex-wrap gap-2">
-                            <shared-button
-                              variant="primary"
-                              [uppercase]="false"
-                              [disabled]="!rescheduleDate() || !rescheduleTime() || saving()"
-                              (clicked)="rescheduleVisit()"
-                            >
-                              {{ saving() ? 'Saving...' : 'Reschedule' }}
-                            </shared-button>
-                            <shared-button variant="secondary" [uppercase]="false" (clicked)="showRescheduleForm.set(false)">
-                              Cancel
-                            </shared-button>
-                          </div>
-                        </div>
-                      </div>
-                    }
-                    @if (showSurveyForm()) {
-                      <shared-textarea
-                        label="Measurements & Notes"
-                        [rows]="6"
-                        [value]="measurements()"
-                        (valueChange)="measurements.set($event)"
-                      />
-                      <shared-select
-                        label="Access Difficulty"
-                        [options]="accessDifficultyOptions()"
-                        [value]="accessDifficulty()"
-                        (valueChange)="accessDifficulty.set($event)"
-                      />
-                      <shared-textarea
-                        label="Additional Notes (optional)"
-                        [rows]="4"
-                        [value]="surveyNotes()"
-                        (valueChange)="surveyNotes.set($event)"
-                      />
-                      <label class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-3 text-sm font-semibold cursor-pointer">
-                        <input type="file" class="sr-only" multiple (change)="onPhotosSelected($event.target.files)" />
-                        Upload Site Photos
-                      </label>
-                      @if (surveyPhotos().length) {
-                        <ul class="text-xs text-zinc-500">
-                          @for (file of surveyPhotos(); track file.name) {
-                            <li>{{ file.name }}</li>
-                          }
-                        </ul>
-                      }
-                      <div class="flex flex-wrap gap-2">
-                        <shared-button
-                          variant="success"
-                          [uppercase]="false"
-                          [disabled]="!measurements() || !accessDifficulty() || saving()"
-                          (clicked)="completeSurvey()"
-                        >
-                          {{ saving() ? 'Saving...' : (isEditingVisit() ? 'Save Changes' : 'Complete Visit') }}
-                        </shared-button>
-                        <shared-button variant="secondary" [uppercase]="false" (clicked)="cancelEditVisit()">
-                          Cancel
-                        </shared-button>
-                      </div>
-                    }
-                  </div>
-                }
-
-                @if (visitHistory().length > 0) {
-                  <div class="mt-4 pt-4 border-t border-zinc-200">
-                    <h3 class="text-sm font-semibold text-zinc-700 mb-3">Previous Visits</h3>
-                    <div class="grid gap-2">
-                      @for (visit of visitHistory(); track visit.id) {
-                        <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
-                          <div class="flex items-center justify-between">
-                            <p class="text-sm font-medium">{{ formatHumanDateTime(visit.scheduledDate) }}</p>
-                            <span class="text-xs px-2 py-1 rounded-full" [class]="getOutcomeColor(visit.outcome)">
-                              {{ getOutcomeLabel(visit.outcome) }}
-                            </span>
-                          </div>
-                          @if (visit.scoutId) {
-                            <p class="text-xs text-zinc-500 mt-1">Scout: {{ getUserLabelById(visit.scoutId) }}</p>
-                          }
-                          @if (visit.notes) {
-                            <p class="text-xs text-zinc-600 mt-1">{{ visit.notes }}</p>
-                          }
-                        </div>
-                      }
-                    </div>
-                  </div>
-                }
-              </div>
+              <shared-visit-panel
+                [selectedService]="selectedService()"
+                [selectedScout]="selectedScout()"
+                [assigneeOptions]="assigneeOptions()"
+                [accessDifficultyOptions]="accessDifficultyOptions()"
+                [showScheduleForm]="showScheduleForm()"
+                [showRescheduleForm]="showRescheduleForm()"
+                [showSurveyForm]="showSurveyForm()"
+                [isEditingVisit]="isEditingVisit()"
+                [isVisitInFuture]="isVisitInFuture()"
+                [saving]="saving()"
+                [scheduledDate]="scheduledDate()"
+                [scheduledTime]="scheduledTime()"
+                [rescheduleDate]="rescheduleDate()"
+                [rescheduleTime]="rescheduleTime()"
+                [noShowNotes]="noShowNotes()"
+                [markAsNoShow]="markAsNoShow()"
+                [measurements]="measurements()"
+                [accessDifficulty]="accessDifficulty()"
+                [surveyNotes]="surveyNotes()"
+                [surveyPhotos]="surveyPhotos()"
+                [visitHistory]="visitHistory()"
+                [formatHumanDateTime]="formatHumanDateTime"
+                [getUserLabelById]="getUserLabelById"
+                [getOutcomeLabel]="getOutcomeLabel"
+                [getOutcomeColor]="getOutcomeColor"
+                (scheduledDateChange)="scheduledDate.set($event)"
+                (scheduledTimeChange)="scheduledTime.set($event)"
+                (selectedScoutChange)="selectedScout.set($event)"
+                (showScheduleFormChange)="showScheduleForm.set($event)"
+                (scheduleVisit)="scheduleVisit()"
+                (showSurveyFormChange)="showSurveyForm.set($event)"
+                (editVisit)="editVisit()"
+                (cancelEditVisit)="cancelEditVisit()"
+                (completeSurvey)="completeSurvey()"
+                (measurementsChange)="measurements.set($event)"
+                (accessDifficultyChange)="accessDifficulty.set($event)"
+                (surveyNotesChange)="surveyNotes.set($event)"
+                (surveyPhotosChange)="onPhotosSelected($event)"
+                (showRescheduleFormChange)="showRescheduleForm.set($event)"
+                (rescheduleDateChange)="rescheduleDate.set($event)"
+                (rescheduleTimeChange)="rescheduleTime.set($event)"
+                (noShowNotesChange)="noShowNotes.set($event)"
+                (markAsNoShowChange)="markAsNoShow.set($event)"
+                (rescheduleVisit)="rescheduleVisit()"
+              ></shared-visit-panel>
             } @else {
               <shared-activity-notes
                 #notePanelDesktop

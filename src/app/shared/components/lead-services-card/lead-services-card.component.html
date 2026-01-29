@@ -66,9 +66,12 @@
       @for (service of services(); track service.id) {
         <button
           type="button"
-          class="w-full border border-zinc-200 p-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
-          [class.bg-blue-50]="isSelected(service)"
+          class="w-full border p-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
           [class.border-blue-500]="isSelected(service)"
+          [class.border-zinc-200]="!isSelected(service)"
+          [class.bg-blue-50]="isSelected(service)"
+          [class.ring-1]="isSelected(service)"
+          [class.ring-blue-100]="isSelected(service)"
           [attr.aria-pressed]="isSelected(service) ? 'true' : 'false'"
           (click)="selectService.emit(service)"
         >
