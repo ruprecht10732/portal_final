@@ -1,0 +1,43 @@
+<div class="flex flex-col gap-3 text-sm">
+  @if (phone()) {
+    <div class="flex items-center gap-2">
+      <svg class="h-4 w-4 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5.5C3 4.12 4.12 3 5.5 3h2.2c.6 0 1.12.42 1.28 1l.9 3.1c.12.46 0 .96-.32 1.3l-1.58 1.58a15.5 15.5 0 007.5 7.5l1.58-1.58c.34-.32.84-.44 1.3-.32l3.1.9c.58.16 1 .68 1 1.28v2.2c0 1.38-1.12 2.5-2.5 2.5H19c-8.28 0-15-6.72-15-15V5.5z" />
+      </svg>
+      <a [href]="'tel:' + phone()" class="text-blue-600 hover:underline">
+        {{ phone() }}
+      </a>
+    </div>
+  }
+
+  @if (email()) {
+    <div class="flex items-center gap-2">
+      <svg class="h-4 w-4 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7.5l8.4 5.6a1.5 1.5 0 001.6 0L21 7.5M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+      </svg>
+      <a [href]="'mailto:' + email()" class="text-blue-600 hover:underline">
+        {{ email() }}
+      </a>
+    </div>
+  }
+
+  @if (role()) {
+    <div class="flex items-center gap-2 text-zinc-600">
+      <svg class="h-4 w-4 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11a4 4 0 10-8 0 4 4 0 008 0z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20a8 8 0 0116 0" />
+      </svg>
+      <span>{{ role() }}</span>
+    </div>
+  }
+
+  @if (assignedTo()) {
+    <div class="flex items-center gap-2 text-zinc-600">
+      <svg class="h-4 w-4 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6a4 4 0 100 8 4 4 0 000-8z" />
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 20a8 8 0 0116 0" />
+      </svg>
+      <span>Assigned to {{ assignedTo() }}</span>
+    </div>
+  }
+</div>

@@ -311,33 +311,15 @@
                 <dt class="text-zinc-500">Name</dt>
                 <dd class="font-medium">{{ getFullName() }}</dd>
               </div>
-              <div class="flex justify-between items-center">
-                <dt class="text-zinc-500">Phone</dt>
-                <dd>
-                  <a
-                    [href]="'tel:' + l.consumer.phone"
-                    class="text-blue-600 hover:underline"
-                    (click)="handlePhoneClick()"
-                  >
-                    {{ l.consumer.phone }}
-                  </a>
-                </dd>
-              </div>
-              @if (l.consumer.email) {
-                <div class="flex justify-between">
-                  <dt class="text-zinc-500">Email</dt>
-                  <dd>
-                    <a [href]="'mailto:' + l.consumer.email" class="text-blue-600 hover:underline">
-                      {{ l.consumer.email }}
-                    </a>
-                  </dd>
-                </div>
-              }
-              <div class="flex justify-between">
-                <dt class="text-zinc-500">Role</dt>
-                <dd>{{ l.consumer.role }}</dd>
-              </div>
             </dl>
+            <div class="mt-4">
+              <shared-contact-info
+                [phone]="l.consumer.phone"
+                [email]="l.consumer.email ?? null"
+                [role]="l.consumer.role"
+                [assignedTo]="l.assignedAgentId ? getUserLabelById(l.assignedAgentId) : null"
+              ></shared-contact-info>
+            </div>
             <div class="mt-4 border-t border-zinc-200 pt-4">
               <p class="text-sm font-medium">{{ getFullAddress() }}</p>
               <div class="mt-2 flex flex-wrap gap-2">
@@ -526,23 +508,7 @@
 
           <shared-card>
             <h2 class="text-lg font-semibold mb-3">Contact</h2>
-            <div class="flex flex-col gap-2 text-sm">
-              <a
-                [href]="'tel:' + l.consumer.phone"
-                class="text-blue-600 hover:underline"
-                (click)="handlePhoneClick()"
-              >
-                {{ l.consumer.phone }}
-              </a>
-              @if (l.consumer.email) {
-                <a [href]="'mailto:' + l.consumer.email" class="text-blue-600 hover:underline">
-                  {{ l.consumer.email }}
-                </a>
-              }
-            </div>
-            <div class="mt-4 text-sm text-zinc-500">
-              <p>{{ l.consumer.role }}</p>
-            </div>
+            <shared-contact-info [phone]="l.consumer.phone" [email]="l.consumer.email ?? null" [role]="l.consumer.role" [assignedTo]="l.assignedAgentId ? getUserLabelById(l.assignedAgentId) : null"></shared-contact-info>
           </shared-card>
 
           <shared-card>
