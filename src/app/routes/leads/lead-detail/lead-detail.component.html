@@ -16,98 +16,24 @@
     (cancel)="cancelConfirmDialog()"
   />
 
-  <div class="sticky top-0 z-20 bg-white border-b border-zinc-200">
-    <div class="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-      <div class="flex items-center gap-3">
-        <button
-          type="button"
-          class="touch-target rounded-lg hover:bg-zinc-100 transition-colors"
-          (click)="goBack()"
-          aria-label="Go back to leads list"
-        >
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-          </svg>
-        </button>
-        <div>
-          <p class="text-xs uppercase tracking-wider text-zinc-500">Lead</p>
-          @if (lead(); as l) {
-            <h1 class="text-xl font-semibold">
-              {{ getFullName() }}
-              <span class="text-zinc-500 font-normal">({{ selectedService()?.serviceType }})</span>
-            </h1>
-          } @else {
-            <h1 class="text-xl font-semibold">Lead Details</h1>
-          }
-        </div>
-      </div>
-
-      @if (lead(); as l) {
-        <div class="flex flex-wrap items-center gap-2">
-          <div class="relative">
-            <button
-              type="button"
-              id="status-toggle"
-              class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold min-h-11"
-              [class]="selectedService() ? STATUS_COLORS[selectedService()!.status] : 'bg-zinc-100 text-zinc-600'"
-              (click)="toggleStatusMenu()"
-              aria-haspopup="true"
-              [attr.aria-expanded]="statusMenuOpen()"
-            >
-              {{ selectedService() ? getStatusLabel(selectedService()!.status) : 'No Service' }}
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
-              </svg>
-            </button>
-            @if (statusMenuOpen()) {
-              <!-- Click-outside backdrop -->
-              <div class="dropdown-backdrop" (click)="closeStatusMenu()" (keydown.escape)="closeStatusMenu()" tabindex="-1" aria-hidden="true"></div>
-              <div
-                id="status-menu"
-                class="absolute right-0 mt-2 w-48 rounded-lg border border-zinc-200 bg-white shadow-lg z-20"
-              >
-                @for (option of statusOptions(); track option.value) {
-                  <button
-                    type="button"
-                    class="flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-zinc-50 cursor-pointer min-h-11"
-                    [class.bg-zinc-50]="option.value === selectedService()?.status"
-                    (click)="selectStatus(option.value)"
-                  >
-                    <span>{{ getStatusLabel(option.value) }}</span>
-                    @if (option.value === selectedService()?.status) {
-                      <svg class="w-4 h-4 text-green-600" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
-                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.5 7.5a1 1 0 01-1.414 0l-3.5-3.5a1 1 0 011.414-1.414l2.793 2.793 6.793-6.793a1 1 0 011.414 0z" clip-rule="evenodd" />
-                      </svg>
-                    }
-                  </button>
-                }
-              </div>
-            }
-          </div>
-
-          @if (quickAction() === 'log') {
-            <shared-button
-              variant="primary"
-              [fullWidth]="false"
-              [uppercase]="false"
-              (clicked)="logCall()"
-            >
-              Log Call
-            </shared-button>
-          } @else if (quickAction() === 'schedule') {
-            <shared-button
-              variant="primary"
-              [fullWidth]="false"
-              [uppercase]="false"
-              (clicked)="openSchedule()"
-            >
-              Schedule Visit
-            </shared-button>
-          }
-        </div>
-      }
-    </div>
-  </div>
+  <app-lead-detail-header
+    [lead]="lead()"
+    [fullName]="getFullName()"
+    [serviceTypeLabel]="headerServiceTypeLabel()"
+    [statusLabel]="headerStatusLabel()"
+    [statusPillClass]="headerStatusPillClass()"
+    [statusMenuOpen]="statusMenuOpen()"
+    [statusOptions]="statusOptions()"
+    [selectedStatus]="selectedService()?.status ?? null"
+    [statusLabelMap]="headerStatusLabels()"
+    [quickAction]="quickAction()"
+    (back)="goBack()"
+    (toggleStatusMenu)="toggleStatusMenu()"
+    (closeStatusMenu)="closeStatusMenu()"
+    (selectStatus)="selectStatus($event)"
+    (logCall)="logCall()"
+    (openSchedule)="openSchedule()"
+  ></app-lead-detail-header>
 
   @if (error()) {
     <div role="alert" aria-live="assertive" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">

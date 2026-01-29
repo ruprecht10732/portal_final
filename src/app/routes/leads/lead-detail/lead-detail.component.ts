@@ -6,6 +6,7 @@ import type { Lead, LeadNote, LeadStatus, AccessDifficulty, VisitHistory, Servic
 import type { UserProfile } from '../../../core/services/user.types';
 import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS, SERVICE_TYPE_OPTIONS, SERVICE_TYPE_LABELS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
@@ -18,7 +19,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CheckboxComponent, ConfirmDialogComponent, InputComponent, MapPreviewComponent, SelectComponent, TextareaComponent],
+  imports: [ButtonComponent, CheckboxComponent, ConfirmDialogComponent, InputComponent, MapPreviewComponent, SelectComponent, TextareaComponent, LeadDetailHeaderComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -118,6 +119,24 @@ export class LeadDetailComponent implements OnInit {
     Needs_Rescheduling: 'Needs Rescheduling',
     Closed: 'Closed',
   }));
+
+  protected readonly headerServiceTypeLabel = computed(() => {
+    const service = this.selectedService();
+    if (!service) return null;
+    return this.SERVICE_TYPE_LABELS[service.serviceType] ?? service.serviceType;
+  });
+
+  protected readonly headerStatusLabel = computed(() => {
+    const service = this.selectedService();
+    if (!service) return 'No Service';
+    return this.getStatusLabel(service.status);
+  });
+
+  protected readonly headerStatusPillClass = computed(() => {
+    const service = this.selectedService();
+    if (!service) return 'bg-zinc-100 text-zinc-600';
+    return this.STATUS_COLORS[service.status];
+  });
 
   protected readonly quickAction = computed<'log' | 'schedule' | 'none'>(() => {
     const status = this.selectedService()?.status;
