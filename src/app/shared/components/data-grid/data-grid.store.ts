@@ -252,7 +252,9 @@ export class DataGridStore<T extends Record<string, unknown>> {
     this._lastRefresh.set(Date.now());
     
     if (totalItems !== undefined) {
-      this._pagination.update(p => ({ ...p, totalItems }));
+      this._pagination.update(p => (
+        p.totalItems === totalItems ? p : { ...p, totalItems }
+      ));
     }
     
     this.announce('Data loaded', 'polite');
@@ -358,10 +360,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
       rows.map((row, i) => {
         if (i !== rowIndex) return row;
         
-        const newCurrent = { 
-          ...row.current, 
-          [column.field as string]: value 
-        };
+        const newCurrent = this.setValueByPath(row.current, column.field as string, value);
         
         // Run validation if defined
         const error = column.validator?.(value, newCurrent) ?? null;
@@ -403,11 +402,8 @@ export class DataGridStore<T extends Record<string, unknown>> {
           return { ...row, editing: false };
         } else {
           // Revert to original value for this cell
-          const originalValue = row.original[column.field as keyof T];
-          const revertedCurrent = { 
-            ...row.current, 
-            [column.field as string]: originalValue 
-          };
+          const originalValue = this.getValueByPath(row.original, column.field as string);
+          const revertedCurrent = this.setValueByPath(row.current, column.field as string, originalValue);
           const cellErrors = { ...row.cellErrors };
           delete cellErrors[column.id];
           
@@ -789,7 +785,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
     // Announce for screen readers
     const column = cols[columnIndex];
     const row = rows[rowIndex];
-    const value = row?.current[column.field as keyof T];
+    const value = row ? this.getValueByPath(row.current, column.field as string) : undefined;
     
     this.announce(`${column.header}: ${value}`, 'polite');
   }
@@ -934,5 +930,89 @@ export class DataGridStore<T extends Record<string, unknown>> {
           : col
       )
     );
+  }
+
+  // ============ Validation Methods ============
+
+  /** Validate dirty rows and update cell errors; returns valid rows */
+  validateDirtyRows(): T[] {
+    const columns = this._columns();
+    const validRows: T[] = [];
+
+    this._rows.update(rows =>
+      rows.map((row, rowIndex) => {
+        if (!row.dirty) return row;
+
+        const cellErrors = { ...row.cellErrors };
+        let hasError = false;
+
+        for (const column of columns) {
+          if (!column.validator) continue;
+          const value = this.getValueByPath(row.current, column.field as string);
+          const error = column.validator(value, row.current) ?? null;
+
+          if (error) {
+            cellErrors[column.id] = error;
+            hasError = true;
+          } else {
+            delete cellErrors[column.id];
+          }
+        }
+
+        const nextRow = {
+          ...row,
+          cellErrors,
+          error: hasError ? 'Fix validation errors before saving.' : null,
+        };
+
+        if (!hasError) {
+          validRows.push(nextRow.current);
+        }
+
+        return nextRow;
+      })
+    );
+
+    return validRows;
+  }
+
+  private getValueByPath(obj: T, path: string): unknown {
+    if (!path.includes('.')) {
+      return obj[path as keyof T];
+    }
+
+    return path.split('.').reduce<unknown>((acc, key) => {
+      if (acc && typeof acc === 'object') {
+        return (acc as Record<string, unknown>)[key];
+      }
+      return undefined;
+    }, obj as unknown);
+  }
+
+  private setValueByPath(obj: T, path: string, value: unknown): T {
+    if (!path.includes('.')) {
+      return { ...obj, [path as keyof T]: value } as T;
+    }
+
+    const keys = path.split('.');
+    const next = { ...(obj as Record<string, unknown>) } as Record<string, unknown>;
+    let cursor = next;
+    let originalCursor = obj as Record<string, unknown>;
+
+    for (let i = 0; i < keys.length - 1; i += 1) {
+      const key = keys[i];
+      const originalChild = (originalCursor?.[key] as Record<string, unknown>) ?? {};
+      const child = { ...originalChild };
+      cursor[key] = child;
+      cursor = child;
+      originalCursor = originalChild;
+    }
+
+    const lastKey = keys.at(-1);
+    if (lastKey) {
+      cursor[lastKey] = value;
+    }
+
+    return next as T;
   }
 }

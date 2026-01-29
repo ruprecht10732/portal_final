@@ -127,6 +127,7 @@ export class DataGridComponent<T extends Record<string, unknown>> {
   
   protected readonly uid = 'grid-' + Math.random().toString(36).substring(2, 9);
   private readonly realTimeUpdates$ = new Subject<RealTimeUpdate<T>>();
+  private lastRequest: DataRequest | null = null;
 
   // ============ Computed Values ============
   
@@ -152,11 +153,9 @@ export class DataGridComponent<T extends Record<string, unknown>> {
 
     // Update store data when input data changes (client-side mode)
     effect(() => {
-      if (!this.serverSide()) {
-        const data = this.data();
-        const total = this.totalItems() || data.length;
-        this.store.setData(data, total);
-      }
+      const data = this.data();
+      const total = this.totalItems() || data.length;
+      this.store.setData(data, total);
     });
 
     // Update loading state
@@ -174,7 +173,10 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     effect(() => {
       if (this.serverSide()) {
         const request = this.store.currentRequest();
-        this.dataRequest.emit(request);
+        if (!this.isSameRequest(request, this.lastRequest)) {
+          this.lastRequest = request;
+          this.dataRequest.emit(request);
+        }
       }
     });
 
@@ -259,7 +261,10 @@ export class DataGridComponent<T extends Record<string, unknown>> {
   }
 
   protected onSaveRequest(rows: T[]): void {
-    this.saveRows.emit(rows);
+    const validRows = this.store.validateDirtyRows();
+    if (validRows.length > 0) {
+      this.saveRows.emit(validRows);
+    }
   }
 
   protected onDeleteRequest(rows: T[]): void {
@@ -301,5 +306,29 @@ export class DataGridComponent<T extends Record<string, unknown>> {
         this.deleteRows.emit([row.current]);
       }
     }
+  }
+
+  private isSameRequest(next: DataRequest, prev: DataRequest | null): boolean {
+    if (!prev) return false;
+    if (next.page !== prev.page || next.pageSize !== prev.pageSize) return false;
+    if (next.searchTerm !== prev.searchTerm) return false;
+
+    const nextSort = next.sort;
+    const prevSort = prev.sort;
+    if (nextSort?.columnId !== prevSort?.columnId || nextSort?.direction !== prevSort?.direction) {
+      return false;
+    }
+
+    if (next.filters.length !== prev.filters.length) return false;
+    for (let i = 0; i < next.filters.length; i += 1) {
+      const a = next.filters[i];
+      const b = prev.filters[i];
+      if (!b) return false;
+      if (a.columnId !== b.columnId || a.operator !== b.operator || a.value !== b.value) {
+        return false;
+      }
+    }
+
+    return true;
   }
 }

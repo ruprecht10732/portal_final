@@ -19,11 +19,10 @@ import {
 } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
-import { ContentEditableValueDirective } from './contenteditable-value.directive';
 
 @Component({
   selector: 'data-grid-body',
-  imports: [OptionLabelPipe, CheckboxComponent, ContentEditableValueDirective],
+  imports: [OptionLabelPipe, CheckboxComponent],
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -64,12 +63,12 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   protected getCellValue(row: RowState<T>, column: GridColumn<T>): unknown {
-    return row.current[column.field as keyof T];
+    return this.getValueByPath(row.current, column.field as string);
   }
 
   /** Get safe value for input binding (avoids "undefined" string) */
   protected getInputValue(row: RowState<T>, column: GridColumn<T>): string | number {
-    const value = row.current[column.field as keyof T];
+    const value = this.getValueByPath(row.current, column.field as string);
     if (value === null || value === undefined) {
       return '';
     }
@@ -78,7 +77,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   /** Get display value as string for title attribute */
   protected getCellDisplayValue(row: RowState<T>, column: GridColumn<T>): string {
-    const value = row.current[column.field as keyof T];
+    const value = this.getValueByPath(row.current, column.field as string);
     
     if (value === null || value === undefined || value === '') {
       return '';
@@ -90,10 +89,10 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     
     if (column.cellType === 'select' && column.selectOptions) {
       const option = column.selectOptions.find(o => o.value === value);
-      return option?.label ?? String(value);
+      return option?.label ?? this.valueToString(value);
     }
     
-    return String(value);
+    return this.valueToString(value);
   }
 
   protected getCellError(row: RowState<T>, columnId: string): string | null {
@@ -174,11 +173,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
       event.preventDefault();
       control.focus();
 
-      if (control.isContentEditable) {
-        control.textContent = event.key;
-        this.placeCaretAtEnd(control);
-        this.emitCellValueChange(rowIndex, column, this.parseEditableValue(column, control.textContent ?? ''));
-      } else if (control instanceof HTMLInputElement && control.type !== 'checkbox' && control.type !== 'date') {
+      if (control instanceof HTMLInputElement && control.type !== 'checkbox' && control.type !== 'date') {
         control.value = event.key;
         this.onInputChange(rowIndex, column, control);
       }
@@ -200,48 +195,12 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     this.emitCellValueChange(rowIndex, column, value);
   }
 
-  protected onEditableInput(
-    rowIndex: number,
-    column: GridColumn<T>,
-    event: Event,
-  ): void {
-    const target = event.target as HTMLElement | null;
-    if (!target) return;
-    const text = target.textContent ?? '';
-    this.emitCellValueChange(rowIndex, column, this.parseEditableValue(column, text));
-  }
-
-  protected onEditableFocus(
-    rowIndex: number,
-    columnIndex: number,
-    column: GridColumn<T>,
-    event: FocusEvent,
-  ): void {
-    const target = event.target as HTMLElement | null;
-    if (!target) return;
-
-    this.cellFocus.emit({ rowIndex, columnIndex });
-
-    const value = this.getEditableDisplayValue(this.rows()[rowIndex], column);
-    if (target.textContent !== value) {
-      target.textContent = value;
-    }
-
-    this.placeCaretAtEnd(target);
-  }
-
-  protected onEditableEnter(
+  protected onInputEnter(
     event: Event,
     rowIndex: number,
-    column: GridColumn<T>,
   ): void {
     event.preventDefault();
     event.stopPropagation();
-    const target = event.target as HTMLElement | null;
-    if (target) {
-      const text = target.textContent ?? '';
-      this.emitCellValueChange(rowIndex, column, this.parseEditableValue(column, text));
-    }
     this.navigate.emit('down');
   }
 
@@ -280,7 +239,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   protected getEditableDisplayValue(row: RowState<T>, column: GridColumn<T>): string {
-    const value = row.current[column.field as keyof T];
+    const value = this.getValueByPath(row.current, column.field as string);
     if (value === null || value === undefined) {
       return '';
     }
@@ -291,15 +250,15 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
     if (column.cellType === 'select' && column.selectOptions) {
       const option = column.selectOptions.find(o => o.value === value);
-      return option?.label ?? String(value);
+      return option?.label ?? this.valueToString(value);
     }
 
-    return String(value);
+    return this.valueToString(value);
   }
 
   private emitCellValueChange(rowIndex: number, column: GridColumn<T>, value: unknown): void {
     const row = this.rows()[rowIndex];
-    const oldValue = row.current[column.field as keyof T];
+    const oldValue = this.getValueByPath(row.current, column.field as string);
 
     if (oldValue !== value) {
       this.cellEditEvent.emit({
@@ -314,31 +273,11 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     this.cellValueChange.emit({ rowIndex, columnId: column.id, value });
   }
 
-  private parseEditableValue(column: GridColumn<T>, text: string): unknown {
-    const trimmed = text.trim();
-
-    if (column.cellType === 'boolean') {
-      if (trimmed === '') return false;
-      const normalized = trimmed.toLowerCase();
-      return normalized === 'true'
-        || normalized === 'yes'
-        || normalized === '1'
-        || normalized === 'y';
-    }
-
-    if (column.cellType === 'number') {
-      const parsed = Number.parseFloat(trimmed);
-      return Number.isNaN(parsed) ? trimmed : parsed;
-    }
-
-    if (column.cellType === 'select' && column.selectOptions) {
-      const match = column.selectOptions.find(option =>
-        String(option.value) === trimmed || option.label.toLowerCase() === trimmed.toLowerCase(),
-      );
-      return match ? match.value : trimmed;
-    }
-
-    return trimmed;
+  private valueToString(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    if (typeof value === 'string') return value;
+    if (typeof value === 'number' || typeof value === 'boolean') return String(value);
+    return '';
   }
 
   private placeCaretAtEnd(element: HTMLElement): void {
@@ -376,5 +315,18 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     if (row.isNew) return 'New row (unsaved)';
     if (row.dirty) return 'Unsaved changes';
     return null;
+  }
+
+  private getValueByPath(obj: T, path: string): unknown {
+    if (!path.includes('.')) {
+      return obj[path as keyof T];
+    }
+
+    return path.split('.').reduce<unknown>((acc, key) => {
+      if (acc && typeof acc === 'object') {
+        return (acc as Record<string, unknown>)[key];
+      }
+      return undefined;
+    }, obj as unknown);
   }
 }

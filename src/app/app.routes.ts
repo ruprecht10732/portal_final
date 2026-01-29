@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { leadsListResolver } from './routes/leads/leads-list.resolver';
 
 export const routes: Routes = [
 	{
@@ -43,6 +44,7 @@ export const routes: Routes = [
 			{
 				path: 'leads',
 				loadComponent: () => import('./routes/leads/lead-list/lead-list.component').then(m => m.LeadListComponent),
+				resolve: { leads: leadsListResolver },
 			},
 			{
 				path: 'leads/new',
