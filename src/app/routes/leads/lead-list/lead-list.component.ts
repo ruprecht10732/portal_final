@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@ang
 import { Router } from '@angular/router';
 import { map, Observable } from 'rxjs';
 import { LeadsService } from '../../../core/services/leads.service';
-import type { Lead, ListLeadsParams, SortField } from '../../../core/services/leads.types';
+import type { Lead, ListLeadsParams, SortField, CreateLeadRequest } from '../../../core/services/leads.types';
 import { STATUS_LABELS, STATUS_OPTIONS, SERVICE_TYPE_OPTIONS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
@@ -32,6 +32,7 @@ export class LeadListComponent implements OnInit {
       header: 'Name',
       field: 'consumer',
       sortable: true,
+      editable: true,
       width: '180px',
       cellType: 'custom',
       templateId: 'name',
@@ -40,6 +41,7 @@ export class LeadListComponent implements OnInit {
       id: 'phone',
       header: 'Phone',
       field: 'consumer.phone' as keyof LeadRow,
+      editable: true,
       width: '130px',
       cellType: 'text',
     },
@@ -47,6 +49,7 @@ export class LeadListComponent implements OnInit {
       id: 'address',
       header: 'Address',
       field: 'address',
+      editable: true,
       width: '220px',
       cellType: 'custom',
       templateId: 'address',
@@ -57,6 +60,7 @@ export class LeadListComponent implements OnInit {
       field: 'serviceType',
       sortable: true,
       filterable: true,
+      editable: true,
       width: '120px',
       cellType: 'select',
       selectOptions: SERVICE_TYPE_OPTIONS,
@@ -67,6 +71,7 @@ export class LeadListComponent implements OnInit {
       field: 'status',
       sortable: true,
       filterable: true,
+      editable: true,
       width: '140px',
       cellType: 'select',
       selectOptions: STATUS_OPTIONS.map(opt => ({
@@ -175,5 +180,46 @@ export class LeadListComponent implements OnInit {
 
   protected createLead(): void {
     this.router.navigate(['/app/leads/new']);
+  }
+
+  protected onSaveLeads(rows: LeadRow[]): void {
+    rows.forEach(row => {
+      // If it's a new row, we need to create it
+      // Note: DataGrid component should provide the data in a format we can use
+      // or we handle mapping here.
+      
+      if (row.id) {
+        // Handle updates
+        this.leadsService.update(row.id, row).subscribe({
+          next: () => this.loadInitialData(),
+          error: (err) => this.error.set(err.error?.message || 'Failed to update lead')
+        });
+      } else {
+        // Example mapping for a new lead
+        // The grid likely puts nested objects if the field was 'consumer.firstName' etc.
+        // Assuming the store.addNewRow() and cell updates maintain the structure.
+        
+        const consumer = (row as any).consumer || {};
+        const address = (row as any).address || {};
+
+        const leadRequest: CreateLeadRequest = {
+          firstName: consumer.firstName || '',
+          lastName: consumer.lastName || '',
+          phone: consumer.phone || '',
+          email: consumer.email,
+          consumerRole: consumer.role || 'Owner',
+          street: address.street || '',
+          houseNumber: address.houseNumber || '',
+          zipCode: address.zipCode || '',
+          city: address.city || '',
+          serviceType: (row.serviceType as any) || 'Windows',
+        };
+
+        this.leadsService.create(leadRequest).subscribe({
+          next: () => this.loadInitialData(),
+          error: (err) => this.error.set(err.error?.message || 'Failed to create lead')
+        });
+      }
+    });
   }
 }

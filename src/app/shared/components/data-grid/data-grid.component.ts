@@ -140,6 +140,8 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     return announcements[0] ?? null;
   });
 
+  protected readonly hasDirtyRows = computed(() => this.store.hasDirtyRows());
+
   constructor() {
     // Initialize store when inputs change
     effect(() => {
@@ -266,6 +268,10 @@ export class DataGridComponent<T extends Record<string, unknown>> {
 
   protected onAddRow(): void {
     this.store.addNewRow();
+  }
+
+  protected onSaveRows(rows: T[]): void {
+    this.saveRows.emit(rows);
   }
 
   protected onClearFilters(): void {

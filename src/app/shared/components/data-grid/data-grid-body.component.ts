@@ -19,10 +19,11 @@ import {
 } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
+import { ContentEditableValueDirective } from './contenteditable-value.directive';
 
 @Component({
   selector: 'data-grid-body',
-  imports: [OptionLabelPipe, CheckboxComponent],
+  imports: [OptionLabelPipe, CheckboxComponent, ContentEditableValueDirective],
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -208,6 +209,25 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     if (!target) return;
     const text = target.textContent ?? '';
     this.emitCellValueChange(rowIndex, column, this.parseEditableValue(column, text));
+  }
+
+  protected onEditableFocus(
+    rowIndex: number,
+    columnIndex: number,
+    column: GridColumn<T>,
+    event: FocusEvent,
+  ): void {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+
+    this.cellFocus.emit({ rowIndex, columnIndex });
+
+    const value = this.getEditableDisplayValue(this.rows()[rowIndex], column);
+    if (target.textContent !== value) {
+      target.textContent = value;
+    }
+
+    this.placeCaretAtEnd(target);
   }
 
   protected onEditableEnter(

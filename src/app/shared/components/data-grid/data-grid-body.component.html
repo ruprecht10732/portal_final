@@ -79,7 +79,9 @@
                 #inputRef
                 class="w-full min-h-7 px-2 py-1 text-sm bg-transparent focus:outline-none"
                 [contentEditable]="true"
-                [textContent]="getEditableDisplayValue(row, column)"
+                [contentEditableValue]="getEditableDisplayValue(row, column)"
+                [contentEditableFocused]="isCellFocused(rowIndex, colIndex)"
+                (focus)="onEditableFocus(rowIndex, colIndex, column, $event)"
                 (input)="onEditableInput(rowIndex, column, $event)"
                 (keydown.enter)="onEditableEnter($event, rowIndex, column)"
                 [class.text-zinc-500]="getEditableDisplayValue(row, column) === ''"
