@@ -1,0 +1,14 @@
+<div class="map-preview" [style.height.px]="height()">
+  @if (loading()) {
+    <div class="map-fallback">Loading map preview...</div>
+  } @else if (iframeSrc()) {
+    <iframe
+      class="map-frame"
+      title="OpenStreetMap preview"
+      [src]="iframeSrc()"
+      loading="lazy"
+    ></iframe>
+  } @else {
+    <div class="map-fallback">{{ error() || 'Map preview unavailable' }}</div>
+  }
+</div>

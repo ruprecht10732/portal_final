@@ -7,6 +7,7 @@ import type { UserProfile } from '../../../core/services/user.types';
 import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 
@@ -15,7 +16,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, InputComponent, SelectComponent, TextareaComponent],
+  imports: [ButtonComponent, InputComponent, MapPreviewComponent, SelectComponent, TextareaComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -249,7 +250,7 @@ export class LeadDetailComponent implements OnInit {
 
   protected getMapUrl(): string {
     const address = this.getFullAddress();
-    return `https://maps.google.com/?q=${encodeURIComponent(address)}`;
+    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`;
   }
 
   protected copyAddress(): void {
