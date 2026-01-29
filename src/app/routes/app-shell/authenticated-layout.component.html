@@ -1,13 +1,22 @@
-<main class="min-h-screen bg-zinc-50">
-  <div class="flex min-h-screen gap-4 p-4">
-    <app-authenticated-sidebar class="hidden lg:block"></app-authenticated-sidebar>
+<main class="h-screen overflow-hidden bg-zinc-50">
+  <div class="flex h-full">
+    <!-- Desktop sidebar -->
+    <div class="hidden lg:flex lg:gap-4 lg:p-4">
+      <app-authenticated-sidebar></app-authenticated-sidebar>
+    </div>
 
-    <div class="flex min-h-full flex-1 flex-col rounded-tr-xl border border-zinc-200 bg-white">
-      <section class="flex-1 overflow-y-auto">
-        <router-outlet />
-      </section>
+    <!-- Main content area -->
+    <div class="flex h-full flex-1 flex-col pb-16 lg:py-4 lg:pr-4 lg:pb-4">
+      <div class="flex min-h-0 flex-1 flex-col bg-white lg:rounded-tr-xl lg:border lg:border-zinc-200">
+        <section class="flex-1 overflow-y-auto">
+          <router-outlet />
+        </section>
+      </div>
     </div>
   </div>
+
+  <!-- Mobile bottom navigation -->
+  <app-authenticated-mobile-nav></app-authenticated-mobile-nav>
 
   @if (showTimeoutWarning()) {
     <dialog open class="fixed inset-0 bg-black/50 flex items-center justify-center p-4">

@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { AuthenticatedMobileNavComponent } from './authenticated-mobile-nav.component';
 import { AuthenticatedSidebarComponent } from './authenticated-sidebar.component';
 
 @Component({
   selector: 'app-authenticated-layout',
-  imports: [RouterLink, RouterOutlet, ButtonComponent, AuthenticatedSidebarComponent],
+  imports: [RouterLink, RouterOutlet, ButtonComponent, AuthenticatedMobileNavComponent, AuthenticatedSidebarComponent],
   templateUrl: './authenticated-layout.component.html',
   styleUrl: './authenticated-layout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

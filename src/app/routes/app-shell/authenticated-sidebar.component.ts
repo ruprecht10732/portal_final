@@ -1,16 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
-import { filter, map } from 'rxjs';
 import {
-  ArrowLeftRight,
-  LayoutDashboard,
-  List,
-  LucideAngularModule,
-  Plus,
-  User,
-  Users,
+  LucideAngularModule
 } from 'lucide-angular';
+import { filter, map } from 'rxjs';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { MenuComponent, MenuSection } from '../../shared/components/menu/menu.component';
 import {
