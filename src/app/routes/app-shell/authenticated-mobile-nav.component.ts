@@ -19,7 +19,7 @@ interface MobileNavItem {
   template: `
     @if (showSectionMenu()) {
       <div
-        class="fixed bottom-16 left-0 right-0 z-50 rounded-t-2xl border-t border-zinc-200 bg-white px-4 py-4 shadow-[0_-12px_28px_-16px_rgba(0,0,0,0.4)] lg:hidden"
+        class="fixed bottom-16 left-0 right-0 z-50 rounded-t-2xl border-t border-zinc-200 bg-white px-4 py-4 lg:hidden"
         aria-label="Quick links"
       >
         <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-200"></div>
