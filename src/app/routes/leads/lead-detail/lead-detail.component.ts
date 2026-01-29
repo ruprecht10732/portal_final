@@ -54,6 +54,7 @@ export class LeadDetailComponent implements OnInit {
 
   // Survey form
   protected readonly showSurveyForm = signal(false);
+  protected readonly isEditingVisit = signal(false);
   protected readonly measurements = signal('');
   protected readonly accessDifficulty = signal<AccessDifficulty | null>(null);
   protected readonly surveyNotes = signal('');
@@ -414,6 +415,7 @@ export class LeadDetailComponent implements OnInit {
       next: (updated) => {
         this.lead.set(updated);
         this.showSurveyForm.set(false);
+        this.isEditingVisit.set(false);
         this.measurements.set('');
         this.accessDifficulty.set(null);
         this.surveyNotes.set('');
@@ -425,6 +427,25 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
     });
+  }
+
+  protected editVisit(): void {
+    const lead = this.lead();
+    if (!lead) return;
+    this.measurements.set(lead.visit.measurements ?? '');
+    this.accessDifficulty.set(lead.visit.accessDifficulty ?? null);
+    this.surveyNotes.set(lead.visit.notes ?? '');
+    this.isEditingVisit.set(true);
+    this.showSurveyForm.set(true);
+  }
+
+  protected cancelEditVisit(): void {
+    this.showSurveyForm.set(false);
+    this.isEditingVisit.set(false);
+    this.measurements.set('');
+    this.accessDifficulty.set(null);
+    this.surveyNotes.set('');
+    this.surveyPhotos.set([]);
   }
 
   protected markNoShow(): void {

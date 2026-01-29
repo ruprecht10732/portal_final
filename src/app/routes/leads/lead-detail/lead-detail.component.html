@@ -177,11 +177,20 @@
 
             @if (l.visit.scheduledDate) {
               <div class="grid gap-3">
-                @if (l.visit.completedAt || l.status === 'Surveyed') {
+                @if ((l.visit.completedAt || l.status === 'Surveyed') && !showSurveyForm()) {
                   <div class="rounded-lg border border-green-200 bg-green-50 p-3">
-                    <p class="text-sm font-semibold text-green-800">
-                      Completed {{ formatHumanDateTime(l.visit.completedAt || l.updatedAt) }}
-                    </p>
+                    <div class="flex items-start justify-between">
+                      <p class="text-sm font-semibold text-green-800">
+                        Completed {{ formatHumanDateTime(l.visit.completedAt || l.updatedAt) }}
+                      </p>
+                      <button
+                        type="button"
+                        class="text-xs text-green-700 hover:text-green-900 underline"
+                        (click)="editVisit()"
+                      >
+                        Edit
+                      </button>
+                    </div>
                     @if (l.visit.measurements) {
                       <p class="mt-2 text-sm">Measurements: {{ l.visit.measurements }}</p>
                     }
@@ -303,9 +312,9 @@
                       [disabled]="!measurements() || !accessDifficulty() || saving()"
                       (clicked)="completeSurvey()"
                     >
-                      {{ saving() ? 'Saving...' : 'Complete Visit' }}
+                      {{ saving() ? 'Saving...' : (isEditingVisit() ? 'Save Changes' : 'Complete Visit') }}
                     </shared-button>
-                    <shared-button variant="secondary" [uppercase]="false" (clicked)="showSurveyForm.set(false)">
+                    <shared-button variant="secondary" [uppercase]="false" (clicked)="cancelEditVisit()">
                       Cancel
                     </shared-button>
                   </div>
@@ -600,11 +609,20 @@
 
                 @if (l.visit.scheduledDate) {
                   <div class="grid gap-3">
-                    @if (l.visit.completedAt || l.status === 'Surveyed') {
+                    @if ((l.visit.completedAt || l.status === 'Surveyed') && !showSurveyForm()) {
                       <div class="rounded-lg border border-green-200 bg-green-50 p-3">
-                        <p class="text-sm font-semibold text-green-800">
-                          Completed {{ formatHumanDateTime(l.visit.completedAt || l.updatedAt) }}
-                        </p>
+                        <div class="flex items-start justify-between">
+                          <p class="text-sm font-semibold text-green-800">
+                            Completed {{ formatHumanDateTime(l.visit.completedAt || l.updatedAt) }}
+                          </p>
+                          <button
+                            type="button"
+                            class="text-xs text-green-700 hover:text-green-900 underline"
+                            (click)="editVisit()"
+                          >
+                            Edit
+                          </button>
+                        </div>
                         @if (l.visit.measurements) {
                           <p class="mt-2 text-sm">Measurements: {{ l.visit.measurements }}</p>
                         }
@@ -732,9 +750,9 @@
                           [disabled]="!measurements() || !accessDifficulty() || saving()"
                           (clicked)="completeSurvey()"
                         >
-                          {{ saving() ? 'Saving...' : 'Complete Visit' }}
+                          {{ saving() ? 'Saving...' : (isEditingVisit() ? 'Save Changes' : 'Complete Visit') }}
                         </shared-button>
-                        <shared-button variant="secondary" [uppercase]="false" (clicked)="showSurveyForm.set(false)">
+                        <shared-button variant="secondary" [uppercase]="false" (clicked)="cancelEditVisit()">
                           Cancel
                         </shared-button>
                       </div>
