@@ -1,23 +1,23 @@
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeadsService } from '../../../core/services/leads.service';
+import type { AccessDifficulty, Lead, LeadNote, LeadService, LeadStatus, ServiceType, VisitHistory } from '../../../core/services/leads.types';
+import { ACCESS_DIFFICULTY_OPTIONS, SERVICE_TYPE_LABELS, SERVICE_TYPE_OPTIONS, STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
 import { UserService } from '../../../core/services/user.service';
-import type { Lead, LeadNote, LeadStatus, AccessDifficulty, VisitHistory, ServiceType, LeadService } from '../../../core/services/leads.types';
 import type { UserProfile } from '../../../core/services/user.types';
-import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS, SERVICE_TYPE_OPTIONS, SERVICE_TYPE_LABELS } from '../../../core/services/leads.types';
-import { CardComponent } from '../../../shared/components/card/card.component';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { ContactInfoComponent } from '../../../shared/components/contact-info/contact-info.component';
-import { LeadServicesCardComponent } from '../../../shared/components/lead-services-card/lead-services-card.component';
 import { ActivityNotesComponent } from '../../../shared/components/activity-notes/activity-notes.component';
-import { VisitPanelComponent } from '../../../shared/components/visit-panel/visit-panel.component';
-import { LeadDetailHeaderComponent } from './lead-detail-header.component';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ContactInfoComponent } from '../../../shared/components/contact-info/contact-info.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { LeadServicesCardComponent } from '../../../shared/components/lead-services-card/lead-services-card.component';
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
+import { VisitPanelComponent } from '../../../shared/components/visit-panel/visit-panel.component';
+import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 
 @Component({
   selector: 'app-lead-detail',
