@@ -5,7 +5,7 @@ import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { LeadsService } from '../../../core/services/leads.service';
 import type { Lead, ListLeadsParams, SortField, CreateLeadRequest } from '../../../core/services/leads.types';
 import { STATUS_LABELS, STATUS_OPTIONS, SERVICE_TYPE_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import type { GridColumn, GridConfig, DataRequest, DataResponse, SelectionChangeEvent } from '../../../shared/components/data-grid/data-grid.types';
 
@@ -16,7 +16,7 @@ type LeadRow = Lead & Record<string, unknown>;
   templateUrl: './lead-list.component.html',
   styleUrl: './lead-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, DataGridComponent],
+  imports: [FabButtonComponent, DataGridComponent],
 })
 export class LeadListComponent implements OnInit {
   private readonly leadsService = inject(LeadsService);

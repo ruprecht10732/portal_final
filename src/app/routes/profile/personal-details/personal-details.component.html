@@ -4,35 +4,37 @@
   </div>
 } @else {
   @if (errorMessage()) {
-    <div class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 rounded-sm">
+    <div class="border-y border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 mb-6 sm:border sm:rounded-sm">
       {{ errorMessage() }}
     </div>
   }
 
-  <section class="border border-zinc-200 bg-white p-4 sm:p-6 space-y-6">
+  <section class="w-full space-y-6 bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm">
     <div class="space-y-1">
       <h3 class="text-lg font-semibold text-zinc-900">Personal Details</h3>
       <p class="text-sm text-zinc-500">Update your contact information.</p>
     </div>
 
-    <shared-input
-      label="Email"
-      type="email"
-      [value]="email()"
-      (valueChange)="email.set($event)"
-      [error]="emailError()"
-      [required]="true"
-    />
+    <div class="grid gap-5">
+      <shared-input
+        label="Email"
+        type="email"
+        [value]="email()"
+        (valueChange)="email.set($event)"
+        [error]="emailError()"
+        [required]="true"
+      />
 
-    <div class="text-xs">
-      @if (emailVerified()) {
-        <span class="text-green-600 font-medium">Verified</span>
-      } @else {
-        <div class="flex flex-col space-y-1">
-          <span class="text-amber-600 font-medium">Unverified</span>
-          <span class="text-zinc-500">Check your inbox for the verification link.</span>
-        </div>
-      }
+      <div class="text-xs">
+        @if (emailVerified()) {
+          <span class="text-green-600 font-medium">Verified</span>
+        } @else {
+          <div class="flex flex-col space-y-1">
+            <span class="text-amber-600 font-medium">Unverified</span>
+            <span class="text-zinc-500">Check your inbox for the verification link.</span>
+          </div>
+        }
+      </div>
     </div>
 
     <!-- Meta Data -->
@@ -44,7 +46,7 @@
     <div class="flex flex-col sm:flex-row sm:justify-end">
       <shared-button
         class="w-full sm:w-auto"
-        variant="secondary"
+        variant="primary"
         size="compact"
         [disabled]="!canSave()"
         [loading]="isSaving()"

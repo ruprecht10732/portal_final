@@ -14,6 +14,7 @@ import { UserService } from '../../../core/services/user.service';
 })
 export class PersonalDetailsComponent {
   protected readonly email = signal('');
+  protected readonly initialEmail = signal('');
   protected readonly emailVerified = signal(false);
   protected readonly createdAt = signal('');
   protected readonly updatedAt = signal('');
@@ -33,8 +34,12 @@ export class PersonalDetailsComponent {
     return isValid ? '' : 'Enter a valid email address';
   });
 
+  protected readonly hasChanges = computed(() =>
+    this.email().trim() !== this.initialEmail().trim()
+  );
+
   protected readonly canSave = computed(() =>
-    !this.isSaving() && !this.emailError() && !!this.email()
+    !this.isSaving() && !this.emailError() && !!this.email() && this.hasChanges()
   );
 
   constructor() {
@@ -57,6 +62,7 @@ export class PersonalDetailsComponent {
       )
       .subscribe(profile => {
         this.email.set(profile.email);
+        this.initialEmail.set(profile.email);
         this.emailVerified.set(profile.emailVerified);
         this.createdAt.set(profile.createdAt);
         this.updatedAt.set(profile.updatedAt);
@@ -81,6 +87,7 @@ export class PersonalDetailsComponent {
       )
       .subscribe(profile => {
         this.email.set(profile.email);
+        this.initialEmail.set(profile.email);
         this.emailVerified.set(profile.emailVerified);
         this.updatedAt.set(profile.updatedAt);
         this.successMessage.set('Profile updated. Check your email to verify changes.');

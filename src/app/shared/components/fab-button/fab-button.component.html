@@ -1,0 +1,15 @@
+<div class="fixed bottom-6 right-6 z-40">
+  <shared-button
+    class="group shadow-lg"
+    [type]="type()"
+    [disabled]="disabled()"
+    [fullWidth]="false"
+    [uppercase]="false"
+    [ariaLabel]="ariaLabel()"
+    (clicked)="!disabled() && clicked.emit($event)"
+  >
+    <span class="inline-flex items-center gap-2">
+      <ng-content />
+    </span>
+  </shared-button>
+</div>
