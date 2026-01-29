@@ -4,9 +4,9 @@
     role="columnheader"
     scope="col"
     tabindex="-1"
-    class="w-10 px-2 py-2 text-left sticky left-0 z-20 bg-zinc-100 border border-zinc-300 outline-none focus:ring-2 focus:ring-black focus:ring-inset"
+    class="w-10 px-0 py-2 sticky left-0 z-20 bg-black text-white border-b border-r border-zinc-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-inset"
   >
-    <div class="flex items-center justify-center">
+    <div class="flex w-full min-h-7 items-center justify-center">
       <shared-checkbox
         #headerCheckbox
         [checked]="allSelected()"
@@ -28,7 +28,9 @@
     scope="col"
     tabindex="-1"
     [attr.aria-sort]="column.sortable ? (sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : 'none') : null"
-    class="relative px-2 py-2 text-xs font-semibold uppercase tracking-wide text-left text-zinc-700 border border-zinc-300 bg-zinc-100 outline-none focus:ring-2 focus:ring-black focus:ring-inset"
+    class="relative px-2 py-2 text-xs font-semibold uppercase tracking-wide text-left text-white border-b border-zinc-200 bg-black focus:outline-none focus:ring-2 focus:ring-white focus:ring-inset"
+    [class.border-r]="colIndex !== columns().length - 1"
+    [class.border-r-0]="colIndex === columns().length - 1"
     [class.sticky]="column.frozen"
     [class.z-20]="column.frozen"
     [class.shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]]="column.frozen"
@@ -48,9 +50,7 @@
       >
         <span class="truncate" [title]="column.header">{{ column.header }}</span>
         <span 
-          class="flex items-center justify-center w-4 h-4 transition-opacity"
-          [class.opacity-40]="!sortDirection"
-          [class.opacity-100]="sortDirection"
+          class="flex items-center justify-center w-4 h-4 text-white"
           aria-hidden="true"
         >
           @if (sortDirection === 'asc') {

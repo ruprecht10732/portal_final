@@ -7,7 +7,7 @@ import type { Lead, ListLeadsParams, SortField, CreateLeadRequest } from '../../
 import { STATUS_LABELS, STATUS_OPTIONS, SERVICE_TYPE_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
-import type { GridColumn, GridConfig, DataRequest, DataResponse, SelectionChangeEvent } from '../../../shared/components/data-grid/data-grid.types';
+import type { GridColumn, GridConfig, DataRequest, DataResponse } from '../../../shared/components/data-grid/data-grid.types';
 
 type LeadRow = Lead & Record<string, unknown>;
 
@@ -152,7 +152,7 @@ export class LeadListComponent implements OnInit {
 
   protected readonly gridConfig: Partial<GridConfig<LeadRow>> = {
     rowIdField: 'id',
-    selectable: false,
+    selectable: true,
     cardViewEnabled: true,
     mobileBreakpoint: 640,
     cardTitleField: 'consumer' as keyof LeadRow,
@@ -244,12 +244,6 @@ export class LeadListComponent implements OnInit {
         this.loading.set(false);
       },
     });
-  }
-
-  protected onRowClick(event: SelectionChangeEvent<LeadRow>): void {
-    if (event.selectedRows.length === 1) {
-      this.router.navigate(['/app/leads', event.selectedRows[0].id]);
-    }
   }
 
   protected createLead(): void {

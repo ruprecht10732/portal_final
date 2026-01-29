@@ -7,11 +7,14 @@ import { FormsModule } from '@angular/forms';
   imports: [FormsModule],
   template: `
     <label
-      class="group flex cursor-pointer select-none text-left"
+      class="group flex w-full cursor-pointer select-none"
       [class.items-center]="dense()"
       [class.items-start]="!dense()"
       [class.gap-2]="dense()"
       [class.gap-3]="!dense()"
+      [class.text-left]="!!label()"
+      [class.text-center]="!label()"
+      [class.justify-center]="!label()"
     >
       <div class="relative flex items-center justify-center">
         <input
@@ -76,8 +79,7 @@ import { FormsModule } from '@angular/forms';
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `
     :host {
-      display: block;
-      width: 100%;
+      display: inline-flex;
     }
   `,
 })
