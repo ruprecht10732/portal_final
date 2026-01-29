@@ -8,6 +8,7 @@ import type { Lead, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadReq
 import { STATUS_LABELS, STATUS_OPTIONS, SERVICE_TYPE_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import type { GridColumn, GridConfig, DataRequest, DataResponse } from '../../../shared/components/data-grid/data-grid.types';
 
 type LeadRow = Lead & Record<string, unknown>;
@@ -17,7 +18,7 @@ type LeadRow = Lead & Record<string, unknown>;
   templateUrl: './lead-list.component.html',
   styleUrl: './lead-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FabButtonComponent, DataGridComponent],
+  imports: [FabButtonComponent, DataGridComponent, ConfirmDialogComponent],
 })
 export class LeadListComponent implements OnInit {
   private readonly leadsService = inject(LeadsService);
@@ -30,6 +31,10 @@ export class LeadListComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly total = signal(0);
   protected readonly userOptions = signal<{ label: string; value: string }[]>([]);
+  protected readonly isDeleteDialogOpen = signal(false);
+  protected readonly deleteInProgress = signal(false);
+  protected readonly pendingDeleteRows = signal<LeadRow[]>([]);
+  protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
   private ignoreNextRequest = true;
   private readonly phoneRegion = 'NL';
 
@@ -313,6 +318,39 @@ export class LeadListComponent implements OnInit {
     if (lead.id) {
       this.router.navigate(['/app/leads', lead.id]);
     }
+  }
+
+  protected onDeleteLeads(rows: LeadRow[]): void {
+    if (rows.length === 0) return;
+    this.pendingDeleteRows.set(rows);
+    this.isDeleteDialogOpen.set(true);
+  }
+
+  protected closeDeleteDialog(): void {
+    this.isDeleteDialogOpen.set(false);
+    this.pendingDeleteRows.set([]);
+    this.deleteInProgress.set(false);
+  }
+
+  protected confirmDelete(): void {
+    const rows = this.pendingDeleteRows();
+    const ids = rows.map(row => row.id).filter((id): id is string => !!id);
+    if (ids.length === 0) {
+      this.closeDeleteDialog();
+      return;
+    }
+
+    this.deleteInProgress.set(true);
+    this.leadsService.bulkDelete(ids).subscribe({
+      next: () => {
+        this.closeDeleteDialog();
+        this.loadInitialData();
+      },
+      error: (err) => {
+        this.error.set(err.error?.message || 'Failed to delete leads');
+        this.deleteInProgress.set(false);
+      },
+    });
   }
 
   protected onSaveLeads(rows: LeadRow[]): void {

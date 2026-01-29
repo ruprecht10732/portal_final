@@ -1,0 +1,54 @@
+@if (isOpen()) {
+  <div
+    class="fixed inset-0 bg-black/50 z-60"
+    (click)="onBackdropClick()"
+    (keydown.enter)="onBackdropClick()"
+    (keydown.space)="onBackdropClick()"
+    aria-hidden="true"
+  ></div>
+}
+
+<dialog
+  [attr.open]="isOpen() ? '' : null"
+  class="fixed inset-0 z-70 m-auto w-[calc(100%-2rem)] max-w-md border-0 bg-white p-0 shadow-xl"
+  [attr.aria-modal]="true"
+  role="alertdialog"
+  [attr.aria-labelledby]="titleId()"
+  [attr.aria-describedby]="descriptionId()"
+  (keydown.escape)="onCancelClick()"
+>
+  <div class="flex flex-col gap-4 p-6">
+    <h2 class="text-base font-bold uppercase tracking-tight text-zinc-900" [id]="titleId()">
+      {{ title() }}
+    </h2>
+
+    @if (message()) {
+      <p class="text-sm text-zinc-600" [id]="descriptionId()">
+        {{ message() }}
+      </p>
+    } @else {
+      <div [id]="descriptionId()">
+        <ng-content />
+      </div>
+    }
+
+    <div class="grid grid-cols-2 gap-3 pt-2">
+      <shared-button
+        variant="secondary"
+        (clicked)="onCancelClick()"
+        ariaLabel="Cancel"
+      >
+        {{ cancelText() }}
+      </shared-button>
+      <shared-button
+        #confirmButton
+        [variant]="confirmVariant()"
+        [disabled]="confirmDisabled()"
+        (clicked)="onConfirmClick()"
+        ariaLabel="Confirm"
+      >
+        {{ confirmText() }}
+      </shared-button>
+    </div>
+  </div>
+</dialog>

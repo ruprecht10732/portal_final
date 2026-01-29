@@ -13,6 +13,7 @@ import type {
   MarkNoShowRequest,
   DuplicateCheckResponse,
   ListLeadsParams,
+  BulkDeleteLeadsResponse,
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
@@ -46,6 +47,10 @@ export class LeadsService {
 
   delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/${id}`);
+  }
+
+  bulkDelete(ids: string[]): Observable<BulkDeleteLeadsResponse> {
+    return this.http.post<BulkDeleteLeadsResponse>(`${this.baseUrl}/bulk-delete`, { ids });
   }
 
   updateStatus(id: string, data: UpdateStatusRequest): Observable<Lead> {

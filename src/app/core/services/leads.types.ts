@@ -108,6 +108,14 @@ export interface DuplicateCheckResponse {
   existingLead?: Lead;
 }
 
+export interface BulkDeleteLeadsRequest {
+  ids: string[];
+}
+
+export interface BulkDeleteLeadsResponse {
+  deletedCount: number;
+}
+
 export interface ListLeadsParams {
   status?: LeadStatus;
   serviceType?: ServiceType;
