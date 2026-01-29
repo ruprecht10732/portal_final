@@ -35,6 +35,12 @@ export class LeadListComponent implements OnInit {
 
   private readonly baseColumns: GridColumn<LeadRow>[] = [
     {
+      id: 'fullName',
+      header: 'Full Name',
+      field: 'fullName',
+      visible: false,
+    },
+    {
       id: 'firstName',
       header: 'First Name',
       field: 'consumer.firstName' as keyof LeadRow,
