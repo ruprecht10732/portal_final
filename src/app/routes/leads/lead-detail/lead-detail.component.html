@@ -171,7 +171,22 @@
 
             @if (l.visit.scheduledDate) {
               <div class="grid gap-3">
-                @if (!showSurveyForm()) {
+                @if (l.visit.completedAt || l.status === 'Surveyed') {
+                  <div class="rounded-lg border border-green-200 bg-green-50 p-3">
+                    <p class="text-sm font-semibold text-green-800">
+                      Completed {{ formatHumanDateTime(l.visit.completedAt || l.updatedAt) }}
+                    </p>
+                    @if (l.visit.measurements) {
+                      <p class="mt-2 text-sm">Measurements: {{ l.visit.measurements }}</p>
+                    }
+                    @if (l.visit.accessDifficulty) {
+                      <p class="text-sm">Access Difficulty: {{ l.visit.accessDifficulty }}</p>
+                    }
+                    @if (l.visit.notes) {
+                      <p class="mt-2 text-sm text-zinc-700">Notes: {{ l.visit.notes }}</p>
+                    }
+                  </div>
+                } @else if (!showSurveyForm()) {
                   <shared-button
                     variant="primary"
                     [uppercase]="false"
@@ -483,7 +498,22 @@
 
                 @if (l.visit.scheduledDate) {
                   <div class="grid gap-3">
-                    @if (!showSurveyForm()) {
+                    @if (l.visit.completedAt || l.status === 'Surveyed') {
+                      <div class="rounded-lg border border-green-200 bg-green-50 p-3">
+                        <p class="text-sm font-semibold text-green-800">
+                          Completed {{ formatHumanDateTime(l.visit.completedAt || l.updatedAt) }}
+                        </p>
+                        @if (l.visit.measurements) {
+                          <p class="mt-2 text-sm">Measurements: {{ l.visit.measurements }}</p>
+                        }
+                        @if (l.visit.accessDifficulty) {
+                          <p class="text-sm">Access Difficulty: {{ l.visit.accessDifficulty }}</p>
+                        }
+                        @if (l.visit.notes) {
+                          <p class="mt-2 text-sm text-zinc-700">Notes: {{ l.visit.notes }}</p>
+                        }
+                      </div>
+                    } @else if (!showSurveyForm()) {
                       <shared-button
                         variant="primary"
                         [uppercase]="false"
