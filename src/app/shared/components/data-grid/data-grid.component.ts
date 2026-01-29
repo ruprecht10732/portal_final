@@ -7,6 +7,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
   ElementRef,
   inject,
@@ -14,6 +15,8 @@ import {
   output,
   viewChild,
 } from '@angular/core';
+import { DOCUMENT } from '@angular/common';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
 import { DataGridStore } from './data-grid.store';
 import { DataGridHeaderComponent } from './data-grid-header.component';
@@ -37,7 +40,7 @@ import {
   SelectionChangeEvent,
   SortChangeEvent,
 } from './data-grid.types';
-import { Observable, Subject } from 'rxjs';
+import { fromEvent, Observable, Subject } from 'rxjs';
 
 @Component({
   selector: 'shared-data-grid',
@@ -62,6 +65,9 @@ import { Observable, Subject } from 'rxjs';
 })
 export class DataGridComponent<T extends Record<string, unknown>> {
   protected readonly store = inject(DataGridStore<T>);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly document = inject(DOCUMENT);
+  private outsidePointerDownBound = false;
 
   // ============ Inputs ============
   
@@ -149,6 +155,27 @@ export class DataGridComponent<T extends Record<string, unknown>> {
       const columns = this.columns();
       const config = this.config();
       this.store.initialize(columns, config);
+    });
+
+    // Clear focused/edited cell when clicking outside of the grid
+    effect(() => {
+      const gridEl = this.gridContainer()?.nativeElement;
+      if (!gridEl || this.outsidePointerDownBound) return;
+
+      this.outsidePointerDownBound = true;
+      fromEvent<PointerEvent>(this.document, 'pointerdown', { capture: true }).pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe((event) => {
+        const target = event.target;
+        if (!(target instanceof Node)) return;
+        if (gridEl.contains(target)) return;
+
+        // Exit edit mode (commit current value) and clear focus highlight
+        if (this.store.editingCell()) {
+          this.store.completeCellEdit(true);
+        }
+        this.store.setFocusedCell(null);
+      });
     });
 
     // Update store data when input data changes (client-side mode)
