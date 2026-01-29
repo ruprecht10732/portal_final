@@ -85,7 +85,7 @@ export class MenuComponent {
     const items = this.getFocusableItems();
     if (!items.length) return;
 
-    const currentIndex = items.findIndex(item => item === document.activeElement);
+    const currentIndex = items.indexOf(document.activeElement as HTMLElement);
 
     switch (event.key) {
       case 'ArrowDown': {
@@ -107,7 +107,7 @@ export class MenuComponent {
       }
       case 'End': {
         event.preventDefault();
-        items[items.length - 1]?.focus();
+        items.at(-1)?.focus();
         break;
       }
       case 'Escape': {

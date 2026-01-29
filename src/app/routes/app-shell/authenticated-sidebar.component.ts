@@ -34,7 +34,7 @@ export class AuthenticatedSidebarComponent {
     {
       label: 'Account',
       items: [
-        { label: 'Profile', disabled: true },
+        { label: 'Profile', route: '/app/profile' },
         { label: 'Sign out', route: '/sign-in' },
       ],
     },

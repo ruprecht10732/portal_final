@@ -52,22 +52,22 @@
       @if (sections().length) {
         <div class="divide-y divide-zinc-100">
           @for (section of sections(); track section.label ?? $index) {
-            <div class="px-2 py-2" role="presentation">
+            <div class="px-2 py-2">
               @if (section.label) {
                 <p class="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.32em] text-zinc-400">
                   {{ section.label }}
                 </p>
               }
-              <ul class="space-y-1" role="presentation">
+              <ul class="space-y-1">
               @for (item of section.items; track item.label) {
-                <li role="presentation">
+                <li>
                   @if (item.items?.length) {
                     <div class="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
                       {{ item.label }}
                     </div>
-                    <ul class="space-y-1" role="presentation">
+                    <ul class="space-y-1">
                       @for (child of item.items; track child.label) {
-                        <li role="presentation">
+                        <li>
                           @if (child.route) {
                             <a
                               [routerLink]="child.route"
@@ -76,7 +76,7 @@
                               [attr.aria-disabled]="isDisabled(child)"
                               [attr.tabindex]="isDisabled(child) ? -1 : 0"
                               (click)="selectItem(child)"
-                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
+                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                               [class.text-zinc-400]="isDisabled(child)"
                               [class.hover:bg-zinc-50]="!isDisabled(child)"
                             >
@@ -90,7 +90,7 @@
                               [attr.aria-disabled]="isDisabled(child)"
                               [attr.tabindex]="isDisabled(child) ? -1 : 0"
                               (click)="selectItem(child)"
-                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
+                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                               [class.text-zinc-400]="isDisabled(child)"
                               [class.hover:bg-zinc-50]="!isDisabled(child)"
                             >
@@ -104,7 +104,7 @@
                               [attr.aria-disabled]="isDisabled(child)"
                               [attr.tabindex]="isDisabled(child) ? -1 : 0"
                               (click)="selectItem(child)"
-                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
+                              class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                               [class.text-zinc-400]="isDisabled(child)"
                               [class.hover:bg-zinc-50]="!isDisabled(child)"
                             >
@@ -123,7 +123,7 @@
                         [attr.aria-disabled]="isDisabled(item)"
                         [attr.tabindex]="isDisabled(item) ? -1 : 0"
                         (click)="selectItem(item)"
-                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                         [class.text-zinc-400]="isDisabled(item)"
                         [class.hover:bg-zinc-50]="!isDisabled(item)"
                       >
@@ -137,7 +137,7 @@
                         [attr.aria-disabled]="isDisabled(item)"
                         [attr.tabindex]="isDisabled(item) ? -1 : 0"
                         (click)="selectItem(item)"
-                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                         [class.text-zinc-400]="isDisabled(item)"
                         [class.hover:bg-zinc-50]="!isDisabled(item)"
                       >
@@ -151,7 +151,7 @@
                         [attr.aria-disabled]="isDisabled(item)"
                         [attr.tabindex]="isDisabled(item) ? -1 : 0"
                         (click)="selectItem(item)"
-                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
+                        class="flex w-full items-center justify-between rounded-lg px-3 py-2 text-left text-zinc-700 transition-colors focus-visible:outline-2 focus-visible:outline-black focus-visible:outline-offset-2"
                         [class.text-zinc-400]="isDisabled(item)"
                         [class.hover:bg-zinc-50]="!isDisabled(item)"
                       >

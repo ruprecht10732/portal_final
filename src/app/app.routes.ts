@@ -54,6 +54,10 @@ export const routes: Routes = [
 				loadComponent: () => import('./routes/dashboard/dashboard.component').then(m => m.DashboardComponent),
 			},
 			{
+				path: 'profile',
+				loadComponent: () => import('./routes/profile/profile.component').then(m => m.ProfileComponent),
+			},
+			{
 				path: 'leads',
 				loadComponent: () => import('./routes/leads/lead-list/lead-list.component').then(m => m.LeadListComponent),
 				resolve: { leads: leadsListResolver },
