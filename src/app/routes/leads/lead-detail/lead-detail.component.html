@@ -160,6 +160,7 @@
                 #notePanelMobile
                 [noteId]="'note-input-mobile'"
                 [noteText]="noteText()"
+                [noteType]="noteType()"
                 [canSubmit]="canSubmitNote()"
                 [isSaving]="noteSaving()"
                 [activityFeed]="activityFeed()"
@@ -167,6 +168,7 @@
                 [showLogCall]="true"
                 [showHeader]="false"
                 (noteTextChange)="noteText.set($event)"
+                (noteTypeChange)="noteType.set($event)"
                 (addNote)="addNote()"
                 (logCall)="logCall()"
               ></shared-activity-notes>
@@ -325,12 +327,14 @@
                 #notePanelDesktop
                 [noteId]="'note-input-desktop'"
                 [noteText]="noteText()"
+                [noteType]="noteType()"
                 [canSubmit]="canSubmitNote()"
                 [isSaving]="noteSaving()"
                 [activityFeed]="activityFeed()"
                 [formatTimestamp]="formatHumanDateTime"
                 [showLogCall]="true"
                 (noteTextChange)="noteText.set($event)"
+                (noteTypeChange)="noteType.set($event)"
                 (addNote)="addNote()"
                 (logCall)="logCall()"
               ></shared-activity-notes>

@@ -4,6 +4,7 @@ export type ConsumerRole = 'Owner' | 'Tenant' | 'Landlord';
 export type ServiceType = 'Windows' | 'Insulation' | 'Solar';
 export type LeadStatus = 'New' | 'Attempted_Contact' | 'Scheduled' | 'Surveyed' | 'Bad_Lead' | 'Needs_Rescheduling' | 'Closed';
 export type AccessDifficulty = 'Low' | 'Medium' | 'High';
+export type LeadNoteType = 'note' | 'call' | 'text' | 'email' | 'system';
 
 export interface Consumer {
   firstName: string;
@@ -53,6 +54,7 @@ export interface LeadNote {
   leadId: string;
   authorId: string;
   authorEmail: string;
+  type: LeadNoteType;
   body: string;
   createdAt: string;
   updatedAt: string;
@@ -156,6 +158,7 @@ export interface RescheduleVisitRequest {
 
 export interface CreateLeadNoteRequest {
   body: string;
+  type?: LeadNoteType;
 }
 
 export interface LeadNotesResponse {

@@ -25,6 +25,25 @@
     >
       {{ noteLabel() }}
     </label>
+    @if (showTypeSelector()) {
+      <div class="flex flex-wrap gap-2">
+        @for (option of noteTypeOptions(); track option.value) {
+          <button
+            type="button"
+            class="border px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors"
+            [class.border-black]="noteType() === option.value"
+            [class.bg-black]="noteType() === option.value"
+            [class.text-white]="noteType() === option.value"
+            [class.border-zinc-200]="noteType() !== option.value"
+            [class.text-zinc-600]="noteType() !== option.value"
+            (click)="noteTypeChange.emit(option.value)"
+            [attr.aria-pressed]="noteType() === option.value ? 'true' : 'false'"
+          >
+            {{ option.label }}
+          </button>
+        }
+      </div>
+    }
     <textarea
       #noteInput
       [id]="noteId()"
@@ -75,19 +94,54 @@
           <li class="border border-zinc-200 bg-white px-3 py-3">
             <div class="flex items-start gap-3">
               <span class="mt-0.5 flex h-8 w-8 items-center justify-center border border-zinc-200 text-zinc-500">
-                @if (entry.type === 'note') {
-                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6M5 20h8l6-6V5a2 2 0 00-2-2H7a2 2 0 00-2 2v13z" />
-                  </svg>
-                } @else {
-                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 2a10 10 0 110 20 10 10 0 010-20z" />
-                  </svg>
+                @switch (entry.type) {
+                  @case ('call') {
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5.5C3 4.12 4.12 3 5.5 3h2.2c.6 0 1.12.42 1.28 1l.9 3.1c.12.46 0 .96-.32 1.3l-1.58 1.58a15.5 15.5 0 007.5 7.5l1.58-1.58c.34-.32.84-.44 1.3-.32l3.1.9c.58.16 1 .68 1 1.28v2.2c0 1.38-1.12 2.5-2.5 2.5H19c-8.28 0-15-6.72-15-15V5.5z" />
+                    </svg>
+                  }
+                  @case ('text') {
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15a4 4 0 01-4 4H7l-4 3V7a4 4 0 014-4h10a4 4 0 014 4v8z" />
+                    </svg>
+                  }
+                  @case ('email') {
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7.5l8.4 5.6a1.5 1.5 0 001.6 0L21 7.5M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
+                    </svg>
+                  }
+                  @case ('system') {
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 2a10 10 0 110 20 10 10 0 010-20z" />
+                    </svg>
+                  }
+                  @case ('audit') {
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 2a10 10 0 110 20 10 10 0 010-20z" />
+                    </svg>
+                  }
+                  @default {
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6M5 20h8l6-6V5a2 2 0 00-2-2H7a2 2 0 00-2 2v13z" />
+                    </svg>
+                  }
                 }
               </span>
               <div class="min-w-0 flex-1">
                 <div class="flex items-center justify-between gap-3 text-xs text-zinc-500">
-                  <span class="font-semibold text-zinc-700">{{ entry.user }}</span>
+                  <div class="flex flex-wrap items-center gap-2">
+                    <span class="font-semibold text-zinc-700">{{ entry.user }}</span>
+                    <span class="border border-zinc-200 px-2 py-0.5 text-[10px] uppercase tracking-wide text-zinc-600">
+                      @switch (entry.type) {
+                        @case ('call') { Call }
+                        @case ('text') { Text }
+                        @case ('email') { Email }
+                        @case ('system') { System }
+                        @case ('audit') { System }
+                        @default { Note }
+                      }
+                    </span>
+                  </div>
                   <span>{{ formatTimestamp()(entry.timestamp) }}</span>
                 </div>
                 <p class="mt-1 text-sm text-zinc-800">{{ entry.message }}</p>

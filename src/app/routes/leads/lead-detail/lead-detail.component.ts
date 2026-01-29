@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeadsService } from '../../../core/services/leads.service';
-import type { AccessDifficulty, Lead, LeadNote, LeadService, LeadStatus, ServiceType, VisitHistory } from '../../../core/services/leads.types';
+import type { AccessDifficulty, Lead, LeadNote, LeadNoteType, LeadService, LeadStatus, ServiceType, VisitHistory } from '../../../core/services/leads.types';
 import { ACCESS_DIFFICULTY_OPTIONS, SERVICE_TYPE_LABELS, SERVICE_TYPE_OPTIONS, STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
 import { UserService } from '../../../core/services/user.service';
 import type { UserProfile } from '../../../core/services/user.types';
@@ -66,6 +66,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly surveyPhotos = signal<File[]>([]);
 
   protected readonly noteText = signal('');
+  protected readonly noteType = signal<LeadNoteType>('note');
   protected readonly leadNotes = signal<LeadNote[]>([]);
   protected readonly visitHistory = signal<VisitHistory[]>([]);
   protected readonly copiedAddress = signal(false);
@@ -151,7 +152,7 @@ export class LeadDetailComponent implements OnInit {
     const entries: ActivityEntry[] = [];
     const noteEntries = this.leadNotes().map(note => ({
       id: note.id,
-      type: 'note' as const,
+      type: note.type ?? 'note',
       timestamp: note.createdAt,
       user: note.authorEmail,
       message: note.body,
@@ -442,10 +443,8 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected logCall(): void {
-    if (this.noteSaving()) return;
     this.activeTab.set('activity');
-    this.noteText.set('Call logged.');
-    this.addNote();
+    this.noteType.set('call');
     setTimeout(() => this.focusNoteBox(), 0);
   }
 
@@ -624,10 +623,11 @@ export class LeadDetailComponent implements OnInit {
     if (!lead || !text || this.noteSaving()) return;
 
     this.noteSaving.set(true);
-    this.leadsService.addNote(lead.id, { body: text }).subscribe({
+    this.leadsService.addNote(lead.id, { body: text, type: this.noteType() }).subscribe({
       next: (created) => {
         this.leadNotes.update(items => [created, ...items]);
         this.noteText.set('');
+        this.noteType.set('note');
         this.noteSaving.set(false);
         this.focusNoteBox();
         this.announce('Note added successfully');
@@ -770,7 +770,7 @@ export class LeadDetailComponent implements OnInit {
 
 interface ActivityEntry {
   id: string;
-  type: 'note' | 'audit';
+  type: 'audit' | LeadNoteType;
   timestamp: string;
   user: string;
   message: string;
