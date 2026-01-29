@@ -1,0 +1,62 @@
+@if (isLoading()) {
+  <div class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+  </div>
+} @else {
+  @if (errorMessage()) {
+    <div class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 rounded-sm">
+      {{ errorMessage() }}
+    </div>
+  }
+
+  <section class="border border-zinc-200 bg-white p-4 sm:p-6 space-y-6">
+    <div class="space-y-1">
+      <h3 class="text-lg font-semibold text-zinc-900">Personal Details</h3>
+      <p class="text-sm text-zinc-500">Update your contact information.</p>
+    </div>
+
+    <shared-input
+      label="Email"
+      type="email"
+      [value]="email()"
+      (valueChange)="email.set($event)"
+      [error]="emailError()"
+      [required]="true"
+    />
+
+    <div class="text-xs">
+      @if (emailVerified()) {
+        <span class="text-green-600 font-medium">Verified</span>
+      } @else {
+        <div class="flex flex-col space-y-1">
+          <span class="text-amber-600 font-medium">Unverified</span>
+          <span class="text-zinc-500">Check your inbox for the verification link.</span>
+        </div>
+      }
+    </div>
+
+    <!-- Meta Data -->
+    <div class="flex flex-col space-y-1 sm:flex-row sm:justify-between sm:space-y-0 text-[11px] text-zinc-400">
+      <span>Created {{ createdAt() }}</span>
+      <span>Updated {{ updatedAt() }}</span>
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:justify-end">
+      <shared-button
+        class="w-full sm:w-auto"
+        variant="secondary"
+        size="compact"
+        [disabled]="!canSave()"
+        [loading]="isSaving()"
+        ariaLabel="Save changes"
+        (clicked)="save()"
+      >
+        Save changes
+      </shared-button>
+    </div>
+
+    @if (successMessage()) {
+      <p class="text-sm text-green-600 text-center sm:text-left">{{ successMessage() }}</p>
+    }
+  </section>
+}

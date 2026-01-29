@@ -5,6 +5,7 @@ import {
   ArrowLeftRight,
   LayoutDashboard,
   List,
+  Lock,
   LucideAngularModule,
   Plus,
   User,
@@ -27,6 +28,7 @@ export const appConfig: ApplicationConfig = {
         User,
         List,
         Plus,
+        Lock,
       }),
     ),
   ]

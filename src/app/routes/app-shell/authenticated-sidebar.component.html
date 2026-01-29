@@ -27,6 +27,9 @@
               @case ('leads') {
                 <lucide-icon name="users" class="h-5 w-5"></lucide-icon>
               }
+              @case ('profile') {
+                <lucide-icon name="user" class="h-5 w-5"></lucide-icon>
+              }
             }
           </shared-button>
           <span class="pointer-events-none absolute left-16 rounded bg-zinc-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
@@ -66,8 +69,7 @@
   @if (isExpanded()) {
     <app-authenticated-sidebar-panel
       [title]="activeTitle()"
-      [showLeads]="isLeadsRoute()"
-      [leadItems]="leadPanelItems"
+      [items]="panelItems()"
     ></app-authenticated-sidebar-panel>
   }
 </div>

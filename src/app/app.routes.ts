@@ -2,6 +2,7 @@ import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { leadsListResolver } from './routes/leads/leads-list.resolver';
+import { SidebarPanelConfig } from './routes/app-shell/sidebar-panel.config';
 
 export const routes: Routes = [
 	{
@@ -55,24 +56,57 @@ export const routes: Routes = [
 			},
 			{
 				path: 'profile',
-				loadComponent: () => import('./routes/profile/profile.component').then(m => m.ProfileComponent),
+				loadComponent: () => import('./routes/profile/profile-layout.component').then(m => m.ProfileLayoutComponent),
+				data: {
+					panelItems: [
+						{ label: 'Personal Details', route: '/app/profile/details', icon: 'user', exact: true },
+						{ label: 'Security', route: '/app/profile/security', icon: 'lock' },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						pathMatch: 'full',
+						redirectTo: 'details',
+					},
+					{
+						path: 'details',
+						loadComponent: () => import('./routes/profile/personal-details/personal-details.component').then(m => m.PersonalDetailsComponent),
+					},
+					{
+						path: 'security',
+						loadComponent: () => import('./routes/profile/security/security.component').then(m => m.SecurityComponent),
+					},
+				],
 			},
 			{
 				path: 'leads',
-				loadComponent: () => import('./routes/leads/lead-list/lead-list.component').then(m => m.LeadListComponent),
-				resolve: { leads: leadsListResolver },
-			},
-			{
-				path: 'leads/new',
-				loadComponent: () => import('./routes/leads/lead-form/lead-form.component').then(m => m.LeadFormComponent),
-			},
-			{
-				path: 'leads/:id',
-				loadComponent: () => import('./routes/leads/lead-detail/lead-detail.component').then(m => m.LeadDetailComponent),
-			},
-			{
-				path: 'leads/:id/edit',
-				loadComponent: () => import('./routes/leads/lead-form/lead-form.component').then(m => m.LeadFormComponent),
+				loadComponent: () => import('./routes/leads/leads-layout/leads-layout.component').then(m => m.LeadsLayoutComponent),
+				data: {
+					panelItems: [
+						{ label: 'Lead overview', route: '/app/leads', icon: 'list', exact: true },
+						{ label: 'Create lead', route: '/app/leads/new', icon: 'plus' },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						loadComponent: () => import('./routes/leads/lead-list/lead-list.component').then(m => m.LeadListComponent),
+						resolve: { leads: leadsListResolver },
+					},
+					{
+						path: 'new',
+						loadComponent: () => import('./routes/leads/lead-form/lead-form.component').then(m => m.LeadFormComponent),
+					},
+					{
+						path: ':id',
+						loadComponent: () => import('./routes/leads/lead-detail/lead-detail.component').then(m => m.LeadDetailComponent),
+					},
+					{
+						path: ':id/edit',
+						loadComponent: () => import('./routes/leads/lead-form/lead-form.component').then(m => m.LeadFormComponent),
+					},
+				],
 			},
 		],
 	},

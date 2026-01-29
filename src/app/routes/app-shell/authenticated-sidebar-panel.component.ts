@@ -1,12 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import { AuthenticatedSidebarNavItemComponent } from './authenticated-sidebar-nav-item.component';
-
-export interface SidebarPanelItem {
-  label: string;
-  route: string;
-  icon?: string | null;
-  exact?: boolean;
-}
+import { SidebarPanelItem } from './sidebar-panel.config';
 
 @Component({
   selector: 'app-authenticated-sidebar-panel',
@@ -17,6 +11,5 @@ export interface SidebarPanelItem {
 })
 export class AuthenticatedSidebarPanelComponent {
   title = input('');
-  showLeads = input(false);
-  leadItems = input<readonly SidebarPanelItem[]>([]);
+  items = input<readonly SidebarPanelItem[]>([]);
 }

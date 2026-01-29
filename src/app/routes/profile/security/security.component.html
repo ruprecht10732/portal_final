@@ -1,0 +1,59 @@
+@if (errorMessage()) {
+  <div class="border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 rounded-sm">
+    {{ errorMessage() }}
+  </div>
+}
+
+<section class="border border-zinc-200 bg-white p-4 sm:p-6 space-y-6">
+  <div class="space-y-1">
+    <h3 class="text-lg font-semibold text-zinc-900">Security</h3>
+    <p class="text-sm text-zinc-500">Update your password to keep your account secure.</p>
+  </div>
+
+  <div class="grid gap-5">
+    <shared-input
+      label="Current Password"
+      type="password"
+      [value]="currentPassword()"
+      (valueChange)="currentPassword.set($event)"
+      [required]="true"
+      [passwordToggle]="true"
+    />
+    <shared-input
+      label="New Password"
+      type="password"
+      [value]="newPassword()"
+      (valueChange)="newPassword.set($event)"
+      [error]="newPasswordError()"
+      [required]="true"
+      [passwordToggle]="true"
+    />
+    <shared-input
+      label="Confirm New Password"
+      type="password"
+      [value]="confirmPassword()"
+      (valueChange)="confirmPassword.set($event)"
+      [error]="confirmPasswordError()"
+      [required]="true"
+      [passwordToggle]="true"
+    />
+  </div>
+
+  <div class="flex flex-col sm:flex-row sm:justify-end">
+    <shared-button
+      class="w-full sm:w-auto"
+      variant="primary"
+      size="compact"
+      [disabled]="!canSave()"
+      [loading]="isSaving()"
+      ariaLabel="Update password"
+      (clicked)="save()"
+    >
+      Update password
+    </shared-button>
+  </div>
+
+  @if (successMessage()) {
+    <p class="text-sm text-green-600 text-center sm:text-left">{{ successMessage() }}</p>
+  }
+</section>
