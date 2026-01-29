@@ -1,0 +1,87 @@
+<div class="flex flex-col gap-4">
+  @if (showHeader()) {
+    <div class="flex flex-wrap items-center justify-between gap-3">
+      <div class="flex items-center gap-2">
+        <span class="flex h-8 w-8 items-center justify-center border border-zinc-200 bg-white text-zinc-600">
+          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h8M8 14h5M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" />
+          </svg>
+        </span>
+        <div>
+          <h3 class="text-sm font-semibold">Notes & Activity</h3>
+          <p class="text-xs text-zinc-500">{{ activityFeed().length }} updates</p>
+        </div>
+      </div>
+      @if (activityFeed().length) {
+        <p class="text-xs text-zinc-500">Latest {{ formatTimestamp()(activityFeed()[0].timestamp) }}</p>
+      }
+    </div>
+  }
+
+  <div class="grid gap-2">
+    <label
+      [for]="noteId()"
+      class="text-xs font-semibold uppercase tracking-wider text-zinc-500"
+    >
+      {{ noteLabel() }}
+    </label>
+    <textarea
+      #noteInput
+      [id]="noteId()"
+      class="w-full border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+      rows="3"
+      [value]="noteText()"
+      (input)="noteTextChange.emit($any($event.target).value)"
+      [placeholder]="notePlaceholder()"
+    ></textarea>
+    <div class="flex flex-wrap items-center justify-between gap-2">
+      <p class="text-xs text-zinc-500">Share updates so the team stays aligned.</p>
+      <shared-button
+        variant="secondary"
+        size="compact"
+        [uppercase]="false"
+        [fullWidth]="false"
+        [disabled]="!canSubmit()"
+        (clicked)="addNote.emit()"
+      >
+        {{ isSaving() ? 'Adding...' : 'Add Note' }}
+      </shared-button>
+    </div>
+  </div>
+
+  <div class="grid gap-2">
+    @if (activityFeed().length === 0) {
+      <div class="border border-dashed border-zinc-200 bg-zinc-50 px-4 py-6 text-center">
+        <p class="text-sm font-semibold">No activity yet</p>
+        <p class="text-xs text-zinc-500 mt-1">Notes and system updates will appear here.</p>
+      </div>
+    } @else {
+      <ul class="grid gap-2">
+        @for (entry of activityFeed(); track entry.id) {
+          <li class="border border-zinc-200 bg-white px-3 py-3">
+            <div class="flex items-start gap-3">
+              <span class="mt-0.5 flex h-8 w-8 items-center justify-center border border-zinc-200 text-zinc-500">
+                @if (entry.type === 'note') {
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6M5 20h8l6-6V5a2 2 0 00-2-2H7a2 2 0 00-2 2v13z" />
+                  </svg>
+                } @else {
+                  <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 2a10 10 0 110 20 10 10 0 010-20z" />
+                  </svg>
+                }
+              </span>
+              <div class="min-w-0 flex-1">
+                <div class="flex items-center justify-between gap-3 text-xs text-zinc-500">
+                  <span class="font-semibold text-zinc-700">{{ entry.user }}</span>
+                  <span>{{ formatTimestamp()(entry.timestamp) }}</span>
+                </div>
+                <p class="mt-1 text-sm text-zinc-800">{{ entry.message }}</p>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</div>

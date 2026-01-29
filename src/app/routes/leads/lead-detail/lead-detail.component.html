@@ -350,40 +350,18 @@
           <details>
             <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Notes & Activity</summary>
             <div class="px-4 pb-4">
-            <label for="note-input-mobile" class="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-              Add Note
-            </label>
-            <textarea
-              #noteBoxMobile
-              id="note-input-mobile"
-              class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-              rows="3"
-              [value]="noteText()"
-              (input)="noteText.set($any($event.target).value)"
-              placeholder="Add a note..."
-            ></textarea>
-            <div class="mt-2">
-              <shared-button
-                variant="secondary"
-                [uppercase]="false"
-                [fullWidth]="false"
-                [disabled]="!canSubmitNote()"
-                (clicked)="addNote()"
-              >
-                Add Note
-              </shared-button>
-            </div>
-            <div class="mt-4 grid gap-3">
-              @for (entry of activityFeed(); track entry.id) {
-                <div class="border border-zinc-200 rounded-lg p-3">
-                  <div class="flex items-center justify-between text-xs text-zinc-500">
-                    <span>{{ entry.user }}</span>
-                    <span>{{ formatHumanDateTime(entry.timestamp) }}</span>
-                  </div>
-                  <p class="mt-2 text-sm">{{ entry.message }}</p>
-                </div>
-              }
-            </div>
+              <shared-activity-notes
+                #notePanelMobile
+                [noteId]="'note-input-mobile'"
+                [noteText]="noteText()"
+                [canSubmit]="canSubmitNote()"
+                [isSaving]="noteSaving()"
+                [activityFeed]="activityFeed()"
+                [formatTimestamp]="formatHumanDateTime"
+                [showHeader]="false"
+                (noteTextChange)="noteText.set($event)"
+                (addNote)="addNote()"
+              ></shared-activity-notes>
             </div>
           </details>
         </shared-card>
@@ -738,45 +716,17 @@
                 }
               </div>
             } @else {
-              <div class="grid gap-4">
-                <div>
-                  <label for="note-input-desktop" class="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
-                    Add Note
-                  </label>
-                  <textarea
-                    #noteBoxDesktop
-                    id="note-input-desktop"
-                    class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                    rows="3"
-                    [value]="noteText()"
-                    (input)="noteText.set($any($event.target).value)"
-                    placeholder="Add a note..."
-                  ></textarea>
-                  <div class="mt-2">
-                    <shared-button
-                      variant="secondary"
-                      [uppercase]="false"
-                      [fullWidth]="false"
-                      [disabled]="!canSubmitNote()"
-                      (clicked)="addNote()"
-                    >
-                      Add Note
-                    </shared-button>
-                  </div>
-                </div>
-
-                <div class="grid gap-3">
-                  @for (entry of activityFeed(); track entry.id) {
-                    <div class="border border-zinc-200 rounded-lg p-3">
-                      <div class="flex items-center justify-between text-xs text-zinc-500">
-                        <span>{{ entry.user }}</span>
-                        <span>{{ formatHumanDateTime(entry.timestamp) }}</span>
-                      </div>
-                      <p class="mt-2 text-sm">{{ entry.message }}</p>
-                    </div>
-                  }
-                </div>
-              </div>
+              <shared-activity-notes
+                #notePanelDesktop
+                [noteId]="'note-input-desktop'"
+                [noteText]="noteText()"
+                [canSubmit]="canSubmitNote()"
+                [isSaving]="noteSaving()"
+                [activityFeed]="activityFeed()"
+                [formatTimestamp]="formatHumanDateTime"
+                (noteTextChange)="noteText.set($event)"
+                (addNote)="addNote()"
+              ></shared-activity-notes>
             }
           </shared-card>
         </main>

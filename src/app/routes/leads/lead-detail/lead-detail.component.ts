@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, ElementRef, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeadsService } from '../../../core/services/leads.service';
 import { UserService } from '../../../core/services/user.service';
@@ -9,6 +9,7 @@ import { CardComponent } from '../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ContactInfoComponent } from '../../../shared/components/contact-info/contact-info.component';
 import { LeadServicesCardComponent } from '../../../shared/components/lead-services-card/lead-services-card.component';
+import { ActivityNotesComponent } from '../../../shared/components/activity-notes/activity-notes.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -22,7 +23,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, ButtonComponent, CheckboxComponent, ConfirmDialogComponent, ContactInfoComponent, InputComponent, LeadServicesCardComponent, MapPreviewComponent, SelectComponent, TextareaComponent, LeadDetailHeaderComponent],
+  imports: [ActivityNotesComponent, CardComponent, ButtonComponent, CheckboxComponent, ConfirmDialogComponent, ContactInfoComponent, InputComponent, LeadServicesCardComponent, MapPreviewComponent, SelectComponent, TextareaComponent, LeadDetailHeaderComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -70,8 +71,8 @@ export class LeadDetailComponent implements OnInit {
   protected readonly leadNotes = signal<LeadNote[]>([]);
   protected readonly visitHistory = signal<VisitHistory[]>([]);
   protected readonly copiedAddress = signal(false);
-  protected readonly noteBoxDesktop = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxDesktop');
-  protected readonly noteBoxMobile = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxMobile');
+  protected readonly notePanelDesktop = viewChild<ActivityNotesComponent>('notePanelDesktop');
+  protected readonly notePanelMobile = viewChild<ActivityNotesComponent>('notePanelMobile');
 
   // ARIA live region for announcements
   protected readonly announcement = signal<string>('');
@@ -438,10 +439,10 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected focusNoteBox(): void {
-    const desktop = this.noteBoxDesktop()?.nativeElement;
-    const mobile = this.noteBoxMobile()?.nativeElement;
-    const target = desktop && desktop.offsetParent !== null ? desktop : mobile;
-    target?.focus();
+    const desktop = this.notePanelDesktop();
+    const mobile = this.notePanelMobile();
+    const target = desktop?.isVisible() ? desktop : mobile;
+    target?.focusInput();
   }
 
   protected handlePhoneClick(): void {
