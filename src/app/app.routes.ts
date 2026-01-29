@@ -40,6 +40,22 @@ export const routes: Routes = [
 				path: '',
 				loadComponent: () => import('./routes/app-shell/app-home.component').then(m => m.AppHomeComponent),
 			},
+			{
+				path: 'leads',
+				loadComponent: () => import('./routes/leads/lead-list/lead-list.component').then(m => m.LeadListComponent),
+			},
+			{
+				path: 'leads/new',
+				loadComponent: () => import('./routes/leads/lead-form/lead-form.component').then(m => m.LeadFormComponent),
+			},
+			{
+				path: 'leads/:id',
+				loadComponent: () => import('./routes/leads/lead-detail/lead-detail.component').then(m => m.LeadDetailComponent),
+			},
+			{
+				path: 'leads/:id/edit',
+				loadComponent: () => import('./routes/leads/lead-form/lead-form.component').then(m => m.LeadFormComponent),
+			},
 		],
 	},
 	{

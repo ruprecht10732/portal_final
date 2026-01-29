@@ -1,0 +1,146 @@
+<div class="flex flex-col gap-4 p-4">
+  <div class="flex items-center gap-3">
+    <button
+      type="button"
+      class="p-2 hover:bg-zinc-100 transition-colors"
+      (click)="cancel()"
+      aria-label="Go back"
+    >
+      <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+      </svg>
+    </button>
+    <h1 class="text-2xl font-bold">{{ isNew() ? 'New Lead' : 'Edit Lead' }}</h1>
+  </div>
+
+  @if (error()) {
+    <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+      {{ error() }}
+    </div>
+  }
+
+  @if (duplicateWarning(); as dup) {
+    <div class="bg-yellow-50 border border-yellow-200 text-yellow-800 p-4">
+      <div class="flex items-start gap-3">
+        <svg class="w-5 h-5 flex-shrink-0 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
+        </svg>
+        <div class="flex-1">
+          <p class="font-medium">Potential duplicate found</p>
+          <p class="text-sm mt-1">
+            A lead with phone {{ dup.consumer.phone }} already exists:
+            {{ dup.consumer.firstName }} {{ dup.consumer.lastName }}
+          </p>
+          <div class="flex gap-2 mt-3">
+            <a [routerLink]="['/app/leads', dup.id]" class="text-sm text-blue-600 hover:underline">
+              View existing lead
+            </a>
+            <button type="button" (click)="dismissDuplicateWarning()" class="text-sm text-zinc-600 hover:underline">
+              Continue anyway
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-12">
+      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+    </div>
+  } @else {
+    <form (ngSubmit)="save()" class="flex flex-col gap-6">
+      <section class="bg-white border border-zinc-200 p-4">
+        <h2 class="text-lg font-semibold mb-4">Consumer Information</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <shared-input
+            label="First Name"
+            [value]="firstName()"
+            (valueChange)="firstName.set($event)"
+            [required]="true"
+          />
+          <shared-input
+            label="Last Name"
+            [value]="lastName()"
+            (valueChange)="lastName.set($event)"
+            [required]="true"
+          />
+          <shared-input
+            label="Phone"
+            type="tel"
+            [value]="phone()"
+            (valueChange)="phone.set($event)"
+            (blur)="checkDuplicate()"
+            [required]="true"
+          />
+          <shared-input
+            label="Email"
+            type="email"
+            [value]="email()"
+            (valueChange)="email.set($event)"
+          />
+          <shared-select
+            label="Role"
+            [options]="consumerRoleOptions()"
+            [value]="consumerRole()"
+            (valueChange)="setConsumerRole($event)"
+          />
+        </div>
+      </section>
+
+      <section class="bg-white border border-zinc-200 p-4">
+        <h2 class="text-lg font-semibold mb-4">Address</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <shared-input
+            label="Street"
+            [value]="street()"
+            (valueChange)="street.set($event)"
+            [required]="true"
+          />
+          <shared-input
+            label="House Number"
+            [value]="houseNumber()"
+            (valueChange)="houseNumber.set($event)"
+            [required]="true"
+          />
+          <shared-input
+            label="Zip Code"
+            [value]="zipCode()"
+            (valueChange)="zipCode.set($event)"
+            [required]="true"
+          />
+          <shared-input
+            label="City"
+            [value]="city()"
+            (valueChange)="city.set($event)"
+            [required]="true"
+          />
+        </div>
+      </section>
+
+      <section class="bg-white border border-zinc-200 p-4">
+        <h2 class="text-lg font-semibold mb-4">Service</h2>
+        <div class="max-w-xs">
+          <shared-select
+            label="Service Type"
+            [options]="serviceTypeOptions()"
+            [value]="serviceType()"
+            (valueChange)="setServiceType($event)"
+          />
+        </div>
+      </section>
+
+      <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+        <shared-button variant="secondary" type="button" (clicked)="cancel()">
+          Cancel
+        </shared-button>
+        <shared-button
+          variant="primary"
+          type="submit"
+        >
+          {{ saving() ? 'Saving...' : (isNew() ? 'Create Lead' : 'Save Changes') }}
+        </shared-button>
+      </div>
+    </form>
+  }
+</div>

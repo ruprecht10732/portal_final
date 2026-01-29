@@ -1,0 +1,30 @@
+<div class="flex flex-col gap-4 p-4">
+  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+    <h1 class="text-2xl font-bold">Leads</h1>
+    <shared-button variant="primary" (clicked)="createLead()">
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      New Lead
+    </shared-button>
+  </div>
+
+  @if (error()) {
+    <div class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+      {{ error() }}
+    </div>
+  }
+
+  <shared-data-grid
+    [columns]="columns"
+    [data]="leads()"
+    [totalItems]="total()"
+    [loading]="loading()"
+    [config]="gridConfig"
+    [serverSide]="true"
+    [fetchData]="fetchDataFn"
+    (dataRequest)="onDataRequest($event)"
+    (selectionChange)="onRowClick($event)"
+    ariaLabel="Leads data grid"
+  />
+</div>

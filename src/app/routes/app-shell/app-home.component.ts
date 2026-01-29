@@ -287,7 +287,7 @@ export class AppHomeComponent {
   }
 }
 
-interface HomeRow {
+interface HomeRow extends Record<string, unknown> {
   id: number;
   name: string;
   department: 'Engineering' | 'Product' | 'Design' | 'Operations' | 'People';
