@@ -126,7 +126,7 @@
       />
 
       <!-- Add-row bar (mobile/card view: always visible) -->
-      @if (store.rows().length > 0) {
+      @if (store.rows().length > 0 && store.config().mobileAddRowEnabled) {
         <div class="bg-white">
           <shared-button
             variant="ghost"
@@ -248,11 +248,15 @@
           @if (store.filters().length > 0 || store.searchTerm()) {
             Try adjusting your filters
           } @else {
-            Add a new row to get started
+            @if (!store.showCardView() || store.config().mobileAddRowEnabled) {
+              Add a new row to get started
+            } @else {
+              No results yet
+            }
           }
         </span>
 
-        @if (store.filters().length === 0 && !store.searchTerm()) {
+        @if (store.filters().length === 0 && !store.searchTerm() && (!store.showCardView() || store.config().mobileAddRowEnabled)) {
           <div class="mt-4">
             <shared-button
               variant="ghost"

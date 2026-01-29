@@ -278,7 +278,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
     this._rows.update(rows => [newRow, ...rows]);
     
     // Focus the first editable cell of the new row
-    const firstEditableCol = this._columns().findIndex(col => col.editable);
+    const firstEditableCol = this.visibleColumns().findIndex(col => col.editable);
     if (firstEditableCol >= 0) {
       this._focusedCell.set({ rowIndex: 0, columnIndex: firstEditableCol });
       this._editingCell.set({ rowIndex: 0, columnIndex: firstEditableCol });

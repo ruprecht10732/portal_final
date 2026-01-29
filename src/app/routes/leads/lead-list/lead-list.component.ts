@@ -40,6 +40,7 @@ export class LeadListComponent implements OnInit {
       field: 'fullName',
       sortable: false,
       width: '180px',
+      visible: false,
     },
     {
       id: 'firstName',
@@ -49,7 +50,6 @@ export class LeadListComponent implements OnInit {
       editable: true,
       width: '140px',
       cellType: 'text',
-      visible: false,
       validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
     },
     {
@@ -60,7 +60,6 @@ export class LeadListComponent implements OnInit {
       editable: true,
       width: '140px',
       cellType: 'text',
-      visible: false,
       validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
     },
     {
@@ -189,6 +188,7 @@ export class LeadListComponent implements OnInit {
     cardSecondarySubtitleField: 'consumer.email',
     statusField: 'status',
     cardPreviewFieldCount: 4,
+    mobileAddRowEnabled: false,
   };
 
   protected readonly fetchDataFn = this.fetchData.bind(this);
@@ -248,6 +248,9 @@ export class LeadListComponent implements OnInit {
   protected fetchData(request: DataRequest): Observable<DataResponse<LeadRow>> {
     const sortFieldMap: Record<string, SortField> = {
       name: 'firstName',
+      fullName: 'firstName',
+      firstName: 'firstName',
+      lastName: 'lastName',
       createdAt: 'createdAt',
       status: 'status',
       serviceType: 'createdAt', // fallback, serviceType not sortable in backend

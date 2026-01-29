@@ -214,6 +214,8 @@ export interface GridConfig<T> {
   columnPickerEnabled: boolean;
   /** Maximum columns visible on mobile (table view) */
   maxMobileColumns: number;
+  /** Enable add-row bar on mobile/card view */
+  mobileAddRowEnabled: boolean;
 }
 
 /** Default grid configuration */
@@ -240,6 +242,7 @@ export const DEFAULT_GRID_CONFIG: GridConfig<unknown> = {
   cardPreviewFieldCount: 3,
   columnPickerEnabled: true,
   maxMobileColumns: 4,
+  mobileAddRowEnabled: true,
 };
 
 /** Keyboard navigation direction */
