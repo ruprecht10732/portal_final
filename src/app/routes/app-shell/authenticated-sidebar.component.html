@@ -1,62 +1,115 @@
-<aside class="flex h-full w-20 flex-col items-center rounded-tl-xl border border-zinc-200 bg-white px-2 py-6">
-  <div class="mb-8 flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-900 text-white text-sm font-semibold">
-    PF
-  </div>
-
-  <nav class="no-scrollbar flex flex-1 flex-col items-center gap-4 overflow-y-auto">
-    @for (item of items; track item.route) {
-      <div class="group relative">
-        <shared-button
-          class="sidebar-item"
-          [routerLink]="item.route"
-          routerLinkActive
-          #activeLink="routerLinkActive"
-          [variant]="activeLink.isActive ? 'primary' : 'ghost'"
-          size="compact"
-          [iconOnly]="true"
-          [fullWidth]="false"
-          [ariaLabel]="item.label"
-        >
-          @switch (item.icon) {
-            @case ('dashboard') {
-              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 13h8V3H3v10z" />
-                <path d="M13 21h8v-8h-8v8z" />
-                <path d="M13 3h8v6h-8z" />
-                <path d="M3 21h8v-6H3z" />
-              </svg>
-            }
-            @case ('leads') {
-              <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-                <path d="M3 7h18" />
-                <path d="M5 12h14" />
-                <path d="M7 17h10" />
-              </svg>
-            }
-          }
-        </shared-button>
-        <span class="pointer-events-none absolute left-16 rounded bg-zinc-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
-          {{ item.label }}
-        </span>
+<div class="flex h-full">
+  <aside class="flex h-full w-20 flex-col items-center border border-zinc-200 bg-zinc-100 px-2 py-6">
+    <div class="mb-8 flex w-full items-center justify-center">
+      <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-900 text-sm font-semibold text-white">
+        PF
       </div>
-    }
-  </nav>
+    </div>
 
-  <div class="mt-6 flex flex-col items-center gap-4 border-t border-zinc-100 pt-6">
-    <shared-menu
-      triggerLabel="Profile"
-      ariaLabel="Profile"
-      [iconOnly]="true"
-      [showChevron]="false"
-      [triggerVariant]="'ghost'"
-      [triggerSize]="'compact'"
-      [fullWidth]="false"
-      [sections]="profileMenu"
-    >
-      <svg menuTrigger class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-        <path d="M20 21a8 8 0 10-16 0" />
-        <circle cx="12" cy="7" r="4" />
-      </svg>
-    </shared-menu>
-  </div>
-</aside>
+    <nav class="no-scrollbar flex flex-1 flex-col items-center gap-4 overflow-y-auto">
+      @for (item of items; track item.route) {
+        <div class="group relative">
+          <shared-button
+            class="sidebar-item"
+            [routerLink]="item.route"
+            routerLinkActive
+            #activeLink="routerLinkActive"
+            [variant]="activeLink.isActive ? 'primary' : 'ghost'"
+            size="compact"
+            [iconOnly]="true"
+            [fullWidth]="false"
+            [ariaLabel]="item.label"
+          >
+            @switch (item.icon) {
+              @case ('dashboard') {
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 13h8V3H3v10z" />
+                  <path d="M13 21h8v-8h-8v8z" />
+                  <path d="M13 3h8v6h-8z" />
+                  <path d="M3 21h8v-6H3z" />
+                </svg>
+              }
+              @case ('leads') {
+                <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+                  <path d="M3 7h18" />
+                  <path d="M5 12h14" />
+                  <path d="M7 17h10" />
+                </svg>
+              }
+            }
+          </shared-button>
+          <span class="pointer-events-none absolute left-16 rounded bg-zinc-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+            {{ item.label }}
+          </span>
+        </div>
+      }
+    </nav>
+
+    <div class="mt-6 flex flex-col items-center gap-4 border-t border-zinc-100 pt-6">
+      <shared-button
+        class="sidebar-toggle"
+        variant="ghost"
+        size="compact"
+        [iconOnly]="true"
+        [fullWidth]="false"
+        [ariaLabel]="isExpanded() ? 'Collapse sidebar' : 'Expand sidebar'"
+        (clicked)="toggleExpanded()"
+      >
+        <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M10 6l-4 6 4 6" />
+          <path d="M14 6l4 6-4 6" />
+        </svg>
+      </shared-button>
+      <shared-menu
+        triggerLabel="Profile"
+        ariaLabel="Profile"
+        [iconOnly]="true"
+        [showChevron]="false"
+        [triggerVariant]="'ghost'"
+        [triggerSize]="'compact'"
+        [fullWidth]="false"
+        [sections]="profileMenu"
+      >
+        <svg menuTrigger class="h-6 w-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M20 21a8 8 0 10-16 0" />
+          <circle cx="12" cy="7" r="4" />
+        </svg>
+      </shared-menu>
+    </div>
+  </aside>
+
+  @if (isExpanded()) {
+    <section class="h-full w-64 border border-zinc-200 border-l-0 bg-white px-5 py-6">
+      <div class="text-xs font-semibold uppercase tracking-[0.32em] text-zinc-400">Current</div>
+      <div class="mt-2 text-lg font-semibold text-zinc-900">
+        {{ activeTitle() }}
+      </div>
+      @if (isLeadsRoute()) {
+        <div class="mt-6 text-xs font-semibold uppercase tracking-[0.32em] text-zinc-400">Leads</div>
+        <nav class="mt-3 flex flex-col gap-2">
+          <a
+            [routerLink]="'/app/leads'"
+            class="flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-zinc-900"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M3 7h18" />
+              <path d="M5 12h14" />
+              <path d="M7 17h10" />
+            </svg>
+            Lead overview
+          </a>
+          <a
+            [routerLink]="'/app/leads/new'"
+            class="flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-zinc-900"
+          >
+            <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d="M12 5v14" />
+              <path d="M5 12h14" />
+            </svg>
+            Create lead
+          </a>
+        </nav>
+      }
+    </section>
+  }
+</div>
