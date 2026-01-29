@@ -293,6 +293,7 @@ export class LeadListComponent implements OnInit {
           zipCode: normalize(address.zipCode),
           city: normalize(address.city),
           serviceType: row.serviceType,
+          status: row.status,
         };
 
         this.leadsService.update(row.id, updateRequest).subscribe({

@@ -89,7 +89,6 @@
                   @case ('select') {
                     <select
                       class="w-full min-h-7 px-2 py-1 text-sm bg-transparent border border-transparent focus:outline-none"
-                      [value]="getInputValue(row, column)"
                       (change)="onInputChange(rowIndex, column, $event)"
                       (keydown.enter)="onInputEnter($event, rowIndex)"
                       (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
@@ -97,9 +96,9 @@
                       [class.border-red-500]="getCellError(row, column.id)"
                       [class.border]="getCellError(row, column.id)"
                     >
-                      <option value="" disabled>Select...</option>
+                      <option value="" disabled [selected]="getInputValue(row, column) === ''">Select...</option>
                       @for (option of column.selectOptions ?? []; track option.value) {
-                        <option [value]="option.value">{{ option.label }}</option>
+                        <option [value]="option.value" [selected]="option.value === getInputValue(row, column)">{{ option.label }}</option>
                       }
                     </select>
                   }

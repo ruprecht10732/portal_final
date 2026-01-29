@@ -75,6 +75,7 @@ export interface UpdateLeadRequest {
   zipCode?: string;
   city?: string;
   serviceType?: ServiceType;
+  status?: LeadStatus;
 }
 
 export interface UpdateStatusRequest {
