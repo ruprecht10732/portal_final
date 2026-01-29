@@ -39,7 +39,8 @@ export const routes: Routes = [
 		children: [
 			{
 				path: '',
-				loadComponent: () => import('./routes/app-shell/app-home.component').then(m => m.AppHomeComponent),
+				pathMatch: 'full',
+				redirectTo: 'leads',
 			},
 			{
 				path: 'leads',

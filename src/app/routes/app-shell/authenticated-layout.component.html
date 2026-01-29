@@ -1,85 +1,89 @@
 <main class="min-h-screen bg-zinc-50 flex flex-col">
   <header class="border-b border-zinc-200 bg-white">
-    <div class="max-w-6xl mx-auto px-4 sm:px-8 py-4 flex items-center justify-between">
-      <div class="flex items-center gap-6">
-        <a routerLink="/app" class="space-y-1">
-          <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Portal</p>
-          <h1 class="text-lg font-bold uppercase tracking-tight">Dashboard</h1>
-        </a>
-        
-        <!-- Desktop Nav -->
-        <nav class="hidden sm:flex items-center gap-1">
-          <a
-            routerLink="/app"
-            routerLinkActive="bg-zinc-100 text-black"
-            [routerLinkActiveOptions]="{ exact: true }"
-            class="px-3 py-2 text-sm font-medium text-zinc-600 hover:text-black hover:bg-zinc-50 transition-colors"
-          >
-            Home
+    <div class="w-full px-4 sm:px-8">
+      <div class="flex items-center justify-between gap-4 py-4">
+        <div class="flex items-center gap-4">
+          <a routerLink="/app" class="flex items-center gap-3">
+            <span class="inline-flex h-9 w-9 items-center justify-center rounded-xl bg-zinc-900 text-white text-sm font-semibold">PF</span>
+            <div class="leading-tight">
+              <p class="text-[10px] uppercase tracking-[0.32em] text-zinc-400 font-semibold">Portal</p>
+              <h1 class="text-base font-semibold text-zinc-900">Operations Hub</h1>
+            </div>
           </a>
+        </div>
+
+        <nav class="hidden lg:flex items-center gap-2">
           <a
             routerLink="/app/leads"
-            routerLinkActive="bg-zinc-100 text-black"
-            class="px-3 py-2 text-sm font-medium text-zinc-600 hover:text-black hover:bg-zinc-50 transition-colors"
+            routerLinkActive="bg-zinc-100 text-zinc-900"
+            class="px-4 py-2 text-sm font-medium text-zinc-600 rounded-full hover:text-zinc-900 hover:bg-zinc-50 transition-colors"
           >
             Leads
           </a>
+          <a
+            routerLink="/app/leads/new"
+            routerLinkActive="bg-zinc-100 text-zinc-900"
+            class="px-4 py-2 text-sm font-medium text-zinc-600 rounded-full hover:text-zinc-900 hover:bg-zinc-50 transition-colors"
+          >
+            New lead
+          </a>
         </nav>
-      </div>
-      
-      <div class="flex items-center gap-3">
-        <!-- Mobile menu button -->
-        <button
-          type="button"
-          class="sm:hidden p-2 text-zinc-500 hover:text-black hover:bg-zinc-100 transition-colors"
-          (click)="toggleMobileMenu()"
-          [attr.aria-expanded]="mobileMenuOpen()"
-          aria-label="Toggle menu"
-        >
-          @if (mobileMenuOpen()) {
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-            </svg>
-          } @else {
-            <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-            </svg>
-          }
-        </button>
-        
-        <shared-button class="hidden sm:block" variant="secondary" size="compact" routerLink="/sign-in" ariaLabel="Sign out">
-          Sign out
-        </shared-button>
+
+        <div class="flex items-center gap-3">
+          <button
+            type="button"
+            class="lg:hidden inline-flex items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-sm font-medium text-zinc-600 hover:text-zinc-900 hover:border-zinc-300 hover:bg-zinc-50 transition-colors"
+            (click)="toggleMobileMenu()"
+            [attr.aria-expanded]="mobileMenuOpen()"
+            aria-label="Toggle menu"
+          >
+            @if (mobileMenuOpen()) {
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+              <span>Close</span>
+            } @else {
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
+              </svg>
+              <span>Menu</span>
+            }
+          </button>
+
+          <shared-button class="hidden lg:block" variant="secondary" size="compact" routerLink="/sign-in" ariaLabel="Sign out">
+            Sign out
+          </shared-button>
+        </div>
       </div>
     </div>
-    
-    <!-- Mobile Nav -->
+
     @if (mobileMenuOpen()) {
-      <nav class="sm:hidden border-t border-zinc-100 bg-white">
-        <a
-          routerLink="/app"
-          routerLinkActive="bg-zinc-100 text-black font-semibold"
-          [routerLinkActiveOptions]="{ exact: true }"
-          (click)="closeMobileMenu()"
-          class="block px-4 py-3 text-sm text-zinc-600 hover:bg-zinc-50 border-b border-zinc-100"
-        >
-          Home
-        </a>
-        <a
-          routerLink="/app/leads"
-          routerLinkActive="bg-zinc-100 text-black font-semibold"
-          (click)="closeMobileMenu()"
-          class="block px-4 py-3 text-sm text-zinc-600 hover:bg-zinc-50 border-b border-zinc-100"
-        >
-          Leads
-        </a>
-        <a
-          routerLink="/sign-in"
-          (click)="closeMobileMenu()"
-          class="block px-4 py-3 text-sm text-red-600 hover:bg-red-50"
-        >
-          Sign out
-        </a>
+      <nav class="lg:hidden border-t border-zinc-100 bg-white">
+        <div class="px-4 sm:px-8 py-4 space-y-2">
+          <a
+            routerLink="/app/leads"
+            routerLinkActive="bg-zinc-100 text-zinc-900 font-semibold"
+            (click)="closeMobileMenu()"
+            class="block w-full rounded-xl px-4 py-3 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            Leads
+          </a>
+          <a
+            routerLink="/app/leads/new"
+            routerLinkActive="bg-zinc-100 text-zinc-900 font-semibold"
+            (click)="closeMobileMenu()"
+            class="block w-full rounded-xl px-4 py-3 text-sm text-zinc-600 hover:bg-zinc-50"
+          >
+            New lead
+          </a>
+          <a
+            routerLink="/sign-in"
+            (click)="closeMobileMenu()"
+            class="block w-full rounded-xl px-4 py-3 text-sm text-red-600 hover:bg-red-50"
+          >
+            Sign out
+          </a>
+        </div>
       </nav>
     }
   </header>
