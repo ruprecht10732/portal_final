@@ -57,7 +57,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
   private readonly _announcements = signal<AriaAnnouncement[]>([]);
 
   // ============ Viewport/Mobile State ============
-  private readonly _viewportWidth = signal(typeof window === 'undefined' ? 1024 : window.innerWidth);
+  private readonly _viewportWidth = signal(globalThis.window === undefined ? 1024 : globalThis.window.innerWidth);
   private readonly _scrollState = signal({ scrollLeft: 0, scrollWidth: 0, clientWidth: 0 });
 
   // ============ Observables for data fetching ============
@@ -869,7 +869,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
     const updateWidth = () => this._viewportWidth.set(window.innerWidth);
     
     // Use ResizeObserver if available for better performance
-    if ('ResizeObserver' in window) {
+    if ('ResizeObserver' in globalThis) {
       const observer = new ResizeObserver(updateWidth);
       observer.observe(document.documentElement);
     } else {
@@ -896,13 +896,13 @@ export class DataGridStore<T extends Record<string, unknown>> {
     this._columns.update(cols => 
       cols.map(col => 
         col.id === columnId 
-          ? { ...col, visible: col.visible === false ? true : false }
+          ? { ...col, visible: col.visible === false }
           : col
       )
     );
     
     const column = this._columns().find(c => c.id === columnId);
-    const state = column?.visible !== false ? 'shown' : 'hidden';
+    const state = column?.visible === false ? 'hidden' : 'shown';
     this.announce(`${column?.header ?? columnId} column ${state}`, 'polite');
   }
 
@@ -923,5 +923,16 @@ export class DataGridStore<T extends Record<string, unknown>> {
       cols.map(col => ({ ...col, visible: true }))
     );
     this.announce('All columns visible', 'polite');
+  }
+
+  /** Set column width */
+  setColumnWidth(columnId: string, width: number): void {
+    this._columns.update(cols => 
+      cols.map(col => 
+        col.id === columnId 
+          ? { ...col, width: `${width}px` }
+          : col
+      )
+    );
   }
 }

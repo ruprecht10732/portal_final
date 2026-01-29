@@ -2,10 +2,3 @@
   display: block;
   width: 100%;
 }
-
-/* Mobile-first responsive adjustments */
-@media (max-width: 639px) {
-  :host {
-    font-size: 14px;
-  }
-}

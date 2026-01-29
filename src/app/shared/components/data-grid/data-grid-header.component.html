@@ -3,9 +3,10 @@
   <th
     role="columnheader"
     scope="col"
-    class="w-10 px-2 py-1 sm:px-2 sm:py-2 text-left sticky left-0 z-20 bg-zinc-100 border-b border-zinc-200 border-r border-zinc-200"
+    tabindex="-1"
+    class="w-10 px-2 py-2 text-left sticky left-0 z-20 bg-zinc-100 border border-zinc-300 outline-none focus:ring-2 focus:ring-black focus:ring-inset"
   >
-    <div class="flex items-center justify-center min-w-7 min-h-7">
+    <div class="flex items-center justify-center">
       <shared-checkbox
         #headerCheckbox
         [checked]="allSelected()"
@@ -22,16 +23,17 @@
 @for (column of columns(); track column.id; let colIndex = $index) {
   @let sortDirection = getSortDirection(column.id);
   <th
+    #thCell
     role="columnheader"
     scope="col"
+    tabindex="-1"
     [attr.aria-sort]="column.sortable ? (sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : 'none') : null"
-    class="px-2 py-1 sm:px-2 sm:py-2 text-[11px] sm:text-xs font-bold uppercase tracking-wide sm:tracking-wider text-left text-zinc-800 sm:text-zinc-700 border-b border-zinc-200 border-r border-zinc-200"
+    class="relative px-2 py-2 text-xs font-semibold uppercase tracking-wide text-left text-zinc-700 border border-zinc-300 bg-zinc-100 outline-none focus:ring-2 focus:ring-black focus:ring-inset"
     [class.sticky]="column.frozen"
     [class.z-20]="column.frozen"
-    [class.bg-zinc-100]="column.frozen"
     [class.shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]]="column.frozen"
     [style.width]="column.width"
-    [style.min-width]="column.minWidth"
+    [style.min-width]="column.minWidth ?? '80px'"
     [style.max-width]="column.maxWidth"
     [style.left]="column.frozen ? getFrozenColumnLeft(colIndex) : null"
     [class.text-center]="column.align === 'center'"
@@ -41,7 +43,7 @@
       <button
         type="button"
         (click)="onSort(column)"
-        class="flex items-center justify-between gap-2 w-full min-h-11 min-w-11 focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-2"
+        class="flex items-center justify-between gap-2 w-full focus:outline-none"
         [attr.aria-label]="getSortAriaLabel(column)"
       >
         <span class="truncate" [title]="column.header">{{ column.header }}</span>
@@ -69,14 +71,14 @@
     } @else {
       <span class="block truncate" [title]="column.header">{{ column.header }}</span>
     }
+    
+    <!-- Resize handle -->
+    <div
+      class="absolute top-0 right-0 w-1 h-full cursor-col-resize z-10 hover:bg-zinc-400 active:bg-zinc-500"
+      (mousedown)="onResizeStart($event, colIndex, thCell)"
+      aria-hidden="true"
+    ></div>
   </th>
 }
 
-<!-- Actions column placeholder -->
-<th
-  role="columnheader"
-  scope="col"
-  class="w-16 sm:w-20 px-2 py-1 sm:px-2 sm:py-2 border-b border-zinc-200"
->
-  <span class="sr-only">Row actions</span>
-</th>
+

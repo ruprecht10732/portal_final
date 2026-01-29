@@ -278,6 +278,13 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     this.store.updateScrollState(el.scrollLeft, el.scrollWidth, el.clientWidth);
   }
 
+  /** Handle column resize */
+  protected onColumnResize(event: { columnId: string; width: number }): void {
+    // Column width is already updated in the DOM by the header component
+    // This event can be used to persist the width or update column config
+    this.store.setColumnWidth(event.columnId, event.width);
+  }
+
   /** Handle row delete from card view */
   protected onCardDelete(rowIndex: number): void {
     const row = this.store.rows()[rowIndex];

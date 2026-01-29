@@ -147,11 +147,11 @@
         >
           <table
             [attr.aria-rowcount]="store.pagination().totalItems"
-            [attr.aria-colcount]="store.visibleColumns().length + 1"
-            class="w-full min-w-full border-collapse border-spacing-0 border border-zinc-200"
+            [attr.aria-colcount]="store.visibleColumns().length + (store.config().selectable ? 1 : 0)"
+            class="w-full min-w-full border-separate border-spacing-0 border border-zinc-200 table-fixed"
           >
             <!-- Header -->
-            <thead class="bg-zinc-100 border-b-2 border-zinc-300 sticky top-0 z-10">
+            <thead class="bg-zinc-100 sticky top-0 z-10">
               <tr class="sr-only" hidden>
                 @if (store.config().selectable) {
                   <th scope="col">Select</th>
@@ -159,7 +159,6 @@
                 @for (column of store.visibleColumns(); track column.id) {
                   <th scope="col">{{ column.header }}</th>
                 }
-                <th scope="col">Actions</th>
               </tr>
               <tr data-grid-header
                 [columns]="store.visibleColumns()"
@@ -169,6 +168,7 @@
                 [selectable]="store.config().selectable"
                 (sortChange)="onSortChange($event)"
                 (selectAll)="store.toggleAllSelection()"
+                (columnResize)="onColumnResize($event)"
               ></tr>
             </thead>
 

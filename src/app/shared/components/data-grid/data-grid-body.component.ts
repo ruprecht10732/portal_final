@@ -11,7 +11,6 @@ import {
   output,
   viewChildren,
 } from '@angular/core';
-import { FormsModule } from '@angular/forms';
 import {
   CellEditEvent,
   CellPosition,
@@ -23,7 +22,7 @@ import { CheckboxComponent } from '../checkbox/checkbox.component';
 
 @Component({
   selector: 'data-grid-body',
-  imports: [FormsModule, OptionLabelPipe, CheckboxComponent],
+  imports: [OptionLabelPipe, CheckboxComponent],
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -54,7 +53,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   // ============ View Children ============
   
   private readonly cellRefs = viewChildren<ElementRef<HTMLTableCellElement>>('cellRef');
-  private readonly inputRefs = viewChildren<ElementRef<HTMLInputElement>>('inputRef');
+  private readonly inputRefs = viewChildren<ElementRef<HTMLElement>>('inputRef');
 
   // ============ Methods ============
   
@@ -154,9 +153,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     if (control) {
       event.preventDefault();
       control.focus();
-      if (control instanceof HTMLInputElement && control.type !== 'checkbox') {
-        control.setSelectionRange(control.value.length, control.value.length);
-      }
+      this.placeCaretAtEnd(control);
     } else {
       event.preventDefault();
       this.navigate.emit('down');
@@ -176,7 +173,11 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
       event.preventDefault();
       control.focus();
 
-      if (control instanceof HTMLInputElement && control.type !== 'checkbox' && control.type !== 'date') {
+      if (control.isContentEditable) {
+        control.textContent = event.key;
+        this.placeCaretAtEnd(control);
+        this.emitCellValueChange(rowIndex, column, this.parseEditableValue(column, control.textContent ?? ''));
+      } else if (control instanceof HTMLInputElement && control.type !== 'checkbox' && control.type !== 'date') {
         control.value = event.key;
         this.onInputChange(rowIndex, column, control);
       }
@@ -188,8 +189,6 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     column: GridColumn<T>,
     eventOrTarget: Event | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
   ): void {
-    const row = this.rows()[rowIndex];
-    const oldValue = row.current[column.field as keyof T];
     const target = eventOrTarget instanceof Event
       ? eventOrTarget.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       : eventOrTarget;
@@ -197,17 +196,33 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
       ? target.checked
       : target.value;
 
-    if (oldValue !== value) {
-      this.cellEditEvent.emit({
-        rowId: row.current[this.rowIdField()] as string | number,
-        columnId: column.id,
-        oldValue,
-        newValue: value,
-        row: row.current,
-      });
-    }
+    this.emitCellValueChange(rowIndex, column, value);
+  }
 
-    this.cellValueChange.emit({ rowIndex, columnId: column.id, value });
+  protected onEditableInput(
+    rowIndex: number,
+    column: GridColumn<T>,
+    event: Event,
+  ): void {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+    const text = target.textContent ?? '';
+    this.emitCellValueChange(rowIndex, column, this.parseEditableValue(column, text));
+  }
+
+  protected onEditableEnter(
+    event: Event,
+    rowIndex: number,
+    column: GridColumn<T>,
+  ): void {
+    event.preventDefault();
+    event.stopPropagation();
+    const target = event.target as HTMLElement | null;
+    if (target) {
+      const text = target.textContent ?? '';
+      this.emitCellValueChange(rowIndex, column, this.parseEditableValue(column, text));
+    }
+    this.navigate.emit('down');
   }
 
   protected onRowSelect(rowIndex: number): void {
@@ -215,15 +230,18 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   private isInteractiveElement(target: EventTarget | null): boolean {
+    if (target instanceof HTMLElement && target.isContentEditable) {
+      return true;
+    }
     return target instanceof HTMLInputElement
       || target instanceof HTMLSelectElement
       || target instanceof HTMLTextAreaElement;
   }
 
-  private getEditableControl(event: Event): HTMLInputElement | HTMLSelectElement | null {
+  private getEditableControl(event: Event): HTMLElement | null {
     const cell = event.currentTarget as HTMLElement | null;
     if (!cell) return null;
-    return cell.querySelector('input, select, textarea');
+    return cell.querySelector('[contenteditable="true"], input, select, textarea');
   }
 
   protected getInputType(column: GridColumn<T>): string {
@@ -241,10 +259,83 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     return row.current[this.rowIdField()] as string | number ?? index;
   }
 
+  protected getEditableDisplayValue(row: RowState<T>, column: GridColumn<T>): string {
+    const value = row.current[column.field as keyof T];
+    if (value === null || value === undefined) {
+      return '';
+    }
+
+    if (column.cellType === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+
+    if (column.cellType === 'select' && column.selectOptions) {
+      const option = column.selectOptions.find(o => o.value === value);
+      return option?.label ?? String(value);
+    }
+
+    return String(value);
+  }
+
+  private emitCellValueChange(rowIndex: number, column: GridColumn<T>, value: unknown): void {
+    const row = this.rows()[rowIndex];
+    const oldValue = row.current[column.field as keyof T];
+
+    if (oldValue !== value) {
+      this.cellEditEvent.emit({
+        rowId: row.current[this.rowIdField()] as string | number,
+        columnId: column.id,
+        oldValue,
+        newValue: value,
+        row: row.current,
+      });
+    }
+
+    this.cellValueChange.emit({ rowIndex, columnId: column.id, value });
+  }
+
+  private parseEditableValue(column: GridColumn<T>, text: string): unknown {
+    const trimmed = text.trim();
+
+    if (column.cellType === 'boolean') {
+      if (trimmed === '') return false;
+      const normalized = trimmed.toLowerCase();
+      return normalized === 'true'
+        || normalized === 'yes'
+        || normalized === '1'
+        || normalized === 'y';
+    }
+
+    if (column.cellType === 'number') {
+      const parsed = Number.parseFloat(trimmed);
+      return Number.isNaN(parsed) ? trimmed : parsed;
+    }
+
+    if (column.cellType === 'select' && column.selectOptions) {
+      const match = column.selectOptions.find(option =>
+        String(option.value) === trimmed || option.label.toLowerCase() === trimmed.toLowerCase(),
+      );
+      return match ? match.value : trimmed;
+    }
+
+    return trimmed;
+  }
+
+  private placeCaretAtEnd(element: HTMLElement): void {
+    if (!element.isContentEditable) return;
+    const range = document.createRange();
+    range.selectNodeContents(element);
+    range.collapse(false);
+    const selection = globalThis.getSelection?.();
+    if (!selection) return;
+    selection.removeAllRanges();
+    selection.addRange(range);
+  }
+
   /** Calculate left position for frozen columns */
   protected getFrozenColumnLeft(columnIndex: number): string {
     const cols = this.columns();
-    let left = this.selectable() ? 48 : 0; // checkbox column width
+    let left = this.selectable() ? 40 : 0; // checkbox column width
     
     for (let i = 0; i < columnIndex; i++) {
       if (cols[i]?.frozen) {
@@ -255,5 +346,15 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     }
     
     return `${left}px`;
+  }
+
+  /** Get tooltip text explaining row status */
+  protected getRowStatusTooltip(row: RowState<T>): string | null {
+    if (row.saving) return 'Saving...';
+    if (row.error) return `Error: ${row.error}`;
+    if (row.recentlyUpdated) return 'Recently saved';
+    if (row.isNew) return 'New row (unsaved)';
+    if (row.dirty) return 'Unsaved changes';
+    return null;
   }
 }

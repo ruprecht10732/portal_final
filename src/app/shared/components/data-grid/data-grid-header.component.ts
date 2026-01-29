@@ -1,6 +1,6 @@
 /**
  * Data Grid Header Component
- * Renders column headers with sort controls
+ * Renders column headers with sort controls and resize handles
  */
 
 import {
@@ -8,6 +8,7 @@ import {
   Component,
   input,
   output,
+  signal,
 } from '@angular/core';
 import { GridColumn, SortConfig } from './data-grid.types';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
@@ -35,6 +36,15 @@ export class DataGridHeaderComponent<T = unknown> {
   
   readonly sortChange = output<string>();
   readonly selectAll = output<void>();
+  readonly columnResize = output<{ columnId: string; width: number }>();
+
+  // ============ Resize State ============
+  
+  private readonly resizing = signal(false);
+  private readonly resizeColumnIndex = signal<number | null>(null);
+  private startX = 0;
+  private startWidth = 0;
+  private currentTh: HTMLElement | null = null;
 
   // ============ Methods ============
   
@@ -68,7 +78,7 @@ export class DataGridHeaderComponent<T = unknown> {
   /** Calculate left position for frozen columns */
   protected getFrozenColumnLeft(columnIndex: number): string {
     const cols = this.columns();
-    let left = this.selectable() ? 48 : 0; // checkbox column width
+    let left = this.selectable() ? 40 : 0; // checkbox column width
     
     for (let i = 0; i < columnIndex; i++) {
       if (cols[i]?.frozen) {
@@ -79,5 +89,50 @@ export class DataGridHeaderComponent<T = unknown> {
     }
     
     return `${left}px`;
+  }
+
+  // ============ Resize Handlers ============
+
+  protected onResizeStart(event: MouseEvent, colIndex: number, thElement: HTMLElement): void {
+    event.preventDefault();
+    event.stopPropagation();
+    
+    this.resizing.set(true);
+    this.resizeColumnIndex.set(colIndex);
+    this.startX = event.clientX;
+    this.startWidth = thElement.offsetWidth;
+    this.currentTh = thElement;
+
+    const onMouseMove = (e: MouseEvent) => this.onResizeMove(e);
+    const onMouseUp = (e: MouseEvent) => {
+      this.onResizeEnd(e, colIndex);
+      document.removeEventListener('mousemove', onMouseMove);
+      document.removeEventListener('mouseup', onMouseUp);
+    };
+
+    document.addEventListener('mousemove', onMouseMove);
+    document.addEventListener('mouseup', onMouseUp);
+  }
+
+  private onResizeMove(event: MouseEvent): void {
+    if (!this.resizing() || !this.currentTh) return;
+    
+    const diff = event.clientX - this.startX;
+    const newWidth = Math.max(50, this.startWidth + diff);
+    this.currentTh.style.width = `${newWidth}px`;
+  }
+
+  private onResizeEnd(event: MouseEvent, colIndex: number): void {
+    if (!this.currentTh) return;
+
+    const column = this.columns()[colIndex];
+    if (column) {
+      const finalWidth = this.currentTh.offsetWidth;
+      this.columnResize.emit({ columnId: column.id, width: finalWidth });
+    }
+
+    this.resizing.set(false);
+    this.resizeColumnIndex.set(null);
+    this.currentTh = null;
   }
 }

@@ -6,12 +6,6 @@
       [attr.aria-rowindex]="rowIndex + 2"
       class="group transition-colors duration-200"
       [class.bg-zinc-50/50]="rowIndex % 2 === 1 && !row.recentlyUpdated && !row.error && !row.dirty && !row.isNew"
-      [class.border-l-4]="true"
-      [class.border-l-transparent]="!row.dirty && !row.error && !row.isNew && !row.recentlyUpdated"
-      [class.border-l-green-500]="row.recentlyUpdated"
-      [class.border-l-red-500]="row.error"
-      [class.border-l-amber-500]="row.dirty && !row.isNew && !row.error && !row.recentlyUpdated"
-      [class.border-l-blue-500]="row.isNew && !row.error"
       [class.bg-green-50]="row.recentlyUpdated"
       [class.bg-red-50]="row.error"
       [class.bg-amber-50]="row.dirty && !row.isNew && !row.error && !row.recentlyUpdated"
@@ -22,15 +16,33 @@
       @if (selectable()) {
         <td
           role="gridcell"
-          class="w-10 px-1 py-1 sm:px-2 sm:py-2 border-b border-zinc-200 border-r border-zinc-200 sticky left-0 z-10 bg-inherit"
+          class="w-10 px-2 py-2 border border-zinc-200 sticky left-0 z-10 bg-inherit"
+          [attr.title]="getRowStatusTooltip(row)"
         >
-          <div class="flex items-center justify-center min-w-7 min-h-7">
-            <shared-checkbox
-              [checked]="row.selected"
-              [ariaLabel]="'Select row ' + (rowIndex + 1)"
-              [dense]="true"
-              (checkedChange)="onRowSelect(rowIndex)"
-            />
+          <div class="flex items-center justify-center min-w-7 min-h-7 relative">
+            @if (row.saving) {
+              <!-- Saving spinner -->
+              <svg class="w-4 h-4 animate-spin text-zinc-500 absolute" viewBox="0 0 24 24" fill="none">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              </svg>
+            } @else {
+              @if (row.dirty || row.error || row.isNew || row.recentlyUpdated) {
+                <span 
+                  class="absolute left-0 top-0 bottom-0 w-1"
+                  [class.bg-green-500]="row.recentlyUpdated"
+                  [class.bg-red-500]="row.error && !row.recentlyUpdated"
+                  [class.bg-amber-500]="row.dirty && !row.isNew && !row.error && !row.recentlyUpdated"
+                  [class.bg-blue-500]="row.isNew && !row.error && !row.recentlyUpdated"
+                ></span>
+              }
+              <shared-checkbox
+                [checked]="row.selected"
+                [ariaLabel]="'Select row ' + (rowIndex + 1)"
+                [dense]="true"
+                (checkedChange)="onRowSelect(rowIndex)"
+              />
+            }
           </div>
         </td>
       }
@@ -45,11 +57,14 @@
           (click)="onCellClick(rowIndex, colIndex)"
           (keydown)="onCellKeydown($event, rowIndex, colIndex)"
           (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
-          class="px-2 py-1 sm:px-2 sm:py-2 text-sm border-b border-zinc-200 border-r border-zinc-200 transition-all duration-150 outline-none"
+          class="px-2 py-2 text-sm border border-zinc-200 outline-none"
           [class.sticky]="column.frozen"
           [class.z-10]="column.frozen"
           [class.bg-inherit]="column.frozen"
           [class.shadow-[2px_0_4px_-2px_rgba(0,0,0,0.1)]]="column.frozen"
+          [style.width]="column.width"
+          [style.min-width]="column.minWidth ?? '80px'"
+          [style.max-width]="column.maxWidth"
           [style.left]="column.frozen ? getFrozenColumnLeft(colIndex) : null"
           [class.text-center]="column.align === 'center'"
           [class.text-right]="column.align === 'right'"
@@ -58,41 +73,20 @@
           [class.ring-inset]="isCellFocused(rowIndex, colIndex)"
         >
           @if (column.editable) {
-            <!-- Always-editable mode -->
+            <!-- Always-editable mode (contenteditable) -->
             <div class="flex flex-col gap-1">
-              @if (column.cellType === 'select') {
-                <select
-                  #inputRef
-                  [value]="getInputValue(row, column)"
-                  (change)="onInputChange(rowIndex, column, $event)"
-                  (keydown)="onCellKeydown($event, rowIndex, colIndex)"
-                  class="w-full px-2 py-1 text-sm bg-white border border-black focus:outline-none"
-                  [class.border-red-500]="getCellError(row, column.id)"
-                >
-                  @for (option of column.selectOptions; track option.value) {
-                    <option [value]="option.value">{{ option.label }}</option>
-                  }
-                </select>
-              } @else if (column.cellType === 'boolean') {
-                <input
-                  #inputRef
-                  type="checkbox"
-                  [checked]="getCellValue(row, column)"
-                  (change)="onInputChange(rowIndex, column, $event)"
-                  (keydown)="onCellKeydown($event, rowIndex, colIndex)"
-                  class="w-4 h-4 accent-black cursor-pointer"
-                />
-              } @else {
-                <input
-                  #inputRef
-                  [type]="getInputType(column)"
-                  [value]="getInputValue(row, column)"
-                  (input)="onInputChange(rowIndex, column, $event)"
-                  (keydown)="onCellKeydown($event, rowIndex, colIndex)"
-                  class="w-full px-2 py-1 text-sm bg-white border border-black focus:outline-none"
-                  [class.border-red-500]="getCellError(row, column.id)"
-                />
-              }
+              <div
+                #inputRef
+                class="w-full min-h-7 px-2 py-1 text-sm bg-transparent focus:outline-none"
+                [contentEditable]="true"
+                [textContent]="getEditableDisplayValue(row, column)"
+                (input)="onEditableInput(rowIndex, column, $event)"
+                (keydown.enter)="onEditableEnter($event, rowIndex, column)"
+                [class.text-zinc-500]="getEditableDisplayValue(row, column) === ''"
+                [class.outline-none]="true"
+                [class.border-red-500]="getCellError(row, column.id)"
+                [class.border]="getCellError(row, column.id)"
+              ></div>
               
               <!-- Validation error -->
               @if (getCellError(row, column.id)) {
@@ -132,65 +126,6 @@
           }
         </td>
       }
-
-      <!-- Actions column -->
-      <td
-        role="gridcell"
-        class="w-16 px-2 py-1 sm:px-2 sm:py-2 border-b border-zinc-200"
-      >
-        <div class="flex items-center justify-end gap-1">
-          <!-- Saving indicator -->
-          @if (row.saving) {
-            <div class="flex items-center gap-1 text-zinc-500">
-              <svg class="w-4 h-4 animate-spin" viewBox="0 0 24 24" fill="none">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
-              </svg>
-              <span class="sr-only">Saving</span>
-            </div>
-          }
-
-          <!-- Error indicator -->
-          @if (row.error) {
-            <button
-              type="button"
-              class="p-2 text-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-1"
-              [attr.aria-label]="'Error: ' + row.error"
-              [title]="row.error"
-            >
-              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
-              </svg>
-            </button>
-          }
-
-          <!-- Dirty indicator -->
-          @if (row.dirty && !row.saving && !row.error) {
-            <span 
-              class="w-2 h-2 bg-amber-500 rounded-full"
-              [attr.aria-label]="'Row has unsaved changes'"
-            ></span>
-          }
-
-          <!-- New row indicator -->
-          @if (row.isNew) {
-            <span 
-              class="px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-blue-800 bg-blue-100"
-            >
-              New
-            </span>
-          }
-
-          <!-- Recently updated indicator -->
-          @if (row.recentlyUpdated) {
-            <span 
-              class="px-1.5 py-0.5 text-[11px] font-bold uppercase tracking-wide text-green-800 bg-green-100 animate-pulse"
-            >
-              Updated
-            </span>
-          }
-        </div>
-      </td>
     </tr>
   } @empty {
     <!-- Empty state handled by parent -->
