@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { guestGuard } from './core/guards/guest.guard';
 import { leadsListResolver } from './routes/leads/leads-list.resolver';
 
 export const routes: Routes = [
@@ -11,26 +12,32 @@ export const routes: Routes = [
 	{
 		path: 'sign-in',
 		loadComponent: () => import('./routes/auth/sign-in/sign-in.component').then(m => m.SignInComponent),
+		canActivate: [guestGuard],
 	},
 	{
 		path: 'sign-up',
 		loadComponent: () => import('./routes/auth/sign-up/sign-up.component').then(m => m.SignUpComponent),
+		canActivate: [guestGuard],
 	},
 	{
 		path: 'forgot-password',
 		loadComponent: () => import('./routes/auth/forgot-password/forgot-password.component').then(m => m.ForgotPasswordComponent),
+		canActivate: [guestGuard],
 	},
 	{
 		path: 'reset-password',
 		loadComponent: () => import('./routes/auth/reset-password/reset-password.component').then(m => m.ResetPasswordComponent),
+		canActivate: [guestGuard],
 	},
 	{
 		path: 'check-email',
 		loadComponent: () => import('./routes/auth/check-email/check-email.component').then(m => m.CheckEmailComponent),
+		canActivate: [guestGuard],
 	},
 	{
 		path: 'verify-email',
 		loadComponent: () => import('./routes/auth/verify-email/verify-email.component').then(m => m.VerifyEmailComponent),
+		canActivate: [guestGuard],
 	},
 	{
 		path: 'app',
@@ -40,7 +47,11 @@ export const routes: Routes = [
 			{
 				path: '',
 				pathMatch: 'full',
-				redirectTo: 'leads',
+				redirectTo: 'dashboard',
+			},
+			{
+				path: 'dashboard',
+				loadComponent: () => import('./routes/dashboard/dashboard.component').then(m => m.DashboardComponent),
 			},
 			{
 				path: 'leads',
