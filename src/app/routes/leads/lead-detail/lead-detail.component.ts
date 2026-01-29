@@ -285,7 +285,7 @@ export class LeadDetailComponent implements OnInit {
     return `${lead.address.street} ${lead.address.houseNumber}, ${lead.address.zipCode} ${lead.address.city}`;
   }
 
-  protected formatHumanDateTime(dateStr: string | undefined): string {
+  protected formatHumanDateTime = (dateStr: string | undefined): string => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
     const now = new Date();
@@ -307,7 +307,7 @@ export class LeadDetailComponent implements OnInit {
 
     // For other dates, show full date with time
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ` at ${timeLabel}`;
-  }
+  };
 
   private parseTimestamp(value: string | null | undefined): number {
     if (!value) return Number.NEGATIVE_INFINITY;
@@ -481,12 +481,14 @@ export class LeadDetailComponent implements OnInit {
 
   protected scheduleVisit(): void {
     const lead = this.lead();
-    if (!lead || !this.scheduledDate() || !this.scheduledTime()) return;
+    const service = this.selectedService();
+    if (!lead || !service || !this.scheduledDate() || !this.scheduledTime()) return;
 
     const scheduledDate = new Date(`${this.scheduledDate()}T${this.scheduledTime()}`).toISOString();
     
     this.saving.set(true);
     this.leadsService.scheduleVisit(lead.id, {
+      serviceId: service.id,
       scheduledDate,
       scoutId: this.selectedScout() ?? undefined,
     }).subscribe({
@@ -507,11 +509,13 @@ export class LeadDetailComponent implements OnInit {
 
   protected completeSurvey(): void {
     const lead = this.lead();
+    const service = this.selectedService();
     const difficulty = this.accessDifficulty();
-    if (!lead || !this.measurements() || !difficulty) return;
+    if (!lead || !service || !this.measurements() || !difficulty) return;
 
     this.saving.set(true);
     this.leadsService.completeSurvey(lead.id, {
+      serviceId: service.id,
       measurements: this.measurements(),
       accessDifficulty: difficulty,
       notes: this.surveyNotes() || undefined,
@@ -556,10 +560,11 @@ export class LeadDetailComponent implements OnInit {
 
   protected markNoShow(): void {
     const lead = this.lead();
-    if (!lead) return;
+    const service = this.selectedService();
+    if (!lead || !service) return;
 
     this.saving.set(true);
-    this.leadsService.markNoShow(lead.id, { notes: 'Customer not home' }).subscribe({
+    this.leadsService.markNoShow(lead.id, { serviceId: service.id, notes: 'Customer not home' }).subscribe({
       next: (updated) => {
         this.lead.set(updated);
         this.saving.set(false);
@@ -578,12 +583,14 @@ export class LeadDetailComponent implements OnInit {
 
   protected rescheduleVisit(): void {
     const lead = this.lead();
-    if (!lead || !this.rescheduleDate() || !this.rescheduleTime()) return;
+    const service = this.selectedService();
+    if (!lead || !service || !this.rescheduleDate() || !this.rescheduleTime()) return;
 
     const scheduledDate = new Date(`${this.rescheduleDate()}T${this.rescheduleTime()}`).toISOString();
 
     this.saving.set(true);
     this.leadsService.rescheduleVisit(lead.id, {
+      serviceId: service.id,
       scheduledDate,
       scoutId: this.selectedScout() ?? undefined,
       noShowNotes: this.noShowNotes() || undefined,
@@ -660,13 +667,13 @@ export class LeadDetailComponent implements OnInit {
     this.surveyPhotos.set(Array.from(files));
   }
 
-  protected getUserLabelById(id: string | null | undefined): string {
+  protected getUserLabelById = (id: string | null | undefined): string => {
     if (!id) return 'Unassigned';
     const match = this.assigneeOptions().find(option => option.value === id);
     return match?.label ?? 'Unassigned';
-  }
+  };
 
-  protected getOutcomeLabel(outcome: string): string {
+  protected getOutcomeLabel = (outcome: string): string => {
     const labels: Record<string, string> = {
       completed: 'Completed',
       no_show: 'No Show',
@@ -674,9 +681,9 @@ export class LeadDetailComponent implements OnInit {
       cancelled: 'Cancelled',
     };
     return labels[outcome] ?? outcome;
-  }
+  };
 
-  protected getOutcomeColor(outcome: string): string {
+  protected getOutcomeColor = (outcome: string): string => {
     const colors: Record<string, string> = {
       completed: 'bg-green-100 text-green-800',
       no_show: 'bg-red-100 text-red-800',
@@ -684,7 +691,7 @@ export class LeadDetailComponent implements OnInit {
       cancelled: 'bg-zinc-100 text-zinc-600',
     };
     return colors[outcome] ?? 'bg-zinc-100 text-zinc-600';
-  }
+  };
 
   // Services management methods
   protected openAddServiceForm(): void {

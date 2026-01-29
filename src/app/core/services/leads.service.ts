@@ -72,7 +72,7 @@ export class LeadsService {
     return this.http.post<Lead>(`${this.baseUrl}/${id}/survey`, data);
   }
 
-  markNoShow(id: string, data: MarkNoShowRequest = {}): Observable<Lead> {
+  markNoShow(id: string, data: MarkNoShowRequest): Observable<Lead> {
     return this.http.post<Lead>(`${this.baseUrl}/${id}/no-show`, data);
   }
 

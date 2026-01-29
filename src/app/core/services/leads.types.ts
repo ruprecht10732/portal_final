@@ -135,21 +135,25 @@ export interface UpdateStatusRequest {
 }
 
 export interface ScheduleVisitRequest {
+  serviceId: string;
   scheduledDate: string;
   scoutId?: string;
 }
 
 export interface CompleteSurveyRequest {
+  serviceId: string;
   measurements: string;
   accessDifficulty: AccessDifficulty;
   notes?: string;
 }
 
 export interface MarkNoShowRequest {
+  serviceId: string;
   notes?: string;
 }
 
 export interface RescheduleVisitRequest {
+  serviceId: string;
   noShowNotes?: string;
   markAsNoShow?: boolean;
   scheduledDate: string;
