@@ -2,7 +2,7 @@
 
 export type ConsumerRole = 'Owner' | 'Tenant' | 'Landlord';
 export type ServiceType = 'Windows' | 'Insulation' | 'Solar';
-export type LeadStatus = 'New' | 'Attempted_Contact' | 'Scheduled' | 'Surveyed' | 'Bad_Lead' | 'Needs_Rescheduling';
+export type LeadStatus = 'New' | 'Attempted_Contact' | 'Scheduled' | 'Surveyed' | 'Bad_Lead' | 'Needs_Rescheduling' | 'Closed';
 export type AccessDifficulty = 'Low' | 'Medium' | 'High';
 
 export interface Consumer {
@@ -58,16 +58,24 @@ export interface LeadNote {
   updatedAt: string;
 }
 
+export interface LeadService {
+  id: string;
+  serviceType: ServiceType;
+  status: LeadStatus;
+  visit: Visit;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Lead {
   id: string;
   consumer: Consumer;
   address: Address;
-  serviceType: ServiceType;
-  status: LeadStatus;
+  services: LeadService[];
+  currentService?: LeadService;
   assignedAgentId?: string | null;
   viewedById?: string;
   viewedAt?: string;
-  visit: Visit;
   createdAt: string;
   updatedAt: string;
 }
@@ -104,9 +112,16 @@ export interface UpdateLeadRequest {
   houseNumber?: string;
   zipCode?: string;
   city?: string;
-  serviceType?: ServiceType;
-  status?: LeadStatus;
   assigneeId?: string | null;
+}
+
+export interface AddServiceRequest {
+  serviceType: ServiceType;
+  closeCurrentStatus?: boolean;
+}
+
+export interface UpdateServiceStatusRequest {
+  status: LeadStatus;
 }
 
 export interface AssignLeadRequest {
@@ -180,6 +195,7 @@ export const STATUS_LABELS: Record<LeadStatus, string> = {
   Surveyed: 'Surveyed',
   Bad_Lead: 'Bad Lead',
   Needs_Rescheduling: 'Needs Rescheduling',
+  Closed: 'Closed',
 };
 
 export const STATUS_COLORS: Record<LeadStatus, string> = {
@@ -189,6 +205,7 @@ export const STATUS_COLORS: Record<LeadStatus, string> = {
   Surveyed: 'bg-green-100 text-green-800',
   Bad_Lead: 'bg-zinc-200 text-zinc-600',
   Needs_Rescheduling: 'bg-orange-100 text-orange-800',
+  Closed: 'bg-gray-100 text-gray-600',
 };
 
 export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
@@ -222,4 +239,5 @@ export const STATUS_OPTIONS: { label: string; value: LeadStatus }[] = [
   { label: 'Surveyed', value: 'Surveyed' },
   { label: 'Bad Lead', value: 'Bad_Lead' },
   { label: 'Needs Rescheduling', value: 'Needs_Rescheduling' },
+  { label: 'Closed', value: 'Closed' },
 ];

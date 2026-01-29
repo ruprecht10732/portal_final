@@ -19,6 +19,8 @@ import type {
   ListLeadsParams,
   BulkDeleteLeadsResponse,
   VisitHistoryListResponse,
+  AddServiceRequest,
+  UpdateServiceStatusRequest,
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
@@ -102,5 +104,13 @@ export class LeadsService {
     return this.http.get<DuplicateCheckResponse>(`${this.baseUrl}/check-duplicate`, {
       params: new HttpParams().set('phone', phone),
     });
+  }
+
+  addService(id: string, data: AddServiceRequest): Observable<Lead> {
+    return this.http.post<Lead>(`${this.baseUrl}/${id}/services`, data);
+  }
+
+  updateServiceStatus(leadId: string, serviceId: string, data: UpdateServiceStatusRequest): Observable<Lead> {
+    return this.http.patch<Lead>(`${this.baseUrl}/${leadId}/services/${serviceId}/status`, data);
   }
 }

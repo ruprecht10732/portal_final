@@ -94,7 +94,7 @@ export class LeadFormComponent implements OnInit {
     this.houseNumber.set(lead.address.houseNumber);
     this.zipCode.set(lead.address.zipCode);
     this.city.set(lead.address.city);
-    this.serviceType.set(lead.serviceType);
+    this.serviceType.set(lead.currentService?.serviceType ?? 'Windows');
   }
 
   protected checkDuplicate(): void {
@@ -148,6 +148,7 @@ export class LeadFormComponent implements OnInit {
       const lead = this.lead();
       if (!lead) return;
 
+      // Note: serviceType is no longer updated here - services are managed per-service in detail view
       const request: UpdateLeadRequest = {
         firstName: this.firstName().trim(),
         lastName: this.lastName().trim(),
@@ -158,7 +159,6 @@ export class LeadFormComponent implements OnInit {
         houseNumber: this.houseNumber().trim(),
         zipCode: this.zipCode().trim(),
         city: this.city().trim(),
-        serviceType: this.serviceType(),
       };
 
       this.leadsService.update(lead.id, request).subscribe({

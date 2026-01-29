@@ -1,3 +1,83 @@
 :host {
   display: block;
 }
+
+/* Touch targets - min 44x44px */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Checkbox styling moved to shared-checkbox component */
+
+/* Focus visible states */
+button:focus-visible,
+a:focus-visible,
+input:focus-visible,
+textarea:focus-visible,
+select:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Edit link touch target */
+.edit-link {
+  min-height: 44px;
+  min-width: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 12px;
+  margin: -8px -12px;
+  border-radius: 6px;
+}
+
+.edit-link:hover {
+  background-color: rgb(220 252 231); /* green-100 */
+}
+
+/* Dropdown backdrop */
+.dropdown-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+}
+
+/* Details chevron animation */
+details summary {
+  list-style: none;
+}
+
+details summary::-webkit-details-marker {
+  display: none;
+}
+
+details summary::after {
+  content: '';
+  border: solid currentColor;
+  border-width: 0 2px 2px 0;
+  display: inline-block;
+  padding: 3px;
+  transform: rotate(45deg);
+  transition: transform 0.2s ease-out;
+  margin-left: auto;
+}
+
+details[open] summary::after {
+  transform: rotate(-135deg);
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  .animate-spin {
+    animation: none;
+  }
+  
+  details summary::after {
+    transition: none;
+  }
+}

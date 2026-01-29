@@ -1,11 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeadsService } from '../../../core/services/leads.service';
 import { UserService } from '../../../core/services/user.service';
-import type { Lead, LeadNote, LeadStatus, AccessDifficulty, VisitHistory } from '../../../core/services/leads.types';
+import type { Lead, LeadNote, LeadStatus, AccessDifficulty, VisitHistory, ServiceType, LeadService } from '../../../core/services/leads.types';
 import type { UserProfile } from '../../../core/services/user.types';
-import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/leads.types';
+import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS, SERVICE_TYPE_OPTIONS, SERVICE_TYPE_LABELS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
@@ -16,7 +18,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, InputComponent, MapPreviewComponent, SelectComponent, TextareaComponent],
+  imports: [ButtonComponent, CheckboxComponent, ConfirmDialogComponent, InputComponent, MapPreviewComponent, SelectComponent, TextareaComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -67,8 +69,35 @@ export class LeadDetailComponent implements OnInit {
   protected readonly noteBoxDesktop = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxDesktop');
   protected readonly noteBoxMobile = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxMobile');
 
+  // ARIA live region for announcements
+  protected readonly announcement = signal<string>('');
+  
+  // Confirmation dialog
+  protected readonly showConfirmDialog = signal(false);
+  protected readonly confirmDialogTitle = signal('');
+  protected readonly confirmDialogMessage = signal('');
+  protected readonly pendingStatusChange = signal<LeadStatus | null>(null);
+
+  // Services management
+  protected readonly showAddServiceForm = signal(false);
+  protected readonly newServiceType = signal<ServiceType | null>(null);
+  protected readonly closeCurrentService = signal(true);
+  protected readonly selectedServiceId = signal<string | null>(null);
+
+  // Computed selected service - uses selectedServiceId or falls back to currentService
+  protected readonly selectedService = computed(() => {
+    const lead = this.lead();
+    const selectedId = this.selectedServiceId();
+    if (!lead) return null;
+    if (!selectedId) return lead.currentService ?? null;
+    return lead.services.find(s => s.id === selectedId) ?? lead.currentService ?? null;
+  });
+
   protected readonly STATUS_LABELS = STATUS_LABELS;
   protected readonly STATUS_COLORS = STATUS_COLORS;
+  protected readonly SERVICE_TYPE_LABELS = SERVICE_TYPE_LABELS;
+
+  protected readonly serviceTypeOptions = computed(() => SERVICE_TYPE_OPTIONS);
 
   protected readonly statusOptions = computed<SelectOption<LeadStatus>[]>(() => STATUS_OPTIONS);
   protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => ACCESS_DIFFICULTY_OPTIONS);
@@ -87,17 +116,18 @@ export class LeadDetailComponent implements OnInit {
     Surveyed: 'Completed',
     Bad_Lead: 'Bad Lead',
     Needs_Rescheduling: 'Needs Rescheduling',
+    Closed: 'Closed',
   }));
 
   protected readonly quickAction = computed<'log' | 'schedule' | 'none'>(() => {
-    const status = this.lead()?.status;
+    const status = this.selectedService()?.status;
     if (status === 'New') return 'log';
     if (status === 'Attempted_Contact') return 'schedule';
     return 'none';
   });
 
   protected readonly isVisitInFuture = computed(() => {
-    const scheduledDate = this.lead()?.visit?.scheduledDate;
+    const scheduledDate = this.selectedService()?.visit?.scheduledDate;
     if (!scheduledDate) return false;
     return new Date(scheduledDate) > new Date();
   });
@@ -138,20 +168,20 @@ export class LeadDetailComponent implements OnInit {
           message: 'Lead viewed',
         });
       }
-      if (lead.visit?.scheduledDate) {
+      if (lead.currentService?.visit?.scheduledDate) {
         entries.push({
           id: `scheduled-${lead.id}`,
           type: 'audit',
-          timestamp: this.getScheduledEventTimestamp(lead) ?? lead.visit.scheduledDate,
+          timestamp: this.getScheduledEventTimestamp(lead) ?? lead.currentService.visit.scheduledDate,
           user: 'System',
           message: 'Visit scheduled',
         });
       }
-      if (lead.visit?.completedAt) {
+      if (lead.currentService?.visit?.completedAt) {
         entries.push({
           id: `completed-${lead.id}`,
           type: 'audit',
-          timestamp: lead.visit.completedAt,
+          timestamp: lead.currentService.visit.completedAt,
           user: 'System',
           message: 'Visit completed',
         });
@@ -189,9 +219,9 @@ export class LeadDetailComponent implements OnInit {
     this.leadsService.getById(id).subscribe({
       next: (lead) => {
         this.lead.set(lead);
-        this.newStatus.set(lead.status);
+        this.newStatus.set(lead.currentService?.status ?? null);
         this.selectedAssignee.set(lead.assignedAgentId ?? null);
-        this.selectedScout.set(lead.visit?.scoutId ?? lead.assignedAgentId ?? null);
+        this.selectedScout.set(lead.currentService?.visit?.scoutId ?? lead.assignedAgentId ?? null);
         this.loading.set(false);
         this.loadNotes(lead.id);
         this.loadVisitHistory(lead.id);
@@ -281,7 +311,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected getScheduledEventTimestamp(lead: Lead): string | undefined {
-    const scheduled = lead.visit?.scheduledDate;
+    const scheduled = lead.currentService?.visit?.scheduledDate;
     if (!scheduled) return undefined;
     const scheduledTime = Date.parse(scheduled);
     const nowTime = Date.now();
@@ -299,10 +329,81 @@ export class LeadDetailComponent implements OnInit {
     this.statusMenuOpen.update(open => !open);
   }
 
+  protected closeStatusMenu(): void {
+    this.statusMenuOpen.set(false);
+  }
+
   protected selectStatus(status: LeadStatus): void {
     this.statusMenuOpen.set(false);
+    
+    // Check if this is a terminal status that needs confirmation
+    if (this.isTerminalStatus(status) && status !== this.lead()?.currentService?.status) {
+      this.pendingStatusChange.set(status);
+      this.confirmDialogTitle.set(`Change to ${this.getStatusLabel(status)}?`);
+      this.confirmDialogMessage.set(this.getConfirmMessage(status));
+      this.showConfirmDialog.set(true);
+      return;
+    }
+    
     this.newStatus.set(status);
     this.updateStatus(status);
+  }
+
+  private getConfirmMessage(status: LeadStatus): string {
+    if (status === 'Bad_Lead') {
+      return 'This will mark the lead as a bad lead. This action may affect reporting.';
+    }
+    if (status === 'Closed') {
+      return 'This will close the lead. Make sure all work is completed.';
+    }
+    return 'Are you sure you want to make this change?';
+  }
+
+  protected confirmStatusChange(): void {
+    const status = this.pendingStatusChange();
+    if (status) {
+      this.newStatus.set(status);
+      this.updateStatus(status);
+    }
+    this.cancelConfirmDialog();
+  }
+
+  protected cancelConfirmDialog(): void {
+    this.showConfirmDialog.set(false);
+    this.pendingStatusChange.set(null);
+    this.confirmDialogTitle.set('');
+    this.confirmDialogMessage.set('');
+  }
+
+  // Keyboard handler for dropdowns and dialogs
+  @HostListener('document:keydown', ['$event'])
+  handleKeydown(event: KeyboardEvent): void {
+    if (event.key === 'Escape') {
+      if (this.showConfirmDialog()) {
+        this.cancelConfirmDialog();
+        return;
+      }
+      if (this.statusMenuOpen()) {
+        this.closeStatusMenu();
+        return;
+      }
+      if (this.showScheduleForm()) {
+        this.showScheduleForm.set(false);
+        return;
+      }
+      if (this.showRescheduleForm()) {
+        this.showRescheduleForm.set(false);
+        return;
+      }
+      if (this.showSurveyForm()) {
+        this.cancelEditVisit();
+        return;
+      }
+      if (this.showAddServiceForm()) {
+        this.cancelAddService();
+        return;
+      }
+    }
   }
 
   protected getMapUrl(): string {
@@ -349,13 +450,14 @@ export class LeadDetailComponent implements OnInit {
   protected updateStatus(statusOverride?: LeadStatus): void {
     const lead = this.lead();
     const status = statusOverride ?? this.newStatus();
-    if (!lead || !status || status === lead.status) return;
+    if (!lead || !status || status === lead.currentService?.status) return;
 
     this.saving.set(true);
     this.leadsService.updateStatus(lead.id, { status }).subscribe({
       next: (updated) => {
         this.lead.set(updated);
         this.saving.set(false);
+        this.announce(`Status changed to ${this.getStatusLabel(status)}`);
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to update status');
@@ -399,6 +501,7 @@ export class LeadDetailComponent implements OnInit {
         this.scheduledDate.set('');
         this.scheduledTime.set('');
         this.saving.set(false);
+        this.announce('Visit scheduled successfully');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to schedule visit');
@@ -427,6 +530,7 @@ export class LeadDetailComponent implements OnInit {
         this.surveyNotes.set('');
         this.surveyPhotos.set([]);
         this.saving.set(false);
+        this.announce(this.isEditingVisit() ? 'Visit updated successfully' : 'Visit completed successfully');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to complete survey');
@@ -437,10 +541,11 @@ export class LeadDetailComponent implements OnInit {
 
   protected editVisit(): void {
     const lead = this.lead();
-    if (!lead) return;
-    this.measurements.set(lead.visit.measurements ?? '');
-    this.accessDifficulty.set(lead.visit.accessDifficulty ?? null);
-    this.surveyNotes.set(lead.visit.notes ?? '');
+    const visit = lead?.currentService?.visit;
+    if (!lead || !visit) return;
+    this.measurements.set(visit.measurements ?? '');
+    this.accessDifficulty.set(visit.accessDifficulty ?? null);
+    this.surveyNotes.set(visit.notes ?? '');
     this.isEditingVisit.set(true);
     this.showSurveyForm.set(true);
   }
@@ -498,6 +603,7 @@ export class LeadDetailComponent implements OnInit {
         this.markAsNoShow.set(false);
         this.saving.set(false);
         this.loadVisitHistory(lead.id);
+        this.announce('Visit rescheduled successfully');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to reschedule visit');
@@ -522,6 +628,7 @@ export class LeadDetailComponent implements OnInit {
         this.noteText.set('');
         this.noteSaving.set(false);
         this.focusNoteBox();
+        this.announce('Note added successfully');
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to add note');
@@ -581,6 +688,81 @@ export class LeadDetailComponent implements OnInit {
       cancelled: 'bg-zinc-100 text-zinc-600',
     };
     return colors[outcome] ?? 'bg-zinc-100 text-zinc-600';
+  }
+
+  // Services management methods
+  protected openAddServiceForm(): void {
+    this.showAddServiceForm.set(true);
+    this.newServiceType.set(null);
+    this.closeCurrentService.set(true);
+  }
+
+  protected cancelAddService(): void {
+    this.showAddServiceForm.set(false);
+    this.newServiceType.set(null);
+  }
+
+  protected addService(): void {
+    const lead = this.lead();
+    const serviceType = this.newServiceType();
+    if (!lead || !serviceType) return;
+
+    this.saving.set(true);
+    this.leadsService.addService(lead.id, {
+      serviceType,
+      closeCurrentStatus: this.closeCurrentService(),
+    }).subscribe({
+      next: (updated) => {
+        this.lead.set(updated);
+        this.showAddServiceForm.set(false);
+        this.newServiceType.set(null);
+        this.saving.set(false);
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Failed to add service');
+        this.saving.set(false);
+      },
+    });
+  }
+
+  protected updateServiceStatus(service: LeadService, newStatus: LeadStatus): void {
+    const lead = this.lead();
+    if (!lead) return;
+
+    this.saving.set(true);
+    this.leadsService.updateServiceStatus(lead.id, service.id, { status: newStatus }).subscribe({
+      next: (updated) => {
+        this.lead.set(updated);
+        this.saving.set(false);
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Failed to update service status');
+        this.saving.set(false);
+      },
+    });
+  }
+
+  protected selectService(service: LeadService): void {
+    const previousId = this.selectedServiceId();
+    this.selectedServiceId.set(service.id);
+    
+    // Reset form states when switching services
+    if (previousId !== service.id) {
+      this.showScheduleForm.set(false);
+      this.showRescheduleForm.set(false);
+      this.showSurveyForm.set(false);
+      this.isEditingVisit.set(false);
+    }
+  }
+
+  protected isTerminalStatus(status: LeadStatus): boolean {
+    return status === 'Closed' || status === 'Bad_Lead' || status === 'Surveyed';
+  }
+
+  // Announce messages for screen readers
+  private announce(message: string): void {
+    this.announcement.set(message);
+    setTimeout(() => this.announcement.set(''), 3000);
   }
 }
 

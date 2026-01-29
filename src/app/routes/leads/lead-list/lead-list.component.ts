@@ -149,11 +149,10 @@ export class LeadListComponent implements OnInit {
       field: 'serviceType',
       sortable: true,
       filterable: true,
-      editable: true,
+      editable: false, // Now per-service, edit in detail view
       width: '140px',
       cellType: 'select',
       selectOptions: SERVICE_TYPE_OPTIONS,
-      validator: value => SERVICE_TYPE_OPTIONS.some(opt => opt.value === value) ? null : 'Required',
     },
     {
       id: 'status',
@@ -161,7 +160,7 @@ export class LeadListComponent implements OnInit {
       field: 'status',
       sortable: true,
       filterable: true,
-      editable: true,
+      editable: false, // Now per-service, edit in detail view
       width: '140px',
       cellType: 'select',
       selectOptions: STATUS_OPTIONS.map(opt => ({
@@ -260,7 +259,10 @@ export class LeadListComponent implements OnInit {
       ...row,
       assignedAgentId: row.assignedAgentId ?? '',
       fullName: `${row.consumer?.firstName ?? ''} ${row.consumer?.lastName ?? ''}`.trim(),
-    };
+      // Map currentService fields to top level for grid display
+      serviceType: row.currentService?.serviceType ?? 'Windows',
+      status: row.currentService?.status ?? 'New',
+    } as LeadRow;
   }
 
   protected fetchData(request: DataRequest): Observable<DataResponse<LeadRow>> {
@@ -394,7 +396,7 @@ export class LeadListComponent implements OnInit {
       const normalizedAssigneeId = assigneeId === '' || assigneeId === 'null' ? null : assigneeId;
 
       if (row.id) {
-        // Handle updates
+        // Handle updates - note: serviceType and status are now per-service, not on lead level
         const updateRequest: UpdateLeadRequest = {
           firstName: normalize(consumer.firstName),
           lastName: normalize(consumer.lastName),
@@ -405,8 +407,6 @@ export class LeadListComponent implements OnInit {
           houseNumber: normalize(address.houseNumber),
           zipCode: normalize(address.zipCode),
           city: normalize(address.city),
-          serviceType: row.serviceType,
-          status: row.status,
           assigneeId: normalizedAssigneeId,
         };
 
@@ -428,7 +428,7 @@ export class LeadListComponent implements OnInit {
           houseNumber: address.houseNumber ?? '',
           zipCode: address.zipCode ?? '',
           city: address.city ?? '',
-          serviceType: row.serviceType ?? 'Windows',
+          serviceType: row.currentService?.serviceType ?? 'Windows',
           assigneeId: normalizedAssigneeId,
         };
 
