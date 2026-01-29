@@ -5,6 +5,7 @@ import { UserService } from '../../../core/services/user.service';
 import type { Lead, LeadNote, LeadStatus, AccessDifficulty, VisitHistory, ServiceType, LeadService } from '../../../core/services/leads.types';
 import type { UserProfile } from '../../../core/services/user.types';
 import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS, SERVICE_TYPE_OPTIONS, SERVICE_TYPE_LABELS } from '../../../core/services/leads.types';
+import { CardComponent } from '../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
@@ -19,7 +20,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CheckboxComponent, ConfirmDialogComponent, InputComponent, MapPreviewComponent, SelectComponent, TextareaComponent, LeadDetailHeaderComponent],
+  imports: [CardComponent, ButtonComponent, CheckboxComponent, ConfirmDialogComponent, InputComponent, MapPreviewComponent, SelectComponent, TextareaComponent, LeadDetailHeaderComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
