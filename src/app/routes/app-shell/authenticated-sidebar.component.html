@@ -64,38 +64,10 @@
   </aside>
 
   @if (isExpanded()) {
-    <section class="h-full w-64 border border-zinc-200 border-l-0 bg-white px-5 py-6">
-      <div class="text-xs font-semibold uppercase tracking-[0.32em] text-zinc-400">Current</div>
-      <div class="mt-2 text-lg font-semibold text-zinc-900">
-        {{ activeTitle() }}
-      </div>
-      @if (isLeadsRoute()) {
-        <nav class="mt-6 flex flex-col gap-2" aria-label="Leads">
-          <a
-            [routerLink]="'/app/leads'"
-            routerLinkActive
-            #leadOverviewActive="routerLinkActive"
-            [routerLinkActiveOptions]="{ exact: true }"
-            class="flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-zinc-900"
-            [class.text-zinc-900]="leadOverviewActive.isActive"
-            [class.font-semibold]="leadOverviewActive.isActive"
-          >
-            <lucide-icon name="list" class="h-4 w-4"></lucide-icon>
-            Lead overview
-          </a>
-          <a
-            [routerLink]="'/app/leads/new'"
-            routerLinkActive
-            #leadCreateActive="routerLinkActive"
-            class="flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-zinc-900"
-            [class.text-zinc-900]="leadCreateActive.isActive"
-            [class.font-semibold]="leadCreateActive.isActive"
-          >
-            <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
-            Create lead
-          </a>
-        </nav>
-      }
-    </section>
+    <app-authenticated-sidebar-panel
+      [title]="activeTitle()"
+      [showLeads]="isLeadsRoute()"
+      [leadItems]="leadPanelItems"
+    ></app-authenticated-sidebar-panel>
   }
 </div>

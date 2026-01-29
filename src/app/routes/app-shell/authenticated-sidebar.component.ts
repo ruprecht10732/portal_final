@@ -13,6 +13,10 @@ import {
 } from 'lucide-angular';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { MenuComponent, MenuSection } from '../../shared/components/menu/menu.component';
+import {
+  AuthenticatedSidebarPanelComponent,
+  SidebarPanelItem,
+} from './authenticated-sidebar-panel.component';
 
 interface SidebarItem {
   label: string;
@@ -22,7 +26,14 @@ interface SidebarItem {
 
 @Component({
   selector: 'app-authenticated-sidebar',
-  imports: [RouterLink, RouterLinkActive, ButtonComponent, MenuComponent, LucideAngularModule],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    ButtonComponent,
+    MenuComponent,
+    LucideAngularModule,
+    AuthenticatedSidebarPanelComponent,
+  ],
   templateUrl: './authenticated-sidebar.component.html',
   styleUrl: './authenticated-sidebar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -59,6 +70,20 @@ export class AuthenticatedSidebarComponent {
         { label: 'Profile', route: '/app/profile' },
         { label: 'Sign out', route: '/sign-in' },
       ],
+    },
+  ];
+
+  protected readonly leadPanelItems: readonly SidebarPanelItem[] = [
+    {
+      label: 'Lead overview',
+      route: '/app/leads',
+      icon: 'list',
+      exact: true,
+    },
+    {
+      label: 'Create lead',
+      route: '/app/leads/new',
+      icon: 'plus',
     },
   ];
 
