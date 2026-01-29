@@ -5,12 +5,11 @@
 >
   @for (row of rows(); track trackByRowId($index, row); let rowIndex = $index) {
     <li>
-      <article
+      <button
+        type="button"
         class="group relative flex flex-col transition-colors duration-150 cursor-pointer focus:outline-hidden focus:bg-zinc-50 dark:focus:bg-zinc-800/50"
         [class]="getStatusClass(row) + ' ' + getBgClass(row)"
-        [attr.aria-selected]="row.selected"
-        role="button"
-        tabindex="0"
+        [attr.aria-pressed]="row.selected ? 'true' : 'false'"
         (click)="onCardClick(rowIndex)"
         (keydown.enter)="onCardClick(rowIndex)"
       >
@@ -109,7 +108,7 @@
             </shared-button>
           </div>
         </app-bottom-sheet>
-      </article>
+      </button>
     </li>
   }
 
