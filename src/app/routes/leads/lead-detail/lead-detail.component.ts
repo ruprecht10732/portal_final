@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, OnIni
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeadsService } from '../../../core/services/leads.service';
 import { UserService } from '../../../core/services/user.service';
-import type { Lead, LeadStatus, AccessDifficulty } from '../../../core/services/leads.types';
+import type { Lead, LeadNote, LeadStatus, AccessDifficulty } from '../../../core/services/leads.types';
 import type { UserProfile } from '../../../core/services/user.types';
 import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -28,6 +28,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly saving = signal(false);
+  protected readonly noteSaving = signal(false);
   protected readonly user = signal<UserProfile | null>(null);
   protected readonly assigneeOptions = signal<SelectOption<string | null>[]>([]);
   protected readonly selectedAssignee = signal<string | null>(null);
@@ -52,7 +53,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly surveyPhotos = signal<File[]>([]);
 
   protected readonly noteText = signal('');
-  protected readonly notes = signal<ActivityEntry[]>([]);
+  protected readonly leadNotes = signal<LeadNote[]>([]);
   protected readonly copiedAddress = signal(false);
   protected readonly noteBoxDesktop = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxDesktop');
   protected readonly noteBoxMobile = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxMobile');
@@ -89,6 +90,13 @@ export class LeadDetailComponent implements OnInit {
   protected readonly activityFeed = computed<ActivityEntry[]>(() => {
     const lead = this.lead();
     const entries: ActivityEntry[] = [];
+    const noteEntries = this.leadNotes().map(note => ({
+      id: note.id,
+      type: 'note' as const,
+      timestamp: note.createdAt,
+      user: note.authorEmail,
+      message: note.body,
+    }));
     if (lead) {
       entries.push({
         id: `created-${lead.id}`,
@@ -135,11 +143,21 @@ export class LeadDetailComponent implements OnInit {
       }
     }
 
-    return [...this.notes(), ...entries].sort((a, b) => {
-      const aTime = new Date(a.timestamp).getTime();
-      const bTime = new Date(b.timestamp).getTime();
-      return bTime - aTime;
+    return [...noteEntries, ...entries].sort((a, b) => {
+      const aTime = this.parseTimestamp(a.timestamp);
+      const bTime = this.parseTimestamp(b.timestamp);
+      if (aTime !== bTime) {
+        return bTime - aTime;
+      }
+      if (a.type !== b.type) {
+        return a.type === 'note' ? -1 : 1;
+      }
+      return a.id.localeCompare(b.id);
     });
+  });
+
+  protected readonly canSubmitNote = computed(() => {
+    return this.noteText().trim().length > 0 && !this.noteSaving();
   });
 
   ngOnInit(): void {
@@ -160,6 +178,7 @@ export class LeadDetailComponent implements OnInit {
         this.selectedAssignee.set(lead.assignedAgentId ?? null);
         this.selectedScout.set(lead.visit?.scoutId ?? lead.assignedAgentId ?? null);
         this.loading.set(false);
+        this.loadNotes(lead.id);
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
       },
@@ -232,6 +251,12 @@ export class LeadDetailComponent implements OnInit {
     }
 
     return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  private parseTimestamp(value: string | null | undefined): number {
+    if (!value) return Number.NEGATIVE_INFINITY;
+    const parsed = Date.parse(value);
+    return Number.isNaN(parsed) ? Number.NEGATIVE_INFINITY : parsed;
   }
 
   protected getStatusLabel(status: LeadStatus): string {
@@ -399,19 +424,34 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected addNote(): void {
+    const lead = this.lead();
     const text = this.noteText().trim();
-    if (!text) return;
-    const userLabel = this.user()?.email ?? 'You';
-    const entry: ActivityEntry = {
-      id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
-      type: 'note',
-      timestamp: new Date().toISOString(),
-      user: userLabel,
-      message: text,
-    };
-    this.notes.update(items => [entry, ...items]);
-    this.noteText.set('');
-    this.focusNoteBox();
+    if (!lead || !text || this.noteSaving()) return;
+
+    this.noteSaving.set(true);
+    this.leadsService.addNote(lead.id, { body: text }).subscribe({
+      next: (created) => {
+        this.leadNotes.update(items => [created, ...items]);
+        this.noteText.set('');
+        this.noteSaving.set(false);
+        this.focusNoteBox();
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Failed to add note');
+        this.noteSaving.set(false);
+      },
+    });
+  }
+
+  private loadNotes(id: string): void {
+    this.leadsService.listNotes(id).subscribe({
+      next: (response) => {
+        this.leadNotes.set(response.items || []);
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Failed to load notes');
+      },
+    });
   }
 
   protected onPhotosSelected(files: FileList | null): void {

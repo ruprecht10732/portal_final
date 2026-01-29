@@ -324,6 +324,7 @@
                 variant="secondary"
                 [uppercase]="false"
                 [fullWidth]="false"
+                [disabled]="!canSubmitNote()"
                 (clicked)="addNote()"
               >
                 Add Note
@@ -590,6 +591,7 @@
                       variant="secondary"
                       [uppercase]="false"
                       [fullWidth]="false"
+                      [disabled]="!canSubmitNote()"
                       (clicked)="addNote()"
                     >
                       Add Note

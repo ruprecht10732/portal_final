@@ -29,6 +29,16 @@ export interface Visit {
   completedAt?: string;
 }
 
+export interface LeadNote {
+  id: string;
+  leadId: string;
+  authorId: string;
+  authorEmail: string;
+  body: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Lead {
   id: string;
   consumer: Consumer;
@@ -101,6 +111,14 @@ export interface CompleteSurveyRequest {
 
 export interface MarkNoShowRequest {
   notes?: string;
+}
+
+export interface CreateLeadNoteRequest {
+  body: string;
+}
+
+export interface LeadNotesResponse {
+  items: LeadNote[];
 }
 
 export interface DuplicateCheckResponse {

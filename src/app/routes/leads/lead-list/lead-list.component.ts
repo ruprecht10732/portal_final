@@ -85,6 +85,19 @@ export class LeadListComponent implements OnInit {
       },
     },
     {
+      id: 'email',
+      header: 'Email',
+      field: 'consumer.email' as keyof LeadRow,
+      editable: true,
+      width: '200px',
+      cellType: 'text',
+      validator: value => {
+        if (value === null || value === undefined || value === '') return null;
+        if (typeof value !== 'string') return 'Invalid email';
+        return value.includes('@') ? null : 'Invalid email';
+      },
+    },
+    {
       id: 'role',
       header: 'Role',
       field: 'consumer.role' as keyof LeadRow,

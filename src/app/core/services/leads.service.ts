@@ -11,7 +11,10 @@ import type {
   ScheduleVisitRequest,
   CompleteSurveyRequest,
   MarkNoShowRequest,
+  CreateLeadNoteRequest,
   DuplicateCheckResponse,
+  LeadNotesResponse,
+  LeadNote,
   ListLeadsParams,
   BulkDeleteLeadsResponse,
 } from './leads.types';
@@ -71,6 +74,14 @@ export class LeadsService {
 
   markViewed(id: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.baseUrl}/${id}/view`, {});
+  }
+
+  listNotes(id: string): Observable<LeadNotesResponse> {
+    return this.http.get<LeadNotesResponse>(`${this.baseUrl}/${id}/notes`);
+  }
+
+  addNote(id: string, data: CreateLeadNoteRequest): Observable<LeadNote> {
+    return this.http.post<LeadNote>(`${this.baseUrl}/${id}/notes`, data);
   }
 
   assign(id: string, assigneeId: string | null): Observable<Lead> {
