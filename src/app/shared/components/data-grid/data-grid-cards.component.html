@@ -6,10 +6,13 @@
   @for (row of rows(); track trackByRowId($index, row); let rowIndex = $index) {
     <li>
       <article
-        class="group relative flex flex-col transition-colors duration-150 cursor-pointer"
+        class="group relative flex flex-col transition-colors duration-150 cursor-pointer focus:outline-hidden focus:bg-zinc-50 dark:focus:bg-zinc-800/50"
         [class]="getStatusClass(row) + ' ' + getBgClass(row)"
         [attr.aria-selected]="row.selected"
-        (dblclick)="onCardDoubleClick(rowIndex)"
+        role="button"
+        tabindex="0"
+        (click)="onCardClick(rowIndex)"
+        (keydown.enter)="onCardClick(rowIndex)"
       >
         <!-- Main Card Content (Horizontal Layout) -->
         <div class="flex items-center gap-4 p-3 font-sans">

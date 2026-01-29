@@ -74,8 +74,8 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   /** Row selection toggle */
   readonly rowSelect = output<number>();
   
-  /** Row double-click for navigation */
-  readonly rowDoubleClick = output<number>();
+  /** Row click (tapping) for navigation/action */
+  readonly rowClick = output<number>();
   
   /** Cell value change */
   readonly cellValueChange = output<{ rowIndex: number; columnId: string; value: unknown }>();
@@ -295,9 +295,9 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     this.rowSelect.emit(index);
   }
 
-  /** Handle card double-click for navigation */
-  protected onCardDoubleClick(index: number): void {
-    this.rowDoubleClick.emit(index);
+  /** Handle card click for navigation/action */
+  protected onCardClick(index: number): void {
+    this.rowClick.emit(index);
   }
 
   /** Handle cell value change */

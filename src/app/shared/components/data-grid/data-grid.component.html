@@ -119,7 +119,7 @@
         [statusField]="store.config().statusField"
         [previewFieldCount]="store.config().cardPreviewFieldCount"
         (rowSelect)="store.toggleRowSelection($event)"
-        (rowDoubleClick)="onRowDoubleClick($event)"
+        (rowClick)="onRowDoubleClick($event)"
         (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
         (cellEditEvent)="onCellEdit($event)"
         (deleteRow)="onCardDelete($event)"
