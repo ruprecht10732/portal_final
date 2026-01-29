@@ -296,6 +296,30 @@ export class DataGridStore<T extends Record<string, unknown>> {
     }
   }
 
+  /** Discard all unsaved changes and remove new rows */
+  discardDirtyChanges(): void {
+    this._rows.update(rows =>
+      rows
+        .filter(row => !row.isNew)
+        .map(row =>
+          row.dirty
+            ? {
+                ...row,
+                current: { ...row.original },
+                dirty: false,
+                editing: false,
+                cellErrors: {},
+                error: null,
+              }
+            : row
+        )
+    );
+
+    this._editingCell.set(null);
+    this._focusedCell.set(null);
+    this.announce('Changes discarded', 'polite');
+  }
+
   // ============ Selection Methods ============
 
   /** Toggle row selection */

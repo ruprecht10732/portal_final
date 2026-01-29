@@ -49,6 +49,7 @@ export class DataGridToolbarComponent<T = unknown> {
   readonly filterChange = output<FilterConfig>();
   readonly clearFilters = output<void>();
   readonly saveRequest = output<void>();
+  readonly cancelRequest = output<void>();
   readonly deleteRequest = output<void>();
   /** Emitted when column visibility is toggled */
   readonly columnVisibilityChange = output<string>();
@@ -161,6 +162,10 @@ export class DataGridToolbarComponent<T = unknown> {
 
   protected onSave(): void {
     this.saveRequest.emit();
+  }
+
+  protected onCancel(): void {
+    this.cancelRequest.emit();
   }
 
   protected onDelete(): void {

@@ -304,6 +304,10 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     }
   }
 
+  protected onCancelRequest(): void {
+    this.store.discardDirtyChanges();
+  }
+
   protected onDeleteRequest(rows: T[]): void {
     this.deleteRows.emit(rows);
   }
