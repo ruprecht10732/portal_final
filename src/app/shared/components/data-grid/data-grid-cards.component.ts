@@ -15,7 +15,6 @@ import {
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { GridColumn, RowState, CellEditEvent } from './data-grid.types';
-import { OptionLabelPipe } from './data-grid.pipes';
 import { BottomSheetComponent } from '../bottom-sheet';
 import { InputComponent } from '../input/input.component';
 import { SelectComponent } from '../select/select.component';
@@ -28,7 +27,6 @@ import { ButtonComponent } from '../button/button.component';
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
-    OptionLabelPipe,
     BottomSheetComponent,
     InputComponent,
     SelectComponent,
@@ -141,13 +139,12 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
 
   /** Get cell value from row */
   protected getCellValue(row: RowState<T>, column: GridColumn<T>): unknown {
-    const field = column.field as string;
-    return row.current[field];
+    return this.getValueByPath(row.current, column.field as string);
   }
 
   /** Get safe value for input binding (avoids "undefined" string) */
   protected getInputValue(row: RowState<T>, column: GridColumn<T>): string | number {
-    const value = this.getCellValue(row, column);
+    const value = this.getValueByPath(row.current, column.field as string);
     if (value === null || value === undefined) {
       return '';
     }
@@ -163,6 +160,25 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   protected getRowId(row: RowState<T>): string | number {
     const field = this.rowIdField();
     return row.current[field] as string | number;
+  }
+
+  /** Get normalized title text for display */
+  protected getTitleText(row: RowState<T>): string {
+    const title = this.formatValue(this.getCellValue(row, this.titleColumn()), this.titleColumn());
+    return title || 'Untitled';
+  }
+
+  /** Derive initials for the avatar placeholder */
+  protected getInitials(row: RowState<T>): string {
+    const title = this.getTitleText(row).trim();
+    if (!title) return '?';
+
+    const parts = title.split(/\s+/).filter(Boolean);
+    if (parts.length >= 2) {
+      return (parts[0][0] + parts[1][0]).toUpperCase();
+    }
+
+    return title.slice(0, 2).toUpperCase();
   }
 
   /** Toggle card expansion */
@@ -250,20 +266,14 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
 
   /** Get status class for card border */
   protected getStatusClass(row: RowState<T>): string {
-    if (row.error) return 'border-l-red-500';
-    if (row.recentlyUpdated) return 'border-l-green-500';
-    if (row.isNew) return 'border-l-blue-500';
-    if (row.dirty) return 'border-l-amber-500';
-    return 'border-l-transparent';
+    return 'border-zinc-200 dark:border-zinc-800';
   }
 
   /** Get background class for card */
   protected getBgClass(row: RowState<T>): string {
-    if (row.error) return 'bg-red-50';
-    if (row.recentlyUpdated) return 'bg-green-50';
-    if (row.isNew) return 'bg-blue-50';
-    if (row.dirty) return 'bg-amber-50';
-    return 'bg-white';
+    if (row.error) return 'bg-red-50 dark:bg-red-950/20';
+    if (row.selected) return 'bg-zinc-50 dark:bg-zinc-800/50';
+    return 'bg-white dark:bg-zinc-900';
   }
 
   /** Format cell value for display */
@@ -295,5 +305,18 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     }
 
     return '—';
+  }
+
+  private getValueByPath(obj: T, path: string): unknown {
+    if (!path.includes('.')) {
+      return obj[path as keyof T];
+    }
+
+    return path.split('.').reduce<unknown>((acc, key) => {
+      if (acc && typeof acc === 'object') {
+        return (acc as Record<string, unknown>)[key];
+      }
+      return undefined;
+    }, obj as unknown);
   }
 }

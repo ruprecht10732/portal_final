@@ -35,7 +35,7 @@ export interface Lead {
   address: Address;
   serviceType: ServiceType;
   status: LeadStatus;
-  assignedAgentId?: string;
+  assignedAgentId?: string | null;
   viewedById?: string;
   viewedAt?: string;
   visit: Visit;
@@ -76,6 +76,11 @@ export interface UpdateLeadRequest {
   city?: string;
   serviceType?: ServiceType;
   status?: LeadStatus;
+  assigneeId?: string | null;
+}
+
+export interface AssignLeadRequest {
+  assigneeId?: string | null;
 }
 
 export interface UpdateStatusRequest {

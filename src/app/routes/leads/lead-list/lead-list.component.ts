@@ -1,9 +1,10 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map, Observable } from 'rxjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { LeadsService } from '../../../core/services/leads.service';
-import type { Lead, ListLeadsParams, SortField, CreateLeadRequest } from '../../../core/services/leads.types';
+import { UserService } from '../../../core/services/user.service';
+import type { Lead, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { STATUS_LABELS, STATUS_OPTIONS, SERVICE_TYPE_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
@@ -20,6 +21,7 @@ type LeadRow = Lead & Record<string, unknown>;
 })
 export class LeadListComponent implements OnInit {
   private readonly leadsService = inject(LeadsService);
+  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
 
@@ -27,10 +29,11 @@ export class LeadListComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly total = signal(0);
+  protected readonly userOptions = signal<{ label: string; value: string }[]>([]);
   private ignoreNextRequest = true;
   private readonly phoneRegion = 'NL';
 
-  protected readonly columns: GridColumn<LeadRow>[] = [
+  private readonly baseColumns: GridColumn<LeadRow>[] = [
     {
       id: 'firstName',
       header: 'First Name',
@@ -141,6 +144,14 @@ export class LeadListComponent implements OnInit {
       })),
     },
     {
+      id: 'assignedAgentId',
+      header: 'Assignee',
+      field: 'assignedAgentId',
+      editable: true,
+      width: '180px',
+      cellType: 'select',
+    },
+    {
       id: 'createdAt',
       header: 'Created',
       field: 'createdAt',
@@ -150,18 +161,28 @@ export class LeadListComponent implements OnInit {
     },
   ];
 
+  protected readonly columns = computed<GridColumn<LeadRow>[]>(() => {
+    const assigneeOptions = [{ label: 'Unassigned', value: '' }, ...this.userOptions()];
+    return this.baseColumns.map(column =>
+      column.id === 'assignedAgentId'
+        ? { ...column, selectOptions: assigneeOptions }
+        : column
+    );
+  });
+
   protected readonly gridConfig: Partial<GridConfig<LeadRow>> = {
     rowIdField: 'id',
     selectable: true,
     cardViewEnabled: true,
     mobileBreakpoint: 640,
-    cardTitleField: 'consumer' as keyof LeadRow,
+    cardTitleField: 'consumer.firstName' as keyof LeadRow,
     cardPreviewFieldCount: 4,
   };
 
   protected readonly fetchDataFn = this.fetchData.bind(this);
 
   ngOnInit(): void {
+    this.loadUsers();
     const resolved = this.route.snapshot.data['leads'] as { items: LeadRow[]; total: number } | undefined;
     if (resolved) {
       this.leads.set(resolved.items ?? []);
@@ -178,7 +199,8 @@ export class LeadListComponent implements OnInit {
     this.loading.set(true);
     this.leadsService.list({ page: 1, pageSize: 20, sortBy: 'createdAt', sortOrder: 'desc' }).subscribe({
       next: (response) => {
-        this.leads.set(response.items as LeadRow[]);
+        const normalized = (response.items as LeadRow[]).map(row => this.normalizeLead(row));
+        this.leads.set(normalized);
         this.total.set(response.total);
         this.loading.set(false);
       },
@@ -187,6 +209,26 @@ export class LeadListComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  private loadUsers(): void {
+    this.userService.listUsers().subscribe({
+      next: (users) => {
+        const options = users.map(user => ({
+          label: user.roles.length ? `${user.email} (${user.roles.join(', ')})` : user.email,
+          value: user.id,
+        }));
+        this.userOptions.set(options);
+      },
+      error: () => this.error.set('Failed to load users'),
+    });
+  }
+
+  private normalizeLead(row: LeadRow): LeadRow {
+    return {
+      ...row,
+      assignedAgentId: row.assignedAgentId ?? '',
+    };
   }
 
   protected fetchData(request: DataRequest): Observable<DataResponse<LeadRow>> {
@@ -219,7 +261,7 @@ export class LeadListComponent implements OnInit {
 
     return this.leadsService.list(params).pipe(
       map(response => ({
-        data: response.items as LeadRow[],
+        data: (response.items as LeadRow[]).map(row => this.normalizeLead(row)),
         totalItems: response.total,
         page: response.page,
         pageSize: response.pageSize,
@@ -282,7 +324,10 @@ export class LeadListComponent implements OnInit {
 
       if (row.id) {
         // Handle updates
-        const updateRequest = {
+        const assigneeId = row.assignedAgentId;
+        const normalizedAssigneeId = assigneeId === '' || assigneeId === 'null' ? null : assigneeId;
+
+        const updateRequest: UpdateLeadRequest = {
           firstName: normalize(consumer.firstName),
           lastName: normalize(consumer.lastName),
           phone: normalizePhone(consumer.phone),
@@ -294,11 +339,12 @@ export class LeadListComponent implements OnInit {
           city: normalize(address.city),
           serviceType: row.serviceType,
           status: row.status,
+          assigneeId: normalizedAssigneeId,
         };
 
         this.leadsService.update(row.id, updateRequest).subscribe({
           next: () => this.loadInitialData(),
-          error: (err) => this.error.set(err.error?.message || 'Failed to update lead')
+          error: (err) => this.error.set(err.error?.message || 'Failed to update lead'),
         });
       } else {
         // Example mapping for a new lead

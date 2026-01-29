@@ -6,3 +6,7 @@
 :host ::ng-deep [bottomSheetFooter] {
   padding-bottom: env(safe-area-inset-bottom, 0);
 }
+
+dialog::backdrop {
+  display: none;
+}

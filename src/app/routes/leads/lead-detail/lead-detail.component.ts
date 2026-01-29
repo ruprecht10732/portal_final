@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { LeadsService } from '../../../core/services/leads.service';
+import { UserService } from '../../../core/services/user.service';
 import type { Lead, LeadStatus, AccessDifficulty } from '../../../core/services/leads.types';
+import type { UserProfile } from '../../../core/services/user.types';
 import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
@@ -19,11 +21,15 @@ export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly leadsService = inject(LeadsService);
+  private readonly userService = inject(UserService);
 
   protected readonly lead = signal<Lead | null>(null);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly saving = signal(false);
+  protected readonly user = signal<UserProfile | null>(null);
+  protected readonly assigneeOptions = signal<SelectOption<string | null>[]>([]);
+  protected readonly selectedAssignee = signal<string | null>(null);
 
   // Status change
   protected readonly newStatus = signal<LeadStatus | null>(null);
@@ -44,10 +50,19 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly statusOptions = computed<SelectOption<LeadStatus>[]>(() => STATUS_OPTIONS);
   protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => ACCESS_DIFFICULTY_OPTIONS);
+  protected readonly canAssign = computed(() => {
+    const currentUser = this.user();
+    const lead = this.lead();
+    if (!currentUser || !lead) return false;
+    if (currentUser.roles?.includes('admin')) return true;
+    return lead.assignedAgentId === currentUser.id;
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
+      this.loadProfile();
+      this.loadUsers();
       this.loadLead(id);
     }
   }
@@ -58,6 +73,7 @@ export class LeadDetailComponent implements OnInit {
       next: (lead) => {
         this.lead.set(lead);
         this.newStatus.set(lead.status);
+        this.selectedAssignee.set(lead.assignedAgentId ?? null);
         this.loading.set(false);
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
@@ -66,6 +82,29 @@ export class LeadDetailComponent implements OnInit {
         this.error.set(err.error?.error || 'Failed to load lead');
         this.loading.set(false);
       },
+    });
+  }
+
+  private loadProfile(): void {
+    this.userService.getProfile().subscribe({
+      next: profile => this.user.set(profile),
+      error: () => this.error.set('Failed to load user profile'),
+    });
+  }
+
+  private loadUsers(): void {
+    this.userService.listUsers().subscribe({
+      next: users => {
+        const options = [
+          { label: 'Unassigned', value: null },
+          ...users.map(user => ({
+            label: user.roles.length ? `${user.email} (${user.roles.join(', ')})` : user.email,
+            value: user.id,
+          })),
+        ];
+        this.assigneeOptions.set(options);
+      },
+      error: () => this.error.set('Failed to load users'),
     });
   }
 
@@ -104,6 +143,24 @@ export class LeadDetailComponent implements OnInit {
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to update status');
+        this.saving.set(false);
+      },
+    });
+  }
+
+  protected assignLead(): void {
+    const lead = this.lead();
+    if (!lead) return;
+
+    this.saving.set(true);
+    this.leadsService.assign(lead.id, this.selectedAssignee()).subscribe({
+      next: (updated) => {
+        this.lead.set(updated);
+        this.selectedAssignee.set(updated.assignedAgentId ?? null);
+        this.saving.set(false);
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Failed to assign lead');
         this.saving.set(false);
       },
     });

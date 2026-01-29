@@ -68,6 +68,10 @@ export class LeadsService {
     return this.http.post<{ message: string }>(`${this.baseUrl}/${id}/view`, {});
   }
 
+  assign(id: string, assigneeId: string | null): Observable<Lead> {
+    return this.http.put<Lead>(`${this.baseUrl}/${id}/assign`, { assigneeId });
+  }
+
   checkDuplicate(phone: string): Observable<DuplicateCheckResponse> {
     return this.http.get<DuplicateCheckResponse>(`${this.baseUrl}/check-duplicate`, {
       params: new HttpParams().set('phone', phone),
