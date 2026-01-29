@@ -8,6 +8,7 @@ import { STATUS_LABELS, STATUS_COLORS, STATUS_OPTIONS, ACCESS_DIFFICULTY_OPTIONS
 import { CardComponent } from '../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ContactInfoComponent } from '../../../shared/components/contact-info/contact-info.component';
+import { LeadServicesCardComponent } from '../../../shared/components/lead-services-card/lead-services-card.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -21,7 +22,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, ButtonComponent, CheckboxComponent, ConfirmDialogComponent, ContactInfoComponent, InputComponent, MapPreviewComponent, SelectComponent, TextareaComponent, LeadDetailHeaderComponent],
+  imports: [CardComponent, ButtonComponent, CheckboxComponent, ConfirmDialogComponent, ContactInfoComponent, InputComponent, LeadServicesCardComponent, MapPreviewComponent, SelectComponent, TextareaComponent, LeadDetailHeaderComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -289,16 +290,6 @@ export class LeadDetailComponent implements OnInit {
     const lead = this.lead();
     if (!lead) return '';
     return `${lead.address.street} ${lead.address.houseNumber}, ${lead.address.zipCode} ${lead.address.city}`;
-  }
-
-  protected formatDate(dateStr: string | undefined): string {
-    if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleDateString();
-  }
-
-  protected formatDateTime(dateStr: string | undefined): string {
-    if (!dateStr) return '-';
-    return new Date(dateStr).toLocaleString();
   }
 
   protected formatHumanDateTime(dateStr: string | undefined): string {

@@ -1,0 +1,98 @@
+<shared-card>
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <div>
+      <h2 class="text-lg font-semibold">Services</h2>
+      <p class="text-xs text-zinc-500">{{ services().length }} total</p>
+    </div>
+    <shared-button
+      variant="ghost"
+      size="compact"
+      [uppercase]="false"
+      [fullWidth]="false"
+      (clicked)="openAdd.emit()"
+    >
+      + Add
+    </shared-button>
+  </div>
+
+  @if (showAddForm()) {
+    <div class="mb-4 border border-blue-200 bg-blue-50 p-3">
+      <h4 class="text-sm font-semibold text-blue-900 mb-2">Add new service</h4>
+      <p class="text-xs text-blue-700 mb-3">Create a service and optionally close the active one.</p>
+      <shared-select
+        label="Service Type"
+        [options]="serviceTypeOptions()"
+        [value]="newServiceType()"
+        (valueChange)="newServiceTypeChange.emit($event)"
+      />
+      <shared-checkbox
+        label="Close current active service"
+        [checked]="closeCurrentService()"
+        (checkedChange)="closeCurrentServiceChange.emit($event)"
+        [dense]="true"
+        class="mt-3"
+      />
+      <div class="flex flex-wrap gap-2 mt-3">
+        <shared-button
+          variant="primary"
+          size="compact"
+          [uppercase]="false"
+          [fullWidth]="false"
+          [disabled]="!newServiceType() || saving()"
+          (clicked)="addService.emit()"
+        >
+          {{ saving() ? 'Adding...' : 'Add Service' }}
+        </shared-button>
+        <shared-button
+          variant="ghost"
+          size="compact"
+          [uppercase]="false"
+          [fullWidth]="false"
+          (clicked)="cancelAdd.emit()"
+        >
+          Cancel
+        </shared-button>
+      </div>
+    </div>
+  }
+
+  @if (services().length === 0) {
+    <div class="border border-zinc-200 bg-zinc-50 p-4 text-center">
+      <p class="text-sm font-medium">No services yet</p>
+      <p class="text-xs text-zinc-500 mt-1">Add a service to start tracking the visit.</p>
+    </div>
+  } @else {
+    <div class="grid gap-2">
+      @for (service of services(); track service.id) {
+        <button
+          type="button"
+          class="w-full border border-zinc-200 p-3 text-left transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
+          [class.bg-blue-50]="isSelected(service)"
+          [class.border-blue-500]="isSelected(service)"
+          [attr.aria-pressed]="isSelected(service) ? 'true' : 'false'"
+          (click)="selectService.emit(service)"
+        >
+          <div class="flex items-center justify-between gap-3">
+            <div>
+              <p class="text-sm font-semibold">
+                {{ serviceTypeLabels()[service.serviceType] || service.serviceType }}
+              </p>
+              <p class="text-xs text-zinc-500 mt-1">Created {{ service.createdAt | date: 'mediumDate' }}</p>
+              @if (service.visit.scheduledDate) {
+                <p class="text-xs text-zinc-600 mt-1">
+                  Visit: {{ service.visit.scheduledDate | date: 'mediumDate' }}
+                </p>
+              }
+            </div>
+            <span
+              class="text-xs px-2 py-1 border border-zinc-200"
+              [class]="statusColors()[service.status]"
+            >
+              {{ statusLabels()[service.status] || service.status }}
+            </span>
+          </div>
+        </button>
+      }
+    </div>
+  }
+</shared-card>
