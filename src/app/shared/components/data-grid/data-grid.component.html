@@ -1,7 +1,7 @@
 <!-- Data Grid Container -->
 <div 
   #gridContainer
-  class="group flex flex-col w-full bg-white border border-zinc-200"
+  class="group flex flex-col w-full bg-white"
   [attr.aria-label]="ariaLabel()"
 >
   <!-- Toolbar with search and filters -->
@@ -123,7 +123,7 @@
 
       <!-- Add-row bar (mobile/card view: always visible) -->
       @if (store.rows().length > 0) {
-        <div class="border-t border-zinc-200 bg-white">
+        <div class="bg-white">
           <shared-button
             variant="ghost"
             size="compact"
@@ -213,7 +213,7 @@
         <!-- Notion-style add-row affordance (shows on hover/focus) -->
         @if (store.rows().length > 0) {
           <div
-            class="border-t border-zinc-200 bg-white opacity-0 pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
+            class="bg-white opacity-0 pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
           >
             <button
               type="button"
