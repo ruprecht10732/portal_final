@@ -202,13 +202,16 @@
                     }
                   </div>
                 } @else if (!showSurveyForm() && !showRescheduleForm()) {
-                  <shared-button
-                    variant="primary"
-                    [uppercase]="false"
-                    (clicked)="showSurveyForm.set(true)"
-                  >
-                    Complete Visit
-                  </shared-button>
+                  <div [title]="isVisitInFuture() ? 'Visit is scheduled in the future' : ''">
+                    <shared-button
+                      variant="primary"
+                      [uppercase]="false"
+                      [disabled]="isVisitInFuture()"
+                      (clicked)="showSurveyForm.set(true)"
+                    >
+                      Complete Visit
+                    </shared-button>
+                  </div>
                 }
                 @if (!showRescheduleForm() && !showSurveyForm()) {
                   <shared-button
@@ -634,14 +637,17 @@
                         }
                       </div>
                     } @else if (!showSurveyForm() && !showRescheduleForm()) {
-                      <shared-button
-                        variant="primary"
-                        [uppercase]="false"
-                        [fullWidth]="false"
-                        (clicked)="showSurveyForm.set(true)"
-                      >
-                        Complete Visit
-                      </shared-button>
+                      <div [title]="isVisitInFuture() ? 'Visit is scheduled in the future' : ''">
+                        <shared-button
+                          variant="primary"
+                          [uppercase]="false"
+                          [fullWidth]="false"
+                          [disabled]="isVisitInFuture()"
+                          (clicked)="showSurveyForm.set(true)"
+                        >
+                          Complete Visit
+                        </shared-button>
+                      </div>
                     }
                     @if (!showRescheduleForm() && !showSurveyForm()) {
                       <shared-button

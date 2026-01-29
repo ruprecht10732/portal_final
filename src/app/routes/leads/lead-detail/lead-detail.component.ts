@@ -96,6 +96,12 @@ export class LeadDetailComponent implements OnInit {
     return 'none';
   });
 
+  protected readonly isVisitInFuture = computed(() => {
+    const scheduledDate = this.lead()?.visit?.scheduledDate;
+    if (!scheduledDate) return false;
+    return new Date(scheduledDate) > new Date();
+  });
+
   protected readonly activityFeed = computed<ActivityEntry[]>(() => {
     const lead = this.lead();
     const entries: ActivityEntry[] = [];
