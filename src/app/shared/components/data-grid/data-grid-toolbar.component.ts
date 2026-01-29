@@ -48,7 +48,6 @@ export class DataGridToolbarComponent<T = unknown> {
   readonly searchChange = output<string>();
   readonly filterChange = output<FilterConfig>();
   readonly clearFilters = output<void>();
-  readonly addRow = output<void>();
   readonly saveRequest = output<void>();
   readonly deleteRequest = output<void>();
   /** Emitted when column visibility is toggled */
@@ -158,10 +157,6 @@ export class DataGridToolbarComponent<T = unknown> {
   protected onClearAll(): void {
     this.localSearchTerm.set('');
     this.clearFilters.emit();
-  }
-
-  protected onAddRow(): void {
-    this.addRow.emit();
   }
 
   protected onSave(): void {

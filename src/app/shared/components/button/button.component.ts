@@ -15,7 +15,7 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
       [attr.aria-controls]="ariaControls()"
       [attr.aria-haspopup]="ariaHaspopup()"
       (click)="!loading() && clicked.emit($event)"
-      class="relative flex items-center justify-center gap-2 uppercase transition-all duration-200 overflow-hidden"
+      class="relative flex items-center justify-center gap-2 uppercase transition-all duration-200 overflow-hidden cursor-pointer"
       [class.gap-0]="iconOnly()"
       [class.px-6]="size() === 'default'"
       [class.py-3]="size() === 'default'"

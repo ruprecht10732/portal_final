@@ -1,7 +1,7 @@
 <!-- Data Grid Container -->
 <div 
   #gridContainer
-  class="flex flex-col w-full bg-white border border-zinc-200"
+  class="group flex flex-col w-full bg-white border border-zinc-200"
   [attr.aria-label]="ariaLabel()"
 >
   <!-- Toolbar with search and filters -->
@@ -20,7 +20,6 @@
       (searchChange)="onSearchChange($event)"
       (filterChange)="onFilterChange($event)"
       (clearFilters)="onClearFilters()"
-      (addRow)="onAddRow()"
       (saveRequest)="onSaveRequest(getDirtyRows())"
       (deleteRequest)="onDeleteRequest(getSelectedRows())"
       (columnVisibilityChange)="store.toggleColumnVisibility($event)"
@@ -121,6 +120,26 @@
         (cellEditEvent)="onCellEdit($event)"
         (deleteRow)="onCardDelete($event)"
       />
+
+      <!-- Add-row bar (mobile/card view: always visible) -->
+      @if (store.rows().length > 0) {
+        <div class="border-t border-zinc-200 bg-white">
+          <shared-button
+            variant="ghost"
+            size="compact"
+            class="w-full"
+            [fullWidth]="true"
+            ariaLabel="Add new row"
+            (clicked)="onAddRow()"
+          >
+            <span class="flex w-full items-center justify-center gap-3 py-2 text-center">
+              <span class="h-px flex-1 bg-zinc-200"></span>
+              <span class="px-2 text-sm text-zinc-600">Add row</span>
+              <span class="h-px flex-1 bg-zinc-200"></span>
+            </span>
+          </shared-button>
+        </div>
+      }
     } @else {
       <!-- Table View (Tablet/Desktop) -->
       <div class="relative">
@@ -190,6 +209,24 @@
             />
           </table>
         </section>
+
+        <!-- Notion-style add-row affordance (shows on hover/focus) -->
+        @if (store.rows().length > 0) {
+          <div
+            class="border-t border-zinc-200 bg-white opacity-0 pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
+          >
+            <button
+              type="button"
+              class="flex w-full cursor-pointer items-center justify-center gap-3 py-3 text-center transition-colors hover:bg-zinc-50"
+              [attr.aria-label]="'Add new row'"
+              (click)="onAddRow()"
+            >
+              <span class="h-px flex-1 bg-zinc-200"></span>
+              <span class="px-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Add row</span>
+              <span class="h-px flex-1 bg-zinc-200"></span>
+            </button>
+          </div>
+        }
       </div>
     }
 
@@ -209,6 +246,25 @@
             Add a new row to get started
           }
         </span>
+
+        @if (store.filters().length === 0 && !store.searchTerm()) {
+          <div class="mt-4">
+            <shared-button
+              variant="ghost"
+              size="compact"
+              class="w-full max-w-sm"
+              [fullWidth]="true"
+              ariaLabel="Add new row"
+              (clicked)="onAddRow()"
+            >
+              <span class="flex w-full items-center justify-center gap-3 py-2 text-center">
+                <span class="h-px flex-1 bg-zinc-200"></span>
+                <span class="px-2 text-sm text-zinc-600">Add row</span>
+                <span class="h-px flex-1 bg-zinc-200"></span>
+              </span>
+            </shared-button>
+          </div>
+        }
       </output>
     }
 
