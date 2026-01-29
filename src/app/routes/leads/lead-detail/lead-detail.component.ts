@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, computed, ElementRef, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { LeadsService } from '../../../core/services/leads.service';
 import { UserService } from '../../../core/services/user.service';
 import type { Lead, LeadStatus, AccessDifficulty } from '../../../core/services/leads.types';
@@ -15,7 +15,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, TextareaComponent],
+  imports: [ButtonComponent, InputComponent, SelectComponent, TextareaComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -30,9 +30,13 @@ export class LeadDetailComponent implements OnInit {
   protected readonly user = signal<UserProfile | null>(null);
   protected readonly assigneeOptions = signal<SelectOption<string | null>[]>([]);
   protected readonly selectedAssignee = signal<string | null>(null);
+  protected readonly selectedScout = signal<string | null>(null);
 
   // Status change
   protected readonly newStatus = signal<LeadStatus | null>(null);
+
+  protected readonly statusMenuOpen = signal(false);
+  protected readonly activeTab = signal<'activity' | 'visit'>('visit');
   
   // Schedule visit
   protected readonly showScheduleForm = signal(false);
@@ -44,6 +48,13 @@ export class LeadDetailComponent implements OnInit {
   protected readonly measurements = signal('');
   protected readonly accessDifficulty = signal<AccessDifficulty | null>(null);
   protected readonly surveyNotes = signal('');
+  protected readonly surveyPhotos = signal<File[]>([]);
+
+  protected readonly noteText = signal('');
+  protected readonly notes = signal<ActivityEntry[]>([]);
+  protected readonly copiedAddress = signal(false);
+  protected readonly noteBoxDesktop = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxDesktop');
+  protected readonly noteBoxMobile = viewChild<ElementRef<HTMLTextAreaElement>>('noteBoxMobile');
 
   protected readonly STATUS_LABELS = STATUS_LABELS;
   protected readonly STATUS_COLORS = STATUS_COLORS;
@@ -56,6 +67,78 @@ export class LeadDetailComponent implements OnInit {
     if (!currentUser || !lead) return false;
     if (currentUser.roles?.includes('admin')) return true;
     return lead.assignedAgentId === currentUser.id;
+  });
+
+  protected readonly headerStatusLabels = computed<Record<LeadStatus, string>>(() => ({
+    New: 'New',
+    Attempted_Contact: 'Contacted',
+    Scheduled: 'Scheduled',
+    Surveyed: 'Completed',
+    Bad_Lead: 'Bad Lead',
+    Needs_Rescheduling: 'Needs Rescheduling',
+  }));
+
+  protected readonly quickAction = computed<'log' | 'schedule' | 'none'>(() => {
+    const status = this.lead()?.status;
+    if (status === 'New') return 'log';
+    if (status === 'Attempted_Contact') return 'schedule';
+    return 'none';
+  });
+
+  protected readonly activityFeed = computed<ActivityEntry[]>(() => {
+    const lead = this.lead();
+    const entries: ActivityEntry[] = [];
+    if (lead) {
+      entries.push({
+        id: `created-${lead.id}`,
+        type: 'audit',
+        timestamp: lead.createdAt,
+        user: 'System',
+        message: 'Lead created',
+      });
+      if (lead.updatedAt && lead.updatedAt !== lead.createdAt) {
+        entries.push({
+          id: `updated-${lead.id}`,
+          type: 'audit',
+          timestamp: lead.updatedAt,
+          user: 'System',
+          message: 'Lead updated',
+        });
+      }
+      if (lead.viewedAt) {
+        entries.push({
+          id: `viewed-${lead.id}`,
+          type: 'audit',
+          timestamp: lead.viewedAt,
+          user: 'System',
+          message: 'Lead viewed',
+        });
+      }
+      if (lead.visit?.scheduledDate) {
+        entries.push({
+          id: `scheduled-${lead.id}`,
+          type: 'audit',
+          timestamp: lead.visit.scheduledDate,
+          user: 'System',
+          message: 'Visit scheduled',
+        });
+      }
+      if (lead.visit?.completedAt) {
+        entries.push({
+          id: `completed-${lead.id}`,
+          type: 'audit',
+          timestamp: lead.visit.completedAt,
+          user: 'System',
+          message: 'Visit completed',
+        });
+      }
+    }
+
+    return [...this.notes(), ...entries].sort((a, b) => {
+      const aTime = new Date(a.timestamp).getTime();
+      const bTime = new Date(b.timestamp).getTime();
+      return bTime - aTime;
+    });
   });
 
   ngOnInit(): void {
@@ -74,6 +157,7 @@ export class LeadDetailComponent implements OnInit {
         this.lead.set(lead);
         this.newStatus.set(lead.status);
         this.selectedAssignee.set(lead.assignedAgentId ?? null);
+        this.selectedScout.set(lead.visit?.scoutId ?? lead.assignedAgentId ?? null);
         this.loading.set(false);
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
@@ -130,9 +214,83 @@ export class LeadDetailComponent implements OnInit {
     return new Date(dateStr).toLocaleString();
   }
 
-  protected updateStatus(): void {
+  protected formatHumanDateTime(dateStr: string | undefined): string {
+    if (!dateStr) return '-';
+    const date = new Date(dateStr);
+    const now = new Date();
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfYesterday = new Date(startOfToday);
+    startOfYesterday.setDate(startOfYesterday.getDate() - 1);
+    const timeLabel = date.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+
+    if (date >= startOfToday) {
+      return `Today at ${timeLabel}`;
+    }
+    if (date >= startOfYesterday && date < startOfToday) {
+      return `Yesterday at ${timeLabel}`;
+    }
+
+    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+  }
+
+  protected getStatusLabel(status: LeadStatus): string {
+    return this.headerStatusLabels()[status] || STATUS_LABELS[status];
+  }
+
+  protected toggleStatusMenu(): void {
+    this.statusMenuOpen.update(open => !open);
+  }
+
+  protected selectStatus(status: LeadStatus): void {
+    this.statusMenuOpen.set(false);
+    this.newStatus.set(status);
+    this.updateStatus(status);
+  }
+
+  protected getMapUrl(): string {
+    const address = this.getFullAddress();
+    return `https://maps.google.com/?q=${encodeURIComponent(address)}`;
+  }
+
+  protected copyAddress(): void {
+    const address = this.getFullAddress();
+    if (!address) return;
+    if (navigator?.clipboard?.writeText) {
+      navigator.clipboard.writeText(address).then(() => {
+        this.copiedAddress.set(true);
+        setTimeout(() => this.copiedAddress.set(false), 2000);
+      });
+      return;
+    }
+    this.copiedAddress.set(true);
+    setTimeout(() => this.copiedAddress.set(false), 2000);
+  }
+
+  protected focusNoteBox(): void {
+    const desktop = this.noteBoxDesktop()?.nativeElement;
+    const mobile = this.noteBoxMobile()?.nativeElement;
+    const target = desktop && desktop.offsetParent !== null ? desktop : mobile;
+    target?.focus();
+  }
+
+  protected handlePhoneClick(): void {
+    this.activeTab.set('activity');
+    setTimeout(() => this.focusNoteBox(), 0);
+  }
+
+  protected logCall(): void {
+    this.activeTab.set('activity');
+    setTimeout(() => this.focusNoteBox(), 0);
+  }
+
+  protected openSchedule(): void {
+    this.activeTab.set('visit');
+    this.showScheduleForm.set(true);
+  }
+
+  protected updateStatus(statusOverride?: LeadStatus): void {
     const lead = this.lead();
-    const status = this.newStatus();
+    const status = statusOverride ?? this.newStatus();
     if (!lead || !status || status === lead.status) return;
 
     this.saving.set(true);
@@ -173,7 +331,10 @@ export class LeadDetailComponent implements OnInit {
     const scheduledDate = new Date(`${this.scheduledDate()}T${this.scheduledTime()}`).toISOString();
     
     this.saving.set(true);
-    this.leadsService.scheduleVisit(lead.id, { scheduledDate }).subscribe({
+    this.leadsService.scheduleVisit(lead.id, {
+      scheduledDate,
+      scoutId: this.selectedScout() ?? undefined,
+    }).subscribe({
       next: (updated) => {
         this.lead.set(updated);
         this.showScheduleForm.set(false);
@@ -205,6 +366,7 @@ export class LeadDetailComponent implements OnInit {
         this.measurements.set('');
         this.accessDifficulty.set(null);
         this.surveyNotes.set('');
+        this.surveyPhotos.set([]);
         this.saving.set(false);
       },
       error: (err) => {
@@ -234,4 +396,39 @@ export class LeadDetailComponent implements OnInit {
   protected goBack(): void {
     this.router.navigate(['/app/leads']);
   }
+
+  protected addNote(): void {
+    const text = this.noteText().trim();
+    if (!text) return;
+    const userLabel = this.user()?.email ?? 'You';
+    const entry: ActivityEntry = {
+      id: `note-${Date.now()}-${Math.random().toString(36).slice(2, 7)}`,
+      type: 'note',
+      timestamp: new Date().toISOString(),
+      user: userLabel,
+      message: text,
+    };
+    this.notes.update(items => [entry, ...items]);
+    this.noteText.set('');
+    this.focusNoteBox();
+  }
+
+  protected onPhotosSelected(files: FileList | null): void {
+    if (!files) return;
+    this.surveyPhotos.set(Array.from(files));
+  }
+
+  protected getUserLabelById(id: string | null | undefined): string {
+    if (!id) return 'Unassigned';
+    const match = this.assigneeOptions().find(option => option.value === id);
+    return match?.label ?? 'Unassigned';
+  }
+}
+
+interface ActivityEntry {
+  id: string;
+  type: 'note' | 'audit';
+  timestamp: string;
+  user: string;
+  message: string;
 }

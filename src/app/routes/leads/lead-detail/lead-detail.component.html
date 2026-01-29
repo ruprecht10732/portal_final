@@ -1,23 +1,90 @@
-<div class="flex flex-col gap-4 p-4">
-  <div class="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-    <div class="flex items-center gap-3">
-      <button
-        type="button"
-        class="p-2 hover:bg-zinc-100 transition-colors"
-        (click)="goBack()"
-        aria-label="Go back"
-      >
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      <h1 class="text-2xl font-bold">Lead Details</h1>
+<div class="flex flex-col gap-4">
+  <div class="sticky top-0 z-20 bg-white border-b border-zinc-200">
+    <div class="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
+      <div class="flex items-center gap-3">
+        <button
+          type="button"
+          class="p-2 hover:bg-zinc-100 transition-colors"
+          (click)="goBack()"
+          aria-label="Go back"
+        >
+          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
+          </svg>
+        </button>
+        <div>
+          <p class="text-xs uppercase tracking-wider text-zinc-400">Lead</p>
+          @if (lead(); as l) {
+            <h1 class="text-xl font-semibold">
+              {{ getFullName() }}
+              <span class="text-zinc-500 font-normal">({{ l.serviceType }})</span>
+            </h1>
+          } @else {
+            <h1 class="text-xl font-semibold">Lead Details</h1>
+          }
+        </div>
+      </div>
+
+      @if (lead(); as l) {
+        <div class="flex flex-wrap items-center gap-2">
+          <div class="relative">
+            <button
+              type="button"
+              class="inline-flex items-center gap-2 rounded-full px-4 py-2 text-sm font-semibold"
+              [class]="STATUS_COLORS[l.status]"
+              (click)="toggleStatusMenu()"
+              aria-haspopup="listbox"
+              [attr.aria-expanded]="statusMenuOpen()"
+            >
+              {{ getStatusLabel(l.status) }}
+              <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+              </svg>
+            </button>
+            @if (statusMenuOpen()) {
+              <div
+                class="absolute right-0 mt-2 w-48 rounded-lg border border-zinc-200 bg-white shadow-lg z-20"
+              >
+                @for (option of statusOptions(); track option.value) {
+                  <button
+                    type="button"
+                    class="flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-zinc-50"
+                    (click)="selectStatus(option.value)"
+                  >
+                    <span>{{ getStatusLabel(option.value) }}</span>
+                    @if (option.value === l.status) {
+                      <svg class="w-4 h-4 text-green-600" viewBox="0 0 20 20" fill="currentColor">
+                        <path fill-rule="evenodd" d="M16.707 5.293a1 1 0 010 1.414l-7.5 7.5a1 1 0 01-1.414 0l-3.5-3.5a1 1 0 011.414-1.414l2.793 2.793 6.793-6.793a1 1 0 011.414 0z" clip-rule="evenodd" />
+                      </svg>
+                    }
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
+          @if (quickAction() === 'log') {
+            <shared-button
+              variant="primary"
+              [fullWidth]="false"
+              [uppercase]="false"
+              (clicked)="logCall()"
+            >
+              Log Call
+            </shared-button>
+          } @else if (quickAction() === 'schedule') {
+            <shared-button
+              variant="primary"
+              [fullWidth]="false"
+              [uppercase]="false"
+              (clicked)="openSchedule()"
+            >
+              Schedule Visit
+            </shared-button>
+          }
+        </div>
+      }
     </div>
-    @if (lead()) {
-      <span class="px-3 py-1 text-sm font-medium" [class]="STATUS_COLORS[lead()!.status]">
-        {{ STATUS_LABELS[lead()!.status] }}
-      </span>
-    }
   </div>
 
   @if (error()) {
@@ -33,218 +100,491 @@
   }
 
   @if (lead(); as l) {
-    <div class="grid gap-4 lg:grid-cols-2">
-      <section class="bg-white border border-zinc-200 p-4">
-        <h2 class="text-lg font-semibold mb-4">Consumer</h2>
-        <dl class="grid gap-3">
-          <div class="flex justify-between">
-            <dt class="text-zinc-500">Name</dt>
-            <dd class="font-medium">{{ getFullName() }}</dd>
+    <div class="px-4">
+      <div class="lg:hidden mb-4">
+        <a
+          class="flex w-full items-center justify-center gap-2 rounded-lg bg-black px-4 py-4 text-white font-semibold"
+          [href]="getMapUrl()"
+          target="_blank"
+          rel="noopener"
+        >
+          Navigate to Address
+        </a>
+      </div>
+
+      <div class="lg:hidden flex flex-col gap-4">
+        <section class="bg-white border border-zinc-200 p-4 rounded-lg">
+          <h2 class="text-lg font-semibold mb-4">The Visit</h2>
+          <div class="grid gap-4">
+            @if (!l.visit.scheduledDate && !showScheduleForm()) {
+              <shared-button variant="secondary" [uppercase]="false" (clicked)="showScheduleForm.set(true)">
+                Schedule Visit
+              </shared-button>
+            }
+
+            @if (l.visit.scheduledDate) {
+              <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                <p class="text-sm font-semibold">
+                  Scheduled for {{ formatHumanDateTime(l.visit.scheduledDate) }}
+                </p>
+                <p class="text-sm text-zinc-600">
+                  Scout: {{ getUserLabelById(l.visit.scoutId ?? selectedScout()) }}
+                </p>
+              </div>
+            }
+
+            @if (showScheduleForm()) {
+              <div class="grid gap-3">
+                <shared-input
+                  label="Date"
+                  type="date"
+                  [value]="scheduledDate()"
+                  (valueChange)="scheduledDate.set($event)"
+                />
+                <shared-input
+                  label="Time"
+                  type="time"
+                  [value]="scheduledTime()"
+                  (valueChange)="scheduledTime.set($event)"
+                />
+                <shared-select
+                  label="Assign to"
+                  [options]="assigneeOptions()"
+                  [value]="selectedScout()"
+                  (valueChange)="selectedScout.set($event)"
+                />
+                <div class="flex flex-wrap gap-2">
+                  <shared-button
+                    variant="primary"
+                    [uppercase]="false"
+                    [disabled]="!scheduledDate() || !scheduledTime() || saving()"
+                    (clicked)="scheduleVisit()"
+                  >
+                    {{ saving() ? 'Saving...' : 'Save Schedule' }}
+                  </shared-button>
+                  <shared-button variant="secondary" [uppercase]="false" (clicked)="showScheduleForm.set(false)">
+                    Cancel
+                  </shared-button>
+                </div>
+              </div>
+            }
+
+            @if (l.visit.scheduledDate) {
+              <div class="grid gap-3">
+                @if (!showSurveyForm()) {
+                  <shared-button
+                    variant="primary"
+                    [uppercase]="false"
+                    (clicked)="showSurveyForm.set(true)"
+                  >
+                    Complete Visit
+                  </shared-button>
+                }
+                @if (showSurveyForm()) {
+                  <shared-textarea
+                    label="Measurements & Notes"
+                    [rows]="6"
+                    [value]="measurements()"
+                    (valueChange)="measurements.set($event)"
+                  />
+                  <shared-select
+                    label="Access Difficulty"
+                    [options]="accessDifficultyOptions()"
+                    [value]="accessDifficulty()"
+                    (valueChange)="accessDifficulty.set($event)"
+                  />
+                  <shared-textarea
+                    label="Additional Notes (optional)"
+                    [rows]="4"
+                    [value]="surveyNotes()"
+                    (valueChange)="surveyNotes.set($event)"
+                  />
+                  <label class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-3 text-sm font-semibold cursor-pointer">
+                    <input type="file" class="sr-only" multiple (change)="onPhotosSelected($event.target.files)" />
+                    Upload Site Photos
+                  </label>
+                  @if (surveyPhotos().length) {
+                    <ul class="text-xs text-zinc-500">
+                      @for (file of surveyPhotos(); track file.name) {
+                        <li>{{ file.name }}</li>
+                      }
+                    </ul>
+                  }
+                  <div class="flex flex-wrap gap-2">
+                    <shared-button
+                      variant="success"
+                      [uppercase]="false"
+                      [disabled]="!measurements() || !accessDifficulty() || saving()"
+                      (clicked)="completeSurvey()"
+                    >
+                      {{ saving() ? 'Saving...' : 'Complete Visit' }}
+                    </shared-button>
+                    <shared-button variant="secondary" [uppercase]="false" (clicked)="showSurveyForm.set(false)">
+                      Cancel
+                    </shared-button>
+                  </div>
+                }
+              </div>
+            }
           </div>
-          <div class="flex justify-between">
-            <dt class="text-zinc-500">Phone</dt>
-            <dd>
-              <a [href]="'tel:' + l.consumer.phone" class="text-blue-600 hover:underline">
+        </section>
+
+        <details class="bg-white border border-zinc-200 rounded-lg">
+          <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Consumer Info</summary>
+          <div class="px-4 pb-4">
+            <dl class="grid gap-3">
+              <div class="flex justify-between">
+                <dt class="text-zinc-500">Name</dt>
+                <dd class="font-medium">{{ getFullName() }}</dd>
+              </div>
+              <div class="flex justify-between items-center">
+                <dt class="text-zinc-500">Phone</dt>
+                <dd>
+                  <a
+                    [href]="'tel:' + l.consumer.phone"
+                    class="text-blue-600 hover:underline"
+                    (click)="handlePhoneClick()"
+                  >
+                    {{ l.consumer.phone }}
+                  </a>
+                </dd>
+              </div>
+              @if (l.consumer.email) {
+                <div class="flex justify-between">
+                  <dt class="text-zinc-500">Email</dt>
+                  <dd>
+                    <a [href]="'mailto:' + l.consumer.email" class="text-blue-600 hover:underline">
+                      {{ l.consumer.email }}
+                    </a>
+                  </dd>
+                </div>
+              }
+              <div class="flex justify-between">
+                <dt class="text-zinc-500">Role</dt>
+                <dd>{{ l.consumer.role }}</dd>
+              </div>
+            </dl>
+            <div class="mt-4 border-t border-zinc-200 pt-4">
+              <p class="text-sm font-medium">{{ getFullAddress() }}</p>
+              <div class="mt-2 flex flex-wrap gap-2">
+                <a
+                  class="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm"
+                  [href]="getMapUrl()"
+                  target="_blank"
+                  rel="noopener"
+                >
+                  View on Maps
+                </a>
+                <shared-button
+                  variant="ghost"
+                  size="compact"
+                  [uppercase]="false"
+                  [fullWidth]="false"
+                  (clicked)="copyAddress()"
+                >
+                  {{ copiedAddress() ? 'Copied' : 'Copy Address' }}
+                </shared-button>
+              </div>
+            </div>
+          </div>
+        </details>
+
+        <details class="bg-white border border-zinc-200 rounded-lg">
+          <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Notes & Activity</summary>
+          <div class="px-4 pb-4">
+            <label for="note-input-mobile" class="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+              Add Note
+            </label>
+            <textarea
+              #noteBoxMobile
+              id="note-input-mobile"
+              class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+              rows="3"
+              [value]="noteText()"
+              (input)="noteText.set($any($event.target).value)"
+              placeholder="Add a note..."
+            ></textarea>
+            <div class="mt-2">
+              <shared-button
+                variant="secondary"
+                [uppercase]="false"
+                [fullWidth]="false"
+                (clicked)="addNote()"
+              >
+                Add Note
+              </shared-button>
+            </div>
+            <div class="mt-4 grid gap-3">
+              @for (entry of activityFeed(); track entry.id) {
+                <div class="border border-zinc-200 rounded-lg p-3">
+                  <div class="flex items-center justify-between text-xs text-zinc-500">
+                    <span>{{ entry.user }}</span>
+                    <span>{{ formatHumanDateTime(entry.timestamp) }}</span>
+                  </div>
+                  <p class="mt-2 text-sm">{{ entry.message }}</p>
+                </div>
+              }
+            </div>
+          </div>
+        </details>
+      </div>
+
+      <div class="hidden lg:grid lg:grid-cols-[1fr_2fr] gap-4">
+        <aside class="flex flex-col gap-4">
+          <section class="bg-white border border-zinc-200 rounded-lg p-4">
+            <h2 class="text-lg font-semibold mb-3">Location</h2>
+            <div class="rounded-lg border border-dashed border-zinc-200 p-4 text-sm text-zinc-500">
+              Map preview
+            </div>
+            <div class="mt-4 flex flex-wrap gap-2">
+              <a
+                class="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm"
+                [href]="getMapUrl()"
+                target="_blank"
+                rel="noopener"
+              >
+                View on Maps
+              </a>
+              <shared-button
+                variant="ghost"
+                size="compact"
+                [uppercase]="false"
+                [fullWidth]="false"
+                (clicked)="copyAddress()"
+              >
+                {{ copiedAddress() ? 'Copied' : 'Copy Address' }}
+              </shared-button>
+            </div>
+            <p class="mt-3 text-sm font-medium">{{ getFullAddress() }}</p>
+          </section>
+
+          <section class="bg-white border border-zinc-200 rounded-lg p-4">
+            <h2 class="text-lg font-semibold mb-3">Contact</h2>
+            <div class="flex flex-col gap-2 text-sm">
+              <a
+                [href]="'tel:' + l.consumer.phone"
+                class="text-blue-600 hover:underline"
+                (click)="handlePhoneClick()"
+              >
                 {{ l.consumer.phone }}
               </a>
-            </dd>
-          </div>
-          @if (l.consumer.email) {
-            <div class="flex justify-between">
-              <dt class="text-zinc-500">Email</dt>
-              <dd>
+              @if (l.consumer.email) {
                 <a [href]="'mailto:' + l.consumer.email" class="text-blue-600 hover:underline">
                   {{ l.consumer.email }}
                 </a>
-              </dd>
+              }
             </div>
-          }
-          <div class="flex justify-between">
-            <dt class="text-zinc-500">Role</dt>
-            <dd>{{ l.consumer.role }}</dd>
-          </div>
-        </dl>
-      </section>
+            <div class="mt-4 text-sm text-zinc-500">
+              <p>{{ l.consumer.role }}</p>
+            </div>
+          </section>
 
-      <section class="bg-white border border-zinc-200 p-4">
-        <h2 class="text-lg font-semibold mb-4">Address</h2>
-        <p class="mb-2">{{ getFullAddress() }}</p>
-        <a
-          [href]="'https://maps.google.com/?q=' + getFullAddress()"
-          target="_blank"
-          rel="noopener"
-          class="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm"
-        >
-          <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
-          </svg>
-          View on Maps
-        </a>
-      </section>
+          <section class="bg-white border border-zinc-200 rounded-lg p-4">
+            <h2 class="text-lg font-semibold mb-3">Details</h2>
+            <dl class="grid gap-3 text-sm">
+              <div class="flex justify-between">
+                <dt class="text-zinc-500">Created</dt>
+                <dd>{{ formatHumanDateTime(l.createdAt) }}</dd>
+              </div>
+              <div class="flex justify-between">
+                <dt class="text-zinc-500">Updated</dt>
+                <dd>{{ formatHumanDateTime(l.updatedAt) }}</dd>
+              </div>
+            </dl>
+          </section>
+        </aside>
 
-      <section class="bg-white border border-zinc-200 p-4">
-        <h2 class="text-lg font-semibold mb-4">Service</h2>
-        <dl class="grid gap-3">
-          <div class="flex justify-between">
-            <dt class="text-zinc-500">Type</dt>
-            <dd class="font-medium">{{ l.serviceType }}</dd>
-          </div>
-          <div class="flex justify-between">
-            <dt class="text-zinc-500">Created</dt>
-            <dd>{{ formatDateTime(l.createdAt) }}</dd>
-          </div>
-          <div class="flex justify-between">
-            <dt class="text-zinc-500">Updated</dt>
-            <dd>{{ formatDateTime(l.updatedAt) }}</dd>
-          </div>
-        </dl>
-      </section>
+        <main class="flex flex-col gap-4">
+          <section class="bg-white border border-zinc-200 rounded-lg p-4">
+            <div class="flex items-center justify-between mb-4">
+              <div class="flex gap-2">
+                <button
+                  type="button"
+                  class="px-3 py-2 text-sm font-semibold rounded-lg"
+                  [class.bg-black]="activeTab() === 'visit'"
+                  [class.text-white]="activeTab() === 'visit'"
+                  [class.bg-zinc-100]="activeTab() !== 'visit'"
+                  (click)="activeTab.set('visit')"
+                >
+                  The Visit
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-2 text-sm font-semibold rounded-lg"
+                  [class.bg-black]="activeTab() === 'activity'"
+                  [class.text-white]="activeTab() === 'activity'"
+                  [class.bg-zinc-100]="activeTab() !== 'activity'"
+                  (click)="activeTab.set('activity')"
+                >
+                  Activity / Notes
+                </button>
+              </div>
+              @if (activeTab() === 'visit' && !l.visit.scheduledDate && !showScheduleForm()) {
+                <shared-button
+                  variant="secondary"
+                  size="compact"
+                  [uppercase]="false"
+                  [fullWidth]="false"
+                  (clicked)="showScheduleForm.set(true)"
+                >
+                  Schedule Visit
+                </shared-button>
+              }
+            </div>
 
-      <section class="bg-white border border-zinc-200 p-4">
-        <h2 class="text-lg font-semibold mb-4">Status</h2>
-        <div class="flex flex-col gap-3">
-          <shared-select
-            label="Change Status"
-            [options]="statusOptions()"
-            [value]="newStatus()"
-            (valueChange)="newStatus.set($event)"
-          />
-          <shared-button
-            variant="primary"
-            [disabled]="saving() || newStatus() === l.status"
-            (clicked)="updateStatus()"
-          >
-            {{ saving() ? 'Updating...' : 'Update Status' }}
-          </shared-button>
-        </div>
-      </section>
-    </div>
+            @if (activeTab() === 'visit') {
+              <div class="grid gap-4">
+                @if (l.visit.scheduledDate) {
+                  <div class="rounded-lg border border-zinc-200 bg-zinc-50 p-3">
+                    <p class="text-sm font-semibold">
+                      Scheduled for {{ formatHumanDateTime(l.visit.scheduledDate) }}
+                    </p>
+                    <p class="text-sm text-zinc-600">
+                      Scout: {{ getUserLabelById(l.visit.scoutId ?? selectedScout()) }}
+                    </p>
+                  </div>
+                }
 
-    <section class="bg-white border border-zinc-200 p-4">
-      <div class="flex items-center justify-between mb-4">
-        <h2 class="text-lg font-semibold">Visit</h2>
-        @if (!l.visit.scheduledDate && !showScheduleForm()) {
-          <shared-button variant="secondary" size="compact" (clicked)="showScheduleForm.set(true)">
-            Schedule Visit
-          </shared-button>
-        }
+                @if (showScheduleForm()) {
+                  <div class="grid gap-3 sm:grid-cols-2">
+                    <shared-input
+                      label="Date"
+                      type="date"
+                      [value]="scheduledDate()"
+                      (valueChange)="scheduledDate.set($event)"
+                    />
+                    <shared-input
+                      label="Time"
+                      type="time"
+                      [value]="scheduledTime()"
+                      (valueChange)="scheduledTime.set($event)"
+                    />
+                    <div class="sm:col-span-2">
+                      <shared-select
+                        label="Assign to"
+                        [options]="assigneeOptions()"
+                        [value]="selectedScout()"
+                        (valueChange)="selectedScout.set($event)"
+                      />
+                    </div>
+                    <div class="sm:col-span-2 flex flex-wrap gap-2">
+                      <shared-button
+                        variant="primary"
+                        [uppercase]="false"
+                        [disabled]="!scheduledDate() || !scheduledTime() || saving()"
+                        (clicked)="scheduleVisit()"
+                      >
+                        {{ saving() ? 'Saving...' : 'Save Schedule' }}
+                      </shared-button>
+                      <shared-button variant="secondary" [uppercase]="false" (clicked)="showScheduleForm.set(false)">
+                        Cancel
+                      </shared-button>
+                    </div>
+                  </div>
+                }
+
+                @if (l.visit.scheduledDate) {
+                  <div class="grid gap-3">
+                    @if (!showSurveyForm()) {
+                      <shared-button
+                        variant="primary"
+                        [uppercase]="false"
+                        [fullWidth]="false"
+                        (clicked)="showSurveyForm.set(true)"
+                      >
+                        Complete Visit
+                      </shared-button>
+                    }
+                    @if (showSurveyForm()) {
+                      <shared-textarea
+                        label="Measurements & Notes"
+                        [rows]="6"
+                        [value]="measurements()"
+                        (valueChange)="measurements.set($event)"
+                      />
+                      <shared-select
+                        label="Access Difficulty"
+                        [options]="accessDifficultyOptions()"
+                        [value]="accessDifficulty()"
+                        (valueChange)="accessDifficulty.set($event)"
+                      />
+                      <shared-textarea
+                        label="Additional Notes (optional)"
+                        [rows]="4"
+                        [value]="surveyNotes()"
+                        (valueChange)="surveyNotes.set($event)"
+                      />
+                      <label class="inline-flex items-center gap-2 rounded-lg border border-zinc-200 px-4 py-3 text-sm font-semibold cursor-pointer">
+                        <input type="file" class="sr-only" multiple (change)="onPhotosSelected($event.target.files)" />
+                        Upload Site Photos
+                      </label>
+                      @if (surveyPhotos().length) {
+                        <ul class="text-xs text-zinc-500">
+                          @for (file of surveyPhotos(); track file.name) {
+                            <li>{{ file.name }}</li>
+                          }
+                        </ul>
+                      }
+                      <div class="flex flex-wrap gap-2">
+                        <shared-button
+                          variant="success"
+                          [uppercase]="false"
+                          [disabled]="!measurements() || !accessDifficulty() || saving()"
+                          (clicked)="completeSurvey()"
+                        >
+                          {{ saving() ? 'Saving...' : 'Complete Visit' }}
+                        </shared-button>
+                        <shared-button variant="secondary" [uppercase]="false" (clicked)="showSurveyForm.set(false)">
+                          Cancel
+                        </shared-button>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            } @else {
+              <div class="grid gap-4">
+                <div>
+                  <label for="note-input-desktop" class="block text-xs font-semibold uppercase tracking-wider text-zinc-500 mb-2">
+                    Add Note
+                  </label>
+                  <textarea
+                    #noteBoxDesktop
+                    id="note-input-desktop"
+                    class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                    rows="3"
+                    [value]="noteText()"
+                    (input)="noteText.set($any($event.target).value)"
+                    placeholder="Add a note..."
+                  ></textarea>
+                  <div class="mt-2">
+                    <shared-button
+                      variant="secondary"
+                      [uppercase]="false"
+                      [fullWidth]="false"
+                      (clicked)="addNote()"
+                    >
+                      Add Note
+                    </shared-button>
+                  </div>
+                </div>
+
+                <div class="grid gap-3">
+                  @for (entry of activityFeed(); track entry.id) {
+                    <div class="border border-zinc-200 rounded-lg p-3">
+                      <div class="flex items-center justify-between text-xs text-zinc-500">
+                        <span>{{ entry.user }}</span>
+                        <span>{{ formatHumanDateTime(entry.timestamp) }}</span>
+                      </div>
+                      <p class="mt-2 text-sm">{{ entry.message }}</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+          </section>
+        </main>
       </div>
-
-      @if (l.visit.scheduledDate) {
-        <dl class="grid gap-3 mb-4">
-          <div class="flex justify-between">
-            <dt class="text-zinc-500">Scheduled</dt>
-            <dd class="font-medium">{{ formatDateTime(l.visit.scheduledDate) }}</dd>
-          </div>
-          @if (l.visit.completedAt) {
-            <div class="flex justify-between">
-              <dt class="text-zinc-500">Completed</dt>
-              <dd class="text-green-600">{{ formatDateTime(l.visit.completedAt) }}</dd>
-            </div>
-          }
-          @if (l.visit.measurements) {
-            <div class="flex justify-between">
-              <dt class="text-zinc-500">Measurements</dt>
-              <dd>{{ l.visit.measurements }}</dd>
-            </div>
-          }
-          @if (l.visit.accessDifficulty) {
-            <div class="flex justify-between">
-              <dt class="text-zinc-500">Access Difficulty</dt>
-              <dd>{{ l.visit.accessDifficulty }}</dd>
-            </div>
-          }
-          @if (l.visit.notes) {
-            <div>
-              <dt class="text-zinc-500 mb-1">Notes</dt>
-              <dd class="bg-zinc-50 p-2 text-sm">{{ l.visit.notes }}</dd>
-            </div>
-          }
-        </dl>
-
-        @if (!l.visit.completedAt && !showSurveyForm()) {
-          <div class="flex flex-col gap-2 sm:flex-row">
-            <shared-button variant="primary" (clicked)="showSurveyForm.set(true)">
-              Complete Survey
-            </shared-button>
-            <shared-button variant="secondary" (clicked)="markNoShow()" [disabled]="saving()">
-              Mark No Show
-            </shared-button>
-          </div>
-        }
-      }
-
-      @if (showScheduleForm()) {
-        <div class="grid gap-3 sm:grid-cols-2">
-          <shared-input
-            label="Date"
-            type="date"
-            [value]="scheduledDate()"
-            (valueChange)="scheduledDate.set($event)"
-          />
-          <shared-input
-            label="Time"
-            type="time"
-            [value]="scheduledTime()"
-            (valueChange)="scheduledTime.set($event)"
-          />
-          <div class="sm:col-span-2 flex gap-2">
-            <shared-button
-              variant="primary"
-              [disabled]="!scheduledDate() || !scheduledTime() || saving()"
-              (clicked)="scheduleVisit()"
-            >
-              {{ saving() ? 'Saving...' : 'Confirm Schedule' }}
-            </shared-button>
-            <shared-button variant="secondary" (clicked)="showScheduleForm.set(false)">
-              Cancel
-            </shared-button>
-          </div>
-        </div>
-      }
-
-      @if (showSurveyForm()) {
-        <div class="grid gap-3">
-          <shared-input
-            label="Measurements"
-            placeholder="e.g., 3x window 120x150, 2x window 80x100"
-            [value]="measurements()"
-            (valueChange)="measurements.set($event)"
-          />
-          <shared-select
-            label="Access Difficulty"
-            [options]="accessDifficultyOptions()"
-            [value]="accessDifficulty()"
-            (valueChange)="accessDifficulty.set($event)"
-          />
-          <shared-textarea
-            label="Notes (optional)"
-            [value]="surveyNotes()"
-            (valueChange)="surveyNotes.set($event)"
-          />
-          <div class="flex gap-2">
-            <shared-button
-              variant="primary"
-              [disabled]="!measurements() || !accessDifficulty() || saving()"
-              (clicked)="completeSurvey()"
-            >
-              {{ saving() ? 'Saving...' : 'Submit Survey' }}
-            </shared-button>
-            <shared-button variant="secondary" (clicked)="showSurveyForm.set(false)">
-              Cancel
-            </shared-button>
-          </div>
-        </div>
-      }
-    </section>
-
-    <section class="flex flex-col gap-2 sm:flex-row sm:justify-end">
-      <a [routerLink]="['/app/leads', l.id, 'edit']">
-        <shared-button variant="secondary">
-          Edit Lead
-        </shared-button>
-      </a>
-    </section>
+    </div>
   }
 </div>
