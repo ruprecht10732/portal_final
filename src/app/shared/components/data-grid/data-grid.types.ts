@@ -201,7 +201,13 @@ export interface GridConfig<T> {
   /** Breakpoint (px) below which card view is used */
   mobileBreakpoint: number;
   /** Field to use as card title/header */
-  cardTitleField?: keyof T;
+  cardTitleField?: keyof T | string;
+  /** Field to use as subtitle (e.g. phone/email) */
+  cardSubtitleField?: keyof T | string;
+  /** Secondary subtitle field */
+  cardSecondarySubtitleField?: keyof T | string;
+  /** Field to use for status chip */
+  statusField?: keyof T | string;
   /** Number of fields to show before "expand" in card view */
   cardPreviewFieldCount: number;
   /** Enable column visibility picker in toolbar */

@@ -1,12 +1,12 @@
 <!-- Card List Container -->
 <ul
-  class="flex flex-col gap-2 p-4"
+  class="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800 border-y border-zinc-100 dark:border-zinc-800"
   aria-label="Data cards"
 >
   @for (row of rows(); track trackByRowId($index, row); let rowIndex = $index) {
     <li>
       <article
-        class="group relative flex flex-col border border-zinc-200 transition-colors duration-150 cursor-pointer dark:border-zinc-800"
+        class="group relative flex flex-col transition-colors duration-150 cursor-pointer"
         [class]="getStatusClass(row) + ' ' + getBgClass(row)"
         [attr.aria-selected]="row.selected"
         (dblclick)="onCardDoubleClick(rowIndex)"
@@ -19,7 +19,7 @@
           </div>
 
           <!-- Text Details -->
-          <div class="flex min-w-0 flex-1 flex-col">
+          <div class="flex min-w-0 flex-1 flex-col py-0.5">
             <div class="flex items-start justify-between">
               <p class="truncate text-base font-bold leading-tight text-zinc-900 dark:text-white pr-2">
                 {{ getTitleText(row) }}
@@ -31,42 +31,29 @@
               </span>
             </div>
 
-            @if (previewColumns().length > 0) {
-              <p class="mb-1 truncate text-sm font-medium leading-normal text-zinc-500 dark:text-zinc-400">
-                {{ formatValue(getCellValue(row, previewColumns()[0]), previewColumns()[0]) }}
+            @if (getSubtitleText(row)) {
+              <p class="truncate text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                {{ getSubtitleText(row) }}
               </p>
             }
 
-            <div class="flex items-center gap-2">
-              <div class="flex flex-wrap items-center gap-1 uppercase tracking-wide">
+            @if (getSecondarySubtitleText(row)) {
+              <p class="truncate text-xs font-medium text-zinc-500 dark:text-zinc-400">
+                {{ getSecondarySubtitleText(row) }}
+              </p>
+            }
+
+            @if (getStatusText(row)) {
+              <div class="mt-1.5 flex items-center gap-2">
+                <shared-chip [variant]="getStatusVariant(row)">
+                  {{ getStatusText(row) }}
+                </shared-chip>
+                
                 @if (row.recentlyUpdated) {
-                  <span class="inline-flex items-center border border-green-200 bg-green-50 px-2 py-0.5 text-[10px] font-bold text-green-700 dark:border-green-800/60 dark:bg-green-900/30 dark:text-green-100">
-                    Updated
-                  </span>
-                }
-                @if (row.isNew) {
-                  <span class="inline-flex items-center border border-blue-200 bg-blue-50 px-2 py-0.5 text-[10px] font-bold text-blue-700 dark:border-blue-800/60 dark:bg-blue-900/30 dark:text-blue-100">
-                    New
-                  </span>
-                }
-                @if (row.dirty && !row.isNew) {
-                  <span class="inline-flex items-center border border-amber-200 bg-amber-50 px-2 py-0.5 text-[10px] font-bold text-amber-700 dark:border-amber-800/60 dark:bg-amber-900/30 dark:text-amber-100">
-                    Modified
-                  </span>
-                }
-                @if (row.error) {
-                  <span class="inline-flex items-center border border-red-200 bg-red-50 px-2 py-0.5 text-[10px] font-bold text-red-700 dark:border-red-800/60 dark:bg-red-900/30 dark:text-red-100">
-                    Error
-                  </span>
+                  <span class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" aria-hidden="true"></span>
                 }
               </div>
-              
-              @if (previewColumns().length > 1) {
-                <span class="text-[10px] font-medium text-zinc-400 dark:text-zinc-600">
-                  {{ formatValue(getCellValue(row, previewColumns()[1]), previewColumns()[1]) }}
-                </span>
-              }
-            </div>
+            }
           </div>
         </div>
 

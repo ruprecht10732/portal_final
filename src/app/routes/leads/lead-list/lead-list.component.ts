@@ -175,7 +175,10 @@ export class LeadListComponent implements OnInit {
     selectable: true,
     cardViewEnabled: true,
     mobileBreakpoint: 640,
-    cardTitleField: 'consumer.firstName' as keyof LeadRow,
+    cardTitleField: 'fullName',
+    cardSubtitleField: 'consumer.phone',
+    cardSecondarySubtitleField: 'consumer.email',
+    statusField: 'status',
     cardPreviewFieldCount: 4,
   };
 
@@ -185,7 +188,8 @@ export class LeadListComponent implements OnInit {
     this.loadUsers();
     const resolved = this.route.snapshot.data['leads'] as { items: LeadRow[]; total: number } | undefined;
     if (resolved) {
-      this.leads.set(resolved.items ?? []);
+      const normalized = (resolved.items ?? []).map(row => this.normalizeLead(row));
+      this.leads.set(normalized);
       this.total.set(resolved.total ?? 0);
       this.loading.set(false);
       this.ignoreNextRequest = true;
@@ -228,6 +232,7 @@ export class LeadListComponent implements OnInit {
     return {
       ...row,
       assignedAgentId: row.assignedAgentId ?? '',
+      fullName: `${row.consumer?.firstName ?? ''} ${row.consumer?.lastName ?? ''}`.trim(),
     };
   }
 

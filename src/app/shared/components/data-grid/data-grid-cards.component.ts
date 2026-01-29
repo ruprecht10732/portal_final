@@ -20,6 +20,10 @@ import { InputComponent } from '../input/input.component';
 import { SelectComponent } from '../select/select.component';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { ButtonComponent } from '../button/button.component';
+import { ChipComponent, ChipVariant } from '../chip/chip.component';
+
+/** Type alias for field paths in the grid */
+export type GridFieldPath<T> = keyof T | string;
 
 @Component({
   selector: 'data-grid-cards',
@@ -32,6 +36,7 @@ import { ButtonComponent } from '../button/button.component';
     SelectComponent,
     CheckboxComponent,
     ButtonComponent,
+    ChipComponent,
   ],
 })
 export class DataGridCardsComponent<T extends Record<string, unknown>> {
@@ -50,7 +55,16 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   readonly rowIdField = input<keyof T>('id' as keyof T);
   
   /** Field to use as card title */
-  readonly cardTitleField = input<keyof T | undefined>(undefined);
+  readonly cardTitleField = input<GridFieldPath<T> | undefined>(undefined);
+
+  /** Field to use as subtitle */
+  readonly cardSubtitleField = input<GridFieldPath<T> | undefined>(undefined);
+
+  /** Secondary subtitle field (e.g. email) */
+  readonly cardSecondarySubtitleField = input<GridFieldPath<T> | undefined>(undefined);
+
+  /** Field to use as status */
+  readonly statusField = input<GridFieldPath<T> | undefined>(undefined);
   
   /** Number of preview fields before expand */
   readonly previewFieldCount = input<number>(3);
@@ -164,8 +178,63 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
 
   /** Get normalized title text for display */
   protected getTitleText(row: RowState<T>): string {
+    const titleField = this.cardTitleField();
+    if (titleField) {
+      const value = this.getValueByPath(row.current, titleField as string);
+      if (value !== null && value !== undefined) {
+        return this.stringifyValue(value);
+      }
+    }
+    
     const title = this.formatValue(this.getCellValue(row, this.titleColumn()), this.titleColumn());
     return title || 'Untitled';
+  }
+
+  /** Get subtitle text */
+  protected getSubtitleText(row: RowState<T>): string | null {
+    const field = this.cardSubtitleField();
+    if (!field) return null;
+    const value = this.getValueByPath(row.current, field as string);
+    return value !== null && value !== undefined ? this.stringifyValue(value) : null;
+  }
+
+  /** Get secondary subtitle text */
+  protected getSecondarySubtitleText(row: RowState<T>): string | null {
+    const field = this.cardSecondarySubtitleField();
+    if (!field) return null;
+    const value = this.getValueByPath(row.current, field as string);
+    return value !== null && value !== undefined ? this.stringifyValue(value) : null;
+  }
+
+  /** Get status text */
+  protected getStatusText(row: RowState<T>): string | null {
+    const field = this.statusField();
+    if (!field) return null;
+    const value = this.getValueByPath(row.current, field as string);
+    if (value === null || value === undefined) return null;
+    
+    // Check if there are select options for this field to get the label
+    const col = this.columns().find(c => c.field === field);
+    if (col?.selectOptions) {
+      const opt = col.selectOptions.find(o => o.value === value);
+      if (opt) return opt.label;
+    }
+    
+    return this.stringifyValue(value);
+  }
+
+  protected getStatusVariant(row: RowState<T>): ChipVariant {
+    const field = this.statusField();
+    if (!field) return 'default';
+    const rawValue = this.getValueByPath(row.current, field as string);
+    const value = this.stringifyValue(rawValue ?? '').toLowerCase();
+
+    if (value.includes('new')) return 'info';
+    if (value.includes('scheduled') || value.includes('surveyed') || value.includes('success')) return 'success';
+    if (value.includes('attempt') || value.includes('reschedule') || value.includes('warn')) return 'warning';
+    if (value.includes('bad') || value.includes('error') || value.includes('danger')) return 'danger';
+    
+    return 'neutral';
   }
 
   /** Derive initials for the avatar placeholder */
@@ -266,7 +335,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
 
   /** Get status class for card border */
   protected getStatusClass(row: RowState<T>): string {
-    return 'border-zinc-200 dark:border-zinc-800';
+    return '';
   }
 
   /** Get background class for card */
@@ -318,5 +387,33 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
       }
       return undefined;
     }, obj as unknown);
+  }
+
+  private stringifyValue(value: unknown): string {
+    if (value === null || value === undefined) {
+      return '';
+    }
+    
+    if (typeof value === 'string') {
+      return value;
+    }
+
+    if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'bigint') {
+      return String(value);
+    }
+    
+    if (typeof value === 'object') {
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return '';
+      }
+    }
+    
+    if (typeof value === 'symbol') {
+      return value.description ?? '';
+    }
+    
+    return '';
   }
 }
