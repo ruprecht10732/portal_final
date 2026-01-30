@@ -12,6 +12,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { normalizeIconName } from '../../../core/services/icon-utils';
 import { IconPickerComponent } from '../../../shared/components/icon-picker/icon-picker.component';
+import { ColorPickerComponent } from '../../../shared/components/color-picker/color-picker.component';
 import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
 export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
@@ -29,6 +30,7 @@ export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
     ButtonComponent,
     ConfirmDialogComponent,
     IconPickerComponent,
+    ColorPickerComponent,
   ],
 })
 export class ServiceTypesComponent implements OnInit {
@@ -103,7 +105,12 @@ export class ServiceTypesComponent implements OnInit {
       filterable: false,
       editable: true,
       width: '120px',
-      cellType: 'text',
+      cellType: 'color',
+      validator: (value) => {
+        if (value === null || value === undefined || value === '') return null;
+        if (typeof value !== 'string') return 'Invalid';
+        return /^#[0-9a-fA-F]{6}$/.test(value.trim()) ? null : 'Use #RRGGBB';
+      },
     },
     {
       id: 'displayOrder',

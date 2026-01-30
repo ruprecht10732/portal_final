@@ -22,14 +22,14 @@ import { OptionLabelPipe } from './data-grid.pipes';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { DataGridAddressCellComponent } from './data-grid-address-cell.component';
 import { DataGridIconCellComponent } from './data-grid-icon-cell.component';
+import { DataGridColorCellComponent } from './data-grid-color-cell.component';
 import { DataGridStore } from './data-grid.store';
 import { AddressSuggestion } from '../../../core/services/address.service';
-
 @Component({
   selector: 'data-grid-body',
-  imports: [OptionLabelPipe, CheckboxComponent, DataGridAddressCellComponent, DataGridIconCellComponent],
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
+  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'role': 'rowgroup',
@@ -106,6 +106,15 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     }
     
     return this.valueToString(value);
+  }
+
+  protected isHexColor(value: unknown): boolean {
+    return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value.trim());
+  }
+
+  protected hexOrTransparent(value: unknown): string {
+    if (this.isHexColor(value)) return (value as string).trim();
+    return 'transparent';
   }
 
   protected getCellError(row: RowState<T>, columnId: string): string | null {

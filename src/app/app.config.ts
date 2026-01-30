@@ -1,6 +1,8 @@
 import { ApplicationConfig, ErrorHandler, importProvidersFrom, provideBrowserGlobalErrorListeners } from '@angular/core';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
+import { provideAnimations } from '@angular/platform-browser/animations';
+import { ColorPickerModule } from '@iplab/ngx-color-picker';
 import {
   ArrowLeftRight,
   Brush,
@@ -51,10 +53,12 @@ import { GlobalErrorHandler } from './core/handlers/global-error.handler';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
+    provideAnimations(),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     provideRouter(routes),
     provideHttpClient(withInterceptors([errorReportingInterceptor, authInterceptor])),
     importProvidersFrom(
+      ColorPickerModule,
       LucideAngularModule.pick({
         ArrowLeftRight,
         Brush,

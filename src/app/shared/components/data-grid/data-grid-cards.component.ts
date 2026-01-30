@@ -21,6 +21,7 @@ import { SelectComponent } from '../select/select.component';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { ButtonComponent } from '../button/button.component';
 import { ChipComponent, ChipVariant } from '../chip/chip.component';
+import { ColorPickerComponent } from '../color-picker/color-picker.component';
 
 /** Type alias for field paths in the grid */
 export type GridFieldPath<T> = keyof T | string;
@@ -37,6 +38,7 @@ export type GridFieldPath<T> = keyof T | string;
     CheckboxComponent,
     ButtonComponent,
     ChipComponent,
+    ColorPickerComponent,
   ],
 })
 export class DataGridCardsComponent<T extends Record<string, unknown>> {

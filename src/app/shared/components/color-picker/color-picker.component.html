@@ -1,0 +1,96 @@
+<div class="flex flex-col w-full gap-1.5 text-left">
+  @if (label() && !compact()) {
+    <label [for]="uid" class="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+      {{ label() }}
+      @if (required()) {
+        <span class="text-red-500" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <div class="relative" cdkOverlayOrigin #origin="cdkOverlayOrigin">
+    <button
+      #trigger
+      type="button"
+      [id]="uid"
+      class="picker-trigger w-full flex items-center gap-2 border border-zinc-200 bg-white transition-colors focus:outline-none focus:border-black disabled:opacity-50 disabled:cursor-not-allowed"
+      [class.px-3]="compact()"
+      [class.py-1.5]="compact()"
+      [class.px-4]="!compact()"
+      [class.py-3]="!compact()"
+      [disabled]="disabled()"
+      (click)="toggle()"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-haspopup]="'dialog'"
+      [attr.aria-invalid]="!!error()"
+      [attr.aria-label]="ariaLabel() || label() || 'Pick a color'"
+      [attr.aria-describedby]="describedBy()"
+    >
+      <span
+        class="swatch h-4 w-4 border border-zinc-200"
+        [style.backgroundColor]="swatchColor()"
+      ></span>
+      @if (displayValue()) {
+        <span class="truncate text-sm">{{ displayValue() }}</span>
+      } @else {
+        <span class="truncate text-sm text-zinc-400">{{ placeholder() || 'Pick a color' }}</span>
+      }
+
+      <span class="ml-auto flex items-center gap-2">
+        <svg class="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </span>
+    </button>
+
+    <ng-template
+      cdkConnectedOverlay
+      [cdkConnectedOverlayOrigin]="origin"
+      [cdkConnectedOverlayOpen]="isOpen()"
+      [cdkConnectedOverlayMinWidth]="compact() ? 260 : 320"
+      [cdkConnectedOverlayFlexibleDimensions]="true"
+      (overlayOutsideClick)="close()"
+      (detach)="close()"
+    >
+      <div class="panel bg-white border border-black shadow-xl mt-px p-3 flex flex-col gap-3 z-50">
+        <!-- Picker from @iplab/ngx-color-picker -->
+        <chrome-picker
+          [color]="displayValue() || placeholder()"
+          (colorChange)="onPickerColorChange($event)"
+        ></chrome-picker>
+
+        <div class="flex items-center gap-2">
+          <span class="swatch h-7 w-7 border border-zinc-200" [style.backgroundColor]="swatchColor()"></span>
+          <input
+            type="text"
+            class="w-full px-3 py-2 text-sm border border-zinc-200 focus:outline-none focus:border-black"
+            [value]="value()"
+            (input)="onHexInputChange($any($event.target).value)"
+            (blur)="onHexBlur()"
+            placeholder="#RRGGBB"
+            aria-label="Hex color"
+          />
+          <button
+            type="button"
+            class="px-3 py-2 text-xs font-semibold uppercase tracking-wide border border-zinc-200 hover:border-black"
+            (click)="clear()"
+            [disabled]="disabled()"
+          >
+            Clear
+          </button>
+        </div>
+
+        @if (hint() && !error()) {
+          <p [id]="hintId" class="text-[10px] uppercase font-medium text-zinc-400 tracking-wide">
+            {{ hint() }}
+          </p>
+        }
+        @if (error()) {
+          <p [id]="errorId" class="text-[10px] uppercase font-bold text-red-500 tracking-wide">
+            {{ error() }}
+          </p>
+        }
+      </div>
+    </ng-template>
+  </div>
+</div>

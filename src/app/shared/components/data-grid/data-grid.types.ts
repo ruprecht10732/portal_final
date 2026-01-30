@@ -49,7 +49,7 @@ export interface GridColumn<T = unknown> {
   /** Whether column is editable */
   editable?: boolean;
   /** Custom cell renderer type */
-  cellType?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'custom' | 'address' | 'icon';
+  cellType?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'custom' | 'address' | 'icon' | 'color';
   /** Address field mapping for address cell type */
   addressMapping?: AddressFieldMapping;
   /** Options for select type cells */

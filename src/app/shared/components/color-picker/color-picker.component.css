@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.swatch {
+  border-radius: 4px;
+}
+
+.picker-trigger {
+  border-radius: 0;
+}
+
+.panel {
+  border-radius: 0;
+}

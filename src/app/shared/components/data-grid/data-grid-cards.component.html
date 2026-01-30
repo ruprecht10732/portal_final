@@ -91,6 +91,13 @@
                       [label]="column.header"
                       placeholder="Select an option"
                     />
+                  } @else if (column.cellType === 'color') {
+                    <shared-color-picker
+                      [value]="getInputString(row, column)"
+                      (valueChange)="onCellValueChange(rowIndex, column, $event)"
+                      [label]="column.header"
+                      placeholder="#3B82F6"
+                    />
                   } @else {
                     <shared-input
                       [type]="column.cellType === 'number' ? 'number' : 'text'"

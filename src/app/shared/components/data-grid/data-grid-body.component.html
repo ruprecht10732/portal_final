@@ -99,6 +99,12 @@
                       (valueChange)="onInputChange(rowIndex, column, $event ?? '')"
                     />
                   }
+                  @case ('color') {
+                    <data-grid-color-cell
+                      [value]="getInputStringValue(row, column) || null"
+                      (valueChange)="onInputChange(rowIndex, column, $event)"
+                    />
+                  }
                   @case ('select') {
                     <select
                       class="w-full min-h-7 px-2 py-1 text-sm bg-transparent border border-transparent focus:outline-none"
@@ -168,6 +174,13 @@
                       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
                     </svg>
                   }
+                } @else if (column.cellType === 'color') {
+                  <span
+                    class="inline-block h-3 w-3 shrink-0 border border-zinc-200"
+                    [style.backgroundColor]="hexOrTransparent(getCellValue(row, column))"
+                    aria-hidden="true"
+                  ></span>
+                  <span class="truncate">{{ getCellValue(row, column) ?? '—' }}</span>
                 } @else if (column.cellType === 'select') {
                   {{ column.selectOptions | optionLabel:getCellValue(row, column) }}
                 } @else {
