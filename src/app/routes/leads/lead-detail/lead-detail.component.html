@@ -185,7 +185,7 @@
         <shared-lead-services-card
           [services]="l.services"
           [selectedServiceId]="selectedServiceId()"
-          [serviceTypeLabels]="SERVICE_TYPE_LABELS"
+          [serviceTypeLabels]="serviceTypeLabels()"
           [statusLabels]="STATUS_LABELS"
           [statusColors]="STATUS_COLORS"
           [showAddForm]="showAddServiceForm()"
@@ -241,7 +241,7 @@
           <shared-lead-services-card
             [services]="l.services"
             [selectedServiceId]="selectedServiceId()"
-            [serviceTypeLabels]="SERVICE_TYPE_LABELS"
+            [serviceTypeLabels]="serviceTypeLabels()"
             [statusLabels]="STATUS_LABELS"
             [statusColors]="STATUS_COLORS"
             [showAddForm]="showAddServiceForm()"
@@ -361,7 +361,16 @@
                 (addNote)="addNote()"
               ></shared-activity-notes>
             } @else {
-              <div class="text-sm text-zinc-500">AI Advisor</div>
+              <shared-ai-advisor-panel
+                [analysis]="aiAnalysis()"
+                [loading]="aiAnalysisLoading()"
+                [error]="aiAnalysisError()"
+                [refreshing]="aiAnalysisRefreshing()"
+                [isDefault]="aiAnalysisIsDefault()"
+                [noNewInfo]="aiAnalysisNoNewInfo()"
+                (refresh)="refreshAIAnalysis()"
+                (forceRefresh)="forceRefreshAIAnalysis()"
+              ></shared-ai-advisor-panel>
             }
           </shared-card>
         </main>

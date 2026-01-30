@@ -21,6 +21,9 @@ import type {
   VisitHistoryListResponse,
   AddServiceRequest,
   UpdateServiceStatusRequest,
+  LeadAIAnalysisResponse,
+  LeadAIAnalysisListResponse,
+  AnalyzeLeadResponse,
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
@@ -112,5 +115,19 @@ export class LeadsService {
 
   updateServiceStatus(leadId: string, serviceId: string, data: UpdateServiceStatusRequest): Observable<Lead> {
     return this.http.patch<Lead>(`${this.baseUrl}/${leadId}/services/${serviceId}/status`, data);
+  }
+
+  // AI Analysis methods
+  analyzeWithAI(id: string, force = false): Observable<AnalyzeLeadResponse> {
+    const params = force ? new HttpParams().set('force', 'true') : undefined;
+    return this.http.post<AnalyzeLeadResponse>(`${this.baseUrl}/${id}/analyze`, {}, { params });
+  }
+
+  getLatestAnalysis(id: string): Observable<LeadAIAnalysisResponse> {
+    return this.http.get<LeadAIAnalysisResponse>(`${this.baseUrl}/${id}/analysis`);
+  }
+
+  listAnalyses(id: string): Observable<LeadAIAnalysisListResponse> {
+    return this.http.get<LeadAIAnalysisListResponse>(`${this.baseUrl}/${id}/analysis/history`);
   }
 }

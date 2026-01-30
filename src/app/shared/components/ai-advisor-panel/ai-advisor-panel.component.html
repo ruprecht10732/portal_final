@@ -1,0 +1,256 @@
+<div class="flex flex-col gap-4">
+  <!-- Header with refresh button -->
+  <div class="flex items-center justify-between">
+    <h3 class="text-lg font-semibold">AI Sales Advisor</h3>
+    <div class="flex items-center gap-2">
+      @if (noNewInfo()) {
+        <shared-button
+          variant="secondary"
+          size="compact"
+          [disabled]="refreshing() || loading()"
+          (clicked)="forceRefresh.emit()"
+          title="Generate a new analysis even when no changes are detected"
+        >
+          Force Regenerate
+        </shared-button>
+      }
+      <shared-button
+        variant="secondary"
+        size="compact"
+        [disabled]="refreshing() || loading()"
+        (clicked)="refresh.emit()"
+      >
+        @if (refreshing()) {
+          <span class="flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Analyzing...
+          </span>
+        } @else {
+          Refresh Analysis
+        }
+      </shared-button>
+    </div>
+  </div>
+
+  @if (loading()) {
+    <div class="flex flex-col items-center justify-center py-12 text-zinc-500">
+      <svg class="animate-spin h-8 w-8 mb-3" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+      </svg>
+      <p class="text-sm">Loading analysis...</p>
+    </div>
+  } @else if (error()) {
+    <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-6 text-center">
+      <svg class="mx-auto h-12 w-12 text-zinc-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <p class="text-sm text-zinc-600 mb-3">{{ error() }}</p>
+      <shared-button variant="secondary" size="compact" (clicked)="refresh.emit()">
+        Try Again
+      </shared-button>
+    </div>
+  } @else if (!analysis()) {
+    <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-6 text-center">
+      <svg class="mx-auto h-12 w-12 text-zinc-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
+      </svg>
+      <p class="text-sm text-zinc-600 mb-3">No AI analysis available yet</p>
+      <shared-button variant="primary" size="compact" (clicked)="refresh.emit()">
+        Generate Analysis
+      </shared-button>
+    </div>
+  } @else if (isDefault()) {
+    @let a = analysis()!;
+    
+    <!-- Default analysis banner -->
+    <div class="bg-amber-50 border border-amber-200 rounded-lg p-4 mb-4">
+      <div class="flex items-start gap-3">
+        <svg class="shrink-0 h-5 w-5 text-amber-600 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+        <div class="flex-1">
+          <p class="text-sm font-medium text-amber-800">Initial Contact Recommended</p>
+          <p class="text-sm text-amber-700 mt-1">This lead hasn't been analyzed yet. Reach out to learn more about their needs, then generate a personalized analysis.</p>
+        </div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <h4 class="text-sm font-semibold text-blue-900 mb-2">Quick Start Guide</h4>
+      <p class="text-sm text-blue-800">{{ a.summary }}</p>
+    </div>
+
+    <!-- Talking Points -->
+    @if (a.talkingPoints.length > 0) {
+      <div>
+        <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
+          <svg class="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          Suggested First Steps
+        </h4>
+        <ul class="space-y-2">
+          @for (point of a.talkingPoints; track point) {
+            <li class="flex items-start gap-2 text-sm bg-zinc-50 rounded-lg p-3">
+              <span class="text-green-600 shrink-0 mt-0.5">•</span>
+              <span>{{ point }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- Generate Analysis CTA -->
+    <div class="mt-2 pt-4 border-t border-zinc-200 text-center">
+      <p class="text-sm text-zinc-500 mb-3">After gathering more information, generate a personalized AI analysis:</p>
+      <shared-button
+        variant="primary"
+        size="default"
+        [disabled]="refreshing()"
+        (clicked)="refresh.emit()"
+      >
+        @if (refreshing()) {
+          <span class="flex items-center gap-2">
+            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+            </svg>
+            Generating...
+          </span>
+        } @else {
+          Generate AI Analysis
+        }
+      </shared-button>
+    </div>
+  } @else {
+    @let a = analysis()!;
+
+    <!-- Stale analysis warning -->
+    @if (isStale()) {
+      <div class="bg-amber-50 border border-amber-200 rounded-lg p-3 mb-2 flex items-center gap-2" role="alert">
+        <svg class="h-4 w-4 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
+          <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+        </svg>
+        <span class="text-sm text-amber-800">Deze analyse is meer dan 7 dagen oud. Overweeg een nieuwe te genereren.</span>
+      </div>
+    }
+
+    <!-- No new information banner -->
+    @if (noNewInfo()) {
+      <output class="bg-blue-50 border border-blue-200 rounded-lg p-3 mb-2">
+        <div class="flex items-start gap-2">
+          <svg class="h-4 w-4 text-blue-600 shrink-0 mt-0.5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+          </svg>
+          <div>
+            <p class="text-sm font-medium text-blue-800">Geen nieuwe informatie sinds laatste analyse</p>
+            <p class="text-xs text-blue-700 mt-1">Er zijn geen nieuwe notities of wijzigingen aan deze lead. Klik op "Force Regenerate" als je toch een nieuwe analyse wilt.</p>
+          </div>
+        </div>
+      </output>
+    }
+    
+    <!-- Urgency Badge -->
+    <div class="flex items-start gap-3 p-4 rounded-lg border" [ngClass]="getUrgencyColor(a.urgencyLevel)">
+      <div class="shrink-0">
+        @if (a.urgencyLevel === 'high') {
+          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
+          </svg>
+        } @else if (a.urgencyLevel === 'medium') {
+          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
+          </svg>
+        } @else {
+          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
+            <path fill-rule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.857-9.809a.75.75 0 00-1.214-.882l-3.483 4.79-1.88-1.88a.75.75 0 10-1.06 1.061l2.5 2.5a.75.75 0 001.137-.089l4-5.5z" clip-rule="evenodd" />
+          </svg>
+        }
+      </div>
+      <div>
+        <p class="font-semibold text-sm">{{ getUrgencyLabel(a.urgencyLevel) }}</p>
+        <p class="text-sm mt-1">{{ a.urgencyReason }}</p>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <h4 class="text-sm font-semibold text-blue-900 mb-2">Summary</h4>
+      <p class="text-sm text-blue-800">{{ a.summary }}</p>
+    </div>
+
+    <!-- Talking Points -->
+    @if (a.talkingPoints.length > 0) {
+      <div>
+        <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
+          <svg class="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
+          </svg>
+          Talking Points
+        </h4>
+        <ul class="space-y-2">
+          @for (point of a.talkingPoints; track point) {
+            <li class="flex items-start gap-2 text-sm bg-zinc-50 rounded-lg p-3">
+              <span class="text-green-600 shrink-0 mt-0.5">•</span>
+              <span>{{ point }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- Objection Handling -->
+    @if (a.objectionHandling.length > 0) {
+      <div>
+        <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
+          <svg class="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
+          </svg>
+          Objection Handling
+        </h4>
+        <div class="space-y-3">
+          @for (obj of a.objectionHandling; track obj.objection) {
+            <div class="bg-zinc-50 rounded-lg p-3">
+              <p class="text-sm font-medium text-zinc-700 mb-1">
+                <span class="text-red-500">"</span>{{ obj.objection }}<span class="text-red-500">"</span>
+              </p>
+              <p class="text-sm text-zinc-600 pl-3 border-l-2 border-green-400">
+                {{ obj.response }}
+              </p>
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <!-- Upsell Opportunities -->
+    @if (a.upsellOpportunities.length > 0) {
+      <div>
+        <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
+          <svg class="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
+          </svg>
+          Upsell Opportunities
+        </h4>
+        <ul class="space-y-2">
+          @for (opportunity of a.upsellOpportunities; track opportunity) {
+            <li class="flex items-start gap-2 text-sm bg-purple-50 border border-purple-100 rounded-lg p-3">
+              <span class="text-purple-600 shrink-0 mt-0.5">★</span>
+              <span class="text-purple-800">{{ opportunity }}</span>
+            </li>
+          }
+        </ul>
+      </div>
+    }
+
+    <!-- Timestamp -->
+    <p class="text-xs text-zinc-400 text-right">
+      Last analyzed: {{ a.createdAt | date:'medium' }}
+    </p>
+  }
+</div>

@@ -1,7 +1,6 @@
 // Lead types matching backend DTOs
 
 export type ConsumerRole = 'Owner' | 'Tenant' | 'Landlord';
-export type ServiceType = 'Windows' | 'Insulation' | 'Solar';
 export type LeadStatus = 'New' | 'Attempted_Contact' | 'Scheduled' | 'Surveyed' | 'Bad_Lead' | 'Needs_Rescheduling' | 'Closed';
 export type AccessDifficulty = 'Low' | 'Medium' | 'High';
 export type LeadNoteType = 'note' | 'call' | 'text' | 'email' | 'system';
@@ -64,7 +63,7 @@ export interface LeadNote {
 
 export interface LeadService {
   id: string;
-  serviceType: ServiceType;
+  serviceType: string;
   status: LeadStatus;
   visit: Visit;
   createdAt: string;
@@ -104,7 +103,7 @@ export interface CreateLeadRequest {
   houseNumber: string;
   zipCode: string;
   city: string;
-  serviceType: ServiceType;
+  serviceType: string;
   assigneeId?: string | null;
   consumerNote?: string;
   source?: string;
@@ -124,7 +123,7 @@ export interface UpdateLeadRequest {
 }
 
 export interface AddServiceRequest {
-  serviceType: ServiceType;
+  serviceType: string;
   closeCurrentStatus?: boolean;
 }
 
@@ -192,7 +191,7 @@ export interface BulkDeleteLeadsResponse {
 
 export interface ListLeadsParams {
   status?: LeadStatus;
-  serviceType?: ServiceType;
+  serviceType?: string;
   search?: string;
   page?: number;
   pageSize?: number;
@@ -223,22 +222,10 @@ export const STATUS_COLORS: Record<LeadStatus, string> = {
   Closed: 'bg-gray-100 text-gray-600',
 };
 
-export const SERVICE_TYPE_LABELS: Record<ServiceType, string> = {
-  Windows: 'Windows',
-  Insulation: 'Insulation',
-  Solar: 'Solar',
-};
-
 export const CONSUMER_ROLE_OPTIONS: { label: string; value: ConsumerRole }[] = [
   { label: 'Owner', value: 'Owner' },
   { label: 'Tenant', value: 'Tenant' },
   { label: 'Landlord', value: 'Landlord' },
-];
-
-export const SERVICE_TYPE_OPTIONS: { label: string; value: ServiceType }[] = [
-  { label: 'Windows', value: 'Windows' },
-  { label: 'Insulation', value: 'Insulation' },
-  { label: 'Solar', value: 'Solar' },
 ];
 
 export const ACCESS_DIFFICULTY_OPTIONS: { label: string; value: AccessDifficulty }[] = [
@@ -256,3 +243,38 @@ export const STATUS_OPTIONS: { label: string; value: LeadStatus }[] = [
   { label: 'Needs Rescheduling', value: 'Needs_Rescheduling' },
   { label: 'Closed', value: 'Closed' },
 ];
+
+// AI Analysis types
+export type UrgencyLevel = 'high' | 'medium' | 'low';
+
+export interface ObjectionResponse {
+  objection: string;
+  response: string;
+}
+
+export interface LeadAIAnalysis {
+  id: string;
+  leadId: string;
+  urgencyLevel: UrgencyLevel;
+  urgencyReason: string;
+  talkingPoints: string[];
+  objectionHandling: ObjectionResponse[];
+  upsellOpportunities: string[];
+  summary: string;
+  createdAt: string;
+}
+
+export interface LeadAIAnalysisListResponse {
+  items: LeadAIAnalysis[];
+}
+
+export interface LeadAIAnalysisResponse {
+  analysis: LeadAIAnalysis;
+  isDefault: boolean;
+}
+
+export interface AnalyzeLeadResponse {
+  status: 'created' | 'no_change' | 'error';
+  message: string;
+  analysis?: LeadAIAnalysis;
+}

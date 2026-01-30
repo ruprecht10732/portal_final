@@ -4,8 +4,10 @@ import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switch
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { LeadsService } from '../../../core/services/leads.service';
-import type { Lead, ServiceType, ConsumerRole, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
-import { SERVICE_TYPE_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
+import { ServiceTypesService } from '../../../core/services/service-types.service';
+import type { ServiceTypeItem } from '../../../core/services/service-types.types';
+import type { Lead, ConsumerRole, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
+import { CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
@@ -23,6 +25,7 @@ export class LeadFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly leadsService = inject(LeadsService);
+  private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly addressService = inject(AddressService);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -45,22 +48,28 @@ export class LeadFormComponent implements OnInit {
   protected readonly houseNumber = signal('');
   protected readonly zipCode = signal('');
   protected readonly city = signal('');
-  protected readonly serviceType = signal<ServiceType>('Windows');
+  protected readonly serviceType = signal('');
 
   protected readonly sourceMaxLength = 50;
   protected readonly consumerNoteMaxLength = 2000;
 
   protected readonly addressOptions = signal<AutocompleteOption[]>([]);
   private readonly addressSuggestions = signal<AddressSuggestion[]>([]);
+  protected readonly serviceTypes = signal<ServiceTypeItem[]>([]);
 
-  protected readonly serviceTypeOptions = computed<SelectOption<ServiceType>[]>(() => SERVICE_TYPE_OPTIONS);
+  protected readonly serviceTypeOptions = computed<SelectOption<string>[]>(() =>
+    this.serviceTypes().map(item => ({
+      label: item.name,
+      value: item.name,
+    }))
+  );
   protected readonly consumerRoleOptions = computed<SelectOption<ConsumerRole>[]>(() => CONSUMER_ROLE_OPTIONS);
 
   protected setConsumerRole(value: ConsumerRole | null): void {
     if (value) this.consumerRole.set(value);
   }
 
-  protected setServiceType(value: ServiceType | null): void {
+  protected setServiceType(value: string | null): void {
     if (value) this.serviceType.set(value);
   }
 
@@ -72,7 +81,8 @@ export class LeadFormComponent implements OnInit {
       this.street().trim() &&
       this.houseNumber().trim() &&
       this.zipCode().trim() &&
-      this.city().trim()
+      this.city().trim() &&
+      this.serviceType().trim()
     );
   });
 
@@ -81,11 +91,25 @@ export class LeadFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.loadServiceTypes();
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isNew.set(false);
       this.loadLead(id);
     }
+  }
+
+  private loadServiceTypes(): void {
+    this.serviceTypesService.listActive().subscribe({
+      next: (response) => {
+        const items = response.items ?? [];
+        this.serviceTypes.set(items);
+        if (!this.serviceType() && items.length > 0) {
+          this.serviceType.set(items[0].name);
+        }
+      },
+      error: () => this.error.set('Failed to load service types'),
+    });
   }
 
   private loadLead(id: string): void {
@@ -115,7 +139,8 @@ export class LeadFormComponent implements OnInit {
     this.houseNumber.set(lead.address.houseNumber);
     this.zipCode.set(lead.address.zipCode);
     this.city.set(lead.address.city);
-    this.serviceType.set(lead.currentService?.serviceType ?? 'Windows');
+    const fallbackServiceType = this.serviceType() || this.serviceTypes()[0]?.name || '';
+    this.serviceType.set(lead.currentService?.serviceType ?? fallbackServiceType);
   }
 
   private setupAddressSearch(): void {

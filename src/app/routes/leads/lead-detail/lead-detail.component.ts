@@ -1,11 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { LeadsService } from '../../../core/services/leads.service';
-import type { AccessDifficulty, Lead, LeadNote, LeadNoteType, LeadService, LeadStatus, ServiceType, VisitHistory } from '../../../core/services/leads.types';
-import { ACCESS_DIFFICULTY_OPTIONS, SERVICE_TYPE_LABELS, SERVICE_TYPE_OPTIONS, STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
+import { ServiceTypesService } from '../../../core/services/service-types.service';
+import type { ServiceTypeItem } from '../../../core/services/service-types.types';
+import type { AccessDifficulty, Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadStatus, VisitHistory } from '../../../core/services/leads.types';
+import { ACCESS_DIFFICULTY_OPTIONS, STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
 import { UserService } from '../../../core/services/user.service';
 import type { UserProfile } from '../../../core/services/user.types';
 import { ActivityNotesComponent } from '../../../shared/components/activity-notes/activity-notes.component';
+import { AiAdvisorPanelComponent } from '../../../shared/components/ai-advisor-panel/ai-advisor-panel.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { CardComponent } from '../../../shared/components/card/card.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -22,12 +25,13 @@ import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, VisitPanelComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent],
+  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, VisitPanelComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly leadsService = inject(LeadsService);
+  private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly userService = inject(UserService);
 
   protected readonly lead = signal<Lead | null>(null);
@@ -83,6 +87,15 @@ export class LeadDetailComponent implements OnInit {
   protected readonly copiedAddress = signal(false);
   protected readonly notePanelDesktop = viewChild<ActivityNotesComponent>('notePanelDesktop');
   protected readonly notePanelMobile = viewChild<ActivityNotesComponent>('notePanelMobile');
+  protected readonly serviceTypes = signal<ServiceTypeItem[]>([]);
+
+  // AI Analysis
+  protected readonly aiAnalysis = signal<LeadAIAnalysis | null>(null);
+  protected readonly aiAnalysisLoading = signal(false);
+  protected readonly aiAnalysisError = signal<string | null>(null);
+  protected readonly aiAnalysisRefreshing = signal(false);
+  protected readonly aiAnalysisIsDefault = signal(false);
+  protected readonly aiAnalysisNoNewInfo = signal(false);
 
   // ARIA live region for announcements
   protected readonly announcement = signal<string>('');
@@ -95,7 +108,7 @@ export class LeadDetailComponent implements OnInit {
 
   // Services management
   protected readonly showAddServiceForm = signal(false);
-  protected readonly newServiceType = signal<ServiceType | null>(null);
+  protected readonly newServiceType = signal<string | null>(null);
   protected readonly closeCurrentService = signal(true);
   protected readonly selectedServiceId = signal<string | null>(null);
 
@@ -110,9 +123,20 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly STATUS_LABELS = STATUS_LABELS;
   protected readonly STATUS_COLORS = STATUS_COLORS;
-  protected readonly SERVICE_TYPE_LABELS = SERVICE_TYPE_LABELS;
 
-  protected readonly serviceTypeOptions = computed(() => SERVICE_TYPE_OPTIONS);
+  protected readonly serviceTypeLabels = computed<Record<string, string>>(() =>
+    this.serviceTypes().reduce((acc, item) => {
+      acc[item.name] = item.name;
+      return acc;
+    }, {} as Record<string, string>)
+  );
+
+  protected readonly serviceTypeOptions = computed(() =>
+    this.serviceTypes().map(item => ({
+      label: item.name,
+      value: item.name,
+    }))
+  );
 
   protected readonly statusOptions = computed<SelectOption<LeadStatus>[]>(() => STATUS_OPTIONS);
   protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => ACCESS_DIFFICULTY_OPTIONS);
@@ -137,7 +161,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly headerServiceTypeLabel = computed(() => {
     const service = this.selectedService();
     if (!service) return null;
-    return this.SERVICE_TYPE_LABELS[service.serviceType] ?? service.serviceType;
+    return this.serviceTypeLabels()[service.serviceType] ?? service.serviceType;
   });
 
   protected readonly headerStatusLabel = computed(() => {
@@ -236,6 +260,7 @@ export class LeadDetailComponent implements OnInit {
     if (id && id !== 'new') {
       this.loadProfile();
       this.loadUsers();
+      this.loadServiceTypes();
       this.loadLead(id);
     }
   }
@@ -251,6 +276,7 @@ export class LeadDetailComponent implements OnInit {
         this.loading.set(false);
         this.loadNotes(lead.id);
         this.loadVisitHistory(lead.id);
+        this.loadAIAnalysis(lead.id);
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
       },
@@ -281,6 +307,19 @@ export class LeadDetailComponent implements OnInit {
         this.assigneeOptions.set(options);
       },
       error: () => this.error.set('Failed to load users'),
+    });
+  }
+
+  private loadServiceTypes(): void {
+    this.serviceTypesService.listActive().subscribe({
+      next: (response) => {
+        const items = response.items ?? [];
+        this.serviceTypes.set(items);
+        if (!this.newServiceType() && items.length > 0) {
+          this.newServiceType.set(items[0].name);
+        }
+      },
+      error: () => this.error.set('Failed to load service types'),
     });
   }
 
@@ -675,6 +714,59 @@ export class LeadDetailComponent implements OnInit {
         // Silently fail for visit history - not critical
       },
     });
+  }
+
+  private loadAIAnalysis(id: string): void {
+    this.aiAnalysisLoading.set(true);
+    this.aiAnalysisError.set(null);
+    this.leadsService.getLatestAnalysis(id).subscribe({
+      next: (response) => {
+        this.aiAnalysis.set(response.analysis);
+        this.aiAnalysisIsDefault.set(response.isDefault);
+        this.aiAnalysisLoading.set(false);
+      },
+      error: (err) => {
+        this.aiAnalysisError.set(err.error?.error || 'Failed to load AI analysis');
+        this.aiAnalysisLoading.set(false);
+      },
+    });
+  }
+
+  protected refreshAIAnalysis(force = false): void {
+    const lead = this.lead();
+    if (!lead) return;
+
+    this.aiAnalysisRefreshing.set(true);
+    this.aiAnalysisError.set(null);
+    this.aiAnalysisNoNewInfo.set(false);
+    this.leadsService.analyzeWithAI(lead.id, force).subscribe({
+      next: (response) => {
+        if (response.status === 'error') {
+          this.aiAnalysisError.set(response.message);
+        } else if (response.analysis) {
+          this.aiAnalysis.set(response.analysis);
+          this.aiAnalysisIsDefault.set(false);
+          if (response.status === 'no_change') {
+            this.aiAnalysisNoNewInfo.set(true);
+            this.announce('Geen nieuwe informatie sinds laatste analyse');
+          } else {
+            this.aiAnalysisNoNewInfo.set(false);
+            this.announce('AI analyse bijgewerkt');
+          }
+        } else {
+          this.aiAnalysisError.set('Unexpected response from server');
+        }
+        this.aiAnalysisRefreshing.set(false);
+      },
+      error: (err) => {
+        this.aiAnalysisError.set(err.error?.error || 'Failed to analyze lead');
+        this.aiAnalysisRefreshing.set(false);
+      },
+    });
+  }
+
+  protected forceRefreshAIAnalysis(): void {
+    this.refreshAIAnalysis(true);
   }
 
   protected onPhotosSelected(files: FileList | null): void {

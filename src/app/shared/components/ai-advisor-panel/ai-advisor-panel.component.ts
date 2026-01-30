@@ -1,0 +1,52 @@
+import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { NgClass, DatePipe } from '@angular/common';
+import type { LeadAIAnalysis, UrgencyLevel } from '../../../core/services/leads.types';
+import { ButtonComponent } from '../button/button.component';
+
+@Component({
+  selector: 'shared-ai-advisor-panel',
+  templateUrl: './ai-advisor-panel.component.html',
+  styleUrl: './ai-advisor-panel.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+  imports: [NgClass, DatePipe, ButtonComponent],
+  host: {
+    '[class]': "'block w-full'",
+  },
+})
+export class AiAdvisorPanelComponent {
+  analysis = input<LeadAIAnalysis | null>(null);
+  loading = input<boolean>(false);
+  error = input<string | null>(null);
+  refreshing = input<boolean>(false);
+  isDefault = input<boolean>(false);
+  noNewInfo = input<boolean>(false);
+
+  refresh = output<void>();
+  forceRefresh = output<void>();
+
+  isStale(): boolean {
+    const a = this.analysis();
+    if (!a?.createdAt) return false;
+    const createdAt = new Date(a.createdAt);
+    const sevenDaysAgo = new Date();
+    sevenDaysAgo.setDate(sevenDaysAgo.getDate() - 7);
+    return createdAt < sevenDaysAgo;
+  }
+
+  getUrgencyColor(level: UrgencyLevel): string {
+    switch (level) {
+      case 'high':
+        return 'bg-red-100 text-red-800 border-red-200';
+      case 'medium':
+        return 'bg-yellow-100 text-yellow-800 border-yellow-200';
+      case 'low':
+        return 'bg-green-100 text-green-800 border-green-200';
+      default:
+        return 'bg-zinc-100 text-zinc-800 border-zinc-200';
+    }
+  }
+
+  getUrgencyLabel(level: UrgencyLevel): string {
+    return level.charAt(0).toUpperCase() + level.slice(1) + ' Priority';
+  }
+}

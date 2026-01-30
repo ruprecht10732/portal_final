@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import type { LeadService, LeadStatus, ServiceType } from '../../../core/services/leads.types';
+import type { LeadService, LeadStatus } from '../../../core/services/leads.types';
 import type { SelectOption } from '../select/select.component';
 import { ButtonComponent } from '../button/button.component';
 import { CardComponent } from '../card/card.component';
@@ -17,13 +17,13 @@ import { SelectComponent } from '../select/select.component';
 export class LeadServicesCardComponent {
   services = input<LeadService[]>([]);
   selectedServiceId = input<string | null>(null);
-  serviceTypeLabels = input<Record<ServiceType, string>>({} as Record<ServiceType, string>);
+  serviceTypeLabels = input<Record<string, string>>({} as Record<string, string>);
   statusLabels = input<Record<LeadStatus, string>>({} as Record<LeadStatus, string>);
   statusColors = input<Record<LeadStatus, string>>({} as Record<LeadStatus, string>);
 
   showAddForm = input(false);
-  serviceTypeOptions = input<SelectOption<ServiceType>[]>([]);
-  newServiceType = input<ServiceType | null>(null);
+  serviceTypeOptions = input<SelectOption<string>[]>([]);
+  newServiceType = input<string | null>(null);
   closeCurrentService = input(true);
   saving = input(false);
 
@@ -31,7 +31,7 @@ export class LeadServicesCardComponent {
   cancelAdd = output<void>();
   addService = output<void>();
   selectService = output<LeadService>();
-  newServiceTypeChange = output<ServiceType | null>();
+  newServiceTypeChange = output<string | null>();
   closeCurrentServiceChange = output<boolean>();
 
   protected isSelected(service: LeadService): boolean {

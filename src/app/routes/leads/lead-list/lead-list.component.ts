@@ -3,9 +3,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { map, Observable } from 'rxjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { LeadsService } from '../../../core/services/leads.service';
+import { ServiceTypesService } from '../../../core/services/service-types.service';
+import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { UserService } from '../../../core/services/user.service';
 import type { Lead, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
-import { STATUS_LABELS, STATUS_OPTIONS, SERVICE_TYPE_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
+import { STATUS_LABELS, STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -22,6 +24,7 @@ type LeadRow = Lead & Record<string, unknown>;
 })
 export class LeadListComponent implements OnInit {
   private readonly leadsService = inject(LeadsService);
+  private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
@@ -31,6 +34,7 @@ export class LeadListComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly total = signal(0);
   protected readonly userOptions = signal<{ label: string; value: string }[]>([]);
+  protected readonly serviceTypes = signal<ServiceTypeItem[]>([]);
   protected readonly isDeleteDialogOpen = signal(false);
   protected readonly deleteInProgress = signal(false);
   protected readonly pendingDeleteRows = signal<LeadRow[]>([]);
@@ -158,7 +162,6 @@ export class LeadListComponent implements OnInit {
       editable: false, // Now per-service, edit in detail view
       width: '140px',
       cellType: 'select',
-      selectOptions: SERVICE_TYPE_OPTIONS,
     },
     {
       id: 'status',
@@ -192,13 +195,24 @@ export class LeadListComponent implements OnInit {
     },
   ];
 
+  protected readonly serviceTypeOptions = computed(() =>
+    this.serviceTypes().map(item => ({
+      label: item.name,
+      value: item.name,
+    }))
+  );
+
   protected readonly columns = computed<GridColumn<LeadRow>[]>(() => {
     const assigneeOptions = [{ label: 'Unassigned', value: '' }, ...this.userOptions()];
-    return this.baseColumns.map(column =>
-      column.id === 'assignedAgentId'
-        ? { ...column, selectOptions: assigneeOptions }
-        : column
-    );
+    return this.baseColumns.map(column => {
+      if (column.id === 'assignedAgentId') {
+        return { ...column, selectOptions: assigneeOptions };
+      }
+      if (column.id === 'serviceType') {
+        return { ...column, selectOptions: this.serviceTypeOptions() };
+      }
+      return column;
+    });
   });
 
   protected readonly gridConfig: Partial<GridConfig<LeadRow>> = {
@@ -218,6 +232,7 @@ export class LeadListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadUsers();
+    this.loadServiceTypes();
     const resolved = this.route.snapshot.data['leads'] as { items: LeadRow[]; total: number } | undefined;
     if (resolved) {
       const normalized = (resolved.items ?? []).map(row => this.normalizeLead(row));
@@ -260,13 +275,24 @@ export class LeadListComponent implements OnInit {
     });
   }
 
+  private loadServiceTypes(): void {
+    this.serviceTypesService.listActive().subscribe({
+      next: (response) => this.serviceTypes.set(response.items ?? []),
+      error: () => this.error.set('Failed to load service types'),
+    });
+  }
+
+  private getDefaultServiceType(): string {
+    return this.serviceTypes()[0]?.name ?? '';
+  }
+
   private normalizeLead(row: LeadRow): LeadRow {
     return {
       ...row,
       assignedAgentId: row.assignedAgentId ?? '',
       fullName: `${row.consumer?.firstName ?? ''} ${row.consumer?.lastName ?? ''}`.trim(),
       // Map currentService fields to top level for grid display
-      serviceType: row.currentService?.serviceType ?? 'Windows',
+      serviceType: row.currentService?.serviceType ?? this.getDefaultServiceType(),
       status: row.currentService?.status ?? 'New',
     } as LeadRow;
   }
@@ -434,7 +460,7 @@ export class LeadListComponent implements OnInit {
           houseNumber: address.houseNumber ?? '',
           zipCode: address.zipCode ?? '',
           city: address.city ?? '',
-          serviceType: row.currentService?.serviceType ?? 'Windows',
+          serviceType: (row['serviceType'] as string | undefined) ?? row.currentService?.serviceType ?? this.getDefaultServiceType(),
           assigneeId: normalizedAssigneeId,
         };
 
