@@ -1,6 +1,7 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
 import { guestGuard } from './core/guards/guest.guard';
+import { adminGuard } from './core/guards/admin.guard';
 import { leadsListResolver } from './routes/leads/leads-list.resolver';
 import { SidebarPanelConfig } from './routes/app-shell/sidebar-panel.config';
 
@@ -111,6 +112,7 @@ export const routes: Routes = [
 			{
 				path: 'services',
 				loadComponent: () => import('./routes/services/services-layout/services-layout.component').then(m => m.ServicesLayoutComponent),
+				canActivate: [adminGuard],
 				data: {
 					panelItems: [
 						{ label: 'Service types', route: '/app/services', icon: 'list', exact: true },

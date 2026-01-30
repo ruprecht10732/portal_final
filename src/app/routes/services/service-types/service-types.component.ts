@@ -1,9 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { forkJoin, Observable } from 'rxjs';
+import { forkJoin, map, Observable } from 'rxjs';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
-import type { CreateServiceTypeRequest, ServiceTypeItem, UpdateServiceTypeRequest } from '../../../core/services/service-types.types';
+import type { CreateServiceTypeRequest, ListServiceTypesParams, ServiceTypeItem, UpdateServiceTypeRequest } from '../../../core/services/service-types.types';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
-import type { GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
+import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
 import { CardComponent } from '../../../shared/components/card/card.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
@@ -30,10 +30,12 @@ export class ServiceTypesComponent implements OnInit {
   private readonly serviceTypesService = inject(ServiceTypesService);
 
   protected readonly serviceTypes = signal<ServiceTypeRow[]>([]);
+  protected readonly total = signal(0);
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
   protected readonly creating = signal(false);
   protected readonly error = signal<string | null>(null);
+  private ignoreNextRequest = true;
 
   protected readonly name = signal('');
   protected readonly description = signal('');
@@ -50,8 +52,8 @@ export class ServiceTypesComponent implements OnInit {
       id: 'name',
       header: 'Name',
       field: 'name',
-      sortable: false,
-      filterable: false,
+      sortable: true,
+      filterable: true,
       editable: true,
       width: '180px',
       cellType: 'text',
@@ -61,8 +63,8 @@ export class ServiceTypesComponent implements OnInit {
       id: 'slug',
       header: 'Slug',
       field: 'slug',
-      sortable: false,
-      filterable: false,
+      sortable: true,
+      filterable: true,
       editable: false,
       width: '160px',
       cellType: 'text',
@@ -101,7 +103,7 @@ export class ServiceTypesComponent implements OnInit {
       id: 'displayOrder',
       header: 'Order',
       field: 'displayOrder',
-      sortable: false,
+      sortable: true,
       filterable: false,
       editable: true,
       width: '90px',
@@ -115,8 +117,8 @@ export class ServiceTypesComponent implements OnInit {
       id: 'isActive',
       header: 'Active',
       field: 'isActive',
-      sortable: false,
-      filterable: false,
+      sortable: true,
+      filterable: true,
       editable: true,
       width: '90px',
       cellType: 'boolean',
@@ -126,7 +128,7 @@ export class ServiceTypesComponent implements OnInit {
       id: 'updatedAt',
       header: 'Updated',
       field: 'updatedAt',
-      sortable: false,
+      sortable: true,
       filterable: false,
       editable: false,
       width: '140px',
@@ -145,20 +147,24 @@ export class ServiceTypesComponent implements OnInit {
     cardPreviewFieldCount: 4,
   };
 
+  protected readonly fetchDataFn = this.fetchData.bind(this);
+
   protected readonly canCreate = computed(() => this.name().trim().length > 0);
 
   ngOnInit(): void {
-    this.loadServiceTypes();
+    this.loadInitialData();
   }
 
-  private loadServiceTypes(): void {
+  private loadServiceTypes(params: ListServiceTypesParams): void {
     this.loading.set(true);
-    this.serviceTypesService.listAdmin().subscribe({
+    this.serviceTypesService.listAdmin(params).subscribe({
       next: (response) => {
         const items = response.items ?? [];
         this.serviceTypes.set(items.map(item => ({ ...item }) as ServiceTypeRow));
+        this.total.set(response.total ?? items.length);
         this.loading.set(false);
         this.saving.set(false);
+        this.ignoreNextRequest = true;
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to load service types');
@@ -166,6 +172,10 @@ export class ServiceTypesComponent implements OnInit {
         this.saving.set(false);
       },
     });
+  }
+
+  private loadInitialData(): void {
+    this.loadServiceTypes({ page: 1, pageSize: 20, sortBy: 'displayOrder', sortOrder: 'asc' });
   }
 
   protected createServiceType(): void {
@@ -186,7 +196,7 @@ export class ServiceTypesComponent implements OnInit {
     this.serviceTypesService.create(request).subscribe({
       next: () => {
         this.resetForm();
-        this.loadServiceTypes();
+        this.loadInitialData();
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to create service type');
@@ -227,7 +237,7 @@ export class ServiceTypesComponent implements OnInit {
     this.saving.set(true);
     const requestMap = Object.fromEntries(requests.map((request, index) => [index, request]));
     forkJoin(requestMap).subscribe({
-      next: () => this.loadServiceTypes(),
+      next: () => this.loadInitialData(),
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to save service types');
         this.saving.set(false);
@@ -259,7 +269,7 @@ export class ServiceTypesComponent implements OnInit {
     forkJoin(requestMap).subscribe({
       next: () => {
         this.closeDeleteDialog();
-        this.loadServiceTypes();
+        this.loadInitialData();
       },
       error: (err) => {
         this.error.set(err.error?.error || 'Failed to delete service types');
@@ -340,6 +350,72 @@ export class ServiceTypesComponent implements OnInit {
     const parsed = Number(value);
     if (!Number.isFinite(parsed) || parsed < 0) return undefined;
     return parsed;
+  }
+
+  protected fetchData(request: DataRequest): Observable<DataResponse<ServiceTypeRow>> {
+    const params: ListServiceTypesParams = {
+      page: request.page,
+      pageSize: request.pageSize,
+      sortBy: request.sort?.columnId as ListServiceTypesParams['sortBy'],
+      sortOrder: request.sort?.direction,
+    };
+
+    if (request.searchTerm) {
+      params.search = request.searchTerm;
+    }
+
+    const searchFilters: string[] = [];
+
+    for (const filter of request.filters) {
+      if (filter.columnId === 'isActive') {
+        const normalized = filter.value.trim().toLowerCase();
+        if (['true', 'active', 'yes', '1'].includes(normalized)) {
+          params.isActive = true;
+        } else if (['false', 'inactive', 'no', '0'].includes(normalized)) {
+          params.isActive = false;
+        }
+        continue;
+      }
+
+      if (['name', 'slug', 'description', 'icon', 'color'].includes(filter.columnId)) {
+        if (filter.value.trim()) {
+          searchFilters.push(filter.value.trim());
+        }
+      }
+    }
+
+    if (!params.search && searchFilters.length > 0) {
+      params.search = searchFilters.join(' ');
+    }
+
+    return this.serviceTypesService.listAdmin(params).pipe(
+      map(response => ({
+        data: (response.items ?? []).map(item => ({ ...item }) as ServiceTypeRow),
+        totalItems: response.total ?? 0,
+        page: response.page ?? request.page,
+        pageSize: response.pageSize ?? request.pageSize,
+      }))
+    );
+  }
+
+  protected onDataRequest(request: DataRequest): void {
+    if (this.ignoreNextRequest) {
+      this.ignoreNextRequest = false;
+      return;
+    }
+
+    this.loading.set(true);
+    this.fetchData(request).subscribe({
+      next: (response) => {
+        this.serviceTypes.set(response.data);
+        this.total.set(response.totalItems);
+        this.loading.set(false);
+      },
+      error: (err) => {
+        this.error.set(err.error?.error || 'Failed to load service types');
+        this.loading.set(false);
+      },
+    });
   }
 
 }

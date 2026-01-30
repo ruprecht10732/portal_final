@@ -7,7 +7,7 @@
     </div>
 
     <nav class="no-scrollbar flex flex-1 flex-col items-center gap-4 overflow-y-auto" aria-label="Primary">
-      @for (item of items; track item.route) {
+      @for (item of items(); track item.route) {
         <div class="group relative">
           <shared-button
             class="sidebar-item"

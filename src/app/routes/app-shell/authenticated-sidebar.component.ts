@@ -4,11 +4,13 @@ import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive } f
 import {
   LucideAngularModule
 } from 'lucide-angular';
-import { filter, map } from 'rxjs';
+import { catchError, filter, map, of } from 'rxjs';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { MenuComponent, MenuSection } from '../../shared/components/menu/menu.component';
 import { AuthenticatedSidebarPanelComponent } from './authenticated-sidebar-panel.component';
 import { SidebarPanelItem } from './sidebar-panel.config';
+import { UserService } from '../../core/services/user.service';
+import type { UserProfile } from '../../core/services/user.types';
 
 interface SidebarItem {
   label: string;
@@ -33,6 +35,7 @@ interface SidebarItem {
 export class AuthenticatedSidebarComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly userService = inject(UserService);
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -44,12 +47,26 @@ export class AuthenticatedSidebarComponent {
 
   protected readonly isExpanded = signal(true);
 
-  protected readonly items: SidebarItem[] = [
-    { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
-    { label: 'Leads', route: '/app/leads', icon: 'leads' },
-    { label: 'Services', route: '/app/services', icon: 'services' },
-    { label: 'Profile', route: '/app/profile', icon: 'profile' },
-  ];
+  private readonly user = toSignal(
+    this.userService.getProfile().pipe(
+      catchError(() => of(null)),
+    ),
+    { initialValue: null as UserProfile | null },
+  );
+
+  protected readonly isAdmin = computed(() => this.user()?.roles?.includes('admin') ?? false);
+
+  protected readonly items = computed<SidebarItem[]>(() => {
+    const base: SidebarItem[] = [
+      { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
+      { label: 'Leads', route: '/app/leads', icon: 'leads' },
+      { label: 'Profile', route: '/app/profile', icon: 'profile' },
+    ];
+    if (this.isAdmin()) {
+      base.splice(2, 0, { label: 'Services', route: '/app/services', icon: 'services' });
+    }
+    return base;
+  });
 
   protected readonly profileMenu: MenuSection[] = [
     {
@@ -63,7 +80,7 @@ export class AuthenticatedSidebarComponent {
 
   protected readonly activeTitle = computed(() => {
     const url = this.currentUrl();
-    return this.items.find((item) => url.startsWith(item.route))?.label ?? '';
+    return this.items().find((item: SidebarItem) => url.startsWith(item.route))?.label ?? '';
   });
 
   protected readonly panelItems = toSignal(

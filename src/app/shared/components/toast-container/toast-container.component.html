@@ -1,0 +1,29 @@
+<section class="toast-container" aria-live="polite" aria-relevant="additions text">
+  @for (toast of toasts(); track toast.id) {
+    <div
+      class="toast"
+      [class.toast--info]="toast.variant === 'info'"
+      [class.toast--success]="toast.variant === 'success'"
+      [class.toast--warning]="toast.variant === 'warning'"
+      [class.toast--error]="toast.variant === 'error'"
+      [attr.role]="toast.variant === 'error' || toast.variant === 'warning' ? 'alert' : 'status'"
+    >
+      <div class="toast__content">
+        @if (toast.title) {
+          <p class="toast__title">{{ toast.title }}</p>
+        }
+        <p class="toast__message">{{ toast.message }}</p>
+      </div>
+      @if (toast.dismissible) {
+        <button
+          type="button"
+          class="toast__close"
+          aria-label="Dismiss notification"
+          (click)="dismiss(toast.id)"
+        >
+          ×
+        </button>
+      }
+    </div>
+  }
+</section>

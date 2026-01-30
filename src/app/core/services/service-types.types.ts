@@ -34,4 +34,16 @@ export interface ReorderServiceTypesRequest {
 export interface ServiceTypeListResponse {
   items: ServiceTypeItem[];
   total: number;
+  page?: number;
+  pageSize?: number;
+  totalPages?: number;
+}
+
+export interface ListServiceTypesParams {
+  search?: string;
+  isActive?: boolean;
+  page?: number;
+  pageSize?: number;
+  sortBy?: 'name' | 'slug' | 'displayOrder' | 'isActive' | 'createdAt' | 'updatedAt';
+  sortOrder?: 'asc' | 'desc';
 }
