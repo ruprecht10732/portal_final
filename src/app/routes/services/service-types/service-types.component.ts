@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { forkJoin, map, Observable } from 'rxjs';
+import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { CreateServiceTypeRequest, ListServiceTypesParams, ServiceTypeItem, UpdateServiceTypeRequest } from '../../../core/services/service-types.types';
@@ -230,16 +230,36 @@ export class ServiceTypesComponent implements OnInit {
     const requests: Observable<unknown>[] = [];
 
     rows.forEach(row => {
-      const existing = existingMap.get(row.id);
+      const rowId = (row as Partial<ServiceTypeRow>).id;
+
+      // New rows may not have an id yet (client-side only)
+      if (!rowId) {
+        const createRequest = this.buildCreateRequest(row);
+        if (!createRequest) return;
+
+        requests.push(
+          this.serviceTypesService.create(createRequest).pipe(
+            switchMap((created) => {
+              if (row.isActive === false) {
+                return this.serviceTypesService.toggleActive(created.id);
+              }
+              return of(created);
+            })
+          )
+        );
+        return;
+      }
+
+      const existing = existingMap.get(rowId);
       if (!existing) return;
 
       const updateRequest = this.buildUpdateRequest(row, existing);
       if (Object.keys(updateRequest).length > 0) {
-        requests.push(this.serviceTypesService.update(row.id, updateRequest));
+        requests.push(this.serviceTypesService.update(rowId, updateRequest));
       }
 
       if (row.isActive !== existing.isActive) {
-        requests.push(this.serviceTypesService.toggleActive(row.id));
+        requests.push(this.serviceTypesService.toggleActive(rowId));
       }
     });
 
@@ -322,6 +342,22 @@ export class ServiceTypesComponent implements OnInit {
     }
 
     return request;
+  }
+
+  private buildCreateRequest(row: ServiceTypeRow): CreateServiceTypeRequest | null {
+    const name = this.normalizeOptional(row.name);
+    if (!name) return null;
+
+    const icon = normalizeIconName(this.normalizeOptional(row.icon));
+    const displayOrder = this.parseDisplayOrder(row.displayOrder);
+
+    return {
+      name,
+      description: this.normalizeOptional(row.description),
+      icon: icon ?? undefined,
+      color: this.normalizeOptional(row.color),
+      displayOrder,
+    };
   }
 
   private normalizeOptional(value: unknown): string | undefined {
