@@ -156,6 +156,10 @@
           </details>
         </shared-card>
 
+        <shared-card>
+          <app-lead-inquiry-card [lead]="l"></app-lead-inquiry-card>
+        </shared-card>
+
         <shared-card padding="none">
           <details>
             <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Notes & Activity</summary>
@@ -228,6 +232,10 @@
           <shared-card>
             <h2 class="text-lg font-semibold mb-3">Contact</h2>
             <shared-contact-info [phone]="l.consumer.phone" [email]="l.consumer.email ?? null" [role]="l.consumer.role" [assignedTo]="l.assignedAgentId ? getUserLabelById(l.assignedAgentId) : null"></shared-contact-info>
+          </shared-card>
+
+          <shared-card>
+            <app-lead-inquiry-card [lead]="l"></app-lead-inquiry-card>
           </shared-card>
 
           <shared-lead-services-card

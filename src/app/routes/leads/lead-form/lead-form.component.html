@@ -89,6 +89,30 @@
       </section>
 
       <section class="bg-white border border-zinc-200 p-4">
+        <h2 class="text-lg font-semibold mb-4">Lead Details</h2>
+        <div class="grid gap-4 sm:grid-cols-2">
+          <shared-input
+            label="Source"
+            [value]="source()"
+            (valueChange)="onSourceChange($event)"
+            [disabled]="!isNew()"
+            [max]="sourceMaxLength.toString()"
+            [hint]="'Max ' + sourceMaxLength + ' characters'"
+          />
+          <div class="sm:col-span-2">
+            <shared-textarea
+              label="Consumer Note"
+              [rows]="4"
+              [value]="consumerNote()"
+              (valueChange)="onConsumerNoteChange($event)"
+              [disabled]="!isNew()"
+              [hint]="'Max ' + consumerNoteMaxLength + ' characters'"
+            />
+          </div>
+        </div>
+      </section>
+
+      <section class="bg-white border border-zinc-200 p-4">
         <h2 class="text-lg font-semibold mb-4">Address</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <shared-autocomplete

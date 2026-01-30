@@ -58,6 +58,8 @@ export interface LeadNote {
   body: string;
   createdAt: string;
   updatedAt: string;
+  consumerNote?: string;
+  source?: string;
 }
 
 export interface LeadService {
@@ -73,6 +75,8 @@ export interface Lead {
   id: string;
   consumer: Consumer;
   address: Address;
+  consumerNote?: string;
+  source?: string;
   services: LeadService[];
   currentService?: LeadService;
   assignedAgentId?: string | null;
@@ -102,6 +106,8 @@ export interface CreateLeadRequest {
   city: string;
   serviceType: ServiceType;
   assigneeId?: string | null;
+  consumerNote?: string;
+  source?: string;
 }
 
 export interface UpdateLeadRequest {

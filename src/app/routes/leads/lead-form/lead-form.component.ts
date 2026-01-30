@@ -10,13 +10,14 @@ import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
+import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 
 @Component({
   selector: 'app-lead-form',
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent],
+  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent],
 })
 export class LeadFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -38,11 +39,16 @@ export class LeadFormComponent implements OnInit {
   protected readonly phone = signal('');
   protected readonly email = signal('');
   protected readonly consumerRole = signal<ConsumerRole>('Owner');
+  protected readonly source = signal('');
+  protected readonly consumerNote = signal('');
   protected readonly street = signal('');
   protected readonly houseNumber = signal('');
   protected readonly zipCode = signal('');
   protected readonly city = signal('');
   protected readonly serviceType = signal<ServiceType>('Windows');
+
+  protected readonly sourceMaxLength = 50;
+  protected readonly consumerNoteMaxLength = 2000;
 
   protected readonly addressOptions = signal<AutocompleteOption[]>([]);
   private readonly addressSuggestions = signal<AddressSuggestion[]>([]);
@@ -103,6 +109,8 @@ export class LeadFormComponent implements OnInit {
     this.phone.set(lead.consumer.phone);
     this.email.set(lead.consumer.email ?? '');
     this.consumerRole.set(lead.consumer.role);
+    this.source.set(this.clampValue(lead.source ?? '', this.sourceMaxLength));
+    this.consumerNote.set(this.clampValue(lead.consumerNote ?? '', this.consumerNoteMaxLength));
     this.street.set(lead.address.street);
     this.houseNumber.set(lead.address.houseNumber);
     this.zipCode.set(lead.address.zipCode);
@@ -145,6 +153,19 @@ export class LeadFormComponent implements OnInit {
     this.city.set(suggestion.city ?? '');
   }
 
+  protected onSourceChange(value: string): void {
+    this.source.set(this.clampValue(value, this.sourceMaxLength));
+  }
+
+  protected onConsumerNoteChange(value: string): void {
+    this.consumerNote.set(this.clampValue(value, this.consumerNoteMaxLength));
+  }
+
+  private clampValue(value: string, maxLength: number): string {
+    if (value.length <= maxLength) return value;
+    return value.slice(0, maxLength);
+  }
+
   protected checkDuplicate(): void {
     const phoneValue = this.phone().trim();
 
@@ -170,6 +191,8 @@ export class LeadFormComponent implements OnInit {
     this.error.set(null);
 
     if (this.isNew()) {
+      const sourceValue = this.source().trim();
+      const consumerNoteValue = this.consumerNote().trim();
       const request: CreateLeadRequest = {
         firstName: this.firstName().trim(),
         lastName: this.lastName().trim(),
@@ -181,6 +204,8 @@ export class LeadFormComponent implements OnInit {
         zipCode: this.zipCode().trim(),
         city: this.city().trim(),
         serviceType: this.serviceType(),
+        source: sourceValue || undefined,
+        consumerNote: consumerNoteValue || undefined,
       };
 
       this.leadsService.create(request).subscribe({

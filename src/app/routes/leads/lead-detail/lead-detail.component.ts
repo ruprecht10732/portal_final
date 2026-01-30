@@ -15,13 +15,14 @@ import { MapPreviewComponent } from '../../../shared/components/map-preview/map-
 import { type SelectOption } from '../../../shared/components/select/select.component';
 import { VisitPanelComponent } from '../../../shared/components/visit-panel/visit-panel.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
+import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
 
 @Component({
   selector: 'app-lead-detail',
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, VisitPanelComponent, LeadDetailHeaderComponent],
+  imports: [ActivityNotesComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, VisitPanelComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

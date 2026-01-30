@@ -1,0 +1,25 @@
+<div class="lead-inquiry">
+  <div class="lead-inquiry__header">
+    <div class="lead-inquiry__title">
+      <svg class="lead-inquiry__icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6M4 6a2 2 0 012-2h12a2 2 0 012 2v12l-4-4H6a2 2 0 01-2-2V6z" />
+      </svg>
+      <span>Initial Request</span>
+    </div>
+    @if (sourceLabel(); as source) {
+      <shared-chip variant="neutral">Source: {{ source }}</shared-chip>
+    } @else {
+      <span class="lead-inquiry__source-empty">Source unknown</span>
+    }
+  </div>
+
+  <div class="lead-inquiry__note">
+    @if (noteText(); as note) {
+      <p>{{ note }}</p>
+    } @else {
+      <p class="lead-inquiry__note-empty">No initial message provided.</p>
+    }
+  </div>
+
+  <p class="lead-inquiry__hint">Captured at lead creation before any internal notes.</p>
+</div>
