@@ -93,6 +93,13 @@ export class DataGridToolbarComponent<T = unknown> {
     this.filterableColumns().map(col => ({ label: col.header, value: col.id }))
   );
 
+  protected readonly activeFilterIsBoolean = computed(() => this.activeFilterColumnData()?.id === 'isActive');
+
+  protected readonly booleanFilterOptions = computed(() => ([
+    { label: 'Active', value: 'active' },
+    { label: 'Inactive', value: 'inactive' },
+  ]));
+
   // ============ Methods ============
   
   protected onSearchInput(event: Event): void {

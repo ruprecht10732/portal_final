@@ -248,13 +248,23 @@
           <span class="text-xs font-medium text-zinc-600">
             {{ activeFilterColumnData()?.header }}:
           </span>
-          <shared-input
-            class="w-32"
-            [value]="filterValue()"
-            (valueChange)="filterValue.set($event)"
-            placeholder="Enter value..."
-            [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
-          />
+          @if (activeFilterIsBoolean()) {
+            <shared-select
+              [options]="booleanFilterOptions()"
+              [value]="filterValue()"
+              (valueChange)="filterValue.set($event ?? '')"
+              placeholder="Select..."
+              [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
+            />
+          } @else {
+            <shared-input
+              class="w-32"
+              [value]="filterValue()"
+              (valueChange)="filterValue.set($event)"
+              placeholder="Enter value..."
+              [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
+            />
+          }
           <shared-button
             size="compact"
             [fullWidth]="false"
@@ -338,12 +348,22 @@
             <span class="text-sm font-medium text-zinc-700">
               {{ activeFilterColumnData()?.header }}
             </span>
-            <shared-input
-              [value]="filterValue()"
-              (valueChange)="filterValue.set($event)"
-              placeholder="Enter value..."
-              [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
-            />
+            @if (activeFilterIsBoolean()) {
+              <shared-select
+                [options]="booleanFilterOptions()"
+                [value]="filterValue()"
+                (valueChange)="filterValue.set($event ?? '')"
+                placeholder="Select..."
+                [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
+              />
+            } @else {
+              <shared-input
+                [value]="filterValue()"
+                (valueChange)="filterValue.set($event)"
+                placeholder="Enter value..."
+                [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
+              />
+            }
             <div class="flex gap-2">
               <shared-button
                 [disabled]="!filterValue().trim()"

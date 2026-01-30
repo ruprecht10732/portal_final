@@ -266,7 +266,11 @@ export class DataGridComponent<T extends Record<string, unknown>> {
   }
 
   protected onFilterChange(filter: FilterConfig): void {
-    this.store.setFilter(filter);
+    if (filter.value.trim().length === 0) {
+      this.store.removeFilter(filter.columnId);
+    } else {
+      this.store.setFilter(filter);
+    }
     this.filterChange.emit({ filters: this.store.filters() });
   }
 

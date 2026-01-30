@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { forkJoin, map, Observable } from 'rxjs';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { CreateServiceTypeRequest, ListServiceTypesParams, ServiceTypeItem, UpdateServiceTypeRequest } from '../../../core/services/service-types.types';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
@@ -28,6 +29,7 @@ export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
 })
 export class ServiceTypesComponent implements OnInit {
   private readonly serviceTypesService = inject(ServiceTypesService);
+  private readonly reporter = inject(ErrorReportingService);
 
   protected readonly serviceTypes = signal<ServiceTypeRow[]>([]);
   protected readonly total = signal(0);
@@ -167,7 +169,9 @@ export class ServiceTypesComponent implements OnInit {
         this.ignoreNextRequest = true;
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to load service types');
+        const message = this.getErrorMessage(err, 'Failed to load service types');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
         this.saving.set(false);
       },
@@ -199,7 +203,9 @@ export class ServiceTypesComponent implements OnInit {
         this.loadInitialData();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to create service type');
+        const message = this.getErrorMessage(err, 'Failed to create service type');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.creating.set(false);
       },
     });
@@ -239,7 +245,9 @@ export class ServiceTypesComponent implements OnInit {
     forkJoin(requestMap).subscribe({
       next: () => this.loadInitialData(),
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to save service types');
+        const message = this.getErrorMessage(err, 'Failed to save service types');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -272,7 +280,9 @@ export class ServiceTypesComponent implements OnInit {
         this.loadInitialData();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to delete service types');
+        const message = this.getErrorMessage(err, 'Failed to delete service types');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -412,10 +422,23 @@ export class ServiceTypesComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to load service types');
+        const message = this.getErrorMessage(err, 'Failed to load service types');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
       },
     });
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error && typeof error === 'object' && 'error' in error) {
+      const nested = (error as { error?: { error?: string } | string }).error;
+      if (typeof nested === 'string') return nested;
+      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
+        return nested.error;
+      }
+    }
+    return fallback;
   }
 
 }
