@@ -42,12 +42,14 @@ export class DataGridAddressCellComponent {
   protected readonly options = signal<AutocompleteOption[]>([]);
   private readonly suggestions = signal<AddressSuggestion[]>([]);
   protected readonly inputValue = signal('');
+  protected readonly hasUserInput = signal(false);
 
   constructor() {
     effect(() => {
       const next = this.value();
       if (this.inputValue() !== next) {
         this.inputValue.set(next);
+        this.hasUserInput.set(false);
       }
     });
 
@@ -61,6 +63,7 @@ export class DataGridAddressCellComponent {
     toObservable(this.inputValue)
       .pipe(
         map(value => value.trim()),
+        filter(() => this.hasUserInput()),
         filter(value => value.length >= MIN_LENGTH.address),
         debounceTime(DEBOUNCE_MS.search),
         distinctUntilChanged(),
@@ -81,6 +84,9 @@ export class DataGridAddressCellComponent {
   }
 
   protected onValueChange(value: string): void {
+    if (!this.hasUserInput()) {
+      this.hasUserInput.set(true);
+    }
     this.inputValue.set(value);
     this.valueChange.emit(value);
 
