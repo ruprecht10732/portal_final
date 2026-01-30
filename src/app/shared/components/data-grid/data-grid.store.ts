@@ -414,35 +414,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
     if (Object.keys(updates).length === 0) return;
 
     this._rows.update(rows =>
-      rows.map((row, i) => {
-        if (i !== rowIndex) return row;
-
-        let newCurrent = { ...row.current };
-        const cellErrors = { ...row.cellErrors };
-
-        Object.entries(updates).forEach(([field, value]) => {
-          newCurrent = this.setValueByPath(newCurrent, field, value);
-
-          const column = this._columns().find(c => c.field === field);
-          if (column) {
-            const error = column.validator?.(value, newCurrent) ?? null;
-            if (error) {
-              cellErrors[column.id] = error;
-            } else {
-              delete cellErrors[column.id];
-            }
-          }
-        });
-
-        const isDirty = JSON.stringify(newCurrent) !== JSON.stringify(row.original);
-
-        return {
-          ...row,
-          current: newCurrent,
-          dirty: isDirty,
-          cellErrors,
-        };
-      })
+      rows.map((row, i) => (i === rowIndex ? this.applyRowUpdates(row, updates) : row))
     );
 
     this.announce('Row updated with address details', 'polite');
@@ -1077,5 +1049,33 @@ export class DataGridStore<T extends Record<string, unknown>> {
     }
 
     return next as T;
+  }
+
+  private applyRowUpdates(row: RowState<T>, updates: Record<string, unknown>): RowState<T> {
+    let newCurrent = { ...row.current };
+    const cellErrors = { ...row.cellErrors };
+
+    Object.entries(updates).forEach(([field, value]) => {
+      newCurrent = this.setValueByPath(newCurrent, field, value);
+
+      const column = this._columns().find(c => c.field === field);
+      if (!column) return;
+
+      const error = column.validator?.(value, newCurrent) ?? null;
+      if (error) {
+        cellErrors[column.id] = error;
+      } else {
+        delete cellErrors[column.id];
+      }
+    });
+
+    const isDirty = JSON.stringify(newCurrent) !== JSON.stringify(row.original);
+
+    return {
+      ...row,
+      current: newCurrent,
+      dirty: isDirty,
+      cellErrors,
+    };
   }
 }
