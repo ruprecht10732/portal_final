@@ -56,6 +56,8 @@ export interface GridColumn<T = unknown> {
   addressMapping?: AddressFieldMapping;
   /** Options for select type cells */
   selectOptions?: readonly { label: string; value: unknown }[];
+  /** Metadata for select options (icon/color/description) */
+  metaOptions?: readonly { label?: string; value: unknown; icon?: string | null; color?: string | null; description?: string | null }[];
   /** Validation function for editable cells */
   validator?: (value: unknown, row: T) => string | null;
   /** Custom cell template identifier */

@@ -25,11 +25,12 @@ import { DataGridIconCellComponent } from './data-grid-icon-cell.component';
 import { DataGridColorCellComponent } from './data-grid-color-cell.component';
 import { DataGridStore } from './data-grid.store';
 import { AddressSuggestion } from '../../../core/services/address.service';
+import { LucideAngularModule } from 'lucide-angular';
 @Component({
   selector: 'data-grid-body',
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
-  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent],
+  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent, LucideAngularModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'role': 'rowgroup',
@@ -107,6 +108,11 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     }
     
     return this.valueToString(value);
+  }
+
+  protected getSelectMeta(column: GridColumn<T>, value: unknown): { label?: string; value: unknown; icon?: string | null; color?: string | null; description?: string | null } | null {
+    if (!column.metaOptions || value === null || value === undefined || value === '') return null;
+    return column.metaOptions.find(option => option.value === value) ?? null;
   }
 
   protected isHexColor(value: unknown): boolean {

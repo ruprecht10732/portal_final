@@ -207,6 +207,16 @@ export class LeadListComponent implements OnInit {
     }))
   );
 
+  protected readonly serviceTypeMetaOptions = computed(() =>
+    this.serviceTypes().map(item => ({
+      label: item.name,
+      value: item.name,
+      icon: item.icon ?? null,
+      color: item.color ?? null,
+      description: item.description ?? null,
+    }))
+  );
+
   protected readonly columns = computed<GridColumn<LeadRow>[]>(() => {
     const assigneeOptions = [{ label: 'Unassigned', value: '' }, ...this.userOptions()];
     return this.baseColumns.map(column => {
@@ -214,7 +224,7 @@ export class LeadListComponent implements OnInit {
         return { ...column, selectOptions: assigneeOptions };
       }
       if (column.id === 'serviceType') {
-        return { ...column, selectOptions: this.serviceTypeOptions() };
+        return { ...column, selectOptions: this.serviceTypeOptions(), metaOptions: this.serviceTypeMetaOptions() };
       }
       return column;
     });

@@ -196,7 +196,27 @@
                   ></span>
                   <span class="truncate">{{ getCellValue(row, column) ?? '—' }}</span>
                 } @else if (column.cellType === 'select') {
-                  {{ column.selectOptions | optionLabel:getCellValue(row, column) }}
+                  @let meta = getSelectMeta(column, getCellValue(row, column));
+                  @if (meta) {
+                    <span
+                      class="inline-flex items-center gap-2"
+                      [title]="meta.description ?? ''"
+                    >
+                      @if (meta.color) {
+                        <span
+                          class="inline-block h-3 w-3 shrink-0 rounded-full border border-zinc-200"
+                          [style.backgroundColor]="hexOrTransparent(meta.color)"
+                          aria-hidden="true"
+                        ></span>
+                      }
+                      @if (meta.icon) {
+                        <lucide-icon [name]="meta.icon" class="h-4 w-4 shrink-0"></lucide-icon>
+                      }
+                      <span class="truncate">{{ meta.label ?? (column.selectOptions | optionLabel:getCellValue(row, column)) }}</span>
+                    </span>
+                  } @else {
+                    {{ column.selectOptions | optionLabel:getCellValue(row, column) }}
+                  }
                 } @else {
                   {{ getCellValue(row, column) ?? '—' }}
                 }
