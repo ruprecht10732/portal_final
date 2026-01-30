@@ -174,28 +174,37 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   protected onCellKeydown(event: KeyboardEvent, rowIndex: number, columnIndex: number): void {
     const column = this.columns()[columnIndex];
-    const isInteractive = this.isInteractiveElement(event.target);
-
-    if (isInteractive) {
+    if (!column || this.isInteractiveElement(event.target)) {
       return;
     }
-    
-    const handlers: Record<string, () => void> = {
-      'ArrowUp': () => this.handleArrowNavigation(event, 'up'),
-      'ArrowDown': () => this.handleArrowNavigation(event, 'down'),
-      'ArrowLeft': () => this.handleHorizontalNavigation(event, 'left'),
-      'ArrowRight': () => this.handleHorizontalNavigation(event, 'right'),
-      'Home': () => this.handleHomeEnd(event, 'home'),
-      'End': () => this.handleHomeEnd(event, 'end'),
-      'Enter': () => this.handleEnterKey(event, rowIndex, column, columnIndex),
-      ' ': () => this.handleSpaceKey(event, rowIndex),
-    };
 
-    const handler = handlers[event.key];
-    if (handler) {
-      handler();
-    } else {
-      this.handleAlphanumericKey(event, rowIndex, column, columnIndex);
+    switch (event.key) {
+      case 'ArrowUp':
+        this.handleArrowNavigation(event, 'up');
+        return;
+      case 'ArrowDown':
+        this.handleArrowNavigation(event, 'down');
+        return;
+      case 'ArrowLeft':
+        this.handleHorizontalNavigation(event, 'left');
+        return;
+      case 'ArrowRight':
+        this.handleHorizontalNavigation(event, 'right');
+        return;
+      case 'Home':
+        this.handleHomeEnd(event, 'home');
+        return;
+      case 'End':
+        this.handleHomeEnd(event, 'end');
+        return;
+      case 'Enter':
+        this.handleEnterKey(event, rowIndex, column, columnIndex);
+        return;
+      case ' ':
+        this.handleSpaceKey(event, rowIndex);
+        return;
+      default:
+        this.handleAlphanumericKey(event, rowIndex, column, columnIndex);
     }
   }
 
@@ -230,6 +239,9 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   private handleSpaceKey(event: KeyboardEvent, rowIndex: number): void {
+    if (!this.selectable()) {
+      return;
+    }
     event.preventDefault();
     this.rowSelect.emit(rowIndex);
   }
