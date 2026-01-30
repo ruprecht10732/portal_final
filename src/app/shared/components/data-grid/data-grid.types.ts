@@ -245,6 +245,8 @@ export interface GridConfig<T> {
   maxMobileColumns: number;
   /** Enable add-row bar on mobile/card view */
   mobileAddRowEnabled: boolean;
+  /** Show per-row view action (eye icon) */
+  rowViewActionEnabled: boolean;
 }
 
 /** Default grid configuration */
@@ -272,6 +274,7 @@ export const DEFAULT_GRID_CONFIG: GridConfig<unknown> = {
   columnPickerEnabled: true,
   maxMobileColumns: MAX_MOBILE_COLUMNS,
   mobileAddRowEnabled: true,
+  rowViewActionEnabled: false,
 };
 
 /** Keyboard navigation direction */

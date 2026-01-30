@@ -231,6 +231,7 @@ export class LeadListComponent implements OnInit {
     statusField: 'status',
     cardPreviewFieldCount: 4,
     mobileAddRowEnabled: false,
+    rowViewActionEnabled: true,
   };
 
   protected readonly fetchDataFn = this.fetchData.bind(this);

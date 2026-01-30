@@ -204,6 +204,7 @@
               [editingCell]="store.editingCell()"
               [selectable]="store.config().selectable"
               [rowIdField]="store.config().rowIdField"
+              [rowViewActionEnabled]="store.config().rowViewActionEnabled"
               (cellFocus)="store.setFocusedCell($event)"
               (cellEdit)="store.startCellEdit($event.rowIndex, $event.columnIndex)"
               (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"

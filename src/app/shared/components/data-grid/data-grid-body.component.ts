@@ -46,6 +46,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   readonly editingCell = input<CellPosition | null>(null);
   readonly selectable = input<boolean>(true);
   readonly rowIdField = input<keyof T>('id' as keyof T);
+  readonly rowViewActionEnabled = input<boolean>(false);
 
   // ============ Outputs ============
   
