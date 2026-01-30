@@ -14,6 +14,7 @@ import { DataGridComponent } from '../../../shared/components/data-grid/data-gri
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import type { GridColumn, GridConfig, DataRequest, DataResponse } from '../../../shared/components/data-grid/data-grid.types';
 import { DEFAULT_PHONE_REGION, MIN_LENGTH, DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
+import type { LeadsListResolved } from '../leads-list.resolver';
 
 type LeadRow = Lead & Record<string, unknown>;
 
@@ -247,17 +248,25 @@ export class LeadListComponent implements OnInit {
   protected readonly fetchDataFn = this.fetchData.bind(this);
 
   ngOnInit(): void {
-    this.loadUsers();
-    this.loadServiceTypes();
-    const resolved = this.route.snapshot.data['leads'] as { items: LeadRow[]; total: number } | undefined;
+    const resolved = this.route.snapshot.data['leads'] as LeadsListResolved | undefined;
     if (resolved) {
-      const normalized = (resolved.items ?? []).map(row => this.normalizeLead(row));
+      const resolvedUsers = resolved.users ?? [];
+      const resolvedServiceTypes = resolved.serviceTypes ?? [];
+      this.userOptions.set(resolvedUsers.map(user => ({
+        label: user.roles.length ? `${user.email} (${user.roles.join(', ')})` : user.email,
+        value: user.id,
+      })));
+      this.serviceTypes.set(resolvedServiceTypes);
+
+      const normalized = (resolved.leads?.items ?? []).map(row => this.normalizeLead(row));
       this.leads.set(normalized);
-      this.total.set(resolved.total ?? 0);
+      this.total.set(resolved.leads?.total ?? 0);
       this.loading.set(false);
       this.ignoreNextRequest = true;
     } else {
       this.ignoreNextRequest = false;
+      this.loadUsers();
+      this.loadServiceTypes();
       this.loadInitialData();
     }
   }
@@ -312,7 +321,7 @@ export class LeadListComponent implements OnInit {
     return this.serviceTypes()[0]?.name ?? '';
   }
 
-  private normalizeLead(row: LeadRow): LeadRow {
+  private normalizeLead(row: Lead): LeadRow {
     return {
       ...row,
       assignedAgentId: row.assignedAgentId ?? '',
