@@ -19,6 +19,8 @@ import {
   RowState,
 } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
+import dayjs from 'dayjs';
+import relativeTime from 'dayjs/plugin/relativeTime';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { DataGridAddressCellComponent } from './data-grid-address-cell.component';
 import { DataGridIconCellComponent } from './data-grid-icon-cell.component';
@@ -26,6 +28,8 @@ import { DataGridColorCellComponent } from './data-grid-color-cell.component';
 import { DataGridStore } from './data-grid.store';
 import { AddressSuggestion } from '../../../core/services/address.service';
 import { LucideAngularModule } from 'lucide-angular';
+
+dayjs.extend(relativeTime);
 @Component({
   selector: 'data-grid-body',
   templateUrl: './data-grid-body.component.html',
@@ -101,6 +105,10 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     if (column.cellType === 'boolean') {
       return value ? 'Yes' : 'No';
     }
+
+    if (column.cellType === 'date') {
+      return this.formatRelativeDate(value);
+    }
     
     if (column.cellType === 'select' && column.selectOptions) {
       const option = column.selectOptions.find(o => o.value === value);
@@ -108,6 +116,15 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     }
     
     return this.valueToString(value);
+  }
+
+  protected getRelativeDateValue(row: RowState<T>, column: GridColumn<T>): string {
+    const value = this.getValueByPath(row.current, column.field as string);
+    if (value === null || value === undefined || value === '') {
+      return '—';
+    }
+
+    return this.formatRelativeDate(value);
   }
 
   protected getSelectMeta(column: GridColumn<T>, value: unknown): { label?: string; value: unknown; icon?: string | null; color?: string | null; description?: string | null } | null {
@@ -347,6 +364,14 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     if (typeof value === 'string') return value;
     if (typeof value === 'number' || typeof value === 'boolean') return String(value);
     return '';
+  }
+
+  private formatRelativeDate(value: unknown): string {
+    const parsed = dayjs(value as string | number | Date);
+    if (!parsed.isValid()) {
+      return this.valueToString(value);
+    }
+    return parsed.fromNow();
   }
 
   private placeCaretAtEnd(element: HTMLElement): void {
