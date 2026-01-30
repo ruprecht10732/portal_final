@@ -1,8 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switchMap } from 'rxjs';
+import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import type { Lead, ServiceType, ConsumerRole, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { SERVICE_TYPE_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
+import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
@@ -12,12 +16,14 @@ import { SelectComponent, type SelectOption } from '../../../shared/components/s
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent],
+  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent],
 })
 export class LeadFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly leadsService = inject(LeadsService);
+  private readonly addressService = inject(AddressService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly lead = signal<Lead | null>(null);
   protected readonly loading = signal(false);
@@ -37,6 +43,9 @@ export class LeadFormComponent implements OnInit {
   protected readonly zipCode = signal('');
   protected readonly city = signal('');
   protected readonly serviceType = signal<ServiceType>('Windows');
+
+  protected readonly addressOptions = signal<AutocompleteOption[]>([]);
+  private readonly addressSuggestions = signal<AddressSuggestion[]>([]);
 
   protected readonly serviceTypeOptions = computed<SelectOption<ServiceType>[]>(() => SERVICE_TYPE_OPTIONS);
   protected readonly consumerRoleOptions = computed<SelectOption<ConsumerRole>[]>(() => CONSUMER_ROLE_OPTIONS);
@@ -60,6 +69,10 @@ export class LeadFormComponent implements OnInit {
       this.city().trim()
     );
   });
+
+  constructor() {
+    this.setupAddressSearch();
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -95,6 +108,41 @@ export class LeadFormComponent implements OnInit {
     this.zipCode.set(lead.address.zipCode);
     this.city.set(lead.address.city);
     this.serviceType.set(lead.currentService?.serviceType ?? 'Windows');
+  }
+
+  private setupAddressSearch(): void {
+    toObservable(this.street).pipe(
+      map(value => value.trim()),
+      filter(value => value.length >= 3),
+      debounceTime(300),
+      distinctUntilChanged(),
+      switchMap(query => this.addressService.search(query).pipe(
+        catchError(() => of([]))
+      )),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(results => {
+      this.addressSuggestions.set(results);
+      this.addressOptions.set(results.map(addr => ({
+        label: addr.label,
+        value: addr.label,
+      })));
+    });
+  }
+
+  protected onStreetChange(value: string): void {
+    this.street.set(value);
+
+    const match = this.addressSuggestions().find(suggestion => suggestion.label === value);
+    if (match) {
+      this.applyAddressSuggestion(match);
+    }
+  }
+
+  private applyAddressSuggestion(suggestion: AddressSuggestion): void {
+    this.street.set(suggestion.street ?? '');
+    this.houseNumber.set(suggestion.houseNumber ?? '');
+    this.zipCode.set(suggestion.zipCode ?? '');
+    this.city.set(suggestion.city ?? '');
   }
 
   protected checkDuplicate(): void {

@@ -91,10 +91,13 @@
       <section class="bg-white border border-zinc-200 p-4">
         <h2 class="text-lg font-semibold mb-4">Address</h2>
         <div class="grid gap-4 sm:grid-cols-2">
-          <shared-input
+          <shared-autocomplete
             label="Street"
             [value]="street()"
-            (valueChange)="street.set($event)"
+            (valueChange)="onStreetChange($event)"
+            [options]="addressOptions()"
+            [filterMode]="'manual'"
+            [placeholder]="'Start typing...'"
             [required]="true"
           />
           <shared-input
