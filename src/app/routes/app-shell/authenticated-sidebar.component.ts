@@ -13,7 +13,7 @@ import { SidebarPanelItem } from './sidebar-panel.config';
 interface SidebarItem {
   label: string;
   route: string;
-  icon: 'dashboard' | 'leads' | 'profile';
+  icon: 'dashboard' | 'leads' | 'services' | 'profile';
 }
 
 @Component({
@@ -47,6 +47,7 @@ export class AuthenticatedSidebarComponent {
   protected readonly items: SidebarItem[] = [
     { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
     { label: 'Leads', route: '/app/leads', icon: 'leads' },
+    { label: 'Services', route: '/app/services', icon: 'services' },
     { label: 'Profile', route: '/app/profile', icon: 'profile' },
   ];
 

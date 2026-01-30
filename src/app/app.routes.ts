@@ -108,6 +108,21 @@ export const routes: Routes = [
 					},
 				],
 			},
+			{
+				path: 'services',
+				loadComponent: () => import('./routes/services/services-layout/services-layout.component').then(m => m.ServicesLayoutComponent),
+				data: {
+					panelItems: [
+						{ label: 'Service types', route: '/app/services', icon: 'list', exact: true },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						loadComponent: () => import('./routes/services/service-types/service-types.component').then(m => m.ServiceTypesComponent),
+					},
+				],
+			},
 		],
 	},
 	{

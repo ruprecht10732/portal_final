@@ -1,0 +1,93 @@
+<div class="flex flex-col gap-4">
+  <shared-card>
+    <div class="flex flex-col gap-2 mb-4">
+      <h2 class="text-lg font-semibold">Service Types</h2>
+      <p class="text-sm text-zinc-500">Manage marketplace service categories.</p>
+    </div>
+
+    <form class="grid gap-4 sm:grid-cols-2" (ngSubmit)="createServiceType()">
+      <shared-input
+        label="Name"
+        [value]="name()"
+        (valueChange)="name.set($event)"
+        [required]="true"
+      />
+      <shared-input
+        label="Icon"
+        [value]="icon()"
+        (valueChange)="icon.set($event)"
+        placeholder="e.g. wrench"
+      />
+      <shared-input
+        label="Color"
+        [value]="color()"
+        (valueChange)="color.set($event)"
+        placeholder="#3B82F6"
+      />
+      <shared-input
+        label="Display Order"
+        type="number"
+        [value]="displayOrder()"
+        (valueChange)="displayOrder.set($event)"
+        [min]="'0'"
+      />
+      <div class="sm:col-span-2">
+        <shared-textarea
+          label="Description"
+          [rows]="3"
+          [value]="description()"
+          (valueChange)="description.set($event)"
+        />
+      </div>
+      <div class="sm:col-span-2 flex flex-wrap gap-2">
+        <shared-button
+          variant="primary"
+          size="default"
+          [disabled]="creating() || !canCreate()"
+          type="submit"
+        >
+          {{ creating() ? 'Creating...' : 'Create Service Type' }}
+        </shared-button>
+        <shared-button
+          variant="secondary"
+          size="default"
+          [disabled]="creating()"
+          type="button"
+          (clicked)="resetForm()"
+        >
+          Reset
+        </shared-button>
+      </div>
+    </form>
+  </shared-card>
+
+  @if (error()) {
+    <div role="alert" aria-live="assertive" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+      {{ error() }}
+    </div>
+  }
+
+  <shared-data-grid
+    [columns]="columns"
+    [data]="serviceTypes()"
+    [loading]="loading() || saving()"
+    [error]="error() || ''"
+    [config]="gridConfig"
+    [serverSide]="false"
+    (saveRows)="onSaveServiceTypes($event)"
+    (deleteRows)="onDeleteRows($event)"
+    ariaLabel="Service types data grid"
+  />
+
+  <shared-confirm-dialog
+    [isOpen]="isDeleteDialogOpen()"
+    title="Delete service types"
+    [message]="'Delete ' + deleteCount() + ' service type(s)? This cannot be undone.'"
+    confirmText="Delete"
+    cancelText="Cancel"
+    confirmVariant="danger"
+    [confirmDisabled]="saving()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDeleteDialog()"
+  />
+</div>
