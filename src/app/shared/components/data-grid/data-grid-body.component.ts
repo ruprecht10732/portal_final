@@ -19,6 +19,7 @@ import {
   RowState,
 } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
+import { ChipComponent, type ChipVariant } from '../chip/chip.component';
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
@@ -34,7 +35,7 @@ dayjs.extend(relativeTime);
   selector: 'data-grid-body',
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
-  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent, LucideAngularModule],
+  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent, ChipComponent, LucideAngularModule],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'role': 'rowgroup',
@@ -52,6 +53,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   readonly selectable = input<boolean>(true);
   readonly rowIdField = input<keyof T>('id' as keyof T);
   readonly rowViewActionEnabled = input<boolean>(false);
+  readonly statusField = input<keyof T | string | undefined>(undefined);
 
   // ============ Outputs ============
   
@@ -130,6 +132,52 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   protected getSelectMeta(column: GridColumn<T>, value: unknown): { label?: string; value: unknown; icon?: string | null; color?: string | null; description?: string | null } | null {
     if (!column.metaOptions || value === null || value === undefined || value === '') return null;
     return column.metaOptions.find(option => option.value === value) ?? null;
+  }
+
+  protected isStatusColumn(column: GridColumn<T>): boolean {
+    const statusField = this.statusField();
+    if (!statusField) return false;
+    return String(column.field) === String(statusField) || String(column.id) === String(statusField);
+  }
+
+  protected getStatusLabel(row: RowState<T>, column: GridColumn<T>): string {
+    const value = this.getValueByPath(row.current, column.field as string);
+    if (value === null || value === undefined || value === '') return '—';
+    if (column.selectOptions) {
+      const option = column.selectOptions.find(o => o.value === value);
+      if (option?.label) return option.label;
+    }
+    return this.valueToString(value);
+  }
+
+  protected getStatusVariant(value: unknown): ChipVariant {
+    const normalized = this.normalizeStatusValue(value);
+
+    switch (normalized) {
+      case 'new':
+        return 'info';
+      case 'attempted_contact':
+        return 'warning';
+      case 'scheduled':
+        return 'info';
+      case 'surveyed':
+        return 'success';
+      case 'bad_lead':
+        return 'danger';
+      case 'needs_rescheduling':
+        return 'warning';
+      case 'closed':
+        return 'neutral';
+      default:
+        break;
+    }
+
+    if (normalized.includes('new')) return 'info';
+    if (normalized.includes('scheduled') || normalized.includes('surveyed') || normalized.includes('success')) return 'success';
+    if (normalized.includes('attempt') || normalized.includes('reschedule') || normalized.includes('warn')) return 'warning';
+    if (normalized.includes('bad') || normalized.includes('error') || normalized.includes('danger')) return 'danger';
+
+    return 'neutral';
   }
 
   protected isHexColor(value: unknown): boolean {
@@ -364,6 +412,15 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     if (typeof value === 'string') return value;
     if (typeof value === 'number' || typeof value === 'boolean') return String(value);
     return '';
+  }
+
+  private normalizeStatusValue(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') {
+      return '';
+    }
+    const text = String(value).trim().toLowerCase();
+    return text.split(/\s+/).join('_');
   }
 
   private formatRelativeDate(value: unknown): string {

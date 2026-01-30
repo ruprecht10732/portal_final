@@ -229,14 +229,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     const field = this.statusField();
     if (!field) return 'default';
     const rawValue = this.getValueByPath(row.current, field as string);
-    const value = this.stringifyValue(rawValue ?? '').toLowerCase();
-
-    if (value.includes('new')) return 'info';
-    if (value.includes('scheduled') || value.includes('surveyed') || value.includes('success')) return 'success';
-    if (value.includes('attempt') || value.includes('reschedule') || value.includes('warn')) return 'warning';
-    if (value.includes('bad') || value.includes('error') || value.includes('danger')) return 'danger';
-    
-    return 'neutral';
+    return this.getStatusVariantFromValue(rawValue);
   }
 
   /** Derive initials for the avatar placeholder */
@@ -430,5 +423,44 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
       return row.isNew;
     }
     return true;
+  }
+
+  private getStatusVariantFromValue(value: unknown): ChipVariant {
+    const normalized = this.normalizeStatusValue(value);
+
+    switch (normalized) {
+      case 'new':
+        return 'info';
+      case 'attempted_contact':
+        return 'warning';
+      case 'scheduled':
+        return 'info';
+      case 'surveyed':
+        return 'success';
+      case 'bad_lead':
+        return 'danger';
+      case 'needs_rescheduling':
+        return 'warning';
+      case 'closed':
+        return 'neutral';
+      default:
+        break;
+    }
+
+    if (normalized.includes('new')) return 'info';
+    if (normalized.includes('scheduled') || normalized.includes('surveyed') || normalized.includes('success')) return 'success';
+    if (normalized.includes('attempt') || normalized.includes('reschedule') || normalized.includes('warn')) return 'warning';
+    if (normalized.includes('bad') || normalized.includes('error') || normalized.includes('danger')) return 'danger';
+
+    return 'neutral';
+  }
+
+  private normalizeStatusValue(value: unknown): string {
+    if (value === null || value === undefined) return '';
+    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') {
+      return '';
+    }
+    const text = String(value).trim().toLowerCase();
+    return text.split(/\s+/).join('_');
   }
 }

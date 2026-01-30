@@ -195,6 +195,10 @@
                     aria-hidden="true"
                   ></span>
                   <span class="truncate">{{ getCellValue(row, column) ?? '—' }}</span>
+                } @else if (isStatusColumn(column)) {
+                  <shared-chip [variant]="getStatusVariant(getCellValue(row, column))">
+                    {{ getStatusLabel(row, column) }}
+                  </shared-chip>
                 } @else if (column.cellType === 'select') {
                   @let meta = getSelectMeta(column, getCellValue(row, column));
                   @if (meta) {
