@@ -72,10 +72,10 @@
           (close)="closeEdit()"
         >
           <div class="flex flex-col gap-4 p-4">
-            @if (editableColumns().length === 0) {
+            @if (getEditableColumns(row).length === 0) {
               <p class="text-sm text-zinc-500">No editable fields</p>
             } @else {
-              @for (column of editableColumns(); track column.id) {
+              @for (column of getEditableColumns(row); track column.id) {
                 <div class="flex flex-col gap-2">
                   @if (column.cellType === 'boolean') {
                     <shared-checkbox

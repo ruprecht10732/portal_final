@@ -48,6 +48,8 @@ export interface GridColumn<T = unknown> {
   filterable?: boolean;
   /** Whether column is editable */
   editable?: boolean;
+  /** Editability scope (defaults to always when editable is true) */
+  editableWhen?: 'always' | 'new-only';
   /** Custom cell renderer type */
   cellType?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'custom' | 'address' | 'icon' | 'color';
   /** Address field mapping for address cell type */

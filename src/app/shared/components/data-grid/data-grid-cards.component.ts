@@ -302,6 +302,10 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     this.rowClick.emit(index);
   }
 
+  protected getEditableColumns(row: RowState<T>): GridColumn<T>[] {
+    return this.editableColumns().filter(column => this.isColumnEditableForRow(row, column));
+  }
+
   /** Handle cell value change */
   protected onCellValueChange(
     rowIndex: number,
@@ -417,5 +421,14 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     }
     
     return '';
+  }
+
+  private isColumnEditableForRow(row: RowState<T>, column: GridColumn<T>): boolean {
+    if (!column.editable) return false;
+    const editScope = column.editableWhen ?? 'always';
+    if (editScope === 'new-only') {
+      return row.isNew;
+    }
+    return true;
   }
 }

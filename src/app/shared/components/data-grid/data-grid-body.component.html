@@ -78,7 +78,7 @@
           [class.ring-black]="isCellFocused(rowIndex, colIndex)"
           [class.ring-inset]="isCellFocused(rowIndex, colIndex)"
         >
-          @if (column.editable) {
+          @if (isCellEditable(rowIndex, column)) {
             <!-- Always-editable mode (contenteditable) -->
             <div class="flex flex-col gap-1">
               <div

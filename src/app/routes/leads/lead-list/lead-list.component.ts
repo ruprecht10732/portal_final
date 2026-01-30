@@ -7,7 +7,7 @@ import { LeadsService } from '../../../core/services/leads.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { UserService } from '../../../core/services/user.service';
-import type { Lead, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
+import type { Lead, LeadStatus, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { STATUS_LABELS, STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
@@ -162,7 +162,8 @@ export class LeadListComponent implements OnInit {
       field: 'serviceType',
       sortable: true,
       filterable: true,
-      editable: false, // Now per-service, edit in detail view
+      editable: true,
+      editableWhen: 'new-only',
       width: '140px',
       cellType: 'select',
     },
@@ -172,7 +173,8 @@ export class LeadListComponent implements OnInit {
       field: 'status',
       sortable: true,
       filterable: true,
-      editable: false, // Now per-service, edit in detail view
+      editable: true,
+      editableWhen: 'new-only',
       width: '140px',
       cellType: 'select',
       selectOptions: STATUS_OPTIONS.map(opt => ({
@@ -485,8 +487,25 @@ export class LeadListComponent implements OnInit {
           assigneeId: normalizedAssigneeId,
         };
 
+        const requestedStatus = (row['status'] as LeadStatus | undefined) ?? row.currentService?.status;
+
         this.leadsService.create(leadRequest).subscribe({
-          next: () => this.loadInitialData(),
+          next: (created) => {
+            const currentServiceId = created.currentService?.id;
+            if (requestedStatus && requestedStatus !== 'New' && currentServiceId) {
+              this.leadsService.updateServiceStatus(created.id, currentServiceId, { status: requestedStatus }).subscribe({
+                next: () => this.loadInitialData(),
+                error: (err) => {
+                  const message = this.getErrorMessage(err, 'Failed to set lead status');
+                  this.error.set(message);
+                  this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+                  this.loadInitialData();
+                },
+              });
+            } else {
+              this.loadInitialData();
+            }
+          },
           error: (err) => {
             const message = this.getErrorMessage(err, 'Failed to create lead');
             this.error.set(message);

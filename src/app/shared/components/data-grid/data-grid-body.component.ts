@@ -170,7 +170,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   private handleEnterKey(event: KeyboardEvent, rowIndex: number, column: GridColumn<T>, columnIndex: number): void {
-    if (!column.editable) return;
+    if (!this.isCellEditable(rowIndex, column)) return;
     const control = this.getEditableControl(event);
     if (control) {
       event.preventDefault();
@@ -188,7 +188,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   private handleAlphanumericKey(event: KeyboardEvent, rowIndex: number, column: GridColumn<T>, columnIndex: number): void {
-    if (column.editable && event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
+    if (this.isCellEditable(rowIndex, column) && event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
       const control = this.getEditableControl(event);
       if (!control) return;
 
@@ -307,6 +307,15 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     }
 
     return this.valueToString(value);
+  }
+
+  protected isCellEditable(rowIndex: number, column: GridColumn<T>): boolean {
+    if (!column.editable) return false;
+    const editScope = column.editableWhen ?? 'always';
+    if (editScope === 'new-only') {
+      return this.rows()[rowIndex]?.isNew ?? false;
+    }
+    return true;
   }
 
   private emitCellValueChange(rowIndex: number, column: GridColumn<T>, value: unknown): void {
