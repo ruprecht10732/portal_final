@@ -178,6 +178,10 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
       return;
     }
 
+    if (this.isEditingCell(rowIndex, columnIndex) && (event.key === 'Home' || event.key === 'End' || event.key === 'Enter')) {
+      return;
+    }
+
     switch (event.key) {
       case 'ArrowUp':
         this.handleArrowNavigation(event, 'up');
@@ -219,6 +223,9 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   private handleHomeEnd(event: KeyboardEvent, direction: 'home' | 'end'): void {
+    if (this.isEditingCell(this.focusedCell()?.rowIndex ?? -1, this.focusedCell()?.columnIndex ?? -1)) {
+      return;
+    }
     if (event.ctrlKey || event.key === 'Home' || event.key === 'End') {
       event.preventDefault();
       this.navigate.emit(direction);
@@ -226,6 +233,9 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   private handleEnterKey(event: KeyboardEvent, rowIndex: number, column: GridColumn<T>, columnIndex: number): void {
+    if (this.isEditingCell(rowIndex, columnIndex)) {
+      return;
+    }
     if (!this.isCellEditable(rowIndex, column)) return;
     const control = this.getEditableControl(event);
     if (control) {
@@ -362,6 +372,11 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
       return this.rows()[rowIndex]?.isNew ?? false;
     }
     return true;
+  }
+
+  private isEditingCell(rowIndex: number, columnIndex: number): boolean {
+    const editing = this.editingCell();
+    return editing?.rowIndex === rowIndex && editing?.columnIndex === columnIndex;
   }
 
   private emitCellValueChange(rowIndex: number, column: GridColumn<T>, value: unknown): void {
