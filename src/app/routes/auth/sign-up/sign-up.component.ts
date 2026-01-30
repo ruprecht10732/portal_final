@@ -5,6 +5,7 @@ import { catchError, finalize, EMPTY } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 
 interface PasswordRule {
   label: string;
@@ -27,6 +28,7 @@ export class SignUpComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
+  private readonly reporter = inject(ErrorReportingService);
 
   protected readonly emailError = computed(() => {
     const value = this.email();
@@ -77,7 +79,9 @@ export class SignUpComponent {
     this.authService.signUp({ email: this.email(), password: this.password() })
       .pipe(
         catchError(error => {
-          this.globalError.set(this.authService.getErrorMessage(error));
+          const message = this.authService.getErrorMessage(error);
+          this.globalError.set(message);
+          this.reporter.report(error, { source: 'http', silent: true, userMessage: message });
           return EMPTY;
         }),
         finalize(() => this.isSubmitting.set(false)),

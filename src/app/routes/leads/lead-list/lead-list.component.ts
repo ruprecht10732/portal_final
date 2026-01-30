@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { map, Observable } from 'rxjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
@@ -28,6 +29,7 @@ export class LeadListComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly reporter = inject(ErrorReportingService);
 
   protected readonly leads = signal<LeadRow[]>([]);
   protected readonly loading = signal(false);
@@ -256,7 +258,9 @@ export class LeadListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to load leads');
+        const message = this.getErrorMessage(err, 'Failed to load leads');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
       },
     });
@@ -271,14 +275,22 @@ export class LeadListComponent implements OnInit {
         }));
         this.userOptions.set(options);
       },
-      error: () => this.error.set('Failed to load users'),
+      error: (err) => {
+        const message = this.getErrorMessage(err, 'Failed to load users');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
     });
   }
 
   private loadServiceTypes(): void {
     this.serviceTypesService.listActive().subscribe({
       next: (response) => this.serviceTypes.set(response.items ?? []),
-      error: () => this.error.set('Failed to load service types'),
+      error: (err) => {
+        const message = this.getErrorMessage(err, 'Failed to load service types');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
     });
   }
 
@@ -351,7 +363,9 @@ export class LeadListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to load leads');
+        const message = this.getErrorMessage(err, 'Failed to load leads');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
       },
     });
@@ -394,7 +408,9 @@ export class LeadListComponent implements OnInit {
         this.loadInitialData();
       },
       error: (err) => {
-        this.error.set(err.error?.message || 'Failed to delete leads');
+        const message = this.getErrorMessage(err, 'Failed to delete leads');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.deleteInProgress.set(false);
       },
     });
@@ -444,7 +460,11 @@ export class LeadListComponent implements OnInit {
 
         this.leadsService.update(row.id, updateRequest).subscribe({
           next: () => this.loadInitialData(),
-          error: (err) => this.error.set(err.error?.message || 'Failed to update lead'),
+          error: (err) => {
+            const message = this.getErrorMessage(err, 'Failed to update lead');
+            this.error.set(message);
+            this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+          },
         });
       } else {
         // Example mapping for a new lead
@@ -466,9 +486,48 @@ export class LeadListComponent implements OnInit {
 
         this.leadsService.create(leadRequest).subscribe({
           next: () => this.loadInitialData(),
-          error: (err) => this.error.set(err.error?.message || 'Failed to create lead')
+          error: (err) => {
+            const message = this.getErrorMessage(err, 'Failed to create lead');
+            this.error.set(message);
+            this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+          }
         });
       }
     });
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    return this.extractMessage(error) ?? fallback;
+  }
+
+  private extractMessage(error: unknown): string | null {
+    if (error instanceof Error && error.message) {
+      return error.message;
+    }
+    if (!error || typeof error !== 'object') {
+      return null;
+    }
+
+    const directMessage = (error as { message?: unknown }).message;
+    if (typeof directMessage === 'string' && directMessage) {
+      return directMessage;
+    }
+
+    const nested = (error as { error?: unknown }).error;
+    if (typeof nested === 'string' && nested) {
+      return nested;
+    }
+    if (nested && typeof nested === 'object') {
+      const nestedError = (nested as { error?: unknown }).error;
+      if (typeof nestedError === 'string' && nestedError) {
+        return nestedError;
+      }
+      const nestedMessage = (nested as { message?: unknown }).message;
+      if (typeof nestedMessage === 'string' && nestedMessage) {
+        return nestedMessage;
+      }
+    }
+
+    return null;
   }
 }

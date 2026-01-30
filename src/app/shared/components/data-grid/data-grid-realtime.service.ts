@@ -3,8 +3,9 @@
  * WebSocket-based real-time updates for the data grid
  */
 
-import { Injectable, OnDestroy, signal, computed } from '@angular/core';
+import { Injectable, OnDestroy, signal, computed, inject } from '@angular/core';
 import { RealTimeUpdate, RowState } from './data-grid.types';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 
 export interface RealTimeConfig {
   /** WebSocket URL to connect to */
@@ -23,6 +24,7 @@ export type ConnectionState = 'disconnected' | 'connecting' | 'connected' | 'rec
 
 @Injectable()
 export class DataGridRealtimeService<T extends object> implements OnDestroy {
+  private readonly reporter = inject(ErrorReportingService);
   private socket: WebSocket | null = null;
   private reconnectAttempts = 0;
   private reconnectTimeout: ReturnType<typeof setTimeout> | null = null;
@@ -196,7 +198,7 @@ export class DataGridRealtimeService<T extends object> implements OnDestroy {
         const message = JSON.parse(event.data as string);
         this.handleMessage(message);
       } catch (error) {
-        console.error('Failed to parse WebSocket message:', error);
+        this.reporter.report(error, { source: 'runtime', silent: true, userMessage: 'Failed to parse WebSocket message' });
       }
     };
 
@@ -213,6 +215,7 @@ export class DataGridRealtimeService<T extends object> implements OnDestroy {
     this.socket.onerror = (error) => {
       this.lastError.set('WebSocket connection error');
       this.connectionState.set('error');
+      this.reporter.report(error, { source: 'runtime', userMessage: 'WebSocket connection error' });
     };
   }
 
@@ -254,7 +257,9 @@ export class DataGridRealtimeService<T extends object> implements OnDestroy {
     
     if (this.reconnectAttempts >= maxAttempts) {
       this.connectionState.set('error');
-      this.lastError.set(`Failed to reconnect after ${maxAttempts} attempts`);
+      const message = `Failed to reconnect after ${maxAttempts} attempts`;
+      this.lastError.set(message);
+      this.reporter.report(new Error(message), { source: 'runtime', userMessage: message });
       return;
     }
 
@@ -311,6 +316,7 @@ export class DataGridRealtimeService<T extends object> implements OnDestroy {
     const message = error instanceof Error ? error.message : 'Connection failed';
     this.lastError.set(message);
     this.connectionState.set('error');
+    this.reporter.report(error, { source: 'runtime', userMessage: message });
     this.attemptReconnect();
   }
 }

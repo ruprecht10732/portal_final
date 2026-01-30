@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, signal } from '@angular/core';
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 
 interface NominatimResult {
   lat: string;
@@ -16,6 +17,7 @@ interface NominatimResult {
 export class MapPreviewComponent {
   private readonly http = inject(HttpClient);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly reporter = inject(ErrorReportingService);
 
   address = input<string>('');
   height = input(180);
@@ -75,10 +77,14 @@ export class MapPreviewComponent {
             }
             this.loading.set(false);
           },
-          error: () => {
+          error: (err) => {
             this.coords.set(null);
             this.error.set('Map preview unavailable');
             this.loading.set(false);
+            this.reporter.report(err, {
+              source: 'http',
+              userMessage: 'Map preview unavailable',
+            });
           },
         });
     });

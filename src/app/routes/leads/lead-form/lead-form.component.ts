@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switchMap } from 'rxjs';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
@@ -28,6 +29,7 @@ export class LeadFormComponent implements OnInit {
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly addressService = inject(AddressService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly reporter = inject(ErrorReportingService);
 
   protected readonly lead = signal<Lead | null>(null);
   protected readonly loading = signal(false);
@@ -108,7 +110,11 @@ export class LeadFormComponent implements OnInit {
           this.serviceType.set(items[0].name);
         }
       },
-      error: () => this.error.set('Failed to load service types'),
+      error: (err) => {
+        const message = this.getErrorMessage(err, 'Failed to load service types');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
     });
   }
 
@@ -121,7 +127,9 @@ export class LeadFormComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to load lead');
+        const message = this.getErrorMessage(err, 'Failed to load lead');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
       },
     });
@@ -150,7 +158,10 @@ export class LeadFormComponent implements OnInit {
       debounceTime(300),
       distinctUntilChanged(),
       switchMap(query => this.addressService.search(query).pipe(
-        catchError(() => of([]))
+        catchError((err) => {
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: 'Failed to search addresses' });
+          return of([]);
+        })
       )),
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(results => {
@@ -238,7 +249,9 @@ export class LeadFormComponent implements OnInit {
           this.router.navigate(['/app/leads', created.id]);
         },
         error: (err) => {
-          this.error.set(err.error?.error || 'Failed to create lead');
+          const message = this.getErrorMessage(err, 'Failed to create lead');
+          this.error.set(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
           this.saving.set(false);
         },
       });
@@ -264,11 +277,24 @@ export class LeadFormComponent implements OnInit {
           this.router.navigate(['/app/leads', updated.id]);
         },
         error: (err) => {
-          this.error.set(err.error?.error || 'Failed to update lead');
+          const message = this.getErrorMessage(err, 'Failed to update lead');
+          this.error.set(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
           this.saving.set(false);
         },
       });
     }
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error && typeof error === 'object' && 'error' in error) {
+      const nested = (error as { error?: { error?: string } | string }).error;
+      if (typeof nested === 'string') return nested;
+      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
+        return nested.error;
+      }
+    }
+    return fallback;
   }
 
   protected cancel(): void {

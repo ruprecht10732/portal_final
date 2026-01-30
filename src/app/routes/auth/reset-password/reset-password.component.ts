@@ -5,6 +5,7 @@ import { map, catchError, finalize, EMPTY } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 
 interface PasswordRule {
   label: string;
@@ -28,6 +29,7 @@ export class ResetPasswordComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
+  private readonly reporter = inject(ErrorReportingService);
 
   protected readonly token = toSignal(
     this.route.queryParamMap.pipe(map(params => params.get('token'))),
@@ -78,7 +80,9 @@ export class ResetPasswordComponent {
     this.authService.resetPassword({ token: tokenValue, newPassword: this.password() })
       .pipe(
         catchError(error => {
-          this.globalError.set(this.authService.getErrorMessage(error));
+          const message = this.authService.getErrorMessage(error);
+          this.globalError.set(message);
+          this.reporter.report(error, { source: 'http', silent: true, userMessage: message });
           return EMPTY;
         }),
         finalize(() => this.isSubmitting.set(false)),

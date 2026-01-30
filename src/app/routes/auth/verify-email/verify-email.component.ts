@@ -4,6 +4,7 @@ import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map, catchError, finalize, EMPTY } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 
 @Component({
   selector: 'auth-verify-email',
@@ -16,6 +17,7 @@ export class VerifyEmailComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
+  private readonly reporter = inject(ErrorReportingService);
 
   protected readonly isVerifying = signal(false);
   protected readonly isVerified = signal(false);
@@ -42,7 +44,9 @@ export class VerifyEmailComponent {
       this.authService.verifyEmail({ token: tokenValue })
         .pipe(
           catchError(error => {
-            this.globalError.set(this.authService.getErrorMessage(error));
+            const message = this.authService.getErrorMessage(error);
+            this.globalError.set(message);
+            this.reporter.report(error, { source: 'http', silent: true, userMessage: message });
             return EMPTY;
           }),
           finalize(() => this.isVerifying.set(false)),

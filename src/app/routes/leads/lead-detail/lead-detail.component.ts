@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
@@ -33,6 +34,7 @@ export class LeadDetailComponent implements OnInit {
   private readonly leadsService = inject(LeadsService);
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly userService = inject(UserService);
+  private readonly reporter = inject(ErrorReportingService);
 
   protected readonly lead = signal<Lead | null>(null);
   protected readonly loading = signal(false);
@@ -281,7 +283,9 @@ export class LeadDetailComponent implements OnInit {
         this.leadsService.markViewed(id).subscribe();
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to load lead');
+        const message = this.getErrorMessage(err, 'Failed to load lead');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
       },
     });
@@ -290,7 +294,11 @@ export class LeadDetailComponent implements OnInit {
   private loadProfile(): void {
     this.userService.getProfile().subscribe({
       next: profile => this.user.set(profile),
-      error: () => this.error.set('Failed to load user profile'),
+      error: (err) => {
+        const message = this.getErrorMessage(err, 'Failed to load user profile');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
     });
   }
 
@@ -306,7 +314,11 @@ export class LeadDetailComponent implements OnInit {
         ];
         this.assigneeOptions.set(options);
       },
-      error: () => this.error.set('Failed to load users'),
+      error: (err) => {
+        const message = this.getErrorMessage(err, 'Failed to load users');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
     });
   }
 
@@ -319,7 +331,11 @@ export class LeadDetailComponent implements OnInit {
           this.newServiceType.set(items[0].name);
         }
       },
-      error: () => this.error.set('Failed to load service types'),
+      error: (err) => {
+        const message = this.getErrorMessage(err, 'Failed to load service types');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
     });
   }
 
@@ -505,7 +521,9 @@ export class LeadDetailComponent implements OnInit {
         this.announce(`Status changed to ${this.getStatusLabel(status)}`);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to update status');
+        const message = this.getErrorMessage(err, 'Failed to update status');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -523,7 +541,9 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to assign lead');
+        const message = this.getErrorMessage(err, 'Failed to assign lead');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -553,7 +573,9 @@ export class LeadDetailComponent implements OnInit {
         this.announce('Visit scheduled successfully');
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to schedule visit');
+        const message = this.getErrorMessage(err, 'Failed to schedule visit');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -584,7 +606,9 @@ export class LeadDetailComponent implements OnInit {
         this.announce(this.isEditingVisit() ? 'Visit updated successfully' : 'Visit completed successfully');
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to complete survey');
+        const message = this.getErrorMessage(err, 'Failed to complete survey');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -622,7 +646,9 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to mark no show');
+        const message = this.getErrorMessage(err, 'Failed to mark no show');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -662,7 +688,9 @@ export class LeadDetailComponent implements OnInit {
         this.announce('Visit rescheduled successfully');
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to reschedule visit');
+        const message = this.getErrorMessage(err, 'Failed to reschedule visit');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -688,7 +716,9 @@ export class LeadDetailComponent implements OnInit {
         this.announce('Note added successfully');
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to add note');
+        const message = this.getErrorMessage(err, 'Failed to add note');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.noteSaving.set(false);
       },
     });
@@ -700,7 +730,9 @@ export class LeadDetailComponent implements OnInit {
         this.leadNotes.set(response.items || []);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to load notes');
+        const message = this.getErrorMessage(err, 'Failed to load notes');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
     });
   }
@@ -710,8 +742,8 @@ export class LeadDetailComponent implements OnInit {
       next: (response) => {
         this.visitHistory.set(response.items || []);
       },
-      error: () => {
-        // Silently fail for visit history - not critical
+      error: (err) => {
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: 'Failed to load visit history' });
       },
     });
   }
@@ -726,7 +758,9 @@ export class LeadDetailComponent implements OnInit {
         this.aiAnalysisLoading.set(false);
       },
       error: (err) => {
-        this.aiAnalysisError.set(err.error?.error || 'Failed to load AI analysis');
+        const message = this.getErrorMessage(err, 'Failed to load AI analysis');
+        this.aiAnalysisError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.aiAnalysisLoading.set(false);
       },
     });
@@ -743,6 +777,7 @@ export class LeadDetailComponent implements OnInit {
       next: (response) => {
         if (response.status === 'error') {
           this.aiAnalysisError.set(response.message);
+          this.reporter.report(new Error(response.message), { source: 'manual', silent: true, userMessage: response.message });
         } else if (response.analysis) {
           this.aiAnalysis.set(response.analysis);
           this.aiAnalysisIsDefault.set(false);
@@ -754,12 +789,16 @@ export class LeadDetailComponent implements OnInit {
             this.announce('AI analyse bijgewerkt');
           }
         } else {
-          this.aiAnalysisError.set('Unexpected response from server');
+          const message = 'Unexpected response from server';
+          this.aiAnalysisError.set(message);
+          this.reporter.report(new Error(message), { source: 'manual', silent: true, userMessage: message });
         }
         this.aiAnalysisRefreshing.set(false);
       },
       error: (err) => {
-        this.aiAnalysisError.set(err.error?.error || 'Failed to analyze lead');
+        const message = this.getErrorMessage(err, 'Failed to analyze lead');
+        this.aiAnalysisError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.aiAnalysisRefreshing.set(false);
       },
     });
@@ -829,7 +868,9 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to add service');
+        const message = this.getErrorMessage(err, 'Failed to add service');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -846,7 +887,9 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        this.error.set(err.error?.error || 'Failed to update service status');
+        const message = this.getErrorMessage(err, 'Failed to update service status');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
       },
     });
@@ -867,6 +910,17 @@ export class LeadDetailComponent implements OnInit {
 
   protected isTerminalStatus(status: LeadStatus): boolean {
     return status === 'Closed' || status === 'Bad_Lead' || status === 'Surveyed';
+  }
+
+  private getErrorMessage(error: unknown, fallback: string): string {
+    if (error && typeof error === 'object' && 'error' in error) {
+      const nested = (error as { error?: { error?: string } | string }).error;
+      if (typeof nested === 'string') return nested;
+      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
+        return nested.error;
+      }
+    }
+    return fallback;
   }
 
   // Announce messages for screen readers
