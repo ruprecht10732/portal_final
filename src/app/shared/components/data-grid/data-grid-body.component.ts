@@ -6,11 +6,9 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   inject,
   input,
   output,
-  viewChildren,
 } from '@angular/core';
 import {
   CellEditEvent,
@@ -66,11 +64,6 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   readonly navigate = output<'up' | 'down' | 'left' | 'right' | 'home' | 'end'>();
   readonly cellEditEvent = output<CellEditEvent<T>>();
 
-  // ============ View Children ============
-  
-  private readonly cellRefs = viewChildren<ElementRef<HTMLTableCellElement>>('cellRef');
-  private readonly inputRefs = viewChildren<ElementRef<HTMLElement>>('inputRef');
-
   // ============ Methods ============
   
   protected isCellFocused(rowIndex: number, columnIndex: number): boolean {
@@ -99,25 +92,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   /** Get display value as string for title attribute */
   protected getCellDisplayValue(row: RowState<T>, column: GridColumn<T>): string {
     const value = this.getColumnValue(row, column);
-    
-    if (value === null || value === undefined || value === '') {
-      return '';
-    }
-    
-    if (column.cellType === 'boolean') {
-      return value ? 'Yes' : 'No';
-    }
-
-    if (column.cellType === 'date') {
-      return this.formatRelativeDate(value);
-    }
-    
-    if (column.cellType === 'select' && column.selectOptions) {
-      const option = column.selectOptions.find(o => o.value === value);
-      return option?.label ?? this.valueToString(value);
-    }
-    
-    return this.valueToString(value);
+    return this.formatValueForDisplay(value, column, true);
   }
 
   protected getRelativeDateValue(row: RowState<T>, column: GridColumn<T>): string {
@@ -365,20 +340,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   protected getEditableDisplayValue(row: RowState<T>, column: GridColumn<T>): string {
     const value = this.getColumnValue(row, column);
-    if (value === null || value === undefined) {
-      return '';
-    }
-
-    if (column.cellType === 'boolean') {
-      return value ? 'Yes' : 'No';
-    }
-
-    if (column.cellType === 'select' && column.selectOptions) {
-      const option = column.selectOptions.find(o => o.value === value);
-      return option?.label ?? this.valueToString(value);
-    }
-
-    return this.valueToString(value);
+    return this.formatValueForDisplay(value, column, false);
   }
 
   protected isCellEditable(rowIndex: number, column: GridColumn<T>): boolean {
@@ -412,6 +374,27 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     if (typeof value === 'string') return value;
     if (typeof value === 'number' || typeof value === 'boolean') return String(value);
     return '';
+  }
+
+  private formatValueForDisplay(value: unknown, column: GridColumn<T>, includeDate: boolean): string {
+    if (value === null || value === undefined || value === '') {
+      return '';
+    }
+
+    if (column.cellType === 'boolean') {
+      return value ? 'Yes' : 'No';
+    }
+
+    if (includeDate && column.cellType === 'date') {
+      return this.formatRelativeDate(value);
+    }
+
+    if (column.cellType === 'select' && column.selectOptions) {
+      const option = column.selectOptions.find(o => o.value === value);
+      return option?.label ?? this.valueToString(value);
+    }
+
+    return this.valueToString(value);
   }
 
   private normalizeStatusValue(value: unknown): string {
