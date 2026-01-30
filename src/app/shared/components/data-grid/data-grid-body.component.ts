@@ -79,12 +79,12 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   protected getCellValue(row: RowState<T>, column: GridColumn<T>): unknown {
-    return this.getValueByPath(row.current, column.field as string);
+    return this.getColumnValue(row, column);
   }
 
   /** Get safe value for input binding (avoids "undefined" string) */
   protected getInputValue(row: RowState<T>, column: GridColumn<T>): string | number {
-    const value = this.getValueByPath(row.current, column.field as string);
+    const value = this.getColumnValue(row, column);
     if (value === null || value === undefined) {
       return '';
     }
@@ -98,7 +98,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   /** Get display value as string for title attribute */
   protected getCellDisplayValue(row: RowState<T>, column: GridColumn<T>): string {
-    const value = this.getValueByPath(row.current, column.field as string);
+    const value = this.getColumnValue(row, column);
     
     if (value === null || value === undefined || value === '') {
       return '';
@@ -121,7 +121,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   protected getRelativeDateValue(row: RowState<T>, column: GridColumn<T>): string {
-    const value = this.getValueByPath(row.current, column.field as string);
+    const value = this.getColumnValue(row, column);
     if (value === null || value === undefined || value === '') {
       return '—';
     }
@@ -141,7 +141,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   protected getStatusLabel(row: RowState<T>, column: GridColumn<T>): string {
-    const value = this.getValueByPath(row.current, column.field as string);
+    const value = this.getColumnValue(row, column);
     if (value === null || value === undefined || value === '') return '—';
     if (column.selectOptions) {
       const option = column.selectOptions.find(o => o.value === value);
@@ -364,7 +364,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   protected getEditableDisplayValue(row: RowState<T>, column: GridColumn<T>): string {
-    const value = this.getValueByPath(row.current, column.field as string);
+    const value = this.getColumnValue(row, column);
     if (value === null || value === undefined) {
       return '';
     }
@@ -392,7 +392,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   private emitCellValueChange(rowIndex: number, column: GridColumn<T>, value: unknown): void {
     const row = this.rows()[rowIndex];
-    const oldValue = this.getValueByPath(row.current, column.field as string);
+    const oldValue = this.getColumnValue(row, column);
 
     if (oldValue !== value) {
       this.cellEditEvent.emit({
@@ -479,5 +479,9 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
       }
       return undefined;
     }, obj as unknown);
+  }
+
+  private getColumnValue(row: RowState<T>, column: GridColumn<T>): unknown {
+    return this.getValueByPath(row.current, column.field as string);
   }
 }
