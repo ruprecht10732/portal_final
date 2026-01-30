@@ -53,7 +53,7 @@ import { GlobalErrorHandler } from './core/handlers/global-error.handler';
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideAnimations(),
+    provideAnimations(), // Required by ColorPickerModule until migration to native CSS animations
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     provideRouter(routes),
     provideHttpClient(withInterceptors([errorReportingInterceptor, authInterceptor])),
