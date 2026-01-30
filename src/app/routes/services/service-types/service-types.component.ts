@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
@@ -13,6 +14,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { normalizeIconName } from '../../../core/services/icon-utils';
 import { IconPickerComponent } from '../../../shared/components/icon-picker/icon-picker.component';
 import { ColorPickerComponent } from '../../../shared/components/color-picker/color-picker.component';
+import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
 export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
@@ -31,11 +33,14 @@ export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
     ConfirmDialogComponent,
     IconPickerComponent,
     ColorPickerComponent,
+    FabButtonComponent,
   ],
 })
 export class ServiceTypesComponent implements OnInit {
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly reporter = inject(ErrorReportingService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
 
   protected readonly serviceTypes = signal<ServiceTypeRow[]>([]);
   protected readonly total = signal(0);
@@ -44,6 +49,8 @@ export class ServiceTypesComponent implements OnInit {
   protected readonly creating = signal(false);
   protected readonly error = signal<string | null>(null);
   private ignoreNextRequest = true;
+
+  protected readonly isCreateMode = signal(false);
 
   protected readonly name = signal('');
   protected readonly description = signal('');
@@ -165,7 +172,16 @@ export class ServiceTypesComponent implements OnInit {
   protected readonly canCreate = computed(() => this.name().trim().length > 0);
 
   ngOnInit(): void {
-    this.loadInitialData();
+    const mode = this.route.snapshot.data['mode'];
+    this.isCreateMode.set(mode === 'create');
+
+    if (!this.isCreateMode()) {
+      this.loadInitialData();
+    }
+  }
+
+  protected goToCreate(): void {
+    this.router.navigate(['/app/services/new']);
   }
 
   private loadServiceTypes(params: ListServiceTypesParams): void {

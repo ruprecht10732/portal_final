@@ -116,12 +116,19 @@ export const routes: Routes = [
 				data: {
 					panelItems: [
 						{ label: 'Service types', route: '/app/services', icon: 'list', exact: true },
+						{ label: 'Create service type', route: '/app/services/new', icon: 'plus' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
 					{
 						path: '',
 						loadComponent: () => import('./routes/services/service-types/service-types.component').then(m => m.ServiceTypesComponent),
+						data: { mode: 'list' },
+					},
+					{
+						path: 'new',
+						loadComponent: () => import('./routes/services/service-types/service-types.component').then(m => m.ServiceTypesComponent),
+						data: { mode: 'create' },
 					},
 				],
 			},
