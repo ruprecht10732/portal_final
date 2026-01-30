@@ -4,7 +4,7 @@ import { RouterOutlet } from '@angular/router';
 @Component({
   selector: 'app-services-layout',
   imports: [RouterOutlet],
-  template: '<router-outlet />',
+  template: '<div class="px-4"><router-outlet /></div>',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ServicesLayoutComponent {}
