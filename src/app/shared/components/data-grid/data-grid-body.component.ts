@@ -127,25 +127,18 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   protected getStatusVariant(value: unknown): ChipVariant {
     const normalized = this.normalizeStatusValue(value);
+    const directMap: Record<string, ChipVariant> = {
+      new: 'info',
+      attempted_contact: 'warning',
+      scheduled: 'info',
+      surveyed: 'success',
+      bad_lead: 'danger',
+      needs_rescheduling: 'warning',
+      closed: 'neutral',
+    };
 
-    switch (normalized) {
-      case 'new':
-        return 'info';
-      case 'attempted_contact':
-        return 'warning';
-      case 'scheduled':
-        return 'info';
-      case 'surveyed':
-        return 'success';
-      case 'bad_lead':
-        return 'danger';
-      case 'needs_rescheduling':
-        return 'warning';
-      case 'closed':
-        return 'neutral';
-      default:
-        break;
-    }
+    const direct = directMap[normalized];
+    if (direct) return direct;
 
     if (normalized.includes('new')) return 'info';
     if (normalized.includes('scheduled') || normalized.includes('surveyed') || normalized.includes('success')) return 'success';
@@ -434,6 +427,9 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   private formatRelativeDate(value: unknown): string {
+    if (value === null || value === undefined || value === '') {
+      return this.valueToString(value);
+    }
     const parsed = dayjs(value as string | number | Date);
     if (!parsed.isValid()) {
       return this.valueToString(value);
