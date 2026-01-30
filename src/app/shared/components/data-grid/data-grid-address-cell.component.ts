@@ -20,6 +20,7 @@ import {
 } from 'rxjs';
 import { AddressService, AddressSuggestion } from '../../../core/services/address.service';
 import { AutocompleteComponent, AutocompleteOption } from '../autocomplete/autocomplete.component';
+import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 
 @Component({
   selector: 'data-grid-address-cell',
@@ -51,7 +52,7 @@ export class DataGridAddressCellComponent {
     });
 
     effect(() => {
-      if (this.inputValue().trim().length < 3) {
+      if (this.inputValue().trim().length < MIN_LENGTH.address) {
         this.options.set([]);
         this.suggestions.set([]);
       }
@@ -60,8 +61,8 @@ export class DataGridAddressCellComponent {
     toObservable(this.inputValue)
       .pipe(
         map(value => value.trim()),
-        filter(value => value.length >= 3),
-        debounceTime(300),
+        filter(value => value.length >= MIN_LENGTH.address),
+        debounceTime(DEBOUNCE_MS.search),
         distinctUntilChanged(),
         switchMap(query => this.addressService.search(query).pipe(
           catchError(() => of([]))

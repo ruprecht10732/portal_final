@@ -5,6 +5,7 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 import { BehaviorSubject, Subject } from 'rxjs';
+import { PAGINATION_DEFAULTS, TIMEOUT_MS } from '../../../core/config';
 import {
   AriaAnnouncement,
   BulkOperationResult,
@@ -43,9 +44,9 @@ export class DataGridStore<T extends Record<string, unknown>> {
   // ============ Pagination State ============
   private readonly _pagination = signal<PaginationConfig>({
     page: 1,
-    pageSize: 10,
+    pageSize: PAGINATION_DEFAULTS.pageSize,
     totalItems: 0,
-    pageSizeOptions: [10, 25, 50, 100],
+    pageSizeOptions: [...PAGINATION_DEFAULTS.pageSizeOptions],
   });
 
   // ============ Network State ============
@@ -174,7 +175,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
     const pages: number[] = [];
     
     // Show up to 7 page numbers
-    const maxVisible = 7;
+    const maxVisible = PAGINATION_DEFAULTS.maxVisiblePages;
     let start = Math.max(1, current - Math.floor(maxVisible / 2));
     const end = Math.min(total, start + maxVisible - 1);
     
@@ -616,7 +617,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
                 : row
             )
           );
-        }, 2000);
+        }, TIMEOUT_MS.highlightDuration);
         
         this.announce('A row was updated by another user', 'polite');
         break;
@@ -658,7 +659,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
                 i === 0 ? { ...row, recentlyUpdated: false } : row
               )
             );
-          }, 2000);
+          }, TIMEOUT_MS.highlightDuration);
           
           this.announce('A new row was added by another user', 'polite');
         }
@@ -875,7 +876,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
     // Clear after announcement is read
     setTimeout(() => {
       this._announcements.update(a => a.slice(1));
-    }, 1000);
+    }, TIMEOUT_MS.feedbackClear / 2);
   }
 
   // ============ Private Methods ============

@@ -20,6 +20,7 @@ import { type SelectOption } from '../../../shared/components/select/select.comp
 import { VisitPanelComponent } from '../../../shared/components/visit-panel/visit-panel.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
+import { TIMEOUT_MS } from '../../../core/config';
 
 @Component({
   selector: 'app-lead-detail',
@@ -488,12 +489,12 @@ export class LeadDetailComponent implements OnInit {
     if (navigator?.clipboard?.writeText) {
       navigator.clipboard.writeText(address).then(() => {
         this.copiedAddress.set(true);
-        setTimeout(() => this.copiedAddress.set(false), 2000);
+        setTimeout(() => this.copiedAddress.set(false), TIMEOUT_MS.feedbackClear);
       });
       return;
     }
     this.copiedAddress.set(true);
-    setTimeout(() => this.copiedAddress.set(false), 2000);
+    setTimeout(() => this.copiedAddress.set(false), TIMEOUT_MS.feedbackClear);
   }
 
   protected focusNoteBox(): void {
@@ -926,7 +927,7 @@ export class LeadDetailComponent implements OnInit {
   // Announce messages for screen readers
   private announce(message: string): void {
     this.announcement.set(message);
-    setTimeout(() => this.announcement.set(''), 3000);
+    setTimeout(() => this.announcement.set(''), TIMEOUT_MS.announcementClear);
   }
 }
 

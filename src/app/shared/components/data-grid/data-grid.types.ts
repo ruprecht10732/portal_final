@@ -3,6 +3,15 @@
  * Defines all interfaces and types for the data grid component
  */
 
+import {
+  DEBOUNCE_MS,
+  TIMEOUT_MS,
+  MOBILE_BREAKPOINT,
+  ROW_HEIGHT,
+  CARD_PREVIEW_FIELD_COUNT,
+  MAX_MOBILE_COLUMNS,
+} from '../../../core/config';
+
 /** Address mapping configuration for address cells */
 export interface AddressFieldMapping {
   /** Field key for street */
@@ -40,7 +49,7 @@ export interface GridColumn<T = unknown> {
   /** Whether column is editable */
   editable?: boolean;
   /** Custom cell renderer type */
-  cellType?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'custom' | 'address';
+  cellType?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'custom' | 'address' | 'icon';
   /** Address field mapping for address cell type */
   addressMapping?: AddressFieldMapping;
   /** Options for select type cells */
@@ -245,21 +254,21 @@ export const DEFAULT_GRID_CONFIG: GridConfig<unknown> = {
   resizable: true,
   reorderable: false,
   virtualScroll: false,
-  rowHeight: 48,
-  searchDebounce: 300,
+  rowHeight: ROW_HEIGHT,
+  searchDebounce: DEBOUNCE_MS.search,
   autoRefreshInterval: 0,
   staleDataDetection: true,
-  staleDataThreshold: 300000, // 5 minutes
+  staleDataThreshold: TIMEOUT_MS.staleData,
   offlineQueue: true,
   maxOfflineQueueSize: 100,
   
   // Mobile/Card View defaults
   cardViewEnabled: true,
-  mobileBreakpoint: 640, // Tailwind 'sm' breakpoint
+  mobileBreakpoint: MOBILE_BREAKPOINT,
   cardTitleField: undefined,
-  cardPreviewFieldCount: 3,
+  cardPreviewFieldCount: CARD_PREVIEW_FIELD_COUNT,
   columnPickerEnabled: true,
-  maxMobileColumns: 4,
+  maxMobileColumns: MAX_MOBILE_COLUMNS,
   mobileAddRowEnabled: true,
 };
 

@@ -14,6 +14,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
+import { DEBOUNCE_MS, MIN_LENGTH, MAX_LENGTH } from '../../../core/config';
 
 @Component({
   selector: 'app-lead-form',
@@ -52,8 +53,8 @@ export class LeadFormComponent implements OnInit {
   protected readonly city = signal('');
   protected readonly serviceType = signal('');
 
-  protected readonly sourceMaxLength = 50;
-  protected readonly consumerNoteMaxLength = 2000;
+  protected readonly sourceMaxLength = MAX_LENGTH.source;
+  protected readonly consumerNoteMaxLength = MAX_LENGTH.consumerNote;
 
   protected readonly addressOptions = signal<AutocompleteOption[]>([]);
   private readonly addressSuggestions = signal<AddressSuggestion[]>([]);
@@ -154,8 +155,8 @@ export class LeadFormComponent implements OnInit {
   private setupAddressSearch(): void {
     toObservable(this.street).pipe(
       map(value => value.trim()),
-      filter(value => value.length >= 3),
-      debounceTime(300),
+      filter(value => value.length >= MIN_LENGTH.address),
+      debounceTime(DEBOUNCE_MS.search),
       distinctUntilChanged(),
       switchMap(query => this.addressService.search(query).pipe(
         catchError((err) => {

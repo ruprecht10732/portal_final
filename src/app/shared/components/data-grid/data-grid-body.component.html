@@ -93,6 +93,12 @@
                       (addressSelect)="onAddressSelect(rowIndex, column, $event)"
                     />
                   }
+                  @case ('icon') {
+                    <data-grid-icon-cell
+                      [value]="getInputStringValue(row, column) || null"
+                      (valueChange)="onInputChange(rowIndex, column, $event ?? '')"
+                    />
+                  }
                   @case ('select') {
                     <select
                       class="w-full min-h-7 px-2 py-1 text-sm bg-transparent border border-transparent focus:outline-none"

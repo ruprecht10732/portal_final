@@ -6,6 +6,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { MIN_LENGTH } from '../../../core/config';
 
 @Component({
   selector: 'auth-sign-in',
@@ -35,7 +36,7 @@ export class SignInComponent {
   protected readonly passwordError = computed(() => {
     const value = this.password();
     if (!value) return '';
-    return value.length >= 8 ? '' : 'Password must be at least 8 characters';
+    return value.length >= MIN_LENGTH.password ? '' : `Password must be at least ${MIN_LENGTH.password} characters`;
   });
 
   protected readonly canSubmit = computed(() =>

@@ -21,12 +21,13 @@ import {
 import { OptionLabelPipe } from './data-grid.pipes';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { DataGridAddressCellComponent } from './data-grid-address-cell.component';
+import { DataGridIconCellComponent } from './data-grid-icon-cell.component';
 import { DataGridStore } from './data-grid.store';
 import { AddressSuggestion } from '../../../core/services/address.service';
 
 @Component({
   selector: 'data-grid-body',
-  imports: [OptionLabelPipe, CheckboxComponent, DataGridAddressCellComponent],
+  imports: [OptionLabelPipe, CheckboxComponent, DataGridAddressCellComponent, DataGridIconCellComponent],
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

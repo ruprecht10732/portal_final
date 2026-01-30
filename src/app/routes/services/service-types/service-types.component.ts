@@ -10,6 +10,9 @@ import { InputComponent } from '../../../shared/components/input/input.component
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { normalizeIconName } from '../../../core/services/icon-utils';
+import { IconPickerComponent } from '../../../shared/components/icon-picker/icon-picker.component';
+import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
 export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
 
@@ -25,6 +28,7 @@ export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
     TextareaComponent,
     ButtonComponent,
     ConfirmDialogComponent,
+    IconPickerComponent,
   ],
 })
 export class ServiceTypesComponent implements OnInit {
@@ -89,7 +93,7 @@ export class ServiceTypesComponent implements OnInit {
       filterable: false,
       editable: true,
       width: '120px',
-      cellType: 'text',
+      cellType: 'icon',
     },
     {
       id: 'color',
@@ -179,7 +183,7 @@ export class ServiceTypesComponent implements OnInit {
   }
 
   private loadInitialData(): void {
-    this.loadServiceTypes({ page: 1, pageSize: 20, sortBy: 'displayOrder', sortOrder: 'asc' });
+    this.loadServiceTypes({ page: 1, pageSize: DEFAULT_PAGE_SIZE, sortBy: 'displayOrder', sortOrder: 'asc' });
   }
 
   protected createServiceType(): void {
@@ -189,10 +193,11 @@ export class ServiceTypesComponent implements OnInit {
     this.error.set(null);
 
     const displayOrderValue = this.parseDisplayOrder(this.displayOrder());
+    const normalizedIcon = normalizeIconName(this.normalizeOptional(this.icon()));
     const request: CreateServiceTypeRequest = {
       name: this.name().trim(),
       description: this.normalizeOptional(this.description()),
-      icon: this.normalizeOptional(this.icon()),
+      icon: normalizedIcon ?? undefined,
       color: this.normalizeOptional(this.color()),
       displayOrder: displayOrderValue,
     };
@@ -303,7 +308,7 @@ export class ServiceTypesComponent implements OnInit {
 
     const icon = this.normalizeNullable(row.icon, existing.icon ?? null);
     if (icon !== undefined) {
-      request.icon = icon;
+      request.icon = normalizeIconName(icon);
     }
 
     const color = this.normalizeNullable(row.color, existing.color ?? null);

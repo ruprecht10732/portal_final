@@ -12,11 +12,11 @@
         (valueChange)="name.set($event)"
         [required]="true"
       />
-      <shared-input
+      <shared-icon-picker
         label="Icon"
         [value]="icon()"
-        (valueChange)="icon.set($event)"
-        placeholder="e.g. wrench"
+        (valueChange)="icon.set($event ?? '')"
+        placeholder="Select an icon"
       />
       <shared-input
         label="Color"

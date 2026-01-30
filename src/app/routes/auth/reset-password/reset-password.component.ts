@@ -6,6 +6,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { MIN_LENGTH } from '../../../core/config';
 
 interface PasswordRule {
   label: string;
@@ -38,13 +39,13 @@ export class ResetPasswordComponent {
 
   protected readonly isTokenValid = computed(() => !!this.token());
 
-  protected readonly hasMinLength = computed(() => this.password().length >= 8);
+  protected readonly hasMinLength = computed(() => this.password().length >= MIN_LENGTH.password);
   protected readonly hasNumber = computed(() => /\d/.test(this.password()));
   protected readonly hasUppercase = computed(() => /[A-Z]/.test(this.password()));
   protected readonly hasSpecial = computed(() => /[^A-Za-z0-9]/.test(this.password()));
 
   protected readonly passwordRules = computed<PasswordRule[]>(() => [
-    { label: 'At least 8 characters', met: this.hasMinLength() },
+    { label: `At least ${MIN_LENGTH.password} characters`, met: this.hasMinLength() },
     { label: 'Contains a number', met: this.hasNumber() },
     { label: 'Contains an uppercase letter', met: this.hasUppercase() },
     { label: 'Contains a special character', met: this.hasSpecial() },
@@ -53,7 +54,7 @@ export class ResetPasswordComponent {
   protected readonly passwordError = computed(() => {
     const value = this.password();
     if (!value) return '';
-    return this.hasMinLength() ? '' : 'Password must be at least 8 characters';
+    return this.hasMinLength() ? '' : `Password must be at least ${MIN_LENGTH.password} characters`;
   });
 
   protected readonly confirmError = computed(() => {

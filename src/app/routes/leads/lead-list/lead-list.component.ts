@@ -13,6 +13,7 @@ import { FabButtonComponent } from '../../../shared/components/fab-button/fab-bu
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import type { GridColumn, GridConfig, DataRequest, DataResponse } from '../../../shared/components/data-grid/data-grid.types';
+import { DEFAULT_PHONE_REGION, MIN_LENGTH, DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 
 type LeadRow = Lead & Record<string, unknown>;
 
@@ -42,7 +43,7 @@ export class LeadListComponent implements OnInit {
   protected readonly pendingDeleteRows = signal<LeadRow[]>([]);
   protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
   private ignoreNextRequest = true;
-  private readonly phoneRegion = 'NL';
+  private readonly phoneRegion = DEFAULT_PHONE_REGION;
 
   private readonly baseColumns: GridColumn<LeadRow>[] = [
     {
@@ -87,7 +88,7 @@ export class LeadListComponent implements OnInit {
         } else if (typeof value === 'number') {
           text = value.toString();
         }
-        return text.trim().length >= 5 ? null : 'Min 5 chars';
+        return text.trim().length >= MIN_LENGTH.phone ? null : 'Min 5 chars';
       },
     },
     {
@@ -221,7 +222,7 @@ export class LeadListComponent implements OnInit {
     rowIdField: 'id',
     selectable: true,
     cardViewEnabled: true,
-    mobileBreakpoint: 640,
+    mobileBreakpoint: MOBILE_BREAKPOINT,
     cardTitleField: 'fullName',
     cardSubtitleField: 'consumer.phone',
     cardSecondarySubtitleField: 'consumer.email',
@@ -250,7 +251,7 @@ export class LeadListComponent implements OnInit {
 
   private loadInitialData(): void {
     this.loading.set(true);
-    this.leadsService.list({ page: 1, pageSize: 20, sortBy: 'createdAt', sortOrder: 'desc' }).subscribe({
+    this.leadsService.list({ page: 1, pageSize: DEFAULT_PAGE_SIZE, sortBy: 'createdAt', sortOrder: 'desc' }).subscribe({
       next: (response) => {
         const normalized = (response.items as LeadRow[]).map(row => this.normalizeLead(row));
         this.leads.set(normalized);

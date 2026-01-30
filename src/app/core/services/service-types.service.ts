@@ -1,8 +1,9 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { CreateServiceTypeRequest, ListServiceTypesParams, ReorderServiceTypesRequest, ServiceTypeItem, ServiceTypeListResponse, UpdateServiceTypeRequest } from './service-types.types';
+import { normalizeIconName } from './icon-utils';
 
 @Injectable({ providedIn: 'root' })
 export class ServiceTypesService {
@@ -11,7 +12,9 @@ export class ServiceTypesService {
   private readonly adminBaseUrl = `${environment.apiBaseUrl}/admin/service-types`;
 
   listActive(): Observable<ServiceTypeListResponse> {
-    return this.http.get<ServiceTypeListResponse>(this.baseUrl);
+    return this.http.get<ServiceTypeListResponse>(this.baseUrl).pipe(
+      map(response => this.normalizeResponse(response)),
+    );
   }
 
   listAdmin(params: ListServiceTypesParams = {}): Observable<ServiceTypeListResponse> {
@@ -22,15 +25,21 @@ export class ServiceTypesService {
     if (params.pageSize) httpParams = httpParams.set('pageSize', params.pageSize.toString());
     if (params.sortBy) httpParams = httpParams.set('sortBy', params.sortBy);
     if (params.sortOrder) httpParams = httpParams.set('sortOrder', params.sortOrder);
-    return this.http.get<ServiceTypeListResponse>(this.adminBaseUrl, { params: httpParams });
+    return this.http.get<ServiceTypeListResponse>(this.adminBaseUrl, { params: httpParams }).pipe(
+      map(response => this.normalizeResponse(response)),
+    );
   }
 
   create(request: CreateServiceTypeRequest): Observable<ServiceTypeItem> {
-    return this.http.post<ServiceTypeItem>(this.adminBaseUrl, request);
+    return this.http.post<ServiceTypeItem>(this.adminBaseUrl, request).pipe(
+      map(item => this.normalizeItem(item)),
+    );
   }
 
   update(id: string, request: UpdateServiceTypeRequest): Observable<ServiceTypeItem> {
-    return this.http.put<ServiceTypeItem>(`${this.adminBaseUrl}/${id}`, request);
+    return this.http.put<ServiceTypeItem>(`${this.adminBaseUrl}/${id}`, request).pipe(
+      map(item => this.normalizeItem(item)),
+    );
   }
 
   delete(id: string): Observable<void> {
@@ -38,10 +47,26 @@ export class ServiceTypesService {
   }
 
   toggleActive(id: string): Observable<ServiceTypeItem> {
-    return this.http.patch<ServiceTypeItem>(`${this.adminBaseUrl}/${id}/toggle-active`, {});
+    return this.http.patch<ServiceTypeItem>(`${this.adminBaseUrl}/${id}/toggle-active`, {}).pipe(
+      map(item => this.normalizeItem(item)),
+    );
   }
 
   reorder(request: ReorderServiceTypesRequest): Observable<void> {
     return this.http.put<void>(`${this.adminBaseUrl}/reorder`, request);
+  }
+
+  private normalizeItem(item: ServiceTypeItem): ServiceTypeItem {
+    return {
+      ...item,
+      icon: normalizeIconName(item.icon) ?? undefined,
+    };
+  }
+
+  private normalizeResponse(response: ServiceTypeListResponse): ServiceTypeListResponse {
+    return {
+      ...response,
+      items: (response.items ?? []).map(item => this.normalizeItem(item)),
+    };
   }
 }

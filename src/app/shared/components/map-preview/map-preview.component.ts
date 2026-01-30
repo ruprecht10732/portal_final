@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, effect, inject, input, si
 import { HttpClient } from '@angular/common/http';
 import { DomSanitizer, type SafeResourceUrl } from '@angular/platform-browser';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { MAP_CONFIG, EXTERNAL_URLS } from '../../../core/config';
 
 interface NominatimResult {
   lat: string;
@@ -20,8 +21,8 @@ export class MapPreviewComponent {
   private readonly reporter = inject(ErrorReportingService);
 
   address = input<string>('');
-  height = input(180);
-  zoom = input(16);
+  height = input(MAP_CONFIG.defaultHeight);
+  zoom = input(MAP_CONFIG.defaultZoom);
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -31,9 +32,9 @@ export class MapPreviewComponent {
   protected readonly iframeSrc = computed<SafeResourceUrl | null>(() => {
     const coords = this.coords();
     if (!coords) return null;
-    const delta = 0.005;
+    const delta = MAP_CONFIG.boundingBoxDelta;
     const bbox = `${coords.lon - delta},${coords.lat - delta},${coords.lon + delta},${coords.lat + delta}`;
-    const url = `https://www.openstreetmap.org/export/embed.html?bbox=${bbox}&layer=mapnik&marker=${coords.lat},${coords.lon}`;
+    const url = `${EXTERNAL_URLS.openStreetMapEmbed}?bbox=${bbox}&layer=mapnik&marker=${coords.lat},${coords.lon}`;
     return this.sanitizer.bypassSecurityTrustResourceUrl(url);
   });
 
@@ -52,7 +53,7 @@ export class MapPreviewComponent {
       this.error.set(null);
 
       this.http
-        .get<NominatimResult[]>('https://nominatim.openstreetmap.org/search', {
+        .get<NominatimResult[]>(EXTERNAL_URLS.nominatim, {
           params: {
             format: 'json',
             q: address,

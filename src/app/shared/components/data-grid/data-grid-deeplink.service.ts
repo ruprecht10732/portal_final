@@ -8,6 +8,7 @@ import { Router, ActivatedRoute, Params } from '@angular/router';
 import { SortConfig, FilterConfig, PaginationConfig } from './data-grid.types';
 import { Subscription } from 'rxjs';
 import { distinctUntilChanged } from 'rxjs/operators';
+import { DEBOUNCE_MS, DEFAULT_PAGE_SIZE } from '../../../core/config';
 
 export interface DeepLinkConfig {
   /** Enable URL sync */
@@ -53,7 +54,7 @@ export class DataGridDeepLinkService implements OnDestroy {
   initialize(config: DeepLinkConfig): void {
     this.config = {
       paramPrefix: '',
-      debounceMs: 300,
+      debounceMs: DEBOUNCE_MS.urlUpdate,
       persistToStorage: false,
       ...config,
     };
@@ -107,7 +108,7 @@ export class DataGridDeepLinkService implements OnDestroy {
     
     const result: ReturnType<typeof this.getInitialState> = {
       page: state.page ?? 1,
-      pageSize: state.pageSize ?? 20,
+      pageSize: state.pageSize ?? DEFAULT_PAGE_SIZE,
     };
 
     if (state.sortColumn) {

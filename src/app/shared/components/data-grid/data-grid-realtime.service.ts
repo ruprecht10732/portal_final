@@ -6,6 +6,7 @@
 import { Injectable, OnDestroy, signal, computed, inject } from '@angular/core';
 import { RealTimeUpdate, RowState } from './data-grid.types';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { REALTIME_CONFIG } from '../../../core/config';
 
 export interface RealTimeConfig {
   /** WebSocket URL to connect to */
@@ -54,10 +55,10 @@ export class DataGridRealtimeService<T extends object> implements OnDestroy {
    */
   connect(config: RealTimeConfig): void {
     this.config = {
-      maxReconnectAttempts: 5,
-      reconnectDelay: 1000,
+      maxReconnectAttempts: REALTIME_CONFIG.maxReconnectAttempts,
+      reconnectDelay: REALTIME_CONFIG.reconnectDelayMs,
       enableHeartbeat: true,
-      heartbeatInterval: 30000,
+      heartbeatInterval: REALTIME_CONFIG.heartbeatIntervalMs,
       ...config,
     };
     

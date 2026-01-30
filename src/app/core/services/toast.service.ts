@@ -1,4 +1,5 @@
 import { computed, Injectable, signal } from '@angular/core';
+import { TOAST_DURATION_MS } from '../config';
 
 export type ToastVariant = 'info' | 'success' | 'warning' | 'error';
 
@@ -20,12 +21,7 @@ export interface ToastOptions {
   durationMs?: number | null;
 }
 
-const DEFAULT_DURATIONS: Record<ToastVariant, number> = {
-  info: 5000,
-  success: 4000,
-  warning: 7000,
-  error: 8000,
-};
+const DEFAULT_DURATIONS: Record<ToastVariant, number> = TOAST_DURATION_MS;
 
 @Injectable({ providedIn: 'root' })
 export class ToastService {

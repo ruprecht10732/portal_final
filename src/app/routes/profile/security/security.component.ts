@@ -4,6 +4,7 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { UserService } from '../../../core/services/user.service';
+import { MIN_LENGTH } from '../../../core/config';
 
 @Component({
   selector: 'app-security',
@@ -27,7 +28,7 @@ export class SecurityComponent {
   protected readonly newPasswordError = computed(() => {
     const value = this.newPassword();
     if (!value) return '';
-    return value.length >= 8 ? '' : 'Password must be at least 8 characters';
+    return value.length >= MIN_LENGTH.password ? '' : `Password must be at least ${MIN_LENGTH.password} characters`;
   });
 
   protected readonly confirmPasswordError = computed(() => {

@@ -1,0 +1,149 @@
+<div class="flex flex-col w-full gap-1.5 text-left">
+  @if (label() && !compact()) {
+    <label [for]="uid" class="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+      {{ label() }}
+      @if (required()) {
+        <span class="text-red-500" aria-hidden="true">*</span>
+      }
+    </label>
+  }
+
+  <div class="relative w-full" cdkOverlayOrigin #origin="cdkOverlayOrigin">
+    <button
+      #trigger
+      type="button"
+      [id]="uid"
+      [disabled]="disabled()"
+      [attr.aria-expanded]="isOpen()"
+      [attr.aria-haspopup]="'listbox'"
+      [attr.aria-controls]="listboxId"
+      [attr.aria-required]="required() || null"
+      [attr.aria-invalid]="!!error() || null"
+      [attr.aria-describedby]="describedBy()"
+      [attr.aria-label]="ariaLabel() || label() || placeholder()"
+      (click)="toggle()"
+      (keydown)="onTriggerKeydown($event)"
+      class="w-full text-sm bg-white border cursor-pointer transition-all duration-200 focus:outline-none focus:border-black disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed text-left flex items-center justify-between gap-2"
+      [class.px-4]="!compact()"
+      [class.py-3]="!compact()"
+      [class.px-2]="compact()"
+      [class.py-1]="compact()"
+      [class.border-zinc-200]="!error() && !isOpen()"
+      [class.border-black]="isOpen() && !error()"
+      [class.border-red-500]="!!error()"
+    >
+      <span class="flex items-center gap-2 truncate" [class.text-zinc-400]="!displayValue()">
+        @if (value()) {
+          <lucide-icon [name]="value()!" class="h-5 w-5 shrink-0"></lucide-icon>
+          <span class="truncate">{{ displayValue() }}</span>
+        } @else {
+          {{ placeholder() }}
+        }
+      </span>
+      <div class="flex items-center gap-1 shrink-0">
+        @if (value() && !disabled()) {
+          <button
+            type="button"
+            class="p-0.5 text-zinc-400 hover:text-zinc-600 focus:outline-none"
+            (click)="clearSelection($event)"
+            aria-label="Clear selection"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+            </svg>
+          </button>
+        }
+        <svg
+          class="w-4 h-4 text-zinc-400 transition-transform duration-200"
+          [class.rotate-180]="isOpen()"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+          aria-hidden="true"
+        >
+          <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M19 9l-7 7-7-7" />
+        </svg>
+      </div>
+    </button>
+
+    <ng-template
+      cdkConnectedOverlay
+      [cdkConnectedOverlayOrigin]="origin"
+      [cdkConnectedOverlayOpen]="isOpen()"
+      [cdkConnectedOverlayMinWidth]="280"
+      [cdkConnectedOverlayFlexibleDimensions]="true"
+      (overlayOutsideClick)="close()"
+      (detach)="close()"
+    >
+      <div
+        [id]="listboxId"
+        [attr.aria-labelledby]="uid"
+        class="bg-white border border-black shadow-xl mt-px max-h-80 overflow-hidden flex flex-col focus:outline-none"
+        (keydown)="onPanelKeydown($event)"
+      >
+        <!-- Search input -->
+        <div class="p-2 border-b border-zinc-200">
+          <div class="relative">
+            <lucide-icon name="search" class="absolute left-2 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"></lucide-icon>
+            <input
+              #searchInput
+              type="text"
+              class="w-full pl-8 pr-3 py-2 text-sm border border-zinc-200 focus:outline-none focus:border-black"
+              placeholder="Search icons..."
+              [value]="searchQuery()"
+              (input)="onSearchInput($event)"
+              aria-label="Search icons"
+            />
+          </div>
+        </div>
+
+        <!-- Icon grid -->
+        <div class="overflow-y-auto p-2 flex-1">
+          @if (filteredIcons().length > 0) {
+            <div class="grid grid-cols-5 gap-1">
+              @for (icon of filteredIcons(); track icon; let i = $index) {
+                <button
+                  type="button"
+                  [id]="getOptionId(i)"
+                  [attr.aria-selected]="value() === icon"
+                  (click)="selectIcon(icon)"
+                  (mouseenter)="activeIndex.set(i)"
+                  class="flex flex-col items-center justify-center p-2 rounded cursor-pointer transition-colors duration-150 outline-none aspect-square"
+                  [class.bg-black]="value() === icon"
+                  [class.text-white]="value() === icon"
+                  [class.ring-2]="activeIndex() === i && value() !== icon"
+                  [class.ring-black]="activeIndex() === i && value() !== icon"
+                  [class.hover:bg-zinc-100]="value() !== icon"
+                  [title]="icon"
+                >
+                  <lucide-icon [name]="icon" class="h-5 w-5"></lucide-icon>
+                </button>
+              }
+            </div>
+          } @else {
+            <div class="px-4 py-6 text-sm text-zinc-400 italic text-center">No icons found</div>
+          }
+        </div>
+
+        <!-- Selected icon name -->
+        @if (value()) {
+          <div class="px-3 py-2 border-t border-zinc-200 text-xs text-zinc-500 bg-zinc-50">
+            Selected: <span class="font-medium text-zinc-700">{{ value() }}</span>
+          </div>
+        }
+      </div>
+    </ng-template>
+  </div>
+
+  @if (!compact()) {
+    @if (error()) {
+      <p [id]="errorId" class="text-[10px] uppercase font-bold text-red-500 tracking-wide mt-1">
+        {{ error() }}
+      </p>
+    } @else if (hint()) {
+      <p [id]="hintId" class="text-[10px] uppercase font-medium text-zinc-400 tracking-wide mt-1">
+        {{ hint() }}
+      </p>
+    }
+  }
+</div>
