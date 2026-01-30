@@ -282,6 +282,16 @@
                 >
                   Activity / Notes
                 </button>
+                <button
+                  type="button"
+                  class="px-3 py-2 text-sm font-semibold rounded-lg"
+                  [class.bg-black]="activeTab() === 'ai'"
+                  [class.text-white]="activeTab() === 'ai'"
+                  [class.bg-zinc-100]="activeTab() !== 'ai'"
+                  (click)="activeTab.set('ai')"
+                >
+                  AI Advisor
+                </button>
               </div>
             </div>
 
@@ -336,7 +346,7 @@
                 (markAsNoShowChange)="markAsNoShow.set($event)"
                 (rescheduleVisit)="rescheduleVisit()"
               ></shared-visit-panel>
-            } @else {
+            } @else if (activeTab() === 'activity') {
               <shared-activity-notes
                 #notePanelDesktop
                 [noteId]="'note-input-desktop'"
@@ -350,6 +360,8 @@
                 (noteTypeChange)="noteType.set($event)"
                 (addNote)="addNote()"
               ></shared-activity-notes>
+            } @else {
+              <div class="text-sm text-zinc-500">AI Advisor</div>
             }
           </shared-card>
         </main>

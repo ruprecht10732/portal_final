@@ -44,7 +44,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly newStatus = signal<LeadStatus | null>(null);
 
   protected readonly statusMenuOpen = signal(false);
-  protected readonly activeTab = signal<'activity' | 'visit'>('visit');
+  protected readonly activeTab = signal<'activity' | 'visit' | 'ai'>('visit');
   
   // Schedule visit
   protected readonly showScheduleForm = signal(false);
