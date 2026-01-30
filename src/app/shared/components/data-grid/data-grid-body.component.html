@@ -86,6 +86,13 @@
                 class="w-full min-h-7"
               >
                 @switch (column.cellType) {
+                  @case ('address') {
+                    <data-grid-address-cell
+                      [value]="getInputStringValue(row, column)"
+                      (valueChange)="onInputChange(rowIndex, column, $event)"
+                      (addressSelect)="onAddressSelect(rowIndex, column, $event)"
+                    />
+                  }
                   @case ('select') {
                     <select
                       class="w-full min-h-7 px-2 py-1 text-sm bg-transparent border border-transparent focus:outline-none"

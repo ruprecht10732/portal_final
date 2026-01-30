@@ -40,6 +40,7 @@ export { DataGridDeepLinkService, type DeepLinkConfig, type GridUrlState } from 
 export { DataGridComponent } from './data-grid.component';
 export { DataGridHeaderComponent } from './data-grid-header.component';
 export { DataGridBodyComponent } from './data-grid-body.component';
+export { DataGridAddressCellComponent } from './data-grid-address-cell.component';
 export { DataGridPaginationComponent } from './data-grid-pagination.component';
 export { DataGridToolbarComponent } from './data-grid-toolbar.component';
 

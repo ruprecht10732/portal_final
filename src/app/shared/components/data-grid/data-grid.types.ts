@@ -3,6 +3,22 @@
  * Defines all interfaces and types for the data grid component
  */
 
+/** Address mapping configuration for address cells */
+export interface AddressFieldMapping {
+  /** Field key for street */
+  street?: string;
+  /** Field key for house number */
+  houseNumber?: string;
+  /** Field key for zip/postcode */
+  zipCode?: string;
+  /** Field key for city */
+  city?: string;
+  /** Field key for state/province */
+  state?: string;
+  /** Field key for country */
+  country?: string;
+}
+
 /** Column definition for the data grid */
 export interface GridColumn<T = unknown> {
   /** Unique identifier for the column */
@@ -24,7 +40,9 @@ export interface GridColumn<T = unknown> {
   /** Whether column is editable */
   editable?: boolean;
   /** Custom cell renderer type */
-  cellType?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'custom';
+  cellType?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'custom' | 'address';
+  /** Address field mapping for address cell type */
+  addressMapping?: AddressFieldMapping;
   /** Options for select type cells */
   selectOptions?: readonly { label: string; value: unknown }[];
   /** Validation function for editable cells */

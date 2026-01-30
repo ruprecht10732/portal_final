@@ -113,7 +113,13 @@ export class LeadListComponent implements OnInit {
       field: 'address.street' as keyof LeadRow,
       editable: true,
       width: '160px',
-      cellType: 'text',
+      cellType: 'address',
+      addressMapping: {
+        street: 'address.street',
+        houseNumber: 'address.houseNumber',
+        zipCode: 'address.zipCode',
+        city: 'address.city',
+      },
       validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
     },
     {

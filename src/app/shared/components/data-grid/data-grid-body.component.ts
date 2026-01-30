@@ -7,6 +7,7 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
+  inject,
   input,
   output,
   viewChildren,
@@ -19,10 +20,13 @@ import {
 } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
+import { DataGridAddressCellComponent } from './data-grid-address-cell.component';
+import { DataGridStore } from './data-grid.store';
+import { AddressSuggestion } from '../../../core/services/address.service';
 
 @Component({
   selector: 'data-grid-body',
-  imports: [OptionLabelPipe, CheckboxComponent],
+  imports: [OptionLabelPipe, CheckboxComponent, DataGridAddressCellComponent],
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,6 +35,8 @@ import { CheckboxComponent } from '../checkbox/checkbox.component';
   },
 })
 export class DataGridBodyComponent<T extends Record<string, unknown>> {
+  private readonly store = inject(DataGridStore<T>);
+
   // ============ Inputs ============
   
   readonly columns = input<GridColumn<T>[]>([]);
@@ -74,6 +80,11 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
       return '';
     }
     return value as string | number;
+  }
+
+  protected getInputStringValue(row: RowState<T>, column: GridColumn<T>): string {
+    const value = this.getInputValue(row, column);
+    return value === '' ? '' : String(value);
   }
 
   /** Get display value as string for title attribute */
@@ -184,8 +195,13 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   protected onInputChange(
     rowIndex: number,
     column: GridColumn<T>,
-    eventOrTarget: Event | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement,
+    eventOrTarget: Event | HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement | string,
   ): void {
+    if (typeof eventOrTarget === 'string') {
+      this.emitCellValueChange(rowIndex, column, eventOrTarget);
+      return;
+    }
+
     const target = eventOrTarget instanceof Event
       ? eventOrTarget.target as HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       : eventOrTarget;
@@ -203,6 +219,28 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     event.preventDefault();
     event.stopPropagation();
     this.navigate.emit('down');
+  }
+
+  protected onAddressSelect(
+    rowIndex: number,
+    column: GridColumn<T>,
+    address: AddressSuggestion
+  ): void {
+    const mapping = column.addressMapping;
+    if (!mapping) return;
+
+    const updates: Record<string, unknown> = {};
+    if (mapping.street) updates[mapping.street] = address.street;
+    if (mapping.houseNumber) updates[mapping.houseNumber] = address.houseNumber;
+    if (mapping.zipCode) updates[mapping.zipCode] = address.zipCode;
+    if (mapping.city) updates[mapping.city] = address.city;
+    if (mapping.state && address.state !== undefined) updates[mapping.state] = address.state;
+    if (mapping.country && address.country !== undefined) updates[mapping.country] = address.country;
+
+    if (Object.keys(updates).length === 0) return;
+
+    this.store.updateRowValues(rowIndex, updates);
+    this.navigate.emit('right');
   }
 
   protected onRowSelect(rowIndex: number): void {

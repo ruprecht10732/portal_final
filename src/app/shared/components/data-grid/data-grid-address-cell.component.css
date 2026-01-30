@@ -1,0 +1,16 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+:host ::ng-deep input {
+  border: none;
+  padding: 0.25rem 0.5rem;
+  height: 1.75rem;
+  background: transparent;
+}
+
+:host ::ng-deep input:focus {
+  outline: none;
+  background: white;
+}
