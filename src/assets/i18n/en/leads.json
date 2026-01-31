@@ -40,6 +40,107 @@
         "createLead": "Failed to create lead",
         "updateLead": "Failed to update lead"
       }
+    },
+    "detail": {
+      "title": "Lead Details",
+      "backToList": "Go back to leads list",
+      "statusLabel": "Status:",
+      "loading": "Loading lead details...",
+      "navigateToAddress": "Navigate to Address",
+      "consumerInfo": "Consumer Info",
+      "name": "Name",
+      "viewOnMaps": "View on Maps",
+      "copyAddress": "Copy Address",
+      "copied": "Copied",
+      "notesActivity": "Notes & Activity",
+      "location": "Location",
+      "contact": "Contact",
+      "confirm": "Confirm",
+      "cancel": "Cancel",
+      "unassigned": "Unassigned",
+      "customerNotHome": "Customer not home",
+      "tabs": {
+        "visit": "The Visit",
+        "activity": "Activity / Notes",
+        "ai": "AI Advisor"
+      },
+      "inquiry": {
+        "title": "Initial Request",
+        "source": "Source: {{source}}",
+        "sourceUnknown": "Source unknown",
+        "noInitialMessage": "No initial message provided.",
+        "hint": "Captured at lead creation before any internal notes."
+      },
+      "status": {
+        "new": "New",
+        "contacted": "Contacted",
+        "scheduled": "Scheduled",
+        "completed": "Completed",
+        "badLead": "Bad Lead",
+        "needsRescheduling": "Needs Rescheduling",
+        "closed": "Closed",
+        "noService": "No Service"
+      },
+      "accessDifficulty": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
+      "outcome": {
+        "completed": "Completed",
+        "noShow": "No Show",
+        "rescheduled": "Rescheduled",
+        "cancelled": "Cancelled"
+      },
+      "activity": {
+        "system": "System",
+        "leadCreated": "Lead created",
+        "leadUpdated": "Lead updated",
+        "leadViewed": "Lead viewed",
+        "visitScheduled": "Visit scheduled",
+        "visitCompleted": "Visit completed"
+      },
+      "confirm": {
+        "changeTo": "Change to {{status}}?",
+        "badLead": "This will mark the lead as a bad lead. This action may affect reporting.",
+        "closed": "This will close the lead. Make sure all work is completed.",
+        "default": "Are you sure you want to make this change?"
+      },
+      "announcements": {
+        "statusChanged": "Status changed to {{status}}",
+        "visitScheduled": "Visit scheduled successfully",
+        "visitUpdated": "Visit updated successfully",
+        "visitCompleted": "Visit completed successfully",
+        "visitRescheduled": "Visit rescheduled successfully",
+        "noteAdded": "Note added successfully",
+        "aiNoNewInfo": "No new information since last analysis",
+        "aiUpdated": "AI analysis updated"
+      },
+      "errors": {
+        "loadLead": "Failed to load lead",
+        "loadProfile": "Failed to load user profile",
+        "loadUsers": "Failed to load users",
+        "loadServiceTypes": "Failed to load service types",
+        "updateStatus": "Failed to update status",
+        "assignLead": "Failed to assign lead",
+        "scheduleVisit": "Failed to schedule visit",
+        "completeSurvey": "Failed to complete survey",
+        "markNoShow": "Failed to mark no show",
+        "rescheduleVisit": "Failed to reschedule visit",
+        "addNote": "Failed to add note",
+        "loadNotes": "Failed to load notes",
+        "loadVisitHistory": "Failed to load visit history",
+        "loadAIAnalysis": "Failed to load AI analysis",
+        "analyzeLead": "Failed to analyze lead",
+        "unexpectedResponse": "Unexpected response from server",
+        "addService": "Failed to add service",
+        "updateServiceStatus": "Failed to update service status"
+      },
+      "datetime": {
+        "todayAt": "Today at {{time}}",
+        "yesterdayAt": "Yesterday at {{time}}",
+        "at": "{{date}} at {{time}}"
+      }
     }
   }
 }

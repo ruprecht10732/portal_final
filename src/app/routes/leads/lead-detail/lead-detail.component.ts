@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
@@ -27,7 +28,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, VisitPanelComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent],
+  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, VisitPanelComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -36,6 +37,7 @@ export class LeadDetailComponent implements OnInit {
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly userService = inject(UserService);
   private readonly reporter = inject(ErrorReportingService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly lead = signal<Lead | null>(null);
   protected readonly loading = signal(false);
@@ -124,7 +126,15 @@ export class LeadDetailComponent implements OnInit {
     return lead.services.find(s => s.id === selectedId) ?? lead.currentService ?? null;
   });
 
-  protected readonly STATUS_LABELS = STATUS_LABELS;
+  protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => ({
+    New: this.translate.instant('leads.detail.status.new'),
+    Attempted_Contact: this.translate.instant('leads.detail.status.contacted'),
+    Scheduled: this.translate.instant('leads.detail.status.scheduled'),
+    Surveyed: this.translate.instant('leads.detail.status.completed'),
+    Bad_Lead: this.translate.instant('leads.detail.status.badLead'),
+    Needs_Rescheduling: this.translate.instant('leads.detail.status.needsRescheduling'),
+    Closed: this.translate.instant('leads.detail.status.closed'),
+  }));
   protected readonly STATUS_COLORS = STATUS_COLORS;
 
   protected readonly serviceTypeLabels = computed<Record<string, string>>(() =>
@@ -141,8 +151,18 @@ export class LeadDetailComponent implements OnInit {
     }))
   );
 
-  protected readonly statusOptions = computed<SelectOption<LeadStatus>[]>(() => STATUS_OPTIONS);
-  protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => ACCESS_DIFFICULTY_OPTIONS);
+  protected readonly statusOptions = computed<SelectOption<LeadStatus>[]>(() => (
+    STATUS_OPTIONS.map(option => ({
+      value: option.value,
+      label: this.statusLabels()[option.value],
+    }))
+  ));
+  protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => (
+    ACCESS_DIFFICULTY_OPTIONS.map(option => ({
+      value: option.value,
+      label: this.translate.instant(`leads.detail.accessDifficulty.${option.value.toLowerCase()}`),
+    }))
+  ));
   protected readonly canAssign = computed(() => {
     const currentUser = this.user();
     const lead = this.lead();
@@ -151,15 +171,7 @@ export class LeadDetailComponent implements OnInit {
     return lead.assignedAgentId === currentUser.id;
   });
 
-  protected readonly headerStatusLabels = computed<Record<LeadStatus, string>>(() => ({
-    New: 'New',
-    Attempted_Contact: 'Contacted',
-    Scheduled: 'Scheduled',
-    Surveyed: 'Completed',
-    Bad_Lead: 'Bad Lead',
-    Needs_Rescheduling: 'Needs Rescheduling',
-    Closed: 'Closed',
-  }));
+  protected readonly headerStatusLabels = computed<Record<LeadStatus, string>>(() => this.statusLabels());
 
   protected readonly headerServiceTypeLabel = computed(() => {
     const service = this.selectedService();
@@ -169,7 +181,7 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly headerStatusLabel = computed(() => {
     const service = this.selectedService();
-    if (!service) return 'No Service';
+    if (!service) return this.translate.instant('leads.detail.status.noService');
     return this.getStatusLabel(service.status);
   });
 
@@ -200,16 +212,16 @@ export class LeadDetailComponent implements OnInit {
         id: `created-${lead.id}`,
         type: 'audit',
         timestamp: lead.createdAt,
-        user: 'System',
-        message: 'Lead created',
+        user: this.translate.instant('leads.detail.activity.system'),
+        message: this.translate.instant('leads.detail.activity.leadCreated'),
       });
       if (lead.updatedAt && lead.updatedAt !== lead.createdAt) {
         entries.push({
           id: `updated-${lead.id}`,
           type: 'audit',
           timestamp: lead.updatedAt,
-          user: 'System',
-          message: 'Lead updated',
+          user: this.translate.instant('leads.detail.activity.system'),
+          message: this.translate.instant('leads.detail.activity.leadUpdated'),
         });
       }
       if (lead.viewedAt) {
@@ -217,8 +229,8 @@ export class LeadDetailComponent implements OnInit {
           id: `viewed-${lead.id}`,
           type: 'audit',
           timestamp: lead.viewedAt,
-          user: 'System',
-          message: 'Lead viewed',
+          user: this.translate.instant('leads.detail.activity.system'),
+          message: this.translate.instant('leads.detail.activity.leadViewed'),
         });
       }
       if (lead.currentService?.visit?.scheduledDate) {
@@ -226,8 +238,8 @@ export class LeadDetailComponent implements OnInit {
           id: `scheduled-${lead.id}`,
           type: 'audit',
           timestamp: this.getScheduledEventTimestamp(lead) ?? lead.currentService.visit.scheduledDate,
-          user: 'System',
-          message: 'Visit scheduled',
+          user: this.translate.instant('leads.detail.activity.system'),
+          message: this.translate.instant('leads.detail.activity.visitScheduled'),
         });
       }
       if (lead.currentService?.visit?.completedAt) {
@@ -235,8 +247,8 @@ export class LeadDetailComponent implements OnInit {
           id: `completed-${lead.id}`,
           type: 'audit',
           timestamp: lead.currentService.visit.completedAt,
-          user: 'System',
-          message: 'Visit completed',
+          user: this.translate.instant('leads.detail.activity.system'),
+          message: this.translate.instant('leads.detail.activity.visitCompleted'),
         });
       }
     }
@@ -284,7 +296,7 @@ export class LeadDetailComponent implements OnInit {
         this.leadsService.markViewed(id).subscribe();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load lead');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadLead'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -296,7 +308,7 @@ export class LeadDetailComponent implements OnInit {
     this.userService.getProfile().subscribe({
       next: profile => this.user.set(profile),
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load user profile');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadProfile'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -307,7 +319,7 @@ export class LeadDetailComponent implements OnInit {
     this.userService.listUsers().subscribe({
       next: users => {
         const options = [
-          { label: 'Unassigned', value: null },
+          { label: this.translate.instant('leads.detail.unassigned'), value: null },
           ...users.map(user => ({
             label: user.roles.length ? `${user.email} (${user.roles.join(', ')})` : user.email,
             value: user.id,
@@ -316,7 +328,7 @@ export class LeadDetailComponent implements OnInit {
         this.assigneeOptions.set(options);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load users');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadUsers'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -333,7 +345,7 @@ export class LeadDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load service types');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadServiceTypes'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -365,15 +377,16 @@ export class LeadDetailComponent implements OnInit {
 
     // Check if date is today (between start of today and start of tomorrow)
     if (date >= startOfToday && date < startOfTomorrow) {
-      return `Today at ${timeLabel}`;
+      return this.translate.instant('leads.detail.datetime.todayAt', { time: timeLabel });
     }
     // Check if date is yesterday
     if (date >= startOfYesterday && date < startOfToday) {
-      return `Yesterday at ${timeLabel}`;
+      return this.translate.instant('leads.detail.datetime.yesterdayAt', { time: timeLabel });
     }
 
     // For other dates, show full date with time
-    return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) + ` at ${timeLabel}`;
+    const dateLabel = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+    return this.translate.instant('leads.detail.datetime.at', { date: dateLabel, time: timeLabel });
   };
 
   private parseTimestamp(value: string | null | undefined): number {
@@ -411,7 +424,7 @@ export class LeadDetailComponent implements OnInit {
     // Check if this is a terminal status that needs confirmation
     if (this.isTerminalStatus(status) && status !== this.lead()?.currentService?.status) {
       this.pendingStatusChange.set(status);
-      this.confirmDialogTitle.set(`Change to ${this.getStatusLabel(status)}?`);
+      this.confirmDialogTitle.set(this.translate.instant('leads.detail.confirm.changeTo', { status: this.getStatusLabel(status) }));
       this.confirmDialogMessage.set(this.getConfirmMessage(status));
       this.showConfirmDialog.set(true);
       return;
@@ -423,12 +436,12 @@ export class LeadDetailComponent implements OnInit {
 
   private getConfirmMessage(status: LeadStatus): string {
     if (status === 'Bad_Lead') {
-      return 'This will mark the lead as a bad lead. This action may affect reporting.';
+      return this.translate.instant('leads.detail.confirm.badLead');
     }
     if (status === 'Closed') {
-      return 'This will close the lead. Make sure all work is completed.';
+      return this.translate.instant('leads.detail.confirm.closed');
     }
-    return 'Are you sure you want to make this change?';
+    return this.translate.instant('leads.detail.confirm.default');
   }
 
   protected confirmStatusChange(): void {
@@ -519,10 +532,10 @@ export class LeadDetailComponent implements OnInit {
       next: (updated) => {
         this.lead.set(updated);
         this.saving.set(false);
-        this.announce(`Status changed to ${this.getStatusLabel(status)}`);
+        this.announce(this.translate.instant('leads.detail.announcements.statusChanged', { status: this.getStatusLabel(status) }));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to update status');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.updateStatus'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -542,7 +555,7 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to assign lead');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.assignLead'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -571,10 +584,10 @@ export class LeadDetailComponent implements OnInit {
         this.scheduledTime.set('');
         this.sendInvite.set(false);
         this.saving.set(false);
-        this.announce('Visit scheduled successfully');
+        this.announce(this.translate.instant('leads.detail.announcements.visitScheduled'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to schedule visit');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.scheduleVisit'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -604,10 +617,14 @@ export class LeadDetailComponent implements OnInit {
         this.surveyNotes.set('');
         this.surveyPhotos.set([]);
         this.saving.set(false);
-        this.announce(this.isEditingVisit() ? 'Visit updated successfully' : 'Visit completed successfully');
+        this.announce(
+          this.isEditingVisit()
+            ? this.translate.instant('leads.detail.announcements.visitUpdated')
+            : this.translate.instant('leads.detail.announcements.visitCompleted')
+        );
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to complete survey');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.completeSurvey'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -641,13 +658,16 @@ export class LeadDetailComponent implements OnInit {
     if (!lead || !service) return;
 
     this.saving.set(true);
-    this.leadsService.markNoShow(lead.id, { serviceId: service.id, notes: 'Customer not home' }).subscribe({
+    this.leadsService.markNoShow(lead.id, {
+      serviceId: service.id,
+      notes: this.translate.instant('leads.detail.customerNotHome'),
+    }).subscribe({
       next: (updated) => {
         this.lead.set(updated);
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to mark no show');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.markNoShow'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -686,10 +706,10 @@ export class LeadDetailComponent implements OnInit {
         this.sendInvite.set(false);
         this.saving.set(false);
         this.loadVisitHistory(lead.id);
-        this.announce('Visit rescheduled successfully');
+        this.announce(this.translate.instant('leads.detail.announcements.visitRescheduled'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to reschedule visit');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.rescheduleVisit'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -714,10 +734,10 @@ export class LeadDetailComponent implements OnInit {
         this.noteType.set('note');
         this.noteSaving.set(false);
         this.focusNoteBox();
-        this.announce('Note added successfully');
+        this.announce(this.translate.instant('leads.detail.announcements.noteAdded'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to add note');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.addNote'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.noteSaving.set(false);
@@ -731,7 +751,7 @@ export class LeadDetailComponent implements OnInit {
         this.leadNotes.set(response.items || []);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load notes');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadNotes'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -744,7 +764,11 @@ export class LeadDetailComponent implements OnInit {
         this.visitHistory.set(response.items || []);
       },
       error: (err) => {
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: 'Failed to load visit history' });
+        this.reporter.report(err, {
+          source: 'http',
+          silent: true,
+          userMessage: this.translate.instant('leads.detail.errors.loadVisitHistory'),
+        });
       },
     });
   }
@@ -759,7 +783,7 @@ export class LeadDetailComponent implements OnInit {
         this.aiAnalysisLoading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load AI analysis');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadAIAnalysis'));
         this.aiAnalysisError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.aiAnalysisLoading.set(false);
@@ -784,20 +808,20 @@ export class LeadDetailComponent implements OnInit {
           this.aiAnalysisIsDefault.set(false);
           if (response.status === 'no_change') {
             this.aiAnalysisNoNewInfo.set(true);
-            this.announce('Geen nieuwe informatie sinds laatste analyse');
+            this.announce(this.translate.instant('leads.detail.announcements.aiNoNewInfo'));
           } else {
             this.aiAnalysisNoNewInfo.set(false);
-            this.announce('AI analyse bijgewerkt');
+            this.announce(this.translate.instant('leads.detail.announcements.aiUpdated'));
           }
         } else {
-          const message = 'Unexpected response from server';
+          const message = this.translate.instant('leads.detail.errors.unexpectedResponse');
           this.aiAnalysisError.set(message);
           this.reporter.report(new Error(message), { source: 'manual', silent: true, userMessage: message });
         }
         this.aiAnalysisRefreshing.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to analyze lead');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.analyzeLead'));
         this.aiAnalysisError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.aiAnalysisRefreshing.set(false);
@@ -817,15 +841,15 @@ export class LeadDetailComponent implements OnInit {
   protected getUserLabelById = (id: string | null | undefined): string => {
     if (!id) return 'Unassigned';
     const match = this.assigneeOptions().find(option => option.value === id);
-    return match?.label ?? 'Unassigned';
+    return match?.label ?? this.translate.instant('leads.detail.unassigned');
   };
 
   protected getOutcomeLabel = (outcome: string): string => {
     const labels: Record<string, string> = {
-      completed: 'Completed',
-      no_show: 'No Show',
-      rescheduled: 'Rescheduled',
-      cancelled: 'Cancelled',
+      completed: this.translate.instant('leads.detail.outcome.completed'),
+      no_show: this.translate.instant('leads.detail.outcome.noShow'),
+      rescheduled: this.translate.instant('leads.detail.outcome.rescheduled'),
+      cancelled: this.translate.instant('leads.detail.outcome.cancelled'),
     };
     return labels[outcome] ?? outcome;
   };
@@ -869,7 +893,7 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to add service');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.addService'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -888,7 +912,7 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to update service status');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.updateServiceStatus'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);

@@ -9,8 +9,8 @@
     [isOpen]="showConfirmDialog()"
     [title]="confirmDialogTitle()"
     [message]="confirmDialogMessage()"
-    confirmText="Confirm"
-    cancelText="Cancel"
+    [confirmText]="'leads.detail.confirm' | translate"
+    [cancelText]="'leads.detail.cancel' | translate"
     confirmVariant="primary"
     (confirm)="confirmStatusChange()"
     (cancel)="cancelConfirmDialog()"
@@ -41,7 +41,7 @@
   @if (loading()) {
     <div class="flex items-center justify-center py-12">
       <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-black" aria-hidden="true"></div>
-      <span class="sr-only">Loading lead details...</span>
+      <span class="sr-only">{{ 'leads.detail.loading' | translate }}</span>
     </div>
   }
 
@@ -54,7 +54,7 @@
           target="_blank"
           rel="noopener"
         >
-          Navigate to Address
+          {{ 'leads.detail.navigateToAddress' | translate }}
         </a>
       </div>
 
@@ -114,11 +114,11 @@
 
         <shared-card padding="none">
           <details>
-            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Consumer Info</summary>
+            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.consumerInfo' | translate }}</summary>
             <div class="px-4 pb-4">
             <dl class="grid gap-3">
               <div class="flex justify-between">
-                <dt class="text-zinc-500">Name</dt>
+                <dt class="text-zinc-500">{{ 'leads.detail.name' | translate }}</dt>
                 <dd class="font-medium">{{ getFullName() }}</dd>
               </div>
             </dl>
@@ -139,7 +139,7 @@
                   target="_blank"
                   rel="noopener"
                 >
-                  View on Maps
+                  {{ 'leads.detail.viewOnMaps' | translate }}
                 </a>
                 <shared-button
                   variant="ghost"
@@ -148,7 +148,7 @@
                   [fullWidth]="false"
                   (clicked)="copyAddress()"
                 >
-                  {{ copiedAddress() ? 'Copied' : 'Copy Address' }}
+                  {{ copiedAddress() ? ('leads.detail.copied' | translate) : ('leads.detail.copyAddress' | translate) }}
                 </shared-button>
               </div>
             </div>
@@ -162,7 +162,7 @@
 
         <shared-card padding="none">
           <details>
-            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">Notes & Activity</summary>
+            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.notesActivity' | translate }}</summary>
             <div class="px-4 pb-4">
               <shared-activity-notes
                 #notePanelMobile
@@ -186,7 +186,7 @@
           [services]="l.services"
           [selectedServiceId]="selectedServiceId()"
           [serviceTypeLabels]="serviceTypeLabels()"
-          [statusLabels]="STATUS_LABELS"
+          [statusLabels]="statusLabels()"
           [statusColors]="STATUS_COLORS"
           [showAddForm]="showAddServiceForm()"
           [serviceTypeOptions]="serviceTypeOptions()"
@@ -205,7 +205,7 @@
       <div class="hidden lg:grid lg:grid-cols-[1fr_2fr] gap-4">
         <aside class="flex flex-col gap-4">
           <shared-card>
-            <h2 class="text-lg font-semibold mb-3">Location</h2>
+            <h2 class="text-lg font-semibold mb-3">{{ 'leads.detail.location' | translate }}</h2>
             <shared-map-preview [address]="getFullAddress()" [height]="180"></shared-map-preview>
             <div class="mt-4 flex flex-wrap gap-2">
               <a
@@ -214,7 +214,7 @@
                 target="_blank"
                 rel="noopener"
               >
-                View on Maps
+                {{ 'leads.detail.viewOnMaps' | translate }}
               </a>
               <shared-button
                 variant="ghost"
@@ -223,14 +223,14 @@
                 [fullWidth]="false"
                 (clicked)="copyAddress()"
               >
-                {{ copiedAddress() ? 'Copied' : 'Copy Address' }}
+                {{ copiedAddress() ? ('leads.detail.copied' | translate) : ('leads.detail.copyAddress' | translate) }}
               </shared-button>
             </div>
             <p class="mt-3 text-sm font-medium">{{ getFullAddress() }}</p>
           </shared-card>
 
           <shared-card>
-            <h2 class="text-lg font-semibold mb-3">Contact</h2>
+            <h2 class="text-lg font-semibold mb-3">{{ 'leads.detail.contact' | translate }}</h2>
             <shared-contact-info [phone]="l.consumer.phone" [email]="l.consumer.email ?? null" [role]="l.consumer.role" [assignedTo]="l.assignedAgentId ? getUserLabelById(l.assignedAgentId) : null"></shared-contact-info>
           </shared-card>
 
@@ -242,7 +242,7 @@
             [services]="l.services"
             [selectedServiceId]="selectedServiceId()"
             [serviceTypeLabels]="serviceTypeLabels()"
-            [statusLabels]="STATUS_LABELS"
+            [statusLabels]="statusLabels()"
             [statusColors]="STATUS_COLORS"
             [showAddForm]="showAddServiceForm()"
             [serviceTypeOptions]="serviceTypeOptions()"
@@ -270,7 +270,7 @@
                   [class.bg-zinc-100]="activeTab() !== 'visit'"
                   (click)="activeTab.set('visit')"
                 >
-                  The Visit
+                  {{ 'leads.detail.tabs.visit' | translate }}
                 </button>
                 <button
                   type="button"
@@ -280,7 +280,7 @@
                   [class.bg-zinc-100]="activeTab() !== 'activity'"
                   (click)="activeTab.set('activity')"
                 >
-                  Activity / Notes
+                  {{ 'leads.detail.tabs.activity' | translate }}
                 </button>
                 <button
                   type="button"
@@ -290,7 +290,7 @@
                   [class.bg-zinc-100]="activeTab() !== 'ai'"
                   (click)="activeTab.set('ai')"
                 >
-                  AI Advisor
+                  {{ 'leads.detail.tabs.ai' | translate }}
                 </button>
               </div>
             </div>

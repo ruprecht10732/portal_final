@@ -5,7 +5,7 @@
         type="button"
         class="touch-target rounded-lg hover:bg-zinc-100 transition-colors"
         (click)="back.emit()"
-        aria-label="Go back to leads list"
+        [attr.aria-label]="'leads.detail.backToList' | translate"
       >
         <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -20,12 +20,12 @@
             }
           </h1>
           <p class="text-sm text-zinc-500 flex items-center gap-2">
-            <span>Status:</span>
-            <shared-chip variant="info" [class.hidden]="selectedStatus() !== 'New'">New</shared-chip>
+            <span>{{ 'leads.detail.statusLabel' | translate }}</span>
+            <shared-chip variant="info" [class.hidden]="selectedStatus() !== 'New'">{{ 'leads.detail.status.new' | translate }}</shared-chip>
             <span [class.hidden]="selectedStatus() === 'New'">{{ statusLabel() }}</span>
           </p>
         } @else {
-          <h1 class="text-xl font-semibold">Lead Details</h1>
+          <h1 class="text-xl font-semibold">{{ 'leads.detail.title' | translate }}</h1>
         }
       </div>
     </div>

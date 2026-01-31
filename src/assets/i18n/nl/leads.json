@@ -40,6 +40,107 @@
         "createLead": "Lead aanmaken mislukt",
         "updateLead": "Lead bijwerken mislukt"
       }
+    },
+    "detail": {
+      "title": "Leadgegevens",
+      "backToList": "Terug naar leads",
+      "statusLabel": "Status:",
+      "loading": "Leadgegevens laden...",
+      "navigateToAddress": "Navigeer naar adres",
+      "consumerInfo": "Consumentinfo",
+      "name": "Naam",
+      "viewOnMaps": "Bekijk op kaart",
+      "copyAddress": "Adres kopiëren",
+      "copied": "Gekopieerd",
+      "notesActivity": "Notities & activiteit",
+      "location": "Locatie",
+      "contact": "Contact",
+      "confirm": "Bevestigen",
+      "cancel": "Annuleren",
+      "unassigned": "Niet toegewezen",
+      "customerNotHome": "Klant niet thuis",
+      "tabs": {
+        "visit": "Het bezoek",
+        "activity": "Activiteit / notities",
+        "ai": "AI-adviseur"
+      },
+      "inquiry": {
+        "title": "Initiële aanvraag",
+        "source": "Bron: {{source}}",
+        "sourceUnknown": "Bron onbekend",
+        "noInitialMessage": "Geen initiële boodschap opgegeven.",
+        "hint": "Vastgelegd bij het aanmaken van de lead, vóór interne notities."
+      },
+      "status": {
+        "new": "Nieuw",
+        "contacted": "Benaderd",
+        "scheduled": "Ingepland",
+        "completed": "Afgerond",
+        "badLead": "Slechte lead",
+        "needsRescheduling": "Opnieuw inplannen",
+        "closed": "Gesloten",
+        "noService": "Geen dienst"
+      },
+      "accessDifficulty": {
+        "low": "Laag",
+        "medium": "Middel",
+        "high": "Hoog"
+      },
+      "outcome": {
+        "completed": "Afgerond",
+        "noShow": "Niet verschenen",
+        "rescheduled": "Opnieuw ingepland",
+        "cancelled": "Geannuleerd"
+      },
+      "activity": {
+        "system": "Systeem",
+        "leadCreated": "Lead aangemaakt",
+        "leadUpdated": "Lead bijgewerkt",
+        "leadViewed": "Lead bekeken",
+        "visitScheduled": "Bezoek ingepland",
+        "visitCompleted": "Bezoek afgerond"
+      },
+      "confirm": {
+        "changeTo": "Wijzigen naar {{status}}?",
+        "badLead": "Dit markeert de lead als een slechte lead. Dit kan rapportages beïnvloeden.",
+        "closed": "Dit sluit de lead. Zorg dat al het werk is afgerond.",
+        "default": "Weet je zeker dat je deze wijziging wilt doorvoeren?"
+      },
+      "announcements": {
+        "statusChanged": "Status gewijzigd naar {{status}}",
+        "visitScheduled": "Bezoek succesvol ingepland",
+        "visitUpdated": "Bezoek succesvol bijgewerkt",
+        "visitCompleted": "Bezoek succesvol afgerond",
+        "visitRescheduled": "Bezoek succesvol opnieuw ingepland",
+        "noteAdded": "Notitie succesvol toegevoegd",
+        "aiNoNewInfo": "Geen nieuwe informatie sinds de laatste analyse",
+        "aiUpdated": "AI-analyse bijgewerkt"
+      },
+      "errors": {
+        "loadLead": "Kon lead niet laden",
+        "loadProfile": "Kon gebruikersprofiel niet laden",
+        "loadUsers": "Kon gebruikers niet laden",
+        "loadServiceTypes": "Kon diensttypen niet laden",
+        "updateStatus": "Kon status niet bijwerken",
+        "assignLead": "Kon lead niet toewijzen",
+        "scheduleVisit": "Kon bezoek niet inplannen",
+        "completeSurvey": "Kon survey niet afronden",
+        "markNoShow": "Kon no-show niet markeren",
+        "rescheduleVisit": "Kon bezoek niet opnieuw inplannen",
+        "addNote": "Kon notitie niet toevoegen",
+        "loadNotes": "Kon notities niet laden",
+        "loadVisitHistory": "Kon bezoekgeschiedenis niet laden",
+        "loadAIAnalysis": "Kon AI-analyse niet laden",
+        "analyzeLead": "Kon lead niet analyseren",
+        "unexpectedResponse": "Onverwacht antwoord van de server",
+        "addService": "Kon dienst niet toevoegen",
+        "updateServiceStatus": "Kon dienststatus niet bijwerken"
+      },
+      "datetime": {
+        "todayAt": "Vandaag om {{time}}",
+        "yesterdayAt": "Gisteren om {{time}}",
+        "at": "{{date}} om {{time}}"
+      }
     }
   }
 }

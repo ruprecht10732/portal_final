@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import type { Lead, LeadStatus } from '../../../core/services/leads.types';
 import type { SelectOption } from '../../../shared/components/select/select.component';
 import { ChipComponent } from '../../../shared/components/chip/chip.component';
@@ -8,7 +9,7 @@ import { ChipComponent } from '../../../shared/components/chip/chip.component';
   templateUrl: './lead-detail-header.component.html',
   styleUrl: './lead-detail-header.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ChipComponent],
+  imports: [ChipComponent, TranslatePipe],
 })
 export class LeadDetailHeaderComponent {
   lead = input<Lead | null>(null);
