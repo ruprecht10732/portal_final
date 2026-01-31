@@ -201,7 +201,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
         this.handleSpaceKey(event, rowIndex);
         return;
       default:
-        this.handleAlphanumericKey(event, rowIndex, column, columnIndex);
+        this.handleAlphanumericKey(event, rowIndex, column);
     }
   }
 
@@ -249,7 +249,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     this.rowSelect.emit(rowIndex);
   }
 
-  private handleAlphanumericKey(event: KeyboardEvent, rowIndex: number, column: GridColumn<T>, columnIndex: number): void {
+  private handleAlphanumericKey(event: KeyboardEvent, rowIndex: number, column: GridColumn<T>): void {
     if (this.isCellEditable(rowIndex, column) && event.key.length === 1 && !event.ctrlKey && !event.metaKey) {
       const control = this.getEditableControl(event);
       if (!control) return;
@@ -374,6 +374,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   private emitCellValueChange(rowIndex: number, column: GridColumn<T>, value: unknown): void {
     const row = this.rows()[rowIndex];
+    if (!row) return;
     const oldValue = this.getColumnValue(row, column);
 
     if (oldValue !== value) {
@@ -457,11 +458,17 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
       if (cols[i]?.frozen) {
         // Use minWidth or default
         const width = cols[i].minWidth ?? cols[i].width ?? '150px';
-        left += Number.parseInt(width, 10) || 150;
+        left += this.parseColumnWidth(width);
       }
     }
     
     return `${left}px`;
+  }
+
+  private parseColumnWidth(value: string | number): number {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    const parsed = Number.parseInt(String(value), 10);
+    return Number.isFinite(parsed) ? parsed : 150;
   }
 
   /** Get tooltip text explaining row status */
