@@ -1,6 +1,49 @@
 {
   "services": {
     "types": "Diensttypen",
-    "createType": "Diensttype aanmaken"
+    "createType": "Diensttype aanmaken",
+    "create": {
+      "title": "Diensttype aanmaken",
+      "subtitle": "Voeg een nieuwe marktplaatsdienstcategorie toe.",
+      "nameLabel": "Naam",
+      "iconLabel": "Pictogram",
+      "iconPlaceholder": "Kies een pictogram",
+      "colorLabel": "Kleur",
+      "colorPlaceholder": "#3B82F6",
+      "orderLabel": "Weergavevolgorde",
+      "descriptionLabel": "Beschrijving",
+      "creating": "Aanmaken...",
+      "submit": "Diensttype aanmaken",
+      "reset": "Resetten"
+    },
+    "list": {
+      "ariaLabel": "Diensttypen tabel",
+      "deleteTitle": "Diensttypen verwijderen",
+      "deleteMessage": "Wil je {{count}} diensttype(n) verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "deleteConfirm": "Verwijderen",
+      "deleteCancel": "Annuleren",
+      "newServiceType": "Nieuw diensttype",
+      "columns": {
+        "name": "Naam",
+        "slug": "Slug",
+        "description": "Beschrijving",
+        "icon": "Pictogram",
+        "color": "Kleur",
+        "order": "Volgorde",
+        "active": "Actief",
+        "updated": "Bijgewerkt"
+      }
+    },
+    "validation": {
+      "required": "Verplicht",
+      "invalid": "Ongeldig",
+      "colorFormat": "Gebruik #RRGGBB"
+    },
+    "errors": {
+      "loadFailed": "Kon diensttypen niet laden",
+      "createFailed": "Kon diensttype niet aanmaken",
+      "saveFailed": "Kon diensttypen niet opslaan",
+      "deleteFailed": "Kon diensttypen niet verwijderen"
+    }
   }
 }

@@ -1,6 +1,8 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { CreateServiceTypeRequest, ListServiceTypesParams, ServiceTypeItem, UpdateServiceTypeRequest } from '../../../core/services/service-types.types';
@@ -34,6 +36,7 @@ export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
     IconPickerComponent,
     ColorPickerComponent,
     FabButtonComponent,
+    TranslatePipe,
   ],
 })
 export class ServiceTypesComponent implements OnInit {
@@ -41,6 +44,10 @@ export class ServiceTypesComponent implements OnInit {
   private readonly reporter = inject(ErrorReportingService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
 
   protected readonly serviceTypes = signal<ServiceTypeRow[]>([]);
   protected readonly total = signal(0);
@@ -62,99 +69,108 @@ export class ServiceTypesComponent implements OnInit {
   protected readonly pendingDeleteRows = signal<ServiceTypeRow[]>([]);
   protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
 
-  protected readonly columns: GridColumn<ServiceTypeRow>[] = [
-    {
-      id: 'name',
-      header: 'Name',
-      field: 'name',
-      sortable: true,
-      filterable: true,
-      editable: true,
-      width: '180px',
-      cellType: 'text',
-      validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
-    },
-    {
-      id: 'slug',
-      header: 'Slug',
-      field: 'slug',
-      sortable: true,
-      filterable: true,
-      editable: false,
-      width: '160px',
-      cellType: 'text',
-    },
-    {
-      id: 'description',
-      header: 'Description',
-      field: 'description',
-      sortable: false,
-      filterable: false,
-      editable: true,
-      width: '240px',
-      cellType: 'text',
-    },
-    {
-      id: 'icon',
-      header: 'Icon',
-      field: 'icon',
-      sortable: false,
-      filterable: false,
-      editable: true,
-      width: '120px',
-      cellType: 'icon',
-    },
-    {
-      id: 'color',
-      header: 'Color',
-      field: 'color',
-      sortable: false,
-      filterable: false,
-      editable: true,
-      width: '120px',
-      cellType: 'color',
-      validator: (value) => {
-        if (value === null || value === undefined || value === '') return null;
-        if (typeof value !== 'string') return 'Invalid';
-        return /^#[0-9a-fA-F]{6}$/.test(value.trim()) ? null : 'Use #RRGGBB';
+  protected readonly columns = computed<GridColumn<ServiceTypeRow>[]>(() => {
+    this.lang();
+    return [
+      {
+        id: 'name',
+        header: this.translate.instant('services.list.columns.name'),
+        field: 'name',
+        sortable: true,
+        filterable: true,
+        editable: true,
+        width: '180px',
+        cellType: 'text',
+        validator: value => (typeof value === 'string' && value.trim().length > 0
+          ? null
+          : this.translate.instant('services.validation.required')),
       },
-    },
-    {
-      id: 'displayOrder',
-      header: 'Order',
-      field: 'displayOrder',
-      sortable: true,
-      filterable: false,
-      editable: true,
-      width: '90px',
-      cellType: 'number',
-      validator: value => {
-        const num = Number(value);
-        return Number.isFinite(num) && num >= 0 ? null : 'Invalid';
+      {
+        id: 'slug',
+        header: this.translate.instant('services.list.columns.slug'),
+        field: 'slug',
+        sortable: true,
+        filterable: true,
+        editable: false,
+        width: '160px',
+        cellType: 'text',
       },
-    },
-    {
-      id: 'isActive',
-      header: 'Active',
-      field: 'isActive',
-      sortable: true,
-      filterable: true,
-      editable: true,
-      width: '90px',
-      cellType: 'boolean',
-      align: 'center',
-    },
-    {
-      id: 'updatedAt',
-      header: 'Updated',
-      field: 'updatedAt',
-      sortable: true,
-      filterable: false,
-      editable: false,
-      width: '140px',
-      cellType: 'date',
-    },
-  ];
+      {
+        id: 'description',
+        header: this.translate.instant('services.list.columns.description'),
+        field: 'description',
+        sortable: false,
+        filterable: false,
+        editable: true,
+        width: '240px',
+        cellType: 'text',
+      },
+      {
+        id: 'icon',
+        header: this.translate.instant('services.list.columns.icon'),
+        field: 'icon',
+        sortable: false,
+        filterable: false,
+        editable: true,
+        width: '120px',
+        cellType: 'icon',
+      },
+      {
+        id: 'color',
+        header: this.translate.instant('services.list.columns.color'),
+        field: 'color',
+        sortable: false,
+        filterable: false,
+        editable: true,
+        width: '120px',
+        cellType: 'color',
+        validator: (value) => {
+          if (value === null || value === undefined || value === '') return null;
+          if (typeof value !== 'string') return this.translate.instant('services.validation.invalid');
+          return /^#[0-9a-fA-F]{6}$/.test(value.trim())
+            ? null
+            : this.translate.instant('services.validation.colorFormat');
+        },
+      },
+      {
+        id: 'displayOrder',
+        header: this.translate.instant('services.list.columns.order'),
+        field: 'displayOrder',
+        sortable: true,
+        filterable: false,
+        editable: true,
+        width: '90px',
+        cellType: 'number',
+        validator: value => {
+          const num = Number(value);
+          return Number.isFinite(num) && num >= 0
+            ? null
+            : this.translate.instant('services.validation.invalid');
+        },
+      },
+      {
+        id: 'isActive',
+        header: this.translate.instant('services.list.columns.active'),
+        field: 'isActive',
+        sortable: true,
+        filterable: true,
+        editable: true,
+        width: '90px',
+        cellType: 'boolean',
+        align: 'center',
+      },
+      {
+        id: 'updatedAt',
+        header: this.translate.instant('services.list.columns.updated'),
+        field: 'updatedAt',
+        sortable: true,
+        filterable: false,
+        editable: false,
+        width: '140px',
+        cellType: 'date',
+      },
+    ];
+  });
 
   protected readonly gridConfig: Partial<GridConfig<ServiceTypeRow>> = {
     rowIdField: 'id',
@@ -196,7 +212,7 @@ export class ServiceTypesComponent implements OnInit {
         this.ignoreNextRequest = true;
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load service types');
+        const message = this.getErrorMessage(err, this.translate.instant('services.errors.loadFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -231,7 +247,7 @@ export class ServiceTypesComponent implements OnInit {
         this.loadInitialData();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to create service type');
+        const message = this.getErrorMessage(err, this.translate.instant('services.errors.createFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.creating.set(false);
@@ -293,7 +309,7 @@ export class ServiceTypesComponent implements OnInit {
     forkJoin(requestMap).subscribe({
       next: () => this.loadInitialData(),
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to save service types');
+        const message = this.getErrorMessage(err, this.translate.instant('services.errors.saveFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -328,7 +344,7 @@ export class ServiceTypesComponent implements OnInit {
         this.loadInitialData();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to delete service types');
+        const message = this.getErrorMessage(err, this.translate.instant('services.errors.deleteFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -486,7 +502,7 @@ export class ServiceTypesComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load service types');
+        const message = this.getErrorMessage(err, this.translate.instant('services.errors.loadFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);

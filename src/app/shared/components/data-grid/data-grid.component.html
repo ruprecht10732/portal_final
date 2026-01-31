@@ -128,7 +128,7 @@
 
       <!-- Add-row bar (mobile/card view: always visible) -->
       @if (store.rows().length > 0 && store.config().mobileAddRowEnabled) {
-        <div class="bg-white">
+        <div>
           <shared-button
             variant="ghost"
             size="compact"
@@ -221,7 +221,7 @@
         <!-- Notion-style add-row affordance (shows on hover/focus) -->
         @if (store.rows().length > 0) {
           <div
-            class="bg-white opacity-0 pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
+            class="opacity-0 pointer-events-none transition-opacity duration-150 group-hover:opacity-100 group-hover:pointer-events-auto group-focus-within:opacity-100 group-focus-within:pointer-events-auto"
           >
             <button
               type="button"

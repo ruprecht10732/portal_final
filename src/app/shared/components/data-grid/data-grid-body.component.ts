@@ -6,6 +6,7 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  effect,
   inject,
   input,
   output,
@@ -19,7 +20,9 @@ import {
 import { OptionLabelPipe } from './data-grid.pipes';
 import { ChipComponent, type ChipVariant } from '../chip/chip.component';
 import dayjs from 'dayjs';
+import 'dayjs/locale/nl';
 import relativeTime from 'dayjs/plugin/relativeTime';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { DataGridAddressCellComponent } from './data-grid-address-cell.component';
 import { DataGridIconCellComponent } from './data-grid-icon-cell.component';
@@ -43,6 +46,9 @@ dayjs.extend(relativeTime);
 export class DataGridBodyComponent<T extends Record<string, unknown>> {
   private readonly store = inject(DataGridStore<T>);
   private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'nl', translations: {} },
+  });
 
   // ============ Inputs ============
   
@@ -65,6 +71,14 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   readonly rowDoubleClick = output<number>();
   readonly navigate = output<'up' | 'down' | 'left' | 'right' | 'home' | 'end'>();
   readonly cellEditEvent = output<CellEditEvent<T>>();
+
+  constructor() {
+    effect(() => {
+      const lang = this.lang().lang ?? 'en';
+      const normalized = lang.toLowerCase().split('-')[0];
+      dayjs.locale(normalized);
+    });
+  }
 
   // ============ Methods ============
   

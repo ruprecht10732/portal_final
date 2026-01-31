@@ -1,6 +1,49 @@
 {
   "services": {
     "types": "Service types",
-    "createType": "Create service type"
+    "createType": "Create service type",
+    "create": {
+      "title": "Create Service Type",
+      "subtitle": "Add a new marketplace service category.",
+      "nameLabel": "Name",
+      "iconLabel": "Icon",
+      "iconPlaceholder": "Select an icon",
+      "colorLabel": "Color",
+      "colorPlaceholder": "#3B82F6",
+      "orderLabel": "Display Order",
+      "descriptionLabel": "Description",
+      "creating": "Creating...",
+      "submit": "Create Service Type",
+      "reset": "Reset"
+    },
+    "list": {
+      "ariaLabel": "Service types data grid",
+      "deleteTitle": "Delete service types",
+      "deleteMessage": "Delete {{count}} service type(s)? This cannot be undone.",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel",
+      "newServiceType": "New Service Type",
+      "columns": {
+        "name": "Name",
+        "slug": "Slug",
+        "description": "Description",
+        "icon": "Icon",
+        "color": "Color",
+        "order": "Order",
+        "active": "Active",
+        "updated": "Updated"
+      }
+    },
+    "validation": {
+      "required": "Required",
+      "invalid": "Invalid",
+      "colorFormat": "Use #RRGGBB"
+    },
+    "errors": {
+      "loadFailed": "Failed to load service types",
+      "createFailed": "Failed to create service type",
+      "saveFailed": "Failed to save service types",
+      "deleteFailed": "Failed to delete service types"
+    }
   }
 }
