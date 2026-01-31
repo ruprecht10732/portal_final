@@ -9,11 +9,14 @@ import {
   Component,
   computed,
   effect,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GridColumn, RowState, CellEditEvent } from './data-grid.types';
 import { BottomSheetComponent } from '../bottom-sheet';
 import { InputComponent } from '../input/input.component';
@@ -39,9 +42,14 @@ export type GridFieldPath<T> = keyof T | string;
     ButtonComponent,
     ChipComponent,
     ColorPickerComponent,
+    TranslatePipe,
   ],
 })
 export class DataGridCardsComponent<T extends Record<string, unknown>> {
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
   // ============ Inputs ============
   
   /** Column definitions */
@@ -189,7 +197,9 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     }
     
     const title = this.formatValue(this.getCellValue(row, this.titleColumn()), this.titleColumn());
-    return title || 'Untitled';
+    if (title) return title;
+    this.lang();
+    return this.translate.instant('dataGrid.untitled');
   }
 
   /** Get subtitle text */
@@ -346,7 +356,10 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
 
   /** Format cell value for display */
   protected formatValue(value: unknown, column: GridColumn<T>): string {
-    if (value === null || value === undefined) return '—';
+    if (value === null || value === undefined) {
+      this.lang();
+      return this.translate.instant('dataGrid.emptyValue');
+    }
     
     if (column.cellType === 'date' && value instanceof Date) {
       return value.toLocaleDateString();
@@ -360,7 +373,8 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
       try {
         return JSON.stringify(value);
       } catch {
-        return '—';
+        this.lang();
+        return this.translate.instant('dataGrid.emptyValue');
       }
     }
 
@@ -369,10 +383,15 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
       return value.toString();
     }
     if (typeof value === 'symbol') {
-      return value.description ?? '—';
+      if (value.description) {
+        return value.description;
+      }
+      this.lang();
+      return this.translate.instant('dataGrid.emptyValue');
     }
 
-    return '—';
+    this.lang();
+    return this.translate.instant('dataGrid.emptyValue');
   }
 
   private getValueByPath(obj: T, path: string): unknown {

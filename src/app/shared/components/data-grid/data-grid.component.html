@@ -2,7 +2,7 @@
 <div 
   #gridContainer
   class="group flex flex-col w-full bg-white"
-  [attr.aria-label]="ariaLabel()"
+  [attr.aria-label]="ariaLabel() | translate"
 >
   <!-- Toolbar with search and filters -->
   @if (showToolbar()) {
@@ -46,7 +46,7 @@
           d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
         />
       </svg>
-      <span class="text-sm font-medium uppercase tracking-wide">Loading...</span>
+      <span class="text-sm font-medium uppercase tracking-wide">{{ 'dataGrid.loading' | translate }}</span>
     </output>
   }
 
@@ -75,12 +75,12 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M18.364 5.636a9 9 0 010 12.728m0 0l-2.829-2.829m2.829 2.829L21 21M15.536 8.464a5 5 0 010 7.072m0 0l-2.829-2.829m-4.243 2.829a4.978 4.978 0 01-1.414-2.83m-1.414 5.658a9 9 0 01-2.167-9.238m7.824 2.167a1 1 0 111.414 1.414m-1.414-1.414L3 3" />
         </svg>
         <span class="text-xs font-semibold uppercase tracking-wide">
-          Offline Mode
+          {{ 'dataGrid.offlineMode' | translate }}
         </span>
       </span>
       @if (store.hasPendingOfflineOps()) {
         <span class="text-xs">
-          {{ store.offlineQueue().length }} changes pending
+          {{ 'dataGrid.changesPending' | translate:{count: store.offlineQueue().length} }}
         </span>
       }
     </output>
@@ -92,7 +92,7 @@
       class="flex items-center justify-between px-4 py-2 text-blue-700 bg-blue-50 border-b border-blue-200"
     >
       <span class="text-xs font-semibold uppercase tracking-wide">
-        Data may be outdated
+        {{ 'dataGrid.dataMayBeOutdated' | translate }}
       </span>
       <shared-button
         variant="ghost"
@@ -100,7 +100,7 @@
         [fullWidth]="false"
         (clicked)="refresh()"
       >
-        Refresh
+        {{ 'dataGrid.refresh' | translate }}
       </shared-button>
     </output>
   }
@@ -134,12 +134,12 @@
             size="compact"
             class="w-full"
             [fullWidth]="true"
-            ariaLabel="Add new row"
+            [ariaLabel]="'dataGrid.addNewRow' | translate"
             (clicked)="onAddRow()"
           >
             <span class="flex w-full items-center justify-center gap-3 py-2 text-center">
               <span class="h-px flex-1 bg-zinc-200"></span>
-              <span class="px-2 text-sm text-zinc-600">Add row</span>
+              <span class="px-2 text-sm text-zinc-600">{{ 'dataGrid.addRow' | translate }}</span>
               <span class="h-px flex-1 bg-zinc-200"></span>
             </span>
           </shared-button>
@@ -166,7 +166,7 @@
 
         <section 
           class="overflow-x-auto max-h-[70vh] overflow-y-auto ring-1 ring-zinc-200 rounded-lg overflow-hidden"
-          [attr.aria-label]="ariaLabel() + ' table'"
+          [attr.aria-label]="(ariaLabel() | translate) + ' ' + ('dataGrid.tableSuffix' | translate)"
           (scroll)="onTableScroll($event)"
         >
           <table
@@ -178,7 +178,7 @@
             <thead class="bg-black text-white sticky top-0 z-10 shadow-[inset_0_-1px_0_0_#e4e4e7]">
               <tr class="sr-only" hidden>
                 @if (store.config().selectable) {
-                  <th scope="col">Select</th>
+                  <th scope="col">{{ 'dataGrid.selectColumn' | translate }}</th>
                 }
                 @for (column of store.visibleColumns(); track column.id) {
                   <th scope="col">{{ column.header }}</th>
@@ -226,11 +226,11 @@
             <button
               type="button"
               class="flex w-full cursor-pointer items-center justify-center gap-3 py-3 text-center transition-colors hover:bg-zinc-50"
-              [attr.aria-label]="'Add new row'"
+              [attr.aria-label]="'dataGrid.addNewRow' | translate"
               (click)="onAddRow()"
             >
               <span class="h-px flex-1 bg-zinc-200"></span>
-              <span class="px-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">Add row</span>
+              <span class="px-2 text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ 'dataGrid.addRow' | translate }}</span>
               <span class="h-px flex-1 bg-zinc-200"></span>
             </button>
           </div>
@@ -246,15 +246,15 @@
         <svg class="w-12 h-12 mb-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1" d="M20 13V6a2 2 0 00-2-2H6a2 2 0 00-2 2v7m16 0v5a2 2 0 01-2 2H6a2 2 0 01-2-2v-5m16 0h-2.586a1 1 0 00-.707.293l-2.414 2.414a1 1 0 01-.707.293h-3.172a1 1 0 01-.707-.293l-2.414-2.414A1 1 0 006.586 13H4" />
         </svg>
-        <span class="text-sm font-medium uppercase tracking-wide">No data</span>
+        <span class="text-sm font-medium uppercase tracking-wide">{{ 'dataGrid.noData' | translate }}</span>
         <span class="text-xs mt-1 text-zinc-500">
           @if (store.filters().length > 0 || store.searchTerm()) {
-            Try adjusting your filters
+            {{ 'dataGrid.tryAdjustingFilters' | translate }}
           } @else {
             @if (!store.showCardView() || store.config().mobileAddRowEnabled) {
-              Add a new row to get started
+              {{ 'dataGrid.addFirstRow' | translate }}
             } @else {
-              No results yet
+              {{ 'dataGrid.noResultsYet' | translate }}
             }
           }
         </span>
@@ -266,12 +266,12 @@
               size="compact"
               class="w-full max-w-sm"
               [fullWidth]="true"
-              ariaLabel="Add new row"
+              [ariaLabel]="'dataGrid.addNewRow' | translate"
               (clicked)="onAddRow()"
             >
               <span class="flex w-full items-center justify-center gap-3 py-2 text-center">
                 <span class="h-px flex-1 bg-zinc-200"></span>
-                <span class="px-2 text-sm text-zinc-600">Add row</span>
+                <span class="px-2 text-sm text-zinc-600">{{ 'dataGrid.addRow' | translate }}</span>
                 <span class="h-px flex-1 bg-zinc-200"></span>
               </span>
             </shared-button>
@@ -301,7 +301,7 @@
             [fullWidth]="false"
             (clicked)="onPageChange(store.pagination().page + 1)"
           >
-            Load More
+            {{ 'dataGrid.loadMore' | translate }}
           </shared-button>
         </div>
       }

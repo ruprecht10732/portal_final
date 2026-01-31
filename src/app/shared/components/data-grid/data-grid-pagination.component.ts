@@ -6,21 +6,28 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   input,
   output,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PaginationConfig } from './data-grid.types';
 import { SelectComponent, SelectOption } from '../select/select.component';
 
 @Component({
   selector: 'data-grid-pagination',
-  imports: [FormsModule, SelectComponent],
+  imports: [FormsModule, SelectComponent, TranslatePipe],
   templateUrl: './data-grid-pagination.component.html',
   styleUrl: './data-grid-pagination.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataGridPaginationComponent {
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
   // ============ Inputs ============
   
   readonly pagination = input.required<PaginationConfig>();
@@ -47,8 +54,9 @@ export class DataGridPaginationComponent {
   }
 
   protected pageSizeOptions(): SelectOption<number>[] {
+    this.lang();
     return this.pagination().pageSizeOptions.map(size => ({
-      label: `${size} / page`,
+      label: this.translate.instant('dataGrid.perPage', { count: size }),
       value: size,
     }));
   }
@@ -64,9 +72,10 @@ export class DataGridPaginationComponent {
   }
 
   protected getPageAriaLabel(page: number): string {
+    this.lang();
     if (page === this.pagination().page) {
-      return `Page ${page}, current page`;
+      return this.translate.instant('dataGrid.pageCurrent', { page });
     }
-    return `Go to page ${page}`;
+    return this.translate.instant('dataGrid.goToPage', { page });
   }
 }

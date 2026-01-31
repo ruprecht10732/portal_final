@@ -7,11 +7,14 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { FilterConfig, GridColumn } from './data-grid.types';
 import { ColumnLabelPipe } from './data-grid.pipes';
 import { BottomSheetComponent } from '../bottom-sheet';
@@ -22,12 +25,16 @@ import { SelectComponent } from '../select/select.component';
 
 @Component({
   selector: 'data-grid-toolbar',
-  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent, InputComponent, ButtonComponent, CheckboxComponent, SelectComponent],
+  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent, InputComponent, ButtonComponent, CheckboxComponent, SelectComponent, TranslatePipe],
   templateUrl: './data-grid-toolbar.component.html',
   styleUrl: './data-grid-toolbar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataGridToolbarComponent<T = unknown> {
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
   // ============ Inputs ============
   
   readonly columns = input<GridColumn<T>[]>([]);
@@ -95,10 +102,13 @@ export class DataGridToolbarComponent<T = unknown> {
 
   protected readonly activeFilterIsBoolean = computed(() => this.activeFilterColumnData()?.id === 'isActive');
 
-  protected readonly booleanFilterOptions = computed(() => ([
-    { label: 'Active', value: 'active' },
-    { label: 'Inactive', value: 'inactive' },
-  ]));
+  protected readonly booleanFilterOptions = computed(() => {
+    this.lang();
+    return [
+      { label: this.translate.instant('dataGrid.filterActive'), value: 'active' },
+      { label: this.translate.instant('dataGrid.filterInactive'), value: 'inactive' },
+    ];
+  });
 
   // ============ Methods ============
   

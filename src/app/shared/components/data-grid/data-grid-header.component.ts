@@ -6,10 +6,13 @@
 import {
   ChangeDetectionStrategy,
   Component,
+  inject,
   input,
   output,
   signal,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GridColumn, SortConfig } from './data-grid.types';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 
@@ -18,12 +21,16 @@ import { CheckboxComponent } from '../checkbox/checkbox.component';
   templateUrl: './data-grid-header.component.html',
   styleUrl: './data-grid-header.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CheckboxComponent],
+  imports: [CheckboxComponent, TranslatePipe],
   host: {
     'role': 'row',
   },
 })
 export class DataGridHeaderComponent<T = unknown> {
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
   // ============ Inputs ============
   
   readonly columns = input<GridColumn<T>[]>([]);
@@ -65,14 +72,14 @@ export class DataGridHeaderComponent<T = unknown> {
 
   protected getSortAriaLabel(column: GridColumn<T>): string {
     if (!column.sortable) return column.header;
-    
+    this.lang();
     const direction = this.getSortDirection(column.id);
     if (direction === 'asc') {
-      return `${column.header}, sorted ascending, click to sort descending`;
+      return this.translate.instant('dataGrid.sortAscending', { column: column.header });
     } else if (direction === 'desc') {
-      return `${column.header}, sorted descending, click to clear sort`;
+      return this.translate.instant('dataGrid.sortDescending', { column: column.header });
     }
-    return `${column.header}, click to sort ascending`;
+    return this.translate.instant('dataGrid.sortNone', { column: column.header });
   }
 
   protected getAriaColIndex(columnIndex: number): number {

@@ -1,29 +1,24 @@
 <nav 
   class="flex flex-col gap-3 px-4 py-3 border-t border-zinc-200 bg-zinc-50 sm:flex-row sm:items-center sm:justify-between"
   role="navigation"
-  aria-label="Pagination"
+  [attr.aria-label]="'dataGrid.pagination' | translate"
 >
   <!-- Left: Item count and page size -->
   <div class="flex flex-col gap-2 text-xs text-zinc-600 sm:flex-row sm:items-center sm:gap-4">
     <!-- Item count -->
     <span class="font-medium">
-      Showing 
-      <span class="text-black">{{ startItem }}</span>
-      –
-      <span class="text-black">{{ endItem }}</span>
-      of
-      <span class="text-black">{{ pagination().totalItems }}</span>
+      {{ 'dataGrid.showing' | translate:{start: startItem, end: endItem, total: pagination().totalItems} }}
     </span>
 
     <!-- Page size selector -->
     <div class="flex items-center gap-2">
-      <label for="page-size" class="sr-only">Items per page</label>
+      <label for="page-size" class="sr-only">{{ 'dataGrid.itemsPerPage' | translate }}</label>
       <shared-select
         [options]="pageSizeOptions()"
         [value]="pagination().pageSize"
         (valueChange)="onPageSizeValueChange($event)"
-        placeholder="Items per page"
-        ariaLabel="Items per page"
+        [placeholder]="'dataGrid.itemsPerPage' | translate"
+        [ariaLabel]="'dataGrid.itemsPerPage' | translate"
       />
     </div>
   </div>
@@ -36,7 +31,7 @@
       (click)="onPageChange(1)"
       [disabled]="pagination().page === 1"
       class="min-w-11 h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
-      aria-label="Go to first page"
+      [attr.aria-label]="'dataGrid.goToFirstPage' | translate"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 19l-7-7 7-7m8 14l-7-7 7-7" />
@@ -49,7 +44,7 @@
       (click)="onPageChange(pagination().page - 1)"
       [disabled]="pagination().page === 1"
       class="min-w-11 h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
-      aria-label="Go to previous page"
+      [attr.aria-label]="'dataGrid.goToPreviousPage' | translate"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
@@ -86,7 +81,7 @@
     <!-- Mobile page indicator -->
     <div class="flex sm:hidden items-center px-3">
       <span class="text-xs font-medium text-zinc-600">
-        Page {{ pagination().page }} of {{ totalPages() }}
+        {{ 'dataGrid.pageOf' | translate:{page: pagination().page, total: totalPages()} }}
       </span>
     </div>
 
@@ -96,7 +91,7 @@
       (click)="onPageChange(pagination().page + 1)"
       [disabled]="pagination().page === totalPages()"
       class="min-w-11 h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
-      aria-label="Go to next page"
+      [attr.aria-label]="'dataGrid.goToNextPage' | translate"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
@@ -109,7 +104,7 @@
       (click)="onPageChange(totalPages())"
       [disabled]="pagination().page === totalPages()"
       class="min-w-11 h-11 sm:min-w-8 sm:h-8 flex items-center justify-center text-zinc-600 hover:text-black hover:bg-zinc-200 disabled:text-zinc-400 disabled:cursor-not-allowed disabled:hover:bg-transparent transition-colors focus:outline-none focus:ring-2 focus:ring-black focus:ring-offset-1"
-      aria-label="Go to last page"
+      [attr.aria-label]="'dataGrid.goToLastPage' | translate"
     >
       <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 5l7 7-7 7M5 5l7 7-7 7" />

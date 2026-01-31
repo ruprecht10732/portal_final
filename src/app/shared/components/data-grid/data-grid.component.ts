@@ -18,6 +18,7 @@ import {
 import { DOCUMENT } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule, ReactiveFormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { DataGridStore } from './data-grid.store';
 import { DataGridHeaderComponent } from './data-grid-header.component';
 import { DataGridBodyComponent } from './data-grid-body.component';
@@ -57,6 +58,7 @@ import { fromEvent, Observable, Subject } from 'rxjs';
     DataGridToolbarComponent,
     DataGridCardsComponent,
     ButtonComponent,
+    TranslatePipe,
   ],
   host: {
     'class': 'block w-full',
@@ -90,7 +92,7 @@ export class DataGridComponent<T extends Record<string, unknown>> {
   readonly error = input<string>('');
   
   /** Grid label for accessibility */
-  readonly ariaLabel = input<string>('Data grid');
+  readonly ariaLabel = input<string>('dataGrid.ariaLabel');
   
   /** Enable server-side data fetching */
   readonly serverSide = input<boolean>(false);

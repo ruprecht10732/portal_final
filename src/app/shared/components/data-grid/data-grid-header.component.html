@@ -12,7 +12,7 @@
         #headerCheckbox
         [checked]="allSelected()"
         [indeterminate]="partiallySelected()"
-        [ariaLabel]="'Select all rows'"
+        [ariaLabel]="'dataGrid.selectAllRows' | translate"
         [dense]="true"
         (checkedChange)="onSelectAll()"
       />

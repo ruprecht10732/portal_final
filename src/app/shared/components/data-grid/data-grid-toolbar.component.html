@@ -7,8 +7,8 @@
         class="flex-1"
         [value]="localSearchTerm()"
         (valueChange)="onSearchValueChange($event)"
-        placeholder="Search..."
-        ariaLabel="Search grid"
+        [placeholder]="'dataGrid.searchPlaceholder' | translate"
+        [ariaLabel]="'dataGrid.searchAriaLabel' | translate"
       />
     </div>
   </div>
@@ -25,21 +25,21 @@
         [iconOnly]="isMobile()"
         [ariaExpanded]="showFilters()"
         [ariaControls]="isMobile() ? 'filter-panel-mobile' : 'filter-panel'"
-        ariaLabel="Toggle filters"
+        [ariaLabel]="'dataGrid.toggleFilters' | translate"
         (clicked)="toggleFilters()"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 4a1 1 0 011-1h16a1 1 0 011 1v2.586a1 1 0 01-.293.707l-6.414 6.414a1 1 0 00-.293.707V17l-4 4v-6.586a1 1 0 00-.293-.707L3.293 7.293A1 1 0 013 6.586V4z" />
         </svg>
         @if (!isMobile()) {
-          Filters
+          {{ 'dataGrid.filters' | translate }}
           @if (filters().length > 0) {
             <span class="flex items-center justify-center w-5 h-5 text-[10px] font-bold text-white bg-black rounded-full">
               {{ filters().length }}
             </span>
           }
         } @else {
-          <span class="sr-only">Filters</span>
+          <span class="sr-only">{{ 'dataGrid.filters' | translate }}</span>
         }
       </shared-button>
     }
@@ -51,16 +51,16 @@
         size="compact"
         [fullWidth]="false"
         [iconOnly]="isMobile()"
-        ariaLabel="Clear filters"
+        [ariaLabel]="'dataGrid.clearFilters' | translate"
         (clicked)="onClearAll()"
       >
         @if (!isMobile()) {
-          Clear All
+          {{ 'dataGrid.clearAll' | translate }}
         } @else {
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
           </svg>
-          <span class="sr-only">Clear filters</span>
+          <span class="sr-only">{{ 'dataGrid.clearFilters' | translate }}</span>
         }
       </shared-button>
     }
@@ -76,17 +76,17 @@
           [iconOnly]="isMobile()"
           [ariaExpanded]="showColumnPicker()"
           ariaHaspopup="true"
-          ariaLabel="Toggle column visibility"
+          [ariaLabel]="'dataGrid.toggleColumnVisibility' | translate"
           (clicked)="toggleColumnPicker()"
         >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
             <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 17V7m0 10a2 2 0 01-2 2H5a2 2 0 01-2-2V7a2 2 0 012-2h2a2 2 0 012 2m0 10a2 2 0 002 2h2a2 2 0 002-2M9 7a2 2 0 012-2h2a2 2 0 012 2m0 10V7m0 10a2 2 0 002 2h2a2 2 0 002-2V7a2 2 0 00-2-2h-2a2 2 0 00-2 2" />
           </svg>
           @if (!isMobile()) {
-            <span class="sm:hidden">Cols</span>
-            <span class="hidden sm:inline">Columns</span>
+            <span class="sm:hidden">{{ 'dataGrid.columnsShort' | translate }}</span>
+            <span class="hidden sm:inline">{{ 'dataGrid.columns' | translate }}</span>
           } @else {
-            <span class="sr-only">Columns</span>
+            <span class="sr-only">{{ 'dataGrid.columns' | translate }}</span>
           }
         </shared-button>
 
@@ -97,7 +97,7 @@
           >
             <div class="p-2 border-b border-zinc-100">
               <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-500">
-                Show/Hide Columns
+                {{ 'dataGrid.showHideColumns' | translate }}
               </span>
             </div>
             <div class="py-1">
@@ -110,7 +110,7 @@
                   />
                   @if (column.frozen) {
                     <span class="ml-auto text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
-                      Frozen
+                      {{ 'dataGrid.frozen' | translate }}
                     </span>
                   }
                 </div>
@@ -124,7 +124,7 @@
       @if (isMobile()) {
         <app-bottom-sheet
           [isOpen]="showColumnPicker()"
-          title="Show/Hide Columns"
+          [title]="'dataGrid.showHideColumns' | translate"
           (close)="closeColumnPicker()"
         >
           <div class="py-2 flex flex-col gap-2">
@@ -149,16 +149,16 @@
         size="compact"
         [fullWidth]="false"
         [iconOnly]="isMobile()"
-        [ariaLabel]="'Cancel changes'"
+        [ariaLabel]="'dataGrid.cancelChanges' | translate"
         (clicked)="onCancel()"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
         </svg>
         @if (!isMobile()) {
-          Cancel
+          {{ 'dataGrid.cancel' | translate }}
         } @else {
-          <span class="sr-only">Cancel</span>
+          <span class="sr-only">{{ 'dataGrid.cancel' | translate }}</span>
         }
       </shared-button>
 
@@ -168,16 +168,16 @@
         [fullWidth]="false"
         [iconOnly]="isMobile()"
         [disabled]="!isOnline()"
-        [ariaLabel]="isOnline() ? 'Save changes' : 'Cannot save while offline'"
+        [ariaLabel]="isOnline() ? ('dataGrid.saveChanges' | translate) : ('dataGrid.cannotSaveOffline' | translate)"
         (clicked)="onSave()"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
         </svg>
         @if (!isMobile()) {
-          Save
+          {{ 'dataGrid.save' | translate }}
         } @else {
-          <span class="sr-only">Save</span>
+          <span class="sr-only">{{ 'dataGrid.save' | translate }}</span>
         }
       </shared-button>
     }
@@ -189,16 +189,16 @@
         size="compact"
         [fullWidth]="false"
         [iconOnly]="isMobile()"
-        [ariaLabel]="'Delete ' + selectedCount() + ' selected rows'"
+        [ariaLabel]="'dataGrid.deleteSelected' | translate:{count: selectedCount()}"
         (clicked)="onDelete()"
       >
         <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
         </svg>
         @if (!isMobile()) {
-          Delete
+          {{ 'dataGrid.delete' | translate }}
         } @else {
-          <span class="sr-only">Delete</span>
+          <span class="sr-only">{{ 'dataGrid.delete' | translate }}</span>
         }
       </shared-button>
     }
@@ -223,7 +223,7 @@
           size="compact"
           [fullWidth]="false"
           [iconOnly]="true"
-          [ariaLabel]="'Remove ' + (columns() | columnLabel:filter.columnId) + ' filter'"
+          [ariaLabel]="'dataGrid.removeFilter' | translate:{column: (columns() | columnLabel:filter.columnId)}"
           (clicked)="removeFilter(filter.columnId)"
         >
           <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -240,8 +240,8 @@
           [options]="filterableColumnOptions()"
           [value]="''"
           (valueChange)="selectFilterColumn($event)"
-          placeholder="+ Add Filter"
-          ariaLabel="Add filter"
+          [placeholder]="'dataGrid.addFilter' | translate"
+          [ariaLabel]="'dataGrid.addFilter' | translate"
         />
       } @else {
         <div class="flex items-center gap-2">
@@ -253,16 +253,16 @@
               [options]="booleanFilterOptions()"
               [value]="filterValue()"
               (valueChange)="filterValue.set($event ?? '')"
-              placeholder="Select..."
-              [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
+              [placeholder]="'dataGrid.selectOption' | translate"
+              [ariaLabel]="'dataGrid.filterValueFor' | translate:{column: activeFilterColumnData()?.header}"
             />
           } @else {
             <shared-input
               class="w-32"
               [value]="filterValue()"
               (valueChange)="filterValue.set($event)"
-              placeholder="Enter value..."
-              [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
+              [placeholder]="'dataGrid.enterValue' | translate"
+              [ariaLabel]="'dataGrid.filterValueFor' | translate:{column: activeFilterColumnData()?.header}"
             />
           }
           <shared-button
@@ -271,7 +271,7 @@
             [disabled]="!filterValue().trim()"
             (clicked)="applyFilter()"
           >
-            Apply
+            {{ 'dataGrid.apply' | translate }}
           </shared-button>
           <shared-button
             variant="ghost"
@@ -279,7 +279,7 @@
             [fullWidth]="false"
             (clicked)="activeFilterColumn.set(null)"
           >
-            Cancel
+            {{ 'dataGrid.cancel' | translate }}
           </shared-button>
         </div>
       }
@@ -291,7 +291,7 @@
 @if (isMobile()) {
   <app-bottom-sheet
     [isOpen]="showFilters()"
-    title="Filters"
+    [title]="'dataGrid.filters' | translate"
     (close)="closeFilters()"
   >
     <div 
@@ -304,7 +304,7 @@
           size="compact"
           (clicked)="onClearAll()"
         >
-          Clear all filters
+          {{ 'dataGrid.clearAllFilters' | translate }}
         </shared-button>
       }
       <!-- Active filters -->
@@ -321,7 +321,7 @@
                 size="compact"
                 [fullWidth]="false"
                 [iconOnly]="true"
-                [ariaLabel]="'Remove ' + (columns() | columnLabel:filter.columnId) + ' filter'"
+                [ariaLabel]="'dataGrid.removeFilter' | translate:{column: (columns() | columnLabel:filter.columnId)}"
                 (clicked)="removeFilter(filter.columnId)"
               >
                 <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -340,8 +340,8 @@
             [options]="filterableColumnOptions()"
             [value]="''"
             (valueChange)="selectFilterColumn($event)"
-            placeholder="Select column"
-            ariaLabel="Add filter"
+            [placeholder]="'dataGrid.selectColumn' | translate"
+            [ariaLabel]="'dataGrid.addFilter' | translate"
           />
         } @else {
           <div class="flex flex-col gap-3">
@@ -353,15 +353,15 @@
                 [options]="booleanFilterOptions()"
                 [value]="filterValue()"
                 (valueChange)="filterValue.set($event ?? '')"
-                placeholder="Select..."
-                [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
+                [placeholder]="'dataGrid.selectOption' | translate"
+                [ariaLabel]="'dataGrid.filterValueFor' | translate:{column: activeFilterColumnData()?.header}"
               />
             } @else {
               <shared-input
                 [value]="filterValue()"
                 (valueChange)="filterValue.set($event)"
-                placeholder="Enter value..."
-                [ariaLabel]="'Filter value for ' + activeFilterColumnData()?.header"
+                [placeholder]="'dataGrid.enterValue' | translate"
+                [ariaLabel]="'dataGrid.filterValueFor' | translate:{column: activeFilterColumnData()?.header}"
               />
             }
             <div class="flex gap-2">
@@ -369,13 +369,13 @@
                 [disabled]="!filterValue().trim()"
                 (clicked)="applyFilter()"
               >
-                Apply
+                {{ 'dataGrid.apply' | translate }}
               </shared-button>
               <shared-button
                 variant="ghost"
                 (clicked)="activeFilterColumn.set(null)"
               >
-                Cancel
+                {{ 'dataGrid.cancel' | translate }}
               </shared-button>
             </div>
           </div>
