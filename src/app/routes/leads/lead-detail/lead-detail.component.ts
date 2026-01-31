@@ -115,6 +115,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly showAddServiceForm = signal(false);
   protected readonly newServiceType = signal<string | null>(null);
   protected readonly newServiceConsumerNote = signal('');
+  protected readonly newServiceSource = signal('');
   protected readonly closeCurrentService = signal(true);
   protected readonly selectedServiceId = signal<string | null>(null);
 
@@ -890,6 +891,7 @@ export class LeadDetailComponent implements OnInit {
     this.showAddServiceForm.set(true);
     this.newServiceType.set(null);
     this.newServiceConsumerNote.set('');
+    this.newServiceSource.set('');
     this.closeCurrentService.set(true);
   }
 
@@ -897,6 +899,7 @@ export class LeadDetailComponent implements OnInit {
     this.showAddServiceForm.set(false);
     this.newServiceType.set(null);
     this.newServiceConsumerNote.set('');
+    this.newServiceSource.set('');
   }
 
   protected addService(): void {
@@ -909,12 +912,14 @@ export class LeadDetailComponent implements OnInit {
       serviceType,
       closeCurrentStatus: this.closeCurrentService(),
       consumerNote: this.newServiceConsumerNote() || undefined,
+      source: this.newServiceSource() || undefined,
     }).subscribe({
       next: (updated) => {
         this.lead.set(updated);
         this.showAddServiceForm.set(false);
         this.newServiceType.set(null);
         this.newServiceConsumerNote.set('');
+        this.newServiceSource.set('');
         this.saving.set(false);
       },
       error: (err) => {

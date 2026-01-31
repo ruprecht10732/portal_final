@@ -5,6 +5,7 @@ import type { SelectOption } from '../select/select.component';
 import { ButtonComponent } from '../button/button.component';
 import { CardComponent } from '../card/card.component';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
+import { InputComponent } from '../input/input.component';
 import { SelectComponent } from '../select/select.component';
 import { TextareaComponent } from '../textarea/textarea.component';
 
@@ -13,7 +14,7 @@ import { TextareaComponent } from '../textarea/textarea.component';
   templateUrl: './lead-services-card.component.html',
   styleUrl: './lead-services-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CardComponent, CheckboxComponent, DatePipe, SelectComponent, TextareaComponent],
+  imports: [ButtonComponent, CardComponent, CheckboxComponent, DatePipe, InputComponent, SelectComponent, TextareaComponent],
 })
 export class LeadServicesCardComponent {
   services = input<LeadService[]>([]);
@@ -26,6 +27,7 @@ export class LeadServicesCardComponent {
   serviceTypeOptions = input<SelectOption<string>[]>([]);
   newServiceType = input<string | null>(null);
   newServiceConsumerNote = input('');
+  newServiceSource = input('');
   closeCurrentService = input(true);
   saving = input(false);
 
@@ -35,6 +37,7 @@ export class LeadServicesCardComponent {
   selectService = output<LeadService>();
   newServiceTypeChange = output<string | null>();
   newServiceConsumerNoteChange = output<string>();
+  newServiceSourceChange = output<string>();
   closeCurrentServiceChange = output<boolean>();
 
   protected isSelected(service: LeadService): boolean {

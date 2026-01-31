@@ -133,6 +133,7 @@ export interface AddServiceRequest {
   serviceType: string;
   closeCurrentStatus?: boolean;
   consumerNote?: string;
+  source?: string;
 }
 
 export interface UpdateServiceStatusRequest {
