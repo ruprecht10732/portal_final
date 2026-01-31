@@ -1,69 +1,131 @@
-<div class="flex flex-col gap-4">
-  <shared-card>
-    <div class="flex flex-col gap-2 mb-4">
-      <h2 class="text-lg font-semibold">{{ 'services.create.title' | translate }}</h2>
-      <p class="text-sm text-zinc-500">{{ 'services.create.subtitle' | translate }}</p>
+<!-- Main Wrapper: Mobile-first vertical flex -->
+<div class="flex flex-col w-full h-full">
+
+  <!-- Header: Transparent, Mobile-First Padding -->
+  <header class="flex items-center gap-4 p-4 sm:px-6">
+    <!-- Back Button (Optional, added to match source feel) -->
+    <shared-button
+      type="button"
+      variant="ghost"
+      size="compact"
+      [iconOnly]="true"
+      [fullWidth]="false"
+      [uppercase]="false"
+      (clicked)="resetForm()" 
+      [attr.aria-label]="'common.back' | translate"
+    >
+      <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+    </shared-button>
+    
+    <div class="flex flex-col">
+      <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
+        {{ 'services.create.title' | translate }}
+      </h1>
+      <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
+        {{ 'services.create.subtitle' | translate }}
+      </span>
     </div>
+  </header>
 
-    <form class="grid gap-4 sm:grid-cols-2" (ngSubmit)="createServiceType()">
-      <shared-input
-        [label]="'services.create.nameLabel' | translate"
-        [value]="name()"
-        (valueChange)="name.set($event)"
-        [required]="true"
-      />
-      <shared-icon-picker
-        [label]="'services.create.iconLabel' | translate"
-        [value]="icon()"
-        (valueChange)="icon.set($event ?? '')"
-        [placeholder]="'services.create.iconPlaceholder' | translate"
-      />
-      <shared-color-picker
-        [label]="'services.create.colorLabel' | translate"
-        [value]="color()"
-        (valueChange)="color.set($event)"
-        [placeholder]="'services.create.colorPlaceholder' | translate"
-      />
-      <shared-input
-        [label]="'services.create.orderLabel' | translate"
-        type="number"
-        [value]="displayOrder()"
-        (valueChange)="displayOrder.set($event)"
-        [min]="'0'"
-      />
-      <div class="sm:col-span-2">
-        <shared-textarea
-          [label]="'services.create.descriptionLabel' | translate"
-          [rows]="3"
-          [value]="description()"
-          (valueChange)="description.set($event)"
-        />
-      </div>
-      <div class="sm:col-span-2 flex flex-wrap gap-2">
-        <shared-button
-          variant="primary"
-          size="default"
-          [disabled]="creating() || !canCreate()"
-          type="submit"
-        >
-          {{ creating() ? ('services.create.creating' | translate) : ('services.create.submit' | translate) }}
-        </shared-button>
-        <shared-button
-          variant="secondary"
-          size="default"
-          [disabled]="creating()"
-          type="button"
-          (clicked)="resetForm()"
-        >
-          {{ 'services.create.reset' | translate }}
-        </shared-button>
-      </div>
-    </form>
-  </shared-card>
-
+  <!-- Alerts Section -->
   @if (error()) {
-    <div role="alert" aria-live="assertive" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
-      {{ error() }}
+    <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+      <span class="font-bold uppercase text-red-600 shrink-0">{{ 'common.error' | translate }}</span>
+      <span>{{ error() }}</span>
     </div>
   }
+
+  <form (ngSubmit)="createServiceType()" class="flex-1 flex flex-col">
+      
+    <!-- Responsive Grid Layout:
+         1. Mobile: Single column
+         2. Desktop (lg): 2 Columns (General Info | Appearance)
+    -->
+    <div class="grid grid-cols-1 lg:grid-cols-2 w-full border-b border-zinc-200">
+      
+      <!-- SECTION 1: General Information -->
+      <section class="p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-zinc-200">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">01</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'services.create.generalInfo' | translate }}
+          </h2>
+        </div>
+        
+        <div class="space-y-5">
+          <shared-input
+            [label]="'services.create.nameLabel' | translate"
+            [value]="name()"
+            (valueChange)="name.set($event)"
+            [required]="true"
+          />
+          
+          <shared-textarea
+            [label]="'services.create.descriptionLabel' | translate"
+            [rows]="5"
+            [value]="description()"
+            (valueChange)="description.set($event)"
+          />
+        </div>
+      </section>
+
+      <!-- SECTION 2: Appearance & Configuration -->
+      <section class="p-4 sm:p-6">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">02</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'services.create.appearance' | translate }}
+          </h2>
+        </div>
+
+        <div class="space-y-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <shared-icon-picker
+              [label]="'services.create.iconLabel' | translate"
+              [value]="icon()"
+              (valueChange)="icon.set($event ?? '')"
+              [placeholder]="'services.create.iconPlaceholder' | translate"
+            />
+            
+            <shared-color-picker
+              [label]="'services.create.colorLabel' | translate"
+              [value]="color()"
+              (valueChange)="color.set($event)"
+              [placeholder]="'services.create.colorPlaceholder' | translate"
+            />
+          </div>
+
+          <shared-input
+            [label]="'services.create.orderLabel' | translate"
+            type="number"
+            [value]="displayOrder()"
+            (valueChange)="displayOrder.set($event)"
+            [min]="'0'"
+          />
+        </div>
+      </section>
+    </div>
+
+    <!-- Footer: Stays at bottom -->
+    <div class="p-4 sm:p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4 ">
+      <shared-button 
+        variant="secondary" 
+        type="button" 
+        [disabled]="creating()"
+        (clicked)="resetForm()"
+        class="w-full sm:w-auto"
+      >
+        {{ 'services.create.reset' | translate }}
+      </shared-button>
+      
+      <shared-button
+        variant="primary"
+        type="submit"
+        [disabled]="creating() || !canCreate()"
+        class="w-full sm:w-auto"
+      >
+        {{ creating() ? ('services.create.creating' | translate) : ('services.create.submit' | translate) }}
+      </shared-button>
+    </div>
+  </form>
 </div>

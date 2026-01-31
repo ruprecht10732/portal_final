@@ -5,12 +5,12 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { CreateServiceTypeRequest } from '../../../core/services/service-types.types';
 import { normalizeIconName } from '../../../core/services/icon-utils';
-import { CardComponent } from '../../../shared/components/card/card.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { IconPickerComponent } from '../../../shared/components/icon-picker/icon-picker.component';
 import { ColorPickerComponent } from '../../../shared/components/color-picker/color-picker.component';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-service-type-create',
@@ -18,12 +18,12 @@ import { ColorPickerComponent } from '../../../shared/components/color-picker/co
   styleUrl: './service-type-create.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
-    CardComponent,
     InputComponent,
     TextareaComponent,
     ButtonComponent,
     IconPickerComponent,
     ColorPickerComponent,
+    LucideAngularModule,
     TranslatePipe,
   ],
 })
