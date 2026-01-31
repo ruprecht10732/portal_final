@@ -123,12 +123,10 @@ export const routes: Routes = [
 					{
 						path: '',
 						loadComponent: () => import('./routes/services/service-types/service-types.component').then(m => m.ServiceTypesComponent),
-						data: { mode: 'list' },
 					},
 					{
 						path: 'new',
-						loadComponent: () => import('./routes/services/service-types/service-types.component').then(m => m.ServiceTypesComponent),
-						data: { mode: 'create' },
+						loadComponent: () => import('./routes/services/service-types/service-type-create.component').then(m => m.ServiceTypeCreateComponent),
 					},
 				],
 			},

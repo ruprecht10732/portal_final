@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { ActivatedRoute, Router } from '@angular/router';
+import { Router } from '@angular/router';
 import { forkJoin, map, Observable, of, switchMap } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -8,14 +8,8 @@ import { ServiceTypesService } from '../../../core/services/service-types.servic
 import type { CreateServiceTypeRequest, ListServiceTypesParams, ServiceTypeItem, UpdateServiceTypeRequest } from '../../../core/services/service-types.types';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
-import { CardComponent } from '../../../shared/components/card/card.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
-import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { normalizeIconName } from '../../../core/services/icon-utils';
-import { IconPickerComponent } from '../../../shared/components/icon-picker/icon-picker.component';
-import { ColorPickerComponent } from '../../../shared/components/color-picker/color-picker.component';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
@@ -28,13 +22,7 @@ export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     DataGridComponent,
-    CardComponent,
-    InputComponent,
-    TextareaComponent,
-    ButtonComponent,
     ConfirmDialogComponent,
-    IconPickerComponent,
-    ColorPickerComponent,
     FabButtonComponent,
     TranslatePipe,
   ],
@@ -42,7 +30,6 @@ export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
 export class ServiceTypesComponent implements OnInit {
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly reporter = inject(ErrorReportingService);
-  private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
   private readonly lang = toSignal(this.translate.onLangChange, {
@@ -53,17 +40,8 @@ export class ServiceTypesComponent implements OnInit {
   protected readonly total = signal(0);
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
-  protected readonly creating = signal(false);
   protected readonly error = signal<string | null>(null);
   private ignoreNextRequest = true;
-
-  protected readonly isCreateMode = signal(false);
-
-  protected readonly name = signal('');
-  protected readonly description = signal('');
-  protected readonly icon = signal('');
-  protected readonly color = signal('');
-  protected readonly displayOrder = signal('0');
 
   protected readonly isDeleteDialogOpen = signal(false);
   protected readonly pendingDeleteRows = signal<ServiceTypeRow[]>([]);
@@ -185,15 +163,8 @@ export class ServiceTypesComponent implements OnInit {
 
   protected readonly fetchDataFn = this.fetchData.bind(this);
 
-  protected readonly canCreate = computed(() => this.name().trim().length > 0);
-
   ngOnInit(): void {
-    const mode = this.route.snapshot.data['mode'];
-    this.isCreateMode.set(mode === 'create');
-
-    if (!this.isCreateMode()) {
-      this.loadInitialData();
-    }
+    this.loadInitialData();
   }
 
   protected goToCreate(): void {
@@ -223,45 +194,6 @@ export class ServiceTypesComponent implements OnInit {
 
   private loadInitialData(): void {
     this.loadServiceTypes({ page: 1, pageSize: DEFAULT_PAGE_SIZE, sortBy: 'displayOrder', sortOrder: 'asc' });
-  }
-
-  protected createServiceType(): void {
-    if (!this.canCreate() || this.creating()) return;
-
-    this.creating.set(true);
-    this.error.set(null);
-
-    const displayOrderValue = this.parseDisplayOrder(this.displayOrder());
-    const normalizedIcon = normalizeIconName(this.normalizeOptional(this.icon()));
-    const request: CreateServiceTypeRequest = {
-      name: this.name().trim(),
-      description: this.normalizeOptional(this.description()),
-      icon: normalizedIcon ?? undefined,
-      color: this.normalizeOptional(this.color()),
-      displayOrder: displayOrderValue,
-    };
-
-    this.serviceTypesService.create(request).subscribe({
-      next: () => {
-        this.resetForm();
-        this.loadInitialData();
-      },
-      error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('services.errors.createFailed'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.creating.set(false);
-      },
-    });
-  }
-
-  protected resetForm(): void {
-    this.name.set('');
-    this.description.set('');
-    this.icon.set('');
-    this.color.set('');
-    this.displayOrder.set('0');
-    this.creating.set(false);
   }
 
   protected onSaveServiceTypes(rows: ServiceTypeRow[]): void {

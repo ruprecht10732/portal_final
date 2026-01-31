@@ -1,115 +1,45 @@
 <div class="flex flex-col gap-4">
-  @if (isCreateMode()) {
-    <shared-card>
-      <div class="flex flex-col gap-2 mb-4">
-        <h2 class="text-lg font-semibold">{{ 'services.create.title' | translate }}</h2>
-        <p class="text-sm text-zinc-500">{{ 'services.create.subtitle' | translate }}</p>
-      </div>
-
-      <form class="grid gap-4 sm:grid-cols-2" (ngSubmit)="createServiceType()">
-        <shared-input
-          [label]="'services.create.nameLabel' | translate"
-          [value]="name()"
-          (valueChange)="name.set($event)"
-          [required]="true"
-        />
-        <shared-icon-picker
-          [label]="'services.create.iconLabel' | translate"
-          [value]="icon()"
-          (valueChange)="icon.set($event ?? '')"
-          [placeholder]="'services.create.iconPlaceholder' | translate"
-        />
-        <shared-color-picker
-          [label]="'services.create.colorLabel' | translate"
-          [value]="color()"
-          (valueChange)="color.set($event)"
-          [placeholder]="'services.create.colorPlaceholder' | translate"
-        />
-        <shared-input
-          [label]="'services.create.orderLabel' | translate"
-          type="number"
-          [value]="displayOrder()"
-          (valueChange)="displayOrder.set($event)"
-          [min]="'0'"
-        />
-        <div class="sm:col-span-2">
-          <shared-textarea
-            [label]="'services.create.descriptionLabel' | translate"
-            [rows]="3"
-            [value]="description()"
-            (valueChange)="description.set($event)"
-          />
-        </div>
-        <div class="sm:col-span-2 flex flex-wrap gap-2">
-          <shared-button
-            variant="primary"
-            size="default"
-            [disabled]="creating() || !canCreate()"
-            type="submit"
-          >
-            {{ creating() ? ('services.create.creating' | translate) : ('services.create.submit' | translate) }}
-          </shared-button>
-          <shared-button
-            variant="secondary"
-            size="default"
-            [disabled]="creating()"
-            type="button"
-            (clicked)="resetForm()"
-          >
-            {{ 'services.create.reset' | translate }}
-          </shared-button>
-        </div>
-      </form>
-    </shared-card>
-
-    @if (error()) {
-      <div role="alert" aria-live="assertive" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
-        {{ error() }}
-      </div>
-    }
-  } @else {
-    @if (error()) {
-      <div role="alert" aria-live="assertive" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
-        {{ error() }}
-      </div>
-    }
-
-    <shared-data-grid
-      [columns]="columns()"
-      [data]="serviceTypes()"
-      [totalItems]="total()"
-      [loading]="loading() || saving()"
-      [error]="error() || ''"
-      [config]="gridConfig"
-      [serverSide]="true"
-      [fetchData]="fetchDataFn"
-      (dataRequest)="onDataRequest($event)"
-      (saveRows)="onSaveServiceTypes($event)"
-      (deleteRows)="onDeleteRows($event)"
-      [ariaLabel]="'services.list.ariaLabel' | translate"
-    />
-
-    <shared-confirm-dialog
-      [isOpen]="isDeleteDialogOpen()"
-      [title]="'services.list.deleteTitle' | translate"
-      [message]="'services.list.deleteMessage' | translate:{count: deleteCount()}"
-      [confirmText]="'services.list.deleteConfirm' | translate"
-      [cancelText]="'services.list.deleteCancel' | translate"
-      confirmVariant="danger"
-      [confirmDisabled]="saving()"
-      (confirm)="confirmDelete()"
-      (cancel)="closeDeleteDialog()"
-    />
-
-    <shared-fab-button
-      class="hidden sm:flex"
-      [ariaLabel]="'services.list.newServiceType' | translate"
-      (clicked)="goToCreate()"
-    >
-      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
-      </svg>
-      {{ 'services.list.newServiceType' | translate }}
-    </shared-fab-button>
+  @if (error()) {
+    <div role="alert" aria-live="assertive" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+      {{ error() }}
+    </div>
   }
+
+  <shared-data-grid
+    [columns]="columns()"
+    [data]="serviceTypes()"
+    [totalItems]="total()"
+    [loading]="loading() || saving()"
+    [error]="error() || ''"
+    [config]="gridConfig"
+    [serverSide]="true"
+    [fetchData]="fetchDataFn"
+    (dataRequest)="onDataRequest($event)"
+    (saveRows)="onSaveServiceTypes($event)"
+    (deleteRows)="onDeleteRows($event)"
+    [ariaLabel]="'services.list.ariaLabel' | translate"
+  />
+
+  <shared-confirm-dialog
+    [isOpen]="isDeleteDialogOpen()"
+    [title]="'services.list.deleteTitle' | translate"
+    [message]="'services.list.deleteMessage' | translate:{count: deleteCount()}"
+    [confirmText]="'services.list.deleteConfirm' | translate"
+    [cancelText]="'services.list.deleteCancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="saving()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDeleteDialog()"
+  />
+
+  <shared-fab-button
+    class="hidden sm:flex"
+    [ariaLabel]="'services.list.newServiceType' | translate"
+    (clicked)="goToCreate()"
+  >
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    {{ 'services.list.newServiceType' | translate }}
+  </shared-fab-button>
 </div>
