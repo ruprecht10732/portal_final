@@ -159,6 +159,7 @@ export class ServiceTypesComponent implements OnInit {
     cardSubtitleField: 'slug',
     cardSecondarySubtitleField: 'description',
     cardPreviewFieldCount: 4,
+    rowViewActionEnabled: true,
   };
 
   protected readonly fetchDataFn = this.fetchData.bind(this);
