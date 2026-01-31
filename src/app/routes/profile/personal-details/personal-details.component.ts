@@ -5,15 +5,22 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { UserService } from '../../../core/services/user.service';
+import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 
 @Component({
   selector: 'app-personal-details',
-  imports: [ButtonComponent, InputComponent, TranslatePipe],
+  imports: [ButtonComponent, InputComponent, SelectComponent, TranslatePipe],
   templateUrl: './personal-details.component.html',
   styleUrl: './personal-details.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PersonalDetailsComponent {
+  protected readonly firstName = signal('');
+  protected readonly lastName = signal('');
+  protected readonly initialFirstName = signal('');
+  protected readonly initialLastName = signal('');
+  protected readonly preferredLanguage = signal<'en' | 'nl'>('nl');
+  protected readonly initialPreferredLanguage = signal<'en' | 'nl'>('nl');
   protected readonly email = signal('');
   protected readonly initialEmail = signal('');
   protected readonly emailVerified = signal(false);
@@ -32,6 +39,14 @@ export class PersonalDetailsComponent {
     initialValue: { lang: 'en', translations: {} },
   });
 
+  protected readonly languageOptions = computed<readonly SelectOption<'en' | 'nl'>[]>(() => {
+    this.lang();
+    return [
+      { label: this.translate.instant('profile.personal.languageEnglish'), value: 'en' },
+      { label: this.translate.instant('profile.personal.languageDutch'), value: 'nl' },
+    ];
+  });
+
   protected readonly emailError = computed(() => {
     this.lang();
     const value = this.email();
@@ -40,12 +55,38 @@ export class PersonalDetailsComponent {
     return isValid ? '' : this.translate.instant('profile.personal.errors.emailInvalid');
   });
 
+  protected readonly firstNameError = computed(() => {
+    this.lang();
+    const value = this.firstName().trim();
+    if (!value) return '';
+    return value.length <= 100
+      ? ''
+      : this.translate.instant('profile.personal.errors.firstNameMax');
+  });
+
+  protected readonly lastNameError = computed(() => {
+    this.lang();
+    const value = this.lastName().trim();
+    if (!value) return '';
+    return value.length <= 100
+      ? ''
+      : this.translate.instant('profile.personal.errors.lastNameMax');
+  });
+
   protected readonly hasChanges = computed(() =>
-    this.email().trim() !== this.initialEmail().trim()
+    this.email().trim() !== this.initialEmail().trim() ||
+    this.firstName().trim() !== this.initialFirstName().trim() ||
+    this.lastName().trim() !== this.initialLastName().trim() ||
+    this.preferredLanguage() !== this.initialPreferredLanguage()
   );
 
   protected readonly canSave = computed(() =>
-    !this.isSaving() && !this.emailError() && !!this.email() && this.hasChanges()
+    !this.isSaving() &&
+    !this.emailError() &&
+    !this.firstNameError() &&
+    !this.lastNameError() &&
+    !!this.email() &&
+    this.hasChanges()
   );
 
   constructor() {
@@ -67,9 +108,17 @@ export class PersonalDetailsComponent {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(profile => {
+        const first = profile.firstName ?? '';
+        const last = profile.lastName ?? '';
         this.email.set(profile.email);
         this.initialEmail.set(profile.email);
         this.emailVerified.set(profile.emailVerified);
+        this.firstName.set(first);
+        this.lastName.set(last);
+        this.initialFirstName.set(first);
+        this.initialLastName.set(last);
+        this.preferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
+        this.initialPreferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
         this.createdAt.set(profile.createdAt);
         this.updatedAt.set(profile.updatedAt);
       });
@@ -82,7 +131,12 @@ export class PersonalDetailsComponent {
     this.isSaving.set(true);
 
     this.userService
-      .updateProfile({ email: this.email() })
+      .updateProfile({
+        email: this.email(),
+        firstName: this.firstName().trim() || null,
+        lastName: this.lastName().trim() || null,
+        preferredLanguage: this.preferredLanguage(),
+      })
       .pipe(
         catchError(error => {
           this.errorMessage.set(this.normalizeError(error));
@@ -92,11 +146,20 @@ export class PersonalDetailsComponent {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(profile => {
+        const first = profile.firstName ?? '';
+        const last = profile.lastName ?? '';
         this.email.set(profile.email);
         this.initialEmail.set(profile.email);
         this.emailVerified.set(profile.emailVerified);
+        this.firstName.set(first);
+        this.lastName.set(last);
+        this.initialFirstName.set(first);
+        this.initialLastName.set(last);
+        this.preferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
+        this.initialPreferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
         this.updatedAt.set(profile.updatedAt);
         this.successMessage.set(this.translate.instant('profile.personal.success'));
+        this.translate.use(this.preferredLanguage());
       });
   }
 

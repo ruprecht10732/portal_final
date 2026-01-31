@@ -16,6 +16,22 @@
     </div>
 
     <div class="grid gap-5">
+      <div class="grid gap-4 sm:grid-cols-2">
+        <shared-input
+          [label]="'profile.personal.firstName' | translate"
+          [value]="firstName()"
+          (valueChange)="firstName.set($event)"
+          [error]="firstNameError()"
+        />
+
+        <shared-input
+          [label]="'profile.personal.lastName' | translate"
+          [value]="lastName()"
+          (valueChange)="lastName.set($event)"
+          [error]="lastNameError()"
+        />
+      </div>
+
       <shared-input
         [label]="'profile.personal.email' | translate"
         type="email"
@@ -23,6 +39,14 @@
         (valueChange)="email.set($event)"
         [error]="emailError()"
         [required]="true"
+      />
+
+      <shared-select
+        [label]="'profile.personal.preferredLanguage' | translate"
+        [options]="languageOptions()"
+        [value]="preferredLanguage()"
+        (valueChange)="preferredLanguage.set($event ?? 'nl')"
+        [placeholder]="'profile.personal.languagePlaceholder' | translate"
       />
 
       <div class="text-xs">

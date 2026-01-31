@@ -5,7 +5,13 @@
     "personal": {
       "title": "Personal Details",
       "subtitle": "Update your contact information.",
+      "firstName": "First name",
+      "lastName": "Last name",
       "email": "Email",
+      "preferredLanguage": "Preferred language",
+      "languagePlaceholder": "Select a language",
+      "languageEnglish": "English",
+      "languageDutch": "Dutch",
       "verified": "Verified",
       "unverified": "Unverified",
       "unverifiedHint": "Check your inbox for the verification link.",
@@ -16,6 +22,8 @@
       "errors": {
         "emailRequired": "Email is required",
         "emailInvalid": "Enter a valid email address",
+        "firstNameMax": "First name must be 100 characters or less",
+        "lastNameMax": "Last name must be 100 characters or less",
         "generic": "Something went wrong. Please try again."
       }
     },

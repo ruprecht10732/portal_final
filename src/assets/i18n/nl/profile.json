@@ -5,7 +5,13 @@
     "personal": {
       "title": "Persoonlijke gegevens",
       "subtitle": "Werk je contactgegevens bij.",
+      "firstName": "Voornaam",
+      "lastName": "Achternaam",
       "email": "E-mailadres",
+      "preferredLanguage": "Voorkeurstaal",
+      "languagePlaceholder": "Selecteer een taal",
+      "languageEnglish": "Engels",
+      "languageDutch": "Nederlands",
       "verified": "Geverifieerd",
       "unverified": "Niet geverifieerd",
       "unverifiedHint": "Controleer je inbox voor de verificatielink.",
@@ -16,6 +22,8 @@
       "errors": {
         "emailRequired": "E-mailadres is verplicht",
         "emailInvalid": "Voer een geldig e-mailadres in",
+        "firstNameMax": "Voornaam mag maximaal 100 tekens bevatten",
+        "lastNameMax": "Achternaam mag maximaal 100 tekens bevatten",
         "generic": "Er ging iets mis. Probeer het opnieuw."
       }
     },
