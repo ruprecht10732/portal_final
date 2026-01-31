@@ -199,13 +199,39 @@ export interface ListLeadsParams {
   status?: LeadStatus;
   serviceType?: string;
   search?: string;
+  firstName?: string;
+  lastName?: string;
+  phone?: string;
+  email?: string;
+  role?: ConsumerRole;
+  street?: string;
+  houseNumber?: string;
+  zipCode?: string;
+  city?: string;
+  assignedAgentId?: string;
+  createdAtFrom?: string;
+  createdAtTo?: string;
   page?: number;
   pageSize?: number;
   sortBy?: SortField;
   sortOrder?: 'asc' | 'desc';
 }
 
-export type SortField = 'createdAt' | 'scheduledDate' | 'status' | 'firstName' | 'lastName';
+export type SortField =
+  | 'createdAt'
+  | 'scheduledDate'
+  | 'status'
+  | 'firstName'
+  | 'lastName'
+  | 'phone'
+  | 'email'
+  | 'role'
+  | 'street'
+  | 'houseNumber'
+  | 'zipCode'
+  | 'city'
+  | 'serviceType'
+  | 'assignedAgentId';
 
 // Status display helpers
 export const STATUS_LABELS: Record<LeadStatus, string> = {

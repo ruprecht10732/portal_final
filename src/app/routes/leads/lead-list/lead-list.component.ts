@@ -90,6 +90,7 @@ export class LeadListComponent implements OnInit {
         header: this.translate.instant('leads.list.columns.firstName'),
         field: 'consumer.firstName' as keyof LeadRow,
         sortable: true,
+        filterable: true,
         editable: true,
         width: '140px',
         cellType: 'text',
@@ -102,6 +103,7 @@ export class LeadListComponent implements OnInit {
         header: this.translate.instant('leads.list.columns.lastName'),
         field: 'consumer.lastName' as keyof LeadRow,
         sortable: true,
+        filterable: true,
         editable: true,
         width: '140px',
         cellType: 'text',
@@ -113,6 +115,8 @@ export class LeadListComponent implements OnInit {
         id: 'phone',
         header: this.translate.instant('leads.list.columns.phone'),
         field: 'consumer.phone' as keyof LeadRow,
+        sortable: true,
+        filterable: true,
         editable: true,
         width: '130px',
         cellType: 'text',
@@ -132,6 +136,8 @@ export class LeadListComponent implements OnInit {
         id: 'email',
         header: this.translate.instant('leads.list.columns.email'),
         field: 'consumer.email' as keyof LeadRow,
+        sortable: true,
+        filterable: true,
         editable: true,
         width: '200px',
         cellType: 'text',
@@ -145,6 +151,8 @@ export class LeadListComponent implements OnInit {
         id: 'role',
         header: this.translate.instant('leads.list.columns.role'),
         field: 'consumer.role' as keyof LeadRow,
+        sortable: true,
+        filterable: true,
         editable: true,
         width: '120px',
         cellType: 'select',
@@ -157,6 +165,8 @@ export class LeadListComponent implements OnInit {
         id: 'street',
         header: this.translate.instant('leads.list.columns.street'),
         field: 'address.street' as keyof LeadRow,
+        sortable: true,
+        filterable: true,
         editable: true,
         width: '160px',
         cellType: 'address',
@@ -174,6 +184,8 @@ export class LeadListComponent implements OnInit {
         id: 'houseNumber',
         header: this.translate.instant('leads.list.columns.houseNumber'),
         field: 'address.houseNumber' as keyof LeadRow,
+        sortable: true,
+        filterable: true,
         editable: true,
         width: '110px',
         cellType: 'text',
@@ -185,6 +197,8 @@ export class LeadListComponent implements OnInit {
         id: 'zipCode',
         header: this.translate.instant('leads.list.columns.zipCode'),
         field: 'address.zipCode' as keyof LeadRow,
+        sortable: true,
+        filterable: true,
         editable: true,
         width: '110px',
         cellType: 'text',
@@ -196,6 +210,8 @@ export class LeadListComponent implements OnInit {
         id: 'city',
         header: this.translate.instant('leads.list.columns.city'),
         field: 'address.city' as keyof LeadRow,
+        sortable: true,
+        filterable: true,
         editable: true,
         width: '140px',
         cellType: 'text',
@@ -233,6 +249,8 @@ export class LeadListComponent implements OnInit {
         id: 'assignedAgentId',
         header: this.translate.instant('leads.list.columns.assignee'),
         field: 'assignedAgentId',
+        sortable: true,
+        filterable: true,
         editable: true,
         width: '180px',
         cellType: 'select',
@@ -242,6 +260,7 @@ export class LeadListComponent implements OnInit {
         header: this.translate.instant('leads.list.columns.createdAt'),
         field: 'createdAt',
         sortable: true,
+        filterable: true,
         width: '110px',
         cellType: 'date',
       },
@@ -394,9 +413,17 @@ export class LeadListComponent implements OnInit {
       fullName: 'firstName',
       firstName: 'firstName',
       lastName: 'lastName',
+      phone: 'phone',
+      email: 'email',
+      role: 'role',
+      street: 'street',
+      houseNumber: 'houseNumber',
+      zipCode: 'zipCode',
+      city: 'city',
+      serviceType: 'serviceType',
+      assignedAgentId: 'assignedAgentId',
       createdAt: 'createdAt',
       status: 'status',
-      serviceType: 'createdAt', // fallback, serviceType not sortable in backend
     };
 
     const params: ListLeadsParams = {
@@ -412,10 +439,51 @@ export class LeadListComponent implements OnInit {
 
     // Map filters to params
     for (const filter of request.filters) {
-      if (filter.columnId === 'status') {
-        params.status = filter.value as ListLeadsParams['status'];
-      } else if (filter.columnId === 'serviceType') {
-        params.serviceType = filter.value as ListLeadsParams['serviceType'];
+      switch (filter.columnId) {
+        case 'status':
+          params.status = filter.value as ListLeadsParams['status'];
+          break;
+        case 'serviceType':
+          params.serviceType = filter.value;
+          break;
+        case 'firstName':
+          params.firstName = filter.value;
+          break;
+        case 'lastName':
+          params.lastName = filter.value;
+          break;
+        case 'phone':
+          params.phone = filter.value;
+          break;
+        case 'email':
+          params.email = filter.value;
+          break;
+        case 'role':
+          params.role = filter.value as ListLeadsParams['role'];
+          break;
+        case 'street':
+          params.street = filter.value;
+          break;
+        case 'houseNumber':
+          params.houseNumber = filter.value;
+          break;
+        case 'zipCode':
+          params.zipCode = filter.value;
+          break;
+        case 'city':
+          params.city = filter.value;
+          break;
+        case 'assignedAgentId':
+          params.assignedAgentId = filter.value;
+          break;
+        case 'createdAt': {
+          const range = this.parseCreatedAtFilter(filter.value);
+          if (range.from) params.createdAtFrom = range.from;
+          if (range.to) params.createdAtTo = range.to;
+          break;
+        }
+        default:
+          break;
       }
     }
 
@@ -427,6 +495,23 @@ export class LeadListComponent implements OnInit {
         pageSize: response.pageSize,
       }))
     );
+  }
+
+  private parseCreatedAtFilter(value: string): { from?: string; to?: string } {
+    const trimmed = value.trim();
+    if (!trimmed) return {};
+
+    const separators = ['..', ' to ', ' - ', ','];
+    for (const sep of separators) {
+      if (trimmed.includes(sep)) {
+        const parts = trimmed.split(sep).map(part => part.trim()).filter(Boolean);
+        if (parts.length >= 2) {
+          return { from: parts[0], to: parts[1] };
+        }
+      }
+    }
+
+    return { from: trimmed, to: trimmed };
   }
 
   protected onDataRequest(request: DataRequest): void {

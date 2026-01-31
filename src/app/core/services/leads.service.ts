@@ -32,15 +32,39 @@ export class LeadsService {
   private readonly baseUrl = `${environment.apiBaseUrl}/leads`;
 
   list(params: ListLeadsParams = {}): Observable<LeadListResponse> {
+    return this.http.get<LeadListResponse>(this.baseUrl, { params: this.buildListParams(params) });
+  }
+
+  private buildListParams(params: ListLeadsParams): HttpParams {
     let httpParams = new HttpParams();
-    if (params.status) httpParams = httpParams.set('status', params.status);
-    if (params.serviceType) httpParams = httpParams.set('serviceType', params.serviceType);
-    if (params.search) httpParams = httpParams.set('search', params.search);
-    if (params.page) httpParams = httpParams.set('page', params.page.toString());
-    if (params.pageSize) httpParams = httpParams.set('pageSize', params.pageSize.toString());
-    if (params.sortBy) httpParams = httpParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) httpParams = httpParams.set('sortOrder', params.sortOrder);
-    return this.http.get<LeadListResponse>(this.baseUrl, { params: httpParams });
+    const entries: Record<string, string | number | undefined | null> = {
+      status: params.status,
+      serviceType: params.serviceType,
+      search: params.search,
+      firstName: params.firstName,
+      lastName: params.lastName,
+      phone: params.phone,
+      email: params.email,
+      role: params.role,
+      street: params.street,
+      houseNumber: params.houseNumber,
+      zipCode: params.zipCode,
+      city: params.city,
+      assignedAgentId: params.assignedAgentId,
+      createdAtFrom: params.createdAtFrom,
+      createdAtTo: params.createdAtTo,
+      page: params.page,
+      pageSize: params.pageSize,
+      sortBy: params.sortBy,
+      sortOrder: params.sortOrder,
+    };
+
+    for (const [key, value] of Object.entries(entries)) {
+      if (value === undefined || value === null || value === '') continue;
+      httpParams = httpParams.set(key, String(value));
+    }
+
+    return httpParams;
   }
 
   getById(id: string): Observable<Lead> {
