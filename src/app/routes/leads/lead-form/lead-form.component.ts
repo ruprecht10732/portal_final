@@ -148,7 +148,8 @@ export class LeadFormComponent implements OnInit {
     this.email.set(lead.consumer.email ?? '');
     this.consumerRole.set(lead.consumer.role);
     this.source.set(this.clampValue(lead.source ?? '', this.sourceMaxLength));
-    this.consumerNote.set(this.clampValue(lead.consumerNote ?? '', this.consumerNoteMaxLength));
+    // Consumer note is now per-service, read from current service
+    this.consumerNote.set(this.clampValue(lead.currentService?.consumerNote ?? '', this.consumerNoteMaxLength));
     this.street.set(lead.address.street);
     this.houseNumber.set(lead.address.houseNumber);
     this.zipCode.set(lead.address.zipCode);

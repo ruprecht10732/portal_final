@@ -19,7 +19,8 @@ export class LeadInquiryCardComponent {
   });
 
   protected readonly noteText = computed(() => {
-    const value = this.lead()?.consumerNote?.trim();
+    // Consumer note is now per-service
+    const value = this.lead()?.currentService?.consumerNote?.trim();
     return value ?? null;
   });
 }

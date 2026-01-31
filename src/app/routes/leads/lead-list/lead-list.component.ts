@@ -420,10 +420,8 @@ export class LeadListComponent implements OnInit {
       houseNumber: 'houseNumber',
       zipCode: 'zipCode',
       city: 'city',
-      serviceType: 'serviceType',
       assignedAgentId: 'assignedAgentId',
       createdAt: 'createdAt',
-      status: 'status',
     };
 
     const params: ListLeadsParams = {

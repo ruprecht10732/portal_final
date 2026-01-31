@@ -634,7 +634,8 @@ export class LeadDetailComponent implements OnInit {
 
   protected editVisit(): void {
     const lead = this.lead();
-    const visit = lead?.currentService?.visit;
+    const service = this.selectedService();
+    const visit = service?.visit;
     if (!lead || !visit) return;
     this.measurements.set(visit.measurements ?? '');
     this.accessDifficulty.set(visit.accessDifficulty ?? null);

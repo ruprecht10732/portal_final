@@ -67,6 +67,7 @@ export interface LeadService {
   id: string;
   serviceType: string;
   status: LeadStatus;
+  consumerNote?: string;
   visit: Visit;
   createdAt: string;
   updatedAt: string;
@@ -76,10 +77,10 @@ export interface Lead {
   id: string;
   consumer: Consumer;
   address: Address;
-  consumerNote?: string;
   source?: string;
   services: LeadService[];
   currentService?: LeadService;
+  aggregateStatus?: LeadStatus;
   assignedAgentId?: string | null;
   viewedById?: string;
   viewedAt?: string;
@@ -131,6 +132,7 @@ export interface UpdateLeadRequest {
 export interface AddServiceRequest {
   serviceType: string;
   closeCurrentStatus?: boolean;
+  consumerNote?: string;
 }
 
 export interface UpdateServiceStatusRequest {
@@ -187,6 +189,21 @@ export interface DuplicateCheckResponse {
   existingLead?: Lead;
 }
 
+// Returning customer detection
+export interface ServiceBrief {
+  serviceType: string;
+  status: LeadStatus;
+  createdAt: string;
+}
+
+export interface ReturningCustomerResponse {
+  found: boolean;
+  leadId?: string;
+  fullName?: string;
+  totalServices: number;
+  services?: ServiceBrief[];
+}
+
 export interface BulkDeleteLeadsRequest {
   ids: string[];
 }
@@ -219,8 +236,6 @@ export interface ListLeadsParams {
 
 export type SortField =
   | 'createdAt'
-  | 'scheduledDate'
-  | 'status'
   | 'firstName'
   | 'lastName'
   | 'phone'
@@ -230,7 +245,6 @@ export type SortField =
   | 'houseNumber'
   | 'zipCode'
   | 'city'
-  | 'serviceType'
   | 'assignedAgentId';
 
 // Status display helpers

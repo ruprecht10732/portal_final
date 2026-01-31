@@ -14,6 +14,7 @@ import type {
   RescheduleVisitRequest,
   CreateLeadNoteRequest,
   DuplicateCheckResponse,
+  ReturningCustomerResponse,
   LeadNotesResponse,
   LeadNote,
   ListLeadsParams,
@@ -131,6 +132,17 @@ export class LeadsService {
     return this.http.get<DuplicateCheckResponse>(`${this.baseUrl}/check-duplicate`, {
       params: new HttpParams().set('phone', phone),
     });
+  }
+
+  checkReturningCustomer(phone: string, email?: string): Observable<ReturningCustomerResponse> {
+    let params = new HttpParams();
+    if (phone) {
+      params = params.set('phone', phone);
+    }
+    if (email) {
+      params = params.set('email', email);
+    }
+    return this.http.get<ReturningCustomerResponse>(`${this.baseUrl}/check-returning-customer`, { params });
   }
 
   addService(id: string, data: AddServiceRequest): Observable<Lead> {
