@@ -17,6 +17,7 @@
             [variant]="activeLink.isActive ? 'primary' : 'ghost'"
             size="compact"
             [iconOnly]="true"
+            shape="square"
             [fullWidth]="false"
             [ariaLabel]="item.label | translate"
           >
@@ -48,6 +49,7 @@
         variant="ghost"
         size="compact"
         [iconOnly]="true"
+        shape="square"
         [fullWidth]="false"
         [ariaLabel]="isExpanded() ? ('sidebar.collapse' | translate) : ('sidebar.expand' | translate)"
         (clicked)="toggleExpanded()"
@@ -61,6 +63,7 @@
         [showChevron]="false"
         [triggerVariant]="'ghost'"
         [triggerSize]="'compact'"
+        [triggerShape]="'square'"
         [fullWidth]="false"
         [sections]="profileMenu"
       >

@@ -21,20 +21,26 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
       [class.flex-col]="stacked()"
       [class.uppercase]="uppercase()"
       [class.normal-case]="!uppercase()"
-      [class.px-6]="size() === 'default'"
-      [class.py-3]="size() === 'default'"
-      [class.text-sm]="size() === 'default'"
-      [class.min-h-11]="size() === 'default'"
-      [class.font-medium]="size() === 'default'"
-      [class.tracking-tight]="size() === 'default'"
-      [class.px-3]="size() === 'compact'"
-      [class.py-2]="size() === 'compact'"
-      [class.text-xs]="size() === 'compact'"
-      [class.font-semibold]="size() === 'compact'"
-      [class.tracking-wide]="size() === 'compact'"
-      [class.min-h-11]="size() === 'compact'"
-      [class.px-2.5]="iconOnly()"
-      [class.min-w-11]="iconOnly()"
+      [class.px-6]="size() === 'default' && !iconOnly()"
+      [class.py-3]="size() === 'default' && !iconOnly()"
+      [class.text-sm]="size() === 'default' && !iconOnly()"
+      [class.min-h-11]="size() === 'default' && !iconOnly()"
+      [class.font-medium]="size() === 'default' && !iconOnly()"
+      [class.tracking-tight]="size() === 'default' && !iconOnly()"
+      [class.px-3]="size() === 'compact' && !iconOnly()"
+      [class.py-2]="size() === 'compact' && !iconOnly()"
+      [class.text-xs]="size() === 'compact' && !iconOnly()"
+      [class.font-semibold]="size() === 'compact' && !iconOnly()"
+      [class.tracking-wide]="size() === 'compact' && !iconOnly()"
+      [class.min-h-11]="size() === 'compact' && !iconOnly()"
+      [class.h-11]="iconOnly() && (shape() === 'square' || size() === 'default')"
+      [class.w-11]="iconOnly() && (shape() === 'square' || size() === 'default')"
+      [class.min-h-11]="iconOnly() && shape() === 'square'"
+      [class.min-w-11]="iconOnly() && shape() === 'square'"
+      [class.h-10]="iconOnly() && size() === 'compact' && shape() !== 'square'"
+      [class.w-10]="iconOnly() && size() === 'compact' && shape() !== 'square'"
+      [class.p-0]="iconOnly()"
+      [class.leading-none]="iconOnly()"
       [class.w-full]="fullWidth()"
       [class.sm:w-auto]="fullWidth()"
       [class.w-auto]="!fullWidth()"
@@ -75,6 +81,7 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
         [class.items-center]="stacked()"
         [class.text-center]="stacked()"
         [class.gap-1]="stacked()"
+        [class.gap-0]="iconOnly()"
         [class.text-white]="variant() === 'primary' || variant() === 'success' || variant() === 'danger'"
       >
         <ng-content />
@@ -94,6 +101,7 @@ export class ButtonComponent {
   loading = input(false);
   fullWidth = input(true);
   iconOnly = input(false);
+  shape = input<'default' | 'square'>('default');
   active = input(false);
   stacked = input(false);
   uppercase = input(true);
