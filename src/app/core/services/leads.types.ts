@@ -18,6 +18,8 @@ export interface Address {
   houseNumber: string;
   zipCode: string;
   city: string;
+  latitude?: number;
+  longitude?: number;
 }
 
 export interface Visit {
@@ -103,6 +105,8 @@ export interface CreateLeadRequest {
   houseNumber: string;
   zipCode: string;
   city: string;
+  latitude?: number;
+  longitude?: number;
   serviceType: string;
   assigneeId?: string | null;
   consumerNote?: string;
@@ -119,6 +123,8 @@ export interface UpdateLeadRequest {
   houseNumber?: string;
   zipCode?: string;
   city?: string;
+  latitude?: number;
+  longitude?: number;
   assigneeId?: string | null;
 }
 

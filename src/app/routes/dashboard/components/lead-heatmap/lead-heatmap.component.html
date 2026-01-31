@@ -1,0 +1,71 @@
+<shared-card className="flex flex-col gap-5">
+  <div class="flex flex-col gap-4 lg:flex-row lg:items-end lg:justify-between">
+    <div class="space-y-1">
+      <h2 class="text-lg font-semibold">{{ 'dashboard.heatmap.title' | translate }}</h2>
+      <p class="text-sm text-zinc-500">{{ 'dashboard.heatmap.subtitle' | translate }}</p>
+    </div>
+    <div class="heatmap-controls">
+      <div class="heatmap-date">
+        <shared-input
+          type="date"
+          [label]="'dashboard.heatmap.startDate' | translate"
+          [value]="startDate()"
+          (valueChange)="startDate.set($event)"
+        />
+      </div>
+      <div class="heatmap-date">
+        <shared-input
+          type="date"
+          [label]="'dashboard.heatmap.endDate' | translate"
+          [value]="endDate()"
+          (valueChange)="endDate.set($event)"
+        />
+      </div>
+      <div class="heatmap-actions">
+        <shared-button
+          variant="primary"
+          size="compact"
+          [uppercase]="false"
+          [fullWidth]="false"
+          [disabled]="!canApply()"
+          (clicked)="applyFilter()"
+        >
+          {{ 'dashboard.heatmap.apply' | translate }}
+        </shared-button>
+        <shared-button
+          variant="secondary"
+          size="compact"
+          [uppercase]="false"
+          [fullWidth]="false"
+          (clicked)="clearFilter()"
+        >
+          {{ 'dashboard.heatmap.clear' | translate }}
+        </shared-button>
+      </div>
+    </div>
+    @if (dateRangeInvalid()) {
+      <p class="text-xs text-red-600">{{ 'dashboard.heatmap.dateError' | translate }}</p>
+    }
+  </div>
+
+  <div class="heatmap-shell" role="img" [attr.aria-label]="'dashboard.heatmap.mapLabel' | translate">
+    <div #mapContainer class="heatmap-map"></div>
+
+    @if (loading()) {
+      <div class="heatmap-overlay" aria-live="polite">
+        <div class="flex items-center gap-2 text-sm">
+          <div class="animate-spin h-4 w-4 border-2 border-zinc-200 border-t-black"></div>
+          <span>{{ 'dashboard.heatmap.loading' | translate }}</span>
+        </div>
+      </div>
+    } @else if (error()) {
+      <div class="heatmap-overlay" aria-live="polite">
+        <p class="text-sm text-red-600">{{ error() | translate }}</p>
+      </div>
+    } @else if (!points().length) {
+      <div class="heatmap-overlay" aria-live="polite">
+        <p class="text-sm text-zinc-500">{{ 'dashboard.heatmap.empty' | translate }}</p>
+      </div>
+    }
+  </div>
+</shared-card>

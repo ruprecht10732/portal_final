@@ -156,7 +156,7 @@
                 <shared-input
                   [label]="'leads.form.houseNumber' | translate"
                   [value]="houseNumber()"
-                  (valueChange)="houseNumber.set($event)"
+                  (valueChange)="onHouseNumberChange($event)"
                   [required]="true"
                 />
               </div>
@@ -167,7 +167,7 @@
                 <shared-input
                   [label]="'leads.form.zipCode' | translate"
                   [value]="zipCode()"
-                  (valueChange)="zipCode.set($event)"
+                  (valueChange)="onZipCodeChange($event)"
                   [required]="true"
                 />
               </div>
@@ -175,7 +175,7 @@
                 <shared-input
                   [label]="'leads.form.city' | translate"
                   [value]="city()"
-                  (valueChange)="city.set($event)"
+                  (valueChange)="onCityChange($event)"
                   [required]="true"
                 />
               </div>

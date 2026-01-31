@@ -4,3 +4,12 @@ export interface DashboardMetricsResponse {
   disqualifiedRate: number;
   touchpointsPerLead: number;
 }
+
+export interface LeadHeatmapPoint {
+  latitude: number;
+  longitude: number;
+}
+
+export interface LeadHeatmapResponse {
+  points: LeadHeatmapPoint[];
+}

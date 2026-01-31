@@ -22,6 +22,19 @@
       "disqualifiedHint": "Share of leads marked as bad",
       "touchpointsHint": "Avg. activities per lead",
       "unavailable": "Unavailable"
+    },
+    "heatmap": {
+      "title": "Lead density heatmap",
+      "subtitle": "See where leads are clustering for territory planning.",
+      "startDate": "Start date",
+      "endDate": "End date",
+      "dateError": "Start date must be before end date.",
+      "apply": "Apply",
+      "clear": "Clear",
+      "loading": "Loading heatmap...",
+      "empty": "No leads found for this date range.",
+      "error": "Unable to load heatmap.",
+      "mapLabel": "Lead density heatmap"
     }
   }
 }

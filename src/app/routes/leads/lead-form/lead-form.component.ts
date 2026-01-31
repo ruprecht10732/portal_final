@@ -55,6 +55,8 @@ export class LeadFormComponent implements OnInit {
   protected readonly zipCode = signal('');
   protected readonly city = signal('');
   protected readonly serviceType = signal('');
+  protected readonly latitude = signal<number | null>(null);
+  protected readonly longitude = signal<number | null>(null);
 
   protected readonly sourceMaxLength = MAX_LENGTH.source;
   protected readonly consumerNoteMaxLength = MAX_LENGTH.consumerNote;
@@ -151,6 +153,8 @@ export class LeadFormComponent implements OnInit {
     this.houseNumber.set(lead.address.houseNumber);
     this.zipCode.set(lead.address.zipCode);
     this.city.set(lead.address.city);
+    this.latitude.set(lead.address.latitude ?? null);
+    this.longitude.set(lead.address.longitude ?? null);
     const fallbackServiceType = this.serviceType() || this.serviceTypes()[0]?.name || '';
     this.serviceType.set(lead.currentService?.serviceType ?? fallbackServiceType);
   }
@@ -187,7 +191,25 @@ export class LeadFormComponent implements OnInit {
     const match = this.addressSuggestions().find(suggestion => suggestion.label === value);
     if (match) {
       this.applyAddressSuggestion(match);
+      return;
     }
+
+    this.clearCoordinates();
+  }
+
+  protected onHouseNumberChange(value: string): void {
+    this.houseNumber.set(value);
+    this.clearCoordinates();
+  }
+
+  protected onZipCodeChange(value: string): void {
+    this.zipCode.set(value);
+    this.clearCoordinates();
+  }
+
+  protected onCityChange(value: string): void {
+    this.city.set(value);
+    this.clearCoordinates();
   }
 
   private applyAddressSuggestion(suggestion: AddressSuggestion): void {
@@ -195,6 +217,19 @@ export class LeadFormComponent implements OnInit {
     this.houseNumber.set(suggestion.houseNumber ?? '');
     this.zipCode.set(suggestion.zipCode ?? '');
     this.city.set(suggestion.city ?? '');
+    this.latitude.set(this.parseCoordinate(suggestion.lat));
+    this.longitude.set(this.parseCoordinate(suggestion.lon));
+  }
+
+  private clearCoordinates(): void {
+    this.latitude.set(null);
+    this.longitude.set(null);
+  }
+
+  private parseCoordinate(value?: string): number | null {
+    if (!value) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   protected onSourceChange(value: string): void {
@@ -247,6 +282,8 @@ export class LeadFormComponent implements OnInit {
         houseNumber: this.houseNumber().trim(),
         zipCode: this.zipCode().trim(),
         city: this.city().trim(),
+        latitude: this.latitude() ?? undefined,
+        longitude: this.longitude() ?? undefined,
         serviceType: this.serviceType(),
         source: sourceValue || undefined,
         consumerNote: consumerNoteValue || undefined,
@@ -278,6 +315,8 @@ export class LeadFormComponent implements OnInit {
         houseNumber: this.houseNumber().trim(),
         zipCode: this.zipCode().trim(),
         city: this.city().trim(),
+        latitude: this.latitude() ?? undefined,
+        longitude: this.longitude() ?? undefined,
       };
 
       this.leadsService.update(lead.id, request).subscribe({
