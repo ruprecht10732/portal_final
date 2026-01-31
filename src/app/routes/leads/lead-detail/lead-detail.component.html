@@ -372,6 +372,7 @@
                 [refreshing]="aiAnalysisRefreshing()"
                 [isDefault]="aiAnalysisIsDefault()"
                 [noNewInfo]="aiAnalysisNoNewInfo()"
+                [serviceStatus]="selectedService()?.status ?? null"
                 (refresh)="refreshAIAnalysis()"
                 (forceRefresh)="forceRefreshAIAnalysis()"
               ></shared-ai-advisor-panel>

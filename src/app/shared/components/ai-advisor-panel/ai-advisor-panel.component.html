@@ -3,7 +3,7 @@
   <div class="flex items-center justify-between">
     <h3 class="text-lg font-semibold">AI Sales Advisor</h3>
     <div class="flex items-center gap-2">
-      @if (noNewInfo()) {
+      @if (noNewInfo() && canRefresh()) {
         <shared-button
           variant="secondary"
           size="compact"
@@ -14,24 +14,26 @@
           Force Regenerate
         </shared-button>
       }
-      <shared-button
-        variant="secondary"
-        size="compact"
-        [disabled]="refreshing() || loading()"
-        (clicked)="refresh.emit()"
-      >
-        @if (refreshing()) {
-          <span class="flex items-center gap-2">
-            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Analyzing...
-          </span>
-        } @else {
-          Refresh Analysis
-        }
-      </shared-button>
+      @if (canRefresh()) {
+        <shared-button
+          variant="secondary"
+          size="compact"
+          [disabled]="refreshing() || loading()"
+          (clicked)="refresh.emit()"
+        >
+          @if (refreshing()) {
+            <span class="flex items-center gap-2">
+              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Analyzing...
+            </span>
+          } @else {
+            Refresh Analysis
+          }
+        </shared-button>
+      }
     </div>
   </div>
 
@@ -49,19 +51,25 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.75 9.75l4.5 4.5m0-4.5l-4.5 4.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
       </svg>
       <p class="text-sm text-zinc-600 mb-3">{{ error() }}</p>
-      <shared-button variant="secondary" size="compact" (clicked)="refresh.emit()">
-        Try Again
-      </shared-button>
+      @if (canRefresh()) {
+        <shared-button variant="secondary" size="compact" (clicked)="refresh.emit()">
+          Try Again
+        </shared-button>
+      }
     </div>
   } @else if (!analysis()) {
     <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-6 text-center">
       <svg class="mx-auto h-12 w-12 text-zinc-400 mb-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
       </svg>
-      <p class="text-sm text-zinc-600 mb-3">No AI analysis available yet</p>
-      <shared-button variant="primary" size="compact" (clicked)="refresh.emit()">
-        Generate Analysis
-      </shared-button>
+      @if (canRefresh()) {
+        <p class="text-sm text-zinc-600 mb-3">No AI analysis available yet</p>
+        <shared-button variant="primary" size="compact" (clicked)="refresh.emit()">
+          Generate Analysis
+        </shared-button>
+      } @else {
+        <p class="text-sm text-zinc-600">This service is closed - no new analysis can be generated</p>
+      }
     </div>
   } @else if (isDefault()) {
     @let a = analysis()!;
@@ -106,27 +114,29 @@
     }
 
     <!-- Generate Analysis CTA -->
-    <div class="mt-2 pt-4 border-t border-zinc-200 text-center">
-      <p class="text-sm text-zinc-500 mb-3">After gathering more information, generate a personalized AI analysis:</p>
-      <shared-button
-        variant="primary"
-        size="default"
-        [disabled]="refreshing()"
-        (clicked)="refresh.emit()"
-      >
-        @if (refreshing()) {
-          <span class="flex items-center gap-2">
-            <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-              <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-              <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-            </svg>
-            Generating...
-          </span>
-        } @else {
-          Generate AI Analysis
-        }
-      </shared-button>
-    </div>
+    @if (canRefresh()) {
+      <div class="mt-2 pt-4 border-t border-zinc-200 text-center">
+        <p class="text-sm text-zinc-500 mb-3">After gathering more information, generate a personalized AI analysis:</p>
+        <shared-button
+          variant="primary"
+          size="default"
+          [disabled]="refreshing()"
+          (clicked)="refresh.emit()"
+        >
+          @if (refreshing()) {
+            <span class="flex items-center gap-2">
+              <svg class="animate-spin h-4 w-4" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+              </svg>
+              Generating...
+            </span>
+          } @else {
+            Generate AI Analysis
+          }
+        </shared-button>
+      </div>
+    }
   } @else {
     @let a = analysis()!;
 

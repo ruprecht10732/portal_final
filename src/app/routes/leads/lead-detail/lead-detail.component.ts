@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -271,6 +271,23 @@ export class LeadDetailComponent implements OnInit {
     return this.noteText().trim().length > 0 && !this.noteSaving();
   });
 
+  // Track which service ID we have analysis loaded for
+  private loadedAnalysisServiceId: string | null = null;
+
+  constructor() {
+    // Effect to reload AI analysis when selected service changes
+    effect(() => {
+      const lead = this.lead();
+      const service = this.selectedService();
+      if (!lead || !service) return;
+
+      // Only reload if service changed
+      if (this.loadedAnalysisServiceId !== service.id) {
+        this.loadAIAnalysis(lead.id, service.id);
+      }
+    });
+  }
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
@@ -292,7 +309,7 @@ export class LeadDetailComponent implements OnInit {
         this.loading.set(false);
         this.loadNotes(lead.id);
         this.loadVisitHistory(lead.id);
-        this.loadAIAnalysis(lead.id);
+        // AI Analysis is loaded automatically by effect when selectedService changes
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
       },
@@ -775,10 +792,11 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
-  private loadAIAnalysis(id: string): void {
+  private loadAIAnalysis(leadId: string, serviceId: string): void {
+    this.loadedAnalysisServiceId = serviceId;
     this.aiAnalysisLoading.set(true);
     this.aiAnalysisError.set(null);
-    this.leadsService.getLatestAnalysis(id).subscribe({
+    this.leadsService.getLatestAnalysis(leadId, serviceId).subscribe({
       next: (response) => {
         this.aiAnalysis.set(response.analysis);
         this.aiAnalysisIsDefault.set(response.isDefault);
@@ -795,12 +813,13 @@ export class LeadDetailComponent implements OnInit {
 
   protected refreshAIAnalysis(force = false): void {
     const lead = this.lead();
-    if (!lead) return;
+    const service = this.selectedService();
+    if (!lead || !service) return;
 
     this.aiAnalysisRefreshing.set(true);
     this.aiAnalysisError.set(null);
     this.aiAnalysisNoNewInfo.set(false);
-    this.leadsService.analyzeWithAI(lead.id, force).subscribe({
+    this.leadsService.analyzeWithAI(lead.id, service.id, force).subscribe({
       next: (response) => {
         if (response.status === 'error') {
           this.aiAnalysisError.set(response.message);

@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { NgClass, DatePipe } from '@angular/common';
-import type { LeadAIAnalysis, UrgencyLevel } from '../../../core/services/leads.types';
+import type { LeadAIAnalysis, LeadStatus, UrgencyLevel } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../button/button.component';
+
+const TERMINAL_STATUSES = new Set<LeadStatus>(['Closed', 'Bad_Lead', 'Surveyed']);
 
 @Component({
   selector: 'shared-ai-advisor-panel',
@@ -20,9 +22,16 @@ export class AiAdvisorPanelComponent {
   refreshing = input<boolean>(false);
   isDefault = input<boolean>(false);
   noNewInfo = input<boolean>(false);
+  serviceStatus = input<LeadStatus | null>(null);
 
   refresh = output<void>();
   forceRefresh = output<void>();
+
+  canRefresh = computed(() => {
+    const status = this.serviceStatus();
+    if (!status) return true;
+    return !TERMINAL_STATUSES.has(status);
+  });
 
   isStale(): boolean {
     const a = this.analysis();

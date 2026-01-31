@@ -301,6 +301,7 @@ export interface ObjectionResponse {
 export interface LeadAIAnalysis {
   id: string;
   leadId: string;
+  leadServiceId?: string;
   urgencyLevel: UrgencyLevel;
   urgencyReason: string;
   talkingPoints: string[];

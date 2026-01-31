@@ -154,16 +154,21 @@ export class LeadsService {
   }
 
   // AI Analysis methods
-  analyzeWithAI(id: string, force = false): Observable<AnalyzeLeadResponse> {
-    const params = force ? new HttpParams().set('force', 'true') : undefined;
+  analyzeWithAI(id: string, serviceId: string, force = false): Observable<AnalyzeLeadResponse> {
+    let params = new HttpParams().set('serviceId', serviceId);
+    if (force) {
+      params = params.set('force', 'true');
+    }
     return this.http.post<AnalyzeLeadResponse>(`${this.baseUrl}/${id}/analyze`, {}, { params });
   }
 
-  getLatestAnalysis(id: string): Observable<LeadAIAnalysisResponse> {
-    return this.http.get<LeadAIAnalysisResponse>(`${this.baseUrl}/${id}/analysis`);
+  getLatestAnalysis(id: string, serviceId: string): Observable<LeadAIAnalysisResponse> {
+    const params = new HttpParams().set('serviceId', serviceId);
+    return this.http.get<LeadAIAnalysisResponse>(`${this.baseUrl}/${id}/analysis`, { params });
   }
 
-  listAnalyses(id: string): Observable<LeadAIAnalysisListResponse> {
-    return this.http.get<LeadAIAnalysisListResponse>(`${this.baseUrl}/${id}/analysis/history`);
+  listAnalyses(id: string, serviceId: string): Observable<LeadAIAnalysisListResponse> {
+    const params = new HttpParams().set('serviceId', serviceId);
+    return this.http.get<LeadAIAnalysisListResponse>(`${this.baseUrl}/${id}/analysis/history`, { params });
   }
 }
