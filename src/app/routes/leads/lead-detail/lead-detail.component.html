@@ -191,6 +191,7 @@
           [showAddForm]="showAddServiceForm()"
           [serviceTypeOptions]="serviceTypeOptions()"
           [newServiceType]="newServiceType()"
+          [newServiceConsumerNote]="newServiceConsumerNote()"
           [closeCurrentService]="closeCurrentService()"
           [saving]="saving()"
           (openAdd)="openAddServiceForm()"
@@ -198,6 +199,7 @@
           (addService)="addService()"
           (selectService)="selectService($event)"
           (newServiceTypeChange)="newServiceType.set($event)"
+          (newServiceConsumerNoteChange)="newServiceConsumerNote.set($event)"
           (closeCurrentServiceChange)="closeCurrentService.set($event)"
         ></shared-lead-services-card>
       </div>
@@ -247,6 +249,7 @@
             [showAddForm]="showAddServiceForm()"
             [serviceTypeOptions]="serviceTypeOptions()"
             [newServiceType]="newServiceType()"
+            [newServiceConsumerNote]="newServiceConsumerNote()"
             [closeCurrentService]="closeCurrentService()"
             [saving]="saving()"
             (openAdd)="openAddServiceForm()"
@@ -254,6 +257,7 @@
             (addService)="addService()"
             (selectService)="selectService($event)"
             (newServiceTypeChange)="newServiceType.set($event)"
+            (newServiceConsumerNoteChange)="newServiceConsumerNote.set($event)"
             (closeCurrentServiceChange)="closeCurrentService.set($event)"
           ></shared-lead-services-card>
         </aside>

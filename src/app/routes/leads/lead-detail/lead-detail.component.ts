@@ -114,6 +114,7 @@ export class LeadDetailComponent implements OnInit {
   // Services management
   protected readonly showAddServiceForm = signal(false);
   protected readonly newServiceType = signal<string | null>(null);
+  protected readonly newServiceConsumerNote = signal('');
   protected readonly closeCurrentService = signal(true);
   protected readonly selectedServiceId = signal<string | null>(null);
 
@@ -869,12 +870,14 @@ export class LeadDetailComponent implements OnInit {
   protected openAddServiceForm(): void {
     this.showAddServiceForm.set(true);
     this.newServiceType.set(null);
+    this.newServiceConsumerNote.set('');
     this.closeCurrentService.set(true);
   }
 
   protected cancelAddService(): void {
     this.showAddServiceForm.set(false);
     this.newServiceType.set(null);
+    this.newServiceConsumerNote.set('');
   }
 
   protected addService(): void {
@@ -886,11 +889,13 @@ export class LeadDetailComponent implements OnInit {
     this.leadsService.addService(lead.id, {
       serviceType,
       closeCurrentStatus: this.closeCurrentService(),
+      consumerNote: this.newServiceConsumerNote() || undefined,
     }).subscribe({
       next: (updated) => {
         this.lead.set(updated);
         this.showAddServiceForm.set(false);
         this.newServiceType.set(null);
+        this.newServiceConsumerNote.set('');
         this.saving.set(false);
       },
       error: (err) => {

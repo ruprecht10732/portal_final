@@ -25,6 +25,15 @@
         [value]="newServiceType()"
         (valueChange)="newServiceTypeChange.emit($event)"
       />
+      <shared-textarea
+        id="new-service-note"
+        label="Consumer Note"
+        placeholder="Initial inquiry details for this service..."
+        [rows]="3"
+        [value]="newServiceConsumerNote()"
+        (valueChange)="newServiceConsumerNoteChange.emit($event)"
+        class="mt-3"
+      />
       <shared-checkbox
         label="Close current active service"
         [checked]="closeCurrentService()"
