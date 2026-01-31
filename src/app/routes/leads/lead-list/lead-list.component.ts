@@ -2,13 +2,15 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { map, Observable } from 'rxjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { UserService } from '../../../core/services/user.service';
 import type { Lead, LeadStatus, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
-import { STATUS_LABELS, STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
+import { STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -23,7 +25,7 @@ type LeadRow = Lead & Record<string, unknown>;
   templateUrl: './lead-list.component.html',
   styleUrl: './lead-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FabButtonComponent, DataGridComponent, ConfirmDialogComponent],
+  imports: [FabButtonComponent, DataGridComponent, ConfirmDialogComponent, TranslatePipe],
 })
 export class LeadListComponent implements OnInit {
   private readonly leadsService = inject(LeadsService);
@@ -32,6 +34,10 @@ export class LeadListComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly reporter = inject(ErrorReportingService);
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
 
   protected readonly leads = signal<LeadRow[]>([]);
   protected readonly loading = signal(false);
@@ -46,160 +52,200 @@ export class LeadListComponent implements OnInit {
   private ignoreNextRequest = true;
   private readonly phoneRegion = DEFAULT_PHONE_REGION;
 
-  private readonly baseColumns: GridColumn<LeadRow>[] = [
-    {
-      id: 'fullName',
-      header: 'Name',
-      field: 'fullName',
-      sortable: false,
-      width: '180px',
-      visible: false,
-    },
-    {
-      id: 'firstName',
-      header: 'First Name',
-      field: 'consumer.firstName' as keyof LeadRow,
-      sortable: true,
-      editable: true,
-      width: '140px',
-      cellType: 'text',
-      validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
-    },
-    {
-      id: 'lastName',
-      header: 'Last Name',
-      field: 'consumer.lastName' as keyof LeadRow,
-      sortable: true,
-      editable: true,
-      width: '140px',
-      cellType: 'text',
-      validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
-    },
-    {
-      id: 'phone',
-      header: 'Phone',
-      field: 'consumer.phone' as keyof LeadRow,
-      editable: true,
-      width: '130px',
-      cellType: 'text',
-      validator: value => {
-        let text = '';
-        if (typeof value === 'string') {
-          text = value;
-        } else if (typeof value === 'number') {
-          text = value.toString();
-        }
-        return text.trim().length >= MIN_LENGTH.phone ? null : 'Min 5 chars';
+  protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => {
+    this.lang();
+    return {
+      New: this.translate.instant('leads.detail.status.new'),
+      Attempted_Contact: this.translate.instant('leads.detail.status.contacted'),
+      Scheduled: this.translate.instant('leads.detail.status.scheduled'),
+      Surveyed: this.translate.instant('leads.detail.status.completed'),
+      Bad_Lead: this.translate.instant('leads.detail.status.badLead'),
+      Needs_Rescheduling: this.translate.instant('leads.detail.status.needsRescheduling'),
+      Closed: this.translate.instant('leads.detail.status.closed'),
+    };
+  });
+
+  protected readonly consumerRoleOptions = computed(() => {
+    this.lang();
+    return CONSUMER_ROLE_OPTIONS.map(option => ({
+      value: option.value,
+      label: this.translate.instant(`leads.list.roles.${option.value.toLowerCase()}`),
+    }));
+  });
+
+  private readonly baseColumns = computed<GridColumn<LeadRow>[]>(() => {
+    this.lang();
+    return [
+      {
+        id: 'fullName',
+        header: this.translate.instant('leads.list.columns.name'),
+        field: 'fullName',
+        sortable: false,
+        width: '180px',
+        visible: false,
       },
-    },
-    {
-      id: 'email',
-      header: 'Email',
-      field: 'consumer.email' as keyof LeadRow,
-      editable: true,
-      width: '200px',
-      cellType: 'text',
-      validator: value => {
-        if (value === null || value === undefined || value === '') return null;
-        if (typeof value !== 'string') return 'Invalid email';
-        return value.includes('@') ? null : 'Invalid email';
+      {
+        id: 'firstName',
+        header: this.translate.instant('leads.list.columns.firstName'),
+        field: 'consumer.firstName' as keyof LeadRow,
+        sortable: true,
+        editable: true,
+        width: '140px',
+        cellType: 'text',
+        validator: value => (typeof value === 'string' && value.trim().length > 0
+          ? null
+          : this.translate.instant('leads.list.validation.required')),
       },
-    },
-    {
-      id: 'role',
-      header: 'Role',
-      field: 'consumer.role' as keyof LeadRow,
-      editable: true,
-      width: '120px',
-      cellType: 'select',
-      selectOptions: CONSUMER_ROLE_OPTIONS,
-      validator: value => CONSUMER_ROLE_OPTIONS.some(opt => opt.value === value) ? null : 'Required',
-    },
-    {
-      id: 'street',
-      header: 'Street',
-      field: 'address.street' as keyof LeadRow,
-      editable: true,
-      width: '160px',
-      cellType: 'address',
-      addressMapping: {
-        street: 'address.street',
-        houseNumber: 'address.houseNumber',
-        zipCode: 'address.zipCode',
-        city: 'address.city',
+      {
+        id: 'lastName',
+        header: this.translate.instant('leads.list.columns.lastName'),
+        field: 'consumer.lastName' as keyof LeadRow,
+        sortable: true,
+        editable: true,
+        width: '140px',
+        cellType: 'text',
+        validator: value => (typeof value === 'string' && value.trim().length > 0
+          ? null
+          : this.translate.instant('leads.list.validation.required')),
       },
-      validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
-    },
-    {
-      id: 'houseNumber',
-      header: 'House No.',
-      field: 'address.houseNumber' as keyof LeadRow,
-      editable: true,
-      width: '110px',
-      cellType: 'text',
-      validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
-    },
-    {
-      id: 'zipCode',
-      header: 'Zip Code',
-      field: 'address.zipCode' as keyof LeadRow,
-      editable: true,
-      width: '110px',
-      cellType: 'text',
-      validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
-    },
-    {
-      id: 'city',
-      header: 'City',
-      field: 'address.city' as keyof LeadRow,
-      editable: true,
-      width: '140px',
-      cellType: 'text',
-      validator: value => (typeof value === 'string' && value.trim().length > 0 ? null : 'Required'),
-    },
-    {
-      id: 'serviceType',
-      header: 'Service',
-      field: 'serviceType',
-      sortable: true,
-      filterable: true,
-      editable: true,
-      editableWhen: 'new-only',
-      width: '140px',
-      cellType: 'select',
-    },
-    {
-      id: 'status',
-      header: 'Status',
-      field: 'status',
-      sortable: true,
-      filterable: true,
-      editable: true,
-      editableWhen: 'new-only',
-      width: '140px',
-      cellType: 'select',
-      selectOptions: STATUS_OPTIONS.map(opt => ({
-        label: STATUS_LABELS[opt.value],
-        value: opt.value,
-      })),
-    },
-    {
-      id: 'assignedAgentId',
-      header: 'Assignee',
-      field: 'assignedAgentId',
-      editable: true,
-      width: '180px',
-      cellType: 'select',
-    },
-    {
-      id: 'createdAt',
-      header: 'Created',
-      field: 'createdAt',
-      sortable: true,
-      width: '110px',
-      cellType: 'date',
-    },
-  ];
+      {
+        id: 'phone',
+        header: this.translate.instant('leads.list.columns.phone'),
+        field: 'consumer.phone' as keyof LeadRow,
+        editable: true,
+        width: '130px',
+        cellType: 'text',
+        validator: value => {
+          let text = '';
+          if (typeof value === 'string') {
+            text = value;
+          } else if (typeof value === 'number') {
+            text = value.toString();
+          }
+          return text.trim().length >= MIN_LENGTH.phone
+            ? null
+            : this.translate.instant('leads.list.validation.minChars', { count: MIN_LENGTH.phone });
+        },
+      },
+      {
+        id: 'email',
+        header: this.translate.instant('leads.list.columns.email'),
+        field: 'consumer.email' as keyof LeadRow,
+        editable: true,
+        width: '200px',
+        cellType: 'text',
+        validator: value => {
+          if (value === null || value === undefined || value === '') return null;
+          if (typeof value !== 'string') return this.translate.instant('leads.list.validation.invalidEmail');
+          return value.includes('@') ? null : this.translate.instant('leads.list.validation.invalidEmail');
+        },
+      },
+      {
+        id: 'role',
+        header: this.translate.instant('leads.list.columns.role'),
+        field: 'consumer.role' as keyof LeadRow,
+        editable: true,
+        width: '120px',
+        cellType: 'select',
+        selectOptions: this.consumerRoleOptions(),
+        validator: value => this.consumerRoleOptions().some(opt => opt.value === value)
+          ? null
+          : this.translate.instant('leads.list.validation.required'),
+      },
+      {
+        id: 'street',
+        header: this.translate.instant('leads.list.columns.street'),
+        field: 'address.street' as keyof LeadRow,
+        editable: true,
+        width: '160px',
+        cellType: 'address',
+        addressMapping: {
+          street: 'address.street',
+          houseNumber: 'address.houseNumber',
+          zipCode: 'address.zipCode',
+          city: 'address.city',
+        },
+        validator: value => (typeof value === 'string' && value.trim().length > 0
+          ? null
+          : this.translate.instant('leads.list.validation.required')),
+      },
+      {
+        id: 'houseNumber',
+        header: this.translate.instant('leads.list.columns.houseNumber'),
+        field: 'address.houseNumber' as keyof LeadRow,
+        editable: true,
+        width: '110px',
+        cellType: 'text',
+        validator: value => (typeof value === 'string' && value.trim().length > 0
+          ? null
+          : this.translate.instant('leads.list.validation.required')),
+      },
+      {
+        id: 'zipCode',
+        header: this.translate.instant('leads.list.columns.zipCode'),
+        field: 'address.zipCode' as keyof LeadRow,
+        editable: true,
+        width: '110px',
+        cellType: 'text',
+        validator: value => (typeof value === 'string' && value.trim().length > 0
+          ? null
+          : this.translate.instant('leads.list.validation.required')),
+      },
+      {
+        id: 'city',
+        header: this.translate.instant('leads.list.columns.city'),
+        field: 'address.city' as keyof LeadRow,
+        editable: true,
+        width: '140px',
+        cellType: 'text',
+        validator: value => (typeof value === 'string' && value.trim().length > 0
+          ? null
+          : this.translate.instant('leads.list.validation.required')),
+      },
+      {
+        id: 'serviceType',
+        header: this.translate.instant('leads.list.columns.serviceType'),
+        field: 'serviceType',
+        sortable: true,
+        filterable: true,
+        editable: true,
+        editableWhen: 'new-only',
+        width: '140px',
+        cellType: 'select',
+      },
+      {
+        id: 'status',
+        header: this.translate.instant('leads.list.columns.status'),
+        field: 'status',
+        sortable: true,
+        filterable: true,
+        editable: true,
+        editableWhen: 'new-only',
+        width: '140px',
+        cellType: 'select',
+        selectOptions: STATUS_OPTIONS.map(opt => ({
+          label: this.statusLabels()[opt.value],
+          value: opt.value,
+        })),
+      },
+      {
+        id: 'assignedAgentId',
+        header: this.translate.instant('leads.list.columns.assignee'),
+        field: 'assignedAgentId',
+        editable: true,
+        width: '180px',
+        cellType: 'select',
+      },
+      {
+        id: 'createdAt',
+        header: this.translate.instant('leads.list.columns.createdAt'),
+        field: 'createdAt',
+        sortable: true,
+        width: '110px',
+        cellType: 'date',
+      },
+    ];
+  });
 
   protected readonly serviceTypeOptions = computed(() =>
     this.serviceTypes().map(item => ({
@@ -219,8 +265,8 @@ export class LeadListComponent implements OnInit {
   );
 
   protected readonly columns = computed<GridColumn<LeadRow>[]>(() => {
-    const assigneeOptions = [{ label: 'Unassigned', value: '' }, ...this.userOptions()];
-    return this.baseColumns.map(column => {
+    const assigneeOptions = [{ label: this.translate.instant('leads.list.unassigned'), value: '' }, ...this.userOptions()];
+    return this.baseColumns().map(column => {
       if (column.id === 'assignedAgentId') {
         return { ...column, selectOptions: assigneeOptions };
       }
@@ -281,7 +327,7 @@ export class LeadListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load leads');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.list.errors.loadLeads'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -299,7 +345,7 @@ export class LeadListComponent implements OnInit {
         this.userOptions.set(options);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load users');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.list.errors.loadUsers'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -310,7 +356,7 @@ export class LeadListComponent implements OnInit {
     this.serviceTypesService.listActive().subscribe({
       next: (response) => this.serviceTypes.set(response.items ?? []),
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load service types');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.list.errors.loadServiceTypes'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },

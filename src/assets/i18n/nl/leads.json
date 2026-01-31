@@ -141,6 +141,46 @@
         "yesterdayAt": "Gisteren om {{time}}",
         "at": "{{date}} om {{time}}"
       }
+    },
+    "list": {
+      "ariaLabel": "Leads gegevensraster",
+      "newLead": "Nieuwe lead",
+      "deleteTitle": "Leads verwijderen",
+      "deleteMessage": "{{count}} lead(s) verwijderen? Dit kan later door een beheerder worden hersteld.",
+      "deleteConfirm": "Verwijderen",
+      "deleteCancel": "Annuleren",
+      "unassigned": "Niet toegewezen",
+      "columns": {
+        "name": "Naam",
+        "firstName": "Voornaam",
+        "lastName": "Achternaam",
+        "phone": "Telefoon",
+        "email": "E-mailadres",
+        "role": "Rol",
+        "street": "Straat",
+        "houseNumber": "Huisnr.",
+        "zipCode": "Postcode",
+        "city": "Plaats",
+        "serviceType": "Dienst",
+        "status": "Status",
+        "assignee": "Toegewezen",
+        "createdAt": "Aangemaakt"
+      },
+      "roles": {
+        "owner": "Eigenaar",
+        "tenant": "Huurder",
+        "landlord": "Verhuurder"
+      },
+      "validation": {
+        "required": "Verplicht",
+        "minChars": "Minimaal {{count}} tekens",
+        "invalidEmail": "Ongeldig e-mailadres"
+      },
+      "errors": {
+        "loadLeads": "Kon leads niet laden",
+        "loadUsers": "Kon gebruikers niet laden",
+        "loadServiceTypes": "Kon diensttypen niet laden"
+      }
     }
   }
 }

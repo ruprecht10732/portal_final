@@ -141,6 +141,46 @@
         "yesterdayAt": "Yesterday at {{time}}",
         "at": "{{date}} at {{time}}"
       }
+    },
+    "list": {
+      "ariaLabel": "Leads data grid",
+      "newLead": "New Lead",
+      "deleteTitle": "Delete leads",
+      "deleteMessage": "Delete {{count}} lead(s)? This can be restored later by an admin.",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel",
+      "unassigned": "Unassigned",
+      "columns": {
+        "name": "Name",
+        "firstName": "First Name",
+        "lastName": "Last Name",
+        "phone": "Phone",
+        "email": "Email",
+        "role": "Role",
+        "street": "Street",
+        "houseNumber": "House No.",
+        "zipCode": "Zip Code",
+        "city": "City",
+        "serviceType": "Service",
+        "status": "Status",
+        "assignee": "Assignee",
+        "createdAt": "Created"
+      },
+      "roles": {
+        "owner": "Owner",
+        "tenant": "Tenant",
+        "landlord": "Landlord"
+      },
+      "validation": {
+        "required": "Required",
+        "minChars": "Min {{count}} chars",
+        "invalidEmail": "Invalid email"
+      },
+      "errors": {
+        "loadLeads": "Failed to load leads",
+        "loadUsers": "Failed to load users",
+        "loadServiceTypes": "Failed to load service types"
+      }
     }
   }
 }

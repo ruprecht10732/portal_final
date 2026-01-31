@@ -17,15 +17,15 @@
     (saveRows)="onSaveLeads($event)"
     (deleteRows)="onDeleteLeads($event)"
     (rowDoubleClick)="onLeadDoubleClick($event)"
-    ariaLabel="Leads data grid"
+    [ariaLabel]="'leads.list.ariaLabel' | translate"
   />
 
   <shared-confirm-dialog
     [isOpen]="isDeleteDialogOpen()"
-    title="Delete leads"
-    [message]="'Delete ' + deleteCount() + ' lead(s)? This can be restored later by an admin.'"
-    confirmText="Delete"
-    cancelText="Cancel"
+    [title]="'leads.list.deleteTitle' | translate"
+    [message]="'leads.list.deleteMessage' | translate:{count: deleteCount()}"
+    [confirmText]="'leads.list.deleteConfirm' | translate"
+    [cancelText]="'leads.list.deleteCancel' | translate"
     confirmVariant="danger"
     [confirmDisabled]="deleteInProgress()"
     (confirm)="confirmDelete()"
@@ -34,12 +34,12 @@
 
   <shared-fab-button
     class="hidden sm:flex"
-    ariaLabel="New lead"
+    [ariaLabel]="'leads.list.newLead' | translate"
     (clicked)="createLead()"
   >
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
     </svg>
-    New Lead
+    {{ 'leads.list.newLead' | translate }}
   </shared-fab-button>
 </div>
