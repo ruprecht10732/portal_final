@@ -2,7 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { CreateServiceTypeRequest, ListServiceTypesParams, ReorderServiceTypesRequest, ServiceTypeItem, ServiceTypeListResponse, UpdateServiceTypeRequest } from './service-types.types';
+import type { CreateServiceTypeRequest, DeleteServiceTypeResponse, ListServiceTypesParams, ReorderServiceTypesRequest, ServiceTypeItem, ServiceTypeListResponse, UpdateServiceTypeRequest } from './service-types.types';
 import { normalizeIconName } from './icon-utils';
 
 @Injectable({ providedIn: 'root' })
@@ -42,8 +42,8 @@ export class ServiceTypesService {
     );
   }
 
-  delete(id: string): Observable<void> {
-    return this.http.delete<void>(`${this.adminBaseUrl}/${id}`);
+  delete(id: string): Observable<DeleteServiceTypeResponse> {
+    return this.http.delete<DeleteServiceTypeResponse>(`${this.adminBaseUrl}/${id}`);
   }
 
   toggleActive(id: string): Observable<ServiceTypeItem> {

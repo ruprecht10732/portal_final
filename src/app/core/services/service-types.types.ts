@@ -39,6 +39,10 @@ export interface ServiceTypeListResponse {
   totalPages?: number;
 }
 
+export interface DeleteServiceTypeResponse {
+  status: 'deleted' | 'deactivated';
+}
+
 export interface ListServiceTypesParams {
   search?: string;
   isActive?: boolean;
