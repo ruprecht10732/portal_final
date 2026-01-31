@@ -5,9 +5,11 @@
     "create": {
       "title": "Create Service Type",
       "subtitle": "Add a new marketplace service category.",
+      "generalInfo": "General information",
       "nameLabel": "Name",
       "iconLabel": "Icon",
       "iconPlaceholder": "Select an icon",
+      "appearance": "Appearance",
       "colorLabel": "Color",
       "colorPlaceholder": "#3B82F6",
       "orderLabel": "Display Order",
