@@ -475,16 +475,25 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   private getValueByPath(obj: T, path: string): unknown {
+    if (!this.isString(path)) return undefined;
     if (!path.includes('.')) {
       return obj[path as keyof T];
     }
+    const keys = path.split('.');
+    let acc: unknown = obj;
+    for (const key of keys) {
+      if (!this.isObject(acc)) return undefined;
+      acc = (acc as Record<string, unknown>)[key];
+    }
+    return acc;
+  }
 
-    return path.split('.').reduce<unknown>((acc, key) => {
-      if (acc && typeof acc === 'object') {
-        return (acc as Record<string, unknown>)[key];
-      }
-      return undefined;
-    }, obj as unknown);
+  private isObject(val: unknown): val is object {
+    return typeof val === 'object' && val !== null;
+  }
+
+  private isString(val: unknown): val is string {
+    return typeof val === 'string';
   }
 
   private getColumnValue(row: RowState<T>, column: GridColumn<T>): unknown {
