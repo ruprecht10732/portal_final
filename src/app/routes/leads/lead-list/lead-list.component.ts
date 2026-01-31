@@ -17,6 +17,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import type { GridColumn, GridConfig, DataRequest, DataResponse } from '../../../shared/components/data-grid/data-grid.types';
 import { DEFAULT_PHONE_REGION, MIN_LENGTH, DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 import type { LeadsListResolved } from '../leads-list.resolver';
+import type { UserSummary } from '../../../core/services/user.types';
 
 type LeadRow = Lead & Record<string, unknown>;
 
@@ -299,7 +300,7 @@ export class LeadListComponent implements OnInit {
       const resolvedUsers = resolved.users ?? [];
       const resolvedServiceTypes = resolved.serviceTypes ?? [];
       this.userOptions.set(resolvedUsers.map(user => ({
-        label: user.roles.length ? `${user.email} (${user.roles.join(', ')})` : user.email,
+		label: this.formatUserLabel(user),
         value: user.id,
       })));
       this.serviceTypes.set(resolvedServiceTypes);
@@ -339,7 +340,7 @@ export class LeadListComponent implements OnInit {
     this.userService.listUsers().subscribe({
       next: (users) => {
         const options = users.map(user => ({
-          label: user.roles.length ? `${user.email} (${user.roles.join(', ')})` : user.email,
+			label: this.formatUserLabel(user),
           value: user.id,
         }));
         this.userOptions.set(options);
@@ -365,6 +366,14 @@ export class LeadListComponent implements OnInit {
 
   private getDefaultServiceType(): string {
     return this.serviceTypes()[0]?.name ?? '';
+  }
+
+  private formatUserLabel(user: UserSummary): string {
+    const first = (user.firstName ?? '').trim();
+    const last = (user.lastName ?? '').trim();
+    const fullName = `${first} ${last}`.trim();
+    const base = fullName || user.email;
+    return user.roles.length ? `${base} (${user.roles.join(', ')})` : base;
   }
 
   private normalizeLead(row: Lead): LeadRow {

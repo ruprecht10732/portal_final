@@ -13,6 +13,8 @@ export interface UserProfile {
 export interface UserSummary {
   id: string;
   email: string;
+  firstName: string | null;
+  lastName: string | null;
   roles: string[];
 }
 
