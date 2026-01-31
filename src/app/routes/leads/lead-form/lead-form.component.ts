@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnIni
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switchMap } from 'rxjs';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
@@ -21,7 +22,7 @@ import { DEBOUNCE_MS, MIN_LENGTH, MAX_LENGTH } from '../../../core/config';
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent],
+  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, TranslatePipe],
 })
 export class LeadFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -31,6 +32,7 @@ export class LeadFormComponent implements OnInit {
   private readonly addressService = inject(AddressService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly reporter = inject(ErrorReportingService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly lead = signal<Lead | null>(null);
   protected readonly loading = signal(false);
@@ -112,7 +114,7 @@ export class LeadFormComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load service types');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.form.errors.loadServiceTypes'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -128,7 +130,7 @@ export class LeadFormComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load lead');
+        const message = this.getErrorMessage(err, this.translate.instant('leads.form.errors.loadLead'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -160,7 +162,11 @@ export class LeadFormComponent implements OnInit {
       distinctUntilChanged(),
       switchMap(query => this.addressService.search(query).pipe(
         catchError((err) => {
-          this.reporter.report(err, { source: 'http', silent: true, userMessage: 'Failed to search addresses' });
+          this.reporter.report(err, {
+            source: 'http',
+            silent: true,
+            userMessage: this.translate.instant('leads.form.errors.searchAddresses'),
+          });
           return of([]);
         })
       )),
@@ -250,7 +256,7 @@ export class LeadFormComponent implements OnInit {
           this.router.navigate(['/app/leads', created.id]);
         },
         error: (err) => {
-          const message = this.getErrorMessage(err, 'Failed to create lead');
+          const message = this.getErrorMessage(err, this.translate.instant('leads.form.errors.createLead'));
           this.error.set(message);
           this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
           this.saving.set(false);
@@ -278,7 +284,7 @@ export class LeadFormComponent implements OnInit {
           this.router.navigate(['/app/leads', updated.id]);
         },
         error: (err) => {
-          const message = this.getErrorMessage(err, 'Failed to update lead');
+          const message = this.getErrorMessage(err, this.translate.instant('leads.form.errors.updateLead'));
           this.error.set(message);
           this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
           this.saving.set(false);

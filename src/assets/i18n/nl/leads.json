@@ -1,6 +1,45 @@
 {
   "leads": {
     "overview": "Leadoverzicht",
-    "create": "Lead aanmaken"
+    "create": "Lead aanmaken",
+    "form": {
+      "goBack": "Ga terug",
+      "newLead": "Nieuwe lead",
+      "editLead": "Lead bewerken",
+      "duplicateFound": "Mogelijk duplicaat gevonden",
+      "duplicateExists": "Er bestaat al een lead met telefoon {{phone}}: {{firstName}} {{lastName}}",
+      "viewExistingLead": "Bestaande lead bekijken",
+      "continueAnyway": "Toch doorgaan",
+      "consumerInfo": "Consumentgegevens",
+      "firstName": "Voornaam",
+      "lastName": "Achternaam",
+      "phone": "Telefoon",
+      "email": "E-mailadres",
+      "role": "Rol",
+      "leadDetails": "Leaddetails",
+      "source": "Bron",
+      "consumerNote": "Notitie consument",
+      "maxCharacters": "Max {{count}} tekens",
+      "address": "Adres",
+      "street": "Straat",
+      "startTyping": "Begin met typen...",
+      "houseNumber": "Huisnummer",
+      "zipCode": "Postcode",
+      "city": "Plaats",
+      "initialService": "Eerste dienst",
+      "serviceType": "Diensttype",
+      "additionalServicesNote": "Extra diensten kunnen later worden toegevoegd in het detailoverzicht.",
+      "cancel": "Annuleren",
+      "saving": "Opslaan...",
+      "createLead": "Lead aanmaken",
+      "saveChanges": "Wijzigingen opslaan",
+      "errors": {
+        "loadServiceTypes": "Kon diensttypen niet laden",
+        "loadLead": "Kon lead niet laden",
+        "searchAddresses": "Adres zoeken mislukt",
+        "createLead": "Lead aanmaken mislukt",
+        "updateLead": "Lead bijwerken mislukt"
+      }
+    }
   }
 }

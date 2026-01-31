@@ -4,13 +4,15 @@
       type="button"
       class="p-2 hover:bg-zinc-100 transition-colors"
       (click)="cancel()"
-      aria-label="Go back"
+      [attr.aria-label]="'leads.form.goBack' | translate"
     >
       <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
       </svg>
     </button>
-    <h1 class="text-2xl font-bold">{{ isNew() ? 'New Lead' : 'Edit Lead' }}</h1>
+    <h1 class="text-2xl font-bold">
+      {{ isNew() ? ('leads.form.newLead' | translate) : ('leads.form.editLead' | translate) }}
+    </h1>
   </div>
 
   @if (error()) {
@@ -26,17 +28,16 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z" />
         </svg>
         <div class="flex-1">
-          <p class="font-medium">Potential duplicate found</p>
+          <p class="font-medium">{{ 'leads.form.duplicateFound' | translate }}</p>
           <p class="text-sm mt-1">
-            A lead with phone {{ dup.consumer.phone }} already exists:
-            {{ dup.consumer.firstName }} {{ dup.consumer.lastName }}
+            {{ 'leads.form.duplicateExists' | translate:{phone: dup.consumer.phone, firstName: dup.consumer.firstName, lastName: dup.consumer.lastName} }}
           </p>
           <div class="flex gap-2 mt-3">
             <a [routerLink]="['/app/leads', dup.id]" class="text-sm text-blue-600 hover:underline">
-              View existing lead
+              {{ 'leads.form.viewExistingLead' | translate }}
             </a>
             <button type="button" (click)="dismissDuplicateWarning()" class="text-sm text-zinc-600 hover:underline">
-              Continue anyway
+              {{ 'leads.form.continueAnyway' | translate }}
             </button>
           </div>
         </div>
@@ -51,22 +52,22 @@
   } @else {
     <form (ngSubmit)="save()" class="flex flex-col gap-6">
       <section class="bg-white border border-zinc-200 p-4">
-        <h2 class="text-lg font-semibold mb-4">Consumer Information</h2>
+        <h2 class="text-lg font-semibold mb-4">{{ 'leads.form.consumerInfo' | translate }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <shared-input
-            label="First Name"
+            [label]="'leads.form.firstName' | translate"
             [value]="firstName()"
             (valueChange)="firstName.set($event)"
             [required]="true"
           />
           <shared-input
-            label="Last Name"
+            [label]="'leads.form.lastName' | translate"
             [value]="lastName()"
             (valueChange)="lastName.set($event)"
             [required]="true"
           />
           <shared-input
-            label="Phone"
+            [label]="'leads.form.phone' | translate"
             type="tel"
             [value]="phone()"
             (valueChange)="phone.set($event)"
@@ -74,13 +75,13 @@
             [required]="true"
           />
           <shared-input
-            label="Email"
+            [label]="'leads.form.email' | translate"
             type="email"
             [value]="email()"
             (valueChange)="email.set($event)"
           />
           <shared-select
-            label="Role"
+            [label]="'leads.form.role' | translate"
             [options]="consumerRoleOptions()"
             [value]="consumerRole()"
             (valueChange)="setConsumerRole($event)"
@@ -89,55 +90,55 @@
       </section>
 
       <section class="bg-white border border-zinc-200 p-4">
-        <h2 class="text-lg font-semibold mb-4">Lead Details</h2>
+        <h2 class="text-lg font-semibold mb-4">{{ 'leads.form.leadDetails' | translate }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <shared-input
-            label="Source"
+            [label]="'leads.form.source' | translate"
             [value]="source()"
             (valueChange)="onSourceChange($event)"
             [disabled]="!isNew()"
             [max]="sourceMaxLength.toString()"
-            [hint]="'Max ' + sourceMaxLength + ' characters'"
+            [hint]="'leads.form.maxCharacters' | translate:{count: sourceMaxLength}"
           />
           <div class="sm:col-span-2">
             <shared-textarea
-              label="Consumer Note"
+              [label]="'leads.form.consumerNote' | translate"
               [rows]="4"
               [value]="consumerNote()"
               (valueChange)="onConsumerNoteChange($event)"
               [disabled]="!isNew()"
-              [hint]="'Max ' + consumerNoteMaxLength + ' characters'"
+              [hint]="'leads.form.maxCharacters' | translate:{count: consumerNoteMaxLength}"
             />
           </div>
         </div>
       </section>
 
       <section class="bg-white border border-zinc-200 p-4">
-        <h2 class="text-lg font-semibold mb-4">Address</h2>
+        <h2 class="text-lg font-semibold mb-4">{{ 'leads.form.address' | translate }}</h2>
         <div class="grid gap-4 sm:grid-cols-2">
           <shared-autocomplete
-            label="Street"
+            [label]="'leads.form.street' | translate"
             [value]="street()"
             (valueChange)="onStreetChange($event)"
             [options]="addressOptions()"
             [filterMode]="'manual'"
-            [placeholder]="'Start typing...'"
+            [placeholder]="'leads.form.startTyping' | translate"
             [required]="true"
           />
           <shared-input
-            label="House Number"
+            [label]="'leads.form.houseNumber' | translate"
             [value]="houseNumber()"
             (valueChange)="houseNumber.set($event)"
             [required]="true"
           />
           <shared-input
-            label="Zip Code"
+            [label]="'leads.form.zipCode' | translate"
             [value]="zipCode()"
             (valueChange)="zipCode.set($event)"
             [required]="true"
           />
           <shared-input
-            label="City"
+            [label]="'leads.form.city' | translate"
             [value]="city()"
             (valueChange)="city.set($event)"
             [required]="true"
@@ -147,28 +148,28 @@
 
       @if (isNew()) {
         <section class="bg-white border border-zinc-200 p-4">
-          <h2 class="text-lg font-semibold mb-4">Initial Service</h2>
+          <h2 class="text-lg font-semibold mb-4">{{ 'leads.form.initialService' | translate }}</h2>
           <div class="max-w-xs">
             <shared-select
-              label="Service Type"
+              [label]="'leads.form.serviceType' | translate"
               [options]="serviceTypeOptions()"
               [value]="serviceType()"
               (valueChange)="setServiceType($event)"
             />
           </div>
-          <p class="text-sm text-zinc-500 mt-2">Additional services can be added later from the lead detail view.</p>
+          <p class="text-sm text-zinc-500 mt-2">{{ 'leads.form.additionalServicesNote' | translate }}</p>
         </section>
       }
 
       <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
         <shared-button variant="secondary" type="button" (clicked)="cancel()">
-          Cancel
+          {{ 'leads.form.cancel' | translate }}
         </shared-button>
         <shared-button
           variant="primary"
           type="submit"
         >
-          {{ saving() ? 'Saving...' : (isNew() ? 'Create Lead' : 'Save Changes') }}
+          {{ saving() ? ('leads.form.saving' | translate) : (isNew() ? ('leads.form.createLead' | translate) : ('leads.form.saveChanges' | translate)) }}
         </shared-button>
       </div>
     </form>

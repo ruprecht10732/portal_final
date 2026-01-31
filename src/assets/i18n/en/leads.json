@@ -1,6 +1,45 @@
 {
   "leads": {
     "overview": "Lead overview",
-    "create": "Create lead"
+    "create": "Create lead",
+    "form": {
+      "goBack": "Go back",
+      "newLead": "New Lead",
+      "editLead": "Edit Lead",
+      "duplicateFound": "Potential duplicate found",
+      "duplicateExists": "A lead with phone {{phone}} already exists: {{firstName}} {{lastName}}",
+      "viewExistingLead": "View existing lead",
+      "continueAnyway": "Continue anyway",
+      "consumerInfo": "Consumer Information",
+      "firstName": "First Name",
+      "lastName": "Last Name",
+      "phone": "Phone",
+      "email": "Email",
+      "role": "Role",
+      "leadDetails": "Lead Details",
+      "source": "Source",
+      "consumerNote": "Consumer Note",
+      "maxCharacters": "Max {{count}} characters",
+      "address": "Address",
+      "street": "Street",
+      "startTyping": "Start typing...",
+      "houseNumber": "House Number",
+      "zipCode": "Zip Code",
+      "city": "City",
+      "initialService": "Initial Service",
+      "serviceType": "Service Type",
+      "additionalServicesNote": "Additional services can be added later from the lead detail view.",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "createLead": "Create Lead",
+      "saveChanges": "Save Changes",
+      "errors": {
+        "loadServiceTypes": "Failed to load service types",
+        "loadLead": "Failed to load lead",
+        "searchAddresses": "Failed to search addresses",
+        "createLead": "Failed to create lead",
+        "updateLead": "Failed to update lead"
+      }
+    }
   }
 }

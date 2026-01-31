@@ -78,7 +78,7 @@ export const appConfig: ApplicationConfig = {
         deps: [HttpBackend],
       },
       fallbackLang: 'en',
-      lang: 'en'
+      lang: 'nl'
     }),
     importProvidersFrom(
       ColorPickerModule,
