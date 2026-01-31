@@ -3,6 +3,7 @@ import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switchMap } from 'rxjs';
 import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
@@ -22,7 +23,7 @@ import { DEBOUNCE_MS, MIN_LENGTH, MAX_LENGTH } from '../../../core/config';
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, TranslatePipe],
+  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, TranslatePipe, LucideAngularModule],
 })
 export class LeadFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

@@ -3,16 +3,17 @@
 
   <!-- Header: Transparent, Mobile-First Padding, Strong Border -->
   <header class="flex items-center gap-4 p-4 sm:px-6">
-    <button
+    <shared-button
       type="button"
-      class="w-10 h-10 flex items-center justify-center border border-transparent hover:border-zinc-300 transition-colors"
-      (click)="cancel()"
+      variant="ghost"
+      [iconOnly]="true"
+      [fullWidth]="false"
+      class="w-10 h-10 flex items-center justify-center"
+      (clicked)="cancel()"
       [attr.aria-label]="'leads.form.goBack' | translate"
     >
-      <svg class="w-6 h-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="square" stroke-linejoin="miter" stroke-width="2" d="M15 19l-7-7 7-7" />
-      </svg>
-    </button>
+      <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+    </shared-button>
     
     <div class="flex flex-col">
       <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">

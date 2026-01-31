@@ -4,6 +4,7 @@ import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
 import { ColorPickerModule } from '@iplab/ngx-color-picker';
 import {
+  ArrowLeft,
   ArrowLeftRight,
   Brush,
   Building,
@@ -83,6 +84,7 @@ export const appConfig: ApplicationConfig = {
     importProvidersFrom(
       ColorPickerModule,
       LucideAngularModule.pick({
+        ArrowLeft,
         ArrowLeftRight,
         Brush,
         Building,
