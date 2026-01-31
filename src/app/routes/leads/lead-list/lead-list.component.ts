@@ -290,6 +290,7 @@ export class LeadListComponent implements OnInit {
     cardPreviewFieldCount: 4,
     mobileAddRowEnabled: false,
     rowViewActionEnabled: true,
+    rowDeleteActionEnabled: true,
   };
 
   protected readonly fetchDataFn = this.fetchData.bind(this);

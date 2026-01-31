@@ -59,6 +59,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   readonly selectable = input<boolean>(true);
   readonly rowIdField = input<keyof T>('id' as keyof T);
   readonly rowViewActionEnabled = input<boolean>(false);
+  readonly rowDeleteActionEnabled = input<boolean>(false);
   readonly statusField = input<keyof T | string | undefined>(undefined);
 
   // ============ Outputs ============

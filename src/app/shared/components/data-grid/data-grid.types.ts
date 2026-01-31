@@ -249,6 +249,8 @@ export interface GridConfig<T> {
   mobileAddRowEnabled: boolean;
   /** Show per-row view action (eye icon) */
   rowViewActionEnabled: boolean;
+  /** Show per-row delete action (trash icon) */
+  rowDeleteActionEnabled: boolean;
 }
 
 /** Default grid configuration */
@@ -277,6 +279,7 @@ export const DEFAULT_GRID_CONFIG: GridConfig<unknown> = {
   maxMobileColumns: MAX_MOBILE_COLUMNS,
   mobileAddRowEnabled: true,
   rowViewActionEnabled: false,
+  rowDeleteActionEnabled: false,
 };
 
 /** Keyboard navigation direction */

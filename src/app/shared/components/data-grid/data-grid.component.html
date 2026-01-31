@@ -205,6 +205,7 @@
               [selectable]="store.config().selectable"
               [rowIdField]="store.config().rowIdField"
               [rowViewActionEnabled]="store.config().rowViewActionEnabled"
+              [rowDeleteActionEnabled]="store.config().rowDeleteActionEnabled"
               [statusField]="store.config().statusField"
               (cellFocus)="store.setFocusedCell($event)"
               (cellEdit)="store.startCellEdit($event.rowIndex, $event.columnIndex)"
