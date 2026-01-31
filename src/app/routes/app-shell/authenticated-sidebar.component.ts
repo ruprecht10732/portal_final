@@ -4,6 +4,7 @@ import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive } f
 import {
   LucideAngularModule
 } from 'lucide-angular';
+import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, map, of } from 'rxjs';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { MenuComponent, MenuSection } from '../../shared/components/menu/menu.component';
@@ -27,6 +28,7 @@ interface SidebarItem {
     MenuComponent,
     LucideAngularModule,
     AuthenticatedSidebarPanelComponent,
+    TranslatePipe,
   ],
   templateUrl: './authenticated-sidebar.component.html',
   styleUrl: './authenticated-sidebar.component.css',
@@ -58,22 +60,22 @@ export class AuthenticatedSidebarComponent {
 
   protected readonly items = computed<SidebarItem[]>(() => {
     const base: SidebarItem[] = [
-      { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
-      { label: 'Leads', route: '/app/leads', icon: 'leads' },
-      { label: 'Profile', route: '/app/profile', icon: 'profile' },
+      { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
+      { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
+      { label: 'navigation.profile', route: '/app/profile', icon: 'profile' },
     ];
     if (this.isAdmin()) {
-      base.splice(2, 0, { label: 'Services', route: '/app/services', icon: 'services' });
+      base.splice(2, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
     }
     return base;
   });
 
   protected readonly profileMenu: MenuSection[] = [
     {
-      label: 'Account',
+      label: 'menu.account',
       items: [
-        { label: 'Profile', route: '/app/profile' },
-        { label: 'Sign out', route: '/sign-in' },
+        { label: 'navigation.profile', route: '/app/profile' },
+        { label: 'menu.signOut', route: '/sign-in' },
       ],
     },
   ];

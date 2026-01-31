@@ -6,10 +6,10 @@
   class="flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-zinc-900"
   [class.text-zinc-900]="navActive.isActive"
   [class.font-semibold]="navActive.isActive"
-  [attr.aria-label]="label()"
+  [attr.aria-label]="label() | translate"
 >
   @if (icon()) {
     <lucide-icon [name]="icon()!" class="h-4 w-4"></lucide-icon>
   }
-  {{ label() }}
+  {{ label() | translate }}
 </a>

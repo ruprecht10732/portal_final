@@ -1,0 +1,9 @@
+{
+  "navigation": {
+    "dashboard": "Dashboard",
+    "leads": "Leads",
+    "services": "Diensten",
+    "profile": "Profiel",
+    "settings": "Instellingen"
+  }
+}

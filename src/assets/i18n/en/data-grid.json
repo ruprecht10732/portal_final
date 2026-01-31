@@ -1,0 +1,10 @@
+{
+  "dataGrid": {
+    "selectRow": "Select row {{rowIndex}}",
+    "viewDetails": "View details",
+    "selectOption": "Select...",
+    "noData": "No data available",
+    "loading": "Loading data...",
+    "error": "Error loading data"
+  }
+}

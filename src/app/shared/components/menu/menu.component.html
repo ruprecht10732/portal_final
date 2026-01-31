@@ -6,7 +6,7 @@
     [iconOnly]="iconOnly()"
     [fullWidth]="fullWidth()"
     [disabled]="disabled()"
-    [ariaLabel]="ariaLabel() || triggerLabel()"
+    [ariaLabel]="(ariaLabel() || triggerLabel()) | translate"
     [ariaExpanded]="isOpen()"
     [ariaControls]="menuId"
     [ariaHaspopup]="'menu'"
@@ -15,9 +15,9 @@
   >
     @if (iconOnly()) {
       <ng-content select="[menuTrigger]"></ng-content>
-      <span class="sr-only">{{ triggerLabel() }}</span>
+      <span class="sr-only">{{ triggerLabel() | translate }}</span>
     } @else {
-      <span class="text-xs font-semibold">{{ triggerLabel() }}</span>
+      <span class="text-xs font-semibold">{{ triggerLabel() | translate }}</span>
       @if (showChevron()) {
         <svg
           class="w-4 h-4 text-zinc-500"
@@ -55,7 +55,7 @@
             <div class="px-2 py-2">
               @if (section.label) {
                 <p class="px-2 pb-2 text-[10px] font-semibold uppercase tracking-[0.32em] text-zinc-400">
-                  {{ section.label }}
+                  {{ section.label | translate }}
                 </p>
               }
               <ul class="space-y-1">
@@ -63,7 +63,7 @@
                 <li>
                   @if (item.items?.length) {
                     <div class="px-2 py-2 text-[10px] font-semibold uppercase tracking-wide text-zinc-400">
-                      {{ item.label }}
+                      {{ item.label | translate }}
                     </div>
                     <ul class="space-y-1">
                       @for (child of item.items; track child.label) {
@@ -80,7 +80,7 @@
                               [class.text-zinc-400]="isDisabled(child)"
                               [class.hover:bg-zinc-50]="!isDisabled(child)"
                             >
-                              {{ child.label }}
+                              {{ child.label | translate }}
                             </a>
                           } @else if (child.href) {
                             <a
@@ -94,7 +94,7 @@
                               [class.text-zinc-400]="isDisabled(child)"
                               [class.hover:bg-zinc-50]="!isDisabled(child)"
                             >
-                              {{ child.label }}
+                              {{ child.label | translate }}
                             </a>
                           } @else {
                             <button
@@ -108,7 +108,7 @@
                               [class.text-zinc-400]="isDisabled(child)"
                               [class.hover:bg-zinc-50]="!isDisabled(child)"
                             >
-                              {{ child.label }}
+                              {{ child.label | translate }}
                             </button>
                           }
                         </li>
@@ -127,7 +127,7 @@
                         [class.text-zinc-400]="isDisabled(item)"
                         [class.hover:bg-zinc-50]="!isDisabled(item)"
                       >
-                        {{ item.label }}
+                        {{ item.label | translate }}
                       </a>
                     } @else if (item.href) {
                       <a
@@ -141,7 +141,7 @@
                         [class.text-zinc-400]="isDisabled(item)"
                         [class.hover:bg-zinc-50]="!isDisabled(item)"
                       >
-                        {{ item.label }}
+                        {{ item.label | translate }}
                       </a>
                     } @else {
                       <button
@@ -155,7 +155,7 @@
                         [class.text-zinc-400]="isDisabled(item)"
                         [class.hover:bg-zinc-50]="!isDisabled(item)"
                       >
-                        {{ item.label }}
+                        {{ item.label | translate }}
                       </button>
                     }
                   }
@@ -166,7 +166,7 @@
           }
         </div>
       } @else {
-        <div class="px-3 py-2 text-sm text-zinc-400">No items</div>
+        <div class="px-3 py-2 text-sm text-zinc-400">{{ 'menu.noItems' | translate }}</div>
       }
     </div>
   </ng-template>

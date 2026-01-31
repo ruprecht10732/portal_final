@@ -1,0 +1,11 @@
+{
+  "sidebar": {
+    "current": "Huidig",
+    "primary": "Primair",
+    "sectionNavigation": "Sectienavigatie",
+    "collapse": "Zijbalk inklappen",
+    "expand": "Zijbalk uitklappen",
+    "quickLinks": "Snelle links",
+    "mobileNavigation": "Mobiele navigatie"
+  }
+}

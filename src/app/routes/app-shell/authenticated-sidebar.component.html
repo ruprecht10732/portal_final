@@ -6,7 +6,7 @@
       </div>
     </div>
 
-    <nav class="no-scrollbar flex flex-1 flex-col items-center gap-4 overflow-y-auto" aria-label="Primary">
+    <nav class="no-scrollbar flex flex-1 flex-col items-center gap-4 overflow-y-auto" [attr.aria-label]="'sidebar.primary' | translate">
       @for (item of items(); track item.route) {
         <div class="group relative">
           <shared-button
@@ -18,7 +18,7 @@
             size="compact"
             [iconOnly]="true"
             [fullWidth]="false"
-            [ariaLabel]="item.label"
+            [ariaLabel]="item.label | translate"
           >
             @switch (item.icon) {
               @case ('dashboard') {
@@ -36,7 +36,7 @@
             }
           </shared-button>
           <span class="pointer-events-none absolute left-16 rounded bg-zinc-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
-            {{ item.label }}
+            {{ item.label | translate }}
           </span>
         </div>
       }
@@ -49,14 +49,14 @@
         size="compact"
         [iconOnly]="true"
         [fullWidth]="false"
-        [ariaLabel]="isExpanded() ? 'Collapse sidebar' : 'Expand sidebar'"
+        [ariaLabel]="isExpanded() ? ('sidebar.collapse' | translate) : ('sidebar.expand' | translate)"
         (clicked)="toggleExpanded()"
       >
         <lucide-icon name="arrow-left-right" class="h-5 w-5"></lucide-icon>
       </shared-button>
       <shared-menu
-        triggerLabel="Profile"
-        ariaLabel="Profile"
+        triggerLabel="navigation.profile"
+        ariaLabel="navigation.profile"
         [iconOnly]="true"
         [showChevron]="false"
         [triggerVariant]="'ghost'"

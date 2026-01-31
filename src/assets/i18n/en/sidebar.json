@@ -1,0 +1,11 @@
+{
+  "sidebar": {
+    "current": "Current",
+    "primary": "Primary",
+    "sectionNavigation": "Section navigation",
+    "collapse": "Collapse sidebar",
+    "expand": "Expand sidebar",
+    "quickLinks": "Quick links",
+    "mobileNavigation": "Mobile navigation"
+  }
+}

@@ -60,8 +60,8 @@ export const routes: Routes = [
 				loadComponent: () => import('./routes/profile/profile-layout.component').then(m => m.ProfileLayoutComponent),
 				data: {
 					panelItems: [
-						{ label: 'Personal Details', route: '/app/profile/details', icon: 'user', exact: true },
-						{ label: 'Security', route: '/app/profile/security', icon: 'lock' },
+						{ label: 'profile.personalDetails', route: '/app/profile/details', icon: 'user', exact: true },
+						{ label: 'profile.security', route: '/app/profile/security', icon: 'lock' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
@@ -85,8 +85,8 @@ export const routes: Routes = [
 				loadComponent: () => import('./routes/leads/leads-layout/leads-layout.component').then(m => m.LeadsLayoutComponent),
 				data: {
 					panelItems: [
-						{ label: 'Lead overview', route: '/app/leads', icon: 'list', exact: true },
-						{ label: 'Create lead', route: '/app/leads/new', icon: 'plus' },
+						{ label: 'leads.overview', route: '/app/leads', icon: 'list', exact: true },
+						{ label: 'leads.create', route: '/app/leads/new', icon: 'plus' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
@@ -115,8 +115,8 @@ export const routes: Routes = [
 				canActivate: [adminGuard],
 				data: {
 					panelItems: [
-						{ label: 'Service types', route: '/app/services', icon: 'list', exact: true },
-						{ label: 'Create service type', route: '/app/services/new', icon: 'plus' },
+						{ label: 'services.types', route: '/app/services', icon: 'list', exact: true },
+						{ label: 'services.createType', route: '/app/services/new', icon: 'plus' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [

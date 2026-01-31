@@ -27,13 +27,14 @@ import { DataGridColorCellComponent } from './data-grid-color-cell.component';
 import { DataGridStore } from './data-grid.store';
 import { AddressSuggestion } from '../../../core/services/address.service';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslateService, TranslatePipe } from '@ngx-translate/core';
 
 dayjs.extend(relativeTime);
 @Component({
   selector: 'data-grid-body',
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
-  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent, ChipComponent, LucideAngularModule],
+  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent, ChipComponent, LucideAngularModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'role': 'rowgroup',
@@ -41,6 +42,7 @@ dayjs.extend(relativeTime);
 })
 export class DataGridBodyComponent<T extends Record<string, unknown>> {
   private readonly store = inject(DataGridStore<T>);
+  private readonly translate = inject(TranslateService);
 
   // ============ Inputs ============
   

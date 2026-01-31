@@ -9,6 +9,7 @@ import {
 } from '@angular/core';
 import { OverlayModule } from '@angular/cdk/overlay';
 import { RouterLink } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonComponent } from '../button/button.component';
 
 export interface MenuItem {
@@ -26,7 +27,7 @@ export interface MenuSection {
 
 @Component({
   selector: 'shared-menu',
-  imports: [OverlayModule, RouterLink, ButtonComponent],
+  imports: [OverlayModule, RouterLink, ButtonComponent, TranslatePipe],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

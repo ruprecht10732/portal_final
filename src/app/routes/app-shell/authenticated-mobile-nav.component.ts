@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/c
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+import { TranslatePipe } from '@ngx-translate/core';
 import { filter, map } from 'rxjs';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { SidebarPanelItem } from './sidebar-panel.config';
@@ -14,13 +15,13 @@ interface MobileNavItem {
 
 @Component({
   selector: 'app-authenticated-mobile-nav',
-  imports: [RouterLink, RouterLinkActive, LucideAngularModule, ButtonComponent],
+  imports: [RouterLink, RouterLinkActive, LucideAngularModule, ButtonComponent, TranslatePipe],
   styles: `:host { display: contents; }`,
   template: `
     @if (showSectionMenu()) {
       <div
         class="fixed bottom-16 left-0 right-0 z-50 rounded-t-2xl border-t border-zinc-200 bg-white px-4 py-4 lg:hidden"
-        aria-label="Quick links"
+        [attr.aria-label]="'sidebar.quickLinks' | translate"
       >
         <div class="mx-auto mb-3 h-1.5 w-12 rounded-full bg-zinc-200"></div>
         <div class="grid gap-2">
@@ -30,13 +31,13 @@ interface MobileNavItem {
               [fullWidth]="true"
               [uppercase]="false"
               [variant]="isRouteActive(item.route, item.exact ?? false) ? 'primary' : 'secondary'"
-              [ariaLabel]="item.label"
+              [ariaLabel]="item.label | translate"
               (clicked)="navigateTo(item.route)"
             >
               @if (item.icon) {
                 <lucide-icon [name]="item.icon" class="h-4 w-4"></lucide-icon>
               }
-              {{ item.label }}
+              {{ item.label | translate }}
             </shared-button>
           }
         </div>
@@ -44,7 +45,7 @@ interface MobileNavItem {
     }
     <nav
       class="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center gap-2 border-t border-zinc-200 bg-white px-2 lg:hidden"
-      aria-label="Mobile navigation"
+      [attr.aria-label]="'sidebar.mobileNavigation' | translate"
     >
       @for (item of items; track item.route) {
         <shared-button
@@ -55,7 +56,7 @@ interface MobileNavItem {
           [active]="activeLink.isActive"
           [stacked]="true"
           [uppercase]="false"
-          [ariaLabel]="item.label"
+          [ariaLabel]="item.label | translate"
           [routerLink]="item.route"
           routerLinkActive
           #activeLink="routerLinkActive"
@@ -71,7 +72,7 @@ interface MobileNavItem {
               <lucide-icon name="user" class="h-5 w-5"></lucide-icon>
             }
           }
-          <span class="text-[10px]">{{ item.label }}</span>
+          <span class="text-[10px]">{{ item.label | translate }}</span>
         </shared-button>
       }
     </nav>
@@ -90,9 +91,9 @@ export class AuthenticatedMobileNavComponent {
   );
 
   protected readonly items: MobileNavItem[] = [
-    { label: 'Dashboard', route: '/app/dashboard', icon: 'dashboard' },
-    { label: 'Leads', route: '/app/leads', icon: 'leads' },
-    { label: 'Profile', route: '/app/profile', icon: 'profile' },
+    { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
+    { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
+    { label: 'navigation.profile', route: '/app/profile', icon: 'profile' },
   ];
 
   protected readonly panelItems = toSignal(

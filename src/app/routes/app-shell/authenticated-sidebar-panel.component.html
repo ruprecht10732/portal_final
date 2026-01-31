@@ -1,10 +1,10 @@
 <section class="h-full w-64 border border-zinc-200 border-l-0 bg-white px-5 py-6">
-  <div class="text-xs font-semibold uppercase tracking-[0.32em] text-zinc-400">Current</div>
+  <div class="text-xs font-semibold uppercase tracking-[0.32em] text-zinc-400">{{ 'sidebar.current' | translate }}</div>
   <div class="mt-2 text-lg font-semibold text-zinc-900">
-    {{ title() }}
+    {{ title() | translate }}
   </div>
   @if (items().length > 0) {
-    <nav class="mt-6 flex flex-col gap-2" aria-label="Section navigation">
+    <nav class="mt-6 flex flex-col gap-2" [attr.aria-label]="'sidebar.sectionNavigation' | translate">
       @for (item of items(); track item.route) {
         <app-authenticated-sidebar-nav-item
           [label]="item.label"

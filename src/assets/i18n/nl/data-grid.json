@@ -1,0 +1,10 @@
+{
+  "dataGrid": {
+    "selectRow": "Selecteer rij {{rowIndex}}",
+    "viewDetails": "Details bekijken",
+    "selectOption": "Selecteer...",
+    "noData": "Geen gegevens beschikbaar",
+    "loading": "Gegevens laden...",
+    "error": "Fout bij laden van gegevens"
+  }
+}

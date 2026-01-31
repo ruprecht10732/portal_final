@@ -40,7 +40,7 @@
               }
               <shared-checkbox
                 [checked]="row.selected"
-                [ariaLabel]="'Select row ' + (rowIndex + 1)"
+                [ariaLabel]="'dataGrid.selectRow' | translate:{rowIndex: rowIndex + 1}"
                 [dense]="true"
                 (checkedChange)="onRowSelect(rowIndex)"
               />
@@ -117,7 +117,7 @@
                       [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
                       [attr.aria-describedby]="getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null"
                     >
-                      <option value="" disabled [selected]="getInputValue(row, column) === ''">Select...</option>
+                      <option value="" disabled [selected]="getInputValue(row, column) === ''">{{ 'dataGrid.selectOption' | translate }}</option>
                       @for (option of column.selectOptions ?? []; track option.value) {
                         <option [value]="option.value" [selected]="option.value === getInputValue(row, column)">{{ option.label }}</option>
                       }
@@ -155,8 +155,8 @@
                   <button
                     type="button"
                     class="absolute right-0 top-1/2 z-10 -translate-y-1/2 flex h-7 w-7 items-center justify-center rounded-md bg-white text-zinc-600 opacity-0 shadow-sm ring-1 ring-zinc-200 transition-opacity duration-150 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer"
-                    aria-label="View details"
-                    title="View details"
+                    aria-label="{{ 'dataGrid.viewDetails' | translate }}"
+                    title="{{ 'dataGrid.viewDetails' | translate }}"
                     (click)="onRowDoubleClick(rowIndex); $event.stopPropagation()"
                   >
                     <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
@@ -239,8 +239,8 @@
                 <button
                   type="button"
                   class="ml-2 flex h-7 w-7 items-center justify-center rounded-md bg-white text-zinc-600 opacity-0 shadow-sm ring-1 ring-zinc-200 transition-opacity duration-150 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer"
-                  aria-label="View details"
-                  title="View details"
+                  aria-label="{{ 'dataGrid.viewDetails' | translate }}"
+                  title="{{ 'dataGrid.viewDetails' | translate }}"
                   (click)="onRowDoubleClick(rowIndex); $event.stopPropagation()"
                 >
                   <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
