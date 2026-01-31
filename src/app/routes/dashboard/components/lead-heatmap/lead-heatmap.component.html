@@ -4,8 +4,8 @@
       <h2 class="text-lg font-semibold">{{ 'dashboard.heatmap.title' | translate }}</h2>
       <p class="text-sm text-zinc-500">{{ 'dashboard.heatmap.subtitle' | translate }}</p>
     </div>
-    <div class="heatmap-controls">
-      <div class="heatmap-date">
+    <div class="heatmap-controls flex w-full flex-col gap-3 sm:flex-row sm:flex-wrap sm:items-end sm:justify-end">
+      <div class="heatmap-date w-full sm:w-44">
         <shared-input
           type="date"
           [label]="'dashboard.heatmap.startDate' | translate"
@@ -13,7 +13,7 @@
           (valueChange)="startDate.set($event)"
         />
       </div>
-      <div class="heatmap-date">
+      <div class="heatmap-date w-full sm:w-44">
         <shared-input
           type="date"
           [label]="'dashboard.heatmap.endDate' | translate"
@@ -21,12 +21,12 @@
           (valueChange)="endDate.set($event)"
         />
       </div>
-      <div class="heatmap-actions">
+      <div class="heatmap-actions flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:justify-end">
         <shared-button
           variant="primary"
           size="compact"
           [uppercase]="false"
-          [fullWidth]="false"
+          [fullWidth]="true"
           [disabled]="!canApply()"
           (clicked)="applyFilter()"
         >
@@ -36,7 +36,7 @@
           variant="secondary"
           size="compact"
           [uppercase]="false"
-          [fullWidth]="false"
+          [fullWidth]="true"
           (clicked)="clearFilter()"
         >
           {{ 'dashboard.heatmap.clear' | translate }}
@@ -48,7 +48,7 @@
     }
   </div>
 
-  <div class="heatmap-shell" role="img" [attr.aria-label]="'dashboard.heatmap.mapLabel' | translate">
+  <div class="heatmap-shell" role="region" [attr.aria-label]="'dashboard.heatmap.mapLabel' | translate">
     <div #mapContainer class="heatmap-map"></div>
 
     @if (loading()) {

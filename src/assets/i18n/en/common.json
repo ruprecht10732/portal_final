@@ -35,6 +35,18 @@
       "empty": "No leads found for this date range.",
       "error": "Unable to load heatmap.",
       "mapLabel": "Lead density heatmap"
+    },
+    "actionItems": {
+      "title": "Urgent action items",
+      "count": "{count} items",
+      "previous": "Previous",
+      "next": "Next",
+      "loading": "Loading action items...",
+      "empty": "No urgent or new leads right now.",
+      "error": "Unable to load action items.",
+      "urgent": "Urgent",
+      "new": "New lead",
+      "newLead": "New lead (last 7 days)"
     }
   }
 }

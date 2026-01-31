@@ -1,0 +1,105 @@
+<shared-card className="flex h-full flex-col rounded-none">
+  
+  <!-- Header: White bg (transparent), Sentence case, Smaller text -->
+  <header class="flex flex-col gap-4 border-b-2 border-black p-4 sm:flex-row sm:items-center sm:justify-between">
+    <div class="flex items-center gap-3">
+      <h2 class="text-lg font-semibold leading-tight text-black">
+        {{ 'dashboard.actionItems.title' | translate }}
+      </h2>
+      <!-- Counter: Minimalist mono badge, high contrast -->
+      <span class="flex items-center justify-center border border-black bg-white px-2 py-0.5 font-mono text-xs font-bold text-black">
+        {{ total() }}
+      </span>
+    </div>
+
+    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+      <shared-button
+        class="w-full sm:w-auto"
+        variant="secondary"
+        size="compact"
+        [uppercase]="false"
+        [fullWidth]="true"
+        [disabled]="!hasPrevious()"
+        (clicked)="previous()"
+        styleClass="rounded-none border border-black hover:bg-black hover:text-white transition-colors focus:ring-2 focus:ring-black focus:ring-offset-2"
+      >
+        <!-- Accessible arrows -->
+        <span aria-hidden="true">&larr;</span> {{ 'dashboard.actionItems.previous' | translate }}
+      </shared-button>
+      
+      <shared-button
+        class="w-full sm:w-auto"
+        variant="secondary"
+        size="compact"
+        [uppercase]="false"
+        [fullWidth]="true"
+        [disabled]="!hasNext()"
+        (clicked)="next()"
+        styleClass="rounded-none border border-black hover:bg-black hover:text-white transition-colors focus:ring-2 focus:ring-black focus:ring-offset-2"
+      >
+        {{ 'dashboard.actionItems.next' | translate }} <span aria-hidden="true">&rarr;</span>
+      </shared-button>
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="flex-1">
+    @if (loading()) {
+      <div class="flex h-40 flex-col items-center justify-center gap-3 text-black">
+        <div class="h-5 w-5 animate-spin border-2 border-zinc-300 border-t-black rounded-none"></div>
+        <span class="font-mono text-xs font-medium text-zinc-700">
+          {{ 'dashboard.actionItems.loading' | translate }}...
+        </span>
+      </div>
+    } @else if (error()) {
+      <div class="flex h-full items-center justify-center p-6">
+        <div class="w-full border border-red-600 bg-red-50 p-4">
+          <p class="text-sm font-bold text-red-800">{{ error() | translate }}</p>
+        </div>
+      </div>
+    } @else if (!items().length) {
+      <div class="flex h-40 items-center justify-center p-6">
+        <p class="text-sm text-zinc-600">{{ 'dashboard.actionItems.empty' | translate }}</p>
+      </div>
+    } @else {
+      <ul class="flex flex-col">
+        @for (item of items(); track item.id) {
+          <li class="group border-b border-black last:border-b-0 hover:bg-zinc-50 transition-colors duration-150">
+            <div class="flex flex-col gap-3 p-4 sm:flex-row sm:items-start sm:justify-between">
+              
+              <!-- Main Content -->
+              <div class="flex flex-1 flex-col gap-1.5">
+                <a 
+                  [routerLink]="['/app/leads', item.id]" 
+                  class="text-sm font-bold text-black underline decoration-1 underline-offset-4 hover:decoration-2 focus:outline-none focus:bg-black focus:text-white"
+                >
+                  {{ item.name }}
+                </a>
+                <p class="text-xs text-zinc-700">
+                  {{ item.urgencyReason || ('dashboard.actionItems.newLead' | translate) }}
+                </p>
+              </div>
+
+              <!-- Metadata & Status -->
+              <div class="flex flex-row items-center gap-3 sm:flex-col sm:items-end sm:gap-1.5">
+                @if (item.isUrgent) {
+                  <span class="inline-block border border-red-700 bg-red-700 px-1.5 py-0.5 text-[10px] font-semibold text-white">
+                    {{ 'dashboard.actionItems.urgent' | translate }}
+                  </span>
+                } @else {
+                  <span class="inline-block border border-zinc-400 bg-white px-1.5 py-0.5 text-[10px] font-semibold text-zinc-700">
+                    {{ 'dashboard.actionItems.new' | translate }}
+                  </span>
+                }
+                
+                <time class="font-mono text-[10px] text-zinc-600">
+                  {{ item.createdAt | date:'mediumDate' }}
+                </time>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</shared-card>

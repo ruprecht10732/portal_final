@@ -28,12 +28,25 @@
       "subtitle": "Zie waar leads clusteren voor terreinplanning.",
       "startDate": "Startdatum",
       "endDate": "Einddatum",
+      "dateError": "Startdatum moet vóór de einddatum liggen.",
       "apply": "Toepassen",
       "clear": "Wissen",
       "loading": "Heatmap laden...",
       "empty": "Geen leads gevonden voor deze periode.",
       "error": "Heatmap laden mislukt.",
       "mapLabel": "Lead-dichtheidskaart"
+    },
+    "actionItems": {
+      "title": "Urgente actie-items",
+      "count": "{count} items",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "loading": "Actie-items laden...",
+      "empty": "Geen urgente of nieuwe leads.",
+      "error": "Actie-items laden mislukt.",
+      "urgent": "Urgent",
+      "new": "Nieuwe lead",
+      "newLead": "Nieuwe lead (laatste 7 dagen)"
     }
   }
 }

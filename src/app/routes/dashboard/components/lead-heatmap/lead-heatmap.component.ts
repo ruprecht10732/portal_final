@@ -45,8 +45,8 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
   }
 
   ngOnDestroy(): void {
-    if (this.resizeHandler && typeof window !== 'undefined') {
-      window.removeEventListener('resize', this.resizeHandler);
+    if (this.resizeHandler && globalThis.window) {
+      globalThis.window.removeEventListener('resize', this.resizeHandler);
     }
     this.heatLayer?.remove();
     this.map?.remove();
@@ -87,9 +87,9 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
 
     setTimeout(() => this.map?.invalidateSize(), 0);
 
-    if (typeof window !== 'undefined') {
+    if (globalThis.window) {
       this.resizeHandler = () => this.map?.invalidateSize();
-      window.addEventListener('resize', this.resizeHandler);
+      globalThis.window.addEventListener('resize', this.resizeHandler);
     }
   }
 

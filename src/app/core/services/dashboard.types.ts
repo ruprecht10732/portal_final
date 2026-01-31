@@ -13,3 +13,18 @@ export interface LeadHeatmapPoint {
 export interface LeadHeatmapResponse {
   points: LeadHeatmapPoint[];
 }
+
+export interface ActionItem {
+  id: string;
+  name: string;
+  urgencyReason?: string;
+  createdAt: string;
+  isUrgent: boolean;
+}
+
+export interface ActionItemsResponse {
+  items: ActionItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+}
