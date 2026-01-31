@@ -1,0 +1,18 @@
+<shared-card className="kpi-card">
+  <div class="kpi-card__label" [attr.aria-label]="label()">
+    {{ label() }}
+  </div>
+  @if (isLoading()) {
+    <div class="kpi-card__value kpi-card__skeleton" aria-hidden="true"></div>
+    <div class="kpi-card__hint kpi-card__skeleton kpi-card__skeleton--sm" aria-hidden="true"></div>
+  } @else {
+    <div class="kpi-card__value" [attr.aria-label]="value()">
+      {{ value() }}
+    </div>
+    @if (hint()) {
+      <div class="kpi-card__hint">
+        {{ hint() }}
+      </div>
+    }
+  }
+</shared-card>

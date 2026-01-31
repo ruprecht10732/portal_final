@@ -12,5 +12,16 @@
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No"
+  },
+  "dashboard": {
+    "kpis": {
+      "totalLeads": "Total leads",
+      "projectedValue": "Projected value",
+      "disqualifiedRate": "Disqualified rate",
+      "touchpointsPerLead": "Touchpoints per lead",
+      "disqualifiedHint": "Share of leads marked as bad",
+      "touchpointsHint": "Avg. activities per lead",
+      "unavailable": "Unavailable"
+    }
   }
 }

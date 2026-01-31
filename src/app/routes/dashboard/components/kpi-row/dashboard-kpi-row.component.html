@@ -1,0 +1,10 @@
+<section class="kpi-row" aria-label="Dashboard KPIs">
+  @for (card of cards(); track card.id) {
+    <shared-kpi-card
+      [label]="card.labelKey | translate"
+      [value]="card.value"
+      [hint]="card.hintKey ? (card.hintKey | translate) : ''"
+      [isLoading]="card.isLoading"
+    />
+  }
+</section>

@@ -12,5 +12,16 @@
     "confirm": "Bevestigen",
     "yes": "Ja",
     "no": "Nee"
+  },
+  "dashboard": {
+    "kpis": {
+      "totalLeads": "Totaal leads",
+      "projectedValue": "Verwachte waarde",
+      "disqualifiedRate": "Afkeuringspercentage",
+      "touchpointsPerLead": "Contactmomenten per lead",
+      "disqualifiedHint": "Aandeel leads als slechte lead",
+      "touchpointsHint": "Gem. activiteiten per lead",
+      "unavailable": "Niet beschikbaar"
+    }
   }
 }

@@ -1,0 +1,6 @@
+.kpi-row {
+  display: grid;
+  gap: 1rem;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  align-items: stretch;
+}
