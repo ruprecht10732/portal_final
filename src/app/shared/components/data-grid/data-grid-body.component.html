@@ -16,6 +16,7 @@
       @if (selectable()) {
         <td
           role="gridcell"
+          [attr.aria-colindex]="1"
           class="w-10 px-0 py-2 border-b border-r border-zinc-200 sticky left-0 z-10 bg-inherit"
           [class.border-b-0]="rowIndex === rows().length - 1"
           [attr.title]="getRowStatusTooltip(row)"
@@ -53,7 +54,7 @@
         <td
           #cellRef
           role="gridcell"
-          [attr.aria-colindex]="colIndex + 2"
+          [attr.aria-colindex]="getAriaColIndex(colIndex)"
           [attr.tabindex]="isCellFocused(rowIndex, colIndex) ? 0 : -1"
           (click)="onCellClick(rowIndex, colIndex)"
           (keydown)="onCellKeydown($event, rowIndex, colIndex)"

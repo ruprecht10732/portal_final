@@ -4,6 +4,7 @@
     role="columnheader"
     scope="col"
     tabindex="-1"
+    [attr.aria-colindex]="1"
     class="w-10 px-0 py-2 sticky left-0 z-20 bg-black text-white border-b border-r border-zinc-200 focus:outline-none focus:ring-2 focus:ring-white focus:ring-inset"
   >
     <div class="flex w-full min-h-7 items-center justify-center">
@@ -27,6 +28,7 @@
     role="columnheader"
     scope="col"
     tabindex="-1"
+    [attr.aria-colindex]="getAriaColIndex(colIndex)"
     [attr.aria-sort]="column.sortable ? (sortDirection === 'asc' ? 'ascending' : sortDirection === 'desc' ? 'descending' : 'none') : null"
     class="relative px-2 py-2 text-xs font-semibold uppercase tracking-wide text-left text-white border-b border-zinc-200 bg-black focus:outline-none focus:ring-2 focus:ring-white focus:ring-inset"
     [class.border-r]="colIndex !== columns().length - 1"

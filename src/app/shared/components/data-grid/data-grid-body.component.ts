@@ -165,6 +165,10 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     return `cell-error-${rowIndex}-${columnId}`;
   }
 
+  protected getAriaColIndex(columnIndex: number): number {
+    return columnIndex + 1 + (this.selectable() ? 1 : 0);
+  }
+
   protected onCellClick(rowIndex: number, columnIndex: number): void {
     this.cellFocus.emit({ rowIndex, columnIndex });
   }

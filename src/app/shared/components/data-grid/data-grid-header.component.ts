@@ -75,6 +75,10 @@ export class DataGridHeaderComponent<T = unknown> {
     return `${column.header}, click to sort ascending`;
   }
 
+  protected getAriaColIndex(columnIndex: number): number {
+    return columnIndex + 1 + (this.selectable() ? 1 : 0);
+  }
+
   /** Calculate left position for frozen columns */
   protected getFrozenColumnLeft(columnIndex: number): string {
     const cols = this.columns();
