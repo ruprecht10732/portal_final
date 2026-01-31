@@ -69,6 +69,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   readonly cellEditComplete = output<boolean>();
   readonly rowSelect = output<number>();
   readonly rowDoubleClick = output<number>();
+  readonly rowDelete = output<number>();
   readonly navigate = output<'up' | 'down' | 'left' | 'right' | 'home' | 'end'>();
   readonly cellEditEvent = output<CellEditEvent<T>>();
 
@@ -345,6 +346,10 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   protected onRowDoubleClick(rowIndex: number): void {
     this.rowDoubleClick.emit(rowIndex);
+  }
+
+  protected onRowDelete(rowIndex: number): void {
+    this.rowDelete.emit(rowIndex);
   }
 
   private isInteractiveElement(target: EventTarget | null): boolean {

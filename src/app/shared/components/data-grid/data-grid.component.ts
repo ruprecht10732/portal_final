@@ -303,6 +303,18 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     }
   }
 
+  protected onRowDelete(rowIndex: number): void {
+    const row = this.store.rows()[rowIndex];
+    if (!row) {
+      return;
+    }
+    if (row.isNew) {
+      this.store.removeNewRow(rowIndex);
+      return;
+    }
+    this.deleteRows.emit([row.current]);
+  }
+
   protected onSaveRequest(rows: T[]): void {
     const validRows = this.store.validateDirtyRows();
     if (validRows.length > 0) {
