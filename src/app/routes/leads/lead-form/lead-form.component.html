@@ -19,14 +19,16 @@
         {{ isNew() ? ('leads.form.newLead' | translate) : ('leads.form.editLead' | translate) }}
       </h1>
       <!-- Optional breadcrumb or status text -->
-      <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">Form ID: #{{ isNew() ? 'NEW' : 'EDIT' }}</span>
+      <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
+        {{ 'leads.form.formId' | translate:{status: (isNew() ? ('leads.form.statusNew' | translate) : ('leads.form.statusEdit' | translate))} }}
+      </span>
     </div>
   </header>
 
   <!-- Alerts Section: Stacks vertically -->
   @if (error()) {
     <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
-      <span class="font-bold uppercase text-red-600 shrink-0">Error</span>
+      <span class="font-bold uppercase text-red-600 shrink-0">{{ 'leads.form.errorLabel' | translate }}</span>
       <span>{{ error() }}</span>
     </div>
   }
@@ -61,7 +63,7 @@
   @if (loading()) {
     <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
       <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
-      <p class="text-xs font-mono uppercase text-zinc-400">Loading...</p>
+      <p class="text-xs font-mono uppercase text-zinc-400">{{ 'leads.form.loading' | translate }}</p>
     </div>
   } @else {
     <form (ngSubmit)="save()" class="flex-1 flex flex-col">
