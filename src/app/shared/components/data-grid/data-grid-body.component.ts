@@ -161,6 +161,10 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     return row.cellErrors[columnId] ?? null;
   }
 
+  protected getCellErrorId(rowIndex: number, columnId: string): string {
+    return `cell-error-${rowIndex}-${columnId}`;
+  }
+
   protected onCellClick(rowIndex: number, columnIndex: number): void {
     this.cellFocus.emit({ rowIndex, columnIndex });
   }

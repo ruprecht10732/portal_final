@@ -113,6 +113,8 @@
                       [class.text-zinc-500]="getInputValue(row, column) === ''"
                       [class.border-red-500]="getCellError(row, column.id)"
                       [class.border]="getCellError(row, column.id)"
+                      [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
+                      [attr.aria-describedby]="getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null"
                     >
                       <option value="" disabled [selected]="getInputValue(row, column) === ''">Select...</option>
                       @for (option of column.selectOptions ?? []; track option.value) {
@@ -127,6 +129,8 @@
                       [checked]="!!getCellValue(row, column)"
                       (change)="onInputChange(rowIndex, column, $event)"
                       (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
+                      [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
+                      [attr.aria-describedby]="getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null"
                     />
                   }
                   @default {
@@ -141,6 +145,8 @@
                       [class.text-zinc-500]="getInputValue(row, column) === ''"
                       [class.border-red-500]="getCellError(row, column.id)"
                       [class.border]="getCellError(row, column.id)"
+                      [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
+                      [attr.aria-describedby]="getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null"
                     />
                   }
                 }
@@ -165,6 +171,7 @@
                 <span 
                   class="text-xs font-semibold uppercase tracking-wide text-red-700"
                   role="alert"
+                  [id]="getCellErrorId(rowIndex, column.id)"
                 >
                   {{ getCellError(row, column.id) }}
                 </span>
