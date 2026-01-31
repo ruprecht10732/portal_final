@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize } from 'rxjs';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { UserService } from '../../../core/services/user.service';
@@ -8,7 +9,7 @@ import { MIN_LENGTH } from '../../../core/config';
 
 @Component({
   selector: 'app-security',
-  imports: [ButtonComponent, InputComponent],
+  imports: [ButtonComponent, InputComponent, TranslateModule],
   templateUrl: './security.component.html',
   styleUrl: './security.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -24,16 +25,26 @@ export class SecurityComponent {
 
   private readonly userService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
 
   protected readonly newPasswordError = computed(() => {
+    this.lang();
     const value = this.newPassword();
     if (!value) return '';
-    return value.length >= MIN_LENGTH.password ? '' : `Password must be at least ${MIN_LENGTH.password} characters`;
+    return value.length >= MIN_LENGTH.password
+      ? ''
+      : this.translate.instant('profile.securityPage.errors.minPassword', { count: MIN_LENGTH.password });
   });
 
   protected readonly confirmPasswordError = computed(() => {
+    this.lang();
     if (!this.confirmPassword()) return '';
-    return this.newPassword() === this.confirmPassword() ? '' : 'Passwords do not match';
+    return this.newPassword() === this.confirmPassword()
+      ? ''
+      : this.translate.instant('profile.securityPage.errors.passwordsNoMatch');
   });
 
   protected readonly canSave = computed(() =>
@@ -68,7 +79,7 @@ export class SecurityComponent {
         this.currentPassword.set('');
         this.newPassword.set('');
         this.confirmPassword.set('');
-        this.successMessage.set('Password updated successfully.');
+        this.successMessage.set(this.translate.instant('profile.securityPage.success'));
       });
   }
 
@@ -82,6 +93,6 @@ export class SecurityComponent {
       const value = (error as { message?: string }).message;
       if (value) return value;
     }
-    return 'Something went wrong. Please try again.';
+    return this.translate.instant('profile.securityPage.errors.generic');
   }
 }

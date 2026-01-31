@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'app-personal-details',
-  imports: [ButtonComponent, InputComponent],
+  imports: [ButtonComponent, InputComponent, TranslatePipe],
   templateUrl: './personal-details.component.html',
   styleUrl: './personal-details.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,12 +27,17 @@ export class PersonalDetailsComponent {
 
   private readonly userService = inject(UserService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
 
   protected readonly emailError = computed(() => {
+    this.lang();
     const value = this.email();
-    if (!value) return 'Email is required';
+    if (!value) return this.translate.instant('profile.personal.errors.emailRequired');
     const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
-    return isValid ? '' : 'Enter a valid email address';
+    return isValid ? '' : this.translate.instant('profile.personal.errors.emailInvalid');
   });
 
   protected readonly hasChanges = computed(() =>
@@ -90,7 +96,7 @@ export class PersonalDetailsComponent {
         this.initialEmail.set(profile.email);
         this.emailVerified.set(profile.emailVerified);
         this.updatedAt.set(profile.updatedAt);
-        this.successMessage.set('Profile updated. Check your email to verify changes.');
+        this.successMessage.set(this.translate.instant('profile.personal.success'));
       });
   }
 
@@ -104,6 +110,6 @@ export class PersonalDetailsComponent {
       const value = (error as { message?: string }).message;
       if (value) return value;
     }
-    return 'Something went wrong. Please try again.';
+    return this.translate.instant('profile.personal.errors.generic');
   }
 }

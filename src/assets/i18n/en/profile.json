@@ -1,6 +1,37 @@
 {
   "profile": {
     "personalDetails": "Personal details",
-    "security": "Security"
+    "security": "Security",
+    "personal": {
+      "title": "Personal Details",
+      "subtitle": "Update your contact information.",
+      "email": "Email",
+      "verified": "Verified",
+      "unverified": "Unverified",
+      "unverifiedHint": "Check your inbox for the verification link.",
+      "created": "Created {{date}}",
+      "updated": "Updated {{date}}",
+      "saveChanges": "Save changes",
+      "success": "Profile updated. Check your email to verify changes.",
+      "errors": {
+        "emailRequired": "Email is required",
+        "emailInvalid": "Enter a valid email address",
+        "generic": "Something went wrong. Please try again."
+      }
+    },
+    "securityPage": {
+      "title": "Security",
+      "subtitle": "Update your password to keep your account secure.",
+      "currentPassword": "Current Password",
+      "newPassword": "New Password",
+      "confirmNewPassword": "Confirm New Password",
+      "updatePassword": "Update password",
+      "success": "Password updated successfully.",
+      "errors": {
+        "minPassword": "Password must be at least {{count}} characters",
+        "passwordsNoMatch": "Passwords do not match",
+        "generic": "Something went wrong. Please try again."
+      }
+    }
   }
 }

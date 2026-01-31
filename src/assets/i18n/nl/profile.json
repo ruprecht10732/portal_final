@@ -1,6 +1,37 @@
 {
   "profile": {
     "personalDetails": "Persoonlijke gegevens",
-    "security": "Beveiliging"
+    "security": "Beveiliging",
+    "personal": {
+      "title": "Persoonlijke gegevens",
+      "subtitle": "Werk je contactgegevens bij.",
+      "email": "E-mailadres",
+      "verified": "Geverifieerd",
+      "unverified": "Niet geverifieerd",
+      "unverifiedHint": "Controleer je inbox voor de verificatielink.",
+      "created": "Aangemaakt {{date}}",
+      "updated": "Bijgewerkt {{date}}",
+      "saveChanges": "Wijzigingen opslaan",
+      "success": "Profiel bijgewerkt. Controleer je e-mail om wijzigingen te verifiëren.",
+      "errors": {
+        "emailRequired": "E-mailadres is verplicht",
+        "emailInvalid": "Voer een geldig e-mailadres in",
+        "generic": "Er ging iets mis. Probeer het opnieuw."
+      }
+    },
+    "securityPage": {
+      "title": "Beveiliging",
+      "subtitle": "Werk je wachtwoord bij om je account te beveiligen.",
+      "currentPassword": "Huidig wachtwoord",
+      "newPassword": "Nieuw wachtwoord",
+      "confirmNewPassword": "Bevestig nieuw wachtwoord",
+      "updatePassword": "Wachtwoord bijwerken",
+      "success": "Wachtwoord succesvol bijgewerkt.",
+      "errors": {
+        "minPassword": "Wachtwoord moet minstens {{count}} tekens bevatten",
+        "passwordsNoMatch": "Wachtwoorden komen niet overeen",
+        "generic": "Er ging iets mis. Probeer het opnieuw."
+      }
+    }
   }
 }

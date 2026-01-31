@@ -9,13 +9,13 @@
 <section class="w-full space-y-6 bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm">
   
   <div class="space-y-1">
-    <h3 class="text-lg font-semibold text-zinc-900">Security</h3>
-    <p class="text-sm text-zinc-500">Update your password to keep your account secure.</p>
+    <h3 class="text-lg font-semibold text-zinc-900">{{ 'profile.securityPage.title' | translate }}</h3>
+    <p class="text-sm text-zinc-500">{{ 'profile.securityPage.subtitle' | translate }}</p>
   </div>
 
   <div class="grid gap-5">
     <shared-input
-      label="Current Password"
+      [label]="'profile.securityPage.currentPassword' | translate"
       type="password"
       [value]="currentPassword()"
       (valueChange)="currentPassword.set($event)"
@@ -23,7 +23,7 @@
       [passwordToggle]="true"
     />
     <shared-input
-      label="New Password"
+      [label]="'profile.securityPage.newPassword' | translate"
       type="password"
       [value]="newPassword()"
       (valueChange)="newPassword.set($event)"
@@ -32,7 +32,7 @@
       [passwordToggle]="true"
     />
     <shared-input
-      label="Confirm New Password"
+      [label]="'profile.securityPage.confirmNewPassword' | translate"
       type="password"
       [value]="confirmPassword()"
       (valueChange)="confirmPassword.set($event)"
@@ -49,10 +49,10 @@
       size="compact"
       [disabled]="!canSave()"
       [loading]="isSaving()"
-      ariaLabel="Update password"
+      [ariaLabel]="'profile.securityPage.updatePassword' | translate"
       (clicked)="save()"
     >
-      Update password
+      {{ 'profile.securityPage.updatePassword' | translate }}
     </shared-button>
   </div>
 
