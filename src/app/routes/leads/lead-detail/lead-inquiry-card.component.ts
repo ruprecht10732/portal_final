@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import type { Lead } from '../../../core/services/leads.types';
+import type { Lead, LeadService } from '../../../core/services/leads.types';
 import { ChipComponent } from '../../../shared/components/chip/chip.component';
 
 @Component({
@@ -12,6 +12,7 @@ import { ChipComponent } from '../../../shared/components/chip/chip.component';
 })
 export class LeadInquiryCardComponent {
   lead = input<Lead | null>(null);
+  selectedService = input<LeadService | null>(null);
 
   protected readonly sourceLabel = computed(() => {
     const value = this.lead()?.source?.trim();
@@ -19,8 +20,9 @@ export class LeadInquiryCardComponent {
   });
 
   protected readonly noteText = computed(() => {
-    // Consumer note is now per-service
-    const value = this.lead()?.currentService?.consumerNote?.trim();
+    // Use selected service if provided, otherwise fall back to currentService
+    const service = this.selectedService() ?? this.lead()?.currentService;
+    const value = service?.consumerNote?.trim();
     return value ?? null;
   });
 }
