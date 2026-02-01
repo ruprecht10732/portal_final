@@ -282,9 +282,6 @@ export const DEFAULT_GRID_CONFIG: GridConfig<unknown> = {
   rowDeleteActionEnabled: false,
 };
 
-/** Keyboard navigation direction */
-export type NavigationDirection = 'up' | 'down' | 'left' | 'right' | 'home' | 'end';
-
 /** Cell position for keyboard navigation */
 export interface CellPosition {
   rowIndex: number;

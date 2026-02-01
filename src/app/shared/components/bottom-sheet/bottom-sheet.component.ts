@@ -7,7 +7,6 @@ import {
   ChangeDetectionStrategy,
   Component,
   ElementRef,
-  HostListener,
   computed,
   effect,
   input,
@@ -23,6 +22,7 @@ import {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class.pointer-events-none]': '!isOpen()',
+    '(document:keydown.escape)': 'onEscape()',
   },
 })
 export class BottomSheetComponent {
@@ -98,7 +98,6 @@ export class BottomSheetComponent {
 
   // ============ Event Handlers ============
   
-  @HostListener('document:keydown.escape')
   protected onEscape(): void {
     if (this.isOpen() && this.closeOnEscape()) {
       this.close.emit();

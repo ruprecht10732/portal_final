@@ -37,6 +37,3 @@ export const AVAILABLE_ICONS: readonly string[] = [
   'zap',
   'app-window',
 ] as const;
-
-/** Type for available icon names */
-export type AvailableIcon = typeof AVAILABLE_ICONS[number];

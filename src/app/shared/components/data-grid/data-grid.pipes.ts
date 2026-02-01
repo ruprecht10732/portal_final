@@ -4,7 +4,7 @@
  */
 
 import { Pipe, PipeTransform } from '@angular/core';
-import { GridColumn, RowState } from './data-grid.types';
+import { GridColumn } from './data-grid.types';
 
 /**
  * Get column label by ID
@@ -43,26 +43,3 @@ export class OptionLabelPipe implements PipeTransform {
   }
 }
 
-/**
- * Extract current data from dirty rows
- */
-@Pipe({
-  name: 'dirtyRowsData',
-})
-export class DirtyRowsDataPipe implements PipeTransform {
-  transform<T>(rows: RowState<T>[]): T[] {
-    return rows.filter(r => r.dirty).map(r => r.current);
-  }
-}
-
-/**
- * Extract current data from selected rows
- */
-@Pipe({
-  name: 'selectedRowsData',
-})
-export class SelectedRowsDataPipe implements PipeTransform {
-  transform<T>(rows: RowState<T>[]): T[] {
-    return rows.filter(r => r.selected).map(r => r.current);
-  }
-}

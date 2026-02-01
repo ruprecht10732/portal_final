@@ -16,12 +16,3 @@ export const MAP_CONFIG = {
   defaultZoom: 16,
   boundingBoxDelta: 0.005,
 } as const;
-
-export const Z_INDEX = {
-  dropdown: 1000,
-} as const;
-
-export const MULTISELECT_BOUNDS = {
-  minItems: 3,
-  maxItems: 8,
-} as const;

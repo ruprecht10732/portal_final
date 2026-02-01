@@ -110,10 +110,6 @@ export interface UpdateServiceStatusRequest {
   status: LeadStatus;
 }
 
-export interface AssignLeadRequest {
-  assigneeId?: string | null;
-}
-
 export interface UpdateStatusRequest {
   status: LeadStatus;
 }
@@ -145,10 +141,6 @@ export interface ReturningCustomerResponse {
   fullName?: string;
   totalServices: number;
   services?: ServiceBrief[];
-}
-
-export interface BulkDeleteLeadsRequest {
-  ids: string[];
 }
 
 export interface BulkDeleteLeadsResponse {

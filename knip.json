@@ -1,0 +1,15 @@
+{
+  "$schema": "https://unpkg.com/knip@latest/schema.json",
+  "entry": [
+    "src/main.ts",
+    "src/app/**/*.ts",
+    "src/types/leaflet-heat.d.ts"
+  ],
+  "project": [
+    "tsconfig.app.json",
+    "tsconfig.spec.json"
+  ],
+  "ignore": [
+    "src/**/*.css"
+  ]
+}

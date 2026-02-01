@@ -2,10 +2,8 @@ import { HttpErrorResponse } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
 import { ToastService, ToastVariant } from './toast.service';
 
-export type ErrorSource = 'http' | 'runtime' | 'manual';
-
 export interface ErrorContext {
-  source?: ErrorSource;
+  source?: 'http' | 'runtime' | 'manual';
   status?: number;
   url?: string;
   silent?: boolean;
