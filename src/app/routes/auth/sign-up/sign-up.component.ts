@@ -1,5 +1,5 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
-import { Router, RouterLink } from '@angular/router';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, OnInit } from '@angular/core';
+import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, finalize, EMPTY } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -20,14 +20,19 @@ interface PasswordRule {
   styleUrl: './sign-up.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class SignUpComponent {
+export class SignUpComponent implements OnInit {
   protected readonly email = signal('');
   protected readonly password = signal('');
   protected readonly isSubmitting = signal(false);
   protected readonly globalError = signal('');
+  protected readonly inviteToken = signal<string | null>(null);
+  protected readonly organizationName = signal<string | null>(null);
+  protected readonly isLoadingInvite = signal(false);
+  protected readonly emailReadonly = signal(false);
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly reporter = inject(ErrorReportingService);
 
@@ -57,7 +62,7 @@ export class SignUpComponent {
   });
 
   protected readonly canSubmit = computed(() =>
-    !this.isSubmitting() && !!this.email() && !!this.password() && !this.emailError() && this.hasMinLength()
+    !this.isSubmitting() && !this.isLoadingInvite() && !!this.email() && !!this.password() && !this.emailError() && this.hasMinLength()
   );
 
   constructor() {
@@ -70,6 +75,34 @@ export class SignUpComponent {
     });
   }
 
+  ngOnInit(): void {
+    const token = this.route.snapshot.queryParamMap.get('token');
+    if (token) {
+      this.inviteToken.set(token);
+      this.resolveInvite(token);
+    }
+  }
+
+  private resolveInvite(token: string): void {
+    this.isLoadingInvite.set(true);
+    this.authService.resolveInvite(token)
+      .pipe(
+        catchError(error => {
+          const message = this.authService.getErrorMessage(error);
+          this.globalError.set(message);
+          this.inviteToken.set(null);
+          return EMPTY;
+        }),
+        finalize(() => this.isLoadingInvite.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(response => {
+        this.email.set(response.email);
+        this.emailReadonly.set(true);
+        this.organizationName.set(response.organizationName);
+      });
+  }
+
   protected onSubmit(event: Event): void {
     event.preventDefault();
     if (!this.canSubmit()) return;
@@ -77,7 +110,17 @@ export class SignUpComponent {
     this.globalError.set('');
     this.isSubmitting.set(true);
 
-    this.authService.signUp({ email: this.email(), password: this.password() })
+    const payload: { email: string; password: string; inviteToken?: string } = {
+      email: this.email(),
+      password: this.password(),
+    };
+
+    const token = this.inviteToken();
+    if (token) {
+      payload.inviteToken = token;
+    }
+
+    this.authService.signUp(payload)
       .pipe(
         catchError(error => {
           const message = this.authService.getErrorMessage(error);

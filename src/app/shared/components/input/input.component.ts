@@ -22,6 +22,7 @@ import { FormsModule } from '@angular/forms';
           [placeholder]="placeholder()"
           [(ngModel)]="value"
           [disabled]="disabled()"
+          [readonly]="readonly()"
           [required]="required()"
           [attr.min]="min() || null"
           [attr.max]="max() || null"
@@ -29,7 +30,7 @@ import { FormsModule } from '@angular/forms';
           [attr.aria-invalid]="!!error()"
           [attr.aria-label]="ariaLabel() || label() || placeholder()"
           [attr.aria-describedby]="describedBy()"
-          class="w-full pl-4 py-3 text-sm bg-white border transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed placeholder:text-zinc-400"
+          class="w-full pl-4 py-3 text-sm bg-white border transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed placeholder:text-zinc-400 read-only:bg-zinc-50 read-only:cursor-default"
           [class.pr-16]="clearable() && showPasswordToggle()"
           [class.pr-10]="(clearable() && !showPasswordToggle()) || (!clearable() && showPasswordToggle())"
           [class.pr-4]="!clearable() && !showPasswordToggle()"
@@ -61,7 +62,7 @@ import { FormsModule } from '@angular/forms';
             }
           </button>
         }
-        @if (clearable() && value()) {
+        @if (clearable() && value() && !readonly()) {
           <button
             type="button"
             (click)="clear()"
@@ -101,6 +102,7 @@ export class InputComponent {
   type = input('text');
   placeholder = input('');
   disabled = input(false);
+  readonly = input(false);
   required = input(false);
   hint = input<string>('');
   error = input<string>('');
@@ -131,7 +133,7 @@ export class InputComponent {
   }
 
   protected clear(): void {
-    if (this.disabled()) return;
+    if (this.disabled() || this.readonly()) return;
     this.value.set('');
   }
 

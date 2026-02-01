@@ -16,6 +16,12 @@ export interface SignInRequest {
 export interface SignUpRequest {
   email: string;
   password: string;
+  inviteToken?: string;
+}
+
+export interface ResolveInviteResponse {
+  email: string;
+  organizationName: string;
 }
 
 export interface ForgotPasswordRequest {
@@ -94,6 +100,12 @@ export class AuthService {
 
   verifyEmail(payload: VerifyEmailRequest): Observable<MessageResponse> {
     return this.http.post<MessageResponse>(`${this.baseUrl}/auth/verify-email`, payload);
+  }
+
+  resolveInvite(token: string): Observable<ResolveInviteResponse> {
+    return this.http.get<ResolveInviteResponse>(`${this.baseUrl}/auth/invites/resolve`, {
+      params: { token }
+    });
   }
 
   getErrorMessage(error: unknown): string {
