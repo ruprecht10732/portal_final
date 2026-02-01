@@ -2,7 +2,6 @@
 
 export type ConsumerRole = 'Owner' | 'Tenant' | 'Landlord';
 export type LeadStatus = 'New' | 'Attempted_Contact' | 'Scheduled' | 'Surveyed' | 'Bad_Lead' | 'Needs_Rescheduling' | 'Closed';
-export type AccessDifficulty = 'Low' | 'Medium' | 'High';
 export type LeadNoteType = 'note' | 'call' | 'text' | 'email' | 'system';
 
 export interface Consumer {
@@ -20,34 +19,6 @@ export interface Address {
   city: string;
   latitude?: number;
   longitude?: number;
-}
-
-export interface Visit {
-  scheduledDate?: string;
-  scoutId?: string;
-  measurements?: string;
-  accessDifficulty?: AccessDifficulty;
-  notes?: string;
-  completedAt?: string;
-}
-
-export type VisitOutcome = 'completed' | 'no_show' | 'rescheduled' | 'cancelled';
-
-export interface VisitHistory {
-  id: string;
-  leadId: string;
-  scheduledDate: string;
-  scoutId?: string;
-  outcome: VisitOutcome;
-  measurements?: string;
-  accessDifficulty?: AccessDifficulty;
-  notes?: string;
-  completedAt?: string;
-  createdAt: string;
-}
-
-export interface VisitHistoryListResponse {
-  items: VisitHistory[];
 }
 
 export interface LeadNote {
@@ -68,7 +39,6 @@ export interface LeadService {
   serviceType: string;
   status: LeadStatus;
   consumerNote?: string;
-  visit: Visit;
   createdAt: string;
   updatedAt: string;
 }
@@ -146,34 +116,6 @@ export interface AssignLeadRequest {
 
 export interface UpdateStatusRequest {
   status: LeadStatus;
-}
-
-export interface ScheduleVisitRequest {
-  serviceId: string;
-  scheduledDate: string;
-  scoutId?: string;
-  sendInvite?: boolean;
-}
-
-export interface CompleteSurveyRequest {
-  serviceId: string;
-  measurements: string;
-  accessDifficulty: AccessDifficulty;
-  notes?: string;
-}
-
-export interface MarkNoShowRequest {
-  serviceId: string;
-  notes?: string;
-}
-
-export interface RescheduleVisitRequest {
-  serviceId: string;
-  noShowNotes?: string;
-  markAsNoShow?: boolean;
-  scheduledDate: string;
-  scoutId?: string;
-  sendInvite?: boolean;
 }
 
 export interface CreateLeadNoteRequest {
@@ -273,12 +215,6 @@ export const CONSUMER_ROLE_OPTIONS: { label: string; value: ConsumerRole }[] = [
   { label: 'Owner', value: 'Owner' },
   { label: 'Tenant', value: 'Tenant' },
   { label: 'Landlord', value: 'Landlord' },
-];
-
-export const ACCESS_DIFFICULTY_OPTIONS: { label: string; value: AccessDifficulty }[] = [
-  { label: 'Low', value: 'Low' },
-  { label: 'Medium', value: 'Medium' },
-  { label: 'High', value: 'High' },
 ];
 
 export const STATUS_OPTIONS: { label: string; value: LeadStatus }[] = [

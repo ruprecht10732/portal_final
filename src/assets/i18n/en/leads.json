@@ -67,7 +67,21 @@
       "tabs": {
         "visit": "The Visit",
         "activity": "Activity / Notes",
+        "appointments": "Appointments",
         "ai": "AI Advisor"
+      },
+      "appointments": {
+        "defaultTitle": "Lead visit",
+        "created": "Appointment created",
+        "createError": "Failed to create appointment",
+        "noServiceError": "Unable to create appointment: lead has no service",
+        "loadError": "Failed to load appointments",
+        "reportSaved": "Visit report saved",
+        "reportError": "Failed to save visit report",
+        "reportLoadError": "Failed to load visit report",
+        "attachmentSaved": "Attachment saved",
+        "attachmentError": "Failed to save attachment",
+        "attachmentsLoadError": "Failed to load attachments"
       },
       "inquiry": {
         "title": "Initial Request",

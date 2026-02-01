@@ -7,16 +7,18 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, map, of } from 'rxjs';
 import { ButtonComponent } from '../../shared/components/button/button.component';
-import { MenuComponent, MenuSection } from '../../shared/components/menu/menu.component';
+import { MenuComponent, MenuItem, MenuSection } from '../../shared/components/menu/menu.component';
 import { AuthenticatedSidebarPanelComponent } from './authenticated-sidebar-panel.component';
 import { SidebarPanelItem } from './sidebar-panel.config';
+import { AuthService } from '../../core/services/auth.service';
+import { TokenStorageService } from '../../core/services/token-storage.service';
 import { UserService } from '../../core/services/user.service';
 import type { UserProfile } from '../../core/services/user.types';
 
 interface SidebarItem {
   label: string;
   route: string;
-  icon: 'dashboard' | 'leads' | 'services' | 'profile';
+  icon: 'dashboard' | 'leads' | 'services' | 'offertes' | 'catalog' | 'profile';
 }
 
 @Component({
@@ -37,6 +39,8 @@ interface SidebarItem {
 export class AuthenticatedSidebarComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly authService = inject(AuthService);
+  private readonly tokens = inject(TokenStorageService);
   private readonly userService = inject(UserService);
 
   private readonly currentUrl = toSignal(
@@ -62,6 +66,8 @@ export class AuthenticatedSidebarComponent {
     const base: SidebarItem[] = [
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
+      { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },
+      { label: 'navigation.catalog', route: '/app/catalog', icon: 'catalog' },
     ];
     if (this.isAdmin()) {
       base.splice(2, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
@@ -74,7 +80,7 @@ export class AuthenticatedSidebarComponent {
       label: 'menu.account',
       items: [
         { label: 'navigation.profile', route: '/app/profile' },
-        { label: 'menu.signOut', route: '/sign-in' },
+        { label: 'menu.signOut' },
       ],
     },
   ];
@@ -110,5 +116,18 @@ export class AuthenticatedSidebarComponent {
 
   protected toggleExpanded(): void {
     this.isExpanded.update((value) => !value);
+  }
+
+  protected handleProfileMenuSelection(item: MenuItem): void {
+    if (item.label !== 'menu.signOut') return;
+    this.authService.signOut().subscribe({
+      next: () => {
+        this.router.navigate(['/sign-in']);
+      },
+      error: () => {
+        this.tokens.clear();
+        this.router.navigate(['/sign-in']);
+      },
+    });
   }
 }

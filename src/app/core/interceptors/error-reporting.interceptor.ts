@@ -13,12 +13,18 @@ export const errorReportingInterceptor: HttpInterceptorFn = (req, next) => {
   return next(req).pipe(
     catchError(error => {
       if (isApiRequest && error instanceof HttpErrorResponse) {
-        reporter.report(error, {
-          source: 'http',
-          status: error.status,
-          url: req.url,
-          silent: isRefreshRequest && error.status === 401,
-        });
+        // Skip reporting 404s - they're often expected (e.g., checking if a resource exists)
+        const is404 = error.status === 404;
+        const isSilent = isRefreshRequest && error.status === 401;
+
+        if (!is404) {
+          reporter.report(error, {
+            source: 'http',
+            status: error.status,
+            url: req.url,
+            silent: isSilent,
+          });
+        }
       }
       return throwError(() => error);
     })

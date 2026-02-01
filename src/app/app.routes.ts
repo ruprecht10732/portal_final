@@ -1,5 +1,6 @@
 import { Routes } from '@angular/router';
 import { authGuard } from './core/guards/auth.guard';
+import { onboardingGuard } from './core/guards/onboarding.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { leadsListResolver } from './routes/leads/leads-list.resolver';
@@ -45,6 +46,7 @@ export const routes: Routes = [
 		path: 'app',
 		loadComponent: () => import('./routes/app-shell/authenticated-layout.component').then(m => m.AuthenticatedLayoutComponent),
 		canActivate: [authGuard],
+		canActivateChild: [onboardingGuard],
 		children: [
 			{
 				path: '',
@@ -54,6 +56,10 @@ export const routes: Routes = [
 			{
 				path: 'dashboard',
 				loadComponent: () => import('./routes/dashboard/dashboard.component').then(m => m.DashboardComponent),
+			},
+			{
+				path: 'onboarding',
+				loadComponent: () => import('./routes/onboarding/onboarding.component').then(m => m.OnboardingComponent),
 			},
 			{
 				path: 'profile',
@@ -106,6 +112,46 @@ export const routes: Routes = [
 					{
 						path: ':id/edit',
 						loadComponent: () => import('./routes/leads/lead-form/lead-form.component').then(m => m.LeadFormComponent),
+					},
+				],
+			},
+			{
+				path: 'offertes',
+				loadComponent: () => import('./routes/offertes/offertes-layout/offertes-layout.component').then(m => m.OffertesLayoutComponent),
+				data: {
+					panelItems: [
+						{ label: 'offertes.overview', route: '/app/offertes', icon: 'list', exact: true },
+						{ label: 'offertes.create', route: '/app/offertes/new', icon: 'plus' },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						loadComponent: () => import('./routes/offertes/offertes-list/offertes-list.component').then(m => m.OffertesListComponent),
+					},
+					{
+						path: 'new',
+						loadComponent: () => import('./routes/offertes/offertes-create/offertes-create.component').then(m => m.OffertesCreateComponent),
+					},
+				],
+			},
+			{
+				path: 'catalog',
+				loadComponent: () => import('./routes/catalog/catalog-layout/catalog-layout.component').then(m => m.CatalogLayoutComponent),
+				data: {
+					panelItems: [
+						{ label: 'catalog.overview', route: '/app/catalog', icon: 'list', exact: true },
+						{ label: 'catalog.create', route: '/app/catalog/new', icon: 'plus' },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						loadComponent: () => import('./routes/catalog/catalog-list/catalog-list.component').then(m => m.CatalogListComponent),
+					},
+					{
+						path: 'new',
+						loadComponent: () => import('./routes/catalog/catalog-create/catalog-create.component').then(m => m.CatalogCreateComponent),
 					},
 				],
 			},

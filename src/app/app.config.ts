@@ -6,6 +6,7 @@ import { ColorPickerModule } from '@iplab/ngx-color-picker';
 import {
   ArrowLeft,
   ArrowLeftRight,
+  BookOpen,
   Brush,
   Building,
   Calendar,
@@ -14,6 +15,7 @@ import {
   Clock,
   Droplet,
   Flame,
+  FileText,
   Hammer,
   HardHat,
   Heart,
@@ -63,6 +65,8 @@ const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLo
   { prefix: '/assets/i18n/', suffix: '/profile.json' },
   { prefix: '/assets/i18n/', suffix: '/leads.json' },
   { prefix: '/assets/i18n/', suffix: '/services.json' },
+  { prefix: '/assets/i18n/', suffix: '/offertes.json' },
+  { prefix: '/assets/i18n/', suffix: '/catalog.json' },
 ]);
 
 export const appConfig: ApplicationConfig = {
@@ -86,6 +90,7 @@ export const appConfig: ApplicationConfig = {
       LucideAngularModule.pick({
         ArrowLeft,
         ArrowLeftRight,
+        BookOpen,
         Brush,
         Building,
         Calendar,
@@ -122,6 +127,7 @@ export const appConfig: ApplicationConfig = {
         Wrench,
         Zap,
         Flame,
+        FileText,
         Toolbox,
       }),
     ),

@@ -1,0 +1,73 @@
+<main class="min-h-screen bg-zinc-50 flex flex-col">
+  <section class="flex-1 flex items-center justify-center px-4 py-10">
+    <div class="w-full max-w-lg bg-white border border-zinc-200 p-6 sm:p-8 space-y-6">
+      <header class="space-y-2 text-left">
+        <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Onboarding</p>
+        <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Set up your workspace</h1>
+        <p class="text-sm text-zinc-500">Add organization details and your profile.</p>
+      </header>
+
+      @if (globalError()) {
+        <div
+          role="alert"
+          aria-live="polite"
+          class="border border-red-200 bg-red-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-red-600"
+        >
+          {{ globalError() }}
+        </div>
+      }
+
+      @if (inviteStatus()) {
+        <div
+          role="status"
+          aria-live="polite"
+          class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-emerald-700"
+        >
+          {{ inviteStatus() }}
+        </div>
+      }
+
+      <form class="space-y-5" (submit)="save(); $event.preventDefault();">
+        <shared-input
+          [(value)]="organizationName"
+          label="Organization"
+          placeholder="Salestainable"
+          [required]="isAdmin()"
+          [disabled]="!isAdmin()"
+        />
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <shared-input
+            [(value)]="firstName"
+            label="First name"
+            placeholder="First"
+            [required]="true"
+          />
+          <shared-input
+            [(value)]="lastName"
+            label="Last name"
+            placeholder="Last"
+            [required]="true"
+          />
+        </div>
+
+        @if (isAdmin()) {
+          <shared-input
+            [(value)]="inviteEmail"
+            label="Invite teammate (optional)"
+            placeholder="name@company.com"
+          />
+        }
+
+        <shared-button
+          [type]="'submit'"
+          [loading]="isSaving()"
+          [disabled]="!canSubmit()"
+          ariaLabel="Save onboarding"
+        >
+          Continue
+        </shared-button>
+      </form>
+    </div>
+  </section>
+</main>

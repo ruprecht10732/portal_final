@@ -49,6 +49,31 @@
         [placeholder]="'profile.personal.languagePlaceholder' | translate"
       />
 
+      <div class="grid gap-4 sm:grid-cols-2 text-sm text-zinc-700">
+        @if (isAdmin()) {
+          <shared-input
+            [label]="'profile.personal.organization' | translate"
+            [value]="organizationName()"
+            (valueChange)="organizationName.set($event)"
+            [error]="organizationNameError()"
+            [required]="true"
+          />
+        } @else {
+          <div class="flex flex-col gap-1">
+            <span class="text-[11px] uppercase tracking-wide text-zinc-400">{{ 'profile.personal.organization' | translate }}</span>
+            <span class="font-medium">
+              {{ organizationName() || ('profile.personal.noOrganization' | translate) }}
+            </span>
+          </div>
+        }
+        <div class="flex flex-col gap-1">
+          <span class="text-[11px] uppercase tracking-wide text-zinc-400">{{ 'profile.personal.roles' | translate }}</span>
+          <span class="font-medium">
+            {{ roles().length ? roles().join(', ') : ('profile.personal.noRoles' | translate) }}
+          </span>
+        </div>
+      </div>
+
       <div class="text-xs">
         @if (emailVerified()) {
           <span class="text-green-600 font-medium">{{ 'profile.personal.verified' | translate }}</span>

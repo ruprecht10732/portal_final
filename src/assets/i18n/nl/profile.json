@@ -9,6 +9,10 @@
       "lastName": "Achternaam",
       "email": "E-mailadres",
       "preferredLanguage": "Voorkeurstaal",
+      "organization": "Organisatie",
+      "roles": "Rollen",
+      "noOrganization": "Niet ingesteld",
+      "noRoles": "Geen",
       "languagePlaceholder": "Selecteer een taal",
       "languageEnglish": "Engels",
       "languageDutch": "Nederlands",
@@ -24,6 +28,7 @@
         "emailInvalid": "Voer een geldig e-mailadres in",
         "firstNameMax": "Voornaam mag maximaal 100 tekens bevatten",
         "lastNameMax": "Achternaam mag maximaal 100 tekens bevatten",
+        "organizationRequired": "Organisatienaam is verplicht",
         "generic": "Er ging iets mis. Probeer het opnieuw."
       }
     },

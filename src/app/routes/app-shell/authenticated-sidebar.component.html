@@ -32,6 +32,12 @@
             @case ('services') {
               <lucide-icon name="wrench" class="h-5 w-5"></lucide-icon>
             }
+            @case ('offertes') {
+              <lucide-icon name="file-text" class="h-5 w-5"></lucide-icon>
+            }
+            @case ('catalog') {
+              <lucide-icon name="book-open" class="h-5 w-5"></lucide-icon>
+            }
             @case ('profile') {
               <lucide-icon name="user" class="h-5 w-5"></lucide-icon>
             }
@@ -65,6 +71,7 @@
         [fullWidth]="false"
         [sections]="profileMenu"
         [tooltip]="'navigation.profile' | translate"
+        (itemSelected)="handleProfileMenuSelection($event)"
       >
         <lucide-icon menuTrigger name="user" class="h-6 w-6"></lucide-icon>
       </shared-menu>

@@ -8,10 +8,6 @@ import type {
   CreateLeadRequest,
   UpdateLeadRequest,
   UpdateStatusRequest,
-  ScheduleVisitRequest,
-  CompleteSurveyRequest,
-  MarkNoShowRequest,
-  RescheduleVisitRequest,
   CreateLeadNoteRequest,
   DuplicateCheckResponse,
   ReturningCustomerResponse,
@@ -19,7 +15,6 @@ import type {
   LeadNote,
   ListLeadsParams,
   BulkDeleteLeadsResponse,
-  VisitHistoryListResponse,
   AddServiceRequest,
   UpdateServiceStatusRequest,
   LeadAIAnalysisResponse,
@@ -92,28 +87,8 @@ export class LeadsService {
     return this.http.patch<Lead>(`${this.baseUrl}/${id}/status`, data);
   }
 
-  scheduleVisit(id: string, data: ScheduleVisitRequest): Observable<Lead> {
-    return this.http.post<Lead>(`${this.baseUrl}/${id}/schedule`, data);
-  }
-
-  completeSurvey(id: string, data: CompleteSurveyRequest): Observable<Lead> {
-    return this.http.post<Lead>(`${this.baseUrl}/${id}/survey`, data);
-  }
-
-  markNoShow(id: string, data: MarkNoShowRequest): Observable<Lead> {
-    return this.http.post<Lead>(`${this.baseUrl}/${id}/no-show`, data);
-  }
-
-  rescheduleVisit(id: string, data: RescheduleVisitRequest): Observable<Lead> {
-    return this.http.post<Lead>(`${this.baseUrl}/${id}/reschedule`, data);
-  }
-
   markViewed(id: string): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.baseUrl}/${id}/view`, {});
-  }
-
-  listVisitHistory(id: string): Observable<VisitHistoryListResponse> {
-    return this.http.get<VisitHistoryListResponse>(`${this.baseUrl}/${id}/visit-history`);
   }
 
   listNotes(id: string): Observable<LeadNotesResponse> {

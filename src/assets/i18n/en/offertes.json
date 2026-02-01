@@ -1,0 +1,12 @@
+{
+  "offertes": {
+    "overview": "Overview",
+    "create": "New",
+    "overviewTitle": "Quotes & Estimates",
+    "overviewSubtitle": "Track and manage quotes and estimates.",
+    "emptyState": "No quotes yet. Create your first quote to get started.",
+    "createTitle": "New Quote",
+    "createSubtitle": "Draft a new quote or estimate.",
+    "createHint": "Start by selecting a lead and adding line items."
+  }
+}

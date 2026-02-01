@@ -2,6 +2,8 @@
   "navigation": {
     "dashboard": "Dashboard",
     "leads": "Leads",
+    "offertes": "Quotes & Estimates",
+    "catalog": "Catalog",
     "services": "Services",
     "profile": "Profile",
     "settings": "Settings"

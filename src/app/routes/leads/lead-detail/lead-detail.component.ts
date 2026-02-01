@@ -3,10 +3,21 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
+import { AppointmentsService } from '../../../core/services/appointments.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { AccessDifficulty, Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadStatus, VisitHistory } from '../../../core/services/leads.types';
-import { ACCESS_DIFFICULTY_OPTIONS, STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadStatus } from '../../../core/services/leads.types';
+import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
+import type {
+  AccessDifficulty,
+  AppointmentAttachmentResponse,
+  AppointmentResponse,
+  AppointmentVisitReportResponse,
+  CreateAppointmentAttachmentRequest,
+  CreateAppointmentRequest,
+  UpsertVisitReportRequest,
+} from '../../../core/services/appointments.types';
+import { ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/appointments.types';
 import { UserService } from '../../../core/services/user.service';
 import type { UserProfile } from '../../../core/services/user.types';
 import { ActivityNotesComponent } from '../../../shared/components/activity-notes/activity-notes.component';
@@ -18,7 +29,6 @@ import { ContactInfoComponent } from '../../../shared/components/contact-info/co
 import { LeadServicesCardComponent } from '../../../shared/components/lead-services-card/lead-services-card.component';
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { type SelectOption } from '../../../shared/components/select/select.component';
-import { VisitPanelComponent } from '../../../shared/components/visit-panel/visit-panel.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
 import { TIMEOUT_MS } from '../../../core/config';
@@ -28,12 +38,13 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, VisitPanelComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly leadsService = inject(LeadsService);
+  private readonly appointmentsService = inject(AppointmentsService);
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly userService = inject(UserService);
   private readonly reporter = inject(ErrorReportingService);
@@ -47,48 +58,44 @@ export class LeadDetailComponent implements OnInit {
   protected readonly user = signal<UserProfile | null>(null);
   protected readonly assigneeOptions = signal<SelectOption<string | null>[]>([]);
   protected readonly selectedAssignee = signal<string | null>(null);
-  protected readonly selectedScout = signal<string | null>(null);
 
   // Status change
   protected readonly newStatus = signal<LeadStatus | null>(null);
 
   protected readonly statusMenuOpen = signal(false);
-  protected readonly activeTab = signal<'activity' | 'visit' | 'ai'>('visit');
-  
-  // Schedule visit
-  protected readonly showScheduleForm = signal(false);
-  protected readonly scheduledDate = signal('');
-  protected readonly scheduledTime = signal('');
+  protected readonly activeTab = signal<'activity' | 'appointments' | 'ai'>('activity');
 
-  // Reschedule visit
-  protected readonly showRescheduleForm = signal(false);
-  protected readonly rescheduleDate = signal('');
-  protected readonly rescheduleTime = signal('');
-  protected readonly noShowNotes = signal('');
-  protected readonly markAsNoShow = signal(false);
-  protected readonly sendInvite = signal(false);
+  protected readonly appointments = signal<AppointmentResponse[]>([]);
+  protected readonly appointmentsLoading = signal(false);
+  protected readonly appointmentsError = signal<string | null>(null);
+  protected readonly showAppointmentForm = signal(false);
+  protected readonly appointmentSaving = signal(false);
+  protected readonly appointmentDate = signal('');
+  protected readonly appointmentTime = signal('');
+  protected readonly appointmentDurationMinutes = signal('60');
+  protected readonly appointmentTitle = signal('');
+  protected readonly appointmentLocation = signal('');
+  protected readonly appointmentNotes = signal('');
+  protected readonly selectedAppointmentId = signal<string | null>(null);
 
-  // Computed min date for schedule/reschedule (today's date as YYYY-MM-DD)
-  protected readonly minDate = computed(() => {
-    const today = new Date();
-    return today.toISOString().split('T')[0];
-  });
+  protected readonly visitReport = signal<AppointmentVisitReportResponse | null>(null);
+  protected readonly reportMeasurements = signal('');
+  protected readonly reportAccessDifficulty = signal<AccessDifficulty | null>(null);
+  protected readonly reportNotes = signal('');
+  protected readonly reportSaving = signal(false);
+  protected readonly reportLoading = signal(false);
 
-  // Computed: can send invite if lead has email
-  protected readonly canSendInvite = computed(() => !!this.lead()?.consumer?.email);
-
-  // Survey form
-  protected readonly showSurveyForm = signal(false);
-  protected readonly isEditingVisit = signal(false);
-  protected readonly measurements = signal('');
-  protected readonly accessDifficulty = signal<AccessDifficulty | null>(null);
-  protected readonly surveyNotes = signal('');
-  protected readonly surveyPhotos = signal<File[]>([]);
+  protected readonly attachments = signal<AppointmentAttachmentResponse[]>([]);
+  protected readonly attachmentsLoading = signal(false);
+  protected readonly attachmentSaving = signal(false);
+  protected readonly attachmentFileKey = signal('');
+  protected readonly attachmentFileName = signal('');
+  protected readonly attachmentContentType = signal('');
+  protected readonly attachmentSizeBytes = signal('');
 
   protected readonly noteText = signal('');
   protected readonly noteType = signal<LeadNoteType>('note');
   protected readonly leadNotes = signal<LeadNote[]>([]);
-  protected readonly visitHistory = signal<VisitHistory[]>([]);
   protected readonly copiedAddress = signal(false);
   protected readonly notePanelDesktop = viewChild<ActivityNotesComponent>('notePanelDesktop');
   protected readonly notePanelMobile = viewChild<ActivityNotesComponent>('notePanelMobile');
@@ -139,6 +146,13 @@ export class LeadDetailComponent implements OnInit {
   }));
   protected readonly STATUS_COLORS = STATUS_COLORS;
 
+  protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => (
+    ACCESS_DIFFICULTY_OPTIONS.map(option => ({
+      value: option.value,
+      label: option.label,
+    }))
+  ));
+
   protected readonly serviceTypeLabels = computed<Record<string, string>>(() =>
     this.serviceTypes().reduce((acc, item) => {
       acc[item.name] = item.name;
@@ -157,12 +171,6 @@ export class LeadDetailComponent implements OnInit {
     STATUS_OPTIONS.map(option => ({
       value: option.value,
       label: this.statusLabels()[option.value],
-    }))
-  ));
-  protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => (
-    ACCESS_DIFFICULTY_OPTIONS.map(option => ({
-      value: option.value,
-      label: this.translate.instant(`leads.detail.accessDifficulty.${option.value.toLowerCase()}`),
     }))
   ));
   protected readonly canAssign = computed(() => {
@@ -191,12 +199,6 @@ export class LeadDetailComponent implements OnInit {
     const service = this.selectedService();
     if (!service) return 'bg-zinc-100 text-zinc-600';
     return this.STATUS_COLORS[service.status];
-  });
-
-  protected readonly isVisitInFuture = computed(() => {
-    const scheduledDate = this.selectedService()?.visit?.scheduledDate;
-    if (!scheduledDate) return false;
-    return new Date(scheduledDate) > new Date();
   });
 
   protected readonly activityFeed = computed<ActivityEntry[]>(() => {
@@ -235,24 +237,6 @@ export class LeadDetailComponent implements OnInit {
           message: this.translate.instant('leads.detail.activity.leadViewed'),
         });
       }
-      if (lead.currentService?.visit?.scheduledDate) {
-        entries.push({
-          id: `scheduled-${lead.id}`,
-          type: 'audit',
-          timestamp: this.getScheduledEventTimestamp(lead) ?? lead.currentService.visit.scheduledDate,
-          user: this.translate.instant('leads.detail.activity.system'),
-          message: this.translate.instant('leads.detail.activity.visitScheduled'),
-        });
-      }
-      if (lead.currentService?.visit?.completedAt) {
-        entries.push({
-          id: `completed-${lead.id}`,
-          type: 'audit',
-          timestamp: lead.currentService.visit.completedAt,
-          user: this.translate.instant('leads.detail.activity.system'),
-          message: this.translate.instant('leads.detail.activity.visitCompleted'),
-        });
-      }
     }
 
     return [...noteEntries, ...entries].sort((a, b) => {
@@ -270,6 +254,30 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly canSubmitNote = computed(() => {
     return this.noteText().trim().length > 0 && !this.noteSaving();
+  });
+
+  protected readonly canSaveAppointment = computed(() => {
+    return !!this.appointmentDate().trim() && !!this.appointmentTime().trim() && !this.appointmentSaving();
+  });
+
+  protected readonly canEditReport = computed(() => {
+    const appointment = this.selectedAppointment();
+    return !!appointment && !this.reportSaving();
+  });
+
+  protected readonly canAddAttachment = computed(() => {
+    return !!this.attachmentFileKey().trim() && !!this.attachmentFileName().trim() && !this.attachmentSaving();
+  });
+
+  protected readonly selectedAppointment = computed(() => {
+    const id = this.selectedAppointmentId();
+    if (!id) return null;
+    return this.appointments().find(item => item.id === id) ?? null;
+  });
+
+  protected readonly minDate = computed(() => {
+    const today = new Date();
+    return today.toISOString().split('T')[0];
   });
 
   // Track which service ID we have analysis loaded for
@@ -306,10 +314,9 @@ export class LeadDetailComponent implements OnInit {
         this.lead.set(lead);
         this.newStatus.set(lead.currentService?.status ?? null);
         this.selectedAssignee.set(lead.assignedAgentId ?? null);
-        this.selectedScout.set(lead.currentService?.visit?.scoutId ?? lead.assignedAgentId ?? null);
         this.loading.set(false);
         this.loadNotes(lead.id);
-        this.loadVisitHistory(lead.id);
+        this.loadAppointments(lead.id);
         // AI Analysis is loaded automatically by effect when selectedService changes
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
@@ -414,17 +421,6 @@ export class LeadDetailComponent implements OnInit {
     return Number.isNaN(parsed) ? Number.NEGATIVE_INFINITY : parsed;
   }
 
-  protected getScheduledEventTimestamp(lead: Lead): string | undefined {
-    const scheduled = lead.currentService?.visit?.scheduledDate;
-    if (!scheduled) return undefined;
-    const scheduledTime = Date.parse(scheduled);
-    const nowTime = Date.now();
-    if (!Number.isNaN(scheduledTime) && scheduledTime > nowTime) {
-      return lead.updatedAt ?? lead.createdAt ?? scheduled;
-    }
-    return scheduled;
-  }
-
   protected getStatusLabel(status: LeadStatus): string {
     return this.headerStatusLabels()[status] || STATUS_LABELS[status];
   }
@@ -489,18 +485,6 @@ export class LeadDetailComponent implements OnInit {
       }
       if (this.statusMenuOpen()) {
         this.closeStatusMenu();
-        return;
-      }
-      if (this.showScheduleForm()) {
-        this.showScheduleForm.set(false);
-        return;
-      }
-      if (this.showRescheduleForm()) {
-        this.showRescheduleForm.set(false);
-        return;
-      }
-      if (this.showSurveyForm()) {
-        this.cancelEditVisit();
         return;
       }
       if (this.showAddServiceForm()) {
@@ -582,161 +566,6 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
-  protected scheduleVisit(): void {
-    const lead = this.lead();
-    const service = this.selectedService();
-    if (!lead || !service || !this.scheduledDate() || !this.scheduledTime()) return;
-
-    const scheduledDate = new Date(`${this.scheduledDate()}T${this.scheduledTime()}`).toISOString();
-    
-    this.saving.set(true);
-    this.leadsService.scheduleVisit(lead.id, {
-      serviceId: service.id,
-      scheduledDate,
-      scoutId: this.selectedScout() ?? undefined,
-      sendInvite: this.sendInvite() || undefined,
-    }).subscribe({
-      next: (updated) => {
-        this.lead.set(updated);
-        this.showScheduleForm.set(false);
-        this.scheduledDate.set('');
-        this.scheduledTime.set('');
-        this.sendInvite.set(false);
-        this.saving.set(false);
-        this.announce(this.translate.instant('leads.detail.announcements.visitScheduled'));
-      },
-      error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.scheduleVisit'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.saving.set(false);
-      },
-    });
-  }
-
-  protected completeSurvey(): void {
-    const lead = this.lead();
-    const service = this.selectedService();
-    const difficulty = this.accessDifficulty();
-    if (!lead || !service || !this.measurements() || !difficulty) return;
-
-    this.saving.set(true);
-    this.leadsService.completeSurvey(lead.id, {
-      serviceId: service.id,
-      measurements: this.measurements(),
-      accessDifficulty: difficulty,
-      notes: this.surveyNotes() || undefined,
-    }).subscribe({
-      next: (updated) => {
-        this.lead.set(updated);
-        this.showSurveyForm.set(false);
-        this.isEditingVisit.set(false);
-        this.measurements.set('');
-        this.accessDifficulty.set(null);
-        this.surveyNotes.set('');
-        this.surveyPhotos.set([]);
-        this.saving.set(false);
-        this.announce(
-          this.isEditingVisit()
-            ? this.translate.instant('leads.detail.announcements.visitUpdated')
-            : this.translate.instant('leads.detail.announcements.visitCompleted')
-        );
-      },
-      error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.completeSurvey'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.saving.set(false);
-      },
-    });
-  }
-
-  protected editVisit(): void {
-    const lead = this.lead();
-    const service = this.selectedService();
-    const visit = service?.visit;
-    if (!lead || !visit) return;
-    this.measurements.set(visit.measurements ?? '');
-    this.accessDifficulty.set(visit.accessDifficulty ?? null);
-    this.surveyNotes.set(visit.notes ?? '');
-    this.isEditingVisit.set(true);
-    this.showSurveyForm.set(true);
-  }
-
-  protected cancelEditVisit(): void {
-    this.showSurveyForm.set(false);
-    this.isEditingVisit.set(false);
-    this.measurements.set('');
-    this.accessDifficulty.set(null);
-    this.surveyNotes.set('');
-    this.surveyPhotos.set([]);
-  }
-
-  protected markNoShow(): void {
-    const lead = this.lead();
-    const service = this.selectedService();
-    if (!lead || !service) return;
-
-    this.saving.set(true);
-    this.leadsService.markNoShow(lead.id, {
-      serviceId: service.id,
-      notes: this.translate.instant('leads.detail.customerNotHome'),
-    }).subscribe({
-      next: (updated) => {
-        this.lead.set(updated);
-        this.saving.set(false);
-      },
-      error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.markNoShow'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.saving.set(false);
-      },
-    });
-  }
-
-  protected openRescheduleForm(): void {
-    this.activeTab.set('visit');
-    this.showRescheduleForm.set(true);
-  }
-
-  protected rescheduleVisit(): void {
-    const lead = this.lead();
-    const service = this.selectedService();
-    if (!lead || !service || !this.rescheduleDate() || !this.rescheduleTime()) return;
-
-    const scheduledDate = new Date(`${this.rescheduleDate()}T${this.rescheduleTime()}`).toISOString();
-
-    this.saving.set(true);
-    this.leadsService.rescheduleVisit(lead.id, {
-      serviceId: service.id,
-      scheduledDate,
-      scoutId: this.selectedScout() ?? undefined,
-      noShowNotes: this.noShowNotes() || undefined,
-      markAsNoShow: this.markAsNoShow(),
-      sendInvite: this.sendInvite() || undefined,
-    }).subscribe({
-      next: (updated) => {
-        this.lead.set(updated);
-        this.showRescheduleForm.set(false);
-        this.rescheduleDate.set('');
-        this.rescheduleTime.set('');
-        this.noShowNotes.set('');
-        this.markAsNoShow.set(false);
-        this.sendInvite.set(false);
-        this.saving.set(false);
-        this.loadVisitHistory(lead.id);
-        this.announce(this.translate.instant('leads.detail.announcements.visitRescheduled'));
-      },
-      error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.rescheduleVisit'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.saving.set(false);
-      },
-    });
-  }
-
   protected goBack(): void {
     this.router.navigate(['/app/leads']);
   }
@@ -774,21 +603,6 @@ export class LeadDetailComponent implements OnInit {
         const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadNotes'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-      },
-    });
-  }
-
-  private loadVisitHistory(id: string): void {
-    this.leadsService.listVisitHistory(id).subscribe({
-      next: (response) => {
-        this.visitHistory.set(response.items || []);
-      },
-      error: (err) => {
-        this.reporter.report(err, {
-          source: 'http',
-          silent: true,
-          userMessage: this.translate.instant('leads.detail.errors.loadVisitHistory'),
-        });
       },
     });
   }
@@ -855,35 +669,10 @@ export class LeadDetailComponent implements OnInit {
     this.refreshAIAnalysis(true);
   }
 
-  protected onPhotosSelected(files: FileList | null): void {
-    if (!files) return;
-    this.surveyPhotos.set(Array.from(files));
-  }
-
   protected getUserLabelById = (id: string | null | undefined): string => {
     if (!id) return 'Unassigned';
     const match = this.assigneeOptions().find(option => option.value === id);
     return match?.label ?? this.translate.instant('leads.detail.unassigned');
-  };
-
-  protected getOutcomeLabel = (outcome: string): string => {
-    const labels: Record<string, string> = {
-      completed: this.translate.instant('leads.detail.outcome.completed'),
-      no_show: this.translate.instant('leads.detail.outcome.noShow'),
-      rescheduled: this.translate.instant('leads.detail.outcome.rescheduled'),
-      cancelled: this.translate.instant('leads.detail.outcome.cancelled'),
-    };
-    return labels[outcome] ?? outcome;
-  };
-
-  protected getOutcomeColor = (outcome: string): string => {
-    const colors: Record<string, string> = {
-      completed: 'bg-green-100 text-green-800',
-      no_show: 'bg-red-100 text-red-800',
-      rescheduled: 'bg-orange-100 text-orange-800',
-      cancelled: 'bg-zinc-100 text-zinc-600',
-    };
-    return colors[outcome] ?? 'bg-zinc-100 text-zinc-600';
   };
 
   // Services management methods
@@ -953,13 +742,10 @@ export class LeadDetailComponent implements OnInit {
   protected selectService(service: LeadService): void {
     const previousId = this.selectedServiceId();
     this.selectedServiceId.set(service.id);
-    
-    // Reset form states when switching services
     if (previousId !== service.id) {
-      this.showScheduleForm.set(false);
-      this.showRescheduleForm.set(false);
-      this.showSurveyForm.set(false);
-      this.isEditingVisit.set(false);
+      this.selectedAppointmentId.set(null);
+      this.visitReport.set(null);
+      this.attachments.set([]);
     }
   }
 
@@ -982,6 +768,282 @@ export class LeadDetailComponent implements OnInit {
   private announce(message: string): void {
     this.announcement.set(message);
     setTimeout(() => this.announcement.set(''), TIMEOUT_MS.announcementClear);
+  }
+
+  protected toggleAppointmentForm(): void {
+    this.showAppointmentForm.update(open => !open);
+  }
+
+  protected createAppointment(): void {
+    const lead = this.lead();
+    if (!lead || !this.canSaveAppointment()) return;
+
+    const startTime = this.buildAppointmentStartTime();
+    if (!startTime) return;
+
+    const durationMinutes = this.parseDurationMinutes();
+    const endTime = new Date(startTime);
+    endTime.setMinutes(endTime.getMinutes() + durationMinutes);
+
+    // Use currentService or first service for the appointment
+    const leadServiceId = lead.currentService?.id ?? lead.services[0]?.id;
+    if (!leadServiceId) {
+      this.appointmentsError.set(this.translate.instant('leads.detail.appointments.noServiceError'));
+      return;
+    }
+
+    const payload: CreateAppointmentRequest = {
+      leadId: lead.id,
+      leadServiceId,
+      type: 'lead_visit',
+      title: this.appointmentTitle().trim() || this.translate.instant('leads.detail.appointments.defaultTitle'),
+      description: this.appointmentNotes().trim() || undefined,
+      location: this.appointmentLocation().trim() || undefined,
+      startTime: startTime.toISOString(),
+      endTime: endTime.toISOString(),
+      allDay: false,
+    };
+
+    this.appointmentSaving.set(true);
+    this.appointmentsService.create(payload).subscribe({
+      next: (created) => {
+        this.appointments.update(items => [created, ...items]);
+        this.selectedAppointmentId.set(created.id);
+        this.showAppointmentForm.set(false);
+        this.resetAppointmentForm();
+        this.appointmentSaving.set(false);
+        this.loadAppointmentDetails(created.id);
+        this.announce(this.translate.instant('leads.detail.appointments.created'));
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.createError'));
+        this.appointmentsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.appointmentSaving.set(false);
+      },
+    });
+  }
+
+  protected selectAppointment(appointmentId: string): void {
+    if (appointmentId === this.selectedAppointmentId()) return;
+    this.selectedAppointmentId.set(appointmentId);
+    this.loadAppointmentDetails(appointmentId);
+  }
+
+  protected saveVisitReport(): void {
+    const appointment = this.selectedAppointment();
+    if (!appointment || !this.canEditReport()) return;
+
+    const payload: UpsertVisitReportRequest = {
+      measurements: this.reportMeasurements().trim() || undefined,
+      accessDifficulty: this.reportAccessDifficulty() ?? undefined,
+      notes: this.reportNotes().trim() || undefined,
+    };
+
+    this.reportSaving.set(true);
+    this.appointmentsService.upsertVisitReport(appointment.id, payload).subscribe({
+      next: (response) => {
+        this.visitReport.set(response);
+        this.syncReportFields(response);
+        this.reportSaving.set(false);
+        this.announce(this.translate.instant('leads.detail.appointments.reportSaved'));
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.reportError'));
+        this.appointmentsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.reportSaving.set(false);
+      },
+    });
+  }
+
+  protected addAttachment(): void {
+    const appointment = this.selectedAppointment();
+    if (!appointment || !this.canAddAttachment()) return;
+
+    const sizeBytesValue = Number(this.attachmentSizeBytes());
+    const payload: CreateAppointmentAttachmentRequest = {
+      fileKey: this.attachmentFileKey().trim(),
+      fileName: this.attachmentFileName().trim(),
+      contentType: this.attachmentContentType().trim() || undefined,
+      sizeBytes: Number.isFinite(sizeBytesValue) ? sizeBytesValue : undefined,
+    };
+
+    this.attachmentSaving.set(true);
+    this.appointmentsService.createAttachment(appointment.id, payload).subscribe({
+      next: (created) => {
+        this.attachments.update(items => [created, ...items]);
+        this.resetAttachmentForm();
+        this.attachmentSaving.set(false);
+        this.announce(this.translate.instant('leads.detail.appointments.attachmentSaved'));
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.attachmentError'));
+        this.appointmentsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.attachmentSaving.set(false);
+      },
+    });
+  }
+
+  private loadAppointments(leadId: string): void {
+    this.appointmentsLoading.set(true);
+    this.appointmentsError.set(null);
+    this.appointmentsService.list({ leadId, type: 'lead_visit' }).subscribe({
+      next: (response) => {
+        const items = response.items ?? [];
+        this.appointments.set(items);
+        this.appointmentsLoading.set(false);
+        if (!this.selectedAppointmentId() && items.length > 0) {
+          this.selectedAppointmentId.set(items[0].id);
+          this.loadAppointmentDetails(items[0].id);
+        }
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.loadError'));
+        this.appointmentsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.appointmentsLoading.set(false);
+      },
+    });
+  }
+
+  private loadAppointmentDetails(appointmentId: string): void {
+    this.loadVisitReport(appointmentId);
+    this.loadAttachments(appointmentId);
+  }
+
+  private loadVisitReport(appointmentId: string): void {
+    this.reportLoading.set(true);
+    this.appointmentsService.getVisitReport(appointmentId).subscribe({
+      next: (response) => {
+        this.visitReport.set(response);
+        this.syncReportFields(response);
+        this.reportLoading.set(false);
+      },
+      error: (err) => {
+        if (err && typeof err === 'object' && 'status' in err && (err as { status?: number }).status === 404) {
+          this.visitReport.set(null);
+          this.clearReportFields();
+          this.reportLoading.set(false);
+          return;
+        }
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.reportLoadError'));
+        this.appointmentsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.reportLoading.set(false);
+      },
+    });
+  }
+
+  private loadAttachments(appointmentId: string): void {
+    this.attachmentsLoading.set(true);
+    this.appointmentsService.listAttachments(appointmentId).subscribe({
+      next: (items) => {
+        this.attachments.set(items ?? []);
+        this.attachmentsLoading.set(false);
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.attachmentsLoadError'));
+        this.appointmentsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.attachmentsLoading.set(false);
+      },
+    });
+  }
+
+  private buildAppointmentStartTime(): Date | null {
+    const date = this.appointmentDate().trim();
+    const time = this.appointmentTime().trim();
+    if (!date || !time) return null;
+    const dateTime = new Date(`${date}T${time}`);
+    if (Number.isNaN(dateTime.getTime())) return null;
+    return dateTime;
+  }
+
+  private parseDurationMinutes(): number {
+    const duration = Number(this.appointmentDurationMinutes());
+    return Number.isFinite(duration) && duration > 0 ? duration : 60;
+  }
+
+  private resetAppointmentForm(): void {
+    this.appointmentDate.set('');
+    this.appointmentTime.set('');
+    this.appointmentDurationMinutes.set('60');
+    this.appointmentTitle.set('');
+    this.appointmentLocation.set('');
+    this.appointmentNotes.set('');
+  }
+
+  private resetAttachmentForm(): void {
+    this.attachmentFileKey.set('');
+    this.attachmentFileName.set('');
+    this.attachmentContentType.set('');
+    this.attachmentSizeBytes.set('');
+  }
+
+  private syncReportFields(report: AppointmentVisitReportResponse | null): void {
+    this.reportMeasurements.set(report?.measurements ?? '');
+    this.reportAccessDifficulty.set(report?.accessDifficulty ?? null);
+    this.reportNotes.set(report?.notes ?? '');
+  }
+
+  private clearReportFields(): void {
+    this.reportMeasurements.set('');
+    this.reportAccessDifficulty.set(null);
+    this.reportNotes.set('');
+  }
+
+  protected setAccessDifficulty(value: string): void {
+    this.reportAccessDifficulty.set(value ? (value as AccessDifficulty) : null);
+  }
+
+  protected setAppointmentDate(value: string | null | undefined): void {
+    this.appointmentDate.set(value ?? '');
+  }
+
+  protected setAppointmentTime(value: string | null | undefined): void {
+    this.appointmentTime.set(value ?? '');
+  }
+
+  protected setAppointmentDurationMinutes(value: string | null | undefined): void {
+    this.appointmentDurationMinutes.set(value ?? '');
+  }
+
+  protected setAppointmentTitle(value: string | null | undefined): void {
+    this.appointmentTitle.set(value ?? '');
+  }
+
+  protected setAppointmentLocation(value: string | null | undefined): void {
+    this.appointmentLocation.set(value ?? '');
+  }
+
+  protected setAppointmentNotes(value: string | null | undefined): void {
+    this.appointmentNotes.set(value ?? '');
+  }
+
+  protected setReportMeasurements(value: string | null | undefined): void {
+    this.reportMeasurements.set(value ?? '');
+  }
+
+  protected setReportNotes(value: string | null | undefined): void {
+    this.reportNotes.set(value ?? '');
+  }
+
+  protected setAttachmentFileKey(value: string | null | undefined): void {
+    this.attachmentFileKey.set(value ?? '');
+  }
+
+  protected setAttachmentFileName(value: string | null | undefined): void {
+    this.attachmentFileName.set(value ?? '');
+  }
+
+  protected setAttachmentContentType(value: string | null | undefined): void {
+    this.attachmentContentType.set(value ?? '');
+  }
+
+  protected setAttachmentSizeBytes(value: string | null | undefined): void {
+    this.attachmentSizeBytes.set(value ?? '');
   }
 }
 

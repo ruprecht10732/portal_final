@@ -1,0 +1,12 @@
+{
+  "catalog": {
+    "overview": "Overview",
+    "create": "New",
+    "overviewTitle": "Catalog",
+    "overviewSubtitle": "Manage products and services offered to customers.",
+    "emptyState": "No catalog items yet. Add your first item to get started.",
+    "createTitle": "New Catalog Item",
+    "createSubtitle": "Create a new product or service.",
+    "createHint": "Define a name, description, and pricing."
+  }
+}

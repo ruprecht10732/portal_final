@@ -1,0 +1,12 @@
+{
+  "catalog": {
+    "overview": "Overzicht",
+    "create": "Nieuw",
+    "overviewTitle": "Catalogus",
+    "overviewSubtitle": "Beheer producten en diensten voor klanten.",
+    "emptyState": "Nog geen catalogusitems. Voeg je eerste item toe om te beginnen.",
+    "createTitle": "Nieuw catalogusitem",
+    "createSubtitle": "Maak een nieuw product of dienst.",
+    "createHint": "Definieer een naam, beschrijving en prijs."
+  }
+}

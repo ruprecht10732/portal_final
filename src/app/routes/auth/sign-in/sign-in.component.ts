@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, finalize, EMPTY } from 'rxjs';
+import { catchError, finalize, EMPTY, map, of, switchMap } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { MIN_LENGTH } from '../../../core/config';
+import { OrganizationService } from '../../../core/services/organization.service';
+import { UserService } from '../../../core/services/user.service';
 
 @Component({
   selector: 'auth-sign-in',
@@ -23,6 +25,8 @@ export class SignInComponent {
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
+  private readonly orgService = inject(OrganizationService);
+  private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly reporter = inject(ErrorReportingService);
 
@@ -64,7 +68,27 @@ export class SignInComponent {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
-        void this.router.navigate(['/app']);
+        this.userService.getProfile()
+          .pipe(
+            catchError(() => of(null)),
+            switchMap(profile => {
+              if (!profile) {
+                return of({ profile: null, org: null });
+              }
+              if (!profile.roles.includes('admin')) {
+                return of({ profile, org: null });
+              }
+              return this.orgService.getOrganization().pipe(
+                map(org => ({ profile, org })),
+                catchError(() => of({ profile, org: null }))
+              );
+            }),
+            takeUntilDestroyed(this.destroyRef)
+          )
+          .subscribe(({ profile, org }) => {
+            const needsOnboarding = !profile?.firstName || !profile?.lastName || (profile?.roles.includes('admin') && !org?.name);
+            void this.router.navigate([needsOnboarding ? '/app/onboarding' : '/app']);
+          });
       });
   }
 }

@@ -67,7 +67,19 @@
       "tabs": {
         "visit": "Het bezoek",
         "activity": "Activiteit / notities",
+        "appointments": "Afspraken",
         "ai": "AI-adviseur"
+      },
+      "appointments": {
+        "defaultTitle": "Leadbezoek",
+        "created": "Afspraak aangemaakt",
+        "createError": "Afspraak aanmaken mislukt",        "noServiceError": "Afspraak aanmaken niet mogelijk: lead heeft geen dienst",        "loadError": "Afspraken laden mislukt",
+        "reportSaved": "Bezoekrapport opgeslagen",
+        "reportError": "Bezoekrapport opslaan mislukt",
+        "reportLoadError": "Bezoekrapport laden mislukt",
+        "attachmentSaved": "Bijlage opgeslagen",
+        "attachmentError": "Bijlage opslaan mislukt",
+        "attachmentsLoadError": "Bijlagen laden mislukt"
       },
       "inquiry": {
         "title": "Initiële aanvraag",

@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, finalize } from 'rxjs';
+import { catchError, EMPTY, finalize, of, switchMap } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { UserService } from '../../../core/services/user.service';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
+import { OrganizationService } from '../../../core/services/organization.service';
 
 @Component({
   selector: 'app-personal-details',
@@ -26,6 +27,9 @@ export class PersonalDetailsComponent {
   protected readonly emailVerified = signal(false);
   protected readonly createdAt = signal('');
   protected readonly updatedAt = signal('');
+  protected readonly roles = signal<string[]>([]);
+  protected readonly organizationName = signal('');
+  protected readonly initialOrganizationName = signal('');
 
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
@@ -33,6 +37,7 @@ export class PersonalDetailsComponent {
   protected readonly errorMessage = signal('');
 
   private readonly userService = inject(UserService);
+  private readonly organizationService = inject(OrganizationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly lang = toSignal(this.translate.onLangChange, {
@@ -73,11 +78,20 @@ export class PersonalDetailsComponent {
       : this.translate.instant('profile.personal.errors.lastNameMax');
   });
 
+  protected readonly organizationNameError = computed(() => {
+    this.lang();
+    if (!this.isAdmin()) return '';
+    return this.organizationName().trim()
+      ? ''
+      : this.translate.instant('profile.personal.errors.organizationRequired');
+  });
+
   protected readonly hasChanges = computed(() =>
     this.email().trim() !== this.initialEmail().trim() ||
     this.firstName().trim() !== this.initialFirstName().trim() ||
     this.lastName().trim() !== this.initialLastName().trim() ||
-    this.preferredLanguage() !== this.initialPreferredLanguage()
+    this.preferredLanguage() !== this.initialPreferredLanguage() ||
+    (this.isAdmin() && this.organizationName().trim() !== this.initialOrganizationName().trim())
   );
 
   protected readonly canSave = computed(() =>
@@ -85,9 +99,12 @@ export class PersonalDetailsComponent {
     !this.emailError() &&
     !this.firstNameError() &&
     !this.lastNameError() &&
+    !this.organizationNameError() &&
     !!this.email() &&
     this.hasChanges()
   );
+
+  protected readonly isAdmin = computed(() => this.roles().includes('admin'));
 
   constructor() {
     this.loadProfile();
@@ -113,6 +130,7 @@ export class PersonalDetailsComponent {
         this.email.set(profile.email);
         this.initialEmail.set(profile.email);
         this.emailVerified.set(profile.emailVerified);
+        this.roles.set(profile.roles ?? []);
         this.firstName.set(first);
         this.lastName.set(last);
         this.initialFirstName.set(first);
@@ -121,6 +139,19 @@ export class PersonalDetailsComponent {
         this.initialPreferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
         this.createdAt.set(profile.createdAt);
         this.updatedAt.set(profile.updatedAt);
+
+        if (profile.roles.includes('admin')) {
+          this.organizationService
+            .getOrganization()
+            .pipe(
+              catchError(() => EMPTY),
+              takeUntilDestroyed(this.destroyRef)
+            )
+                .subscribe(org => {
+                  this.organizationName.set(org.name);
+                  this.initialOrganizationName.set(org.name);
+                });
+        }
       });
   }
 
@@ -138,6 +169,23 @@ export class PersonalDetailsComponent {
         preferredLanguage: this.preferredLanguage(),
       })
       .pipe(
+            switchMap(profile => {
+              if (!this.isAdmin()) {
+                return of({ profile, org: null as { name: string } | null });
+              }
+
+              const orgName = this.organizationName().trim();
+              if (!orgName) {
+                return of({ profile, org: null as { name: string } | null });
+              }
+              if (orgName === this.initialOrganizationName().trim()) {
+                return of({ profile, org: null as { name: string } | null });
+              }
+
+              return this.organizationService.updateOrganization({ name: orgName }).pipe(
+                switchMap(org => of({ profile, org }))
+              );
+            }),
         catchError(error => {
           this.errorMessage.set(this.normalizeError(error));
           return EMPTY;
@@ -145,7 +193,7 @@ export class PersonalDetailsComponent {
         finalize(() => this.isSaving.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(profile => {
+          .subscribe(({ profile, org }) => {
         const first = profile.firstName ?? '';
         const last = profile.lastName ?? '';
         this.email.set(profile.email);
@@ -158,6 +206,10 @@ export class PersonalDetailsComponent {
         this.preferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
         this.initialPreferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
         this.updatedAt.set(profile.updatedAt);
+            if (org) {
+              this.organizationName.set(org.name);
+              this.initialOrganizationName.set(org.name);
+            }
         this.successMessage.set(this.translate.instant('profile.personal.success'));
         this.translate.use(this.preferredLanguage());
       });

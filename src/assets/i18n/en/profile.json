@@ -9,6 +9,10 @@
       "lastName": "Last name",
       "email": "Email",
       "preferredLanguage": "Preferred language",
+      "organization": "Organization",
+      "roles": "Roles",
+      "noOrganization": "Not set",
+      "noRoles": "None",
       "languagePlaceholder": "Select a language",
       "languageEnglish": "English",
       "languageDutch": "Dutch",
@@ -24,6 +28,7 @@
         "emailInvalid": "Enter a valid email address",
         "firstNameMax": "First name must be 100 characters or less",
         "lastNameMax": "Last name must be 100 characters or less",
+        "organizationRequired": "Organization name is required",
         "generic": "Something went wrong. Please try again."
       }
     },

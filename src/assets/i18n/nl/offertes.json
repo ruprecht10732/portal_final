@@ -1,0 +1,12 @@
+{
+  "offertes": {
+    "overview": "Overzicht",
+    "create": "Nieuw",
+    "overviewTitle": "Offertes",
+    "overviewSubtitle": "Beheer en volg offertes.",
+    "emptyState": "Nog geen offertes. Maak je eerste offerte om te beginnen.",
+    "createTitle": "Nieuwe offerte",
+    "createSubtitle": "Maak een nieuwe offerte.",
+    "createHint": "Start met het selecteren van een lead en voeg regels toe."
+  }
+}

@@ -2,6 +2,8 @@
   "navigation": {
     "dashboard": "Dashboard",
     "leads": "Leads",
+    "offertes": "Offertes",
+    "catalog": "Catalogus",
     "services": "Diensten",
     "profile": "Profiel",
     "settings": "Instellingen"
