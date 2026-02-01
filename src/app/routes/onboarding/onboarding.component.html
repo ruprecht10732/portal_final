@@ -18,13 +18,12 @@
       }
 
       @if (inviteStatus()) {
-        <div
-          role="status"
+        <output
           aria-live="polite"
           class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-emerald-700"
         >
           {{ inviteStatus() }}
-        </div>
+        </output>
       }
 
       <form class="space-y-5" (submit)="save(); $event.preventDefault();">
@@ -35,6 +34,69 @@
           [required]="isAdmin()"
           [disabled]="!isAdmin()"
         />
+
+        @if (isAdmin()) {
+          <div class="grid gap-4 sm:grid-cols-2">
+            <shared-input
+              [(value)]="organizationEmail"
+              label="Organization email"
+              placeholder="info@company.com"
+              [error]="organizationEmailError()"
+            />
+            <shared-input
+              [(value)]="organizationPhone"
+              label="Organization phone"
+              placeholder="+31 6 12345678"
+            />
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <shared-input
+              [(value)]="organizationVat"
+              label="VAT number"
+              placeholder="NL123456789B01"
+              [error]="organizationVatError()"
+            />
+            <shared-input
+              [(value)]="organizationKvk"
+              label="KVK number"
+              placeholder="12345678"
+              [error]="organizationKvkError()"
+            />
+          </div>
+
+          <div class="grid gap-4">
+            <shared-input
+              [(value)]="organizationAddressLine1"
+              label="Address line 1"
+              placeholder="Street + number"
+            />
+            <shared-input
+              [(value)]="organizationAddressLine2"
+              label="Address line 2"
+              placeholder="Suite, floor, etc."
+            />
+          </div>
+
+          <div class="grid gap-4 sm:grid-cols-2">
+            <shared-input
+              [(value)]="organizationPostalCode"
+              label="Postal code"
+              placeholder="1234 AB"
+            />
+            <shared-input
+              [(value)]="organizationCity"
+              label="City"
+              placeholder="Amsterdam"
+            />
+          </div>
+
+          <shared-input
+            [(value)]="organizationCountry"
+            label="Country"
+            placeholder="Netherlands"
+          />
+        }
 
         <div class="grid gap-4 sm:grid-cols-2">
           <shared-input

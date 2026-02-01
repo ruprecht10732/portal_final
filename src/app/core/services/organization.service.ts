@@ -6,10 +6,28 @@ import { environment } from '../../../environments/environment';
 export interface Organization {
   id: string;
   name: string;
+  email?: string;
+  phone?: string;
+  vatNumber?: string;
+  kvkNumber?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  postalCode?: string;
+  city?: string;
+  country?: string;
 }
 
 export interface UpdateOrganizationRequest {
-  name: string;
+  name?: string;
+  email?: string;
+  phone?: string;
+  vatNumber?: string;
+  kvkNumber?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  postalCode?: string;
+  city?: string;
+  country?: string;
 }
 
 export interface InviteRequest {

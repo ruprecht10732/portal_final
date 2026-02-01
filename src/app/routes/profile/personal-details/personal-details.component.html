@@ -74,6 +74,68 @@
         </div>
       </div>
 
+      @if (isAdmin()) {
+        <div class="grid gap-4 sm:grid-cols-2">
+          <shared-input
+            [label]="'profile.personal.organizationEmail' | translate"
+            [value]="organizationEmail()"
+            (valueChange)="organizationEmail.set($event)"
+            [error]="organizationEmailError()"
+          />
+          <shared-input
+            [label]="'profile.personal.organizationPhone' | translate"
+            [value]="organizationPhone()"
+            (valueChange)="organizationPhone.set($event)"
+          />
+        </div>
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <shared-input
+            [label]="'profile.personal.organizationVat' | translate"
+            [value]="organizationVat()"
+            (valueChange)="organizationVat.set($event)"
+            [error]="organizationVatError()"
+          />
+          <shared-input
+            [label]="'profile.personal.organizationKvk' | translate"
+            [value]="organizationKvk()"
+            (valueChange)="organizationKvk.set($event)"
+            [error]="organizationKvkError()"
+          />
+        </div>
+
+        <shared-input
+          [label]="'profile.personal.organizationAddressLine1' | translate"
+          [value]="organizationAddressLine1()"
+          (valueChange)="organizationAddressLine1.set($event)"
+        />
+
+        <shared-input
+          [label]="'profile.personal.organizationAddressLine2' | translate"
+          [value]="organizationAddressLine2()"
+          (valueChange)="organizationAddressLine2.set($event)"
+        />
+
+        <div class="grid gap-4 sm:grid-cols-2">
+          <shared-input
+            [label]="'profile.personal.organizationPostalCode' | translate"
+            [value]="organizationPostalCode()"
+            (valueChange)="organizationPostalCode.set($event)"
+          />
+          <shared-input
+            [label]="'profile.personal.organizationCity' | translate"
+            [value]="organizationCity()"
+            (valueChange)="organizationCity.set($event)"
+          />
+        </div>
+
+        <shared-input
+          [label]="'profile.personal.organizationCountry' | translate"
+          [value]="organizationCountry()"
+          (valueChange)="organizationCountry.set($event)"
+        />
+      }
+
       <div class="text-xs">
         @if (emailVerified()) {
           <span class="text-green-600 font-medium">{{ 'profile.personal.verified' | translate }}</span>

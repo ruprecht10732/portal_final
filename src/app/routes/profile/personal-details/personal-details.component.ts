@@ -7,6 +7,7 @@ import { InputComponent } from '../../../shared/components/input/input.component
 import { UserService } from '../../../core/services/user.service';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { OrganizationService } from '../../../core/services/organization.service';
+import type { Organization, UpdateOrganizationRequest } from '../../../core/services/organization.service';
 
 @Component({
   selector: 'app-personal-details',
@@ -30,6 +31,24 @@ export class PersonalDetailsComponent {
   protected readonly roles = signal<string[]>([]);
   protected readonly organizationName = signal('');
   protected readonly initialOrganizationName = signal('');
+  protected readonly organizationEmail = signal('');
+  protected readonly initialOrganizationEmail = signal('');
+  protected readonly organizationPhone = signal('');
+  protected readonly initialOrganizationPhone = signal('');
+  protected readonly organizationVat = signal('');
+  protected readonly initialOrganizationVat = signal('');
+  protected readonly organizationKvk = signal('');
+  protected readonly initialOrganizationKvk = signal('');
+  protected readonly organizationAddressLine1 = signal('');
+  protected readonly initialOrganizationAddressLine1 = signal('');
+  protected readonly organizationAddressLine2 = signal('');
+  protected readonly initialOrganizationAddressLine2 = signal('');
+  protected readonly organizationPostalCode = signal('');
+  protected readonly initialOrganizationPostalCode = signal('');
+  protected readonly organizationCity = signal('');
+  protected readonly initialOrganizationCity = signal('');
+  protected readonly organizationCountry = signal('');
+  protected readonly initialOrganizationCountry = signal('');
 
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
@@ -86,12 +105,57 @@ export class PersonalDetailsComponent {
       : this.translate.instant('profile.personal.errors.organizationRequired');
   });
 
+  protected readonly organizationEmailError = computed(() => {
+    this.lang();
+    if (!this.isAdmin()) return '';
+    const value = this.organizationEmail().trim();
+    if (!value) return '';
+    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    return isValid ? '' : this.translate.instant('profile.personal.errors.organizationEmailInvalid');
+  });
+
+  protected readonly organizationVatError = computed(() => {
+    this.lang();
+    if (!this.isAdmin()) return '';
+    const value = this.organizationVat().trim();
+    if (!value) return '';
+    return /^NL\d{9}B\d{2}$/i.test(value)
+      ? ''
+      : this.translate.instant('profile.personal.errors.organizationVatInvalid');
+  });
+
+  protected readonly organizationKvkError = computed(() => {
+    this.lang();
+    if (!this.isAdmin()) return '';
+    const value = this.organizationKvk().trim();
+    if (!value) return '';
+    return /^\d{8}$/.test(value)
+      ? ''
+      : this.translate.instant('profile.personal.errors.organizationKvkInvalid');
+  });
+
+  protected readonly hasOrganizationChanges = computed(() => {
+    if (!this.isAdmin()) return false;
+    return (
+      this.organizationName().trim() !== this.initialOrganizationName().trim() ||
+      this.organizationEmail().trim() !== this.initialOrganizationEmail().trim() ||
+      this.organizationPhone().trim() !== this.initialOrganizationPhone().trim() ||
+      this.organizationVat().trim().toUpperCase() !== this.initialOrganizationVat().trim().toUpperCase() ||
+      this.organizationKvk().trim() !== this.initialOrganizationKvk().trim() ||
+      this.organizationAddressLine1().trim() !== this.initialOrganizationAddressLine1().trim() ||
+      this.organizationAddressLine2().trim() !== this.initialOrganizationAddressLine2().trim() ||
+      this.organizationPostalCode().trim() !== this.initialOrganizationPostalCode().trim() ||
+      this.organizationCity().trim() !== this.initialOrganizationCity().trim() ||
+      this.organizationCountry().trim() !== this.initialOrganizationCountry().trim()
+    );
+  });
+
   protected readonly hasChanges = computed(() =>
     this.email().trim() !== this.initialEmail().trim() ||
     this.firstName().trim() !== this.initialFirstName().trim() ||
     this.lastName().trim() !== this.initialLastName().trim() ||
     this.preferredLanguage() !== this.initialPreferredLanguage() ||
-    (this.isAdmin() && this.organizationName().trim() !== this.initialOrganizationName().trim())
+    this.hasOrganizationChanges()
   );
 
   protected readonly canSave = computed(() =>
@@ -100,6 +164,9 @@ export class PersonalDetailsComponent {
     !this.firstNameError() &&
     !this.lastNameError() &&
     !this.organizationNameError() &&
+    !this.organizationEmailError() &&
+    !this.organizationVatError() &&
+    !this.organizationKvkError() &&
     !!this.email() &&
     this.hasChanges()
   );
@@ -150,6 +217,24 @@ export class PersonalDetailsComponent {
                 .subscribe(org => {
                   this.organizationName.set(org.name);
                   this.initialOrganizationName.set(org.name);
+                  this.organizationEmail.set(org.email ?? '');
+                  this.initialOrganizationEmail.set(org.email ?? '');
+                  this.organizationPhone.set(org.phone ?? '');
+                  this.initialOrganizationPhone.set(org.phone ?? '');
+                  this.organizationVat.set(org.vatNumber ?? '');
+                  this.initialOrganizationVat.set(org.vatNumber ?? '');
+                  this.organizationKvk.set(org.kvkNumber ?? '');
+                  this.initialOrganizationKvk.set(org.kvkNumber ?? '');
+                  this.organizationAddressLine1.set(org.addressLine1 ?? '');
+                  this.initialOrganizationAddressLine1.set(org.addressLine1 ?? '');
+                  this.organizationAddressLine2.set(org.addressLine2 ?? '');
+                  this.initialOrganizationAddressLine2.set(org.addressLine2 ?? '');
+                  this.organizationPostalCode.set(org.postalCode ?? '');
+                  this.initialOrganizationPostalCode.set(org.postalCode ?? '');
+                  this.organizationCity.set(org.city ?? '');
+                  this.initialOrganizationCity.set(org.city ?? '');
+                  this.organizationCountry.set(org.country ?? '');
+                  this.initialOrganizationCountry.set(org.country ?? '');
                 });
         }
       });
@@ -171,18 +256,19 @@ export class PersonalDetailsComponent {
       .pipe(
             switchMap(profile => {
               if (!this.isAdmin()) {
-                return of({ profile, org: null as { name: string } | null });
+                return of({ profile, org: null as Organization | null });
               }
 
-              const orgName = this.organizationName().trim();
-              if (!orgName) {
-                return of({ profile, org: null as { name: string } | null });
-              }
-              if (orgName === this.initialOrganizationName().trim()) {
-                return of({ profile, org: null as { name: string } | null });
+              if (!this.hasOrganizationChanges()) {
+                return of({ profile, org: null as Organization | null });
               }
 
-              return this.organizationService.updateOrganization({ name: orgName }).pipe(
+              const payload = this.buildOrganizationPayload();
+              if (!payload) {
+                return of({ profile, org: null as Organization | null });
+              }
+
+              return this.organizationService.updateOrganization(payload).pipe(
                 switchMap(org => of({ profile, org }))
               );
             }),
@@ -209,10 +295,55 @@ export class PersonalDetailsComponent {
             if (org) {
               this.organizationName.set(org.name);
               this.initialOrganizationName.set(org.name);
+              this.organizationEmail.set(org.email ?? '');
+              this.initialOrganizationEmail.set(org.email ?? '');
+              this.organizationPhone.set(org.phone ?? '');
+              this.initialOrganizationPhone.set(org.phone ?? '');
+              this.organizationVat.set(org.vatNumber ?? '');
+              this.initialOrganizationVat.set(org.vatNumber ?? '');
+              this.organizationKvk.set(org.kvkNumber ?? '');
+              this.initialOrganizationKvk.set(org.kvkNumber ?? '');
+              this.organizationAddressLine1.set(org.addressLine1 ?? '');
+              this.initialOrganizationAddressLine1.set(org.addressLine1 ?? '');
+              this.organizationAddressLine2.set(org.addressLine2 ?? '');
+              this.initialOrganizationAddressLine2.set(org.addressLine2 ?? '');
+              this.organizationPostalCode.set(org.postalCode ?? '');
+              this.initialOrganizationPostalCode.set(org.postalCode ?? '');
+              this.organizationCity.set(org.city ?? '');
+              this.initialOrganizationCity.set(org.city ?? '');
+              this.organizationCountry.set(org.country ?? '');
+              this.initialOrganizationCountry.set(org.country ?? '');
             }
         this.successMessage.set(this.translate.instant('profile.personal.success'));
         this.translate.use(this.preferredLanguage());
       });
+  }
+
+  private buildOrganizationPayload(): UpdateOrganizationRequest | null {
+    const payload: UpdateOrganizationRequest = {};
+    const name = this.organizationName().trim();
+    if (name) payload.name = name;
+
+    const email = this.organizationEmail().trim();
+    if (email) payload.email = email;
+    const phone = this.organizationPhone().trim();
+    if (phone) payload.phone = phone;
+    const vat = this.organizationVat().trim();
+    if (vat) payload.vatNumber = vat.toUpperCase();
+    const kvk = this.organizationKvk().trim();
+    if (kvk) payload.kvkNumber = kvk;
+    const line1 = this.organizationAddressLine1().trim();
+    if (line1) payload.addressLine1 = line1;
+    const line2 = this.organizationAddressLine2().trim();
+    if (line2) payload.addressLine2 = line2;
+    const postal = this.organizationPostalCode().trim();
+    if (postal) payload.postalCode = postal;
+    const city = this.organizationCity().trim();
+    if (city) payload.city = city;
+    const country = this.organizationCountry().trim();
+    if (country) payload.country = country;
+
+    return Object.keys(payload).length ? payload : null;
   }
 
   private normalizeError(error: unknown): string {
