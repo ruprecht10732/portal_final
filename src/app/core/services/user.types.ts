@@ -6,6 +6,7 @@ export interface UserProfile {
   lastName: string | null;
   preferredLanguage: string;
   roles: string[];
+  hasOrganization: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -28,4 +29,10 @@ export interface UpdateProfileRequest {
 export interface ChangePasswordRequest {
   currentPassword: string;
   newPassword: string;
+}
+
+export interface CompleteOnboardingRequest {
+  firstName: string;
+  lastName: string;
+  organizationName?: string;
 }

@@ -28,7 +28,7 @@ export interface UpdateServiceTypeRequest {
 }
 
 export interface ReorderServiceTypesRequest {
-  items: Array<{ id: string; displayOrder: number }>;
+  items: { id: string; displayOrder: number }[];
 }
 
 export interface ServiceTypeListResponse {

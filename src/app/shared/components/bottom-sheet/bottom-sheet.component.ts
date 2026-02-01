@@ -117,7 +117,7 @@ export class BottomSheetComponent {
 
   // ============ Drag/Swipe Handling ============
   
-  protected onDragStart(event: TouchEvent | MouseEvent): void {
+  protected onDragStart(): void {
     this.isDragging.set(true);
     this.isAnimating.set(false);
   }

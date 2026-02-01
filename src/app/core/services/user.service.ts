@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { ChangePasswordRequest, UpdateProfileRequest, UserProfile, UserSummary } from './user.types';
+import type { ChangePasswordRequest, CompleteOnboardingRequest, UpdateProfileRequest, UserProfile, UserSummary } from './user.types';
 
 @Injectable({ providedIn: 'root' })
 export class UserService {
@@ -15,6 +15,10 @@ export class UserService {
 
   updateProfile(data: UpdateProfileRequest): Observable<UserProfile> {
     return this.http.patch<UserProfile>(`${this.baseUrl}/me`, data);
+  }
+
+  completeOnboarding(data: CompleteOnboardingRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/me/onboarding`, data);
   }
 
   changePassword(data: ChangePasswordRequest): Observable<{ message: string }> {

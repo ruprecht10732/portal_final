@@ -120,7 +120,7 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
     if (this.map === null) return;
 
     const points = this.points();
-    const heatData: Array<[number, number, number]> = points.map(point => [point.latitude, point.longitude, 0.7]);
+    const heatData: [number, number, number][] = points.map(point => [point.latitude, point.longitude, 0.7]);
 
     if (this.heatLayer === null) {
       this.heatLayer = L.heatLayer(heatData, {

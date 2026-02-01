@@ -51,7 +51,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
 
   // ============ Network State ============
   private readonly _isOnline = signal(typeof navigator === 'undefined' ? true : navigator.onLine);
-  private readonly _offlineQueue = signal<Array<{ action: string; payload: unknown }>>([]);
+  private readonly _offlineQueue = signal<{ action: string; payload: unknown }[]>([]);
   private readonly _lastRefresh = signal<number>(Date.now());
 
   // ============ Announcements ============
@@ -976,7 +976,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
     const validRows: T[] = [];
 
     this._rows.update(rows =>
-      rows.map((row, rowIndex) => {
+      rows.map((row) => {
         if (!row.dirty) return row;
 
         const cellErrors = { ...row.cellErrors };

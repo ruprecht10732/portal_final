@@ -15,12 +15,16 @@ import { UserService } from '../../core/services/user.service';
 export class OnboardingComponent {
   protected readonly firstName = signal('');
   protected readonly lastName = signal('');
+  protected readonly organizationName = signal('');
+  protected readonly needsOrganization = signal(false);
   protected readonly isSaving = signal(false);
   protected readonly globalError = signal('');
 
   protected readonly canSubmit = computed(() => {
     if (this.isSaving()) return false;
-    return !!this.firstName().trim() && !!this.lastName().trim();
+    const hasName = !!this.firstName().trim() && !!this.lastName().trim();
+    const hasOrg = !this.needsOrganization() || !!this.organizationName().trim();
+    return hasName && hasOrg;
   });
 
   private readonly router = inject(Router);
@@ -49,7 +53,11 @@ export class OnboardingComponent {
       this.lastName.set(profile.lastName);
     }
 
-    if (profile.firstName && profile.lastName) {
+    // Check if user needs to create an organization
+    this.needsOrganization.set(!profile.hasOrganization);
+
+    // Only redirect if all onboarding is complete
+    if (profile.firstName && profile.lastName && profile.hasOrganization) {
       await this.router.navigate(['/app']);
     }
   }
@@ -66,9 +74,10 @@ export class OnboardingComponent {
   private async persistOnboarding(): Promise<void> {
     try {
       await firstValueFrom(
-        this.userService.updateProfile({
+        this.userService.completeOnboarding({
           firstName: this.firstName().trim(),
           lastName: this.lastName().trim(),
+          organizationName: this.needsOrganization() ? this.organizationName().trim() : undefined,
         })
       );
 

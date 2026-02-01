@@ -35,7 +35,7 @@ export class ForgotPasswordComponent {
     !this.isSubmitting() && !!this.email() && !this.emailError()
   );
 
-  constructor() {}
+  // removed empty constructor to satisfy lint rule
 
   protected onSubmit(event: Event): void {
     event.preventDefault();

@@ -10,12 +10,12 @@ declare module 'leaflet' {
   }
 
   class HeatLayer extends Layer {
-    setLatLngs(latlngs: Array<[number, number, number?]>): this;
+    setLatLngs(latlngs: [number, number, number?][]): this;
     addLatLng(latlng: [number, number, number?]): this;
     redraw(): this;
   }
 
-  function heatLayer(latlngs: Array<[number, number, number?]>, options?: HeatLayerOptions): HeatLayer;
+  function heatLayer(latlngs: [number, number, number?][], options?: HeatLayerOptions): HeatLayer;
 }
 
 declare module 'leaflet.heat' {}

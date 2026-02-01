@@ -76,9 +76,10 @@
       (detach)="close()"
     >
       <div
-        [id]="listboxId"
+          [id]="listboxId"
         [attr.aria-labelledby]="uid"
         class="bg-white border border-black shadow-xl mt-px max-h-80 overflow-hidden flex flex-col focus:outline-none"
+        tabindex="0"
         (keydown)="onPanelKeydown($event)"
       >
         <!-- Search input -->

@@ -66,7 +66,7 @@ export class ResetPasswordComponent {
     this.isTokenValid() && !this.isSubmitting() && !!this.password() && !this.passwordError() && !this.confirmError()
   );
 
-  constructor() {}
+  // removed empty constructor to satisfy lint rule
 
   protected onSubmit(event: Event): void {
     event.preventDefault();

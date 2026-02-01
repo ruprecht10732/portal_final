@@ -344,6 +344,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
 
   /** Get status class for card border */
   protected getStatusClass(row: RowState<T>): string {
+    void row;
     return '';
   }
 

@@ -310,10 +310,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     this.emitCellValueChange(rowIndex, column, value);
   }
 
-  protected onInputEnter(
-    event: Event,
-    rowIndex: number,
-  ): void {
+  protected onInputEnter(event: Event): void {
     event.preventDefault();
     event.stopPropagation();
     this.navigate.emit('down');

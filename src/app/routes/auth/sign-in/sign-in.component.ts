@@ -47,7 +47,7 @@ export class SignInComponent {
     !this.isSubmitting() && !!this.email() && !!this.password() && !this.emailError() && !this.passwordError()
   );
 
-  constructor() {}
+  // removed empty constructor to satisfy lint rule
 
   protected onSubmit(event: Event): void {
     event.preventDefault();

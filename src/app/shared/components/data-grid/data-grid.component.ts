@@ -315,7 +315,7 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     this.deleteRows.emit([row.current]);
   }
 
-  protected onSaveRequest(rows: T[]): void {
+  protected onSaveRequest(): void {
     const validRows = this.store.validateDirtyRows();
     if (validRows.length > 0) {
       this.saveRows.emit(validRows);
