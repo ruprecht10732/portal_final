@@ -5,17 +5,20 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
   standalone: true,
   imports: [],
   template: `
-    <button
-      [type]="type()"
-      [disabled]="disabled() || loading()"
-      [attr.aria-label]="ariaLabel()"
-      [attr.aria-disabled]="disabled() || loading()"
-      [attr.aria-busy]="loading()"
-      [attr.aria-expanded]="ariaExpanded()"
-      [attr.aria-controls]="ariaControls()"
-      [attr.aria-haspopup]="ariaHaspopup()"
-      (click)="!loading() && clicked.emit($event)"
-      class="relative flex items-center justify-center gap-2 transition-all duration-200 overflow-hidden cursor-pointer"
+      <button
+        [type]="type()"
+        [disabled]="disabled() || loading()"
+        [attr.aria-label]="ariaLabel()"
+        [attr.aria-disabled]="disabled() || loading()"
+        [attr.aria-busy]="loading()"
+        [attr.aria-expanded]="ariaExpanded()"
+        [attr.aria-controls]="ariaControls()"
+        [attr.aria-haspopup]="ariaHaspopup()"
+        (click)="!loading() && clicked.emit($event)"
+        class="relative flex items-center justify-center gap-2 transition-all duration-200 cursor-pointer"
+        [class.group]="!!tooltip()"
+        [class.overflow-hidden]="!tooltip()"
+        [class.overflow-visible]="!!tooltip()"
       [class.gap-0]="iconOnly()"
       [class.gap-1]="stacked()"
       [class.flex-col]="stacked()"
@@ -86,6 +89,11 @@ import { Component, input, output, ChangeDetectionStrategy } from '@angular/core
       >
         <ng-content />
       </span>
+      @if (tooltip()) {
+        <span class="pointer-events-none absolute left-16 rounded bg-zinc-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+          {{ tooltip() }}
+        </span>
+      }
     </button>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -109,5 +117,6 @@ export class ButtonComponent {
   ariaExpanded = input<string | boolean | null | undefined>(undefined);
   ariaControls = input<string | null | undefined>(undefined);
   ariaHaspopup = input<string | boolean | null | undefined>(undefined);
+  tooltip = input<string | undefined>(undefined);
   clicked = output<MouseEvent>();
 }

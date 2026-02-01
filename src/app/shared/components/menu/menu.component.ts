@@ -44,6 +44,7 @@ export class MenuComponent {
   sections = input<readonly MenuSection[]>([]);
   disabled = input(false);
   closeOnSelect = input(true);
+  tooltip = input<string | undefined>(undefined);
 
   itemSelected = output<MenuItem>();
 
