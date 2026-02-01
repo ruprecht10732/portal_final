@@ -87,6 +87,36 @@ export const routes: Routes = [
 				],
 			},
 			{
+				path: 'organization',
+				loadComponent: () => import('./routes/organization/organization-layout/organization-layout.component').then(m => m.OrganizationLayoutComponent),
+				canActivate: [adminGuard],
+				data: {
+					panelItems: [
+						{ label: 'organization.overview', route: '/app/organization', icon: 'building', exact: true },
+						{ label: 'organization.invites', route: '/app/organization/invites', icon: 'mail' },
+						{ label: 'organization.newInvite', route: '/app/organization/invites/new', icon: 'plus' },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						loadComponent: () => import('./routes/organization/organization-overview/organization-overview.component').then(m => m.OrganizationOverviewComponent),
+					},
+					{
+						path: 'invites',
+						loadComponent: () => import('./routes/organization/organization-invites/organization-invites.component').then(m => m.OrganizationInvitesComponent),
+					},
+					{
+						path: 'invites/new',
+						loadComponent: () => import('./routes/organization/organization-invite-create/organization-invite-create.component').then(m => m.OrganizationInviteCreateComponent),
+					},
+					{
+						path: 'invites/:inviteId/edit',
+						loadComponent: () => import('./routes/organization/organization-invite-edit/organization-invite-edit.component').then(m => m.OrganizationInviteEditComponent),
+					},
+				],
+			},
+			{
 				path: 'leads',
 				loadComponent: () => import('./routes/leads/leads-layout/leads-layout.component').then(m => m.LeadsLayoutComponent),
 				data: {

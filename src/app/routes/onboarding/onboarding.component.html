@@ -3,8 +3,8 @@
     <div class="w-full max-w-lg bg-white border border-zinc-200 p-6 sm:p-8 space-y-6">
       <header class="space-y-2 text-left">
         <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Onboarding</p>
-        <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Set up your workspace</h1>
-        <p class="text-sm text-zinc-500">Add organization details and your profile.</p>
+        <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Set up your profile</h1>
+        <p class="text-sm text-zinc-500">Add your name to complete setup.</p>
       </header>
 
       @if (globalError()) {
@@ -17,87 +17,7 @@
         </div>
       }
 
-      @if (inviteStatus()) {
-        <output
-          aria-live="polite"
-          class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-emerald-700"
-        >
-          {{ inviteStatus() }}
-        </output>
-      }
-
       <form class="space-y-5" (submit)="save(); $event.preventDefault();">
-        <shared-input
-          [(value)]="organizationName"
-          label="Organization"
-          placeholder="Salestainable"
-          [required]="isAdmin()"
-          [disabled]="!isAdmin()"
-        />
-
-        @if (isAdmin()) {
-          <div class="grid gap-4 sm:grid-cols-2">
-            <shared-input
-              [(value)]="organizationEmail"
-              label="Organization email"
-              placeholder="info@company.com"
-              [error]="organizationEmailError()"
-            />
-            <shared-input
-              [(value)]="organizationPhone"
-              label="Organization phone"
-              placeholder="+31 6 12345678"
-            />
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <shared-input
-              [(value)]="organizationVat"
-              label="VAT number"
-              placeholder="NL123456789B01"
-              [error]="organizationVatError()"
-            />
-            <shared-input
-              [(value)]="organizationKvk"
-              label="KVK number"
-              placeholder="12345678"
-              [error]="organizationKvkError()"
-            />
-          </div>
-
-          <div class="grid gap-4">
-            <shared-input
-              [(value)]="organizationAddressLine1"
-              label="Address line 1"
-              placeholder="Street + number"
-            />
-            <shared-input
-              [(value)]="organizationAddressLine2"
-              label="Address line 2"
-              placeholder="Suite, floor, etc."
-            />
-          </div>
-
-          <div class="grid gap-4 sm:grid-cols-2">
-            <shared-input
-              [(value)]="organizationPostalCode"
-              label="Postal code"
-              placeholder="1234 AB"
-            />
-            <shared-input
-              [(value)]="organizationCity"
-              label="City"
-              placeholder="Amsterdam"
-            />
-          </div>
-
-          <shared-input
-            [(value)]="organizationCountry"
-            label="Country"
-            placeholder="Netherlands"
-          />
-        }
-
         <div class="grid gap-4 sm:grid-cols-2">
           <shared-input
             [(value)]="firstName"
@@ -113,14 +33,6 @@
           />
         </div>
 
-        @if (isAdmin()) {
-          <shared-input
-            [(value)]="inviteEmail"
-            label="Invite teammate (optional)"
-            placeholder="name@company.com"
-          />
-        }
-
         <shared-button
           [type]="'submit'"
           [loading]="isSaving()"
@@ -132,4 +44,3 @@
       </form>
     </div>
   </section>
-</main>

@@ -1,0 +1,52 @@
+{
+  "organization": {
+    "overview": "Overview",
+    "invites": "Invites",
+    "newInvite": "New invite",
+    "title": "Organization",
+    "subtitle": "Manage company profile and team invites.",
+    "profileTitle": "Organization profile",
+    "profileSubtitle": "Update company details for invoices and communication.",
+    "save": "Save organization",
+    "saved": "Organization updated.",
+    "fields": {
+      "name": "Organization name",
+      "email": "Organization email",
+      "phone": "Organization phone",
+      "vatNumber": "VAT number",
+      "kvkNumber": "KVK number",
+      "addressLine1": "Address line 1",
+      "addressLine2": "Address line 2",
+      "postalCode": "Postal code",
+      "city": "City",
+      "country": "Country"
+    },
+    "invite": {
+      "title": "Team invites",
+      "subtitle": "Invite teammates to join your organization.",
+      "emailLabel": "Invite email",
+      "send": "Send invite",
+      "sent": "Invite created.",
+      "tokenLabel": "Invite token",
+      "columns": {
+        "email": "Email",
+        "status": "Status",
+        "expires": "Expires",
+        "actions": "Actions"
+      },
+      "listTitle": "Invites overview",
+      "empty": "No invites yet.",
+      "statusPending": "Pending",
+      "statusUsed": "Used",
+      "statusExpired": "Expired",
+      "resend": "Resend",
+      "revoke": "Revoke",
+      "edit": "Edit"
+    },
+    "errors": {
+      "emailInvalid": "Enter a valid email",
+      "nameRequired": "Organization name is required",
+      "generic": "Something went wrong."
+    }
+  }
+}

@@ -18,7 +18,7 @@ import type { UserProfile } from '../../core/services/user.types';
 interface SidebarItem {
   label: string;
   route: string;
-  icon: 'dashboard' | 'leads' | 'services' | 'offertes' | 'catalog' | 'profile';
+  icon: 'dashboard' | 'leads' | 'services' | 'offertes' | 'catalog' | 'organization' | 'profile';
 }
 
 @Component({
@@ -71,6 +71,7 @@ export class AuthenticatedSidebarComponent {
     ];
     if (this.isAdmin()) {
       base.splice(2, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
+      base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
     }
     return base;
   });

@@ -1,0 +1,104 @@
+@if (isLoading()) {
+  <div class="flex items-center justify-center py-12">
+    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+  </div>
+} @else {
+  <section class="w-full space-y-6 bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm">
+    <div class="space-y-1">
+      <h3 class="text-lg font-semibold text-zinc-900">{{ 'organization.profileTitle' | translate }}</h3>
+      <p class="text-sm text-zinc-500">{{ 'organization.profileSubtitle' | translate }}</p>
+    </div>
+
+    @if (errorMessage()) {
+      <div class="border-y border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:border sm:rounded-sm">
+        {{ errorMessage() }}
+      </div>
+    }
+
+    <div class="grid gap-5">
+      <shared-input
+        [label]="'organization.fields.name' | translate"
+        [value]="name()"
+        (valueChange)="name.set($event)"
+        [error]="nameError()"
+        [required]="true"
+      />
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <shared-input
+          [label]="'organization.fields.email' | translate"
+          [value]="email()"
+          (valueChange)="email.set($event)"
+          [error]="emailError()"
+        />
+        <shared-input
+          [label]="'organization.fields.phone' | translate"
+          [value]="phone()"
+          (valueChange)="phone.set($event)"
+        />
+      </div>
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <shared-input
+          [label]="'organization.fields.vatNumber' | translate"
+          [value]="vatNumber()"
+          (valueChange)="vatNumber.set($event)"
+        />
+        <shared-input
+          [label]="'organization.fields.kvkNumber' | translate"
+          [value]="kvkNumber()"
+          (valueChange)="kvkNumber.set($event)"
+        />
+      </div>
+
+      <shared-input
+        [label]="'organization.fields.addressLine1' | translate"
+        [value]="addressLine1()"
+        (valueChange)="addressLine1.set($event)"
+      />
+
+      <shared-input
+        [label]="'organization.fields.addressLine2' | translate"
+        [value]="addressLine2()"
+        (valueChange)="addressLine2.set($event)"
+      />
+
+      <div class="grid gap-4 sm:grid-cols-2">
+        <shared-input
+          [label]="'organization.fields.postalCode' | translate"
+          [value]="postalCode()"
+          (valueChange)="postalCode.set($event)"
+        />
+        <shared-input
+          [label]="'organization.fields.city' | translate"
+          [value]="city()"
+          (valueChange)="city.set($event)"
+        />
+      </div>
+
+      <shared-input
+        [label]="'organization.fields.country' | translate"
+        [value]="country()"
+        (valueChange)="country.set($event)"
+      />
+    </div>
+
+    <div class="flex flex-col sm:flex-row sm:justify-end">
+      <shared-button
+        class="w-full sm:w-auto"
+        variant="primary"
+        size="compact"
+        [disabled]="!canSave()"
+        [loading]="isSaving()"
+        [ariaLabel]="'organization.save' | translate"
+        (clicked)="save()"
+      >
+        {{ 'organization.save' | translate }}
+      </shared-button>
+    </div>
+
+    @if (successMessage()) {
+      <p class="text-sm text-green-600 text-center sm:text-left">{{ successMessage() }}</p>
+    }
+  </section>
+}

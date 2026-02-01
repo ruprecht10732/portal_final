@@ -49,92 +49,12 @@
         [placeholder]="'profile.personal.languagePlaceholder' | translate"
       />
 
-      <div class="grid gap-4 sm:grid-cols-2 text-sm text-zinc-700">
-        @if (isAdmin()) {
-          <shared-input
-            [label]="'profile.personal.organization' | translate"
-            [value]="organizationName()"
-            (valueChange)="organizationName.set($event)"
-            [error]="organizationNameError()"
-            [required]="true"
-          />
-        } @else {
-          <div class="flex flex-col gap-1">
-            <span class="text-[11px] uppercase tracking-wide text-zinc-400">{{ 'profile.personal.organization' | translate }}</span>
-            <span class="font-medium">
-              {{ organizationName() || ('profile.personal.noOrganization' | translate) }}
-            </span>
-          </div>
-        }
-        <div class="flex flex-col gap-1">
-          <span class="text-[11px] uppercase tracking-wide text-zinc-400">{{ 'profile.personal.roles' | translate }}</span>
-          <span class="font-medium">
-            {{ roles().length ? roles().join(', ') : ('profile.personal.noRoles' | translate) }}
-          </span>
-        </div>
+      <div class="flex flex-col gap-1 text-sm text-zinc-700">
+        <span class="text-[11px] uppercase tracking-wide text-zinc-400">{{ 'profile.personal.roles' | translate }}</span>
+        <span class="font-medium">
+          {{ roles().length ? roles().join(', ') : ('profile.personal.noRoles' | translate) }}
+        </span>
       </div>
-
-      @if (isAdmin()) {
-        <div class="grid gap-4 sm:grid-cols-2">
-          <shared-input
-            [label]="'profile.personal.organizationEmail' | translate"
-            [value]="organizationEmail()"
-            (valueChange)="organizationEmail.set($event)"
-            [error]="organizationEmailError()"
-          />
-          <shared-input
-            [label]="'profile.personal.organizationPhone' | translate"
-            [value]="organizationPhone()"
-            (valueChange)="organizationPhone.set($event)"
-          />
-        </div>
-
-        <div class="grid gap-4 sm:grid-cols-2">
-          <shared-input
-            [label]="'profile.personal.organizationVat' | translate"
-            [value]="organizationVat()"
-            (valueChange)="organizationVat.set($event)"
-            [error]="organizationVatError()"
-          />
-          <shared-input
-            [label]="'profile.personal.organizationKvk' | translate"
-            [value]="organizationKvk()"
-            (valueChange)="organizationKvk.set($event)"
-            [error]="organizationKvkError()"
-          />
-        </div>
-
-        <shared-input
-          [label]="'profile.personal.organizationAddressLine1' | translate"
-          [value]="organizationAddressLine1()"
-          (valueChange)="organizationAddressLine1.set($event)"
-        />
-
-        <shared-input
-          [label]="'profile.personal.organizationAddressLine2' | translate"
-          [value]="organizationAddressLine2()"
-          (valueChange)="organizationAddressLine2.set($event)"
-        />
-
-        <div class="grid gap-4 sm:grid-cols-2">
-          <shared-input
-            [label]="'profile.personal.organizationPostalCode' | translate"
-            [value]="organizationPostalCode()"
-            (valueChange)="organizationPostalCode.set($event)"
-          />
-          <shared-input
-            [label]="'profile.personal.organizationCity' | translate"
-            [value]="organizationCity()"
-            (valueChange)="organizationCity.set($event)"
-          />
-        </div>
-
-        <shared-input
-          [label]="'profile.personal.organizationCountry' | translate"
-          [value]="organizationCountry()"
-          (valueChange)="organizationCountry.set($event)"
-        />
-      }
 
       <div class="text-xs">
         @if (emailVerified()) {
@@ -148,7 +68,6 @@
       </div>
     </div>
 
-    <!-- Meta Data -->
     <div class="flex flex-col space-y-1 sm:flex-row sm:justify-between sm:space-y-0 text-[11px] text-zinc-400">
       <span>{{ 'profile.personal.created' | translate:{date: createdAt()} }}</span>
       <span>{{ 'profile.personal.updated' | translate:{date: updatedAt()} }}</span>

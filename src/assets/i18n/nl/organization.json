@@ -1,0 +1,52 @@
+{
+  "organization": {
+    "overview": "Overzicht",
+    "invites": "Uitnodigingen",
+    "newInvite": "Nieuwe uitnodiging",
+    "title": "Organisatie",
+    "subtitle": "Beheer bedrijfsprofiel en teamuitnodigingen.",
+    "profileTitle": "Organisatieprofiel",
+    "profileSubtitle": "Werk bedrijfsgegevens bij voor facturen en communicatie.",
+    "save": "Organisatie opslaan",
+    "saved": "Organisatie bijgewerkt.",
+    "fields": {
+      "name": "Organisatienaam",
+      "email": "Organisatie e-mail",
+      "phone": "Organisatie telefoon",
+      "vatNumber": "BTW-nummer",
+      "kvkNumber": "KVK-nummer",
+      "addressLine1": "Adresregel 1",
+      "addressLine2": "Adresregel 2",
+      "postalCode": "Postcode",
+      "city": "Plaats",
+      "country": "Land"
+    },
+    "invite": {
+      "title": "Teamuitnodigingen",
+      "subtitle": "Nodig teamleden uit om mee te doen.",
+      "emailLabel": "Uitnodigings e-mail",
+      "send": "Uitnodiging versturen",
+      "sent": "Uitnodiging aangemaakt.",
+      "tokenLabel": "Uitnodigingstoken",
+      "columns": {
+        "email": "E-mail",
+        "status": "Status",
+        "expires": "Verloopt",
+        "actions": "Acties"
+      },
+      "listTitle": "Uitnodigingen overzicht",
+      "empty": "Nog geen uitnodigingen.",
+      "statusPending": "In behandeling",
+      "statusUsed": "Gebruikt",
+      "statusExpired": "Verlopen",
+      "resend": "Opnieuw versturen",
+      "revoke": "Intrekken",
+      "edit": "Bewerken"
+    },
+    "errors": {
+      "emailInvalid": "Vul een geldig e-mailadres in",
+      "nameRequired": "Organisatienaam is verplicht",
+      "generic": "Er is iets misgegaan."
+    }
+  }
+}

@@ -67,6 +67,7 @@ const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLo
   { prefix: '/assets/i18n/', suffix: '/services.json' },
   { prefix: '/assets/i18n/', suffix: '/offertes.json' },
   { prefix: '/assets/i18n/', suffix: '/catalog.json' },
+  { prefix: '/assets/i18n/', suffix: '/organization.json' },
 ]);
 
 export const appConfig: ApplicationConfig = {
