@@ -44,31 +44,41 @@
     </nav>
 
     <div class="mt-6 flex flex-col items-center gap-4 border-t border-zinc-100 pt-6">
-      <shared-button
-        class="sidebar-toggle"
-        variant="ghost"
-        size="compact"
-        [iconOnly]="true"
-        shape="square"
-        [fullWidth]="false"
-        [ariaLabel]="isExpanded() ? ('sidebar.collapse' | translate) : ('sidebar.expand' | translate)"
-        (clicked)="toggleExpanded()"
-      >
-        <lucide-icon name="arrow-left-right" class="h-5 w-5"></lucide-icon>
-      </shared-button>
-      <shared-menu
-        triggerLabel="navigation.profile"
-        ariaLabel="navigation.profile"
-        [iconOnly]="true"
-        [showChevron]="false"
-        [triggerVariant]="'ghost'"
-        [triggerSize]="'compact'"
-        [triggerShape]="'square'"
-        [fullWidth]="false"
-        [sections]="profileMenu"
-      >
-        <lucide-icon menuTrigger name="user" class="h-6 w-6"></lucide-icon>
-      </shared-menu>
+      <div class="group relative">
+        <shared-button
+          class="sidebar-toggle"
+          variant="ghost"
+          size="compact"
+          [iconOnly]="true"
+          shape="square"
+          [fullWidth]="false"
+          [ariaLabel]="isExpanded() ? ('sidebar.collapse' | translate) : ('sidebar.expand' | translate)"
+          (clicked)="toggleExpanded()"
+        >
+          <lucide-icon name="arrow-left-right" class="h-5 w-5"></lucide-icon>
+        </shared-button>
+        <span class="pointer-events-none absolute left-16 rounded bg-zinc-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+          {{ isExpanded() ? ('sidebar.collapse' | translate) : ('sidebar.expand' | translate) }}
+        </span>
+      </div>
+      <div class="group relative">
+        <shared-menu
+          triggerLabel="navigation.profile"
+          ariaLabel="navigation.profile"
+          [iconOnly]="true"
+          [showChevron]="false"
+          [triggerVariant]="'ghost'"
+          [triggerSize]="'compact'"
+          [triggerShape]="'square'"
+          [fullWidth]="false"
+          [sections]="profileMenu"
+        >
+          <lucide-icon menuTrigger name="user" class="h-6 w-6"></lucide-icon>
+        </shared-menu>
+        <span class="pointer-events-none absolute left-16 rounded bg-zinc-900 px-2 py-1 text-xs text-white opacity-0 transition-opacity group-hover:opacity-100">
+          {{ 'navigation.profile' | translate }}
+        </span>
+      </div>
     </div>
   </aside>
 
