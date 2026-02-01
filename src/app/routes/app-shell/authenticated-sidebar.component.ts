@@ -62,7 +62,6 @@ export class AuthenticatedSidebarComponent {
     const base: SidebarItem[] = [
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
-      { label: 'navigation.profile', route: '/app/profile', icon: 'profile' },
     ];
     if (this.isAdmin()) {
       base.splice(2, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
