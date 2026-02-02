@@ -1,3 +1,4 @@
+/* eslint-disable @angular-eslint/component-selector */
 import { ChangeDetectionStrategy, Component, computed, input, output, signal, effect } from '@angular/core';
 import { NgClass, DatePipe } from '@angular/common';
 import type { LeadAIAnalysis, LeadStatus, UrgencyLevel } from '../../../core/services/leads.types';
@@ -86,7 +87,7 @@ export class AiAdvisorPanelComponent {
   getWhatsAppUrl(phone: string | null | undefined, message: string | null | undefined): string {
     if (!phone || !message) return '';
     // Basic sanitization: remove non-digits
-    const cleanPhone = phone.replace(/\D/g, '');
+    const cleanPhone = phone.replaceAll(/\D/g, '');
     const encodedMessage = encodeURIComponent(message);
     return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
   }
