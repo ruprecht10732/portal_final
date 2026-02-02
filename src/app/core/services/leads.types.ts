@@ -267,3 +267,73 @@ export interface LogCallResponse {
   appointmentBooked?: string; // ISO 8601 date string
   message: string;
 }
+
+// Attachment types for lead service file uploads
+export interface PresignedUploadRequest {
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface PresignedUploadResponse {
+  uploadUrl: string;
+  fileKey: string;
+  expiresAt: number; // Unix timestamp
+}
+
+export interface CreateAttachmentRequest {
+  fileKey: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface Attachment {
+  id: string;
+  fileKey: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  uploadedBy?: string;
+  createdAt: string;
+  downloadUrl?: string;
+}
+
+// Alias for backward compatibility
+export type LeadServiceAttachment = Attachment;
+
+export interface AttachmentListResponse {
+  items: Attachment[];
+}
+
+export interface PresignedDownloadResponse {
+  downloadUrl: string;
+  expiresAt: number; // Unix timestamp
+}
+
+// Allowed file types for uploads
+export const ALLOWED_FILE_TYPES = {
+  images: ['image/jpeg', 'image/png', 'image/gif', 'image/webp', 'image/svg+xml'],
+  documents: [
+    'application/pdf',
+    'application/msword',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+    'application/vnd.ms-excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+    'application/vnd.ms-powerpoint',
+    'application/vnd.openxmlformats-officedocument.presentationml.presentation',
+    'text/plain',
+    'text/csv',
+  ],
+  video: ['video/mp4', 'video/webm', 'video/quicktime', 'video/x-msvideo', 'video/mpeg'],
+  audio: ['audio/mpeg', 'audio/wav', 'audio/ogg', 'audio/webm', 'audio/x-wav'],
+} as const;
+
+export const ALL_ALLOWED_TYPES = [
+  ...ALLOWED_FILE_TYPES.images,
+  ...ALLOWED_FILE_TYPES.documents,
+  ...ALLOWED_FILE_TYPES.video,
+  ...ALLOWED_FILE_TYPES.audio,
+];
+
+export const MAX_FILE_SIZE_BYTES = 104857600; // 100MB

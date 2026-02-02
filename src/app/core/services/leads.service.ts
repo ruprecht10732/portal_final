@@ -22,6 +22,12 @@ import type {
   AnalyzeLeadResponse,
   LogCallRequest,
   LogCallResponse,
+  PresignedUploadRequest,
+  PresignedUploadResponse,
+  CreateAttachmentRequest,
+  Attachment,
+  AttachmentListResponse,
+  PresignedDownloadResponse,
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
@@ -152,5 +158,85 @@ export class LeadsService {
   // Call Logger - processes post-call summaries into structured actions
   logCall(leadId: string, serviceId: string, data: LogCallRequest): Observable<LogCallResponse> {
     return this.http.post<LogCallResponse>(`${this.baseUrl}/${leadId}/services/${serviceId}/log-call`, data);
+  }
+
+  // Attachment methods for lead service file uploads
+  getPresignedUploadUrl(leadId: string, serviceId: string, data: PresignedUploadRequest): Observable<PresignedUploadResponse> {
+    return this.http.post<PresignedUploadResponse>(
+      `${this.baseUrl}/${leadId}/services/${serviceId}/attachments/presign`,
+      data
+    );
+  }
+
+  createAttachment(leadId: string, serviceId: string, data: CreateAttachmentRequest): Observable<Attachment> {
+    return this.http.post<Attachment>(`${this.baseUrl}/${leadId}/services/${serviceId}/attachments`, data);
+  }
+
+  listAttachments(leadId: string, serviceId: string): Observable<AttachmentListResponse> {
+    return this.http.get<AttachmentListResponse>(`${this.baseUrl}/${leadId}/services/${serviceId}/attachments`);
+  }
+
+  getAttachment(leadId: string, serviceId: string, attachmentId: string): Observable<Attachment> {
+    return this.http.get<Attachment>(`${this.baseUrl}/${leadId}/services/${serviceId}/attachments/${attachmentId}`);
+  }
+
+  getAttachmentDownloadUrl(leadId: string, serviceId: string, attachmentId: string): Observable<PresignedDownloadResponse> {
+    return this.http.get<PresignedDownloadResponse>(
+      `${this.baseUrl}/${leadId}/services/${serviceId}/attachments/${attachmentId}/download`
+    );
+  }
+
+  deleteAttachment(leadId: string, serviceId: string, attachmentId: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(
+      `${this.baseUrl}/${leadId}/services/${serviceId}/attachments/${attachmentId}`
+    );
+  }
+
+  /**
+   * Upload a file to MinIO via presigned URL workflow:
+   * 1. Get presigned URL from backend
+   * 2. Upload file directly to MinIO
+   * 3. Create attachment record in database
+   */
+  uploadFile(leadId: string, serviceId: string, file: File): Observable<Attachment> {
+    return new Observable(observer => {
+      // Step 1: Get presigned URL
+      this.getPresignedUploadUrl(leadId, serviceId, {
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+      }).subscribe({
+        next: presigned => {
+          // Step 2: Upload to MinIO using presigned URL
+          const xhr = new XMLHttpRequest();
+          xhr.open('PUT', presigned.uploadUrl, true);
+          xhr.setRequestHeader('Content-Type', file.type);
+
+          xhr.onload = () => {
+            if (xhr.status >= 200 && xhr.status < 300) {
+              // Step 3: Create attachment record
+              this.createAttachment(leadId, serviceId, {
+                fileKey: presigned.fileKey,
+                fileName: file.name,
+                contentType: file.type,
+                sizeBytes: file.size,
+              }).subscribe({
+                next: attachment => {
+                  observer.next(attachment);
+                  observer.complete();
+                },
+                error: err => observer.error(err),
+              });
+            } else {
+              observer.error(new Error(`Upload failed with status ${xhr.status}`));
+            }
+          };
+
+          xhr.onerror = () => observer.error(new Error('Upload failed'));
+          xhr.send(file);
+        },
+        error: err => observer.error(err),
+      });
+    });
   }
 }

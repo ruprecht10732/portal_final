@@ -72,7 +72,8 @@
         "visit": "Het bezoek",
         "activity": "Activiteit / notities",
         "appointments": "Afspraken",
-        "ai": "AI-adviseur"
+        "ai": "AI-adviseur",
+        "files": "Bestanden"
       },
       "appointments": {
         "defaultTitle": "Leadbezoek",
@@ -84,6 +85,18 @@
         "attachmentSaved": "Bijlage opgeslagen",
         "attachmentError": "Bijlage opslaan mislukt",
         "attachmentsLoadError": "Bijlagen laden mislukt"
+      },
+      "files": {
+        "title": "Dienstbestanden",
+        "description": "Upload en beheer bestanden voor deze dienst.",
+        "selectService": "Selecteer een dienst om bestanden te bekijken en uploaden.",
+        "upload": "Bestand uploaden",
+        "selectFile": "Kies een bestand",
+        "uploading": "Uploaden...",
+        "uploadButton": "Uploaden",
+        "attachments": "Geüploade bestanden",
+        "loading": "Bestanden laden...",
+        "noFiles": "Nog geen bestanden geüpload."
       },
       "inquiry": {
         "title": "Initiële aanvraag",

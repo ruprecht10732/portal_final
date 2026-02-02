@@ -1,12 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, effect, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { firstValueFrom } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadStatus, LogCallResponse } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse } from '../../../core/services/leads.types';
 import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
 import type {
   AccessDifficulty,
@@ -64,7 +65,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly newStatus = signal<LeadStatus | null>(null);
 
   protected readonly statusMenuOpen = signal(false);
-  protected readonly activeTab = signal<'activity' | 'appointments' | 'ai'>('activity');
+  protected readonly activeTab = signal<'activity' | 'appointments' | 'ai' | 'files'>('activity');
 
   protected readonly appointments = signal<AppointmentResponse[]>([]);
   protected readonly appointmentsLoading = signal(false);
@@ -93,6 +94,15 @@ export class LeadDetailComponent implements OnInit {
   protected readonly attachmentFileName = signal('');
   protected readonly attachmentContentType = signal('');
   protected readonly attachmentSizeBytes = signal('');
+
+  // Service attachments (per lead service)
+  protected readonly serviceAttachments = signal<LeadServiceAttachment[]>([]);
+  protected readonly serviceAttachmentsLoading = signal(false);
+  protected readonly serviceAttachmentSaving = signal(false);
+  protected readonly serviceAttachmentDeleting = signal<string | null>(null);
+  protected readonly serviceAttachmentError = signal<string | null>(null);
+  protected readonly serviceAttachmentFile = signal<File | null>(null);
+  protected readonly serviceAttachmentUploadProgress = signal<number | null>(null);
 
   protected readonly noteText = signal('');
   protected readonly noteType = signal<LeadNoteType>('note');
@@ -300,6 +310,15 @@ export class LeadDetailComponent implements OnInit {
       // Only reload if service changed
       if (this.loadedAnalysisServiceId !== service.id) {
         this.loadAIAnalysis(lead.id, service.id);
+      }
+    });
+
+    // Effect to reload service attachments when selected service changes and Files tab is active
+    effect(() => {
+      const service = this.selectedService();
+      const tab = this.activeTab();
+      if (tab === 'files' && service) {
+        this.loadServiceAttachments();
       }
     });
   }
@@ -1098,6 +1117,191 @@ export class LeadDetailComponent implements OnInit {
 
   protected setAttachmentSizeBytes(value: string | null | undefined): void {
     this.attachmentSizeBytes.set(value ?? '');
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Service Attachments (per lead service)
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected loadServiceAttachments(): void {
+    const lead = this.lead();
+    const service = this.selectedService();
+    if (!lead || !service) {
+      this.serviceAttachments.set([]);
+      return;
+    }
+
+    this.serviceAttachmentsLoading.set(true);
+    this.serviceAttachmentError.set(null);
+    this.leadsService.listAttachments(lead.id, service.id).subscribe({
+      next: (response) => {
+        this.serviceAttachments.set(response.items ?? []);
+        this.serviceAttachmentsLoading.set(false);
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, 'Failed to load attachments');
+        this.serviceAttachmentError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.serviceAttachmentsLoading.set(false);
+      },
+    });
+  }
+
+  protected onServiceAttachmentFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    const file = input.files?.[0] ?? null;
+    this.serviceAttachmentFile.set(file);
+    this.serviceAttachmentError.set(null);
+  }
+
+  protected async uploadServiceAttachment(): Promise<void> {
+    const file = this.serviceAttachmentFile();
+    const lead = this.lead();
+    const service = this.selectedService();
+    if (!file || !lead || !service) return;
+
+    // Validate file size (100MB max)
+    const maxSize = 100 * 1024 * 1024;
+    if (file.size > maxSize) {
+      this.serviceAttachmentError.set(`File size exceeds maximum allowed (${Math.round(maxSize / 1024 / 1024)}MB)`);
+      return;
+    }
+
+    this.serviceAttachmentSaving.set(true);
+    this.serviceAttachmentError.set(null);
+    this.serviceAttachmentUploadProgress.set(0);
+
+    try {
+      // Step 1: Get presigned upload URL
+      const presignedResponse = await firstValueFrom(this.leadsService.getPresignedUploadUrl(lead.id, service.id, {
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+      }));
+
+      if (!presignedResponse) {
+        throw new Error('Failed to get upload URL');
+      }
+
+      // Step 2: Upload file directly to MinIO
+      await this.uploadFileToMinIO(presignedResponse.uploadUrl, file);
+
+      // Step 3: Create attachment metadata in database
+      const attachment = await firstValueFrom(this.leadsService.createAttachment(lead.id, service.id, {
+        fileKey: presignedResponse.fileKey,
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+      }));
+
+      if (attachment) {
+        this.serviceAttachments.update(items => [attachment, ...items]);
+      }
+
+      // Reset form
+      this.serviceAttachmentFile.set(null);
+      this.serviceAttachmentUploadProgress.set(null);
+      this.announce('File uploaded successfully');
+
+      // Reset file input
+      const fileInput = document.getElementById('service-attachment-input') as HTMLInputElement;
+      if (fileInput) fileInput.value = '';
+
+    } catch (err) {
+      const message = this.getErrorMessage(err, 'Failed to upload file');
+      this.serviceAttachmentError.set(message);
+      this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+    } finally {
+      this.serviceAttachmentSaving.set(false);
+      this.serviceAttachmentUploadProgress.set(null);
+    }
+  }
+
+  private uploadFileToMinIO(url: string, file: File): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          this.serviceAttachmentUploadProgress.set(progress);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve();
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error('Upload failed')));
+      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+
+      xhr.open('PUT', url);
+      xhr.setRequestHeader('Content-Type', file.type);
+      xhr.send(file);
+    });
+  }
+
+  protected deleteServiceAttachment(attachmentId: string): void {
+    const lead = this.lead();
+    const service = this.selectedService();
+    if (!lead || !service) return;
+
+    this.serviceAttachmentDeleting.set(attachmentId);
+    this.serviceAttachmentError.set(null);
+
+    this.leadsService.deleteAttachment(lead.id, service.id, attachmentId).subscribe({
+      next: () => {
+        this.serviceAttachments.update(items => items.filter(a => a.id !== attachmentId));
+        this.serviceAttachmentDeleting.set(null);
+        this.announce('Attachment deleted');
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, 'Failed to delete attachment');
+        this.serviceAttachmentError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.serviceAttachmentDeleting.set(null);
+      },
+    });
+  }
+
+  protected downloadServiceAttachment(attachment: LeadServiceAttachment): void {
+    const lead = this.lead();
+    const service = this.selectedService();
+    if (!lead || !service) return;
+
+    // If we already have a download URL (from list response), use it
+    if (attachment.downloadUrl) {
+      window.open(attachment.downloadUrl, '_blank');
+      return;
+    }
+
+    // Otherwise, fetch a fresh presigned download URL
+    this.leadsService.getAttachmentDownloadUrl(lead.id, service.id, attachment.id).subscribe({
+      next: (response) => {
+        window.open(response.downloadUrl, '_blank');
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, 'Failed to get download URL');
+        this.serviceAttachmentError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  protected formatFileSize(bytes: number): string {
+    if (bytes === 0) return '0 B';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
+  }
+
+  protected canUploadServiceAttachment(): boolean {
+    return !!this.serviceAttachmentFile() && !!this.selectedService() && !this.serviceAttachmentSaving();
   }
 }
 

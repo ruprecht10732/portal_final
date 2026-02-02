@@ -72,7 +72,8 @@
         "visit": "The Visit",
         "activity": "Activity / Notes",
         "appointments": "Appointments",
-        "ai": "AI Advisor"
+        "ai": "AI Advisor",
+        "files": "Files"
       },
       "appointments": {
         "defaultTitle": "Lead visit",
@@ -86,6 +87,18 @@
         "attachmentSaved": "Attachment saved",
         "attachmentError": "Failed to save attachment",
         "attachmentsLoadError": "Failed to load attachments"
+      },
+      "files": {
+        "title": "Service Files",
+        "description": "Upload and manage files for this service.",
+        "selectService": "Select a service to view and upload files.",
+        "upload": "Upload File",
+        "selectFile": "Choose a file",
+        "uploading": "Uploading...",
+        "uploadButton": "Upload",
+        "attachments": "Uploaded Files",
+        "loading": "Loading files...",
+        "noFiles": "No files uploaded yet."
       },
       "inquiry": {
         "title": "Initial Request",
