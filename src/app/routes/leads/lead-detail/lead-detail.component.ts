@@ -496,7 +496,7 @@ export class LeadDetailComponent implements OnInit {
 
   protected getMapUrl(): string {
     const address = this.getFullAddress();
-    return `https://www.openstreetmap.org/search?query=${encodeURIComponent(address)}`;
+    return `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(address)}`;
   }
 
   protected copyAddress(): void {
