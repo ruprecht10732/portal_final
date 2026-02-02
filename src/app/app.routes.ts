@@ -180,6 +180,7 @@ export const routes: Routes = [
 					panelItems: [
 						{ label: 'catalog.overview', route: '/app/catalog', icon: 'list', exact: true },
 						{ label: 'catalog.create', route: '/app/catalog/new', icon: 'plus' },
+						{ label: 'catalog.vatRates.title', route: '/app/catalog/vat-rates', icon: 'settings' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
@@ -190,6 +191,18 @@ export const routes: Routes = [
 					{
 						path: 'new',
 						loadComponent: () => import('./routes/catalog/catalog-create/catalog-create.component').then(m => m.CatalogCreateComponent),
+					},
+					{
+						path: 'vat-rates',
+						loadComponent: () => import('./routes/catalog/vat-rates/vat-rates-list/vat-rates-list.component').then(m => m.VatRatesListComponent),
+					},
+					{
+						path: ':id',
+						loadComponent: () => import('./routes/catalog/catalog-detail/catalog-detail.component').then(m => m.CatalogDetailComponent),
+					},
+					{
+						path: ':id/edit',
+						loadComponent: () => import('./routes/catalog/catalog-edit/catalog-edit.component').then(m => m.CatalogEditComponent),
 					},
 				],
 			},

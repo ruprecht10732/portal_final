@@ -1,10 +1,188 @@
-<section class="flex flex-col gap-4">
-  <header class="flex flex-col gap-1">
-    <h1 class="text-xl font-semibold text-zinc-900">{{ 'catalog.createTitle' | translate }}</h1>
-    <p class="text-sm text-zinc-500">{{ 'catalog.createSubtitle' | translate }}</p>
+<div class="flex flex-col w-full">
+  <!-- Header -->
+  <header class="flex items-center gap-4 p-4 sm:px-6">
+    <shared-button
+      type="button"
+      variant="ghost"
+      size="compact"
+      [iconOnly]="true"
+      [fullWidth]="false"
+      [uppercase]="false"
+      (clicked)="cancel()"
+      [ariaLabel]="'catalog.products.goBack' | translate"
+    >
+      <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+    </shared-button>
+    
+    <div class="flex flex-col">
+      <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
+        {{ 'catalog.products.createTitle' | translate }}
+      </h1>
+      <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
+        {{ 'catalog.products.createSubtitle' | translate }}
+      </span>
+    </div>
   </header>
 
-  <div class="rounded-2xl border border-zinc-200 bg-white p-6 text-sm text-zinc-600">
-    {{ 'catalog.createHint' | translate }}
-  </div>
-</section>
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+      <span class="font-bold uppercase text-red-600 shrink-0">{{ 'catalog.products.errorLabel' | translate }}</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
+      <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
+      <p class="text-xs font-mono uppercase text-zinc-400">{{ 'catalog.products.loading' | translate }}</p>
+    </div>
+  } @else {
+    <form [formGroup]="form" (ngSubmit)="save()" class="flex-1 flex flex-col">
+      <!-- Form Grid -->
+      <div class="grid grid-cols-1 md:grid-cols-2 w-full border-b border-zinc-200">
+        
+        <!-- Section A: Basics -->
+        <section class="p-4 sm:p-6 border-b md:border-b-0 md:border-r border-zinc-200">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">A</span>
+            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+              {{ 'catalog.products.sections.basics' | translate }}
+            </h2>
+          </div>
+          
+          <div class="space-y-5">
+            <shared-input
+              [label]="'catalog.products.fields.title' | translate"
+              [value]="form.controls.title.value ?? ''"
+              (valueChange)="form.controls.title.setValue($event)"
+              [required]="true"
+              [error]="requiredControlError(form.controls.title)"
+              [placeholder]="'catalog.products.placeholders.title' | translate"
+            />
+
+            <shared-input
+              [label]="'catalog.products.fields.reference' | translate"
+              [value]="form.controls.reference.value ?? ''"
+              (valueChange)="form.controls.reference.setValue($event)"
+              [required]="true"
+              [error]="requiredControlError(form.controls.reference)"
+              [placeholder]="'catalog.products.placeholders.reference' | translate"
+              [hint]="'catalog.products.hints.reference' | translate"
+            />
+
+            <shared-textarea
+              [label]="'catalog.products.fields.description' | translate"
+              [value]="form.controls.description.value ?? ''"
+              (valueChange)="form.controls.description.setValue($event)"
+              [rows]="4"
+              [placeholder]="'catalog.products.placeholders.description' | translate"
+            />
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <shared-number-input
+                [label]="'catalog.products.fields.price' | translate"
+                [value]="form.controls.price.value"
+                (valueChange)="form.controls.price.setValue($event)"
+                [required]="true"
+                [error]="requiredControlError(form.controls.price)"
+                prefix="€"
+                [min]="0"
+                [step]="0.01"
+                [placeholder]="'0.00'"
+              />
+
+              <shared-select
+                [label]="'catalog.products.fields.vatRate' | translate"
+                [options]="vatRateOptions()"
+                [value]="form.controls.vatRateId.value"
+                (valueChange)="setVatRate($event)"
+                [required]="true"
+                [error]="requiredControlError(form.controls.vatRateId)"
+              />
+            </div>
+          </div>
+        </section>
+
+        <!-- Section B: Configuration -->
+        <section class="p-4 sm:p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">B</span>
+            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+              {{ 'catalog.products.sections.configuration' | translate }}
+            </h2>
+          </div>
+
+          <div class="space-y-5">
+            <shared-select
+              [label]="'catalog.products.fields.type' | translate"
+              [options]="typeOptions()"
+              [value]="form.controls.type.value"
+              (valueChange)="setType($event)"
+              [required]="true"
+            />
+
+            @if (showPeriodFields()) {
+              <div class="border border-zinc-200 p-4 bg-zinc-50 space-y-4">
+                <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                  {{ 'catalog.products.periodConfiguration' | translate }}
+                </p>
+                
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <shared-number-input
+                    [label]="'catalog.products.fields.periodCount' | translate"
+                    [value]="form.controls.periodCount.value"
+                    (valueChange)="form.controls.periodCount.setValue($event)"
+                    [min]="1"
+                    [step]="1"
+                    [placeholder]="'1'"
+                  />
+
+                  <shared-select
+                    [label]="'catalog.products.fields.periodUnit' | translate"
+                    [options]="periodUnitOptions()"
+                    [value]="form.controls.periodUnit.value"
+                    (valueChange)="setPeriodUnit($event)"
+                    [placeholder]="'catalog.products.placeholders.periodUnit' | translate"
+                  />
+                </div>
+
+                <p class="text-xs text-zinc-400">
+                  {{ 'catalog.products.hints.period' | translate }}
+                </p>
+              </div>
+            }
+          </div>
+        </section>
+      </div>
+
+      <!-- Footer -->
+      <div class="p-4 sm:p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
+        @if (submitAttempted() && form.invalid) {
+          <p class="text-xs font-semibold uppercase tracking-wide text-red-600 sm:mr-auto">
+            {{ 'catalog.products.validation.fixErrors' | translate }}
+          </p>
+        }
+        <shared-button
+          variant="secondary"
+          type="button"
+          (clicked)="cancel()"
+          class="w-full sm:w-auto"
+        >
+          {{ 'catalog.products.cancel' | translate }}
+        </shared-button>
+        
+        <shared-button
+          variant="primary"
+          type="submit"
+          class="w-full sm:w-auto"
+          [disabled]="saving()"
+          [loading]="saving()"
+        >
+          {{ saving() ? ('catalog.products.saving' | translate) : ('catalog.products.create' | translate) }}
+        </shared-button>
+      </div>
+    </form>
+  }
+</div>

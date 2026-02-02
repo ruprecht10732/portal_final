@@ -1,0 +1,246 @@
+<div class="flex flex-col w-full">
+  <!-- Header -->
+  <header class="flex items-center justify-between gap-4 p-4 sm:px-6 border-b border-zinc-200">
+    <div class="flex items-center gap-4">
+      <shared-button
+        type="button"
+        variant="ghost"
+        size="compact"
+        [iconOnly]="true"
+        [fullWidth]="false"
+        [uppercase]="false"
+        (clicked)="goBack()"
+        [ariaLabel]="'catalog.products.goBack' | translate"
+      >
+        <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+      </shared-button>
+      
+      <div class="flex flex-col">
+        <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
+          {{ product()?.title || ('catalog.products.loading' | translate) }}
+        </h1>
+        <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
+          {{ product()?.reference }}
+        </span>
+      </div>
+    </div>
+
+    @if (product()) {
+      <div class="flex items-center gap-2">
+        <shared-button
+          type="button"
+          variant="secondary"
+          size="compact"
+          [fullWidth]="false"
+          (clicked)="edit()"
+        >
+          <lucide-icon name="pencil" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+          {{ 'catalog.products.edit' | translate }}
+        </shared-button>
+        <shared-button
+          type="button"
+          variant="danger"
+          size="compact"
+          [fullWidth]="false"
+          (clicked)="openDeleteDialog()"
+        >
+          <lucide-icon name="trash-2" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+          {{ 'catalog.products.delete' | translate }}
+        </shared-button>
+      </div>
+    }
+  </header>
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+      <span class="font-bold uppercase text-red-600 shrink-0">{{ 'catalog.products.errorLabel' | translate }}</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
+      <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
+      <p class="text-xs font-mono uppercase text-zinc-400">{{ 'catalog.products.loading' | translate }}</p>
+    </div>
+  } @else if (product()) {
+    <!-- Content -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 w-full border-b border-zinc-200">
+        
+        <!-- Section A: Basics -->
+        <section class="p-4 sm:p-6 border-b md:border-b-0 md:border-r border-zinc-200">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">A</span>
+            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+              {{ 'catalog.products.sections.basics' | translate }}
+            </h2>
+          </div>
+          
+          <dl class="space-y-5">
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                {{ 'catalog.products.fields.title' | translate }}
+              </dt>
+              <dd class="mt-1 text-sm font-medium text-zinc-900">
+                {{ product()!.title }}
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                {{ 'catalog.products.fields.reference' | translate }}
+              </dt>
+              <dd class="mt-1 text-sm font-mono text-zinc-600">
+                {{ product()!.reference }}
+              </dd>
+            </div>
+
+            @if (product()!.description) {
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {{ 'catalog.products.fields.description' | translate }}
+                </dt>
+                <dd class="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">
+                  {{ product()!.description }}
+                </dd>
+              </div>
+            }
+
+            <div class="grid grid-cols-2 gap-4">
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {{ 'catalog.products.fields.price' | translate }}
+                </dt>
+                <dd class="mt-1 text-lg font-bold text-zinc-900">
+                  {{ formattedPrice() }}
+                </dd>
+              </div>
+
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {{ 'catalog.products.fields.vatRate' | translate }}
+                </dt>
+                <dd class="mt-1 text-sm font-medium text-zinc-600">
+                  {{ formattedVatRate() }}
+                </dd>
+              </div>
+            </div>
+          </dl>
+        </section>
+
+        <!-- Section B: Configuration -->
+        <section class="p-4 sm:p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">B</span>
+            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+              {{ 'catalog.products.sections.configuration' | translate }}
+            </h2>
+          </div>
+
+          <dl class="space-y-5">
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                {{ 'catalog.products.fields.type' | translate }}
+              </dt>
+              <dd class="mt-2">
+                <shared-chip [variant]="getTypeVariant(product()!.type)">
+                  {{ typeLabel() }}
+                </shared-chip>
+              </dd>
+            </div>
+
+            @if (formattedPeriod()) {
+              <div class="border border-zinc-200 p-4 bg-zinc-50">
+                <p class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-3">
+                  {{ 'catalog.products.periodConfiguration' | translate }}
+                </p>
+                <div class="flex items-center gap-2">
+                  <span class="text-sm font-medium text-zinc-900">{{ formattedPeriod() }}</span>
+                </div>
+              </div>
+            }
+
+            <div class="grid grid-cols-2 gap-4 pt-4 border-t border-zinc-200">
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {{ 'catalog.products.fields.createdAt' | translate }}
+                </dt>
+                <dd class="mt-1 text-sm text-zinc-600">
+                  {{ product()!.createdAt | date:'medium' }}
+                </dd>
+              </div>
+
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {{ 'catalog.products.fields.updatedAt' | translate }}
+                </dt>
+                <dd class="mt-1 text-sm text-zinc-600">
+                  {{ product()!.updatedAt | date:'medium' }}
+                </dd>
+              </div>
+            </div>
+          </dl>
+        </section>
+      </div>
+
+      <!-- Materials Section (for services only) -->
+      @if (showMaterials()) {
+        <section class="p-4 sm:p-6">
+          <div class="flex items-center justify-between mb-6">
+            <div class="flex items-center gap-3">
+              <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">C</span>
+              <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                {{ 'catalog.products.linkedMaterials' | translate }}
+              </h2>
+            </div>
+            <span class="text-xs text-zinc-400">
+              {{ materials().length }} {{ 'catalog.products.items' | translate }}
+            </span>
+          </div>
+
+          @if (materialsLoading()) {
+            <div class="flex items-center justify-center p-8">
+              <div class="animate-spin h-6 w-6 border-4 border-zinc-200 border-t-black rounded-full"></div>
+            </div>
+          } @else if (materials().length === 0) {
+            <div class="border border-dashed border-zinc-300 rounded-lg p-8 text-center">
+              <svg class="mx-auto h-10 w-10 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+              </svg>
+              <h3 class="mt-3 text-sm font-semibold text-zinc-900">{{ 'catalog.products.noMaterials' | translate }}</h3>
+              <p class="mt-1 text-xs text-zinc-500">{{ 'catalog.products.noMaterialsDescription' | translate }}</p>
+            </div>
+          } @else {
+            <div class="border border-zinc-200 bg-white divide-y divide-zinc-100">
+              @for (material of materials(); track material.id) {
+                <div class="flex items-center justify-between p-4">
+                  <div>
+                    <p class="text-sm font-medium text-zinc-900">{{ material.title }}</p>
+                    <p class="text-xs text-zinc-500 font-mono">{{ material.reference }}</p>
+                  </div>
+                  <span class="text-sm font-medium text-zinc-900">{{ formatMaterialPrice(material.priceCents) }}</span>
+                </div>
+              }
+            </div>
+          }
+        </section>
+      }
+    </div>
+  }
+
+  <!-- Delete Confirmation Dialog -->
+  <shared-confirm-dialog
+    [isOpen]="showDeleteDialog()"
+    [title]="'catalog.products.deleteConfirmTitle' | translate"
+    [message]="'catalog.products.deleteConfirmMessage' | translate"
+    [confirmText]="'catalog.products.confirmDelete' | translate"
+    [cancelText]="'catalog.products.cancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="deleting()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDeleteDialog()"
+  />
+</div>

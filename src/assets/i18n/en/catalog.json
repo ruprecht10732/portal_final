@@ -2,11 +2,289 @@
   "catalog": {
     "overview": "Overview",
     "create": "New",
+    "products": "Products",
+    "settings": "Settings",
     "overviewTitle": "Catalog",
     "overviewSubtitle": "Manage products and services offered to customers.",
     "emptyState": "No catalog items yet. Add your first item to get started.",
+    "newProduct": "New Product",
+    "search": "Search products...",
+    "filterByType": "Filter by type",
+    "allTypes": "All types",
+    "types": {
+      "digital_service": "Digital Service",
+      "service": "Service",
+      "product": "Product",
+      "material": "Material"
+    },
+    "periodUnits": {
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "quarter": "Quarter",
+      "year": "Year"
+    },
+    "columns": {
+      "reference": "Reference",
+      "title": "Title",
+      "type": "Type",
+      "price": "Price",
+      "vatRate": "VAT Rate",
+      "actions": "Actions"
+    },
     "createTitle": "New Catalog Item",
     "createSubtitle": "Create a new product or service.",
-    "createHint": "Define a name, description, and pricing."
+    "editTitle": "Edit Product",
+    "editSubtitle": "Update product details.",
+    "createHint": "Define a name, description, and pricing.",
+    "sections": {
+      "basics": "Basic Information",
+      "basicsDesc": "Product name, reference code, and description.",
+      "pricing": "Pricing",
+      "pricingDesc": "Set the price and tax rate.",
+      "configuration": "Configuration",
+      "configurationDesc": "Product type and billing settings.",
+      "materials": "Materials",
+      "materialsDesc": "Link materials used in this service."
+    },
+    "form": {
+      "title": "Title",
+      "titlePlaceholder": "e.g., Heat Pump Maintenance",
+      "reference": "Reference Code",
+      "referencePlaceholder": "e.g., SRV-HP-01",
+      "description": "Description",
+      "descriptionPlaceholder": "Optional product description...",
+      "price": "Price",
+      "pricePlaceholder": "0.00",
+      "vatRate": "VAT Rate",
+      "vatRatePlaceholder": "Select a VAT rate",
+      "type": "Product Type",
+      "typePlaceholder": "Select a type",
+      "periodCount": "Billing Period",
+      "periodCountPlaceholder": "e.g., 1",
+      "periodUnit": "Period Unit",
+      "periodUnitPlaceholder": "Select unit"
+    },
+    "validation": {
+      "titleRequired": "Title is required",
+      "titleTooLong": "Title cannot exceed 200 characters",
+      "referenceRequired": "Reference code is required",
+      "referenceTooLong": "Reference cannot exceed 100 characters",
+      "priceRequired": "Price is required",
+      "priceMin": "Price must be 0 or greater",
+      "vatRateRequired": "Please select a VAT rate",
+      "typeRequired": "Please select a product type",
+      "periodRequired": "Billing period is required for services",
+      "required": "This field is required",
+      "fixErrors": "Please fix the errors to continue"
+    },
+    "detail": {
+      "title": "Product Details",
+      "backToList": "Back to catalog",
+      "edit": "Edit",
+      "delete": "Delete",
+      "createdAt": "Created",
+      "updatedAt": "Last updated",
+      "billingPeriod": "Billing Period",
+      "perPeriod": "per {{unit}}"
+    },
+    "materials": {
+      "title": "Linked Materials",
+      "empty": "No materials linked to this service.",
+      "add": "Add Material",
+      "remove": "Remove",
+      "selectTitle": "Select Materials",
+      "selectSubtitle": "Choose materials to add to this service.",
+      "noMaterialsAvailable": "No materials available. Create materials first."
+    },
+    "actions": {
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "save": "Save",
+      "cancel": "Cancel",
+      "confirm": "Confirm"
+    },
+    "deleteTitle": "Delete Product",
+    "deleteMessage": "Are you sure you want to delete \"{{name}}\"? This action cannot be undone.",
+    "createSuccess": "Product created successfully",
+    "updateSuccess": "Product updated successfully",
+    "deleteSuccess": "Product deleted successfully",
+    "materialsAddedSuccess": "Materials added successfully",
+    "materialsRemovedSuccess": "Material removed",
+    "errors": {
+      "loadFailed": "Failed to load products",
+      "createFailed": "Failed to create product",
+      "updateFailed": "Failed to update product",
+      "deleteFailed": "Failed to delete product",
+      "notFound": "Product not found",
+      "materialsLoadFailed": "Failed to load materials"
+    },
+    "vatRates": {
+      "title": "VAT Rates",
+      "subtitle": "Configure tax rates for catalog items.",
+      "addButton": "Add Rate",
+      "addTitle": "Add VAT Rate",
+      "editTitle": "Edit VAT Rate",
+      "emptyTitle": "No VAT Rates",
+      "emptyMessage": "No VAT rates configured yet.",
+      "addFirstRate": "Add First Rate",
+      "columns": {
+        "name": "Name",
+        "rate": "Rate",
+        "actions": "Actions"
+      },
+      "form": {
+        "name": "Name",
+        "namePlaceholder": "e.g., Standard Rate",
+        "rate": "Rate (%)",
+        "rateHint": "Enter the percentage (e.g., 21 for 21%)"
+      },
+      "validation": {
+        "nameRequired": "Name is required",
+        "nameTooLong": "Name cannot exceed 100 characters",
+        "rateRequired": "Rate is required",
+        "rateRange": "Rate must be between 0 and 100"
+      },
+      "editAction": "Edit",
+      "deleteAction": "Delete",
+      "deleteTitle": "Delete VAT Rate",
+      "deleteMessage": "Are you sure you want to delete \"{{name}}\"?",
+      "createSuccess": "VAT rate created successfully",
+      "updateSuccess": "VAT rate updated successfully",
+      "deleteSuccess": "VAT rate deleted successfully",
+      "errors": {
+        "loadFailed": "Failed to load VAT rates",
+        "createFailed": "Failed to create VAT rate",
+        "updateFailed": "Failed to update VAT rate",
+        "deleteFailed": "Failed to delete VAT rate",
+        "inUse": "This VAT rate is used by products and cannot be deleted"
+      }
+    },
+    "products": {
+      "title": "Products",
+      "subtitle": "Manage all products and services",
+      "createTitle": "New Product",
+      "createSubtitle": "Create a new product or service",
+      "editTitle": "Edit Product",
+      "editSubtitle": "Update product details",
+      "detailTitle": "Product Details",
+      "goBack": "Go back",
+      "errorLabel": "Error",
+      "loading": "Loading...",
+      "searchPlaceholder": "Search by title or reference...",
+      "filterByType": "Filter by type",
+      "search": "Search",
+      "allTypes": "All types",
+      "newProduct": "New Product",
+      "emptyTitle": "No products yet",
+      "emptyDescription": "Get started by creating your first product.",
+      "createFirst": "Create Product",
+      "noProducts": "No products found",
+      "noProductsDescription": "Create a new product to get started.",
+      "createNew": "New Product",
+      "create": "Create",
+      "cancel": "Cancel",
+      "save": "Save",
+      "saving": "Saving...",
+      "saveChanges": "Save changes",
+      "view": "View",
+      "edit": "Edit",
+      "delete": "Delete",
+      "items": "items",
+      "deleteTitle": "Delete Product",
+      "deleteMessage": "Are you sure you want to delete \"{{title}}\"? This action cannot be undone.",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel",
+      "columns": {
+        "reference": "Reference",
+        "title": "Title",
+        "type": "Type",
+        "price": "Price",
+        "actions": "Actions"
+      },
+      "pagination": {
+        "showing": "Page {{page}} of {{total}} ({{count}} items)",
+        "previous": "Previous",
+        "next": "Next"
+      },
+      "placeholders": {
+        "title": "e.g., Heat Pump Maintenance",
+        "reference": "e.g., SRV-HP-01",
+        "description": "Optional product description...",
+        "periodUnit": "Select unit"
+      },
+      "sections": {
+        "basics": "Basics",
+        "configuration": "Configuration"
+      },
+      "fields": {
+        "title": "Title",
+        "reference": "Reference",
+        "description": "Description",
+        "price": "Price",
+        "vatRate": "VAT Rate",
+        "type": "Type",
+        "periodCount": "Period Count",
+        "periodUnit": "Period Unit",
+        "createdAt": "Created",
+        "updatedAt": "Updated"
+      },
+      "hints": {
+        "reference": "Unique code for this product",
+        "period": "Optional: fill in for subscriptions or recurring services"
+      },
+      "types": {
+        "all": "All types",
+        "digital_service": "Digital Service",
+        "service": "Service",
+        "product": "Product",
+        "material": "Material"
+      },
+      "periodUnits": {
+        "day": "Day",
+        "week": "Week",
+        "month": "Month",
+        "quarter": "Quarter",
+        "year": "Year"
+      },
+      "periodConfiguration": "Period Configuration",
+      "validation": {
+        "required": "This field is required",
+        "fixErrors": "Please fix the errors to continue"
+      },
+      "errors": {
+        "loadProducts": "Failed to load products",
+        "loadProduct": "Failed to load product",
+        "loadVatRates": "Failed to load VAT rates",
+        "loadMaterials": "Failed to load materials",
+        "createProduct": "Failed to create product",
+        "updateProduct": "Failed to update product",
+        "deleteProduct": "Failed to delete product",
+        "addMaterials": "Failed to add materials",
+        "removeMaterial": "Failed to remove material"
+      },
+      "createSuccess": "Product created successfully",
+      "updateSuccess": "Product updated successfully",
+      "deleteSuccess": "Product deleted successfully",
+      "deleteConfirmTitle": "Delete Product",
+      "deleteConfirmMessage": "Are you sure you want to delete this product? This action cannot be undone.",
+      "confirmDelete": "Delete",
+      "tabs": {
+        "details": "Details",
+        "materials": "Materials"
+      },
+      "linkedMaterials": "Linked Materials",
+      "linkedMaterialsDescription": "Materials used for this service",
+      "addMaterial": "Add Material",
+      "addMaterialTitle": "Add Material",
+      "addSelected": "Add Selected",
+      "noMaterials": "No materials linked",
+      "noMaterialsDescription": "Add materials that are part of this service",
+      "noAvailableMaterials": "No available materials",
+      "materialsAdded": "Materials added successfully",
+      "materialRemoved": "Material removed successfully",
+      "removeMaterial": "Remove material"
+    }
   }
 }

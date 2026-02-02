@@ -1,0 +1,246 @@
+import { HttpClient, HttpParams } from '@angular/common/http';
+import { inject, Injectable } from '@angular/core';
+import { Observable } from 'rxjs';
+import { environment } from '../../../environments/environment';
+
+// ============================================================================
+// Interfaces
+// ============================================================================
+
+export interface VatRate {
+  id: string;
+  name: string;
+  rateBps: number; // 2100 = 21%
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface Product {
+  id: string;
+  vatRateId: string;
+  title: string;
+  reference: string;
+  description?: string;
+  priceCents: number; // 1050 = €10.50
+  type: ProductType;
+  periodCount?: number;
+  periodUnit?: PeriodUnit;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export type ProductType = 'digital_service' | 'service' | 'product' | 'material';
+export type PeriodUnit = 'day' | 'week' | 'month' | 'quarter' | 'year';
+
+export interface PaginatedResponse<T> {
+  items: T[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+// ============================================================================
+// Request/Response Types
+// ============================================================================
+
+export interface ListVatRatesParams {
+  search?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface CreateVatRateRequest {
+  name: string;
+  rateBps: number;
+}
+
+export interface UpdateVatRateRequest {
+  name?: string;
+  rateBps?: number;
+}
+
+export interface ListProductsParams {
+  search?: string;
+  type?: ProductType;
+  vatRateId?: string;
+  page?: number;
+  pageSize?: number;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
+}
+
+export interface CreateProductRequest {
+  vatRateId: string;
+  title: string;
+  reference: string;
+  description?: string;
+  priceCents: number;
+  type: ProductType;
+  periodCount?: number;
+  periodUnit?: PeriodUnit;
+}
+
+export interface UpdateProductRequest {
+  vatRateId?: string;
+  title?: string;
+  reference?: string;
+  description?: string;
+  priceCents?: number;
+  type?: ProductType;
+  periodCount?: number;
+  periodUnit?: PeriodUnit;
+}
+
+export interface MaterialsRequest {
+  materialIds: string[];
+}
+
+// ============================================================================
+// Service
+// ============================================================================
+
+@Injectable({ providedIn: 'root' })
+export class CatalogService {
+  private readonly http = inject(HttpClient);
+  private readonly baseUrl = `${environment.apiBaseUrl}/catalog`;
+  private readonly adminBaseUrl = `${environment.apiBaseUrl}/admin/catalog`;
+
+  // ==========================================================================
+  // Helper Methods - Static conversion utilities
+  // ==========================================================================
+
+  /** Convert display price (e.g., 10.50) to API cents (e.g., 1050) */
+  static priceToCents(price: number): number {
+    return Math.round(price * 100);
+  }
+
+  /** Convert display rate (e.g., 21) to API basis points (e.g., 2100) */
+  static rateToBps(rate: number): number {
+    return Math.round(rate * 100);
+  }
+
+  /** Convert API cents (e.g., 1050) to display price (e.g., 10.50) */
+  static centsToPrice(cents: number): number {
+    return cents / 100;
+  }
+
+  /** Convert API basis points (e.g., 2100) to display rate (e.g., 21) */
+  static bpsToRate(bps: number): number {
+    return bps / 100;
+  }
+
+  // ==========================================================================
+  // VAT Rates
+  // ==========================================================================
+
+  listVatRates(params: ListVatRatesParams = {}): Observable<PaginatedResponse<VatRate>> {
+    return this.http.get<PaginatedResponse<VatRate>>(`${this.baseUrl}/vat-rates`, {
+      params: this.buildVatRatesParams(params),
+    });
+  }
+
+  getVatRate(id: string): Observable<VatRate> {
+    return this.http.get<VatRate>(`${this.baseUrl}/vat-rates/${id}`);
+  }
+
+  createVatRate(data: CreateVatRateRequest): Observable<VatRate> {
+    return this.http.post<VatRate>(`${this.adminBaseUrl}/vat-rates`, data);
+  }
+
+  updateVatRate(id: string, data: UpdateVatRateRequest): Observable<VatRate> {
+    return this.http.put<VatRate>(`${this.adminBaseUrl}/vat-rates/${id}`, data);
+  }
+
+  deleteVatRate(id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.adminBaseUrl}/vat-rates/${id}`);
+  }
+
+  // ==========================================================================
+  // Products
+  // ==========================================================================
+
+  listProducts(params: ListProductsParams = {}): Observable<PaginatedResponse<Product>> {
+    return this.http.get<PaginatedResponse<Product>>(`${this.baseUrl}/products`, {
+      params: this.buildProductsParams(params),
+    });
+  }
+
+  getProduct(id: string): Observable<Product> {
+    return this.http.get<Product>(`${this.baseUrl}/products/${id}`);
+  }
+
+  createProduct(data: CreateProductRequest): Observable<Product> {
+    return this.http.post<Product>(`${this.adminBaseUrl}/products`, data);
+  }
+
+  updateProduct(id: string, data: UpdateProductRequest): Observable<Product> {
+    return this.http.put<Product>(`${this.adminBaseUrl}/products/${id}`, data);
+  }
+
+  deleteProduct(id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.adminBaseUrl}/products/${id}`);
+  }
+
+  // ==========================================================================
+  // Materials (Product associations)
+  // ==========================================================================
+
+  listProductMaterials(productId: string): Observable<Product[]> {
+    return this.http.get<Product[]>(`${this.baseUrl}/products/${productId}/materials`);
+  }
+
+  addProductMaterials(productId: string, data: MaterialsRequest): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.adminBaseUrl}/products/${productId}/materials`, data);
+  }
+
+  removeProductMaterials(productId: string, data: MaterialsRequest): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.adminBaseUrl}/products/${productId}/materials`, {
+      body: data,
+    });
+  }
+
+  // ==========================================================================
+  // Private Methods
+  // ==========================================================================
+
+  private buildVatRatesParams(params: ListVatRatesParams): HttpParams {
+    let httpParams = new HttpParams();
+    const entries: Record<string, string | number | undefined | null> = {
+      search: params.search,
+      page: params.page,
+      pageSize: params.pageSize,
+      sortBy: params.sortBy,
+      sortOrder: params.sortOrder,
+    };
+
+    for (const [key, value] of Object.entries(entries)) {
+      if (value === undefined || value === null || value === '') continue;
+      httpParams = httpParams.set(key, String(value));
+    }
+
+    return httpParams;
+  }
+
+  private buildProductsParams(params: ListProductsParams): HttpParams {
+    let httpParams = new HttpParams();
+    const entries: Record<string, string | number | undefined | null> = {
+      search: params.search,
+      type: params.type,
+      vatRateId: params.vatRateId,
+      page: params.page,
+      pageSize: params.pageSize,
+      sortBy: params.sortBy,
+      sortOrder: params.sortOrder,
+    };
+
+    for (const [key, value] of Object.entries(entries)) {
+      if (value === undefined || value === null || value === '') continue;
+      httpParams = httpParams.set(key, String(value));
+    }
+
+    return httpParams;
+  }
+}

@@ -2,11 +2,289 @@
   "catalog": {
     "overview": "Overzicht",
     "create": "Nieuw",
+    "products": "Producten",
+    "settings": "Instellingen",
     "overviewTitle": "Catalogus",
     "overviewSubtitle": "Beheer producten en diensten voor klanten.",
-    "emptyState": "Nog geen catalogusitems. Voeg je eerste item toe om te beginnen.",
+    "emptyState": "Nog geen catalogusitems. Voeg uw eerste item toe om te beginnen.",
+    "newProduct": "Nieuw product",
+    "search": "Zoek producten...",
+    "filterByType": "Filter op type",
+    "allTypes": "Alle types",
+    "types": {
+      "digital_service": "Digitale dienst",
+      "service": "Dienst",
+      "product": "Product",
+      "material": "Materiaal"
+    },
+    "periodUnits": {
+      "day": "Dag",
+      "week": "Week",
+      "month": "Maand",
+      "quarter": "Kwartaal",
+      "year": "Jaar"
+    },
+    "columns": {
+      "reference": "Referentie",
+      "title": "Titel",
+      "type": "Type",
+      "price": "Prijs",
+      "vatRate": "BTW-tarief",
+      "actions": "Acties"
+    },
     "createTitle": "Nieuw catalogusitem",
-    "createSubtitle": "Maak een nieuw product of dienst.",
-    "createHint": "Definieer een naam, beschrijving en prijs."
+    "createSubtitle": "Maak een nieuw product of dienst aan.",
+    "editTitle": "Product bewerken",
+    "editSubtitle": "Productgegevens bijwerken.",
+    "createHint": "Definieer een naam, beschrijving en prijs.",
+    "sections": {
+      "basics": "Basisgegevens",
+      "basicsDesc": "Productnaam, referentiecode en beschrijving.",
+      "pricing": "Prijzen",
+      "pricingDesc": "Stel de prijs en het belastingtarief in.",
+      "configuration": "Configuratie",
+      "configurationDesc": "Producttype en factureringsinstellingen.",
+      "materials": "Materialen",
+      "materialsDesc": "Koppel materialen die bij deze dienst worden gebruikt."
+    },
+    "form": {
+      "title": "Titel",
+      "titlePlaceholder": "bijv. Warmtepomp onderhoud",
+      "reference": "Referentiecode",
+      "referencePlaceholder": "bijv. SRV-WP-01",
+      "description": "Beschrijving",
+      "descriptionPlaceholder": "Optionele productbeschrijving...",
+      "price": "Prijs",
+      "pricePlaceholder": "0,00",
+      "vatRate": "BTW-tarief",
+      "vatRatePlaceholder": "Selecteer een BTW-tarief",
+      "type": "Producttype",
+      "typePlaceholder": "Selecteer een type",
+      "periodCount": "Facturatieperiode",
+      "periodCountPlaceholder": "bijv. 1",
+      "periodUnit": "Periode-eenheid",
+      "periodUnitPlaceholder": "Selecteer eenheid"
+    },
+    "validation": {
+      "titleRequired": "Titel is verplicht",
+      "titleTooLong": "Titel mag niet meer dan 200 tekens bevatten",
+      "referenceRequired": "Referentiecode is verplicht",
+      "referenceTooLong": "Referentie mag niet meer dan 100 tekens bevatten",
+      "priceRequired": "Prijs is verplicht",
+      "priceMin": "Prijs moet 0 of hoger zijn",
+      "vatRateRequired": "Selecteer een BTW-tarief",
+      "typeRequired": "Selecteer een producttype",
+      "periodRequired": "Facturatieperiode is verplicht voor diensten",
+      "required": "Dit veld is verplicht",
+      "fixErrors": "Corrigeer de fouten om door te gaan"
+    },
+    "detail": {
+      "title": "Productdetails",
+      "backToList": "Terug naar catalogus",
+      "edit": "Bewerken",
+      "delete": "Verwijderen",
+      "createdAt": "Aangemaakt",
+      "updatedAt": "Laatst bijgewerkt",
+      "billingPeriod": "Facturatieperiode",
+      "perPeriod": "per {{unit}}"
+    },
+    "materials": {
+      "title": "Gekoppelde materialen",
+      "empty": "Geen materialen gekoppeld aan deze dienst.",
+      "add": "Materiaal toevoegen",
+      "remove": "Verwijderen",
+      "selectTitle": "Materialen selecteren",
+      "selectSubtitle": "Kies materialen om toe te voegen aan deze dienst.",
+      "noMaterialsAvailable": "Geen materialen beschikbaar. Maak eerst materialen aan."
+    },
+    "actions": {
+      "view": "Bekijken",
+      "edit": "Bewerken",
+      "delete": "Verwijderen",
+      "save": "Opslaan",
+      "cancel": "Annuleren",
+      "confirm": "Bevestigen"
+    },
+    "deleteTitle": "Product verwijderen",
+    "deleteMessage": "Weet u zeker dat u \"{{name}}\" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+    "createSuccess": "Product succesvol aangemaakt",
+    "updateSuccess": "Product succesvol bijgewerkt",
+    "deleteSuccess": "Product succesvol verwijderd",
+    "materialsAddedSuccess": "Materialen succesvol toegevoegd",
+    "materialsRemovedSuccess": "Materiaal verwijderd",
+    "errors": {
+      "loadFailed": "Kon producten niet laden",
+      "createFailed": "Kon product niet aanmaken",
+      "updateFailed": "Kon product niet bijwerken",
+      "deleteFailed": "Kon product niet verwijderen",
+      "notFound": "Product niet gevonden",
+      "materialsLoadFailed": "Kon materialen niet laden"
+    },
+    "vatRates": {
+      "title": "BTW-tarieven",
+      "subtitle": "Configureer belastingtarieven voor catalogusitems.",
+      "addButton": "Tarief toevoegen",
+      "addTitle": "BTW-tarief toevoegen",
+      "editTitle": "BTW-tarief bewerken",
+      "emptyTitle": "Geen BTW-tarieven",
+      "emptyMessage": "Er zijn nog geen BTW-tarieven geconfigureerd.",
+      "addFirstRate": "Eerste tarief toevoegen",
+      "columns": {
+        "name": "Naam",
+        "rate": "Tarief",
+        "actions": "Acties"
+      },
+      "form": {
+        "name": "Naam",
+        "namePlaceholder": "bijv. Standaardtarief",
+        "rate": "Tarief (%)",
+        "rateHint": "Voer het percentage in (bijv. 21 voor 21%)"
+      },
+      "validation": {
+        "nameRequired": "Naam is verplicht",
+        "nameTooLong": "Naam mag niet meer dan 100 tekens bevatten",
+        "rateRequired": "Tarief is verplicht",
+        "rateRange": "Tarief moet tussen 0 en 100 liggen"
+      },
+      "editAction": "Bewerken",
+      "deleteAction": "Verwijderen",
+      "deleteTitle": "BTW-tarief verwijderen",
+      "deleteMessage": "Weet u zeker dat u \"{{name}}\" wilt verwijderen?",
+      "createSuccess": "BTW-tarief succesvol aangemaakt",
+      "updateSuccess": "BTW-tarief succesvol bijgewerkt",
+      "deleteSuccess": "BTW-tarief succesvol verwijderd",
+      "errors": {
+        "loadFailed": "Kon BTW-tarieven niet laden",
+        "createFailed": "Kon BTW-tarief niet aanmaken",
+        "updateFailed": "Kon BTW-tarief niet bijwerken",
+        "deleteFailed": "Kon BTW-tarief niet verwijderen",
+        "inUse": "Dit BTW-tarief wordt door producten gebruikt en kan niet worden verwijderd"
+      }
+    },
+    "products": {
+      "title": "Producten",
+      "subtitle": "Beheer alle producten en diensten",
+      "createTitle": "Nieuw Product",
+      "createSubtitle": "Maak een nieuw product of dienst aan",
+      "editTitle": "Product Bewerken",
+      "editSubtitle": "Productgegevens bijwerken",
+      "detailTitle": "Product Details",
+      "goBack": "Terug",
+      "errorLabel": "Fout",
+      "loading": "Laden...",
+      "searchPlaceholder": "Zoeken op titel of referentie...",
+      "filterByType": "Filter op type",
+      "search": "Zoeken",
+      "allTypes": "Alle types",
+      "newProduct": "Nieuw Product",
+      "emptyTitle": "Nog geen producten",
+      "emptyDescription": "Begin door je eerste product aan te maken.",
+      "createFirst": "Product Aanmaken",
+      "noProducts": "Geen producten gevonden",
+      "noProductsDescription": "Maak een nieuw product om te beginnen.",
+      "createNew": "Nieuw Product",
+      "create": "Aanmaken",
+      "cancel": "Annuleren",
+      "save": "Opslaan",
+      "saving": "Opslaan...",
+      "saveChanges": "Wijzigingen opslaan",
+      "view": "Bekijken",
+      "edit": "Bewerken",
+      "delete": "Verwijderen",
+      "items": "items",
+      "deleteTitle": "Product Verwijderen",
+      "deleteMessage": "Weet je zeker dat je \"{{title}}\" wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+      "deleteConfirm": "Verwijderen",
+      "deleteCancel": "Annuleren",
+      "columns": {
+        "reference": "Referentie",
+        "title": "Titel",
+        "type": "Type",
+        "price": "Prijs",
+        "actions": "Acties"
+      },
+      "pagination": {
+        "showing": "Pagina {{page}} van {{total}} ({{count}} items)",
+        "previous": "Vorige",
+        "next": "Volgende"
+      },
+      "placeholders": {
+        "title": "bijv. Warmtepomp Onderhoud",
+        "reference": "bijv. SRV-HP-01",
+        "description": "Optionele productomschrijving...",
+        "periodUnit": "Selecteer eenheid"
+      },
+      "sections": {
+        "basics": "Basisgegevens",
+        "configuration": "Configuratie"
+      },
+      "fields": {
+        "title": "Titel",
+        "reference": "Referentie",
+        "description": "Beschrijving",
+        "price": "Prijs",
+        "vatRate": "BTW-tarief",
+        "type": "Type",
+        "periodCount": "Periode aantal",
+        "periodUnit": "Periode-eenheid",
+        "createdAt": "Aangemaakt",
+        "updatedAt": "Bijgewerkt"
+      },
+      "hints": {
+        "reference": "Unieke code voor dit product",
+        "period": "Optioneel: vul in voor abonnementen of periodieke diensten"
+      },
+      "types": {
+        "all": "Alle types",
+        "digital_service": "Digitale dienst",
+        "service": "Dienst",
+        "product": "Product",
+        "material": "Materiaal"
+      },
+      "periodUnits": {
+        "day": "Dag",
+        "week": "Week",
+        "month": "Maand",
+        "quarter": "Kwartaal",
+        "year": "Jaar"
+      },
+      "periodConfiguration": "Periodeconfiguratie",
+      "validation": {
+        "required": "Dit veld is verplicht",
+        "fixErrors": "Corrigeer de fouten om door te gaan"
+      },
+      "errors": {
+        "loadProducts": "Kon producten niet laden",
+        "loadProduct": "Kon product niet laden",
+        "loadVatRates": "Kon BTW-tarieven niet laden",
+        "loadMaterials": "Kon materialen niet laden",
+        "createProduct": "Kon product niet aanmaken",
+        "updateProduct": "Kon product niet bijwerken",
+        "deleteProduct": "Kon product niet verwijderen",
+        "addMaterials": "Kon materialen niet toevoegen",
+        "removeMaterial": "Kon materiaal niet verwijderen"
+      },
+      "createSuccess": "Product succesvol aangemaakt",
+      "updateSuccess": "Product succesvol bijgewerkt",
+      "deleteSuccess": "Product succesvol verwijderd",
+      "deleteConfirmTitle": "Product verwijderen",
+      "deleteConfirmMessage": "Weet u zeker dat u dit product wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
+      "confirmDelete": "Verwijderen",
+      "tabs": {
+        "details": "Details",
+        "materials": "Materialen"
+      },
+      "linkedMaterials": "Gekoppelde materialen",
+      "linkedMaterialsDescription": "Materialen die worden gebruikt voor deze dienst",
+      "addMaterial": "Materiaal toevoegen",
+      "addMaterialTitle": "Materiaal toevoegen",
+      "addSelected": "Geselecteerde toevoegen",
+      "noMaterials": "Geen materialen gekoppeld",
+      "noMaterialsDescription": "Voeg materialen toe die bij deze dienst horen",
+      "noAvailableMaterials": "Geen beschikbare materialen",
+      "materialsAdded": "Materialen succesvol toegevoegd",
+      "materialRemoved": "Materiaal succesvol verwijderd",
+      "removeMaterial": "Materiaal verwijderen"
+    }
   }
 }

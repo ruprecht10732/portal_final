@@ -1,0 +1,331 @@
+<div class="flex flex-col w-full">
+  <!-- Header -->
+  <header class="flex items-center gap-4 p-4 sm:px-6">
+    <shared-button
+      type="button"
+      variant="ghost"
+      size="compact"
+      [iconOnly]="true"
+      [fullWidth]="false"
+      [uppercase]="false"
+      (clicked)="cancel()"
+      [ariaLabel]="'catalog.products.goBack' | translate"
+    >
+      <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+    </shared-button>
+    
+    <div class="flex flex-col">
+      <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
+        {{ 'catalog.products.editTitle' | translate }}
+      </h1>
+      <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
+        {{ product()?.reference }}
+      </span>
+    </div>
+  </header>
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+      <span class="font-bold uppercase text-red-600 shrink-0">{{ 'catalog.products.errorLabel' | translate }}</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
+      <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
+      <p class="text-xs font-mono uppercase text-zinc-400">{{ 'catalog.products.loading' | translate }}</p>
+    </div>
+  } @else if (product()) {
+    <!-- Tabs (if service type) -->
+    @if (showMaterialsTab()) {
+      <div class="border-b border-zinc-200 px-4 sm:px-6">
+        <nav class="flex gap-6" aria-label="Tabs">
+          <button
+            type="button"
+            (click)="setActiveTab('details')"
+            class="py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors"
+            [class.border-black]="activeTab() === 'details'"
+            [class.text-black]="activeTab() === 'details'"
+            [class.border-transparent]="activeTab() !== 'details'"
+            [class.text-zinc-500]="activeTab() !== 'details'"
+            [class.hover:text-zinc-700]="activeTab() !== 'details'"
+          >
+            {{ 'catalog.products.tabs.details' | translate }}
+          </button>
+          <button
+            type="button"
+            (click)="setActiveTab('materials')"
+            class="py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors"
+            [class.border-black]="activeTab() === 'materials'"
+            [class.text-black]="activeTab() === 'materials'"
+            [class.border-transparent]="activeTab() !== 'materials'"
+            [class.text-zinc-500]="activeTab() !== 'materials'"
+            [class.hover:text-zinc-700]="activeTab() !== 'materials'"
+          >
+            {{ 'catalog.products.tabs.materials' | translate }}
+            @if (materials().length > 0) {
+              <span class="ml-2 bg-zinc-200 text-zinc-600 px-1.5 py-0.5 text-xs font-bold rounded-sm">
+                {{ materials().length }}
+              </span>
+            }
+          </button>
+        </nav>
+      </div>
+    }
+
+    <!-- Details Tab -->
+    @if (activeTab() === 'details') {
+      <form [formGroup]="form" (ngSubmit)="save()" class="flex-1 flex flex-col">
+        <div class="grid grid-cols-1 md:grid-cols-2 w-full border-b border-zinc-200">
+          
+          <!-- Section A: Basics -->
+          <section class="p-4 sm:p-6 border-b md:border-b-0 md:border-r border-zinc-200">
+            <div class="flex items-center gap-3 mb-6">
+              <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">A</span>
+              <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                {{ 'catalog.products.sections.basics' | translate }}
+              </h2>
+            </div>
+            
+            <div class="space-y-5">
+              <shared-input
+                [label]="'catalog.products.fields.title' | translate"
+                [value]="form.controls.title.value ?? ''"
+                (valueChange)="form.controls.title.setValue($event)"
+                [required]="true"
+                [error]="requiredControlError(form.controls.title)"
+              />
+
+              <shared-input
+                [label]="'catalog.products.fields.reference' | translate"
+                [value]="form.controls.reference.value ?? ''"
+                (valueChange)="form.controls.reference.setValue($event)"
+                [required]="true"
+                [error]="requiredControlError(form.controls.reference)"
+                [hint]="'catalog.products.hints.reference' | translate"
+              />
+
+              <shared-textarea
+                [label]="'catalog.products.fields.description' | translate"
+                [value]="form.controls.description.value ?? ''"
+                (valueChange)="form.controls.description.setValue($event)"
+                [rows]="4"
+              />
+
+              <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                <shared-number-input
+                  [label]="'catalog.products.fields.price' | translate"
+                  [value]="form.controls.price.value"
+                  (valueChange)="form.controls.price.setValue($event)"
+                  [required]="true"
+                  [error]="requiredControlError(form.controls.price)"
+                  prefix="€"
+                  [min]="0"
+                  [step]="0.01"
+                />
+
+                <shared-select
+                  [label]="'catalog.products.fields.vatRate' | translate"
+                  [options]="vatRateOptions()"
+                  [value]="form.controls.vatRateId.value"
+                  (valueChange)="setVatRate($event)"
+                  [required]="true"
+                  [error]="requiredControlError(form.controls.vatRateId)"
+                />
+              </div>
+            </div>
+          </section>
+
+          <!-- Section B: Configuration -->
+          <section class="p-4 sm:p-6">
+            <div class="flex items-center gap-3 mb-6">
+              <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">B</span>
+              <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                {{ 'catalog.products.sections.configuration' | translate }}
+              </h2>
+            </div>
+
+            <div class="space-y-5">
+              <shared-select
+                [label]="'catalog.products.fields.type' | translate"
+                [options]="typeOptions()"
+                [value]="form.controls.type.value"
+                (valueChange)="setType($event)"
+                [required]="true"
+              />
+
+              @if (showPeriodFields()) {
+                <div class="border border-zinc-200 p-4 bg-zinc-50 space-y-4">
+                  <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                    {{ 'catalog.products.periodConfiguration' | translate }}
+                  </p>
+                  
+                  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                    <shared-number-input
+                      [label]="'catalog.products.fields.periodCount' | translate"
+                      [value]="form.controls.periodCount.value"
+                      (valueChange)="form.controls.periodCount.setValue($event)"
+                      [min]="1"
+                      [step]="1"
+                    />
+
+                    <shared-select
+                      [label]="'catalog.products.fields.periodUnit' | translate"
+                      [options]="periodUnitOptions()"
+                      [value]="form.controls.periodUnit.value"
+                      (valueChange)="setPeriodUnit($event)"
+                    />
+                  </div>
+
+                  <p class="text-xs text-zinc-400">
+                    {{ 'catalog.products.hints.period' | translate }}
+                  </p>
+                </div>
+              }
+            </div>
+          </section>
+        </div>
+
+        <!-- Footer -->
+        <div class="p-4 sm:p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
+          @if (submitAttempted() && form.invalid) {
+            <p class="text-xs font-semibold uppercase tracking-wide text-red-600 sm:mr-auto">
+              {{ 'catalog.products.validation.fixErrors' | translate }}
+            </p>
+          }
+          <shared-button
+            variant="secondary"
+            type="button"
+            (clicked)="cancel()"
+            class="w-full sm:w-auto"
+          >
+            {{ 'catalog.products.cancel' | translate }}
+          </shared-button>
+          
+          <shared-button
+            variant="primary"
+            type="submit"
+            class="w-full sm:w-auto"
+            [disabled]="saving()"
+            [loading]="saving()"
+          >
+            {{ saving() ? ('catalog.products.saving' | translate) : ('catalog.products.saveChanges' | translate) }}
+          </shared-button>
+        </div>
+      </form>
+    }
+
+    <!-- Materials Tab -->
+    @if (activeTab() === 'materials') {
+      <div class="flex-1 flex flex-col p-4 sm:p-6">
+        <div class="flex items-center justify-between mb-6">
+          <div>
+            <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-900">
+              {{ 'catalog.products.linkedMaterials' | translate }}
+            </h2>
+            <p class="text-xs text-zinc-500 mt-1">
+              {{ 'catalog.products.linkedMaterialsDescription' | translate }}
+            </p>
+          </div>
+          <shared-button
+            variant="secondary"
+            size="compact"
+            [fullWidth]="false"
+            (clicked)="openAddMaterialDialog()"
+          >
+            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+            </svg>
+            {{ 'catalog.products.addMaterial' | translate }}
+          </shared-button>
+        </div>
+
+        @if (materialsLoading()) {
+          <div class="flex items-center justify-center p-12">
+            <div class="animate-spin h-8 w-8 border-4 border-zinc-200 border-t-black rounded-full"></div>
+          </div>
+        } @else if (materials().length === 0) {
+          <div class="border border-dashed border-zinc-300 rounded-lg p-12 text-center">
+            <svg class="mx-auto h-12 w-12 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+            </svg>
+            <h3 class="mt-4 text-sm font-semibold text-zinc-900">{{ 'catalog.products.noMaterials' | translate }}</h3>
+            <p class="mt-1 text-sm text-zinc-500">{{ 'catalog.products.noMaterialsDescription' | translate }}</p>
+          </div>
+        } @else {
+          <div class="border border-zinc-200 bg-white divide-y divide-zinc-100">
+            @for (material of materials(); track material.id) {
+              <div class="flex items-center justify-between p-4 hover:bg-zinc-50 transition-colors">
+                <div class="flex items-center gap-4">
+                  <div>
+                    <p class="text-sm font-medium text-zinc-900">{{ material.title }}</p>
+                    <p class="text-xs text-zinc-500 font-mono">{{ material.reference }}</p>
+                  </div>
+                </div>
+                <div class="flex items-center gap-4">
+                  <span class="text-sm font-medium text-zinc-900">{{ formatPrice(material.priceCents) }}</span>
+                  <button
+                    type="button"
+                    (click)="removeMaterial(material.id)"
+                    [disabled]="removingMaterialId() === material.id"
+                    class="p-2 text-zinc-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors disabled:opacity-50"
+                    [attr.aria-label]="'catalog.products.removeMaterial' | translate"
+                  >
+                    @if (removingMaterialId() === material.id) {
+                      <div class="animate-spin h-4 w-4 border-2 border-red-200 border-t-red-600 rounded-full"></div>
+                    } @else {
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                    }
+                  </button>
+                </div>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    }
+  }
+
+  <!-- Add Material Dialog -->
+  <shared-confirm-dialog
+    [isOpen]="showAddMaterialDialog()"
+    [title]="'catalog.products.addMaterialTitle' | translate"
+    [confirmText]="'catalog.products.addSelected' | translate"
+    [cancelText]="'catalog.products.cancel' | translate"
+    confirmVariant="primary"
+    [confirmDisabled]="addingMaterials() || selectedMaterialIds().length === 0"
+    (confirm)="addSelectedMaterials()"
+    (cancel)="closeAddMaterialDialog()"
+  >
+    <div class="max-h-64 overflow-y-auto">
+      @if (availableMaterials().length === 0) {
+        <p class="text-sm text-zinc-500 py-4 text-center">
+          {{ 'catalog.products.noAvailableMaterials' | translate }}
+        </p>
+      } @else {
+        <div class="divide-y divide-zinc-100">
+          @for (material of availableMaterials(); track material.id) {
+            <label class="flex items-center gap-3 p-3 hover:bg-zinc-50 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                [checked]="isMaterialSelected(material.id)"
+                (change)="toggleMaterialSelection(material.id)"
+                class="h-4 w-4 text-black border-zinc-300 rounded focus:ring-black"
+              />
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-zinc-900 truncate">{{ material.title }}</p>
+                <p class="text-xs text-zinc-500 font-mono">{{ material.reference }}</p>
+              </div>
+              <span class="text-sm font-medium text-zinc-600">{{ formatPrice(material.priceCents) }}</span>
+            </label>
+          }
+        </div>
+      }
+    </div>
+  </shared-confirm-dialog>
+</div>
