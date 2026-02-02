@@ -105,7 +105,16 @@ export class CallLoggerDialogComponent {
   private getNextMonday(): Date {
     const today = new Date();
     const dayOfWeek = today.getDay();
-    const daysUntilMonday = dayOfWeek === 0 ? 1 : dayOfWeek === 1 ? 0 : 8 - dayOfWeek;
+
+    let daysUntilMonday: number;
+    if (dayOfWeek === 0) {
+      daysUntilMonday = 1; // Sunday -> next day is Monday
+    } else if (dayOfWeek === 1) {
+      daysUntilMonday = 0; // Already Monday
+    } else {
+      daysUntilMonday = 8 - dayOfWeek; // Other days -> next Monday
+    }
+
     const monday = new Date(today);
     monday.setDate(today.getDate() + daysUntilMonday);
     monday.setHours(0, 0, 0, 0);
@@ -219,7 +228,11 @@ export class CallLoggerDialogComponent {
   }
 
   private formatDateISO(date: Date): string {
-    return date.toISOString().split('T')[0];
+    // Use local date, not UTC (toISOString uses UTC which causes off-by-one errors in positive timezones)
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0');
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
   }
 
   protected isToday(date: Date): boolean {
