@@ -104,7 +104,8 @@ export class AvailabilitySettingsComponent implements OnInit {
 
   protected readonly timezoneOptions = computed<SelectOption<string>[]>(() => {
     const browserTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
-    const timezones = new Set([browserTz, ...COMMON_TIMEZONES]);
+    const rulesTimezones = this.rules().map(r => r.timezone).filter(Boolean);
+    const timezones = new Set([browserTz, this.selectedTimezone(), ...rulesTimezones, ...COMMON_TIMEZONES]);
     return Array.from(timezones).map(tz => ({
       value: tz,
       label: tz.replaceAll('_', ' '),
@@ -142,6 +143,10 @@ export class AvailabilitySettingsComponent implements OnInit {
       next: (data) => {
         this.rules.set(data.rules);
         this.overrides.set(data.overrides);
+        // Auto-select timezone from existing rules if available
+        if (data.rules.length > 0 && data.rules[0].timezone) {
+          this.selectedTimezone.set(data.rules[0].timezone);
+        }
         this.loading.set(false);
       },
       error: (err) => {
