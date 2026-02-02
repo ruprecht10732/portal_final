@@ -1,31 +1,50 @@
-<section class="day-view">
-  <button
-    type="button"
-    class="day-summary"
+<section class="flex flex-col gap-4">
+  <div
+    class="flex flex-col items-start gap-1 border border-zinc-900 p-3 bg-white cursor-pointer text-left"
+    [class.cursor-not-allowed]="isUnavailable()"
+    [class.opacity-60]="isUnavailable()"
     [attr.aria-label]="day()?.ariaLabel"
-    [disabled]="isUnavailable()"
     (click)="handleSelect()"
   >
-    <span class="day-title">{{ dayTitle() }}</span>
-    <span class="day-subtitle">{{ daySubtitle() }}</span>
+    <span class="text-base font-bold tracking-wide uppercase">{{ dayTitle() }}</span>
+    <span class="text-sm text-zinc-500">{{ daySubtitle() }}</span>
     @if (holidayName()) {
-      <span class="day-holiday">{{ holidayName() }}</span>
+      <span class="text-xs text-red-500 uppercase tracking-wide">{{ holidayName() }}</span>
     }
-  </button>
+  </div>
 
-  <ul class="day-grid">
+  <ul class="flex flex-col gap-2 list-none p-0 m-0 max-h-96 overflow-y-auto pr-1">
     @for (hour of hours(); track hour.value) {
-      <li class="day-row">
-        <div class="time-label">{{ hour.label }}</div>
-        <button
-          type="button"
-          class="time-slot"
-          [class.is-blocked]="isBlocked(hour.value)"
-          [class.is-selected]="selectedTime() === hour.value"
-          [disabled]="isBlocked(hour.value)"
-          (click)="selectHour(hour.value)"
-          [attr.aria-label]="isBlocked(hour.value) ? 'Unavailable time' : 'Select time'"
-        ></button>
+      <li class="grid grid-cols-[80px_1fr] gap-3 items-start">
+        <div class="text-xs text-zinc-500 uppercase tracking-wide pt-1">{{ hour.label }}</div>
+        <div
+          class="min-h-12 border border-dashed border-zinc-200 bg-gradient-to-r from-zinc-50 to-white cursor-pointer transition-colors flex flex-col gap-0.5 p-1"
+          [class.border-solid]="isBlocked(hour.value)"
+          [class.border-zinc-400]="isBlocked(hour.value)"
+          [class.cursor-not-allowed]="isBlocked(hour.value)"
+          [class.hover:border-zinc-900]="!isBlocked(hour.value)"
+          (click)="onSlotClick(hour.value)"
+        >
+          @for (event of getEventsForSlot(hour.value); track event.id) {
+            <button
+              type="button"
+              class="w-full text-left text-xs px-2 py-1 rounded truncate"
+              [class.bg-blue-100]="event.status === 'scheduled'"
+              [class.text-blue-800]="event.status === 'scheduled'"
+              [class.bg-green-100]="event.status === 'completed'"
+              [class.text-green-800]="event.status === 'completed'"
+              [class.bg-red-100]="event.status === 'cancelled'"
+              [class.text-red-800]="event.status === 'cancelled'"
+              [class.bg-amber-100]="event.status === 'no_show'"
+              [class.text-amber-800]="event.status === 'no_show'"
+              [class.bg-zinc-100]="!event.status"
+              [class.text-zinc-800]="!event.status"
+              (click)="onEventClick(event, $event)"
+            >
+              {{ event.title }}
+            </button>
+          }
+        </div>
       </li>
     }
   </ul>

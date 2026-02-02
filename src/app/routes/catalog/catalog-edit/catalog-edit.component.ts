@@ -53,6 +53,7 @@ export class CatalogEditComponent implements OnInit {
   protected readonly submitAttempted = signal(false);
   protected readonly vatRates = signal<VatRate[]>([]);
   protected readonly activeTab = signal<'details' | 'materials'>('details');
+  protected readonly selectedType = signal<ProductType>('product');
 
   // Materials management
   protected readonly materials = signal<Product[]>([]);
@@ -96,20 +97,23 @@ export class CatalogEditComponent implements OnInit {
     }))
   );
 
-  protected readonly showPeriodFields = computed(() => {
-    const type = this.form.controls.type.value;
+  /** True for service types that support billing periods */
+  protected readonly isServiceType = computed(() => {
+    const type = this.selectedType();
     return type === 'service' || type === 'digital_service';
   });
 
-  protected readonly showMaterialsTab = computed(() => {
-    const product = this.product();
-    return product?.type === 'service';
-  });
+  /** Show materials tab based on current selected type (reactive to type changes) */
+  protected readonly showMaterialsTab = computed(() => this.isServiceType());
 
   protected readonly requiredError = computed(() => this.translate.instant('catalog.products.validation.required'));
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
+    const tab = this.route.snapshot.queryParamMap.get('tab');
+    if (tab === 'materials') {
+      this.activeTab.set('materials');
+    }
     if (id) {
       this.loadVatRates();
       this.loadProduct(id);
@@ -123,7 +127,7 @@ export class CatalogEditComponent implements OnInit {
         this.product.set(product);
         this.populateForm(product);
         this.loading.set(false);
-        if (product.type === 'service') {
+        if (product.type === 'service' || product.type === 'digital_service') {
           this.loadMaterials(id);
         }
       },
@@ -137,6 +141,7 @@ export class CatalogEditComponent implements OnInit {
   }
 
   private populateForm(product: Product): void {
+    this.selectedType.set(product.type);
     this.form.patchValue({
       title: product.title,
       reference: product.reference,
@@ -180,7 +185,23 @@ export class CatalogEditComponent implements OnInit {
 
   protected setType(value: ProductType | null): void {
     if (value) {
+      const wasServiceType = this.isServiceType();
       this.form.controls.type.setValue(value);
+      this.selectedType.set(value);
+      
+      // Clear period fields and switch to details tab when switching from service to non-service type
+      const isNowServiceType = value === 'service' || value === 'digital_service';
+      if (wasServiceType && !isNowServiceType) {
+        this.form.controls.periodCount.setValue(null);
+        this.form.controls.periodUnit.setValue(null);
+        this.activeTab.set('details');
+      }
+      
+      // Load materials if switching to service type
+      const product = this.product();
+      if (!wasServiceType && isNowServiceType && product) {
+        this.loadMaterials(product.id);
+      }
     }
   }
 
@@ -219,7 +240,7 @@ export class CatalogEditComponent implements OnInit {
     };
 
     // Add period fields only for service types
-    if (this.showPeriodFields()) {
+    if (this.isServiceType()) {
       request.periodCount = values.periodCount ?? undefined;
       request.periodUnit = values.periodUnit ?? undefined;
     }

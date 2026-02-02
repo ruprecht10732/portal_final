@@ -47,6 +47,7 @@ export class CatalogCreateComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly submitAttempted = signal(false);
   protected readonly vatRates = signal<VatRate[]>([]);
+  protected readonly selectedType = signal<ProductType>('product');
 
   protected readonly form = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
@@ -81,10 +82,14 @@ export class CatalogCreateComponent implements OnInit {
     }))
   );
 
-  protected readonly showPeriodFields = computed(() => {
-    const type = this.form.controls.type.value;
+  /** True for service types that support billing periods */
+  protected readonly isServiceType = computed(() => {
+    const type = this.selectedType();
     return type === 'service' || type === 'digital_service';
   });
+
+  /** True for types that can have linked materials */
+  protected readonly supportsMaterials = computed(() => this.isServiceType());
 
   protected readonly requiredError = computed(() => this.translate.instant('catalog.products.validation.required'));
 
@@ -113,7 +118,16 @@ export class CatalogCreateComponent implements OnInit {
 
   protected setType(value: ProductType | null): void {
     if (value) {
+      const wasServiceType = this.isServiceType();
       this.form.controls.type.setValue(value);
+      this.selectedType.set(value);
+      
+      // Clear period fields when switching from service to non-service type
+      const isNowServiceType = value === 'service' || value === 'digital_service';
+      if (wasServiceType && !isNowServiceType) {
+        this.form.controls.periodCount.setValue(null);
+        this.form.controls.periodUnit.setValue(null);
+      }
     }
   }
 
@@ -147,7 +161,7 @@ export class CatalogCreateComponent implements OnInit {
     };
 
     // Add period fields only for service types
-    if (this.showPeriodFields()) {
+    if (this.isServiceType()) {
       if (values.periodCount !== null) {
         request.periodCount = values.periodCount;
       }
@@ -157,9 +171,14 @@ export class CatalogCreateComponent implements OnInit {
     }
 
     this.catalogService.createProduct(request).subscribe({
-      next: () => {
+      next: (product) => {
         this.toast.success(this.translate.instant('catalog.products.createSuccess'));
-        this.router.navigate(['/app/catalog']);
+        // If service type, redirect to edit page so user can add materials
+        if (product.type === 'service' || product.type === 'digital_service') {
+          this.router.navigate(['/app/catalog', product.id, 'edit'], { queryParams: { tab: 'materials' } });
+        } else {
+          this.router.navigate(['/app/catalog']);
+        }
       },
       error: (err) => {
         const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.createProduct'));

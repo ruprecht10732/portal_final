@@ -157,7 +157,7 @@
                 [required]="true"
               />
 
-              @if (showPeriodFields()) {
+              @if (isServiceType()) {
                 <div class="border border-zinc-200 p-4 bg-zinc-50 space-y-4">
                   <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">
                     {{ 'catalog.products.periodConfiguration' | translate }}

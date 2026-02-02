@@ -14,6 +14,17 @@ export interface CalendarDayViewModel {
   day: number;
 }
 
+export interface CalendarDayEvent {
+  id: string | number;
+  title: string;
+  start: Date | string;
+  end?: Date | string;
+  allDay?: boolean;
+  status?: string;
+  color?: string;
+  data?: unknown;
+}
+
 @Component({
   selector: 'shared-calendar-day-view',
   templateUrl: './calendar-day-view.component.html',
@@ -33,8 +44,11 @@ export class CalendarDayViewComponent {
   readonly blockedTimes = input<readonly number[]>([]);
   readonly blockedTimeRanges = input<readonly { start: number; end: number }[]>([]);
   readonly selectedTime = input<number | null>(null);
+  readonly events = input<readonly CalendarDayEvent[]>([]);
   readonly selected = output<CalendarDayViewModel>();
   readonly timeSelected = output<number>();
+  readonly eventClick = output<CalendarDayEvent>();
+  readonly slotClick = output<{ date: string; time: number }>();
 
   protected readonly dayTitle = computed(() => {
     const day = this.day();
@@ -81,6 +95,28 @@ export class CalendarDayViewComponent {
   protected selectHour(hour: number): void {
     if (this.isBlocked(hour)) return;
     this.timeSelected.emit(hour);
+  }
+
+  protected onSlotClick(minutes: number): void {
+    const day = this.day();
+    if (!day || this.isBlocked(minutes)) return;
+    this.slotClick.emit({ date: day.iso, time: minutes });
+  }
+
+  protected onEventClick(event: CalendarDayEvent, clickEvent: MouseEvent): void {
+    clickEvent.stopPropagation();
+    this.eventClick.emit(event);
+  }
+
+  protected getEventsForSlot(slotMinutes: number): CalendarDayEvent[] {
+    const slotDuration = this.timeSlotMinutes() ?? this.hourStep() * 60;
+    const slotEnd = slotMinutes + slotDuration;
+    
+    return this.events().filter(event => {
+      const eventStart = typeof event.start === 'string' ? new Date(event.start) : event.start;
+      const eventMinutes = eventStart.getHours() * 60 + eventStart.getMinutes();
+      return eventMinutes >= slotMinutes && eventMinutes < slotEnd;
+    });
   }
 
   protected isBlocked(minutes: number): boolean {

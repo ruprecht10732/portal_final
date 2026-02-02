@@ -232,7 +232,8 @@
       },
       "hints": {
         "reference": "Unieke code voor dit product",
-        "period": "Optioneel: vul in voor abonnementen of periodieke diensten"
+        "period": "Optioneel: vul in voor abonnementen of periodieke diensten",
+        "materialsAfterCreate": "Na het aanmaken van deze dienst kun je materialen toevoegen op het volgende scherm."
       },
       "types": {
         "all": "Alle types",

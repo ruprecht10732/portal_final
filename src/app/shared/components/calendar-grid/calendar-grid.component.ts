@@ -32,7 +32,7 @@ interface CalendarDay {
 
 @Component({
   selector: 'shared-calendar-grid',
-  imports: [Grid, GridRow, GridCell, GridCellWidget, CalendarDayViewComponent],
+  imports: [Grid, GridRow, GridCell, CalendarDayViewComponent],
   templateUrl: './calendar-grid.component.html',
   styleUrl: './calendar-grid.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -487,5 +487,13 @@ export class CalendarGridComponent {
       case 'no_show': return 'event-no-show';
       default: return 'event-default';
     }
+  }
+
+  protected onDayViewEventClick(event: CalendarEvent): void {
+    this.eventClick.emit(event);
+  }
+
+  protected onDayViewSlotClick(data: { date: string; time: number }): void {
+    this.slotClick.emit(data);
   }
 }

@@ -232,7 +232,8 @@
       },
       "hints": {
         "reference": "Unique code for this product",
-        "period": "Optional: fill in for subscriptions or recurring services"
+        "period": "Optional: fill in for subscriptions or recurring services",
+        "materialsAfterCreate": "After creating this service, you can add materials on the next screen."
       },
       "types": {
         "all": "All types",

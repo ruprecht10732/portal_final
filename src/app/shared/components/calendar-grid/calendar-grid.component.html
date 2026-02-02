@@ -72,6 +72,7 @@
     @case ('day') {
       <shared-calendar-day-view
         [day]="activeDay()"
+        [events]="getEventsForDay(activeDay())"
         [isUnavailable]="isUnavailable(activeDay())"
         [holidayName]="holidayName(activeDay())"
         [startHour]="dayViewStartHour()"
@@ -85,6 +86,8 @@
         [selectedTime]="selectedTime()"
         (selected)="selectDay($event)"
         (timeSelected)="selectedTime.set($event)"
+        (eventClick)="onDayViewEventClick($event)"
+        (slotClick)="onDayViewSlotClick($event)"
       />
     }
     @case ('week') {
@@ -98,6 +101,7 @@
           selectionMode="explicit"
           [attr.aria-labelledby]="gridLabelId"
           [attr.aria-describedby]="instructionsId"
+          class="w-full border-collapse border border-zinc-900"
         >
           <thead>
             <tr>
@@ -105,7 +109,7 @@
                 <th scope="col" class="week-number">Wk</th>
               }
               @for (day of weekdays(); track day.long; let i = $index) {
-                <th scope="col">
+                <th scope="col" class="text-xs uppercase tracking-wide text-zinc-500 border-b border-zinc-900 bg-zinc-50 p-2">
                   <span class="visually-hidden">{{ day.long }}</span>
                   <span aria-hidden="true">{{ day.narrow }}</span>
                 </th>
@@ -124,35 +128,56 @@
                 [colIndex]="colIndex"
                 [selected]="isSelected(day)"
                 [class.is-active]="cell.active()"
-                [attr.aria-disabled]="isUnavailable(day) || null">
-                 <button
-                   type="button"
-                   ngGridCellWidget
-                   [attr.aria-label]="holidayName(day) ? day.ariaLabel + ' — ' + holidayName(day) : day.ariaLabel"
-                   [attr.title]="holidayName(day) || null"
-                   [attr.data-day]="day.day"
-                   (click)="selectDay(day)"
-                   (keydown.enter)="selectDay(day)"
-                   (mouseenter)="onDayHover(day)"
-                   (mouseleave)="clearHover()"
-                   class="day-button"
-                   [class.in-range]="isInRange(day)"
-                   [class.is-preview]="isInPreviewRange(day)"
-                   [class.is-selected]="isSelected(day)"
-                   [class.range-start]="isRangeStart(day)"
-                   [class.range-end]="isRangeEnd(day)"
-                   [class.is-today]="isToday(day)"
-                   [class.is-unavailable]="isUnavailable(day)"
-                   [class.is-holiday]="isHoliday(day)"
-                 >
-                   {{ day.displayName }}
-                   @if (isHoliday(day)) {
-                     <span class="holiday-label">{{ holidayName(day) }}</span>
-                   }
-                   @if (isHoliday(day)) {
-                     <span class="holiday-dot" [attr.aria-label]="holidayName(day)" aria-hidden="true"></span>
-                   }
-                 </button>
+                [attr.aria-disabled]="isUnavailable(day) || null"
+                class="align-top border border-zinc-200 p-0"
+              >
+                <div
+                  class="min-h-24 flex flex-col cursor-pointer hover:bg-zinc-50"
+                  (click)="onSlotClick(day)"
+                >
+                  <div
+                    class="p-1 text-sm font-medium"
+                    [class.bg-zinc-900]="isToday(day)"
+                    [class.text-white]="isToday(day)"
+                    [class.rounded-full]="isToday(day)"
+                    [class.w-7]="isToday(day)"
+                    [class.h-7]="isToday(day)"
+                    [class.flex]="isToday(day)"
+                    [class.items-center]="isToday(day)"
+                    [class.justify-center]="isToday(day)"
+                    [class.mx-1]="isToday(day)"
+                    [class.mt-1]="isToday(day)"
+                    [class.text-zinc-400]="!day.inMonth"
+                  >
+                    {{ day.displayName }}
+                  </div>
+                  <div class="flex-1 overflow-hidden px-1 space-y-0.5 pb-1">
+                    @for (event of getEventsForDay(day).slice(0, maxVisibleEvents()); track event.id) {
+                      <button
+                        type="button"
+                        class="w-full text-left text-xs px-1.5 py-0.5 rounded truncate"
+                        [class.bg-blue-100]="event.status === 'scheduled'"
+                        [class.text-blue-800]="event.status === 'scheduled'"
+                        [class.bg-green-100]="event.status === 'completed'"
+                        [class.text-green-800]="event.status === 'completed'"
+                        [class.bg-red-100]="event.status === 'cancelled'"
+                        [class.text-red-800]="event.status === 'cancelled'"
+                        [class.bg-amber-100]="event.status === 'no_show'"
+                        [class.text-amber-800]="event.status === 'no_show'"
+                        [class.bg-zinc-100]="!event.status"
+                        [class.text-zinc-800]="!event.status"
+                        (click)="onEventClick(event, $event)"
+                      >
+                        {{ event.title }}
+                      </button>
+                    }
+                    @if (getEventsForDay(day).length > maxVisibleEvents()) {
+                      <div class="text-xs text-zinc-500 px-1">
+                        +{{ getEventsForDay(day).length - maxVisibleEvents() }} more
+                      </div>
+                    }
+                  </div>
+                </div>
               </td>
             }
           </tr>
@@ -171,6 +196,7 @@
           (keydown)="onKeyDown($event)"
           [attr.aria-labelledby]="gridLabelId"
           [attr.aria-describedby]="instructionsId"
+          class="w-full border-collapse border border-zinc-900"
         >
           <thead>
             <tr>
@@ -178,7 +204,7 @@
                 <th scope="col" class="week-number">Wk</th>
               }
               @for (day of weekdays(); track day.long; let i = $index) {
-                <th scope="col">
+                <th scope="col" class="text-xs uppercase tracking-wide text-zinc-500 border-b border-zinc-900 bg-zinc-50 p-2">
                   <span class="visually-hidden">{{ day.long }}</span>
                   <span aria-hidden="true">{{ day.narrow }}</span>
                 </th>
@@ -192,7 +218,7 @@
               }
               @if ($first) {
                 @for (day of daysFromPrevMonth(); track day) {
-                  <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ day }}</td>
+                  <td ngGridCell [attr.aria-disabled]="true" class="is-disabled align-top border border-zinc-200 p-2 text-zinc-300">{{ day }}</td>
                 }
               }
               @for (day of week; track day.iso; let colIndex = $index) {
@@ -203,40 +229,61 @@
                   [colIndex]="colIndex"
                   [selected]="isSelected(day)"
                   [class.is-active]="cell.active()"
-                  [attr.aria-disabled]="isUnavailable(day) || null">
-                   <button
-                     type="button"
-                     ngGridCellWidget
-                     [attr.aria-label]="holidayName(day) ? day.ariaLabel + ' — ' + holidayName(day) : day.ariaLabel"
-                     [attr.title]="holidayName(day) || null"
-                     [attr.data-day]="day.day"
-                     (click)="selectDay(day)"
-                     (keydown.enter)="selectDay(day)"
-                     (mouseenter)="onDayHover(day)"
-                     (mouseleave)="clearHover()"
-                     class="day-button"
-                     [class.in-range]="isInRange(day)"
-                     [class.is-preview]="isInPreviewRange(day)"
-                     [class.is-selected]="isSelected(day)"
-                     [class.range-start]="isRangeStart(day)"
-                     [class.range-end]="isRangeEnd(day)"
-                     [class.is-today]="isToday(day)"
-                     [class.is-unavailable]="isUnavailable(day)"
-                     [class.is-holiday]="isHoliday(day)"
-                   >
-                     {{ day.displayName }}
-                     @if (isHoliday(day)) {
-                       <span class="holiday-label">{{ holidayName(day) }}</span>
-                     }
-                     @if (isHoliday(day)) {
-                       <span class="holiday-dot" [attr.aria-label]="holidayName(day)" aria-hidden="true"></span>
-                     }
-                   </button>
+                  [attr.aria-disabled]="isUnavailable(day) || null"
+                  class="align-top border border-zinc-200 p-0"
+                >
+                  <div
+                    class="min-h-24 flex flex-col cursor-pointer hover:bg-zinc-50"
+                    (click)="onSlotClick(day)"
+                  >
+                    <div
+                      class="p-1 text-sm font-medium"
+                      [class.bg-zinc-900]="isToday(day)"
+                      [class.text-white]="isToday(day)"
+                      [class.rounded-full]="isToday(day)"
+                      [class.w-7]="isToday(day)"
+                      [class.h-7]="isToday(day)"
+                      [class.flex]="isToday(day)"
+                      [class.items-center]="isToday(day)"
+                      [class.justify-center]="isToday(day)"
+                      [class.mx-1]="isToday(day)"
+                      [class.mt-1]="isToday(day)"
+                      [class.text-zinc-400]="!day.inMonth"
+                    >
+                      {{ day.displayName }}
+                    </div>
+                    <div class="flex-1 overflow-hidden px-1 space-y-0.5 pb-1">
+                      @for (event of getEventsForDay(day).slice(0, maxVisibleEvents()); track event.id) {
+                        <button
+                          type="button"
+                          class="w-full text-left text-xs px-1.5 py-0.5 rounded truncate"
+                          [class.bg-blue-100]="event.status === 'scheduled'"
+                          [class.text-blue-800]="event.status === 'scheduled'"
+                          [class.bg-green-100]="event.status === 'completed'"
+                          [class.text-green-800]="event.status === 'completed'"
+                          [class.bg-red-100]="event.status === 'cancelled'"
+                          [class.text-red-800]="event.status === 'cancelled'"
+                          [class.bg-amber-100]="event.status === 'no_show'"
+                          [class.text-amber-800]="event.status === 'no_show'"
+                          [class.bg-zinc-100]="!event.status"
+                          [class.text-zinc-800]="!event.status"
+                          (click)="onEventClick(event, $event)"
+                        >
+                          {{ event.title }}
+                        </button>
+                      }
+                      @if (getEventsForDay(day).length > maxVisibleEvents()) {
+                        <div class="text-xs text-zinc-500 px-1">
+                          +{{ getEventsForDay(day).length - maxVisibleEvents() }} more
+                        </div>
+                      }
+                    </div>
+                  </div>
                 </td>
               }
               @if ($last && week.length + daysFromPrevMonth().length < 7) {
                 @for (day of [].constructor(7 - week.length - daysFromPrevMonth().length); track $index) {
-                  <td ngGridCell [attr.aria-disabled]="true" class="is-disabled">{{ $index + 1 }}</td>
+                  <td ngGridCell [attr.aria-disabled]="true" class="is-disabled align-top border border-zinc-200 p-2 text-zinc-300">{{ $index + 1 }}</td>
                 }
               }
             </tr>

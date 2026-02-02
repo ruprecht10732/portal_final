@@ -76,7 +76,7 @@ export class CatalogDetailComponent implements OnInit {
 
   protected readonly showMaterials = computed(() => {
     const product = this.product();
-    return product?.type === 'service';
+    return product?.type === 'service' || product?.type === 'digital_service';
   });
 
   ngOnInit(): void {
@@ -93,7 +93,7 @@ export class CatalogDetailComponent implements OnInit {
         this.product.set(product);
         this.loading.set(false);
         this.loadVatRate(product.vatRateId);
-        if (product.type === 'service') {
+        if (product.type === 'service' || product.type === 'digital_service') {
           this.loadMaterials(id);
         }
       },
