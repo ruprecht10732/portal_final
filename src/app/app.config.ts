@@ -11,6 +11,7 @@ import {
   Brush,
   Building,
   Calendar,
+  CalendarCheck,
   Car,
   Check,
   Clock,
@@ -75,6 +76,7 @@ const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLo
   { prefix: '/assets/i18n/', suffix: '/offertes.json' },
   { prefix: '/assets/i18n/', suffix: '/catalog.json' },
   { prefix: '/assets/i18n/', suffix: '/organization.json' },
+  { prefix: '/assets/i18n/', suffix: '/appointments.json' },
 ]);
 
 export const appConfig: ApplicationConfig = {
@@ -103,6 +105,7 @@ export const appConfig: ApplicationConfig = {
         Brush,
         Building,
         Calendar,
+        CalendarCheck,
         Car,
         Check,
         Clock,

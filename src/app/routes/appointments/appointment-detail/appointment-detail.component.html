@@ -1,0 +1,188 @@
+<div class="appointment-detail">
+  @if (loading()) {
+    <div class="loading-state">
+      <span class="loading-spinner"></span>
+    </div>
+  } @else if (!appointment()) {
+    <div class="error-state">
+      <p>{{ 'appointments.detail.notFound' | translate }}</p>
+      <shared-button variant="secondary" (clicked)="goBack()">
+        {{ 'common.back' | translate }}
+      </shared-button>
+    </div>
+  } @else {
+    <header class="detail-header">
+      <button type="button" class="back-btn" (click)="goBack()">
+        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        {{ 'common.back' | translate }}
+      </button>
+      <div class="header-actions">
+        @if (!isEditing()) {
+          <shared-button variant="secondary" (clicked)="toggleEdit()">
+            {{ 'common.edit' | translate }}
+          </shared-button>
+        }
+        <shared-button variant="danger" (clicked)="promptDelete()">
+          {{ 'common.delete' | translate }}
+        </shared-button>
+      </div>
+    </header>
+
+    @if (error()) {
+      <div class="error-banner">
+        {{ error() }}
+      </div>
+    }
+
+    <div class="detail-content">
+      <!-- Status Badge & Quick Actions -->
+      <div class="status-section">
+        <div class="status-badge" [class]="getStatusClass(appointment()!.status)">
+          {{ getStatusLabel(appointment()!.status) }}
+        </div>
+        <div class="status-actions">
+          @for (opt of statusOptions; track opt.value) {
+            <button 
+              type="button" 
+              class="status-action-btn"
+              [class.active]="appointment()!.status === opt.value"
+              [disabled]="saving()"
+              (click)="updateStatus(opt.value)"
+            >
+              {{ opt.label }}
+            </button>
+          }
+        </div>
+      </div>
+
+      <!-- Main Info -->
+      @if (isEditing()) {
+        <form [formGroup]="appointmentForm" (ngSubmit)="saveAppointment()" class="edit-form">
+          <div class="form-group">
+            <label for="title">{{ 'appointments.detail.title' | translate }}</label>
+            <input id="title" type="text" formControlName="title" />
+          </div>
+          <div class="form-group">
+            <label for="description">{{ 'appointments.detail.description' | translate }}</label>
+            <textarea id="description" formControlName="description" rows="3"></textarea>
+          </div>
+          <div class="form-group">
+            <label for="location">{{ 'appointments.detail.location' | translate }}</label>
+            <input id="location" type="text" formControlName="location" />
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="startTime">{{ 'appointments.detail.startTime' | translate }}</label>
+              <input id="startTime" type="datetime-local" formControlName="startTime" />
+            </div>
+            <div class="form-group">
+              <label for="endTime">{{ 'appointments.detail.endTime' | translate }}</label>
+              <input id="endTime" type="datetime-local" formControlName="endTime" />
+            </div>
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" formControlName="allDay" />
+              {{ 'appointments.detail.allDay' | translate }}
+            </label>
+          </div>
+          <div class="form-actions">
+            <shared-button variant="secondary" type="button" (clicked)="toggleEdit()">
+              {{ 'common.cancel' | translate }}
+            </shared-button>
+            <shared-button variant="primary" type="submit" [disabled]="appointmentForm.invalid || saving()">
+              {{ 'common.save' | translate }}
+            </shared-button>
+          </div>
+        </form>
+      } @else {
+        <div class="info-card">
+          <h1 class="apt-title">{{ appointment()!.title }}</h1>
+          @if (appointment()!.description) {
+            <p class="apt-description">{{ appointment()!.description }}</p>
+          }
+          <div class="info-row">
+            <span class="info-label">{{ 'appointments.detail.type' | translate }}:</span>
+            <span class="info-value">{{ appointment()!.type }}</span>
+          </div>
+          <div class="info-row">
+            <span class="info-label">{{ 'appointments.detail.when' | translate }}:</span>
+            <span class="info-value">
+              {{ appointment()!.startTime | date:'medium' }} - {{ appointment()!.endTime | date:'shortTime' }}
+            </span>
+          </div>
+          @if (appointment()!.location) {
+            <div class="info-row">
+              <span class="info-label">{{ 'appointments.detail.location' | translate }}:</span>
+              <span class="info-value">{{ appointment()!.location }}</span>
+            </div>
+          }
+          @if (appointment()!.lead) {
+            <div class="info-row">
+              <span class="info-label">{{ 'appointments.detail.lead' | translate }}:</span>
+              <span class="info-value">
+                {{ appointment()!.lead!.firstName }} {{ appointment()!.lead!.lastName }}
+                <br />
+                <span class="text-sm text-gray-500">{{ appointment()!.lead!.phone }}</span>
+              </span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Visit Report Section (for lead_visit type) -->
+      @if (appointment()!.type === 'lead_visit') {
+        <div class="visit-report-section">
+          <button type="button" class="section-toggle" (click)="toggleVisitReport()">
+            <span>{{ 'appointments.detail.visitReport.title' | translate }}</span>
+            <svg class="icon" [class.rotated]="showVisitReport()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <polyline points="6 9 12 15 18 9"></polyline>
+            </svg>
+          </button>
+
+          @if (showVisitReport()) {
+            <form [formGroup]="visitReportForm" (ngSubmit)="saveVisitReport()" class="visit-report-form">
+              <div class="form-group">
+                <label for="measurements">{{ 'appointments.detail.visitReport.measurements' | translate }}</label>
+                <textarea id="measurements" formControlName="measurements" rows="2"></textarea>
+              </div>
+              <div class="form-group">
+                <label for="accessDifficulty">{{ 'appointments.detail.visitReport.accessDifficulty' | translate }}</label>
+                <select id="accessDifficulty" formControlName="accessDifficulty">
+                  <option value="">{{ 'common.select' | translate }}</option>
+                  @for (opt of accessDifficultyOptions; track opt.value) {
+                    <option [value]="opt.value">{{ opt.label }}</option>
+                  }
+                </select>
+              </div>
+              <div class="form-group">
+                <label for="notes">{{ 'appointments.detail.visitReport.notes' | translate }}</label>
+                <textarea id="notes" formControlName="notes" rows="3"></textarea>
+              </div>
+              <div class="form-actions">
+                <shared-button variant="primary" type="submit" [disabled]="saving()">
+                  {{ 'appointments.detail.visitReport.save' | translate }}
+                </shared-button>
+              </div>
+            </form>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  <!-- Delete Confirmation -->
+  <shared-confirm-dialog
+    [isOpen]="showDeleteDialog()"
+    [title]="'appointments.detail.deleteTitle' | translate"
+    [message]="'appointments.detail.deleteMessage' | translate"
+    [confirmText]="'common.delete' | translate"
+    [cancelText]="'common.cancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="deleteInProgress()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDeleteDialog()"
+  />
+</div>

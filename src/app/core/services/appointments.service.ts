@@ -46,6 +46,10 @@ export class AppointmentsService {
     return this.http.patch<AppointmentResponse>(`${this.baseUrl}/${id}/status`, data);
   }
 
+  delete(id: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.baseUrl}/${id}`);
+  }
+
   getVisitReport(id: string): Observable<AppointmentVisitReportResponse> {
     return this.http.get<AppointmentVisitReportResponse>(`${this.baseUrl}/${id}/visit-report`);
   }
@@ -72,6 +76,10 @@ export class AppointmentsService {
     return this.http.post<AvailabilityRuleResponse>(`${this.baseUrl}/availability/rules`, data);
   }
 
+  updateAvailabilityRule(id: string, data: Partial<CreateAvailabilityRuleRequest>): Observable<AvailabilityRuleResponse> {
+    return this.http.put<AvailabilityRuleResponse>(`${this.baseUrl}/availability/rules/${id}`, data);
+  }
+
   deleteAvailabilityRule(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/availability/rules/${id}`);
   }
@@ -86,14 +94,23 @@ export class AppointmentsService {
     return this.http.post<AvailabilityOverrideResponse>(`${this.baseUrl}/availability/overrides`, data);
   }
 
+  updateAvailabilityOverride(id: string, data: Partial<CreateAvailabilityOverrideRequest>): Observable<AvailabilityOverrideResponse> {
+    return this.http.put<AvailabilityOverrideResponse>(`${this.baseUrl}/availability/overrides/${id}`, data);
+  }
+
   deleteAvailabilityOverride(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/availability/overrides/${id}`);
   }
 
   getAvailableSlots(params: GetAvailableSlotsParams): Observable<AvailableSlotsResponse> {
-    let httpParams = new HttpParams().set('date', params.date);
+    let httpParams = new HttpParams()
+      .set('startDate', params.startDate)
+      .set('endDate', params.endDate);
     if (params.userId) {
       httpParams = httpParams.set('userId', params.userId);
+    }
+    if (params.slotDuration) {
+      httpParams = httpParams.set('slotDuration', params.slotDuration.toString());
     }
     return this.http.get<AvailableSlotsResponse>(`${this.baseUrl}/availability/slots`, { params: httpParams });
   }

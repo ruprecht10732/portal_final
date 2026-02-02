@@ -1,0 +1,29 @@
+<div class="appointments-calendar">
+  <header class="calendar-header">
+    <h1>{{ 'appointments.calendar' | translate }}</h1>
+    <shared-button variant="primary" (clicked)="onCreateClick()">
+      {{ 'appointments.createNew' | translate }}
+    </shared-button>
+  </header>
+
+  <div class="calendar-container">
+    <shared-calendar-grid
+      [events]="calendarEvents()"
+      [(view)]="view"
+      [maxVisibleEvents]="3"
+      [showLegend]="false"
+      [allowRange]="false"
+      [dayViewStartHour]="8"
+      [dayViewEndHour]="18"
+      [dayViewTimeSlotMinutes]="30"
+      (eventClick)="onEventClick($event)"
+      (slotClick)="onSlotClick($event)"
+    />
+  </div>
+
+  @if (loading()) {
+    <div class="loading-overlay">
+      <span class="loading-spinner"></span>
+    </div>
+  }
+</div>

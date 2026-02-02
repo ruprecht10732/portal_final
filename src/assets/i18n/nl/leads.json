@@ -250,6 +250,9 @@
       "success": "Gesprek succesvol verwerkt",
       "missingInfoTitle": "Ontbrekende informatie - vermeld indien besproken:",
       "sendConfirmationEmail": "Stuur e-mailbevestiging naar lead (indien afspraak wordt ingepland)",
+      "checkAvailability": "Beschikbaarheid controleren",
+      "selectedSlot": "Geselecteerd",
+      "at": "om",
       "result": {
         "noteCreated": "Notitie opgeslagen in activiteitenlog",
         "statusUpdated": "Status gewijzigd naar",

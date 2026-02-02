@@ -1,0 +1,193 @@
+<div class="availability-settings">
+  <header class="page-header">
+    <h1>{{ 'appointments.availability.title' | translate }}</h1>
+    <p class="subtitle">{{ 'appointments.availability.description' | translate }}</p>
+  </header>
+
+  @if (error()) {
+    <div class="error-banner">
+      {{ error() }}
+    </div>
+  }
+
+  <!-- Recurring Rules Section -->
+  <section class="settings-section">
+    <div class="section-header">
+      <h2>{{ 'appointments.availability.rules.title' | translate }}</h2>
+      <shared-button variant="primary" (clicked)="openRuleForm()">
+        {{ 'appointments.availability.rules.add' | translate }}
+      </shared-button>
+    </div>
+
+    @if (loading()) {
+      <div class="loading-state">
+        <span class="loading-spinner"></span>
+      </div>
+    } @else if (sortedRules().length === 0) {
+      <div class="empty-state">
+        <p>{{ 'appointments.availability.rules.empty' | translate }}</p>
+      </div>
+    } @else {
+      <div class="rules-list">
+        @for (rule of sortedRules(); track rule.id) {
+          <div class="rule-item">
+            <div class="rule-info">
+              <span class="rule-day">{{ getWeekdayLabel(rule.weekday) }}</span>
+              <span class="rule-time">{{ rule.startTime }} - {{ rule.endTime }}</span>
+            </div>
+            <div class="rule-actions">
+              <button type="button" class="action-btn edit" (click)="editRule(rule)">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button type="button" class="action-btn delete" (click)="promptDeleteRule(rule.id)">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Date Overrides Section -->
+  <section class="settings-section">
+    <div class="section-header">
+      <h2>{{ 'appointments.availability.overrides.title' | translate }}</h2>
+      <shared-button variant="secondary" (clicked)="openOverrideForm()">
+        {{ 'appointments.availability.overrides.add' | translate }}
+      </shared-button>
+    </div>
+
+    @if (!loading() && sortedOverrides().length === 0) {
+      <div class="empty-state">
+        <p>{{ 'appointments.availability.overrides.empty' | translate }}</p>
+      </div>
+    } @else if (!loading()) {
+      <div class="overrides-list">
+        @for (override of sortedOverrides(); track override.id) {
+          <div class="override-item" [class.unavailable]="!override.isAvailable">
+            <div class="override-info">
+              <span class="override-date">{{ override.date | date:'mediumDate' }}</span>
+              @if (override.isAvailable) {
+                <span class="override-time">{{ override.startTime }} - {{ override.endTime }}</span>
+              } @else {
+                <span class="override-status unavailable">{{ 'appointments.availability.overrides.unavailable' | translate }}</span>
+              }
+            </div>
+            <div class="override-actions">
+              <button type="button" class="action-btn edit" (click)="editOverride(override)">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path>
+                  <path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path>
+                </svg>
+              </button>
+              <button type="button" class="action-btn delete" (click)="promptDeleteOverride(override.id)">
+                <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <polyline points="3 6 5 6 21 6"></polyline>
+                  <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path>
+                </svg>
+              </button>
+            </div>
+          </div>
+        }
+      </div>
+    }
+  </section>
+
+  <!-- Rule Form Modal -->
+  @if (showRuleForm()) {
+    <div class="modal-overlay" tabindex="-1" (click)="closeRuleForm()" (keydown.escape)="closeRuleForm()">
+      <dialog class="modal" [open]="true">
+        <h3>{{ (editingRuleId() ? 'appointments.availability.rules.edit' : 'appointments.availability.rules.add') | translate }}</h3>
+        <form [formGroup]="ruleForm" (ngSubmit)="saveRule()">
+          <div class="form-group">
+            <label for="weekday">{{ 'appointments.availability.rules.weekday' | translate }}</label>
+            <select id="weekday" formControlName="weekday">
+              @for (day of weekdays(); track day.value) {
+                <option [value]="day.value">{{ day.label }}</option>
+              }
+            </select>
+          </div>
+          <div class="form-row">
+            <div class="form-group">
+              <label for="ruleStartTime">{{ 'appointments.availability.rules.startTime' | translate }}</label>
+              <input id="ruleStartTime" type="time" formControlName="startTime" />
+            </div>
+            <div class="form-group">
+              <label for="ruleEndTime">{{ 'appointments.availability.rules.endTime' | translate }}</label>
+              <input id="ruleEndTime" type="time" formControlName="endTime" />
+            </div>
+          </div>
+          <div class="form-actions">
+            <shared-button variant="secondary" type="button" (clicked)="closeRuleForm()">
+              {{ 'common.cancel' | translate }}
+            </shared-button>
+            <shared-button variant="primary" type="submit" [disabled]="ruleForm.invalid">
+              {{ 'common.save' | translate }}
+            </shared-button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+  }
+
+  <!-- Override Form Modal -->
+  @if (showOverrideForm()) {
+    <div class="modal-overlay" tabindex="-1" (click)="closeOverrideForm()" (keydown.escape)="closeOverrideForm()">
+      <dialog class="modal" [open]="true">
+        <h3>{{ (editingOverrideId() ? 'appointments.availability.overrides.edit' : 'appointments.availability.overrides.add') | translate }}</h3>
+        <form [formGroup]="overrideForm" (ngSubmit)="saveOverride()">
+          <div class="form-group">
+            <label for="overrideDate">{{ 'appointments.availability.overrides.date' | translate }}</label>
+            <input id="overrideDate" type="date" formControlName="date" />
+          </div>
+          <div class="form-group checkbox-group">
+            <label>
+              <input type="checkbox" formControlName="isAvailable" />
+              {{ 'appointments.availability.overrides.isAvailable' | translate }}
+            </label>
+          </div>
+          @if (overrideIsAvailable) {
+            <div class="form-row">
+              <div class="form-group">
+                <label for="overrideStartTime">{{ 'appointments.availability.overrides.startTime' | translate }}</label>
+                <input id="overrideStartTime" type="time" formControlName="startTime" />
+              </div>
+              <div class="form-group">
+                <label for="overrideEndTime">{{ 'appointments.availability.overrides.endTime' | translate }}</label>
+                <input id="overrideEndTime" type="time" formControlName="endTime" />
+              </div>
+            </div>
+          }
+          <div class="form-actions">
+            <shared-button variant="secondary" type="button" (clicked)="closeOverrideForm()">
+              {{ 'common.cancel' | translate }}
+            </shared-button>
+            <shared-button variant="primary" type="submit" [disabled]="overrideForm.invalid">
+              {{ 'common.save' | translate }}
+            </shared-button>
+          </div>
+        </form>
+      </dialog>
+    </div>
+  }
+
+  <!-- Delete Confirmation Dialog -->
+  <shared-confirm-dialog
+    [isOpen]="isDeleteDialogOpen()"
+    [title]="'appointments.availability.delete.title' | translate"
+    [message]="'appointments.availability.delete.message' | translate"
+    [confirmText]="'common.delete' | translate"
+    [cancelText]="'common.cancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="deleteInProgress()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDeleteDialog()"
+  />
+</div>

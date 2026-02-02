@@ -157,13 +157,18 @@ export interface TimeSlot {
   endTime: string;
 }
 
-export interface AvailableSlotsResponse {
+export interface DaySlots {
   date: string;
   slots: TimeSlot[];
-  timezone: string;
+}
+
+export interface AvailableSlotsResponse {
+  days: DaySlots[];
 }
 
 export interface GetAvailableSlotsParams {
-  date: string;
+  startDate: string;
+  endDate: string;
   userId?: string;
+  slotDuration?: number;
 }

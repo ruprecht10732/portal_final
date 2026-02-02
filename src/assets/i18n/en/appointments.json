@@ -1,0 +1,130 @@
+{
+  "appointments": {
+    "calendar": "Calendar",
+    "listView": "List View",
+    "availabilityNav": "Availability",
+    "createNew": "New Appointment",
+    "type": {
+      "leadVisit": "Lead Visit",
+      "standalone": "Standalone",
+      "blocked": "Blocked Time"
+    },
+    "status": {
+      "scheduled": "Scheduled",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "noShow": "No Show"
+    },
+    "list": {
+      "ariaLabel": "Appointments data grid",
+      "deleteTitle": "Delete appointments",
+      "deleteMessage": "Delete {{count}} appointment(s)? This cannot be undone.",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel",
+      "newAppointment": "New Appointment",
+      "columns": {
+        "title": "Title",
+        "type": "Type",
+        "status": "Status",
+        "startTime": "Start",
+        "endTime": "End",
+        "location": "Location",
+        "lead": "Lead",
+        "createdAt": "Created"
+      },
+      "errors": {
+        "loadAppointments": "Failed to load appointments",
+        "deleteAppointments": "Failed to delete appointments"
+      }
+    },
+    "detail": {
+      "title": "Title",
+      "description": "Description",
+      "location": "Location",
+      "type": "Type",
+      "when": "When",
+      "lead": "Lead",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "allDay": "All day",
+      "notFound": "Appointment not found",
+      "deleteTitle": "Delete Appointment",
+      "deleteMessage": "Are you sure you want to delete this appointment? This cannot be undone.",
+      "visitReport": {
+        "title": "Visit Report",
+        "measurements": "Measurements",
+        "accessDifficulty": "Access Difficulty",
+        "notes": "Notes",
+        "save": "Save Report"
+      },
+      "errors": {
+        "load": "Failed to load appointment",
+        "save": "Failed to save appointment",
+        "updateStatus": "Failed to update status",
+        "saveReport": "Failed to save visit report",
+        "delete": "Failed to delete appointment"
+      }
+    },
+    "form": {
+      "title": "New Appointment",
+      "type": "Type",
+      "titleLabel": "Title",
+      "titlePlaceholder": "Appointment title",
+      "description": "Description",
+      "descriptionPlaceholder": "Add a description...",
+      "location": "Location",
+      "locationPlaceholder": "Address or meeting link",
+      "startTime": "Start Time",
+      "endTime": "End Time",
+      "allDay": "All day event",
+      "sendConfirmation": "Send confirmation email",
+      "create": "Create Appointment",
+      "errors": {
+        "create": "Failed to create appointment"
+      }
+    },
+    "availability": {
+      "title": "Availability Settings",
+      "description": "Configure your recurring weekly availability and date-specific overrides.",
+      "rules": {
+        "title": "Weekly Schedule",
+        "add": "Add Time Slot",
+        "edit": "Edit",
+        "empty": "No recurring time slots configured. Add your working hours.",
+        "weekday": "Day of Week",
+        "startTime": "Start Time",
+        "endTime": "End Time"
+      },
+      "overrides": {
+        "title": "Date Overrides",
+        "add": "Add Override",
+        "edit": "Edit",
+        "empty": "No date overrides configured. Add exceptions for holidays or special days.",
+        "date": "Date",
+        "isAvailable": "Available on this date",
+        "startTime": "Start Time",
+        "endTime": "End Time",
+        "unavailable": "Unavailable"
+      },
+      "weekdays": {
+        "sunday": "Sunday",
+        "monday": "Monday",
+        "tuesday": "Tuesday",
+        "wednesday": "Wednesday",
+        "thursday": "Thursday",
+        "friday": "Friday",
+        "saturday": "Saturday"
+      },
+      "delete": {
+        "title": "Delete",
+        "message": "Are you sure you want to delete this item?"
+      },
+      "errors": {
+        "load": "Failed to load availability settings",
+        "saveRule": "Failed to save availability rule",
+        "saveOverride": "Failed to save date override",
+        "delete": "Failed to delete"
+      }
+    }
+  }
+}

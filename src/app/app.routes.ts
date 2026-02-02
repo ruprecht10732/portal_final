@@ -214,6 +214,39 @@ export const routes: Routes = [
 					},
 				],
 			},
+			{
+				path: 'appointments',
+				loadComponent: () => import('./routes/appointments/appointments-layout/appointments-layout.component').then(m => m.AppointmentsLayoutComponent),
+				data: {
+					panelItems: [
+						{ label: 'appointments.calendar', route: '/app/appointments', icon: 'calendar', exact: true },
+						{ label: 'appointments.listView', route: '/app/appointments/list', icon: 'list' },
+						{ label: 'appointments.availabilityNav', route: '/app/appointments/availability', icon: 'clock' },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						loadComponent: () => import('./routes/appointments/appointments-calendar/appointments-calendar.component').then(m => m.AppointmentsCalendarComponent),
+					},
+					{
+						path: 'list',
+						loadComponent: () => import('./routes/appointments/appointments-list/appointments-list.component').then(m => m.AppointmentsListComponent),
+					},
+					{
+						path: 'availability',
+						loadComponent: () => import('./routes/appointments/availability-settings/availability-settings.component').then(m => m.AvailabilitySettingsComponent),
+					},
+					{
+						path: 'new',
+						loadComponent: () => import('./routes/appointments/appointment-form/appointment-form.component').then(m => m.AppointmentFormComponent),
+					},
+					{
+						path: ':id',
+						loadComponent: () => import('./routes/appointments/appointment-detail/appointment-detail.component').then(m => m.AppointmentDetailComponent),
+					},
+				],
+			},
 		],
 	},
 	{

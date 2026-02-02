@@ -1,0 +1,130 @@
+{
+  "appointments": {
+    "calendar": "Kalender",
+    "listView": "Lijstweergave",
+    "availabilityNav": "Beschikbaarheid",
+    "createNew": "Nieuwe Afspraak",
+    "type": {
+      "leadVisit": "Lead Bezoek",
+      "standalone": "Zelfstandig",
+      "blocked": "Geblokkeerde Tijd"
+    },
+    "status": {
+      "scheduled": "Gepland",
+      "completed": "Afgerond",
+      "cancelled": "Geannuleerd",
+      "noShow": "Niet Verschenen"
+    },
+    "list": {
+      "ariaLabel": "Afspraken data grid",
+      "deleteTitle": "Afspraken verwijderen",
+      "deleteMessage": "{{count}} afspra(a)k(en) verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "deleteConfirm": "Verwijderen",
+      "deleteCancel": "Annuleren",
+      "newAppointment": "Nieuwe Afspraak",
+      "columns": {
+        "title": "Titel",
+        "type": "Type",
+        "status": "Status",
+        "startTime": "Start",
+        "endTime": "Einde",
+        "location": "Locatie",
+        "lead": "Lead",
+        "createdAt": "Aangemaakt"
+      },
+      "errors": {
+        "loadAppointments": "Afspraken laden mislukt",
+        "deleteAppointments": "Afspraken verwijderen mislukt"
+      }
+    },
+    "detail": {
+      "title": "Titel",
+      "description": "Beschrijving",
+      "location": "Locatie",
+      "type": "Type",
+      "when": "Wanneer",
+      "lead": "Lead",
+      "startTime": "Starttijd",
+      "endTime": "Eindtijd",
+      "allDay": "Hele dag",
+      "notFound": "Afspraak niet gevonden",
+      "deleteTitle": "Afspraak Verwijderen",
+      "deleteMessage": "Weet u zeker dat u deze afspraak wilt verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "visitReport": {
+        "title": "Bezoekrapport",
+        "measurements": "Metingen",
+        "accessDifficulty": "Toegankelijkheid",
+        "notes": "Notities",
+        "save": "Rapport Opslaan"
+      },
+      "errors": {
+        "load": "Afspraak laden mislukt",
+        "save": "Afspraak opslaan mislukt",
+        "updateStatus": "Status bijwerken mislukt",
+        "saveReport": "Bezoekrapport opslaan mislukt",
+        "delete": "Afspraak verwijderen mislukt"
+      }
+    },
+    "form": {
+      "title": "Nieuwe Afspraak",
+      "type": "Type",
+      "titleLabel": "Titel",
+      "titlePlaceholder": "Afspraak titel",
+      "description": "Beschrijving",
+      "descriptionPlaceholder": "Voeg een beschrijving toe...",
+      "location": "Locatie",
+      "locationPlaceholder": "Adres of vergaderlink",
+      "startTime": "Starttijd",
+      "endTime": "Eindtijd",
+      "allDay": "Hele dag evenement",
+      "sendConfirmation": "Bevestigingsmail versturen",
+      "create": "Afspraak Aanmaken",
+      "errors": {
+        "create": "Afspraak aanmaken mislukt"
+      }
+    },
+    "availability": {
+      "title": "Beschikbaarheidsinstellingen",
+      "description": "Configureer uw wekelijkse beschikbaarheid en datum-specifieke uitzonderingen.",
+      "rules": {
+        "title": "Wekelijks Schema",
+        "add": "Tijdslot Toevoegen",
+        "edit": "Bewerken",
+        "empty": "Geen terugkerende tijdslots geconfigureerd. Voeg uw werktijden toe.",
+        "weekday": "Dag van de Week",
+        "startTime": "Starttijd",
+        "endTime": "Eindtijd"
+      },
+      "overrides": {
+        "title": "Datum Uitzonderingen",
+        "add": "Uitzondering Toevoegen",
+        "edit": "Bewerken",
+        "empty": "Geen datum uitzonderingen geconfigureerd. Voeg uitzonderingen toe voor feestdagen of speciale dagen.",
+        "date": "Datum",
+        "isAvailable": "Beschikbaar op deze datum",
+        "startTime": "Starttijd",
+        "endTime": "Eindtijd",
+        "unavailable": "Niet beschikbaar"
+      },
+      "weekdays": {
+        "sunday": "Zondag",
+        "monday": "Maandag",
+        "tuesday": "Dinsdag",
+        "wednesday": "Woensdag",
+        "thursday": "Donderdag",
+        "friday": "Vrijdag",
+        "saturday": "Zaterdag"
+      },
+      "delete": {
+        "title": "Verwijderen",
+        "message": "Weet u zeker dat u dit item wilt verwijderen?"
+      },
+      "errors": {
+        "load": "Beschikbaarheidsinstellingen laden mislukt",
+        "saveRule": "Beschikbaarheidsregel opslaan mislukt",
+        "saveOverride": "Datum uitzondering opslaan mislukt",
+        "delete": "Verwijderen mislukt"
+      }
+    }
+  }
+}

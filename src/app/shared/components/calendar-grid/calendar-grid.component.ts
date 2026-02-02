@@ -4,11 +4,23 @@ import {
   computed,
   input,
   model,
+  output,
   signal,
   viewChildren,
 } from '@angular/core';
 import { Grid, GridCell, GridCellWidget, GridRow } from '@angular/aria/grid';
 import { CalendarDayViewComponent } from '../calendar-day-view/calendar-day-view.component';
+
+export interface CalendarEvent {
+  id: string | number;
+  title: string;
+  start: Date | string;
+  end?: Date | string;
+  allDay?: boolean;
+  status?: string;
+  color?: string;
+  data?: unknown;
+}
 
 interface CalendarDay {
   displayName: string;
@@ -52,6 +64,11 @@ export class CalendarGridComponent {
   readonly showWeekNumbers = input(false);
   readonly showHolidays = input(true);
   readonly holidays = input<readonly { iso: string; name: string }[]>([]);
+  readonly events = input<readonly CalendarEvent[]>([]);
+  readonly maxVisibleEvents = input(3);
+
+  readonly eventClick = output<CalendarEvent>();
+  readonly slotClick = output<{ date: string; time?: number }>();
 
   private readonly uid = 'calendar-' + Math.random().toString(36).substring(2, 9);
   protected readonly gridLabelId = `${this.uid}-label`;
@@ -443,5 +460,32 @@ export class CalendarGridComponent {
 
   private compareIso(a: string, b: string): number {
     return new Date(a).getTime() - new Date(b).getTime();
+  }
+
+  protected getEventsForDay(day: CalendarDay): CalendarEvent[] {
+    return this.events().filter(event => {
+      const eventStart = typeof event.start === 'string' ? new Date(event.start) : event.start;
+      const eventIso = this.formatLocalIso(eventStart);
+      return eventIso === day.iso;
+    });
+  }
+
+  protected onEventClick(event: CalendarEvent, clickEvent: MouseEvent): void {
+    clickEvent.stopPropagation();
+    this.eventClick.emit(event);
+  }
+
+  protected onSlotClick(day: CalendarDay): void {
+    this.slotClick.emit({ date: day.iso });
+  }
+
+  protected getEventStatusClass(event: CalendarEvent): string {
+    switch (event.status) {
+      case 'scheduled': return 'event-scheduled';
+      case 'completed': return 'event-completed';
+      case 'cancelled': return 'event-cancelled';
+      case 'no_show': return 'event-no-show';
+      default: return 'event-default';
+    }
   }
 }

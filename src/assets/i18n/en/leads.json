@@ -252,6 +252,9 @@
       "success": "Call processed successfully",
       "missingInfoTitle": "Missing Information - Please include if discussed:",
       "sendConfirmationEmail": "Send email confirmation to lead (if appointment is scheduled)",
+      "checkAvailability": "Check Availability",
+      "selectedSlot": "Selected",
+      "at": "at",
       "result": {
         "noteCreated": "Note saved to activity log",
         "statusUpdated": "Status changed to",
