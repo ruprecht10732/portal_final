@@ -38,6 +38,7 @@ export interface CreateAppointmentRequest {
   startTime: string;
   endTime: string;
   allDay: boolean;
+  sendConfirmationEmail?: boolean;
 }
 
 export interface UpdateAppointmentRequest {
@@ -149,3 +150,20 @@ export const ACCESS_DIFFICULTY_OPTIONS: { label: string; value: AccessDifficulty
   { label: 'Medium', value: 'Medium' },
   { label: 'High', value: 'High' },
 ];
+
+// Availability slots types
+export interface TimeSlot {
+  startTime: string;
+  endTime: string;
+}
+
+export interface AvailableSlotsResponse {
+  date: string;
+  slots: TimeSlot[];
+  timezone: string;
+}
+
+export interface GetAvailableSlotsParams {
+  date: string;
+  userId?: string;
+}

@@ -2,6 +2,7 @@
   "common": {
     "save": "Opslaan",
     "cancel": "Annuleren",
+    "close": "Sluiten",
     "delete": "Verwijderen",
     "edit": "Bewerken",
     "add": "Toevoegen",

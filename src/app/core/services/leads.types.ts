@@ -254,3 +254,16 @@ export interface AnalyzeLeadResponse {
   message: string;
   analysis?: LeadAIAnalysis;
 }
+
+// Call Logger types
+export interface LogCallRequest {
+  summary: string;
+  sendConfirmationEmail?: boolean;
+}
+
+export interface LogCallResponse {
+  noteCreated: boolean;
+  statusUpdated?: string;
+  appointmentBooked?: string; // ISO 8601 date string
+  message: string;
+}

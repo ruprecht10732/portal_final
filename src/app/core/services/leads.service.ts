@@ -20,6 +20,8 @@ import type {
   LeadAIAnalysisResponse,
   LeadAIAnalysisListResponse,
   AnalyzeLeadResponse,
+  LogCallRequest,
+  LogCallResponse,
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
@@ -145,5 +147,10 @@ export class LeadsService {
   listAnalyses(id: string, serviceId: string): Observable<LeadAIAnalysisListResponse> {
     const params = new HttpParams().set('serviceId', serviceId);
     return this.http.get<LeadAIAnalysisListResponse>(`${this.baseUrl}/${id}/analysis/history`, { params });
+  }
+
+  // Call Logger - processes post-call summaries into structured actions
+  logCall(leadId: string, serviceId: string, data: LogCallRequest): Observable<LogCallResponse> {
+    return this.http.post<LogCallResponse>(`${this.baseUrl}/${leadId}/services/${serviceId}/log-call`, data);
   }
 }

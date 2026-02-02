@@ -9,10 +9,12 @@ import type {
   AppointmentVisitReportResponse,
   AvailabilityOverrideResponse,
   AvailabilityRuleResponse,
+  AvailableSlotsResponse,
   CreateAppointmentAttachmentRequest,
   CreateAppointmentRequest,
   CreateAvailabilityOverrideRequest,
   CreateAvailabilityRuleRequest,
+  GetAvailableSlotsParams,
   ListAppointmentsParams,
   UpdateAppointmentRequest,
   UpdateAppointmentStatusRequest,
@@ -86,6 +88,14 @@ export class AppointmentsService {
 
   deleteAvailabilityOverride(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/availability/overrides/${id}`);
+  }
+
+  getAvailableSlots(params: GetAvailableSlotsParams): Observable<AvailableSlotsResponse> {
+    let httpParams = new HttpParams().set('date', params.date);
+    if (params.userId) {
+      httpParams = httpParams.set('userId', params.userId);
+    }
+    return this.http.get<AvailableSlotsResponse>(`${this.baseUrl}/availability/slots`, { params: httpParams });
   }
 
   private buildListParams(params: ListAppointmentsParams): HttpParams {

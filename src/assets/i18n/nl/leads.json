@@ -238,6 +238,29 @@
         "loadUsers": "Kon gebruikers niet laden",
         "loadServiceTypes": "Kon diensttypen niet laden"
       }
+    },
+    "callLogger": {
+      "openButton": "Gesprek loggen",
+      "title": "Telefoongesprek loggen",
+      "description": "Beschrijf wat er tijdens het gesprek is besproken. De AI zal acties herkennen zoals statuswijzigingen en afspraken.",
+      "placeholder": "bijv. Gesproken met Jan, hij is geïnteresseerd en wil een inspectie volgende week dinsdag om 9 uur...",
+      "hint": "Tip: Druk Ctrl+Enter om te versturen",
+      "submit": "Verwerken",
+      "processing": "Verwerken...",
+      "success": "Gesprek succesvol verwerkt",
+      "missingInfoTitle": "Ontbrekende informatie - vermeld indien besproken:",
+      "sendConfirmationEmail": "Stuur e-mailbevestiging naar lead (indien afspraak wordt ingepland)",
+      "result": {
+        "noteCreated": "Notitie opgeslagen in activiteitenlog",
+        "statusUpdated": "Status gewijzigd naar",
+        "appointmentBooked": "Bezoekafspraak ingepland"
+      },
+      "announcements": {
+        "processed": "Gespreksnotitie succesvol verwerkt"
+      },
+      "errors": {
+        "process": "Kon gespreksnotitie niet verwerken"
+      }
     }
   }
 }

@@ -6,7 +6,7 @@ import { LeadsService } from '../../../core/services/leads.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadStatus } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadStatus, LogCallResponse } from '../../../core/services/leads.types';
 import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
 import type {
   AccessDifficulty,
@@ -31,6 +31,7 @@ import { MapPreviewComponent } from '../../../shared/components/map-preview/map-
 import { type SelectOption } from '../../../shared/components/select/select.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
+import { CallLoggerDialogComponent, type CallLoggerSubmitEvent } from '../../../shared/components/call-logger-dialog';
 import { TIMEOUT_MS } from '../../../core/config';
 
 @Component({
@@ -38,7 +39,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -108,6 +109,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly aiAnalysisRefreshing = signal(false);
   protected readonly aiAnalysisIsDefault = signal(false);
   protected readonly aiAnalysisNoNewInfo = signal(false);
+  protected readonly missingInformation = computed(() => this.aiAnalysis()?.missingInformation ?? []);
 
   // ARIA live region for announcements
   protected readonly announcement = signal<string>('');
@@ -117,6 +119,11 @@ export class LeadDetailComponent implements OnInit {
   protected readonly confirmDialogTitle = signal('');
   protected readonly confirmDialogMessage = signal('');
   protected readonly pendingStatusChange = signal<LeadStatus | null>(null);
+
+  // Call logger dialog
+  protected readonly showCallLoggerDialog = signal(false);
+  protected readonly callLoggerProcessing = signal(false);
+  protected readonly callLoggerResult = signal<LogCallResponse | null>(null);
 
   // Services management
   protected readonly showAddServiceForm = signal(false);
@@ -479,6 +486,10 @@ export class LeadDetailComponent implements OnInit {
   @HostListener('document:keydown', ['$event'])
   handleKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
+      if (this.showCallLoggerDialog() && !this.callLoggerProcessing()) {
+        this.closeCallLogger();
+        return;
+      }
       if (this.showConfirmDialog()) {
         this.cancelConfirmDialog();
         return;
@@ -523,6 +534,43 @@ export class LeadDetailComponent implements OnInit {
   protected handlePhoneClick(): void {
     this.activeTab.set('activity');
     setTimeout(() => this.focusNoteBox(), 0);
+  }
+
+  protected openCallLogger(): void {
+    this.callLoggerResult.set(null);
+    this.showCallLoggerDialog.set(true);
+  }
+
+  protected closeCallLogger(): void {
+    this.showCallLoggerDialog.set(false);
+    this.callLoggerResult.set(null);
+  }
+
+  protected submitCallLogger(event: CallLoggerSubmitEvent): void {
+    const lead = this.lead();
+    const service = this.selectedService();
+    if (!lead || !service) return;
+
+    this.callLoggerProcessing.set(true);
+    this.leadsService.logCall(lead.id, service.id, { 
+      summary: event.summary,
+      sendConfirmationEmail: event.sendConfirmationEmail,
+    }).subscribe({
+      next: (response) => {
+        this.callLoggerResult.set(response);
+        this.callLoggerProcessing.set(false);
+        // Reload data to reflect changes
+        this.loadLead(lead.id);
+        this.announce(this.translate.instant('leads.callLogger.announcements.processed'));
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('leads.callLogger.errors.process'));
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.callLoggerProcessing.set(false);
+        this.showCallLoggerDialog.set(false);
+      },
+    });
   }
 
   protected updateStatus(statusOverride?: LeadStatus): void {
