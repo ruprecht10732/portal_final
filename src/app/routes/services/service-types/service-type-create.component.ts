@@ -35,6 +35,7 @@ export class ServiceTypeCreateComponent {
 
   protected readonly name = signal('');
   protected readonly description = signal('');
+  protected readonly intakeGuidelines = signal('');
   protected readonly icon = signal('');
   protected readonly color = signal('');
   protected readonly displayOrder = signal('0');
@@ -55,6 +56,7 @@ export class ServiceTypeCreateComponent {
     const request: CreateServiceTypeRequest = {
       name: this.name().trim(),
       description: this.normalizeOptional(this.description()),
+      intakeGuidelines: this.normalizeOptional(this.intakeGuidelines()),
       icon: normalizedIcon ?? undefined,
       color: this.normalizeOptional(this.color()),
       displayOrder: displayOrderValue,
@@ -77,6 +79,7 @@ export class ServiceTypeCreateComponent {
   protected resetForm(): void {
     this.name.set('');
     this.description.set('');
+    this.intakeGuidelines.set('');
     this.icon.set('');
     this.color.set('');
     this.displayOrder.set('0');

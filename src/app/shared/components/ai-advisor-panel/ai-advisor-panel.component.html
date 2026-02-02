@@ -1,7 +1,7 @@
 <div class="flex flex-col gap-4">
   <!-- Header with refresh button -->
   <div class="flex items-center justify-between">
-    <h3 class="text-lg font-semibold">AI Sales Advisor</h3>
+    <h3 class="text-lg font-semibold">{{ 'leads.detail.ai.title' | translate }}</h3>
     <div class="flex items-center gap-2">
       @if (noNewInfo() && canRefresh()) {
         <shared-button
@@ -9,9 +9,9 @@
           size="compact"
           [disabled]="refreshing() || loading()"
           (clicked)="forceRefresh.emit()"
-          title="Generate a new analysis even when no changes are detected"
+          [title]="'leads.detail.ai.forceRegenerateHint' | translate"
         >
-          Force Regenerate
+          {{ 'leads.detail.ai.forceRegenerate' | translate }}
         </shared-button>
       }
       @if (canRefresh()) {
@@ -27,10 +27,10 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Analyzing...
+              {{ 'leads.detail.ai.analyzing' | translate }}
             </span>
           } @else {
-            Refresh Analysis
+            {{ 'leads.detail.ai.refresh' | translate }}
           }
         </shared-button>
       }
@@ -43,7 +43,7 @@
         <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
         <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
       </svg>
-      <p class="text-sm">Loading analysis...</p>
+      <p class="text-sm">{{ 'leads.detail.ai.loading' | translate }}</p>
     </div>
   } @else if (error()) {
     <div class="bg-zinc-50 border border-zinc-200 rounded-lg p-6 text-center">
@@ -53,7 +53,7 @@
       <p class="text-sm text-zinc-600 mb-3">{{ error() }}</p>
       @if (canRefresh()) {
         <shared-button variant="secondary" size="compact" (clicked)="refresh.emit()">
-          Try Again
+          {{ 'leads.detail.ai.tryAgain' | translate }}
         </shared-button>
       }
     </div>
@@ -63,12 +63,12 @@
         <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9.813 15.904L9 18.75l-.813-2.846a4.5 4.5 0 00-3.09-3.09L2.25 12l2.846-.813a4.5 4.5 0 003.09-3.09L9 5.25l.813 2.846a4.5 4.5 0 003.09 3.09L15.75 12l-2.846.813a4.5 4.5 0 00-3.09 3.09zM18.259 8.715L18 9.75l-.259-1.035a3.375 3.375 0 00-2.455-2.456L14.25 6l1.036-.259a3.375 3.375 0 002.455-2.456L18 2.25l.259 1.035a3.375 3.375 0 002.456 2.456L21.75 6l-1.035.259a3.375 3.375 0 00-2.456 2.456z" />
       </svg>
       @if (canRefresh()) {
-        <p class="text-sm text-zinc-600 mb-3">No AI analysis available yet</p>
+        <p class="text-sm text-zinc-600 mb-3">{{ 'leads.detail.ai.empty' | translate }}</p>
         <shared-button variant="primary" size="compact" (clicked)="refresh.emit()">
-          Generate Analysis
+          {{ 'leads.detail.ai.generate' | translate }}
         </shared-button>
       } @else {
-        <p class="text-sm text-zinc-600">This service is closed - no new analysis can be generated</p>
+        <p class="text-sm text-zinc-600">{{ 'leads.detail.ai.closed' | translate }}</p>
       }
     </div>
   } @else if (isDefault()) {
@@ -81,42 +81,22 @@
           <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
         </svg>
         <div class="flex-1">
-          <p class="text-sm font-medium text-amber-800">Initial Contact Recommended</p>
-          <p class="text-sm text-amber-700 mt-1">This lead hasn't been analyzed yet. Reach out to learn more about their needs, then generate a personalized analysis.</p>
+          <p class="text-sm font-medium text-amber-800">{{ 'leads.detail.ai.defaultTitle' | translate }}</p>
+          <p class="text-sm text-amber-700 mt-1">{{ 'leads.detail.ai.defaultSubtitle' | translate }}</p>
         </div>
       </div>
     </div>
 
     <!-- Summary -->
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-      <h4 class="text-sm font-semibold text-blue-900 mb-2">Quick Start Guide</h4>
+      <h4 class="text-sm font-semibold text-blue-900 mb-2">{{ 'leads.detail.ai.defaultGuideTitle' | translate }}</h4>
       <p class="text-sm text-blue-800">{{ a.summary }}</p>
     </div>
-
-    <!-- Talking Points -->
-    @if (a.talkingPoints.length > 0) {
-      <div>
-        <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
-          <svg class="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          Suggested First Steps
-        </h4>
-        <ul class="space-y-2">
-          @for (point of a.talkingPoints; track point) {
-            <li class="flex items-start gap-2 text-sm bg-zinc-50 rounded-lg p-3">
-              <span class="text-green-600 shrink-0 mt-0.5">•</span>
-              <span>{{ point }}</span>
-            </li>
-          }
-        </ul>
-      </div>
-    }
 
     <!-- Generate Analysis CTA -->
     @if (canRefresh()) {
       <div class="mt-2 pt-4 border-t border-zinc-200 text-center">
-        <p class="text-sm text-zinc-500 mb-3">After gathering more information, generate a personalized AI analysis:</p>
+        <p class="text-sm text-zinc-500 mb-3">{{ 'leads.detail.ai.defaultCta' | translate }}</p>
         <shared-button
           variant="primary"
           size="default"
@@ -129,10 +109,10 @@
                 <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
                 <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
               </svg>
-              Generating...
+              {{ 'leads.detail.ai.generating' | translate }}
             </span>
           } @else {
-            Generate AI Analysis
+            {{ 'leads.detail.ai.generate' | translate }}
           }
         </shared-button>
       </div>
@@ -146,7 +126,7 @@
         <svg class="h-4 w-4 text-amber-600 shrink-0" fill="currentColor" viewBox="0 0 20 20">
           <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
         </svg>
-        <span class="text-sm text-amber-800">Deze analyse is meer dan 7 dagen oud. Overweeg een nieuwe te genereren.</span>
+        <span class="text-sm text-amber-800">{{ 'leads.detail.ai.stale' | translate }}</span>
       </div>
     }
 
@@ -158,8 +138,8 @@
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
           </svg>
           <div>
-            <p class="text-sm font-medium text-blue-800">Geen nieuwe informatie sinds laatste analyse</p>
-            <p class="text-xs text-blue-700 mt-1">Er zijn geen nieuwe notities of wijzigingen aan deze lead. Klik op "Force Regenerate" als je toch een nieuwe analyse wilt.</p>
+            <p class="text-sm font-medium text-blue-800">{{ 'leads.detail.ai.noNewInfoTitle' | translate }}</p>
+            <p class="text-xs text-blue-700 mt-1">{{ 'leads.detail.ai.noNewInfoBody' | translate }}</p>
           </div>
         </div>
       </output>
@@ -168,11 +148,11 @@
     <!-- Urgency Badge -->
     <div class="flex items-start gap-3 p-4 rounded-lg border" [ngClass]="getUrgencyColor(a.urgencyLevel)">
       <div class="shrink-0">
-        @if (a.urgencyLevel === 'high') {
+        @if (a.urgencyLevel === 'High') {
           <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" />
           </svg>
-        } @else if (a.urgencyLevel === 'medium') {
+        } @else if (a.urgencyLevel === 'Medium') {
           <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 20 20">
             <path fill-rule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7-4a1 1 0 11-2 0 1 1 0 012 0zM9 9a.75.75 0 000 1.5h.253a.25.25 0 01.244.304l-.459 2.066A1.75 1.75 0 0010.747 15H11a.75.75 0 000-1.5h-.253a.25.25 0 01-.244-.304l.459-2.066A1.75 1.75 0 009.253 9H9z" clip-rule="evenodd" />
           </svg>
@@ -183,141 +163,118 @@
         }
       </div>
       <div>
-        <p class="font-semibold text-sm">{{ getUrgencyLabel(a.urgencyLevel) }}</p>
-        <p class="text-sm mt-1">{{ a.urgencyReason }}</p>
+        <p class="font-semibold text-sm">{{ 'leads.detail.ai.urgency' | translate }}: {{ getUrgencyLabel(a.urgencyLevel) }}</p>
+        @if (a.urgencyReason) {
+          <p class="text-sm mt-1">{{ a.urgencyReason }}</p>
+        }
       </div>
     </div>
 
     <!-- Summary -->
     <div class="bg-blue-50 border border-blue-200 rounded-lg p-4">
-      <h4 class="text-sm font-semibold text-blue-900 mb-2">Summary</h4>
+      <h4 class="text-sm font-semibold text-blue-900 mb-2">{{ 'leads.detail.ai.summary' | translate }}</h4>
       <p class="text-sm text-blue-800">{{ a.summary }}</p>
     </div>
-
-    <!-- Suggested WhatsApp Message -->
-    @if (a.suggestedWhatsAppMessage && consumerPhone()) {
-      <div class="bg-green-50 border border-green-200 rounded-lg p-4">
-        <h4 class="text-sm font-semibold text-green-900 mb-3 flex items-center gap-2">
-          <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-            <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-          </svg>
-          Suggested WhatsApp Message
-        </h4>
-        <div class="space-y-3">
-          <textarea
-            rows="4"
-            class="w-full rounded-lg border-green-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-green-500 focus:ring-green-500 shadow-sm"
-            [value]="editableMessage()"
-            (input)="editableMessage.set($any($event.target).value)"
-            placeholder="Edit the suggested message here..."
-          ></textarea>
-          
-          <div class="flex items-center justify-end gap-2">
-            <shared-button
-              variant="secondary"
-              size="compact"
-              [disabled]="!editableMessage()"
-              (clicked)="copyMessage()"
-            >
-              @if (copied()) {
-                <span class="flex items-center gap-1 text-green-700">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                  </svg>
-                  Copied
-                </span>
-              } @else {
-                <span class="flex items-center gap-1">
-                  <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
-                  </svg>
-                  Copy
-                </span>
-              }
-            </shared-button>
-            <a
-              [href]="getWhatsAppUrl(consumerPhone(), editableMessage())"
-              target="_blank"
-              rel="noopener noreferrer"
-              class="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
-            >
-              <svg class="h-5 w-5" fill="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg">
-                <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413Z"/>
-              </svg>
-              Open in WhatsApp
-            </a>
-          </div>
-        </div>
+    <div class="grid gap-3 sm:grid-cols-2">
+      <div class="rounded-lg border border-zinc-200 p-3">
+        <p class="text-xs uppercase text-zinc-500">{{ 'leads.detail.ai.leadQuality' | translate }}</p>
+        <p class="text-sm font-semibold mt-1">{{ a.leadQuality }}</p>
       </div>
-    }
-
-    <!-- Talking Points -->
-    @if (a.talkingPoints.length > 0) {
-      <div>
-        <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
-          <svg class="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z" />
-          </svg>
-          Talking Points
-        </h4>
-        <ul class="space-y-2">
-          @for (point of a.talkingPoints; track point) {
-            <li class="flex items-start gap-2 text-sm bg-zinc-50 rounded-lg p-3">
-              <span class="text-green-600 shrink-0 mt-0.5">•</span>
-              <span>{{ point }}</span>
-            </li>
-          }
-        </ul>
+      <div class="rounded-lg border border-zinc-200 p-3">
+        <p class="text-xs uppercase text-zinc-500">{{ 'leads.detail.ai.recommendedAction' | translate }}</p>
+        <p class="text-sm font-semibold mt-1">{{ a.recommendedAction }}</p>
       </div>
-    }
+      <div class="rounded-lg border border-zinc-200 p-3">
+        <p class="text-xs uppercase text-zinc-500">{{ 'leads.detail.ai.preferredChannel' | translate }}</p>
+        <p class="text-sm font-semibold mt-1">{{ a.preferredContactChannel }}</p>
+      </div>
+      <div class="rounded-lg border border-zinc-200 p-3">
+        <p class="text-xs uppercase text-zinc-500">{{ 'leads.detail.ai.missingInformation' | translate }}</p>
+        @if (a.missingInformation.length > 0) {
+          <ul class="mt-2 space-y-1 text-sm">
+            @for (item of a.missingInformation; track item) {
+              <li class="flex items-start gap-2">
+                <span class="text-red-500">•</span>
+                <span>{{ item }}</span>
+              </li>
+            }
+          </ul>
+        } @else {
+          <p class="text-sm text-zinc-500 mt-1">{{ 'leads.detail.ai.noneMissing' | translate }}</p>
+        }
+      </div>
+    </div>
 
-    <!-- Objection Handling -->
-    @if (a.objectionHandling.length > 0) {
-      <div>
-        <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
-          <svg class="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-          </svg>
-          Objection Handling
-        </h4>
-        <div class="space-y-3">
-          @for (obj of a.objectionHandling; track obj.objection) {
-            <div class="bg-zinc-50 rounded-lg p-3">
-              <p class="text-sm font-medium text-zinc-700 mb-1">
-                <span class="text-red-500">"</span>{{ obj.objection }}<span class="text-red-500">"</span>
-              </p>
-              <p class="text-sm text-zinc-600 pl-3 border-l-2 border-green-400">
-                {{ obj.response }}
-              </p>
-            </div>
+    <!-- Contact Message -->
+    <div class="bg-green-50 border border-green-200 rounded-lg p-4">
+      <h4 class="text-sm font-semibold text-green-900 mb-3">
+        {{ 'leads.detail.ai.contactMessageTitle' | translate:{ channel: getChannelLabel(a.preferredContactChannel) } }}
+      </h4>
+      <div class="space-y-3">
+        <textarea
+          rows="4"
+          class="w-full rounded-lg border-green-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-green-500 focus:ring-green-500 shadow-sm"
+          [value]="editableMessage()"
+          (input)="editableMessage.set($any($event.target).value)"
+          [placeholder]="'leads.detail.ai.contactMessagePlaceholder' | translate"
+        ></textarea>
+
+        <div class="flex items-center justify-end gap-2">
+          <shared-button
+            variant="secondary"
+            size="compact"
+            [disabled]="!editableMessage()"
+            (clicked)="copyMessage()"
+          >
+            @if (copied()) {
+              <span class="flex items-center gap-1 text-green-700">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
+                </svg>
+                {{ 'leads.detail.ai.copied' | translate }}
+              </span>
+            } @else {
+              <span class="flex items-center gap-1">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 5H6a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2v-1M8 5a2 2 0 002 2h2a2 2 0 002-2M8 5a2 2 0 012-2h2a2 2 0 012 2m0 0h2a2 2 0 012 2v3m2 4H10m0 0l3-3m-3 3l3 3" />
+                </svg>
+                {{ 'leads.detail.ai.copy' | translate }}
+              </span>
+            }
+          </shared-button>
+
+          @if (a.preferredContactChannel === 'WhatsApp') {
+            @if (consumerPhone()) {
+              <a
+                [href]="getWhatsAppUrl(consumerPhone(), editableMessage())"
+                target="_blank"
+                rel="noopener noreferrer"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-[#25D366] hover:bg-[#128C7E] text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+              >
+                {{ 'leads.detail.ai.openWhatsApp' | translate }}
+              </a>
+            } @else {
+              <span class="text-sm text-zinc-500">{{ 'leads.detail.ai.missingPhone' | translate }}</span>
+            }
+          } @else {
+            @if (consumerEmail()) {
+              <a
+                [href]="getEmailUrl(consumerEmail(), editableMessage())"
+                class="inline-flex items-center gap-2 px-4 py-2 bg-zinc-900 hover:bg-black text-white text-sm font-semibold rounded-lg transition-colors shadow-sm"
+              >
+                {{ 'leads.detail.ai.openEmail' | translate }}
+              </a>
+            } @else {
+              <span class="text-sm text-zinc-500">{{ 'leads.detail.ai.missingEmail' | translate }}</span>
+            }
           }
         </div>
       </div>
-    }
-
-    <!-- Upsell Opportunities -->
-    @if (a.upsellOpportunities.length > 0) {
-      <div>
-        <h4 class="text-sm font-semibold mb-2 flex items-center gap-2">
-          <svg class="h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M13 7h8m0 0v8m0-8l-8 8-4-4-6 6" />
-          </svg>
-          Upsell Opportunities
-        </h4>
-        <ul class="space-y-2">
-          @for (opportunity of a.upsellOpportunities; track opportunity) {
-            <li class="flex items-start gap-2 text-sm bg-purple-50 border border-purple-100 rounded-lg p-3">
-              <span class="text-purple-600 shrink-0 mt-0.5">★</span>
-              <span class="text-purple-800">{{ opportunity }}</span>
-            </li>
-          }
-        </ul>
-      </div>
-    }
+    </div>
 
     <!-- Timestamp -->
     <p class="text-xs text-zinc-400 text-right">
-      Last analyzed: {{ a.createdAt | date:'medium' }}
+      {{ 'leads.detail.ai.lastAnalyzed' | translate }}: {{ a.createdAt | date:'medium' }}
     </p>
   }
 </div>

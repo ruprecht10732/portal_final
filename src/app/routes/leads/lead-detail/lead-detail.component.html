@@ -574,6 +574,7 @@
                 [noNewInfo]="aiAnalysisNoNewInfo()"
                 [serviceStatus]="selectedService()?.status ?? null"
                 [consumerPhone]="lead()?.consumer?.phone ?? null"
+                [consumerEmail]="lead()?.consumer?.email ?? null"
                 (refresh)="refreshAIAnalysis()"
                 (forceRefresh)="forceRefreshAIAnalysis()"
               ></shared-ai-advisor-panel>

@@ -1,7 +1,8 @@
 /* eslint-disable @angular-eslint/component-selector */
-import { ChangeDetectionStrategy, Component, computed, input, output, signal, effect } from '@angular/core';
-import { NgClass, DatePipe } from '@angular/common';
-import type { LeadAIAnalysis, LeadStatus, UrgencyLevel } from '../../../core/services/leads.types';
+import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
+import { DatePipe, NgClass } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
+import type { LeadAIAnalysis, LeadStatus, PreferredContactChannel, UrgencyLevel } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../button/button.component';
 
 const TERMINAL_STATUSES = new Set<LeadStatus>(['Closed', 'Bad_Lead', 'Surveyed']);
@@ -11,7 +12,7 @@ const TERMINAL_STATUSES = new Set<LeadStatus>(['Closed', 'Bad_Lead', 'Surveyed']
   templateUrl: './ai-advisor-panel.component.html',
   styleUrl: './ai-advisor-panel.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [NgClass, DatePipe, ButtonComponent],
+  imports: [NgClass, DatePipe, ButtonComponent, TranslatePipe],
   host: {
     '[class]': "'block w-full'",
   },
@@ -25,6 +26,7 @@ export class AiAdvisorPanelComponent {
   noNewInfo = input<boolean>(false);
   serviceStatus = input<LeadStatus | null>(null);
   consumerPhone = input<string | null>(null);
+  consumerEmail = input<string | null>(null);
 
   refresh = output<void>();
   forceRefresh = output<void>();
@@ -35,8 +37,10 @@ export class AiAdvisorPanelComponent {
   constructor() {
     effect(() => {
       const analysis = this.analysis();
-      if (analysis?.suggestedWhatsAppMessage) {
-        this.editableMessage.set(analysis.suggestedWhatsAppMessage);
+      if (analysis?.suggestedContactMessage) {
+        this.editableMessage.set(analysis.suggestedContactMessage);
+      } else {
+        this.editableMessage.set('');
       }
     });
   }
@@ -58,11 +62,11 @@ export class AiAdvisorPanelComponent {
 
   getUrgencyColor(level: UrgencyLevel): string {
     switch (level) {
-      case 'high':
+      case 'High':
         return 'bg-red-100 text-red-800 border-red-200';
-      case 'medium':
+      case 'Medium':
         return 'bg-yellow-100 text-yellow-800 border-yellow-200';
-      case 'low':
+      case 'Low':
         return 'bg-green-100 text-green-800 border-green-200';
       default:
         return 'bg-zinc-100 text-zinc-800 border-zinc-200';
@@ -70,7 +74,7 @@ export class AiAdvisorPanelComponent {
   }
 
   getUrgencyLabel(level: UrgencyLevel): string {
-    return level.charAt(0).toUpperCase() + level.slice(1) + ' Priority';
+    return level;
   }
 
   copyMessage(): void {
@@ -90,5 +94,16 @@ export class AiAdvisorPanelComponent {
     const cleanPhone = phone.replaceAll(/\D/g, '');
     const encodedMessage = encodeURIComponent(message);
     return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
+  }
+
+  getEmailUrl(email: string | null | undefined, message: string | null | undefined): string {
+    if (!email || !message) return '';
+    const subject = encodeURIComponent('Lead opvolging');
+    const body = encodeURIComponent(message);
+    return `mailto:${email}?subject=${subject}&body=${body}`;
+  }
+
+  getChannelLabel(channel: PreferredContactChannel | null | undefined): string {
+    return channel === 'Email' ? 'Email' : 'WhatsApp';
   }
 }

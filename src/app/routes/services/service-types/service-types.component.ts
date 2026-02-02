@@ -84,6 +84,16 @@ export class ServiceTypesComponent implements OnInit {
         cellType: 'text',
       },
       {
+        id: 'intakeGuidelines',
+        header: this.translate.instant('services.list.columns.intakeGuidelines'),
+        field: 'intakeGuidelines',
+        sortable: false,
+        filterable: false,
+        editable: true,
+        width: '280px',
+        cellType: 'text',
+      },
+      {
         id: 'icon',
         header: this.translate.instant('services.list.columns.icon'),
         field: 'icon',
@@ -299,6 +309,11 @@ export class ServiceTypesComponent implements OnInit {
       request.description = description;
     }
 
+    const intakeGuidelines = this.normalizeNullable(row.intakeGuidelines, existing.intakeGuidelines ?? null);
+    if (intakeGuidelines !== undefined) {
+      request.intakeGuidelines = intakeGuidelines;
+    }
+
     const icon = this.normalizeNullable(row.icon, existing.icon ?? null);
     if (icon !== undefined) {
       request.icon = normalizeIconName(icon);
@@ -327,6 +342,7 @@ export class ServiceTypesComponent implements OnInit {
     return {
       name,
       description: this.normalizeOptional(row.description),
+      intakeGuidelines: this.normalizeOptional(row.intakeGuidelines),
       icon: icon ?? undefined,
       color: this.normalizeOptional(row.color),
       displayOrder,
@@ -401,7 +417,7 @@ export class ServiceTypesComponent implements OnInit {
         continue;
       }
 
-      if (['name', 'slug', 'description', 'icon', 'color'].includes(filter.columnId)) {
+      if (['name', 'slug', 'description', 'intakeGuidelines', 'icon', 'color'].includes(filter.columnId)) {
         if (filter.value.trim()) {
           searchFilters.push(filter.value.trim());
         }

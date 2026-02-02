@@ -220,23 +220,22 @@ export const STATUS_OPTIONS: { label: string; value: LeadStatus }[] = [
 ];
 
 // AI Analysis types
-export type UrgencyLevel = 'high' | 'medium' | 'low';
-
-export interface ObjectionResponse {
-  objection: string;
-  response: string;
-}
+export type UrgencyLevel = 'High' | 'Medium' | 'Low';
+export type LeadQuality = 'Junk' | 'Low' | 'Potential' | 'High' | 'Urgent';
+export type RecommendedAction = 'Reject' | 'RequestInfo' | 'ScheduleSurvey' | 'CallImmediately';
+export type PreferredContactChannel = 'WhatsApp' | 'Email';
 
 export interface LeadAIAnalysis {
   id: string;
   leadId: string;
-  leadServiceId?: string;
+  leadServiceId: string;
   urgencyLevel: UrgencyLevel;
-  urgencyReason: string;
-  talkingPoints: string[];
-  objectionHandling: ObjectionResponse[];
-  upsellOpportunities: string[];
-  suggestedWhatsAppMessage?: string;
+  urgencyReason?: string | null;
+  leadQuality: LeadQuality;
+  recommendedAction: RecommendedAction;
+  missingInformation: string[];
+  preferredContactChannel: PreferredContactChannel;
+  suggestedContactMessage: string;
   summary: string;
   createdAt: string;
 }

@@ -66,6 +66,13 @@
             [value]="description()"
             (valueChange)="description.set($event)"
           />
+
+          <shared-textarea
+            [label]="'services.create.intakeGuidelinesLabel' | translate"
+            [rows]="5"
+            [value]="intakeGuidelines()"
+            (valueChange)="intakeGuidelines.set($event)"
+          />
         </div>
       </section>
 
