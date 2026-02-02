@@ -1994,6 +1994,9 @@ func (s *Service) List(ctx context.Context, userID uuid.UUID, isAdmin bool, tena
 		LeadID:         leadID,
 		Page:           page,
 		PageSize:       pageSize,
+		Search:         req.Search,
+		SortBy:         req.SortBy,
+		SortOrder:      req.SortOrder,
 	}
 
 	// Non-admins can only see their own appointments
