@@ -25,11 +25,13 @@ import { FormsModule } from '@angular/forms';
         [attr.aria-required]="required()"
         [attr.aria-invalid]="!!error()"
         [attr.aria-describedby]="describedBy()"
-        class="w-full px-4 py-3 text-sm bg-white border transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed placeholder:text-zinc-400 min-h-25 resize-y"
+        class="w-full px-4 py-3 text-sm bg-white border rounded transition-all duration-200 focus:outline-none disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed placeholder:text-zinc-400 resize-y"
         [class.border-zinc-200]="!error()"
         [class.focus:border-black]="!error()"
         [class.border-red-500]="!!error()"
         [class.focus:border-red-600]="!!error()"
+        [class.min-h-12]="rows() <= 1"
+        [class.min-h-16]="rows() === 2"
       ></textarea>
       
       @if (error()) {

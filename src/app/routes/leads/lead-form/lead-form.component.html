@@ -68,7 +68,7 @@
       <p class="text-xs font-mono uppercase text-zinc-400">{{ 'leads.form.loading' | translate }}</p>
     </div>
   } @else {
-    <form (ngSubmit)="save()" class="flex-1 flex flex-col">
+    <form [formGroup]="form" (ngSubmit)="save()" class="flex-1 flex flex-col">
       
       <!-- Responsive Grid Layout:
            1. Mobile: Single column (stacked)
@@ -90,39 +90,42 @@
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <shared-input
                 [label]="'leads.form.firstName' | translate"
-                [value]="firstName()"
-                (valueChange)="firstName.set($event)"
+                [value]="form.controls.firstName.value ?? ''"
+                (valueChange)="form.controls.firstName.setValue($event)"
                 [required]="true"
+                [error]="requiredControlError(form.controls.firstName)"
               />
               <shared-input
                 [label]="'leads.form.lastName' | translate"
-                [value]="lastName()"
-                (valueChange)="lastName.set($event)"
+                [value]="form.controls.lastName.value ?? ''"
+                (valueChange)="form.controls.lastName.setValue($event)"
                 [required]="true"
+                [error]="requiredControlError(form.controls.lastName)"
               />
             </div>
             
             <shared-input
               [label]="'leads.form.phone' | translate"
               type="tel"
-              [value]="phone()"
-              (valueChange)="phone.set($event)"
+              [value]="form.controls.phone.value ?? ''"
+              (valueChange)="form.controls.phone.setValue($event)"
               (blur)="checkDuplicate()"
               [required]="true"
+              [error]="requiredControlError(form.controls.phone)"
             />
             
             <shared-input
               [label]="'leads.form.email' | translate"
               type="email"
-              [value]="email()"
-              (valueChange)="email.set($event)"
+              [value]="form.controls.email.value ?? ''"
+              (valueChange)="form.controls.email.setValue($event)"
             />
             
             <div class="sm:w-2/3">
               <shared-select
                 [label]="'leads.form.role' | translate"
                 [options]="consumerRoleOptions()"
-                [value]="consumerRole()"
+                [value]="form.controls.consumerRole.value"
                 (valueChange)="setConsumerRole($event)"
               />
             </div>
@@ -144,20 +147,22 @@
               <div class="sm:col-span-8">
                 <shared-autocomplete
                   [label]="'leads.form.street' | translate"
-                  [value]="street()"
+                  [value]="form.controls.street.value ?? ''"
                   (valueChange)="onStreetChange($event)"
                   [options]="addressOptions()"
                   [filterMode]="'manual'"
                   [placeholder]="'leads.form.startTyping' | translate"
                   [required]="true"
+                  [error]="requiredControlError(form.controls.street)"
                 />
               </div>
               <div class="sm:col-span-4">
                 <shared-input
                   [label]="'leads.form.houseNumber' | translate"
-                  [value]="houseNumber()"
+                  [value]="form.controls.houseNumber.value ?? ''"
                   (valueChange)="onHouseNumberChange($event)"
                   [required]="true"
+                  [error]="requiredControlError(form.controls.houseNumber)"
                 />
               </div>
             </div>
@@ -166,17 +171,19 @@
               <div class="sm:col-span-4">
                 <shared-input
                   [label]="'leads.form.zipCode' | translate"
-                  [value]="zipCode()"
+                  [value]="form.controls.zipCode.value ?? ''"
                   (valueChange)="onZipCodeChange($event)"
                   [required]="true"
+                  [error]="requiredControlError(form.controls.zipCode)"
                 />
               </div>
               <div class="sm:col-span-8">
                 <shared-input
                   [label]="'leads.form.city' | translate"
-                  [value]="city()"
+                  [value]="form.controls.city.value ?? ''"
                   (valueChange)="onCityChange($event)"
                   [required]="true"
+                  [error]="requiredControlError(form.controls.city)"
                 />
               </div>
             </div>
@@ -198,8 +205,10 @@
                 <shared-select
                   [label]="'leads.form.serviceType' | translate"
                   [options]="serviceTypeOptions()"
-                  [value]="serviceType()"
+                  [value]="form.controls.serviceType.value"
                   (valueChange)="setServiceType($event)"
+                  [required]="true"
+                  [error]="requiredControlError(form.controls.serviceType)"
                 />
                 <p class="text-xs text-zinc-400 mt-2 font-mono">
                   * {{ 'leads.form.additionalServicesNote' | translate }}
@@ -209,7 +218,7 @@
 
             <shared-input
               [label]="'leads.form.source' | translate"
-              [value]="source()"
+              [value]="form.controls.source.value ?? ''"
               (valueChange)="onSourceChange($event)"
               [disabled]="!isNew()"
               [max]="sourceMaxLength.toString()"
@@ -218,7 +227,7 @@
             <shared-textarea
               [label]="'leads.form.consumerNote' | translate"
               [rows]="4"
-              [value]="consumerNote()"
+              [value]="form.controls.consumerNote.value ?? ''"
               (valueChange)="onConsumerNoteChange($event)"
               [disabled]="!isNew()"
             />
@@ -228,6 +237,11 @@
 
       <!-- Footer: Stays at bottom of flow -->
       <div class="p-4 sm:p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
+        @if (submitAttempted() && form.invalid) {
+          <p class="text-xs font-semibold uppercase tracking-wide text-red-600 sm:mr-auto">
+            {{ 'leads.form.validation.required' | translate }}
+          </p>
+        }
         <shared-button 
           variant="secondary" 
           type="button" 
@@ -241,6 +255,8 @@
           variant="primary"
           type="submit"
           class="w-full sm:w-auto"
+          [disabled]="form.invalid || saving()"
+          [loading]="saving()"
         >
           {{ saving() ? ('leads.form.saving' | translate) : (isNew() ? ('leads.form.createLead' | translate) : ('leads.form.saveChanges' | translate)) }}
         </shared-button>

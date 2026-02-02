@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switchMap } from 'rxjs';
-import { toObservable, takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
+import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
@@ -23,7 +24,7 @@ import { DEBOUNCE_MS, MIN_LENGTH, MAX_LENGTH } from '../../../core/config';
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, TranslatePipe, LucideAngularModule],
+  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, TranslatePipe, LucideAngularModule, ReactiveFormsModule],
 })
 export class LeadFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -34,6 +35,7 @@ export class LeadFormComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
+  private readonly fb = inject(FormBuilder);
 
   protected readonly lead = signal<Lead | null>(null);
   protected readonly loading = signal(false);
@@ -41,22 +43,24 @@ export class LeadFormComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly isNew = signal(true);
   protected readonly duplicateWarning = signal<Lead | null>(null);
+  protected readonly submitAttempted = signal(false);
 
-  // Form fields
-  protected readonly firstName = signal('');
-  protected readonly lastName = signal('');
-  protected readonly phone = signal('');
-  protected readonly email = signal('');
-  protected readonly consumerRole = signal<ConsumerRole>('Owner');
-  protected readonly source = signal('');
-  protected readonly consumerNote = signal('');
-  protected readonly street = signal('');
-  protected readonly houseNumber = signal('');
-  protected readonly zipCode = signal('');
-  protected readonly city = signal('');
-  protected readonly serviceType = signal('');
-  protected readonly latitude = signal<number | null>(null);
-  protected readonly longitude = signal<number | null>(null);
+  protected readonly form = this.fb.group({
+    firstName: ['', Validators.required],
+    lastName: ['', Validators.required],
+    phone: ['', Validators.required],
+    email: [''],
+    consumerRole: this.fb.control<ConsumerRole>('Owner', { nonNullable: true }),
+    source: [''],
+    consumerNote: [''],
+    street: ['', Validators.required],
+    houseNumber: ['', Validators.required],
+    zipCode: ['', Validators.required],
+    city: ['', Validators.required],
+    serviceType: ['', Validators.required],
+    latitude: this.fb.control<number | null>(null),
+    longitude: this.fb.control<number | null>(null),
+  });
 
   protected readonly sourceMaxLength = MAX_LENGTH.source;
   protected readonly consumerNoteMaxLength = MAX_LENGTH.consumerNote;
@@ -73,26 +77,15 @@ export class LeadFormComponent implements OnInit {
   );
   protected readonly consumerRoleOptions = computed<SelectOption<ConsumerRole>[]>(() => CONSUMER_ROLE_OPTIONS);
 
+  protected readonly requiredError = computed(() => this.translate.instant('leads.form.validation.required'));
+
   protected setConsumerRole(value: ConsumerRole | null): void {
-    if (value) this.consumerRole.set(value);
+    if (value) this.form.controls.consumerRole.setValue(value);
   }
 
   protected setServiceType(value: string | null): void {
-    if (value) this.serviceType.set(value);
+    if (value) this.form.controls.serviceType.setValue(value);
   }
-
-  protected readonly isValid = computed(() => {
-    return (
-      this.firstName().trim() &&
-      this.lastName().trim() &&
-      this.phone().trim() &&
-      this.street().trim() &&
-      this.houseNumber().trim() &&
-      this.zipCode().trim() &&
-      this.city().trim() &&
-      this.serviceType().trim()
-    );
-  });
 
   constructor() {
     this.setupAddressSearch();
@@ -112,8 +105,8 @@ export class LeadFormComponent implements OnInit {
       next: (response) => {
         const items = response.items ?? [];
         this.serviceTypes.set(items);
-        if (!this.serviceType() && items.length > 0) {
-          this.serviceType.set(items[0].name);
+        if (!this.form.controls.serviceType.value && items.length > 0) {
+          this.form.controls.serviceType.setValue(items[0].name);
         }
       },
       error: (err) => {
@@ -142,27 +135,28 @@ export class LeadFormComponent implements OnInit {
   }
 
   private populateForm(lead: Lead): void {
-    this.firstName.set(lead.consumer.firstName);
-    this.lastName.set(lead.consumer.lastName);
-    this.phone.set(lead.consumer.phone);
-    this.email.set(lead.consumer.email ?? '');
-    this.consumerRole.set(lead.consumer.role);
-    this.source.set(this.clampValue(lead.source ?? '', this.sourceMaxLength));
-    // Consumer note is now per-service, read from current service
-    this.consumerNote.set(this.clampValue(lead.currentService?.consumerNote ?? '', this.consumerNoteMaxLength));
-    this.street.set(lead.address.street);
-    this.houseNumber.set(lead.address.houseNumber);
-    this.zipCode.set(lead.address.zipCode);
-    this.city.set(lead.address.city);
-    this.latitude.set(lead.address.latitude ?? null);
-    this.longitude.set(lead.address.longitude ?? null);
-    const fallbackServiceType = this.serviceType() || this.serviceTypes()[0]?.name || '';
-    this.serviceType.set(lead.currentService?.serviceType ?? fallbackServiceType);
+    const fallbackServiceType = this.form.controls.serviceType.value || this.serviceTypes()[0]?.name || '';
+    this.form.patchValue({
+      firstName: lead.consumer.firstName,
+      lastName: lead.consumer.lastName,
+      phone: lead.consumer.phone,
+      email: lead.consumer.email ?? '',
+      consumerRole: lead.consumer.role,
+      source: this.clampValue(lead.source ?? '', this.sourceMaxLength),
+      consumerNote: this.clampValue(lead.currentService?.consumerNote ?? '', this.consumerNoteMaxLength),
+      street: lead.address.street,
+      houseNumber: lead.address.houseNumber,
+      zipCode: lead.address.zipCode,
+      city: lead.address.city,
+      latitude: lead.address.latitude ?? null,
+      longitude: lead.address.longitude ?? null,
+      serviceType: lead.currentService?.serviceType ?? fallbackServiceType,
+    });
   }
 
   private setupAddressSearch(): void {
-    toObservable(this.street).pipe(
-      map(value => value.trim()),
+    this.form.controls.street.valueChanges.pipe(
+      map(value => (value ?? '').trim()),
       filter(value => value.length >= MIN_LENGTH.address),
       debounceTime(DEBOUNCE_MS.search),
       distinctUntilChanged(),
@@ -187,7 +181,7 @@ export class LeadFormComponent implements OnInit {
   }
 
   protected onStreetChange(value: string): void {
-    this.street.set(value);
+    this.form.controls.street.setValue(value);
 
     const match = this.addressSuggestions().find(suggestion => suggestion.label === value);
     if (match) {
@@ -199,32 +193,36 @@ export class LeadFormComponent implements OnInit {
   }
 
   protected onHouseNumberChange(value: string): void {
-    this.houseNumber.set(value);
+    this.form.controls.houseNumber.setValue(value);
     this.clearCoordinates();
   }
 
   protected onZipCodeChange(value: string): void {
-    this.zipCode.set(value);
+    this.form.controls.zipCode.setValue(value);
     this.clearCoordinates();
   }
 
   protected onCityChange(value: string): void {
-    this.city.set(value);
+    this.form.controls.city.setValue(value);
     this.clearCoordinates();
   }
 
   private applyAddressSuggestion(suggestion: AddressSuggestion): void {
-    this.street.set(suggestion.street ?? '');
-    this.houseNumber.set(suggestion.houseNumber ?? '');
-    this.zipCode.set(suggestion.zipCode ?? '');
-    this.city.set(suggestion.city ?? '');
-    this.latitude.set(this.parseCoordinate(suggestion.lat));
-    this.longitude.set(this.parseCoordinate(suggestion.lon));
+    this.form.patchValue({
+      street: suggestion.street ?? '',
+      houseNumber: suggestion.houseNumber ?? '',
+      zipCode: suggestion.zipCode ?? '',
+      city: suggestion.city ?? '',
+      latitude: this.parseCoordinate(suggestion.lat),
+      longitude: this.parseCoordinate(suggestion.lon),
+    });
   }
 
   private clearCoordinates(): void {
-    this.latitude.set(null);
-    this.longitude.set(null);
+    this.form.patchValue({
+      latitude: null,
+      longitude: null,
+    });
   }
 
   private parseCoordinate(value?: string): number | null {
@@ -234,11 +232,11 @@ export class LeadFormComponent implements OnInit {
   }
 
   protected onSourceChange(value: string): void {
-    this.source.set(this.clampValue(value, this.sourceMaxLength));
+    this.form.controls.source.setValue(this.clampValue(value, this.sourceMaxLength));
   }
 
   protected onConsumerNoteChange(value: string): void {
-    this.consumerNote.set(this.clampValue(value, this.consumerNoteMaxLength));
+    this.form.controls.consumerNote.setValue(this.clampValue(value, this.consumerNoteMaxLength));
   }
 
   private clampValue(value: string, maxLength: number): string {
@@ -247,7 +245,7 @@ export class LeadFormComponent implements OnInit {
   }
 
   protected checkDuplicate(): void {
-    const phoneValue = this.phone().trim();
+    const phoneValue = (this.form.controls.phone.value ?? '').trim();
 
     this.leadsService.checkDuplicate(phoneValue).subscribe({
       next: (result) => {
@@ -265,27 +263,31 @@ export class LeadFormComponent implements OnInit {
   }
 
   protected save(): void {
-    if (!this.isValid() || this.saving()) return;
+    this.submitAttempted.set(true);
+    this.form.markAllAsTouched();
+    if (this.form.invalid || this.saving()) return;
 
     this.saving.set(true);
     this.error.set(null);
 
+    const values = this.form.getRawValue();
+
     if (this.isNew()) {
-      const sourceValue = this.source().trim();
-      const consumerNoteValue = this.consumerNote().trim();
+      const sourceValue = (values.source ?? '').trim();
+      const consumerNoteValue = (values.consumerNote ?? '').trim();
       const request: CreateLeadRequest = {
-        firstName: this.firstName().trim(),
-        lastName: this.lastName().trim(),
-        phone: this.phone().trim(),
-        email: this.email().trim() || undefined,
-        consumerRole: this.consumerRole(),
-        street: this.street().trim(),
-        houseNumber: this.houseNumber().trim(),
-        zipCode: this.zipCode().trim(),
-        city: this.city().trim(),
-        latitude: this.latitude() ?? undefined,
-        longitude: this.longitude() ?? undefined,
-        serviceType: this.serviceType(),
+        firstName: (values.firstName ?? '').trim(),
+        lastName: (values.lastName ?? '').trim(),
+        phone: (values.phone ?? '').trim(),
+        email: (values.email ?? '').trim() || undefined,
+        consumerRole: values.consumerRole,
+        street: (values.street ?? '').trim(),
+        houseNumber: (values.houseNumber ?? '').trim(),
+        zipCode: (values.zipCode ?? '').trim(),
+        city: (values.city ?? '').trim(),
+        latitude: values.latitude ?? undefined,
+        longitude: values.longitude ?? undefined,
+        serviceType: (values.serviceType ?? '').trim(),
         source: sourceValue || undefined,
         consumerNote: consumerNoteValue || undefined,
       };
@@ -307,17 +309,17 @@ export class LeadFormComponent implements OnInit {
 
       // Note: serviceType is no longer updated here - services are managed per-service in detail view
       const request: UpdateLeadRequest = {
-        firstName: this.firstName().trim(),
-        lastName: this.lastName().trim(),
-        phone: this.phone().trim(),
-        email: this.email().trim() || undefined,
-        consumerRole: this.consumerRole(),
-        street: this.street().trim(),
-        houseNumber: this.houseNumber().trim(),
-        zipCode: this.zipCode().trim(),
-        city: this.city().trim(),
-        latitude: this.latitude() ?? undefined,
-        longitude: this.longitude() ?? undefined,
+        firstName: (values.firstName ?? '').trim(),
+        lastName: (values.lastName ?? '').trim(),
+        phone: (values.phone ?? '').trim(),
+        email: (values.email ?? '').trim() || undefined,
+        consumerRole: values.consumerRole,
+        street: (values.street ?? '').trim(),
+        houseNumber: (values.houseNumber ?? '').trim(),
+        zipCode: (values.zipCode ?? '').trim(),
+        city: (values.city ?? '').trim(),
+        latitude: values.latitude ?? undefined,
+        longitude: values.longitude ?? undefined,
       };
 
       this.leadsService.update(lead.id, request).subscribe({
@@ -356,5 +358,11 @@ export class LeadFormComponent implements OnInit {
         this.router.navigate(['/app/leads']);
       }
     }
+  }
+
+  protected requiredControlError(control: AbstractControl | null): string {
+    if (!this.submitAttempted()) return '';
+    if (!control || !control.hasError('required')) return '';
+    return this.requiredError();
   }
 }

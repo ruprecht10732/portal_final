@@ -44,6 +44,9 @@
         "searchAddresses": "Adres zoeken mislukt",
         "createLead": "Lead aanmaken mislukt",
         "updateLead": "Lead bijwerken mislukt"
+      },
+      "validation": {
+        "required": "Vul alle verplichte velden in"
       }
     },
     "detail": {
@@ -64,6 +67,7 @@
       "cancel": "Annuleren",
       "unassigned": "Niet toegewezen",
       "customerNotHome": "Klant niet thuis",
+      "createQuote": "Offerte maken",
       "tabs": {
         "visit": "Het bezoek",
         "activity": "Activiteit / notities",

@@ -23,7 +23,7 @@
       [attr.aria-label]="ariaLabel() || label() || placeholder()"
       (click)="toggle()"
       (keydown)="onKeydown($event)"
-      class="w-full px-4 py-3 text-sm bg-white border cursor-pointer transition-all duration-200 focus:outline-none focus:border-black disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
+      class="w-full px-4 py-3 text-sm bg-white border rounded cursor-pointer transition-all duration-200 focus:outline-none focus:border-black disabled:opacity-50 disabled:bg-zinc-50 disabled:cursor-not-allowed text-left flex items-center justify-between"
       [class.border-zinc-200]="!error() && !isOpen()"
       [class.border-black]="isOpen() && !error()"
       [class.border-red-500]="!!error()"

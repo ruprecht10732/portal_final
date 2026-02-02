@@ -570,6 +570,12 @@ export class LeadDetailComponent implements OnInit {
     this.router.navigate(['/app/leads']);
   }
 
+  protected createQuote(): void {
+    const lead = this.lead();
+    if (!lead) return;
+    this.router.navigate(['/app/offertes/new'], { queryParams: { leadId: lead.id } });
+  }
+
   protected addNote(): void {
     const lead = this.lead();
     const text = this.noteText().trim();

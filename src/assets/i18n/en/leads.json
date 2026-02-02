@@ -44,6 +44,9 @@
         "searchAddresses": "Failed to search addresses",
         "createLead": "Failed to create lead",
         "updateLead": "Failed to update lead"
+      },
+      "validation": {
+        "required": "Please fill all required fields"
       }
     },
     "detail": {
@@ -64,6 +67,7 @@
       "cancel": "Cancel",
       "unassigned": "Unassigned",
       "customerNotHome": "Customer not home",
+      "createQuote": "Create Quote",
       "tabs": {
         "visit": "The Visit",
         "activity": "Activity / Notes",

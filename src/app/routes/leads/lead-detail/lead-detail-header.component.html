@@ -32,6 +32,15 @@
 
     @if (lead(); as l) {
       <div class="flex flex-wrap items-center gap-2">
+        <shared-button
+          variant="secondary"
+          size="compact"
+          [uppercase]="false"
+          [fullWidth]="false"
+          (clicked)="createQuote.emit()"
+        >
+          {{ 'leads.detail.createQuote' | translate }}
+        </shared-button>
         <div class="relative">
           <button
             type="button"

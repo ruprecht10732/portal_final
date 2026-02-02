@@ -1,0 +1,274 @@
+<div class="flex flex-col h-full">
+  <!-- Header (hide on print) -->
+  <header class="flex items-center justify-between gap-4 p-4 sm:px-6 border-b border-zinc-200 print:hidden">
+    <div class="flex items-center gap-4">
+      <shared-button
+        type="button"
+        variant="ghost"
+        size="compact"
+        [iconOnly]="true"
+        [fullWidth]="false"
+        [uppercase]="false"
+        (clicked)="goBack()"
+        [attr.aria-label]="'offertes.goBack' | translate"
+      >
+        <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+      </shared-button>
+      
+      <div class="flex flex-col">
+        <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
+          {{ quote()?.quoteNumber ?? '' }}
+        </h1>
+        @if (quote(); as q) {
+          <span 
+            class="text-xs font-semibold uppercase px-2 py-0.5 rounded mt-1 w-fit"
+            [class]="getStatusColor(q.status)"
+          >
+            {{ getStatusLabel(q.status) }}
+          </span>
+        }
+      </div>
+    </div>
+
+    @if (quote(); as q) {
+      <div class="flex items-center gap-2">
+        <!-- Status actions -->
+        @switch (q.status) {
+          @case ('draft') {
+            <shared-button
+              variant="primary"
+              size="compact"
+              [fullWidth]="false"
+              [loading]="updating()"
+              (clicked)="updateStatus('sent')"
+            >
+              <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+              {{ 'offertes.markSent' | translate }}
+            </shared-button>
+          }
+          @case ('sent') {
+            <shared-button
+              variant="success"
+              size="compact"
+              [fullWidth]="false"
+              [loading]="updating()"
+              (clicked)="updateStatus('accepted')"
+            >
+              <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
+              {{ 'offertes.markAccepted' | translate }}
+            </shared-button>
+            <shared-button
+              variant="ghost"
+              size="compact"
+              [fullWidth]="false"
+              [loading]="updating()"
+              (clicked)="updateStatus('rejected')"
+            >
+              <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+              {{ 'offertes.markRejected' | translate }}
+            </shared-button>
+          }
+        }
+        
+        <!-- Edit button -->
+        @if (q.status === 'draft') {
+          <shared-button
+            variant="secondary"
+            size="compact"
+            [fullWidth]="false"
+            (clicked)="editQuote()"
+          >
+            <lucide-icon name="pencil" class="h-4 w-4"></lucide-icon>
+            {{ 'offertes.edit' | translate }}
+          </shared-button>
+        }
+
+        <!-- Print button -->
+        <shared-button
+          variant="ghost"
+          size="compact"
+          [iconOnly]="true"
+          [fullWidth]="false"
+          (clicked)="print()"
+          [attr.aria-label]="'offertes.print' | translate"
+        >
+          <lucide-icon name="printer" class="h-4 w-4"></lucide-icon>
+        </shared-button>
+
+        <!-- Delete button -->
+        <shared-button
+          variant="ghost"
+          size="compact"
+          [iconOnly]="true"
+          [fullWidth]="false"
+          (clicked)="confirmDelete()"
+          [attr.aria-label]="'offertes.delete' | translate"
+        >
+          <lucide-icon name="trash-2" class="h-4 w-4 text-red-500"></lucide-icon>
+        </shared-button>
+      </div>
+    }
+  </header>
+
+  <!-- Error state -->
+  @if (error()) {
+    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
+      <lucide-icon name="circle-alert" class="h-12 w-12 text-red-400"></lucide-icon>
+      <p class="text-sm text-zinc-600">{{ error() }}</p>
+      <shared-button variant="secondary" [fullWidth]="false" (clicked)="goBack()">
+        {{ 'offertes.goBack' | translate }}
+      </shared-button>
+    </div>
+  } @else if (loading()) {
+    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
+      <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
+      <p class="text-xs font-mono uppercase text-zinc-400">{{ 'offertes.loading' | translate }}</p>
+    </div>
+  } @else if (quote(); as q) {
+    <!-- Quote content (print-friendly) -->
+    <div class="flex-1 overflow-y-auto">
+      <div class="max-w-3xl mx-auto p-6 sm:p-8 print:p-0 print:max-w-none">
+        <!-- Print header -->
+        <div class="hidden print:block mb-8">
+          <div class="flex justify-between items-start">
+            <div>
+              <h1 class="text-2xl font-bold">{{ 'offertes.quoteTitle' | translate }}</h1>
+              <p class="text-zinc-500">{{ q.quoteNumber }}</p>
+            </div>
+            <div class="text-right text-sm text-zinc-600">
+              <p>{{ formatDate(q.createdAt) }}</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Customer info -->
+        @if (lead(); as l) {
+          <div class="bg-zinc-50 rounded-lg p-4 sm:p-6 mb-6 print:bg-transparent print:border print:border-zinc-200">
+            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">
+              {{ 'offertes.customer' | translate }}
+            </h2>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div>
+                <p class="font-semibold text-zinc-900">
+                  {{ l.consumer.firstName }} {{ l.consumer.lastName }}
+                </p>
+                <p class="text-sm text-zinc-600">
+                  {{ l.address.street }} {{ l.address.houseNumber }}
+                </p>
+                <p class="text-sm text-zinc-600">
+                  {{ l.address.zipCode }} {{ l.address.city }}
+                </p>
+              </div>
+              <div class="text-sm text-zinc-600 sm:text-right">
+                @if (l.consumer.phone) {
+                  <p>{{ l.consumer.phone }}</p>
+                }
+                @if (l.consumer.email) {
+                  <p>{{ l.consumer.email }}</p>
+                }
+              </div>
+            </div>
+          </div>
+        }
+
+        <!-- Line items table -->
+        <div class="mb-6">
+          <table class="w-full text-sm">
+            <thead>
+              <tr class="border-b-2 border-zinc-200">
+                <th class="text-left py-3 text-xs font-bold uppercase tracking-wide text-zinc-500 w-1/2">
+                  {{ 'offertes.description' | translate }}
+                </th>
+                <th class="text-right py-3 text-xs font-bold uppercase tracking-wide text-zinc-500 w-20">
+                  {{ 'offertes.qty' | translate }}
+                </th>
+                <th class="text-right py-3 text-xs font-bold uppercase tracking-wide text-zinc-500 w-28">
+                  {{ 'offertes.price' | translate }}
+                </th>
+                <th class="text-right py-3 text-xs font-bold uppercase tracking-wide text-zinc-500 w-24">
+                  {{ 'offertes.tax' | translate }}
+                </th>
+                <th class="text-right py-3 text-xs font-bold uppercase tracking-wide text-zinc-500 w-28">
+                  {{ 'offertes.total' | translate }}
+                </th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of q.lineItems; track item.id) {
+                <tr class="border-b border-zinc-100">
+                  <td class="py-3 text-zinc-900">
+                    <div class="flex items-center gap-2">
+                      <span>{{ item.description }}</span>
+                      @if (item.optional) {
+                        <span class="text-[10px] uppercase font-semibold tracking-widest text-zinc-400">
+                          {{ 'offertes.optional' | translate }}
+                        </span>
+                      }
+                    </div>
+                  </td>
+                  <td class="py-3 text-right text-zinc-600">{{ item.quantity }}</td>
+                  <td class="py-3 text-right text-zinc-600">{{ formatCurrency(item.unitPrice) }}</td>
+                  <td class="py-3 text-right text-zinc-600">{{ item.taxRate }}%</td>
+                  <td class="py-3 text-right font-medium text-zinc-900">{{ formatCurrency(item.total) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+
+        <!-- Totals -->
+        <div class="flex justify-end mb-6">
+          <div class="w-full sm:w-72 space-y-2">
+            <div class="flex justify-between text-sm">
+              <span class="text-zinc-500">{{ 'offertes.subtotal' | translate }}</span>
+              <span class="font-medium">{{ formatCurrency(q.subtotal) }}</span>
+            </div>
+            @if (q.discountAmount > 0) {
+              <div class="flex justify-between text-sm text-green-600">
+                <span>{{ 'offertes.discount' | translate }}</span>
+                <span>-{{ formatCurrency(q.discountAmount) }}</span>
+              </div>
+            }
+            <div class="flex justify-between text-sm">
+              <span class="text-zinc-500">{{ 'offertes.tax' | translate }}</span>
+              <span>{{ formatCurrency(q.taxAmount) }}</span>
+            </div>
+            <div class="flex justify-between pt-2 border-t-2 border-zinc-200">
+              <span class="text-lg font-bold">{{ 'offertes.totalAmount' | translate }}</span>
+              <span class="text-xl font-bold">{{ formatCurrency(q.total) }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Valid until -->
+        @if (q.validUntil) {
+          <div class="text-sm text-zinc-500 mb-4">
+            {{ 'offertes.validUntilLabel' | translate }}: {{ formatDate(q.validUntil) }}
+          </div>
+        }
+
+        <!-- Notes -->
+        @if (q.notes) {
+          <div class="bg-zinc-50 rounded-lg p-4 print:bg-transparent print:border print:border-zinc-200">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
+              {{ 'offertes.notes' | translate }}
+            </h3>
+            <p class="text-sm text-zinc-700 whitespace-pre-wrap">{{ q.notes }}</p>
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+<!-- Delete confirmation dialog -->
+<shared-confirm-dialog
+  [isOpen]="showDeleteConfirm()"
+  [title]="'offertes.deleteConfirmTitle' | translate"
+  [message]="'offertes.deleteConfirmMessage' | translate"
+  [confirmText]="'offertes.delete' | translate"
+  [cancelText]="'offertes.cancel' | translate"
+  confirmVariant="danger"
+  (confirm)="deleteQuote()"
+  (cancel)="cancelDelete()"
+/>

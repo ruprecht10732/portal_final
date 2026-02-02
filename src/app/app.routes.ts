@@ -163,6 +163,14 @@ export const routes: Routes = [
 						path: 'new',
 						loadComponent: () => import('./routes/offertes/offertes-create/offertes-create.component').then(m => m.OffertesCreateComponent),
 					},
+					{
+						path: ':id',
+						loadComponent: () => import('./routes/offertes/offertes-detail/offertes-detail.component').then(m => m.OffertesDetailComponent),
+					},
+					{
+						path: ':id/edit',
+						loadComponent: () => import('./routes/offertes/offertes-create/offertes-create.component').then(m => m.OffertesCreateComponent),
+					},
 				],
 			},
 			{
