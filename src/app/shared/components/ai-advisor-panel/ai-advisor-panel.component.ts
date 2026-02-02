@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal, effect } from '@angular/core';
 import { NgClass, DatePipe } from '@angular/common';
 import type { LeadAIAnalysis, LeadStatus, UrgencyLevel } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../button/button.component';
@@ -27,6 +27,18 @@ export class AiAdvisorPanelComponent {
 
   refresh = output<void>();
   forceRefresh = output<void>();
+
+  editableMessage = signal<string>('');
+  copied = signal<boolean>(false);
+
+  constructor() {
+    effect(() => {
+      const analysis = this.analysis();
+      if (analysis?.suggestedWhatsAppMessage) {
+        this.editableMessage.set(analysis.suggestedWhatsAppMessage);
+      }
+    });
+  }
 
   canRefresh = computed(() => {
     const status = this.serviceStatus();
@@ -58,6 +70,15 @@ export class AiAdvisorPanelComponent {
 
   getUrgencyLabel(level: UrgencyLevel): string {
     return level.charAt(0).toUpperCase() + level.slice(1) + ' Priority';
+  }
+
+  copyMessage(): void {
+    const text = this.editableMessage();
+    if (!text) return;
+    navigator.clipboard.writeText(text).then(() => {
+      this.copied.set(true);
+      setTimeout(() => this.copied.set(false), 2000);
+    });
   }
 
   protected readonly encodeURIComponent = encodeURIComponent;
