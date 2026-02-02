@@ -67,6 +67,8 @@
     },
     "form": {
       "title": "New Appointment",
+      "basicInfo": "Basic Information",
+      "scheduling": "Date & Time",
       "type": "Type",
       "titleLabel": "Title",
       "titlePlaceholder": "Appointment title",

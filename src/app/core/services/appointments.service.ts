@@ -124,6 +124,9 @@ export class AppointmentsService {
       status: params.status,
       startFrom: params.startFrom,
       startTo: params.startTo,
+      search: params.search,
+      sortBy: params.sortBy,
+      sortOrder: params.sortOrder,
       page: params.page,
       pageSize: params.pageSize,
     };

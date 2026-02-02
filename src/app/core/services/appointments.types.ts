@@ -101,6 +101,9 @@ export interface ListAppointmentsParams {
   status?: AppointmentStatus;
   startFrom?: string;
   startTo?: string;
+  search?: string;
+  sortBy?: string;
+  sortOrder?: 'asc' | 'desc';
   page?: number;
   pageSize?: number;
 }

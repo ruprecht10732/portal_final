@@ -1,23 +1,26 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import type { CreateAppointmentRequest, AppointmentType } from '../../../core/services/appointments.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
+import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
+import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
+import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 
 @Component({
   selector: 'app-appointment-form',
   templateUrl: './appointment-form.component.html',
   styleUrl: './appointment-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, ButtonComponent, TranslatePipe],
+  imports: [ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, LucideAngularModule, TranslatePipe],
 })
 export class AppointmentFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly fb = inject(FormBuilder);
   private readonly appointmentsService = inject(AppointmentsService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
@@ -25,25 +28,23 @@ export class AppointmentFormComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
 
-  protected appointmentForm: FormGroup;
-
-  protected readonly typeOptions: { value: AppointmentType; label: string }[] = [
+  protected readonly typeOptions: SelectOption<AppointmentType>[] = [
     { value: 'standalone', label: 'Standalone' },
     { value: 'blocked', label: 'Blocked Time' },
   ];
 
-  constructor() {
-    this.appointmentForm = this.fb.group({
-      type: ['standalone', Validators.required],
-      title: ['', Validators.required],
-      description: [''],
-      location: [''],
-      startTime: ['', Validators.required],
-      endTime: ['', Validators.required],
-      allDay: [false],
-      sendConfirmationEmail: [false],
-    });
-  }
+  protected readonly type = signal<AppointmentType>('standalone');
+  protected readonly title = signal('');
+  protected readonly description = signal('');
+  protected readonly location = signal('');
+  protected readonly startTime = signal('');
+  protected readonly endTime = signal('');
+  protected readonly allDay = signal(false);
+  protected readonly sendConfirmationEmail = signal(false);
+
+  protected readonly canCreate = computed(() => {
+    return this.title().trim() !== '' && this.startTime() !== '' && this.endTime() !== '';
+  });
 
   ngOnInit(): void {
     // Pre-fill from query params if provided (from calendar slot click)
@@ -58,10 +59,8 @@ export class AppointmentFormComponent implements OnInit {
       const endDate = new Date(startDate);
       endDate.setMinutes(endDate.getMinutes() + 60); // Default 1 hour duration
 
-      this.appointmentForm.patchValue({
-        startTime: this.formatDateTimeLocal(startDate),
-        endTime: this.formatDateTimeLocal(endDate),
-      });
+      this.startTime.set(this.formatDateTimeLocal(startDate));
+      this.endTime.set(this.formatDateTimeLocal(endDate));
     } else {
       // Default to current date/time
       const now = new Date();
@@ -69,10 +68,8 @@ export class AppointmentFormComponent implements OnInit {
       const end = new Date(now);
       end.setHours(end.getHours() + 1);
 
-      this.appointmentForm.patchValue({
-        startTime: this.formatDateTimeLocal(now),
-        endTime: this.formatDateTimeLocal(end),
-      });
+      this.startTime.set(this.formatDateTimeLocal(now));
+      this.endTime.set(this.formatDateTimeLocal(end));
     }
   }
 
@@ -86,21 +83,20 @@ export class AppointmentFormComponent implements OnInit {
   }
 
   protected createAppointment(): void {
-    if (this.appointmentForm.invalid) return;
+    if (!this.canCreate()) return;
 
     this.saving.set(true);
     this.error.set(null);
 
-    const formValue = this.appointmentForm.value;
     const data: CreateAppointmentRequest = {
-      type: formValue.type,
-      title: formValue.title,
-      description: formValue.description || undefined,
-      location: formValue.location || undefined,
-      startTime: new Date(formValue.startTime).toISOString(),
-      endTime: new Date(formValue.endTime).toISOString(),
-      allDay: formValue.allDay,
-      sendConfirmationEmail: formValue.sendConfirmationEmail,
+      type: this.type(),
+      title: this.title(),
+      description: this.description() || undefined,
+      location: this.location() || undefined,
+      startTime: new Date(this.startTime()).toISOString(),
+      endTime: new Date(this.endTime()).toISOString(),
+      allDay: this.allDay(),
+      sendConfirmationEmail: this.sendConfirmationEmail(),
     };
 
     this.appointmentsService.create(data).subscribe({

@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import { forkJoin, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -17,19 +17,23 @@ import type {
 } from '../../../core/services/appointments.types';
 import { ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/appointments.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
+import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
+import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
+import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
 
 @Component({
   selector: 'app-appointment-detail',
   templateUrl: './appointment-detail.component.html',
   styleUrl: './appointment-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, ButtonComponent, ConfirmDialogComponent, TranslatePipe, DatePipe],
+  imports: [ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, LucideAngularModule, TranslatePipe, DatePipe],
 })
 export class AppointmentDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
-  private readonly fb = inject(FormBuilder);
   private readonly appointmentsService = inject(AppointmentsService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
@@ -44,34 +48,33 @@ export class AppointmentDetailComponent implements OnInit {
   protected readonly showDeleteDialog = signal(false);
   protected readonly deleteInProgress = signal(false);
 
-  protected appointmentForm: FormGroup;
-  protected visitReportForm: FormGroup;
+  // Edit form signals
+  protected readonly editTitle = signal('');
+  protected readonly editDescription = signal('');
+  protected readonly editLocation = signal('');
+  protected readonly editStartTime = signal('');
+  protected readonly editEndTime = signal('');
+  protected readonly editAllDay = signal(false);
 
-  protected readonly statusOptions: { value: AppointmentStatus; label: string }[] = [
+  // Visit report form signals
+  protected readonly reportMeasurements = signal('');
+  protected readonly reportAccessDifficulty = signal<AccessDifficulty | ''>('');
+  protected readonly reportNotes = signal('');
+
+  protected readonly statusOptions: SelectOption<AppointmentStatus>[] = [
     { value: 'scheduled', label: 'Scheduled' },
     { value: 'completed', label: 'Completed' },
     { value: 'cancelled', label: 'Cancelled' },
     { value: 'no_show', label: 'No Show' },
   ];
 
-  protected readonly accessDifficultyOptions = ACCESS_DIFFICULTY_OPTIONS;
+  protected readonly accessDifficultySelectOptions = computed<SelectOption<AccessDifficulty>[]>(() => 
+    ACCESS_DIFFICULTY_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }))
+  );
 
-  constructor() {
-    this.appointmentForm = this.fb.group({
-      title: ['', Validators.required],
-      description: [''],
-      location: [''],
-      startTime: ['', Validators.required],
-      endTime: ['', Validators.required],
-      allDay: [false],
-    });
-
-    this.visitReportForm = this.fb.group({
-      measurements: [''],
-      accessDifficulty: [''],
-      notes: [''],
-    });
-  }
+  protected readonly canSaveEdit = computed(() => {
+    return this.editTitle().trim() !== '' && this.editStartTime() !== '' && this.editEndTime() !== '';
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -93,9 +96,9 @@ export class AppointmentDetailComponent implements OnInit {
       next: (data) => {
         this.appointment.set(data.appointment);
         this.visitReport.set(data.visitReport);
-        this.populateForm(data.appointment);
+        this.populateEditForm(data.appointment);
         if (data.visitReport) {
-          this.populateVisitReportForm(data.visitReport);
+          this.populateReportForm(data.visitReport);
         }
         this.loading.set(false);
       },
@@ -108,26 +111,22 @@ export class AppointmentDetailComponent implements OnInit {
     });
   }
 
-  private populateForm(apt: AppointmentResponse): void {
+  private populateEditForm(apt: AppointmentResponse): void {
     const startDate = new Date(apt.startTime);
     const endDate = new Date(apt.endTime);
     
-    this.appointmentForm.patchValue({
-      title: apt.title,
-      description: apt.description ?? '',
-      location: apt.location ?? '',
-      startTime: this.formatDateTimeLocal(startDate),
-      endTime: this.formatDateTimeLocal(endDate),
-      allDay: apt.allDay,
-    });
+    this.editTitle.set(apt.title);
+    this.editDescription.set(apt.description ?? '');
+    this.editLocation.set(apt.location ?? '');
+    this.editStartTime.set(this.formatDateTimeLocal(startDate));
+    this.editEndTime.set(this.formatDateTimeLocal(endDate));
+    this.editAllDay.set(apt.allDay);
   }
 
-  private populateVisitReportForm(report: AppointmentVisitReportResponse): void {
-    this.visitReportForm.patchValue({
-      measurements: report.measurements ?? '',
-      accessDifficulty: report.accessDifficulty ?? '',
-      notes: report.notes ?? '',
-    });
+  private populateReportForm(report: AppointmentVisitReportResponse): void {
+    this.reportMeasurements.set(report.measurements ?? '');
+    this.reportAccessDifficulty.set(report.accessDifficulty ?? '');
+    this.reportNotes.set(report.notes ?? '');
   }
 
   private formatDateTimeLocal(date: Date): string {
@@ -144,7 +143,7 @@ export class AppointmentDetailComponent implements OnInit {
     if (!this.isEditing()) {
       const apt = this.appointment();
       if (apt) {
-        this.populateForm(apt);
+        this.populateEditForm(apt);
       }
     }
   }
@@ -154,19 +153,19 @@ export class AppointmentDetailComponent implements OnInit {
   }
 
   protected saveAppointment(): void {
-    if (this.appointmentForm.invalid) return;
+    if (!this.canSaveEdit()) return;
     const apt = this.appointment();
     if (!apt) return;
 
     this.saving.set(true);
 
     const data: UpdateAppointmentRequest = {
-      title: this.appointmentForm.value.title,
-      description: this.appointmentForm.value.description || undefined,
-      location: this.appointmentForm.value.location || undefined,
-      startTime: new Date(this.appointmentForm.value.startTime).toISOString(),
-      endTime: new Date(this.appointmentForm.value.endTime).toISOString(),
-      allDay: this.appointmentForm.value.allDay,
+      title: this.editTitle(),
+      description: this.editDescription() || undefined,
+      location: this.editLocation() || undefined,
+      startTime: new Date(this.editStartTime()).toISOString(),
+      endTime: new Date(this.editEndTime()).toISOString(),
+      allDay: this.editAllDay(),
     };
 
     this.appointmentsService.update(apt.id, data).subscribe({
@@ -191,9 +190,9 @@ export class AppointmentDetailComponent implements OnInit {
     this.saving.set(true);
 
     const data: UpsertVisitReportRequest = {
-      measurements: this.visitReportForm.value.measurements || undefined,
-      accessDifficulty: this.visitReportForm.value.accessDifficulty as AccessDifficulty || undefined,
-      notes: this.visitReportForm.value.notes || undefined,
+      measurements: this.reportMeasurements() || undefined,
+      accessDifficulty: (this.reportAccessDifficulty() as AccessDifficulty) || undefined,
+      notes: this.reportNotes() || undefined,
     };
 
     this.appointmentsService.upsertVisitReport(apt.id, data).subscribe({

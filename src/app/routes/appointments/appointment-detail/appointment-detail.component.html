@@ -1,174 +1,249 @@
-<div class="appointment-detail">
+<div class="flex flex-col w-full h-full">
   @if (loading()) {
-    <div class="loading-state">
-      <span class="loading-spinner"></span>
+    <div class="flex items-center justify-center flex-1">
+      <div class="animate-spin h-8 w-8 border-2 border-zinc-300 border-t-black rounded-full"></div>
     </div>
   } @else if (!appointment()) {
-    <div class="error-state">
-      <p>{{ 'appointments.detail.notFound' | translate }}</p>
+    <div class="flex flex-col items-center justify-center flex-1 gap-4 p-6">
+      <p class="text-zinc-500">{{ 'appointments.detail.notFound' | translate }}</p>
       <shared-button variant="secondary" (clicked)="goBack()">
         {{ 'common.back' | translate }}
       </shared-button>
     </div>
   } @else {
-    <header class="detail-header">
-      <button type="button" class="back-btn" (click)="goBack()">
-        <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <polyline points="15 18 9 12 15 6"></polyline>
-        </svg>
-        {{ 'common.back' | translate }}
-      </button>
-      <div class="header-actions">
+    <!-- Header -->
+    <header class="flex items-center justify-between gap-4 p-4 sm:px-6 border-b border-zinc-200">
+      <div class="flex items-center gap-4">
+        <shared-button
+          type="button"
+          variant="ghost"
+          size="compact"
+          [iconOnly]="true"
+          [fullWidth]="false"
+          (clicked)="goBack()"
+          [attr.aria-label]="'common.back' | translate"
+        >
+          <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+        </shared-button>
+        
+        <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight truncate">
+          {{ appointment()!.title }}
+        </h1>
+      </div>
+      
+      <div class="flex items-center gap-2">
         @if (!isEditing()) {
-          <shared-button variant="secondary" (clicked)="toggleEdit()">
+          <shared-button variant="secondary" size="compact" (clicked)="toggleEdit()">
+            <lucide-icon name="pencil" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
             {{ 'common.edit' | translate }}
           </shared-button>
         }
-        <shared-button variant="danger" (clicked)="promptDelete()">
+        <shared-button variant="danger" size="compact" (clicked)="promptDelete()">
+          <lucide-icon name="trash-2" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
           {{ 'common.delete' | translate }}
         </shared-button>
       </div>
     </header>
 
     @if (error()) {
-      <div class="error-banner">
-        {{ error() }}
+      <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+        <span class="font-bold uppercase text-red-600 shrink-0">{{ 'common.error' | translate }}</span>
+        <span>{{ error() }}</span>
       </div>
     }
 
-    <div class="detail-content">
-      <!-- Status Badge & Quick Actions -->
-      <div class="status-section">
-        <div class="status-badge" [class]="getStatusClass(appointment()!.status)">
-          {{ getStatusLabel(appointment()!.status) }}
-        </div>
-        <div class="status-actions">
-          @for (opt of statusOptions; track opt.value) {
-            <button 
-              type="button" 
-              class="status-action-btn"
-              [class.active]="appointment()!.status === opt.value"
-              [disabled]="saving()"
-              (click)="updateStatus(opt.value)"
-            >
-              {{ opt.label }}
-            </button>
-          }
+    <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+      <!-- Status Section -->
+      <div class="mb-6">
+        <div class="flex flex-wrap items-center gap-3">
+          <span 
+            class="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full"
+            [class.bg-blue-100]="appointment()!.status === 'scheduled'"
+            [class.text-blue-800]="appointment()!.status === 'scheduled'"
+            [class.bg-green-100]="appointment()!.status === 'completed'"
+            [class.text-green-800]="appointment()!.status === 'completed'"
+            [class.bg-zinc-100]="appointment()!.status === 'cancelled'"
+            [class.text-zinc-800]="appointment()!.status === 'cancelled'"
+            [class.bg-amber-100]="appointment()!.status === 'no_show'"
+            [class.text-amber-800]="appointment()!.status === 'no_show'"
+          >
+            {{ getStatusLabel(appointment()!.status) }}
+          </span>
+          
+          <div class="flex gap-1">
+            @for (opt of statusOptions; track opt.value) {
+              <button 
+                type="button" 
+                class="px-2 py-1 text-xs uppercase tracking-wider border rounded transition-colors"
+                [class.bg-black]="appointment()!.status === opt.value"
+                [class.text-white]="appointment()!.status === opt.value"
+                [class.border-black]="appointment()!.status === opt.value"
+                [class.bg-white]="appointment()!.status !== opt.value"
+                [class.text-zinc-600]="appointment()!.status !== opt.value"
+                [class.border-zinc-200]="appointment()!.status !== opt.value"
+                [class.hover:border-zinc-400]="appointment()!.status !== opt.value"
+                [disabled]="saving()"
+                (click)="updateStatus(opt.value)"
+              >
+                {{ opt.label }}
+              </button>
+            }
+          </div>
         </div>
       </div>
 
-      <!-- Main Info -->
+      <!-- Main Content -->
       @if (isEditing()) {
-        <form [formGroup]="appointmentForm" (ngSubmit)="saveAppointment()" class="edit-form">
-          <div class="form-group">
-            <label for="title">{{ 'appointments.detail.title' | translate }}</label>
-            <input id="title" type="text" formControlName="title" />
+        <form (ngSubmit)="saveAppointment()" class="space-y-5">
+          <shared-input
+            [label]="'appointments.detail.title' | translate"
+            [value]="editTitle()"
+            (valueChange)="editTitle.set($event)"
+            [required]="true"
+          />
+          
+          <shared-textarea
+            [label]="'appointments.detail.description' | translate"
+            [rows]="3"
+            [value]="editDescription()"
+            (valueChange)="editDescription.set($event)"
+          />
+          
+          <shared-input
+            [label]="'appointments.detail.location' | translate"
+            [value]="editLocation()"
+            (valueChange)="editLocation.set($event)"
+          />
+          
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <shared-input
+              [label]="'appointments.detail.startTime' | translate"
+              type="datetime-local"
+              [value]="editStartTime()"
+              (valueChange)="editStartTime.set($event)"
+              [required]="true"
+              [clearable]="false"
+            />
+            <shared-input
+              [label]="'appointments.detail.endTime' | translate"
+              type="datetime-local"
+              [value]="editEndTime()"
+              (valueChange)="editEndTime.set($event)"
+              [required]="true"
+              [clearable]="false"
+            />
           </div>
-          <div class="form-group">
-            <label for="description">{{ 'appointments.detail.description' | translate }}</label>
-            <textarea id="description" formControlName="description" rows="3"></textarea>
-          </div>
-          <div class="form-group">
-            <label for="location">{{ 'appointments.detail.location' | translate }}</label>
-            <input id="location" type="text" formControlName="location" />
-          </div>
-          <div class="form-row">
-            <div class="form-group">
-              <label for="startTime">{{ 'appointments.detail.startTime' | translate }}</label>
-              <input id="startTime" type="datetime-local" formControlName="startTime" />
-            </div>
-            <div class="form-group">
-              <label for="endTime">{{ 'appointments.detail.endTime' | translate }}</label>
-              <input id="endTime" type="datetime-local" formControlName="endTime" />
-            </div>
-          </div>
-          <div class="form-group checkbox-group">
-            <label>
-              <input type="checkbox" formControlName="allDay" />
-              {{ 'appointments.detail.allDay' | translate }}
-            </label>
-          </div>
-          <div class="form-actions">
+          
+          <shared-checkbox
+            [label]="'appointments.detail.allDay' | translate"
+            [checked]="editAllDay()"
+            (checkedChange)="editAllDay.set($event)"
+          />
+          
+          <div class="flex gap-3 pt-4 border-t border-zinc-200">
             <shared-button variant="secondary" type="button" (clicked)="toggleEdit()">
               {{ 'common.cancel' | translate }}
             </shared-button>
-            <shared-button variant="primary" type="submit" [disabled]="appointmentForm.invalid || saving()">
+            <shared-button variant="primary" type="submit" [disabled]="!canSaveEdit() || saving()">
               {{ 'common.save' | translate }}
             </shared-button>
           </div>
         </form>
       } @else {
-        <div class="info-card">
-          <h1 class="apt-title">{{ appointment()!.title }}</h1>
+        <shared-card padding="default" className="mb-6">
           @if (appointment()!.description) {
-            <p class="apt-description">{{ appointment()!.description }}</p>
+            <p class="text-sm text-zinc-600 mb-4">{{ appointment()!.description }}</p>
           }
-          <div class="info-row">
-            <span class="info-label">{{ 'appointments.detail.type' | translate }}:</span>
-            <span class="info-value">{{ appointment()!.type }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">{{ 'appointments.detail.when' | translate }}:</span>
-            <span class="info-value">
-              {{ appointment()!.startTime | date:'medium' }} - {{ appointment()!.endTime | date:'shortTime' }}
-            </span>
-          </div>
-          @if (appointment()!.location) {
-            <div class="info-row">
-              <span class="info-label">{{ 'appointments.detail.location' | translate }}:</span>
-              <span class="info-value">{{ appointment()!.location }}</span>
+          
+          <dl class="space-y-3">
+            <div class="flex gap-3">
+              <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                {{ 'appointments.detail.type' | translate }}
+              </dt>
+              <dd class="text-sm">{{ appointment()!.type }}</dd>
             </div>
-          }
-          @if (appointment()!.lead) {
-            <div class="info-row">
-              <span class="info-label">{{ 'appointments.detail.lead' | translate }}:</span>
-              <span class="info-value">
-                {{ appointment()!.lead!.firstName }} {{ appointment()!.lead!.lastName }}
-                <br />
-                <span class="text-sm text-gray-500">{{ appointment()!.lead!.phone }}</span>
+            
+            <div class="flex gap-3">
+              <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                {{ 'appointments.detail.when' | translate }}
+              </dt>
+              <dd class="text-sm">
+                {{ appointment()!.startTime | date:'medium' }} - {{ appointment()!.endTime | date:'shortTime' }}
+              </dd>
+            </div>
+            
+            @if (appointment()!.location) {
+              <div class="flex gap-3">
+                <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                  {{ 'appointments.detail.location' | translate }}
+                </dt>
+                <dd class="text-sm">{{ appointment()!.location }}</dd>
+              </div>
+            }
+            
+            @if (appointment()!.lead) {
+              <div class="flex gap-3">
+                <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                  {{ 'appointments.detail.lead' | translate }}
+                </dt>
+                <dd class="text-sm">
+                  {{ appointment()!.lead!.firstName }} {{ appointment()!.lead!.lastName }}
+                  <span class="block text-xs text-zinc-400">{{ appointment()!.lead!.phone }}</span>
+                </dd>
+              </div>
+            }
+          </dl>
+        </shared-card>
+
+        <!-- Visit Report Section (for lead_visit type) -->
+        @if (appointment()!.type === 'lead_visit') {
+          <div class="border border-zinc-200 rounded">
+            <button 
+              type="button" 
+              class="w-full flex items-center justify-between p-4 text-left hover:bg-zinc-50 transition-colors"
+              (click)="toggleVisitReport()"
+            >
+              <span class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                {{ 'appointments.detail.visitReport.title' | translate }}
               </span>
-            </div>
-          }
-        </div>
-      }
+              <lucide-icon 
+                name="chevron-down" 
+                class="h-4 w-4 text-zinc-400 transition-transform"
+                [class.rotate-180]="showVisitReport()"
+              ></lucide-icon>
+            </button>
 
-      <!-- Visit Report Section (for lead_visit type) -->
-      @if (appointment()!.type === 'lead_visit') {
-        <div class="visit-report-section">
-          <button type="button" class="section-toggle" (click)="toggleVisitReport()">
-            <span>{{ 'appointments.detail.visitReport.title' | translate }}</span>
-            <svg class="icon" [class.rotated]="showVisitReport()" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-              <polyline points="6 9 12 15 18 9"></polyline>
-            </svg>
-          </button>
-
-          @if (showVisitReport()) {
-            <form [formGroup]="visitReportForm" (ngSubmit)="saveVisitReport()" class="visit-report-form">
-              <div class="form-group">
-                <label for="measurements">{{ 'appointments.detail.visitReport.measurements' | translate }}</label>
-                <textarea id="measurements" formControlName="measurements" rows="2"></textarea>
-              </div>
-              <div class="form-group">
-                <label for="accessDifficulty">{{ 'appointments.detail.visitReport.accessDifficulty' | translate }}</label>
-                <select id="accessDifficulty" formControlName="accessDifficulty">
-                  <option value="">{{ 'common.select' | translate }}</option>
-                  @for (opt of accessDifficultyOptions; track opt.value) {
-                    <option [value]="opt.value">{{ opt.label }}</option>
-                  }
-                </select>
-              </div>
-              <div class="form-group">
-                <label for="notes">{{ 'appointments.detail.visitReport.notes' | translate }}</label>
-                <textarea id="notes" formControlName="notes" rows="3"></textarea>
-              </div>
-              <div class="form-actions">
+            @if (showVisitReport()) {
+              <form (ngSubmit)="saveVisitReport()" class="p-4 pt-0 space-y-4">
+                <shared-textarea
+                  [label]="'appointments.detail.visitReport.measurements' | translate"
+                  [rows]="2"
+                  [value]="reportMeasurements()"
+                  (valueChange)="reportMeasurements.set($event)"
+                />
+                
+                <shared-select
+                  [label]="'appointments.detail.visitReport.accessDifficulty' | translate"
+                  [options]="accessDifficultySelectOptions()"
+                  [value]="reportAccessDifficulty()"
+                  (valueChange)="reportAccessDifficulty.set($event ?? '')"
+                  [placeholder]="'common.select' | translate"
+                />
+                
+                <shared-textarea
+                  [label]="'appointments.detail.visitReport.notes' | translate"
+                  [rows]="3"
+                  [value]="reportNotes()"
+                  (valueChange)="reportNotes.set($event)"
+                />
+                
                 <shared-button variant="primary" type="submit" [disabled]="saving()">
                   {{ 'appointments.detail.visitReport.save' | translate }}
                 </shared-button>
-              </div>
-            </form>
-          }
-        </div>
+              </form>
+            }
+          </div>
+        }
       }
     </div>
   }

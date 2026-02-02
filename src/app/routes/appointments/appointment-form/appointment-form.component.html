@@ -1,80 +1,138 @@
-<div class="appointment-form-page">
-  <header class="form-header">
-    <button type="button" class="back-btn" (click)="goBack()">
-      <svg class="icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-        <polyline points="15 18 9 12 15 6"></polyline>
-      </svg>
-      {{ 'common.back' | translate }}
-    </button>
-    <h1>{{ 'appointments.form.title' | translate }}</h1>
+<div class="flex flex-col w-full h-full">
+  <!-- Header -->
+  <header class="flex items-center gap-4 p-4 sm:px-6">
+    <shared-button
+      type="button"
+      variant="ghost"
+      size="compact"
+      [iconOnly]="true"
+      [fullWidth]="false"
+      (clicked)="goBack()"
+      [attr.aria-label]="'common.back' | translate"
+    >
+      <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+    </shared-button>
+    
+    <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight">
+      {{ 'appointments.form.title' | translate }}
+    </h1>
   </header>
 
   @if (error()) {
-    <div class="error-banner">
-      {{ error() }}
+    <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+      <span class="font-bold uppercase text-red-600 shrink-0">{{ 'common.error' | translate }}</span>
+      <span>{{ error() }}</span>
     </div>
   }
 
-  <form [formGroup]="appointmentForm" (ngSubmit)="createAppointment()" class="appointment-form">
-    <div class="form-group">
-      <label for="type">{{ 'appointments.form.type' | translate }}</label>
-      <select id="type" formControlName="type">
-        @for (opt of typeOptions; track opt.value) {
-          <option [value]="opt.value">{{ opt.label }}</option>
-        }
-      </select>
+  <form (ngSubmit)="createAppointment()" class="flex-1 flex flex-col">
+    <div class="grid grid-cols-1 lg:grid-cols-2 w-full border-b border-zinc-200">
+      <!-- Section 1: Basic Info -->
+      <section class="p-4 sm:p-6 border-b lg:border-b-0 lg:border-r border-zinc-200">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">01</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'appointments.form.basicInfo' | translate }}
+          </h2>
+        </div>
+        
+        <div class="space-y-5">
+          <shared-select
+            [label]="'appointments.form.type' | translate"
+            [options]="typeOptions"
+            [value]="type()"
+            (valueChange)="type.set($event!)"
+            [required]="true"
+          />
+
+          <shared-input
+            [label]="'appointments.form.titleLabel' | translate"
+            [placeholder]="'appointments.form.titlePlaceholder' | translate"
+            [value]="title()"
+            (valueChange)="title.set($event)"
+            [required]="true"
+          />
+
+          <shared-textarea
+            [label]="'appointments.form.description' | translate"
+            [placeholder]="'appointments.form.descriptionPlaceholder' | translate"
+            [rows]="3"
+            [value]="description()"
+            (valueChange)="description.set($event)"
+          />
+
+          <shared-input
+            [label]="'appointments.form.location' | translate"
+            [placeholder]="'appointments.form.locationPlaceholder' | translate"
+            [value]="location()"
+            (valueChange)="location.set($event)"
+          />
+        </div>
+      </section>
+
+      <!-- Section 2: Date & Time -->
+      <section class="p-4 sm:p-6">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">02</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'appointments.form.scheduling' | translate }}
+          </h2>
+        </div>
+
+        <div class="space-y-5">
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <shared-input
+              [label]="'appointments.form.startTime' | translate"
+              type="datetime-local"
+              [value]="startTime()"
+              (valueChange)="startTime.set($event)"
+              [required]="true"
+              [clearable]="false"
+            />
+            <shared-input
+              [label]="'appointments.form.endTime' | translate"
+              type="datetime-local"
+              [value]="endTime()"
+              (valueChange)="endTime.set($event)"
+              [required]="true"
+              [clearable]="false"
+            />
+          </div>
+
+          <shared-checkbox
+            [label]="'appointments.form.allDay' | translate"
+            [checked]="allDay()"
+            (checkedChange)="allDay.set($event)"
+          />
+
+          <shared-checkbox
+            [label]="'appointments.form.sendConfirmation' | translate"
+            [checked]="sendConfirmationEmail()"
+            (checkedChange)="sendConfirmationEmail.set($event)"
+          />
+        </div>
+      </section>
     </div>
 
-    <div class="form-group">
-      <label for="title">{{ 'appointments.form.titleLabel' | translate }}</label>
-      <input id="title" type="text" formControlName="title" [placeholder]="'appointments.form.titlePlaceholder' | translate" />
-    </div>
-
-    <div class="form-group">
-      <label for="description">{{ 'appointments.form.description' | translate }}</label>
-      <textarea id="description" formControlName="description" rows="3" [placeholder]="'appointments.form.descriptionPlaceholder' | translate"></textarea>
-    </div>
-
-    <div class="form-group">
-      <label for="location">{{ 'appointments.form.location' | translate }}</label>
-      <input id="location" type="text" formControlName="location" [placeholder]="'appointments.form.locationPlaceholder' | translate" />
-    </div>
-
-    <div class="form-row">
-      <div class="form-group">
-        <label for="startTime">{{ 'appointments.form.startTime' | translate }}</label>
-        <input id="startTime" type="datetime-local" formControlName="startTime" />
-      </div>
-      <div class="form-group">
-        <label for="endTime">{{ 'appointments.form.endTime' | translate }}</label>
-        <input id="endTime" type="datetime-local" formControlName="endTime" />
-      </div>
-    </div>
-
-    <div class="form-group checkbox-group">
-      <label>
-        <input type="checkbox" formControlName="allDay" />
-        {{ 'appointments.form.allDay' | translate }}
-      </label>
-    </div>
-
-    <div class="form-group checkbox-group">
-      <label>
-        <input type="checkbox" formControlName="sendConfirmationEmail" />
-        {{ 'appointments.form.sendConfirmation' | translate }}
-      </label>
-    </div>
-
-    <div class="form-actions">
-      <shared-button variant="secondary" type="button" (clicked)="goBack()">
+    <!-- Footer -->
+    <div class="p-4 sm:p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
+      <shared-button 
+        variant="secondary" 
+        type="button" 
+        [disabled]="saving()"
+        (clicked)="goBack()"
+        class="w-full sm:w-auto"
+      >
         {{ 'common.cancel' | translate }}
       </shared-button>
-      <shared-button variant="primary" type="submit" [disabled]="appointmentForm.invalid || saving()">
-        @if (saving()) {
-          {{ 'common.saving' | translate }}
-        } @else {
-          {{ 'appointments.form.create' | translate }}
-        }
+      
+      <shared-button
+        variant="primary"
+        type="submit"
+        [disabled]="saving() || !canCreate()"
+        class="w-full sm:w-auto"
+      >
+        {{ saving() ? ('common.saving' | translate) : ('appointments.form.create' | translate) }}
       </shared-button>
     </div>
   </form>

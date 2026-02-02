@@ -1,14 +1,18 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { FormBuilder, FormGroup, ReactiveFormsModule, Validators } from '@angular/forms';
 import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { LucideAngularModule } from 'lucide-angular';
 import { forkJoin } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import type { AvailabilityRuleResponse, AvailabilityOverrideResponse, CreateAvailabilityRuleRequest, CreateAvailabilityOverrideRequest } from '../../../core/services/appointments.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { InputComponent } from '../../../shared/components/input/input.component';
+import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
+import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
 
 interface WeekdayOption {
   value: number;
@@ -20,10 +24,9 @@ interface WeekdayOption {
   templateUrl: './availability-settings.component.html',
   styleUrl: './availability-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ReactiveFormsModule, ButtonComponent, ConfirmDialogComponent, TranslatePipe, DatePipe],
+  imports: [ButtonComponent, InputComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, LucideAngularModule, TranslatePipe, DatePipe],
 })
 export class AvailabilitySettingsComponent implements OnInit {
-  private readonly fb = inject(FormBuilder);
   private readonly appointmentsService = inject(AppointmentsService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
@@ -44,9 +47,16 @@ export class AvailabilitySettingsComponent implements OnInit {
   protected readonly pendingDeleteType = signal<'rule' | 'override' | null>(null);
   protected readonly deleteInProgress = signal(false);
 
-  // Forms
-  protected ruleForm: FormGroup;
-  protected overrideForm: FormGroup;
+  // Rule form signals
+  protected readonly ruleWeekday = signal<string>('1');
+  protected readonly ruleStartTime = signal('09:00');
+  protected readonly ruleEndTime = signal('17:00');
+
+  // Override form signals
+  protected readonly overrideDate = signal('');
+  protected readonly overrideIsAvailable = signal(false);
+  protected readonly overrideStartTime = signal('09:00');
+  protected readonly overrideEndTime = signal('17:00');
 
   protected readonly weekdays = computed<WeekdayOption[]>(() => {
     this.lang();
@@ -61,6 +71,10 @@ export class AvailabilitySettingsComponent implements OnInit {
     ];
   });
 
+  protected readonly weekdaySelectOptions = computed<SelectOption<string>[]>(() =>
+    this.weekdays().map(w => ({ value: String(w.value), label: w.label }))
+  );
+
   protected readonly sortedRules = computed(() => {
     return [...this.rules()].sort((a, b) => a.weekday - b.weekday);
   });
@@ -71,20 +85,11 @@ export class AvailabilitySettingsComponent implements OnInit {
 
   protected readonly isDeleteDialogOpen = computed(() => !!this.pendingDeleteId());
 
-  constructor() {
-    this.ruleForm = this.fb.group({
-      weekday: [1, Validators.required],
-      startTime: ['09:00', Validators.required],
-      endTime: ['17:00', Validators.required],
-    });
+  protected readonly canSaveRule = computed(() =>
+    this.ruleWeekday() !== '' && this.ruleStartTime() !== '' && this.ruleEndTime() !== ''
+  );
 
-    this.overrideForm = this.fb.group({
-      date: ['', Validators.required],
-      isAvailable: [false],
-      startTime: ['09:00'],
-      endTime: ['17:00'],
-    });
-  }
+  protected readonly canSaveOverride = computed(() => this.overrideDate() !== '');
 
   ngOnInit(): void {
     this.loadData();
@@ -119,17 +124,17 @@ export class AvailabilitySettingsComponent implements OnInit {
   // Rule form methods
   protected openRuleForm(): void {
     this.editingRuleId.set(null);
-    this.ruleForm.reset({ weekday: 1, startTime: '09:00', endTime: '17:00' });
+    this.ruleWeekday.set('1');
+    this.ruleStartTime.set('09:00');
+    this.ruleEndTime.set('17:00');
     this.showRuleForm.set(true);
   }
 
   protected editRule(rule: AvailabilityRuleResponse): void {
     this.editingRuleId.set(rule.id);
-    this.ruleForm.patchValue({
-      weekday: rule.weekday,
-      startTime: rule.startTime,
-      endTime: rule.endTime,
-    });
+    this.ruleWeekday.set(String(rule.weekday));
+    this.ruleStartTime.set(rule.startTime);
+    this.ruleEndTime.set(rule.endTime);
     this.showRuleForm.set(true);
   }
 
@@ -139,12 +144,12 @@ export class AvailabilitySettingsComponent implements OnInit {
   }
 
   protected saveRule(): void {
-    if (this.ruleForm.invalid) return;
+    if (!this.canSaveRule()) return;
 
     const data: CreateAvailabilityRuleRequest = {
-      weekday: this.ruleForm.value.weekday,
-      startTime: this.ruleForm.value.startTime,
-      endTime: this.ruleForm.value.endTime,
+      weekday: Number.parseInt(this.ruleWeekday(), 10),
+      startTime: this.ruleStartTime(),
+      endTime: this.ruleEndTime(),
     };
 
     this.loading.set(true);
@@ -172,18 +177,19 @@ export class AvailabilitySettingsComponent implements OnInit {
   protected openOverrideForm(): void {
     this.editingOverrideId.set(null);
     const today = new Date().toISOString().split('T')[0];
-    this.overrideForm.reset({ date: today, isAvailable: false, startTime: '09:00', endTime: '17:00' });
+    this.overrideDate.set(today);
+    this.overrideIsAvailable.set(false);
+    this.overrideStartTime.set('09:00');
+    this.overrideEndTime.set('17:00');
     this.showOverrideForm.set(true);
   }
 
   protected editOverride(override: AvailabilityOverrideResponse): void {
     this.editingOverrideId.set(override.id);
-    this.overrideForm.patchValue({
-      date: override.date,
-      isAvailable: override.isAvailable,
-      startTime: override.startTime ?? '09:00',
-      endTime: override.endTime ?? '17:00',
-    });
+    this.overrideDate.set(override.date);
+    this.overrideIsAvailable.set(override.isAvailable);
+    this.overrideStartTime.set(override.startTime ?? '09:00');
+    this.overrideEndTime.set(override.endTime ?? '17:00');
     this.showOverrideForm.set(true);
   }
 
@@ -192,20 +198,16 @@ export class AvailabilitySettingsComponent implements OnInit {
     this.editingOverrideId.set(null);
   }
 
-  protected get overrideIsAvailable(): boolean {
-    return this.overrideForm.get('isAvailable')?.value ?? false;
-  }
-
   protected saveOverride(): void {
-    if (this.overrideForm.invalid) return;
+    if (!this.canSaveOverride()) return;
 
-    const isAvailable = this.overrideForm.value.isAvailable;
+    const isAvailable = this.overrideIsAvailable();
     const data: CreateAvailabilityOverrideRequest = {
-      date: this.overrideForm.value.date,
+      date: this.overrideDate(),
       isAvailable,
       ...(isAvailable && {
-        startTime: this.overrideForm.value.startTime,
-        endTime: this.overrideForm.value.endTime,
+        startTime: this.overrideStartTime(),
+        endTime: this.overrideEndTime(),
       }),
     };
 

@@ -1,0 +1,3017 @@
+This file is a merged representation of a subset of the codebase, containing specifically included files, combined into a single document by Repomix.
+
+<file_summary>
+This section contains a summary of this file.
+
+<purpose>
+This file contains a packed representation of a subset of the repository's contents that is considered the most important context.
+It is designed to be easily consumable by AI systems for analysis, code review,
+or other automated processes.
+</purpose>
+
+<file_format>
+The content is organized as follows:
+1. This summary section
+2. Repository information
+3. Directory structure
+4. Repository files (if enabled)
+5. Multiple file entries, each consisting of:
+  - File path as an attribute
+  - Full contents of the file
+</file_format>
+
+<usage_guidelines>
+- This file should be treated as read-only. Any changes should be made to the
+  original repository files, not this packed version.
+- When processing this file, use the file path to distinguish
+  between different files in the repository.
+- Be aware that this file may contain sensitive information. Handle it with
+  the same level of security as you would the original repository.
+</usage_guidelines>
+
+<notes>
+- Some files may have been excluded based on .gitignore rules and Repomix's configuration
+- Binary files are not included in this packed representation. Please refer to the Repository Structure section for a complete list of file paths, including binary files
+- Only files matching these patterns are included: ../portal_final_backend/internal/appointments
+- Files matching patterns in .gitignore are excluded
+- Files matching default ignore patterns are excluded
+- Files are sorted by Git change count (files with more changes are at the bottom)
+</notes>
+
+</file_summary>
+
+<directory_structure>
+../portal_final_backend/internal/appointments/handler/handler.go
+../portal_final_backend/internal/appointments/module.go
+../portal_final_backend/internal/appointments/repository/availability.go
+../portal_final_backend/internal/appointments/repository/repository.go
+../portal_final_backend/internal/appointments/repository/visit_reports.go
+../portal_final_backend/internal/appointments/service/service.go
+../portal_final_backend/internal/appointments/transport/dto.go
+</directory_structure>
+
+<files>
+This section contains the contents of the repository's files.
+
+<file path="../portal_final_backend/internal/appointments/handler/handler.go">
+package handler
+
+import (
+	"net/http"
+
+	"portal_final_backend/internal/appointments/service"
+	"portal_final_backend/internal/appointments/transport"
+	"portal_final_backend/platform/httpkit"
+	"portal_final_backend/platform/validator"
+
+	"github.com/gin-gonic/gin"
+	"github.com/google/uuid"
+)
+
+const (
+	msgInvalidRequest   = "invalid request"
+	msgValidationFailed = "validation failed"
+)
+
+// Handler handles HTTP requests for appointments
+type Handler struct {
+	svc *service.Service
+	val *validator.Validator
+}
+
+// New creates a new appointments handler
+func New(svc *service.Service, val *validator.Validator) *Handler {
+	return &Handler{svc: svc, val: val}
+}
+
+// mustGetTenantID extracts the tenant ID from identity and returns it.
+// Returns zero UUID and false if tenant ID is not present.
+func mustGetTenantID(c *gin.Context, identity httpkit.Identity) (uuid.UUID, bool) {
+	tenantID := identity.TenantID()
+	if tenantID == nil {
+		httpkit.Error(c, http.StatusBadRequest, "tenant ID is required", nil)
+		return uuid.UUID{}, false
+	}
+	return *tenantID, true
+}
+
+// RegisterRoutes registers the appointment routes
+func (h *Handler) RegisterRoutes(rg *gin.RouterGroup) {
+	rg.GET("", h.List)
+	rg.POST("", h.Create)
+	rg.GET("/:id", h.GetByID)
+	rg.PUT("/:id", h.Update)
+	rg.DELETE("/:id", h.Delete)
+	rg.PATCH("/:id/status", h.UpdateStatus)
+	rg.GET("/:id/visit-report", h.GetVisitReport)
+	rg.PUT("/:id/visit-report", h.UpsertVisitReport)
+	rg.GET("/:id/attachments", h.ListAttachments)
+	rg.POST("/:id/attachments", h.CreateAttachment)
+
+	rg.GET("/availability/rules", h.ListAvailabilityRules)
+	rg.POST("/availability/rules", h.CreateAvailabilityRule)
+	rg.PUT("/availability/rules/:id", h.UpdateAvailabilityRule)
+	rg.DELETE("/availability/rules/:id", h.DeleteAvailabilityRule)
+
+	rg.GET("/availability/overrides", h.ListAvailabilityOverrides)
+	rg.POST("/availability/overrides", h.CreateAvailabilityOverride)
+	rg.PUT("/availability/overrides/:id", h.UpdateAvailabilityOverride)
+	rg.DELETE("/availability/overrides/:id", h.DeleteAvailabilityOverride)
+
+	rg.GET("/availability/slots", h.GetAvailableSlots)
+}
+
+// List handles GET /api/appointments
+func (h *Handler) List(c *gin.Context) {
+	var req transport.ListAppointmentsRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.List(c.Request.Context(), identity.UserID(), isAdmin, tenantID, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// Create handles POST /api/appointments
+func (h *Handler) Create(c *gin.Context) {
+	var req transport.CreateAppointmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+	if err := h.val.Struct(req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgValidationFailed, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.Create(c.Request.Context(), identity.UserID(), isAdmin, tenantID, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.JSON(c, http.StatusCreated, result)
+}
+
+// GetByID handles GET /api/appointments/:id
+func (h *Handler) GetByID(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.GetByID(c.Request.Context(), id, identity.UserID(), isAdmin, tenantID)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// Update handles PUT /api/appointments/:id
+func (h *Handler) Update(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	var req transport.UpdateAppointmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+	if err := h.val.Struct(req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgValidationFailed, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.Update(c.Request.Context(), id, identity.UserID(), isAdmin, tenantID, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// Delete handles DELETE /api/appointments/:id
+func (h *Handler) Delete(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	if err := h.svc.Delete(c.Request.Context(), id, identity.UserID(), isAdmin, tenantID); httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, gin.H{"message": "appointment deleted"})
+}
+
+// UpdateStatus handles PATCH /api/appointments/:id/status
+func (h *Handler) UpdateStatus(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	var req transport.UpdateAppointmentStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+	if err := h.val.Struct(req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgValidationFailed, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.UpdateStatus(c.Request.Context(), id, identity.UserID(), isAdmin, tenantID, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// GetVisitReport handles GET /api/appointments/:id/visit-report
+func (h *Handler) GetVisitReport(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.GetVisitReport(c.Request.Context(), id, identity.UserID(), isAdmin, tenantID)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// UpsertVisitReport handles PUT /api/appointments/:id/visit-report
+func (h *Handler) UpsertVisitReport(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	var req transport.UpsertVisitReportRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+	if err := h.val.Struct(req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgValidationFailed, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.UpsertVisitReport(c.Request.Context(), id, identity.UserID(), isAdmin, tenantID, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// CreateAttachment handles POST /api/appointments/:id/attachments
+func (h *Handler) CreateAttachment(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	var req transport.CreateAppointmentAttachmentRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+	if err := h.val.Struct(req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgValidationFailed, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.CreateAttachment(c.Request.Context(), id, identity.UserID(), isAdmin, tenantID, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.JSON(c, http.StatusCreated, result)
+}
+
+// ListAttachments handles GET /api/appointments/:id/attachments
+func (h *Handler) ListAttachments(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.ListAttachments(c.Request.Context(), id, identity.UserID(), isAdmin, tenantID)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// CreateAvailabilityRule handles POST /api/appointments/availability/rules
+func (h *Handler) CreateAvailabilityRule(c *gin.Context) {
+	var req transport.CreateAvailabilityRuleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+	if err := h.val.Struct(req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgValidationFailed, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.CreateAvailabilityRule(c.Request.Context(), identity.UserID(), isAdmin, tenantID, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.JSON(c, http.StatusCreated, result)
+}
+
+// ListAvailabilityRules handles GET /api/appointments/availability/rules
+func (h *Handler) ListAvailabilityRules(c *gin.Context) {
+	var userID *uuid.UUID
+	if raw := c.Query("userId"); raw != "" {
+		parsed, err := uuid.Parse(raw)
+		if err != nil {
+			httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+			return
+		}
+		userID = &parsed
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.ListAvailabilityRules(c.Request.Context(), identity.UserID(), isAdmin, tenantID, userID)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// DeleteAvailabilityRule handles DELETE /api/appointments/availability/rules/:id
+func (h *Handler) DeleteAvailabilityRule(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	if err := h.svc.DeleteAvailabilityRule(c.Request.Context(), identity.UserID(), isAdmin, tenantID, id); httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, gin.H{"message": "availability rule deleted"})
+}
+
+// UpdateAvailabilityRule handles PUT /api/appointments/availability/rules/:id
+func (h *Handler) UpdateAvailabilityRule(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	var req transport.UpdateAvailabilityRuleRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+	if err := h.val.Struct(req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgValidationFailed, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.UpdateAvailabilityRule(c.Request.Context(), identity.UserID(), isAdmin, tenantID, id, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// CreateAvailabilityOverride handles POST /api/appointments/availability/overrides
+func (h *Handler) CreateAvailabilityOverride(c *gin.Context) {
+	var req transport.CreateAvailabilityOverrideRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+	if err := h.val.Struct(req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgValidationFailed, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.CreateAvailabilityOverride(c.Request.Context(), identity.UserID(), isAdmin, tenantID, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.JSON(c, http.StatusCreated, result)
+}
+
+// ListAvailabilityOverrides handles GET /api/appointments/availability/overrides
+func (h *Handler) ListAvailabilityOverrides(c *gin.Context) {
+	var userID *uuid.UUID
+	if raw := c.Query("userId"); raw != "" {
+		parsed, err := uuid.Parse(raw)
+		if err != nil {
+			httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+			return
+		}
+		userID = &parsed
+	}
+
+	startDate := c.Query("startDate")
+	endDate := c.Query("endDate")
+	var startPtr *string
+	var endPtr *string
+	if startDate != "" {
+		startPtr = &startDate
+	}
+	if endDate != "" {
+		endPtr = &endDate
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.ListAvailabilityOverrides(c.Request.Context(), identity.UserID(), isAdmin, tenantID, userID, startPtr, endPtr)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// DeleteAvailabilityOverride handles DELETE /api/appointments/availability/overrides/:id
+func (h *Handler) DeleteAvailabilityOverride(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	if err := h.svc.DeleteAvailabilityOverride(c.Request.Context(), identity.UserID(), isAdmin, tenantID, id); httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, gin.H{"message": "availability override deleted"})
+}
+
+// UpdateAvailabilityOverride handles PUT /api/appointments/availability/overrides/:id
+func (h *Handler) UpdateAvailabilityOverride(c *gin.Context) {
+	id, err := uuid.Parse(c.Param("id"))
+	if err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+
+	var req transport.UpdateAvailabilityOverrideRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, nil)
+		return
+	}
+	if err := h.val.Struct(req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgValidationFailed, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.UpdateAvailabilityOverride(c.Request.Context(), identity.UserID(), isAdmin, tenantID, id, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+// GetAvailableSlots handles GET /api/appointments/availability/slots
+func (h *Handler) GetAvailableSlots(c *gin.Context) {
+	var req transport.GetAvailableSlotsRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		httpkit.Error(c, http.StatusBadRequest, msgInvalidRequest, err.Error())
+		return
+	}
+
+	identity := httpkit.MustGetIdentity(c)
+	if identity == nil {
+		return
+	}
+	tenantID, ok := mustGetTenantID(c, identity)
+	if !ok {
+		return
+	}
+
+	isAdmin := containsRole(identity.Roles(), "admin")
+	result, err := h.svc.GetAvailableSlots(c.Request.Context(), identity.UserID(), isAdmin, tenantID, req)
+	if httpkit.HandleError(c, err) {
+		return
+	}
+
+	httpkit.OK(c, result)
+}
+
+func containsRole(roles []string, role string) bool {
+	for _, r := range roles {
+		if r == role {
+			return true
+		}
+	}
+	return false
+}
+</file>
+
+<file path="../portal_final_backend/internal/appointments/module.go">
+// Package appointments provides the appointments domain module.
+package appointments
+
+import (
+	"portal_final_backend/internal/appointments/handler"
+	"portal_final_backend/internal/appointments/repository"
+	"portal_final_backend/internal/appointments/service"
+	"portal_final_backend/internal/email"
+	apphttp "portal_final_backend/internal/http"
+	"portal_final_backend/platform/validator"
+
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+// Module represents the appointments domain module
+type Module struct {
+	handler *handler.Handler
+	Service *service.Service
+}
+
+// NewModule creates a new appointments module with all dependencies wired
+func NewModule(pool *pgxpool.Pool, val *validator.Validator, leadAssigner service.LeadAssigner, emailSender email.Sender) *Module {
+	repo := repository.New(pool)
+	svc := service.New(repo, leadAssigner, emailSender)
+	h := handler.New(svc, val)
+
+	return &Module{
+		handler: h,
+		Service: svc,
+	}
+}
+
+// Name returns the module name for logging
+func (m *Module) Name() string {
+	return "appointments"
+}
+
+// RegisterRoutes registers the module's routes under /api/appointments
+func (m *Module) RegisterRoutes(ctx *apphttp.RouterContext) {
+	appointments := ctx.Protected.Group("/appointments")
+	m.handler.RegisterRoutes(appointments)
+}
+
+// Compile-time check that Module implements http.Module
+var _ apphttp.Module = (*Module)(nil)
+</file>
+
+<file path="../portal_final_backend/internal/appointments/repository/availability.go">
+package repository
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"portal_final_backend/platform/apperr"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+)
+
+type AvailabilityRule struct {
+	ID        uuid.UUID
+	OrganizationID uuid.UUID
+	UserID    uuid.UUID
+	Weekday   int
+	StartTime time.Time
+	EndTime   time.Time
+	Timezone  string
+	CreatedAt time.Time
+	UpdatedAt time.Time
+}
+
+type AvailabilityOverride struct {
+	ID          uuid.UUID
+	OrganizationID uuid.UUID
+	UserID      uuid.UUID
+	Date        time.Time
+	IsAvailable bool
+	StartTime   *time.Time
+	EndTime     *time.Time
+	Timezone    string
+	CreatedAt   time.Time
+	UpdatedAt   time.Time
+}
+
+func (r *Repository) CreateAvailabilityRule(ctx context.Context, rule AvailabilityRule) (*AvailabilityRule, error) {
+	query := `
+		INSERT INTO appointment_availability_rules
+			(id, organization_id, user_id, weekday, start_time, end_time, timezone)
+		VALUES
+			($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, organization_id, user_id, weekday, start_time, end_time, timezone, created_at, updated_at`
+
+	var saved AvailabilityRule
+	err := r.pool.QueryRow(ctx, query,
+		rule.ID,
+		rule.OrganizationID,
+		rule.UserID,
+		rule.Weekday,
+		rule.StartTime,
+		rule.EndTime,
+		rule.Timezone,
+	).Scan(
+		&saved.ID,
+		&saved.OrganizationID,
+		&saved.UserID,
+		&saved.Weekday,
+		&saved.StartTime,
+		&saved.EndTime,
+		&saved.Timezone,
+		&saved.CreatedAt,
+		&saved.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create availability rule: %w", err)
+	}
+
+	return &saved, nil
+}
+
+func (r *Repository) ListAvailabilityRules(ctx context.Context, organizationID uuid.UUID, userID uuid.UUID) ([]AvailabilityRule, error) {
+	query := `SELECT id, organization_id, user_id, weekday, start_time, end_time, timezone, created_at, updated_at
+		FROM appointment_availability_rules WHERE organization_id = $1 AND user_id = $2 ORDER BY weekday, start_time`
+
+	rows, err := r.pool.Query(ctx, query, organizationID, userID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list availability rules: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]AvailabilityRule, 0)
+	for rows.Next() {
+		var item AvailabilityRule
+		if err := rows.Scan(
+			&item.ID,
+			&item.OrganizationID,
+			&item.UserID,
+			&item.Weekday,
+			&item.StartTime,
+			&item.EndTime,
+			&item.Timezone,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan availability rule: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate availability rules: %w", err)
+	}
+
+	return items, nil
+}
+
+func (r *Repository) GetAvailabilityRuleByID(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) (*AvailabilityRule, error) {
+	query := `SELECT id, organization_id, user_id, weekday, start_time, end_time, timezone, created_at, updated_at
+		FROM appointment_availability_rules WHERE id = $1 AND organization_id = $2`
+
+	var item AvailabilityRule
+	err := r.pool.QueryRow(ctx, query, id, organizationID).Scan(
+		&item.ID,
+		&item.OrganizationID,
+		&item.UserID,
+		&item.Weekday,
+		&item.StartTime,
+		&item.EndTime,
+		&item.Timezone,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, apperr.NotFound("availability rule not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get availability rule: %w", err)
+	}
+
+	return &item, nil
+}
+
+func (r *Repository) DeleteAvailabilityRule(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) error {
+	_, err := r.pool.Exec(ctx, `DELETE FROM appointment_availability_rules WHERE id = $1 AND organization_id = $2`, id, organizationID)
+	if err != nil {
+		return fmt.Errorf("failed to delete availability rule: %w", err)
+	}
+	return nil
+}
+
+func (r *Repository) UpdateAvailabilityRule(ctx context.Context, id uuid.UUID, organizationID uuid.UUID, rule AvailabilityRule) (*AvailabilityRule, error) {
+	query := `
+		UPDATE appointment_availability_rules SET
+			weekday = $3,
+			start_time = $4,
+			end_time = $5,
+			timezone = $6,
+			updated_at = now()
+		WHERE id = $1 AND organization_id = $2
+		RETURNING id, organization_id, user_id, weekday, start_time, end_time, timezone, created_at, updated_at`
+
+	var saved AvailabilityRule
+	err := r.pool.QueryRow(ctx, query,
+		id,
+		organizationID,
+		rule.Weekday,
+		rule.StartTime,
+		rule.EndTime,
+		rule.Timezone,
+	).Scan(
+		&saved.ID,
+		&saved.OrganizationID,
+		&saved.UserID,
+		&saved.Weekday,
+		&saved.StartTime,
+		&saved.EndTime,
+		&saved.Timezone,
+		&saved.CreatedAt,
+		&saved.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, apperr.NotFound("availability rule not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to update availability rule: %w", err)
+	}
+
+	return &saved, nil
+}
+
+func (r *Repository) CreateAvailabilityOverride(ctx context.Context, override AvailabilityOverride) (*AvailabilityOverride, error) {
+	query := `
+		INSERT INTO appointment_availability_overrides
+			(id, organization_id, user_id, date, is_available, start_time, end_time, timezone)
+		VALUES
+			($1, $2, $3, $4, $5, $6, $7, $8)
+		RETURNING id, organization_id, user_id, date, is_available, start_time, end_time, timezone, created_at, updated_at`
+
+	var saved AvailabilityOverride
+	err := r.pool.QueryRow(ctx, query,
+		override.ID,
+		override.OrganizationID,
+		override.UserID,
+		override.Date,
+		override.IsAvailable,
+		override.StartTime,
+		override.EndTime,
+		override.Timezone,
+	).Scan(
+		&saved.ID,
+		&saved.OrganizationID,
+		&saved.UserID,
+		&saved.Date,
+		&saved.IsAvailable,
+		&saved.StartTime,
+		&saved.EndTime,
+		&saved.Timezone,
+		&saved.CreatedAt,
+		&saved.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create availability override: %w", err)
+	}
+
+	return &saved, nil
+}
+
+func (r *Repository) ListAvailabilityOverrides(ctx context.Context, organizationID uuid.UUID, userID uuid.UUID, startDate *time.Time, endDate *time.Time) ([]AvailabilityOverride, error) {
+	baseQuery := `SELECT id, organization_id, user_id, date, is_available, start_time, end_time, timezone, created_at, updated_at
+		FROM appointment_availability_overrides WHERE organization_id = $1 AND user_id = $2`
+	args := []interface{}{organizationID, userID}
+	argIndex := 3
+
+	if startDate != nil {
+		baseQuery += fmt.Sprintf(" AND date >= $%d", argIndex)
+		args = append(args, *startDate)
+		argIndex++
+	}
+	if endDate != nil {
+		baseQuery += fmt.Sprintf(" AND date <= $%d", argIndex)
+		args = append(args, *endDate)
+		argIndex++
+	}
+
+	baseQuery += " ORDER BY date ASC"
+
+	rows, err := r.pool.Query(ctx, baseQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list availability overrides: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]AvailabilityOverride, 0)
+	for rows.Next() {
+		var item AvailabilityOverride
+		if err := rows.Scan(
+			&item.ID,
+			&item.OrganizationID,
+			&item.UserID,
+			&item.Date,
+			&item.IsAvailable,
+			&item.StartTime,
+			&item.EndTime,
+			&item.Timezone,
+			&item.CreatedAt,
+			&item.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan availability override: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate availability overrides: %w", err)
+	}
+
+	return items, nil
+}
+
+func (r *Repository) GetAvailabilityOverrideByID(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) (*AvailabilityOverride, error) {
+	query := `SELECT id, organization_id, user_id, date, is_available, start_time, end_time, timezone, created_at, updated_at
+		FROM appointment_availability_overrides WHERE id = $1 AND organization_id = $2`
+
+	var item AvailabilityOverride
+	err := r.pool.QueryRow(ctx, query, id, organizationID).Scan(
+		&item.ID,
+		&item.OrganizationID,
+		&item.UserID,
+		&item.Date,
+		&item.IsAvailable,
+		&item.StartTime,
+		&item.EndTime,
+		&item.Timezone,
+		&item.CreatedAt,
+		&item.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, apperr.NotFound("availability override not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get availability override: %w", err)
+	}
+
+	return &item, nil
+}
+
+func (r *Repository) DeleteAvailabilityOverride(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) error {
+	_, err := r.pool.Exec(ctx, `DELETE FROM appointment_availability_overrides WHERE id = $1 AND organization_id = $2`, id, organizationID)
+	if err != nil {
+		return fmt.Errorf("failed to delete availability override: %w", err)
+	}
+	return nil
+}
+
+func (r *Repository) UpdateAvailabilityOverride(ctx context.Context, id uuid.UUID, organizationID uuid.UUID, override AvailabilityOverride) (*AvailabilityOverride, error) {
+	query := `
+		UPDATE appointment_availability_overrides SET
+			date = $3,
+			is_available = $4,
+			start_time = $5,
+			end_time = $6,
+			timezone = $7,
+			updated_at = now()
+		WHERE id = $1 AND organization_id = $2
+		RETURNING id, organization_id, user_id, date, is_available, start_time, end_time, timezone, created_at, updated_at`
+
+	var saved AvailabilityOverride
+	err := r.pool.QueryRow(ctx, query,
+		id,
+		organizationID,
+		override.Date,
+		override.IsAvailable,
+		override.StartTime,
+		override.EndTime,
+		override.Timezone,
+	).Scan(
+		&saved.ID,
+		&saved.OrganizationID,
+		&saved.UserID,
+		&saved.Date,
+		&saved.IsAvailable,
+		&saved.StartTime,
+		&saved.EndTime,
+		&saved.Timezone,
+		&saved.CreatedAt,
+		&saved.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, apperr.NotFound("availability override not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to update availability override: %w", err)
+	}
+
+	return &saved, nil
+}
+</file>
+
+<file path="../portal_final_backend/internal/appointments/repository/repository.go">
+package repository
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"portal_final_backend/internal/appointments/transport"
+	"portal_final_backend/platform/apperr"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+// Appointment represents the appointment database model
+type Appointment struct {
+	ID             uuid.UUID  `db:"id"`
+	OrganizationID uuid.UUID  `db:"organization_id"`
+	UserID         uuid.UUID  `db:"user_id"`
+	LeadID         *uuid.UUID `db:"lead_id"`
+	LeadServiceID  *uuid.UUID `db:"lead_service_id"`
+	Type           string     `db:"type"`
+	Title          string     `db:"title"`
+	Description    *string    `db:"description"`
+	Location       *string    `db:"location"`
+	StartTime      time.Time  `db:"start_time"`
+	EndTime        time.Time  `db:"end_time"`
+	Status         string     `db:"status"`
+	AllDay         bool       `db:"all_day"`
+	CreatedAt      time.Time  `db:"created_at"`
+	UpdatedAt      time.Time  `db:"updated_at"`
+}
+
+// LeadInfo represents basic lead information for embedding in appointment responses
+type LeadInfo struct {
+	ID          uuid.UUID `db:"id"`
+	FirstName   string    `db:"first_name"`
+	LastName    string    `db:"last_name"`
+	Phone       string    `db:"phone"`
+	Street      string    `db:"street"`
+	HouseNumber string    `db:"house_number"`
+	City        string    `db:"city"`
+}
+
+// Repository provides database operations for appointments
+type Repository struct {
+	pool *pgxpool.Pool
+}
+
+// New creates a new appointments repository
+func New(pool *pgxpool.Pool) *Repository {
+	return &Repository{pool: pool}
+}
+
+// Create inserts a new appointment
+func (r *Repository) Create(ctx context.Context, appt *Appointment) error {
+	query := `
+		INSERT INTO appointments (
+			id, organization_id, user_id, lead_id, lead_service_id, type, title, description,
+			location, start_time, end_time, status, all_day, created_at, updated_at
+		) VALUES (
+			$1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15
+		)`
+
+	_, err := r.pool.Exec(ctx, query,
+		appt.ID, appt.OrganizationID, appt.UserID, appt.LeadID, appt.LeadServiceID, appt.Type,
+		appt.Title, appt.Description, appt.Location, appt.StartTime, appt.EndTime,
+		appt.Status, appt.AllDay, appt.CreatedAt, appt.UpdatedAt,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to create appointment: %w", err)
+	}
+
+	return nil
+}
+
+// GetByID retrieves an appointment by its ID
+func (r *Repository) GetByID(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) (*Appointment, error) {
+	var appt Appointment
+	query := `SELECT id, organization_id, user_id, lead_id, lead_service_id, type, title, description,
+		location, start_time, end_time, status, all_day, created_at, updated_at
+		FROM appointments WHERE id = $1 AND organization_id = $2`
+
+	err := r.pool.QueryRow(ctx, query, id, organizationID).Scan(
+		&appt.ID, &appt.OrganizationID, &appt.UserID, &appt.LeadID, &appt.LeadServiceID, &appt.Type,
+		&appt.Title, &appt.Description, &appt.Location, &appt.StartTime, &appt.EndTime,
+		&appt.Status, &appt.AllDay, &appt.CreatedAt, &appt.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, apperr.NotFound("appointment not found")
+		}
+		return nil, fmt.Errorf("failed to get appointment: %w", err)
+	}
+
+	return &appt, nil
+}
+
+// GetByLeadServiceID retrieves an appointment by lead service ID (for sync)
+func (r *Repository) GetByLeadServiceID(ctx context.Context, leadServiceID uuid.UUID, organizationID uuid.UUID) (*Appointment, error) {
+	var appt Appointment
+	query := `SELECT id, organization_id, user_id, lead_id, lead_service_id, type, title, description,
+		location, start_time, end_time, status, all_day, created_at, updated_at
+		FROM appointments WHERE lead_service_id = $1 AND organization_id = $2 AND status = 'scheduled' ORDER BY created_at DESC LIMIT 1`
+
+	err := r.pool.QueryRow(ctx, query, leadServiceID, organizationID).Scan(
+		&appt.ID, &appt.OrganizationID, &appt.UserID, &appt.LeadID, &appt.LeadServiceID, &appt.Type,
+		&appt.Title, &appt.Description, &appt.Location, &appt.StartTime, &appt.EndTime,
+		&appt.Status, &appt.AllDay, &appt.CreatedAt, &appt.UpdatedAt,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil // Not found is acceptable
+		}
+		return nil, fmt.Errorf("failed to get appointment by lead service: %w", err)
+	}
+
+	return &appt, nil
+}
+
+// Update updates an existing appointment
+func (r *Repository) Update(ctx context.Context, appt *Appointment) error {
+	query := `
+		UPDATE appointments SET
+			title = $2,
+			description = $3,
+			location = $4,
+			start_time = $5,
+			end_time = $6,
+			all_day = $7,
+			updated_at = $8
+		WHERE id = $1 AND organization_id = $9`
+
+	result, err := r.pool.Exec(ctx, query,
+		appt.ID, appt.Title, appt.Description, appt.Location,
+		appt.StartTime, appt.EndTime, appt.AllDay, appt.UpdatedAt, appt.OrganizationID,
+	)
+	if err != nil {
+		return fmt.Errorf("failed to update appointment: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return apperr.NotFound("appointment not found")
+	}
+
+	return nil
+}
+
+// UpdateStatus updates the status of an appointment
+func (r *Repository) UpdateStatus(ctx context.Context, id uuid.UUID, organizationID uuid.UUID, status string) error {
+	query := `UPDATE appointments SET status = $3, updated_at = $4 WHERE id = $1 AND organization_id = $2`
+
+	result, err := r.pool.Exec(ctx, query, id, organizationID, status, time.Now())
+	if err != nil {
+		return fmt.Errorf("failed to update appointment status: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return apperr.NotFound("appointment not found")
+	}
+
+	return nil
+}
+
+// Delete removes an appointment
+func (r *Repository) Delete(ctx context.Context, id uuid.UUID, organizationID uuid.UUID) error {
+	query := `DELETE FROM appointments WHERE id = $1 AND organization_id = $2`
+
+	result, err := r.pool.Exec(ctx, query, id, organizationID)
+	if err != nil {
+		return fmt.Errorf("failed to delete appointment: %w", err)
+	}
+
+	if result.RowsAffected() == 0 {
+		return apperr.NotFound("appointment not found")
+	}
+
+	return nil
+}
+
+// ListParams contains parameters for listing appointments
+type ListParams struct {
+	OrganizationID uuid.UUID
+	UserID         *uuid.UUID
+	LeadID         *uuid.UUID
+	Type           *string
+	Status         *string
+	StartFrom      *time.Time
+	StartTo        *time.Time
+	Search         string
+	SortBy         string
+	SortOrder      string
+	Page           int
+	PageSize       int
+}
+
+// ListResult contains the result of listing appointments
+type ListResult struct {
+	Items      []Appointment
+	Total      int
+	Page       int
+	PageSize   int
+	TotalPages int
+}
+
+// List retrieves appointments with optional filtering
+func (r *Repository) List(ctx context.Context, params ListParams) (*ListResult, error) {
+	// Build query
+	baseQuery := `FROM appointments WHERE organization_id = $1`
+	args := []interface{}{params.OrganizationID}
+	argIndex := 2
+
+	if params.UserID != nil {
+		baseQuery += fmt.Sprintf(" AND user_id = $%d", argIndex)
+		args = append(args, *params.UserID)
+		argIndex++
+	}
+
+	if params.LeadID != nil {
+		baseQuery += fmt.Sprintf(" AND lead_id = $%d", argIndex)
+		args = append(args, *params.LeadID)
+		argIndex++
+	}
+
+	if params.Type != nil {
+		baseQuery += fmt.Sprintf(" AND type = $%d", argIndex)
+		args = append(args, *params.Type)
+		argIndex++
+	}
+
+	if params.Status != nil {
+		baseQuery += fmt.Sprintf(" AND status = $%d", argIndex)
+		args = append(args, *params.Status)
+		argIndex++
+	}
+
+	if params.StartFrom != nil {
+		baseQuery += fmt.Sprintf(" AND start_time >= $%d", argIndex)
+		args = append(args, *params.StartFrom)
+		argIndex++
+	}
+
+	if params.StartTo != nil {
+		baseQuery += fmt.Sprintf(" AND start_time <= $%d", argIndex)
+		args = append(args, *params.StartTo)
+		argIndex++
+	}
+
+	if params.Search != "" {
+		baseQuery += fmt.Sprintf(" AND (title ILIKE $%d OR location ILIKE $%d)", argIndex, argIndex)
+		args = append(args, "%"+params.Search+"%")
+		argIndex++
+	}
+
+	// Count total
+	var total int
+	countQuery := "SELECT COUNT(*) " + baseQuery
+	if err := r.pool.QueryRow(ctx, countQuery, args...).Scan(&total); err != nil {
+		return nil, fmt.Errorf("failed to count appointments: %w", err)
+	}
+
+	// Calculate pagination
+	totalPages := (total + params.PageSize - 1) / params.PageSize
+	offset := (params.Page - 1) * params.PageSize
+
+	// Build ORDER BY clause
+	orderBy := "start_time"
+	if params.SortBy != "" {
+		// Map frontend column names to database columns
+		columnMap := map[string]string{
+			"title":     "title",
+			"type":      "type",
+			"status":    "status",
+			"startTime": "start_time",
+			"endTime":   "end_time",
+			"createdAt": "created_at",
+		}
+		if col, ok := columnMap[params.SortBy]; ok {
+			orderBy = col
+		}
+	}
+	sortDir := "ASC"
+	if params.SortOrder == "desc" {
+		sortDir = "DESC"
+	}
+
+	// Fetch items
+	selectQuery := fmt.Sprintf(`SELECT id, organization_id, user_id, lead_id, lead_service_id, type, title, description,
+		location, start_time, end_time, status, all_day, created_at, updated_at %s ORDER BY %s %s LIMIT $%d OFFSET $%d`,
+		baseQuery, orderBy, sortDir, argIndex, argIndex+1)
+	args = append(args, params.PageSize, offset)
+
+	rows, err := r.pool.Query(ctx, selectQuery, args...)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list appointments: %w", err)
+	}
+	defer rows.Close()
+
+	var items []Appointment
+	for rows.Next() {
+		var appt Appointment
+		if err := rows.Scan(
+			&appt.ID, &appt.OrganizationID, &appt.UserID, &appt.LeadID, &appt.LeadServiceID, &appt.Type,
+			&appt.Title, &appt.Description, &appt.Location, &appt.StartTime, &appt.EndTime,
+			&appt.Status, &appt.AllDay, &appt.CreatedAt, &appt.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan appointment: %w", err)
+		}
+		items = append(items, appt)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate appointments: %w", err)
+	}
+
+	return &ListResult{
+		Items:      items,
+		Total:      total,
+		Page:       params.Page,
+		PageSize:   params.PageSize,
+		TotalPages: totalPages,
+	}, nil
+}
+
+// GetLeadInfo retrieves basic lead information for embedding in appointment responses
+func (r *Repository) GetLeadInfo(ctx context.Context, leadID uuid.UUID, organizationID uuid.UUID) (*LeadInfo, error) {
+	var info LeadInfo
+	query := `SELECT id, consumer_first_name, consumer_last_name, consumer_phone, address_street, address_house_number, address_city 
+		FROM leads WHERE id = $1 AND organization_id = $2`
+
+	err := r.pool.QueryRow(ctx, query, leadID, organizationID).Scan(
+		&info.ID, &info.FirstName, &info.LastName, &info.Phone,
+		&info.Street, &info.HouseNumber, &info.City,
+	)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return nil, nil
+		}
+		return nil, fmt.Errorf("failed to get lead info: %w", err)
+	}
+
+	return &info, nil
+}
+
+// GetLeadEmail retrieves the email for a lead
+func (r *Repository) GetLeadEmail(ctx context.Context, leadID uuid.UUID, organizationID uuid.UUID) (string, error) {
+	var email string
+	query := `SELECT COALESCE(consumer_email, '') FROM leads WHERE id = $1 AND organization_id = $2`
+
+	err := r.pool.QueryRow(ctx, query, leadID, organizationID).Scan(&email)
+	if err != nil {
+		if errors.Is(err, pgx.ErrNoRows) {
+			return "", nil
+		}
+		return "", fmt.Errorf("failed to get lead email: %w", err)
+	}
+
+	return email, nil
+}
+
+// GetLeadInfoBatch retrieves lead info for multiple lead IDs
+func (r *Repository) GetLeadInfoBatch(ctx context.Context, leadIDs []uuid.UUID, organizationID uuid.UUID) (map[uuid.UUID]*LeadInfo, error) {
+	if len(leadIDs) == 0 {
+		return make(map[uuid.UUID]*LeadInfo), nil
+	}
+
+	query := `SELECT id, consumer_first_name, consumer_last_name, consumer_phone, address_street, address_house_number, address_city 
+		FROM leads WHERE id = ANY($1) AND organization_id = $2`
+
+	rows, err := r.pool.Query(ctx, query, leadIDs, organizationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get lead info batch: %w", err)
+	}
+	defer rows.Close()
+
+	result := make(map[uuid.UUID]*LeadInfo)
+	for rows.Next() {
+		var info LeadInfo
+		if err := rows.Scan(
+			&info.ID, &info.FirstName, &info.LastName, &info.Phone,
+			&info.Street, &info.HouseNumber, &info.City,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan lead info: %w", err)
+		}
+		result[info.ID] = &info
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate leads: %w", err)
+	}
+
+	return result, nil
+}
+
+// ListForDateRange retrieves all appointments for a user within a date range (for slots computation)
+func (r *Repository) ListForDateRange(ctx context.Context, organizationID uuid.UUID, userID uuid.UUID, startDate, endDate time.Time) ([]Appointment, error) {
+	query := `SELECT id, organization_id, user_id, lead_id, lead_service_id, type, title, description,
+		location, start_time, end_time, status, all_day, created_at, updated_at
+		FROM appointments 
+		WHERE organization_id = $1 AND user_id = $2 
+		AND start_time >= $3 AND start_time < $4
+		AND status = 'scheduled'
+		ORDER BY start_time ASC`
+
+	rows, err := r.pool.Query(ctx, query, organizationID, userID, startDate, endDate)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list appointments for date range: %w", err)
+	}
+	defer rows.Close()
+
+	var items []Appointment
+	for rows.Next() {
+		var appt Appointment
+		if err := rows.Scan(
+			&appt.ID, &appt.OrganizationID, &appt.UserID, &appt.LeadID, &appt.LeadServiceID, &appt.Type,
+			&appt.Title, &appt.Description, &appt.Location, &appt.StartTime, &appt.EndTime,
+			&appt.Status, &appt.AllDay, &appt.CreatedAt, &appt.UpdatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan appointment: %w", err)
+		}
+		items = append(items, appt)
+	}
+
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate appointments: %w", err)
+	}
+
+	return items, nil
+}
+
+// ToResponse converts an Appointment to AppointmentResponse
+func (a *Appointment) ToResponse(leadInfo *transport.AppointmentLeadInfo) transport.AppointmentResponse {
+	resp := transport.AppointmentResponse{
+		ID:            a.ID,
+		UserID:        a.UserID,
+		LeadID:        a.LeadID,
+		LeadServiceID: a.LeadServiceID,
+		Type:          transport.AppointmentType(a.Type),
+		Title:         a.Title,
+		Description:   a.Description,
+		Location:      a.Location,
+		StartTime:     a.StartTime,
+		EndTime:       a.EndTime,
+		Status:        transport.AppointmentStatus(a.Status),
+		AllDay:        a.AllDay,
+		CreatedAt:     a.CreatedAt,
+		UpdatedAt:     a.UpdatedAt,
+		Lead:          leadInfo,
+	}
+	return resp
+}
+</file>
+
+<file path="../portal_final_backend/internal/appointments/repository/visit_reports.go">
+package repository
+
+import (
+	"context"
+	"errors"
+	"fmt"
+	"time"
+
+	"portal_final_backend/platform/apperr"
+
+	"github.com/google/uuid"
+	"github.com/jackc/pgx/v5"
+)
+
+type VisitReport struct {
+	AppointmentID    uuid.UUID
+	OrganizationID   uuid.UUID
+	Measurements     *string
+	AccessDifficulty *string
+	Notes            *string
+	CreatedAt        time.Time
+	UpdatedAt        time.Time
+}
+
+type AppointmentAttachment struct {
+	ID            uuid.UUID
+	AppointmentID uuid.UUID
+	OrganizationID uuid.UUID
+	FileKey       string
+	FileName      string
+	ContentType   *string
+	SizeBytes     *int64
+	CreatedAt     time.Time
+}
+
+func (r *Repository) GetVisitReport(ctx context.Context, appointmentID uuid.UUID, organizationID uuid.UUID) (*VisitReport, error) {
+	var report VisitReport
+	query := `SELECT appointment_id, organization_id, measurements, access_difficulty, notes, created_at, updated_at
+		FROM appointment_visit_reports WHERE appointment_id = $1 AND organization_id = $2`
+
+	err := r.pool.QueryRow(ctx, query, appointmentID, organizationID).Scan(
+		&report.AppointmentID,
+		&report.OrganizationID,
+		&report.Measurements,
+		&report.AccessDifficulty,
+		&report.Notes,
+		&report.CreatedAt,
+		&report.UpdatedAt,
+	)
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, apperr.NotFound("visit report not found")
+	}
+	if err != nil {
+		return nil, fmt.Errorf("failed to get visit report: %w", err)
+	}
+
+	return &report, nil
+}
+
+func (r *Repository) UpsertVisitReport(ctx context.Context, report VisitReport) (*VisitReport, error) {
+	query := `
+		INSERT INTO appointment_visit_reports
+			(appointment_id, organization_id, measurements, access_difficulty, notes, created_at, updated_at)
+		VALUES
+			($1, $2, $3, $4, $5, now(), now())
+		ON CONFLICT (appointment_id)
+		DO UPDATE SET
+			measurements = EXCLUDED.measurements,
+			access_difficulty = EXCLUDED.access_difficulty,
+			notes = EXCLUDED.notes,
+			updated_at = now()
+		RETURNING appointment_id, organization_id, measurements, access_difficulty, notes, created_at, updated_at`
+
+	var saved VisitReport
+	err := r.pool.QueryRow(ctx, query,
+		report.AppointmentID,
+		report.OrganizationID,
+		report.Measurements,
+		report.AccessDifficulty,
+		report.Notes,
+	).Scan(
+		&saved.AppointmentID,
+		&saved.OrganizationID,
+		&saved.Measurements,
+		&saved.AccessDifficulty,
+		&saved.Notes,
+		&saved.CreatedAt,
+		&saved.UpdatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to upsert visit report: %w", err)
+	}
+
+	return &saved, nil
+}
+
+func (r *Repository) CreateAttachment(ctx context.Context, attachment AppointmentAttachment) (*AppointmentAttachment, error) {
+	query := `
+		INSERT INTO appointment_attachments
+			(id, appointment_id, organization_id, file_key, file_name, content_type, size_bytes)
+		VALUES
+			($1, $2, $3, $4, $5, $6, $7)
+		RETURNING id, appointment_id, organization_id, file_key, file_name, content_type, size_bytes, created_at`
+
+	var saved AppointmentAttachment
+	err := r.pool.QueryRow(ctx, query,
+		attachment.ID,
+		attachment.AppointmentID,
+		attachment.OrganizationID,
+		attachment.FileKey,
+		attachment.FileName,
+		attachment.ContentType,
+		attachment.SizeBytes,
+	).Scan(
+		&saved.ID,
+		&saved.AppointmentID,
+		&saved.OrganizationID,
+		&saved.FileKey,
+		&saved.FileName,
+		&saved.ContentType,
+		&saved.SizeBytes,
+		&saved.CreatedAt,
+	)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create appointment attachment: %w", err)
+	}
+
+	return &saved, nil
+}
+
+func (r *Repository) ListAttachments(ctx context.Context, appointmentID uuid.UUID, organizationID uuid.UUID) ([]AppointmentAttachment, error) {
+	query := `SELECT id, appointment_id, organization_id, file_key, file_name, content_type, size_bytes, created_at
+		FROM appointment_attachments WHERE appointment_id = $1 AND organization_id = $2 ORDER BY created_at ASC`
+
+	rows, err := r.pool.Query(ctx, query, appointmentID, organizationID)
+	if err != nil {
+		return nil, fmt.Errorf("failed to list appointment attachments: %w", err)
+	}
+	defer rows.Close()
+
+	items := make([]AppointmentAttachment, 0)
+	for rows.Next() {
+		var item AppointmentAttachment
+		if err := rows.Scan(
+			&item.ID,
+			&item.AppointmentID,
+			&item.OrganizationID,
+			&item.FileKey,
+			&item.FileName,
+			&item.ContentType,
+			&item.SizeBytes,
+			&item.CreatedAt,
+		); err != nil {
+			return nil, fmt.Errorf("failed to scan appointment attachment: %w", err)
+		}
+		items = append(items, item)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, fmt.Errorf("failed to iterate appointment attachments: %w", err)
+	}
+
+	return items, nil
+}
+</file>
+
+<file path="../portal_final_backend/internal/appointments/service/service.go">
+package service
+
+import (
+	"context"
+	"fmt"
+	"sort"
+	"time"
+
+	"portal_final_backend/internal/appointments/repository"
+	"portal_final_backend/internal/appointments/transport"
+	"portal_final_backend/internal/email"
+	"portal_final_backend/platform/apperr"
+
+	"github.com/google/uuid"
+)
+
+// LeadAssigner provides minimal lead assignment capabilities for lead visits.
+type LeadAssigner interface {
+	GetAssignedAgentID(ctx context.Context, leadID uuid.UUID, tenantID uuid.UUID) (*uuid.UUID, error)
+	AssignLead(ctx context.Context, leadID uuid.UUID, agentID uuid.UUID, tenantID uuid.UUID) error
+}
+
+// Service provides business logic for appointments
+type Service struct {
+	repo         *repository.Repository
+	leadAssigner LeadAssigner
+	emailSender  email.Sender
+}
+
+// New creates a new appointments service
+func New(repo *repository.Repository, leadAssigner LeadAssigner, emailSender email.Sender) *Service {
+	return &Service{repo: repo, leadAssigner: leadAssigner, emailSender: emailSender}
+}
+
+// Create creates a new appointment
+func (s *Service) Create(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, req transport.CreateAppointmentRequest) (*transport.AppointmentResponse, error) {
+	// Validate lead_visit type has required fields
+	if req.Type == transport.AppointmentTypeLeadVisit {
+		if req.LeadID == nil || req.LeadServiceID == nil {
+			return nil, apperr.BadRequest("lead_visit type requires leadId and leadServiceId")
+		}
+		if s.leadAssigner == nil {
+			return nil, apperr.BadRequest("lead assignment not configured")
+		}
+
+		assignedAgentID, err := s.leadAssigner.GetAssignedAgentID(ctx, *req.LeadID, tenantID)
+		if err != nil {
+			return nil, err
+		}
+
+		if assignedAgentID != nil && *assignedAgentID != userID && !isAdmin {
+			return nil, apperr.Forbidden("not authorized to schedule visits for this lead")
+		}
+		if assignedAgentID == nil && !isAdmin {
+			if err := s.leadAssigner.AssignLead(ctx, *req.LeadID, userID, tenantID); err != nil {
+				return nil, err
+			}
+		}
+	}
+
+	// Validate time range
+	if !req.EndTime.After(req.StartTime) {
+		return nil, apperr.BadRequest("endTime must be after startTime")
+	}
+
+	now := time.Now()
+	appt := &repository.Appointment{
+		ID:             uuid.New(),
+		OrganizationID: tenantID,
+		UserID:         userID,
+		LeadID:         req.LeadID,
+		LeadServiceID:  req.LeadServiceID,
+		Type:           string(req.Type),
+		Title:          req.Title,
+		Description:    nilIfEmpty(req.Description),
+		Location:       nilIfEmpty(req.Location),
+		StartTime:      req.StartTime,
+		EndTime:        req.EndTime,
+		Status:         string(transport.AppointmentStatusScheduled),
+		AllDay:         req.AllDay,
+		CreatedAt:      now,
+		UpdatedAt:      now,
+	}
+
+	if err := s.repo.Create(ctx, appt); err != nil {
+		return nil, err
+	}
+
+	// Get lead info if this is a lead visit
+	var leadInfo *transport.AppointmentLeadInfo
+	if appt.LeadID != nil {
+		leadInfo = s.getLeadInfo(ctx, *appt.LeadID, tenantID)
+	}
+
+	// Send confirmation email if requested and this is a lead visit with lead info
+	if req.SendConfirmationEmail != nil && *req.SendConfirmationEmail && leadInfo != nil && s.emailSender != nil {
+		// Get consumer email from lead info (we need to fetch it separately)
+		if consumerEmail := s.getLeadEmail(ctx, *appt.LeadID, tenantID); consumerEmail != "" {
+			scheduledDate := appt.StartTime.Format("Monday, January 2, 2006 at 15:04")
+			_ = s.emailSender.SendVisitInviteEmail(ctx, consumerEmail, leadInfo.FirstName, scheduledDate, leadInfo.Address)
+			// We don't fail the appointment creation if email fails
+		}
+	}
+
+	resp := appt.ToResponse(leadInfo)
+	return &resp, nil
+}
+
+// GetByID retrieves an appointment by ID
+func (s *Service) GetByID(ctx context.Context, id uuid.UUID, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID) (*transport.AppointmentResponse, error) {
+	appt, err := s.ensureAccess(ctx, id, userID, isAdmin, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	var leadInfo *transport.AppointmentLeadInfo
+	if appt.LeadID != nil {
+		leadInfo = s.getLeadInfo(ctx, *appt.LeadID, tenantID)
+	}
+
+	resp := appt.ToResponse(leadInfo)
+	return &resp, nil
+}
+
+// Update updates an appointment
+func (s *Service) Update(ctx context.Context, id uuid.UUID, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, req transport.UpdateAppointmentRequest) (*transport.AppointmentResponse, error) {
+	appt, err := s.repo.GetByID(ctx, id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check ownership (admin can update any)
+	if !isAdmin && appt.UserID != userID {
+		return nil, apperr.Forbidden("not authorized to update this appointment")
+	}
+
+	// Apply updates
+	if req.Title != nil {
+		appt.Title = *req.Title
+	}
+	if req.Description != nil {
+		appt.Description = req.Description
+	}
+	if req.Location != nil {
+		appt.Location = req.Location
+	}
+	if req.StartTime != nil {
+		appt.StartTime = *req.StartTime
+	}
+	if req.EndTime != nil {
+		appt.EndTime = *req.EndTime
+	}
+	if req.AllDay != nil {
+		appt.AllDay = *req.AllDay
+	}
+
+	// Validate time range after updates
+	if !appt.EndTime.After(appt.StartTime) {
+		return nil, apperr.BadRequest("endTime must be after startTime")
+	}
+
+	appt.UpdatedAt = time.Now()
+
+	if err := s.repo.Update(ctx, appt); err != nil {
+		return nil, err
+	}
+
+	var leadInfo *transport.AppointmentLeadInfo
+	if appt.LeadID != nil {
+		leadInfo = s.getLeadInfo(ctx, *appt.LeadID, tenantID)
+	}
+
+	resp := appt.ToResponse(leadInfo)
+	return &resp, nil
+}
+
+// UpdateStatus updates the status of an appointment
+func (s *Service) UpdateStatus(ctx context.Context, id uuid.UUID, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, req transport.UpdateAppointmentStatusRequest) (*transport.AppointmentResponse, error) {
+	appt, err := s.repo.GetByID(ctx, id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Check ownership (admin can update any)
+	if !isAdmin && appt.UserID != userID {
+		return nil, apperr.Forbidden("not authorized to update this appointment")
+	}
+
+	if err := s.repo.UpdateStatus(ctx, id, tenantID, string(req.Status)); err != nil {
+		return nil, err
+	}
+
+	// Refetch to get updated data
+	appt, err = s.repo.GetByID(ctx, id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	var leadInfo *transport.AppointmentLeadInfo
+	if appt.LeadID != nil {
+		leadInfo = s.getLeadInfo(ctx, *appt.LeadID, tenantID)
+	}
+
+	resp := appt.ToResponse(leadInfo)
+	return &resp, nil
+}
+
+// Delete removes an appointment
+func (s *Service) Delete(ctx context.Context, id uuid.UUID, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID) error {
+	appt, err := s.repo.GetByID(ctx, id, tenantID)
+	if err != nil {
+		return err
+	}
+
+	// Check ownership (admin can delete any)
+	if !isAdmin && appt.UserID != userID {
+		return apperr.Forbidden("not authorized to delete this appointment")
+	}
+
+	return s.repo.Delete(ctx, id, tenantID)
+}
+
+// List retrieves appointments with filtering
+func (s *Service) List(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, req transport.ListAppointmentsRequest) (*transport.AppointmentListResponse, error) {
+	// Apply pagination defaults
+	page := req.Page
+	if page == 0 {
+		page = 1
+	}
+	pageSize := req.PageSize
+	if pageSize == 0 {
+		pageSize = 20
+	}
+
+	// Parse UUID filters
+	var leadID *uuid.UUID
+	if req.LeadID != "" {
+		parsed, err := uuid.Parse(req.LeadID)
+		if err != nil {
+			return nil, apperr.BadRequest("invalid leadId format")
+		}
+		leadID = &parsed
+	}
+
+	var reqUserID *uuid.UUID
+	if req.UserID != "" {
+		parsed, err := uuid.Parse(req.UserID)
+		if err != nil {
+			return nil, apperr.BadRequest("invalid userId format")
+		}
+		reqUserID = &parsed
+	}
+
+	// Build params
+	params := repository.ListParams{
+		OrganizationID: tenantID,
+		LeadID:         leadID,
+		Page:           page,
+		PageSize:       pageSize,
+	}
+
+	// Non-admins can only see their own appointments
+	if !isAdmin {
+		params.UserID = &userID
+	} else if reqUserID != nil {
+		params.UserID = reqUserID
+	}
+
+	if req.Type != nil {
+		t := string(*req.Type)
+		params.Type = &t
+	}
+
+	if req.Status != nil {
+		st := string(*req.Status)
+		params.Status = &st
+	}
+
+	// Parse date filters
+	if req.StartFrom != "" {
+		t, err := time.Parse("2006-01-02", req.StartFrom)
+		if err != nil {
+			return nil, apperr.BadRequest(fmt.Sprintf("invalid startFrom date format: %s", req.StartFrom))
+		}
+		params.StartFrom = &t
+	}
+
+	if req.StartTo != "" {
+		t, err := time.Parse("2006-01-02", req.StartTo)
+		if err != nil {
+			return nil, apperr.BadRequest(fmt.Sprintf("invalid startTo date format: %s", req.StartTo))
+		}
+		// Add a day to include the full end date
+		endOfDay := t.Add(24*time.Hour - time.Nanosecond)
+		params.StartTo = &endOfDay
+	}
+
+	// Default pagination
+	if params.Page < 1 {
+		params.Page = 1
+	}
+	if params.PageSize < 1 || params.PageSize > 100 {
+		params.PageSize = 50
+	}
+
+	result, err := s.repo.List(ctx, params)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build lead ID list for batch fetching
+	leadIDs := make([]uuid.UUID, 0)
+	for _, appt := range result.Items {
+		if appt.LeadID != nil {
+			leadIDs = append(leadIDs, *appt.LeadID)
+		}
+	}
+
+	// Batch fetch lead info
+	leadInfoMap, err := s.repo.GetLeadInfoBatch(ctx, leadIDs, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Convert to responses
+	items := make([]transport.AppointmentResponse, len(result.Items))
+	for i, appt := range result.Items {
+		var leadInfo *transport.AppointmentLeadInfo
+		if appt.LeadID != nil {
+			if info, ok := leadInfoMap[*appt.LeadID]; ok && info != nil {
+				leadInfo = &transport.AppointmentLeadInfo{
+					ID:        info.ID,
+					FirstName: info.FirstName,
+					LastName:  info.LastName,
+					Phone:     info.Phone,
+					Address:   fmt.Sprintf("%s %s, %s", info.Street, info.HouseNumber, info.City),
+				}
+			}
+		}
+		items[i] = appt.ToResponse(leadInfo)
+	}
+
+	return &transport.AppointmentListResponse{
+		Items:      items,
+		Total:      result.Total,
+		Page:       result.Page,
+		PageSize:   result.PageSize,
+		TotalPages: result.TotalPages,
+	}, nil
+}
+
+// Visit reports
+func (s *Service) GetVisitReport(ctx context.Context, appointmentID uuid.UUID, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID) (*transport.AppointmentVisitReportResponse, error) {
+	if _, err := s.ensureAccess(ctx, appointmentID, userID, isAdmin, tenantID); err != nil {
+		return nil, err
+	}
+
+	report, err := s.repo.GetVisitReport(ctx, appointmentID, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	return &transport.AppointmentVisitReportResponse{
+		AppointmentID:    report.AppointmentID,
+		Measurements:     report.Measurements,
+		AccessDifficulty: toAccessDifficulty(report.AccessDifficulty),
+		Notes:            report.Notes,
+		CreatedAt:        report.CreatedAt,
+		UpdatedAt:        report.UpdatedAt,
+	}, nil
+}
+
+func (s *Service) UpsertVisitReport(ctx context.Context, appointmentID uuid.UUID, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, req transport.UpsertVisitReportRequest) (*transport.AppointmentVisitReportResponse, error) {
+	if _, err := s.ensureAccess(ctx, appointmentID, userID, isAdmin, tenantID); err != nil {
+		return nil, err
+	}
+
+	existing, _ := s.repo.GetVisitReport(ctx, appointmentID, tenantID)
+	measurements := mergeString(existing, func(r *repository.VisitReport) *string { return r.Measurements }, req.Measurements)
+	accessDifficulty := mergeString(existing, func(r *repository.VisitReport) *string { return r.AccessDifficulty }, toAccessDifficultyString(req.AccessDifficulty))
+	notes := mergeString(existing, func(r *repository.VisitReport) *string { return r.Notes }, req.Notes)
+
+	saved, err := s.repo.UpsertVisitReport(ctx, repository.VisitReport{
+		AppointmentID:    appointmentID,
+		OrganizationID:   tenantID,
+		Measurements:     measurements,
+		AccessDifficulty: accessDifficulty,
+		Notes:            notes,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return &transport.AppointmentVisitReportResponse{
+		AppointmentID:    saved.AppointmentID,
+		Measurements:     saved.Measurements,
+		AccessDifficulty: toAccessDifficulty(saved.AccessDifficulty),
+		Notes:            saved.Notes,
+		CreatedAt:        saved.CreatedAt,
+		UpdatedAt:        saved.UpdatedAt,
+	}, nil
+}
+
+// Attachments
+func (s *Service) CreateAttachment(ctx context.Context, appointmentID uuid.UUID, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, req transport.CreateAppointmentAttachmentRequest) (*transport.AppointmentAttachmentResponse, error) {
+	if _, err := s.ensureAccess(ctx, appointmentID, userID, isAdmin, tenantID); err != nil {
+		return nil, err
+	}
+
+	attachment := repository.AppointmentAttachment{
+		ID:             uuid.New(),
+		AppointmentID:  appointmentID,
+		OrganizationID: tenantID,
+		FileKey:        req.FileKey,
+		FileName:       req.FileName,
+		ContentType:    req.ContentType,
+		SizeBytes:      req.SizeBytes,
+	}
+
+	saved, err := s.repo.CreateAttachment(ctx, attachment)
+	if err != nil {
+		return nil, err
+	}
+
+	return &transport.AppointmentAttachmentResponse{
+		ID:            saved.ID,
+		AppointmentID: saved.AppointmentID,
+		FileKey:       saved.FileKey,
+		FileName:      saved.FileName,
+		ContentType:   saved.ContentType,
+		SizeBytes:     saved.SizeBytes,
+		CreatedAt:     saved.CreatedAt,
+	}, nil
+}
+
+func (s *Service) ListAttachments(ctx context.Context, appointmentID uuid.UUID, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID) ([]transport.AppointmentAttachmentResponse, error) {
+	if _, err := s.ensureAccess(ctx, appointmentID, userID, isAdmin, tenantID); err != nil {
+		return nil, err
+	}
+
+	items, err := s.repo.ListAttachments(ctx, appointmentID, tenantID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := make([]transport.AppointmentAttachmentResponse, len(items))
+	for i, item := range items {
+		resp[i] = transport.AppointmentAttachmentResponse{
+			ID:            item.ID,
+			AppointmentID: item.AppointmentID,
+			FileKey:       item.FileKey,
+			FileName:      item.FileName,
+			ContentType:   item.ContentType,
+			SizeBytes:     item.SizeBytes,
+			CreatedAt:     item.CreatedAt,
+		}
+	}
+
+	return resp, nil
+}
+
+// GetAvailableSlots computes available time slots for a user within a date range
+func (s *Service) GetAvailableSlots(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, req transport.GetAvailableSlotsRequest) (*transport.AvailableSlotsResponse, error) {
+	// Parse target user ID
+	targetUserID, err := s.resolveTargetUserIDFromString(userID, isAdmin, req.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Parse dates
+	startDate, err := time.Parse("2006-01-02", req.StartDate)
+	if err != nil {
+		return nil, apperr.BadRequest("invalid startDate format")
+	}
+	endDate, err := time.Parse("2006-01-02", req.EndDate)
+	if err != nil {
+		return nil, apperr.BadRequest("invalid endDate format")
+	}
+
+	// Validate date range
+	if endDate.Before(startDate) {
+		return nil, apperr.BadRequest("endDate must be after startDate")
+	}
+	maxDays := 14
+	if endDate.Sub(startDate).Hours()/24 > float64(maxDays) {
+		return nil, apperr.BadRequest(fmt.Sprintf("date range cannot exceed %d days", maxDays))
+	}
+
+	// Default slot duration
+	slotDuration := req.SlotDuration
+	if slotDuration <= 0 {
+		slotDuration = 60
+	}
+
+	// Fetch availability rules for the user
+	rules, err := s.repo.ListAvailabilityRules(ctx, tenantID, targetUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	// Fetch overrides for the date range
+	overrides, err := s.repo.ListAvailabilityOverrides(ctx, tenantID, targetUserID, &startDate, &endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build override map (date string -> override)
+	overrideMap := make(map[string]*repository.AvailabilityOverride)
+	for i := range overrides {
+		dateKey := overrides[i].Date.Format("2006-01-02")
+		overrideMap[dateKey] = &overrides[i]
+	}
+
+	// Fetch existing appointments in the date range
+	endOfRange := endDate.AddDate(0, 0, 1) // Make endDate inclusive
+	appointments, err := s.repo.ListForDateRange(ctx, tenantID, targetUserID, startDate, endOfRange)
+	if err != nil {
+		return nil, err
+	}
+
+	// Build appointment map by date for quick lookup
+	appointmentsByDate := make(map[string][]repository.Appointment)
+	for _, appt := range appointments {
+		dateKey := appt.StartTime.Format("2006-01-02")
+		appointmentsByDate[dateKey] = append(appointmentsByDate[dateKey], appt)
+	}
+
+	// Generate slots for each day
+	var days []transport.DaySlots
+	for d := startDate; !d.After(endDate); d = d.AddDate(0, 0, 1) {
+		dateKey := d.Format("2006-01-02")
+		weekday := int(d.Weekday())
+
+		daySlots := transport.DaySlots{
+			Date:  dateKey,
+			Slots: []transport.TimeSlot{},
+		}
+
+		// Check for override on this day
+		if override, exists := overrideMap[dateKey]; exists {
+			if !override.IsAvailable {
+				// Day is blocked
+				days = append(days, daySlots)
+				continue
+			}
+			// Override with custom hours
+			if override.StartTime != nil && override.EndTime != nil {
+				slots := generateSlotsForWindow(d, *override.StartTime, *override.EndTime, slotDuration, appointmentsByDate[dateKey])
+				daySlots.Slots = slots
+			}
+			days = append(days, daySlots)
+			continue
+		}
+
+		// Find rules for this weekday
+		var dayRules []repository.AvailabilityRule
+		for _, rule := range rules {
+			if rule.Weekday == weekday {
+				dayRules = append(dayRules, rule)
+			}
+		}
+
+		// Generate slots from rules
+		for _, rule := range dayRules {
+			slots := generateSlotsForWindow(d, rule.StartTime, rule.EndTime, slotDuration, appointmentsByDate[dateKey])
+			daySlots.Slots = append(daySlots.Slots, slots...)
+		}
+
+		// Sort slots by start time
+		sort.Slice(daySlots.Slots, func(i, j int) bool {
+			return daySlots.Slots[i].StartTime.Before(daySlots.Slots[j].StartTime)
+		})
+
+		days = append(days, daySlots)
+	}
+
+	return &transport.AvailableSlotsResponse{Days: days}, nil
+}
+
+// generateSlotsForWindow generates available slots within a time window, excluding existing appointments
+func generateSlotsForWindow(date time.Time, windowStart, windowEnd time.Time, slotDurationMinutes int, appointments []repository.Appointment) []transport.TimeSlot {
+	var slots []transport.TimeSlot
+	slotDuration := time.Duration(slotDurationMinutes) * time.Minute
+
+	// Construct full datetime for start and end of window
+	start := time.Date(date.Year(), date.Month(), date.Day(), windowStart.Hour(), windowStart.Minute(), 0, 0, time.UTC)
+	end := time.Date(date.Year(), date.Month(), date.Day(), windowEnd.Hour(), windowEnd.Minute(), 0, 0, time.UTC)
+
+	// Generate slots
+	for slotStart := start; slotStart.Add(slotDuration).Before(end) || slotStart.Add(slotDuration).Equal(end); slotStart = slotStart.Add(slotDuration) {
+		slotEnd := slotStart.Add(slotDuration)
+
+		// Check if slot conflicts with any appointment
+		conflicts := false
+		for _, appt := range appointments {
+			// Check for overlap: slot overlaps if it starts before appt ends AND ends after appt starts
+			if slotStart.Before(appt.EndTime) && slotEnd.After(appt.StartTime) {
+				conflicts = true
+				break
+			}
+		}
+
+		if !conflicts {
+			slots = append(slots, transport.TimeSlot{
+				StartTime: slotStart,
+				EndTime:   slotEnd,
+			})
+		}
+	}
+
+	return slots
+}
+
+func (s *Service) resolveTargetUserIDFromString(userID uuid.UUID, isAdmin bool, target string) (uuid.UUID, error) {
+	if target == "" {
+		return userID, nil
+	}
+	parsed, err := uuid.Parse(target)
+	if err != nil {
+		return uuid.UUID{}, apperr.BadRequest("invalid userId format")
+	}
+	if !isAdmin && parsed != userID {
+		return uuid.UUID{}, apperr.Forbidden("not authorized to view availability for this user")
+	}
+	return parsed, nil
+}
+
+// Availability
+func (s *Service) CreateAvailabilityRule(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, req transport.CreateAvailabilityRuleRequest) (*transport.AvailabilityRuleResponse, error) {
+	targetUserID, err := s.resolveTargetUserID(userID, isAdmin, req.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	startTime, endTime, timezone, err := parseAvailabilityTimes(req.StartTime, req.EndTime, req.Timezone)
+	if err != nil {
+		return nil, err
+	}
+
+	saved, err := s.repo.CreateAvailabilityRule(ctx, repository.AvailabilityRule{
+		ID:             uuid.New(),
+		OrganizationID: tenantID,
+		UserID:         targetUserID,
+		Weekday:        req.Weekday,
+		StartTime:      startTime,
+		EndTime:        endTime,
+		Timezone:       timezone,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return mapAvailabilityRule(saved), nil
+}
+
+func (s *Service) ListAvailabilityRules(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, targetUserID *uuid.UUID) ([]transport.AvailabilityRuleResponse, error) {
+	resolvedUserID, err := s.resolveTargetUserID(userID, isAdmin, targetUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := s.repo.ListAvailabilityRules(ctx, tenantID, resolvedUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := make([]transport.AvailabilityRuleResponse, len(items))
+	for i, item := range items {
+		resp[i] = *mapAvailabilityRule(&item)
+	}
+
+	return resp, nil
+}
+
+func (s *Service) DeleteAvailabilityRule(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, id uuid.UUID) error {
+	rule, err := s.repo.GetAvailabilityRuleByID(ctx, id, tenantID)
+	if err != nil {
+		return err
+	}
+	if !isAdmin && rule.UserID != userID {
+		return apperr.Forbidden("not authorized to delete this availability rule")
+	}
+
+	return s.repo.DeleteAvailabilityRule(ctx, id, tenantID)
+}
+
+func (s *Service) UpdateAvailabilityRule(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, id uuid.UUID, req transport.UpdateAvailabilityRuleRequest) (*transport.AvailabilityRuleResponse, error) {
+	rule, err := s.repo.GetAvailabilityRuleByID(ctx, id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	if !isAdmin && rule.UserID != userID {
+		return nil, apperr.Forbidden("not authorized to update this availability rule")
+	}
+
+	// Apply partial updates
+	if req.Weekday != nil {
+		rule.Weekday = *req.Weekday
+	}
+	
+	timezone := rule.Timezone
+	if req.Timezone != nil {
+		timezone = *req.Timezone
+	}
+
+	startTimeStr := rule.StartTime.Format("15:04")
+	endTimeStr := rule.EndTime.Format("15:04")
+	if req.StartTime != nil {
+		startTimeStr = *req.StartTime
+	}
+	if req.EndTime != nil {
+		endTimeStr = *req.EndTime
+	}
+
+	startTime, endTime, parsedTimezone, err := parseAvailabilityTimes(startTimeStr, endTimeStr, timezone)
+	if err != nil {
+		return nil, err
+	}
+
+	rule.StartTime = startTime
+	rule.EndTime = endTime
+	rule.Timezone = parsedTimezone
+
+	saved, err := s.repo.UpdateAvailabilityRule(ctx, id, tenantID, *rule)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapAvailabilityRule(saved), nil
+}
+
+func (s *Service) CreateAvailabilityOverride(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, req transport.CreateAvailabilityOverrideRequest) (*transport.AvailabilityOverrideResponse, error) {
+	targetUserID, err := s.resolveTargetUserID(userID, isAdmin, req.UserID)
+	if err != nil {
+		return nil, err
+	}
+
+	date, err := time.Parse("2006-01-02", req.Date)
+	if err != nil {
+		return nil, apperr.BadRequest("invalid date format")
+	}
+
+	startTime, endTime, timezone, err := parseAvailabilityOptionalTimes(req.StartTime, req.EndTime, req.Timezone)
+	if err != nil {
+		return nil, err
+	}
+
+	saved, err := s.repo.CreateAvailabilityOverride(ctx, repository.AvailabilityOverride{
+		ID:             uuid.New(),
+		OrganizationID: tenantID,
+		UserID:         targetUserID,
+		Date:           date,
+		IsAvailable:    req.IsAvailable,
+		StartTime:      startTime,
+		EndTime:        endTime,
+		Timezone:       timezone,
+	})
+	if err != nil {
+		return nil, err
+	}
+
+	return mapAvailabilityOverride(saved), nil
+}
+
+func (s *Service) ListAvailabilityOverrides(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, targetUserID *uuid.UUID, startDate *string, endDate *string) ([]transport.AvailabilityOverrideResponse, error) {
+	resolvedUserID, err := s.resolveTargetUserID(userID, isAdmin, targetUserID)
+	if err != nil {
+		return nil, err
+	}
+
+	start, end, err := parseOptionalDateRange(startDate, endDate)
+	if err != nil {
+		return nil, err
+	}
+
+	items, err := s.repo.ListAvailabilityOverrides(ctx, tenantID, resolvedUserID, start, end)
+	if err != nil {
+		return nil, err
+	}
+
+	resp := make([]transport.AvailabilityOverrideResponse, len(items))
+	for i, item := range items {
+		resp[i] = *mapAvailabilityOverride(&item)
+	}
+
+	return resp, nil
+}
+
+func (s *Service) DeleteAvailabilityOverride(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, id uuid.UUID) error {
+	override, err := s.repo.GetAvailabilityOverrideByID(ctx, id, tenantID)
+	if err != nil {
+		return err
+	}
+	if !isAdmin && override.UserID != userID {
+		return apperr.Forbidden("not authorized to delete this availability override")
+	}
+
+	return s.repo.DeleteAvailabilityOverride(ctx, id, tenantID)
+}
+
+func (s *Service) UpdateAvailabilityOverride(ctx context.Context, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID, id uuid.UUID, req transport.UpdateAvailabilityOverrideRequest) (*transport.AvailabilityOverrideResponse, error) {
+	override, err := s.repo.GetAvailabilityOverrideByID(ctx, id, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	if !isAdmin && override.UserID != userID {
+		return nil, apperr.Forbidden("not authorized to update this availability override")
+	}
+
+	// Apply partial updates
+	if req.Date != nil {
+		date, err := time.Parse("2006-01-02", *req.Date)
+		if err != nil {
+			return nil, apperr.BadRequest("invalid date format")
+		}
+		override.Date = date
+	}
+	if req.IsAvailable != nil {
+		override.IsAvailable = *req.IsAvailable
+	}
+
+	timezone := override.Timezone
+	if req.Timezone != nil {
+		timezone = *req.Timezone
+	}
+
+	// Handle time updates
+	var startTimeStr *string
+	var endTimeStr *string
+	if override.StartTime != nil {
+		str := override.StartTime.Format("15:04")
+		startTimeStr = &str
+	}
+	if override.EndTime != nil {
+		str := override.EndTime.Format("15:04")
+		endTimeStr = &str
+	}
+	if req.StartTime != nil {
+		startTimeStr = req.StartTime
+	}
+	if req.EndTime != nil {
+		endTimeStr = req.EndTime
+	}
+
+	startTime, endTime, parsedTimezone, err := parseAvailabilityOptionalTimes(startTimeStr, endTimeStr, timezone)
+	if err != nil {
+		return nil, err
+	}
+
+	override.StartTime = startTime
+	override.EndTime = endTime
+	override.Timezone = parsedTimezone
+
+	saved, err := s.repo.UpdateAvailabilityOverride(ctx, id, tenantID, *override)
+	if err != nil {
+		return nil, err
+	}
+
+	return mapAvailabilityOverride(saved), nil
+}
+
+// Helper functions
+
+func (s *Service) getLeadInfo(ctx context.Context, leadID uuid.UUID, tenantID uuid.UUID) *transport.AppointmentLeadInfo {
+	info, err := s.repo.GetLeadInfo(ctx, leadID, tenantID)
+	if err != nil || info == nil {
+		return nil
+	}
+	return &transport.AppointmentLeadInfo{
+		ID:        info.ID,
+		FirstName: info.FirstName,
+		LastName:  info.LastName,
+		Phone:     info.Phone,
+		Address:   fmt.Sprintf("%s %s, %s", info.Street, info.HouseNumber, info.City),
+	}
+}
+
+func (s *Service) getLeadEmail(ctx context.Context, leadID uuid.UUID, tenantID uuid.UUID) string {
+	email, err := s.repo.GetLeadEmail(ctx, leadID, tenantID)
+	if err != nil {
+		return ""
+	}
+	return email
+}
+
+func (s *Service) ensureAccess(ctx context.Context, appointmentID uuid.UUID, userID uuid.UUID, isAdmin bool, tenantID uuid.UUID) (*repository.Appointment, error) {
+	appt, err := s.repo.GetByID(ctx, appointmentID, tenantID)
+	if err != nil {
+		return nil, err
+	}
+	if !isAdmin && appt.UserID != userID {
+		return nil, apperr.Forbidden("not authorized to access this appointment")
+	}
+	return appt, nil
+}
+
+func toAccessDifficulty(value *string) *transport.AccessDifficulty {
+	if value == nil {
+		return nil
+	}
+	converted := transport.AccessDifficulty(*value)
+	return &converted
+}
+
+func toAccessDifficultyString(value *transport.AccessDifficulty) *string {
+	if value == nil {
+		return nil
+	}
+	converted := string(*value)
+	return &converted
+}
+
+func mergeString(existing *repository.VisitReport, getExisting func(*repository.VisitReport) *string, next *string) *string {
+	if next != nil {
+		return next
+	}
+	if existing == nil {
+		return nil
+	}
+	return getExisting(existing)
+}
+
+func parseAvailabilityTimes(startTime string, endTime string, timezone string) (time.Time, time.Time, string, error) {
+	start, err := time.Parse("15:04", startTime)
+	if err != nil {
+		return time.Time{}, time.Time{}, "", apperr.BadRequest("invalid startTime format")
+	}
+	end, err := time.Parse("15:04", endTime)
+	if err != nil {
+		return time.Time{}, time.Time{}, "", apperr.BadRequest("invalid endTime format")
+	}
+	if !end.After(start) {
+		return time.Time{}, time.Time{}, "", apperr.BadRequest("endTime must be after startTime")
+	}
+	if timezone == "" {
+		timezone = "Europe/Amsterdam"
+	}
+	return start, end, timezone, nil
+}
+
+func parseAvailabilityOptionalTimes(startTime *string, endTime *string, timezone string) (*time.Time, *time.Time, string, error) {
+	if timezone == "" {
+		timezone = "Europe/Amsterdam"
+	}
+	if startTime == nil && endTime == nil {
+		return nil, nil, timezone, nil
+	}
+	if startTime == nil || endTime == nil {
+		return nil, nil, "", apperr.BadRequest("startTime and endTime must both be provided")
+	}
+	start, err := time.Parse("15:04", *startTime)
+	if err != nil {
+		return nil, nil, "", apperr.BadRequest("invalid startTime format")
+	}
+	end, err := time.Parse("15:04", *endTime)
+	if err != nil {
+		return nil, nil, "", apperr.BadRequest("invalid endTime format")
+	}
+	if !end.After(start) {
+		return nil, nil, "", apperr.BadRequest("endTime must be after startTime")
+	}
+	return &start, &end, timezone, nil
+}
+
+func parseOptionalDateRange(startDate *string, endDate *string) (*time.Time, *time.Time, error) {
+	var start *time.Time
+	var end *time.Time
+
+	if startDate != nil && *startDate != "" {
+		parsed, err := time.Parse("2006-01-02", *startDate)
+		if err != nil {
+			return nil, nil, apperr.BadRequest("invalid startDate format")
+		}
+		start = &parsed
+	}
+	if endDate != nil && *endDate != "" {
+		parsed, err := time.Parse("2006-01-02", *endDate)
+		if err != nil {
+			return nil, nil, apperr.BadRequest("invalid endDate format")
+		}
+		end = &parsed
+	}
+	if start != nil && end != nil && start.After(*end) {
+		return nil, nil, apperr.BadRequest("startDate must be before or equal to endDate")
+	}
+	return start, end, nil
+}
+
+func (s *Service) resolveTargetUserID(userID uuid.UUID, isAdmin bool, target *uuid.UUID) (uuid.UUID, error) {
+	if target == nil {
+		return userID, nil
+	}
+	if !isAdmin && *target != userID {
+		return uuid.UUID{}, apperr.Forbidden("not authorized to manage availability for this user")
+	}
+	return *target, nil
+}
+
+func mapAvailabilityRule(rule *repository.AvailabilityRule) *transport.AvailabilityRuleResponse {
+	return &transport.AvailabilityRuleResponse{
+		ID:        rule.ID,
+		UserID:    rule.UserID,
+		Weekday:   rule.Weekday,
+		StartTime: rule.StartTime.Format("15:04"),
+		EndTime:   rule.EndTime.Format("15:04"),
+		Timezone:  rule.Timezone,
+		CreatedAt: rule.CreatedAt,
+		UpdatedAt: rule.UpdatedAt,
+	}
+}
+
+func mapAvailabilityOverride(override *repository.AvailabilityOverride) *transport.AvailabilityOverrideResponse {
+	var startTime *string
+	var endTime *string
+	if override.StartTime != nil {
+		value := override.StartTime.Format("15:04")
+		startTime = &value
+	}
+	if override.EndTime != nil {
+		value := override.EndTime.Format("15:04")
+		endTime = &value
+	}
+
+	return &transport.AvailabilityOverrideResponse{
+		ID:          override.ID,
+		UserID:      override.UserID,
+		Date:        override.Date.Format("2006-01-02"),
+		IsAvailable: override.IsAvailable,
+		StartTime:   startTime,
+		EndTime:     endTime,
+		Timezone:    override.Timezone,
+		CreatedAt:   override.CreatedAt,
+		UpdatedAt:   override.UpdatedAt,
+	}
+}
+
+func nilIfEmpty(s string) *string {
+	if s == "" {
+		return nil
+	}
+	return &s
+}
+</file>
+
+<file path="../portal_final_backend/internal/appointments/transport/dto.go">
+package transport
+
+import (
+	"time"
+
+	"github.com/google/uuid"
+)
+
+// AppointmentType defines the type of appointment
+type AppointmentType string
+
+const (
+	AppointmentTypeLeadVisit  AppointmentType = "lead_visit"
+	AppointmentTypeStandalone AppointmentType = "standalone"
+	AppointmentTypeBlocked    AppointmentType = "blocked"
+)
+
+// AppointmentStatus defines the status of an appointment
+type AppointmentStatus string
+
+const (
+	AppointmentStatusScheduled AppointmentStatus = "scheduled"
+	AppointmentStatusCompleted AppointmentStatus = "completed"
+	AppointmentStatusCancelled AppointmentStatus = "cancelled"
+	AppointmentStatusNoShow    AppointmentStatus = "no_show"
+)
+
+// AccessDifficulty defines accessibility difficulty for visit reports
+type AccessDifficulty string
+
+const (
+	AccessDifficultyLow    AccessDifficulty = "Low"
+	AccessDifficultyMedium AccessDifficulty = "Medium"
+	AccessDifficultyHigh   AccessDifficulty = "High"
+)
+
+// CreateAppointmentRequest is the request body for creating an appointment
+type CreateAppointmentRequest struct {
+	LeadID                *uuid.UUID      `json:"leadId,omitempty"`
+	LeadServiceID         *uuid.UUID      `json:"leadServiceId,omitempty"`
+	Type                  AppointmentType `json:"type" validate:"required,oneof=lead_visit standalone blocked"`
+	Title                 string          `json:"title" validate:"required,min=1,max=200"`
+	Description           string          `json:"description,omitempty" validate:"max=2000"`
+	Location              string          `json:"location,omitempty" validate:"max=500"`
+	StartTime             time.Time       `json:"startTime" validate:"required"`
+	EndTime               time.Time       `json:"endTime" validate:"required,gtfield=StartTime"`
+	AllDay                bool            `json:"allDay"`
+	SendConfirmationEmail *bool           `json:"sendConfirmationEmail,omitempty"` // If true, sends confirmation email to lead
+}
+
+// UpdateAppointmentRequest is the request body for updating an appointment
+type UpdateAppointmentRequest struct {
+	Title       *string    `json:"title,omitempty" validate:"omitempty,min=1,max=200"`
+	Description *string    `json:"description,omitempty" validate:"omitempty,max=2000"`
+	Location    *string    `json:"location,omitempty" validate:"omitempty,max=500"`
+	StartTime   *time.Time `json:"startTime,omitempty"`
+	EndTime     *time.Time `json:"endTime,omitempty"`
+	AllDay      *bool      `json:"allDay,omitempty"`
+}
+
+// UpdateAppointmentStatusRequest is the request body for updating appointment status
+type UpdateAppointmentStatusRequest struct {
+	Status AppointmentStatus `json:"status" validate:"required,oneof=scheduled completed cancelled no_show"`
+}
+
+// ListAppointmentsRequest is the query parameters for listing appointments
+type ListAppointmentsRequest struct {
+	UserID    string             `form:"userId"`
+	LeadID    string             `form:"leadId"`
+	Type      *AppointmentType   `form:"type" validate:"omitempty,oneof=lead_visit standalone blocked"`
+	Status    *AppointmentStatus `form:"status" validate:"omitempty,oneof=scheduled completed cancelled no_show"`
+	StartFrom string             `form:"startFrom"` // ISO date
+	StartTo   string             `form:"startTo"`   // ISO date
+	Search    string             `form:"search"`    // Search term for title/location
+	SortBy    string             `form:"sortBy" validate:"omitempty,oneof=title type status startTime endTime createdAt"`
+	SortOrder string             `form:"sortOrder" validate:"omitempty,oneof=asc desc"`
+	Page      int                `form:"page" validate:"omitempty,min=1"`
+	PageSize  int                `form:"pageSize" validate:"omitempty,min=1,max=100"`
+}
+
+// AppointmentResponse is the response body for an appointment
+type AppointmentResponse struct {
+	ID            uuid.UUID         `json:"id"`
+	UserID        uuid.UUID         `json:"userId"`
+	LeadID        *uuid.UUID        `json:"leadId,omitempty"`
+	LeadServiceID *uuid.UUID        `json:"leadServiceId,omitempty"`
+	Type          AppointmentType   `json:"type"`
+	Title         string            `json:"title"`
+	Description   *string           `json:"description,omitempty"`
+	Location      *string           `json:"location,omitempty"`
+	StartTime     time.Time         `json:"startTime"`
+	EndTime       time.Time         `json:"endTime"`
+	Status        AppointmentStatus `json:"status"`
+	AllDay        bool              `json:"allDay"`
+	CreatedAt     time.Time         `json:"createdAt"`
+	UpdatedAt     time.Time         `json:"updatedAt"`
+	// Embedded lead info for lead_visit type (populated by service)
+	Lead *AppointmentLeadInfo `json:"lead,omitempty"`
+}
+
+// AppointmentLeadInfo is embedded lead info for appointment responses
+type AppointmentLeadInfo struct {
+	ID        uuid.UUID `json:"id"`
+	FirstName string    `json:"firstName"`
+	LastName  string    `json:"lastName"`
+	Phone     string    `json:"phone"`
+	Address   string    `json:"address"`
+}
+
+// AppointmentListResponse is the paginated response for listing appointments
+type AppointmentListResponse struct {
+	Items      []AppointmentResponse `json:"items"`
+	Total      int                   `json:"total"`
+	Page       int                   `json:"page"`
+	PageSize   int                   `json:"pageSize"`
+	TotalPages int                   `json:"totalPages"`
+}
+
+// Visit report DTOs
+type UpsertVisitReportRequest struct {
+	Measurements     *string           `json:"measurements,omitempty" validate:"omitempty,max=5000"`
+	AccessDifficulty *AccessDifficulty `json:"accessDifficulty,omitempty" validate:"omitempty,oneof=Low Medium High"`
+	Notes            *string           `json:"notes,omitempty" validate:"omitempty,max=5000"`
+}
+
+type AppointmentVisitReportResponse struct {
+	AppointmentID    uuid.UUID         `json:"appointmentId"`
+	Measurements     *string           `json:"measurements,omitempty"`
+	AccessDifficulty *AccessDifficulty `json:"accessDifficulty,omitempty"`
+	Notes            *string           `json:"notes,omitempty"`
+	CreatedAt        time.Time         `json:"createdAt"`
+	UpdatedAt        time.Time         `json:"updatedAt"`
+}
+
+// Attachment DTOs
+type CreateAppointmentAttachmentRequest struct {
+	FileKey     string  `json:"fileKey" validate:"required,min=1,max=500"`
+	FileName    string  `json:"fileName" validate:"required,min=1,max=255"`
+	ContentType *string `json:"contentType,omitempty" validate:"omitempty,max=200"`
+	SizeBytes   *int64  `json:"sizeBytes,omitempty" validate:"omitempty,min=0"`
+}
+
+type AppointmentAttachmentResponse struct {
+	ID            uuid.UUID `json:"id"`
+	AppointmentID uuid.UUID `json:"appointmentId"`
+	FileKey       string    `json:"fileKey"`
+	FileName      string    `json:"fileName"`
+	ContentType   *string   `json:"contentType,omitempty"`
+	SizeBytes     *int64    `json:"sizeBytes,omitempty"`
+	CreatedAt     time.Time `json:"createdAt"`
+}
+
+// Availability DTOs
+type CreateAvailabilityRuleRequest struct {
+	UserID    *uuid.UUID `json:"userId,omitempty"`
+	Weekday   int        `json:"weekday" validate:"min=0,max=6"`
+	StartTime string     `json:"startTime" validate:"required"`
+	EndTime   string     `json:"endTime" validate:"required"`
+	Timezone  string     `json:"timezone,omitempty" validate:"omitempty,max=100"`
+}
+
+type UpdateAvailabilityRuleRequest struct {
+	Weekday   *int    `json:"weekday,omitempty" validate:"omitempty,min=0,max=6"`
+	StartTime *string `json:"startTime,omitempty"`
+	EndTime   *string `json:"endTime,omitempty"`
+	Timezone  *string `json:"timezone,omitempty" validate:"omitempty,max=100"`
+}
+
+type AvailabilityRuleResponse struct {
+	ID        uuid.UUID `json:"id"`
+	UserID    uuid.UUID `json:"userId"`
+	Weekday   int       `json:"weekday"`
+	StartTime string    `json:"startTime"`
+	EndTime   string    `json:"endTime"`
+	Timezone  string    `json:"timezone"`
+	CreatedAt time.Time `json:"createdAt"`
+	UpdatedAt time.Time `json:"updatedAt"`
+}
+
+type CreateAvailabilityOverrideRequest struct {
+	UserID      *uuid.UUID `json:"userId,omitempty"`
+	Date        string     `json:"date" validate:"required"`
+	IsAvailable bool       `json:"isAvailable"`
+	StartTime   *string    `json:"startTime,omitempty"`
+	EndTime     *string    `json:"endTime,omitempty"`
+	Timezone    string     `json:"timezone,omitempty" validate:"omitempty,max=100"`
+}
+
+type UpdateAvailabilityOverrideRequest struct {
+	Date        *string `json:"date,omitempty"`
+	IsAvailable *bool   `json:"isAvailable,omitempty"`
+	StartTime   *string `json:"startTime,omitempty"`
+	EndTime     *string `json:"endTime,omitempty"`
+	Timezone    *string `json:"timezone,omitempty" validate:"omitempty,max=100"`
+}
+
+type AvailabilityOverrideResponse struct {
+	ID          uuid.UUID `json:"id"`
+	UserID      uuid.UUID `json:"userId"`
+	Date        string    `json:"date"`
+	IsAvailable bool      `json:"isAvailable"`
+	StartTime   *string   `json:"startTime,omitempty"`
+	EndTime     *string   `json:"endTime,omitempty"`
+	Timezone    string    `json:"timezone"`
+	CreatedAt   time.Time `json:"createdAt"`
+	UpdatedAt   time.Time `json:"updatedAt"`
+}
+
+// GetAvailableSlotsRequest is the query parameters for getting available slots
+type GetAvailableSlotsRequest struct {
+	UserID       string `form:"userId"`
+	StartDate    string `form:"startDate" validate:"required"` // ISO date YYYY-MM-DD
+	EndDate      string `form:"endDate" validate:"required"`   // ISO date YYYY-MM-DD
+	SlotDuration int    `form:"slotDuration"`                  // Duration in minutes (default: 60)
+}
+
+// TimeSlot represents a single available time slot
+type TimeSlot struct {
+	StartTime time.Time `json:"startTime"`
+	EndTime   time.Time `json:"endTime"`
+}
+
+// DaySlots represents available slots for a specific day
+type DaySlots struct {
+	Date  string     `json:"date"` // ISO date YYYY-MM-DD
+	Slots []TimeSlot `json:"slots"`
+}
+
+// AvailableSlotsResponse is the response for available slots query
+type AvailableSlotsResponse struct {
+	Days []DaySlots `json:"days"`
+}
+</file>
+
+</files>

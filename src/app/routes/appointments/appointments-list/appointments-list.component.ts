@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { map, Observable } from 'rxjs';
+import { firstValueFrom, map, Observable } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -80,7 +80,7 @@ export class AppointmentsListComponent implements OnInit {
         header: this.translate.instant('appointments.list.columns.title'),
         field: 'title',
         sortable: true,
-        filterable: true,
+        filterable: false,
         width: '200px',
         cellType: 'text',
       },
@@ -111,7 +111,7 @@ export class AppointmentsListComponent implements OnInit {
         header: this.translate.instant('appointments.list.columns.startTime'),
         field: 'startTime',
         sortable: true,
-        filterable: true,
+        filterable: false,
         width: '160px',
         cellType: 'date',
       },
@@ -128,7 +128,7 @@ export class AppointmentsListComponent implements OnInit {
         header: this.translate.instant('appointments.list.columns.location'),
         field: 'location',
         sortable: false,
-        filterable: true,
+        filterable: false,
         width: '180px',
         cellType: 'text',
       },
@@ -202,6 +202,9 @@ export class AppointmentsListComponent implements OnInit {
     const params: ListAppointmentsParams = {
       page: request.page,
       pageSize: request.pageSize,
+      search: request.searchTerm || undefined,
+      sortBy: request.sort?.columnId,
+      sortOrder: request.sort?.direction,
     };
 
     // Map filters
@@ -282,7 +285,7 @@ export class AppointmentsListComponent implements OnInit {
     
     // Delete sequentially since bulk delete may not be supported
     const deletePromises = rows.map(row => 
-      this.appointmentsService.delete(row.id).toPromise()
+      firstValueFrom(this.appointmentsService.delete(row.id))
     );
 
     Promise.all(deletePromises)

@@ -67,6 +67,8 @@
     },
     "form": {
       "title": "Nieuwe Afspraak",
+      "basicInfo": "Basis Informatie",
+      "scheduling": "Datum & Tijd",
       "type": "Type",
       "titleLabel": "Titel",
       "titlePlaceholder": "Afspraak titel",
