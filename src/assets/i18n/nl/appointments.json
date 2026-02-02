@@ -88,6 +88,19 @@
     "availability": {
       "title": "Beschikbaarheidsinstellingen",
       "description": "Configureer uw wekelijkse beschikbaarheid en datum-specifieke uitzonderingen.",
+      "timezone": {
+        "label": "Tijdzone",
+        "description": "Alle beschikbaarheidstijden worden opgeslagen in deze tijdzone."
+      },
+      "quickSetup": {
+        "button": "Snel Instellen",
+        "title": "Snel Instellen",
+        "description": "Stel snel een standaard werkweek schema in. Dit vervangt alle bestaande regels.",
+        "selectDays": "Selecteer werkdagen",
+        "timezoneNote": "Tijden worden opgeslagen in {{timezone}}",
+        "warning": "Dit vervangt alle bestaande wekelijkse regels.",
+        "apply": "Schema Toepassen"
+      },
       "rules": {
         "title": "Wekelijks Schema",
         "add": "Tijdslot Toevoegen",

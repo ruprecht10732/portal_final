@@ -88,6 +88,19 @@
     "availability": {
       "title": "Availability Settings",
       "description": "Configure your recurring weekly availability and date-specific overrides.",
+      "timezone": {
+        "label": "Timezone",
+        "description": "All availability times will be saved in this timezone."
+      },
+      "quickSetup": {
+        "button": "Quick Setup",
+        "title": "Quick Setup",
+        "description": "Quickly configure a standard work week schedule. This will replace all existing rules.",
+        "selectDays": "Select working days",
+        "timezoneNote": "Times will be saved in {{timezone}}",
+        "warning": "This will replace all existing weekly rules.",
+        "apply": "Apply Schedule"
+      },
       "rules": {
         "title": "Weekly Schedule",
         "add": "Add Time Slot",
