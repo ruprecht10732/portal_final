@@ -45,6 +45,61 @@
             [required]="true"
           />
 
+          <!-- Lead Selection (only for lead_visit) -->
+          @if (isLeadVisit()) {
+            <div class="space-y-4 p-4 bg-zinc-50 border border-zinc-200 rounded-lg">
+              <div class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                {{ 'appointments.form.leadSelection' | translate }}
+              </div>
+
+              @if (selectedLead(); as lead) {
+                <!-- Selected lead card -->
+                <div class="flex items-start justify-between gap-4 p-4 bg-white border border-zinc-200 rounded-lg">
+                  <div class="flex flex-col gap-1">
+                    <span class="font-semibold text-zinc-900">
+                      {{ lead.consumer.firstName }} {{ lead.consumer.lastName }}
+                    </span>
+                    <span class="text-sm text-zinc-500">
+                      {{ lead.address.street }} {{ lead.address.houseNumber }}, {{ lead.address.zipCode }} {{ lead.address.city }}
+                    </span>
+                    @if (lead.consumer.phone) {
+                      <span class="text-sm text-zinc-400">{{ lead.consumer.phone }}</span>
+                    }
+                  </div>
+                  <button
+                    type="button"
+                    (click)="clearLead()"
+                    class="text-zinc-400 hover:text-zinc-600 p-1"
+                    [attr.aria-label]="'appointments.form.changeLead' | translate"
+                  >
+                    <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+                  </button>
+                </div>
+
+                <!-- Service Selection -->
+                @if (leadServiceOptions().length > 0) {
+                  <shared-select
+                    [label]="'appointments.form.service' | translate"
+                    [options]="leadServiceOptions()"
+                    [value]="selectedLeadServiceId()"
+                    (valueChange)="selectedLeadServiceId.set($event)"
+                    [required]="true"
+                  />
+                }
+              } @else {
+                <!-- Lead search -->
+                <shared-autocomplete
+                  [label]="''"
+                  [placeholder]="'appointments.form.searchLeadPlaceholder' | translate"
+                  [value]="leadSearchQuery()"
+                  (valueChange)="onLeadSearchChange($event); onLeadSelected($event)"
+                  [options]="leadOptions()"
+                  filterMode="manual"
+                />
+              }
+            </div>
+          }
+
           <shared-input
             [label]="'appointments.form.titleLabel' | translate"
             [placeholder]="'appointments.form.titlePlaceholder' | translate"
@@ -104,6 +159,14 @@
             [checked]="allDay()"
             (checkedChange)="allDay.set($event)"
           />
+
+          @if (isLeadVisit()) {
+            <shared-checkbox
+              [label]="'appointments.form.sendConfirmation' | translate"
+              [checked]="sendConfirmationEmail()"
+              (checkedChange)="sendConfirmationEmail.set($event)"
+            />
+          }
         </div>
       </section>
     </div>

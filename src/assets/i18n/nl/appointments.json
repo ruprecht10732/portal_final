@@ -80,6 +80,10 @@
       "endTime": "Eindtijd",
       "allDay": "Hele dag evenement",
       "sendConfirmation": "Bevestigingsmail versturen",
+      "leadSelection": "Lead Informatie",
+      "searchLeadPlaceholder": "Zoek een lead op naam, telefoon of adres...",
+      "changeLead": "Lead wijzigen",
+      "service": "Dienst",
       "create": "Afspraak Aanmaken",
       "errors": {
         "create": "Afspraak aanmaken mislukt"

@@ -80,6 +80,10 @@
       "endTime": "End Time",
       "allDay": "All day event",
       "sendConfirmation": "Send confirmation email",
+      "leadSelection": "Lead Information",
+      "searchLeadPlaceholder": "Search for a lead by name, phone, or address...",
+      "changeLead": "Change lead",
+      "service": "Service",
       "create": "Create Appointment",
       "errors": {
         "create": "Failed to create appointment"
