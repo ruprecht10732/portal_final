@@ -573,6 +573,7 @@
                 [isDefault]="aiAnalysisIsDefault()"
                 [noNewInfo]="aiAnalysisNoNewInfo()"
                 [serviceStatus]="selectedService()?.status ?? null"
+                [consumerPhone]="lead()?.consumer?.phone ?? null"
                 (refresh)="refreshAIAnalysis()"
                 (forceRefresh)="forceRefreshAIAnalysis()"
               ></shared-ai-advisor-panel>

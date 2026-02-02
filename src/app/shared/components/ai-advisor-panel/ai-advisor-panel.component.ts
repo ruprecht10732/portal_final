@@ -23,6 +23,7 @@ export class AiAdvisorPanelComponent {
   isDefault = input<boolean>(false);
   noNewInfo = input<boolean>(false);
   serviceStatus = input<LeadStatus | null>(null);
+  consumerPhone = input<string | null>(null);
 
   refresh = output<void>();
   forceRefresh = output<void>();
@@ -57,5 +58,15 @@ export class AiAdvisorPanelComponent {
 
   getUrgencyLabel(level: UrgencyLevel): string {
     return level.charAt(0).toUpperCase() + level.slice(1) + ' Priority';
+  }
+
+  protected readonly encodeURIComponent = encodeURIComponent;
+
+  getWhatsAppUrl(phone: string | null | undefined, message: string | null | undefined): string {
+    if (!phone || !message) return '';
+    // Basic sanitization: remove non-digits
+    const cleanPhone = phone.replace(/\D/g, '');
+    const encodedMessage = encodeURIComponent(message);
+    return `https://wa.me/${cleanPhone}?text=${encodedMessage}`;
   }
 }

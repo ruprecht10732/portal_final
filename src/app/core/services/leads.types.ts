@@ -236,6 +236,7 @@ export interface LeadAIAnalysis {
   talkingPoints: string[];
   objectionHandling: ObjectionResponse[];
   upsellOpportunities: string[];
+  suggestedWhatsAppMessage?: string;
   summary: string;
   createdAt: string;
 }
