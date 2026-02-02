@@ -40,7 +40,6 @@ export class AppointmentFormComponent implements OnInit {
   protected readonly startTime = signal('');
   protected readonly endTime = signal('');
   protected readonly allDay = signal(false);
-  protected readonly sendConfirmationEmail = signal(false);
 
   protected readonly canCreate = computed(() => {
     return this.title().trim() !== '' && this.startTime() !== '' && this.endTime() !== '';
@@ -96,7 +95,6 @@ export class AppointmentFormComponent implements OnInit {
       startTime: new Date(this.startTime()).toISOString(),
       endTime: new Date(this.endTime()).toISOString(),
       allDay: this.allDay(),
-      sendConfirmationEmail: this.sendConfirmationEmail(),
     };
 
     this.appointmentsService.create(data).subscribe({

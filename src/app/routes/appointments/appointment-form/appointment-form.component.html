@@ -104,12 +104,6 @@
             [checked]="allDay()"
             (checkedChange)="allDay.set($event)"
           />
-
-          <shared-checkbox
-            [label]="'appointments.form.sendConfirmation' | translate"
-            [checked]="sendConfirmationEmail()"
-            (checkedChange)="sendConfirmationEmail.set($event)"
-          />
         </div>
       </section>
     </div>
