@@ -73,6 +73,7 @@
 
       <div class="lg:hidden flex flex-col gap-4">
         <app-lead-energy-label-card [energyLabel]="energyLabel()"></app-lead-energy-label-card>
+        <app-lead-enrichment-card [leadEnrichment]="leadEnrichment()" [leadScore]="leadScore()"></app-lead-enrichment-card>
 
         <shared-card padding="none">
           <details>
@@ -212,6 +213,7 @@
           </shared-card>
 
           <app-lead-energy-label-card [energyLabel]="energyLabel()"></app-lead-energy-label-card>
+          <app-lead-enrichment-card [leadEnrichment]="leadEnrichment()" [leadScore]="leadScore()"></app-lead-enrichment-card>
 
           <shared-card>
             <h2 class="text-lg font-semibold mb-3">{{ 'leads.detail.contact' | translate }}</h2>

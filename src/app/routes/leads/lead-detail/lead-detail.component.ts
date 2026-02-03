@@ -32,6 +32,7 @@ import { MapPreviewComponent } from '../../../shared/components/map-preview/map-
 import { type SelectOption } from '../../../shared/components/select/select.component';
 import type { ChipVariant } from '../../../shared/components/chip/chip.component';
 import { LeadEnergyLabelCardComponent } from './lead-energy-label-card.component';
+import { LeadEnrichmentCardComponent } from './lead-enrichment-card.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
 import { CallLoggerDialogComponent, type CallLoggerSubmitEvent } from '../../../shared/components/call-logger-dialog';
@@ -42,7 +43,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -170,6 +171,8 @@ export class LeadDetailComponent implements OnInit {
   protected readonly STATUS_COLORS = STATUS_COLORS;
 
   protected readonly energyLabel = computed(() => this.lead()?.energyLabel ?? null);
+  protected readonly leadEnrichment = computed(() => this.lead()?.leadEnrichment ?? null);
+  protected readonly leadScore = computed(() => this.lead()?.leadScore ?? null);
   protected readonly energyLabelClass = computed<string | null>(() => this.energyLabel()?.energieklasse ?? null);
   protected readonly energyLabelVariant = computed<ChipVariant>(() => {
     const label = this.energyLabelClass();

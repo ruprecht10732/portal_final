@@ -53,6 +53,32 @@ export interface EnergyLabel {
   primaireFossieleEnergie?: number | null;
 }
 
+export interface LeadEnrichment {
+  source?: string | null;
+  postcode6?: string | null;
+  buurtcode?: string | null;
+  woningtypeCode?: string | null;
+  bouwjaarklasseCode?: number | null;
+  woningeigendomCode?: number | null;
+  inkomenCode?: number | null;
+  gemAardgasverbruik?: number | null;
+  huishoudenGrootte?: number | null;
+  koopwoningenPct?: number | null;
+  bouwjaarVanaf2000Pct?: number | null;
+  mediaanVermogenX1000?: number | null;
+  huishoudensMetKinderenPct?: number | null;
+  confidence?: number | null;
+  fetchedAt?: string | null;
+}
+
+export interface LeadScore {
+  score?: number | null;
+  preAi?: number | null;
+  factors?: Record<string, number> | null;
+  version?: string | null;
+  updatedAt?: string | null;
+}
+
 export interface Lead {
   id: string;
   consumer: Consumer;
@@ -65,6 +91,8 @@ export interface Lead {
   viewedById?: string;
   viewedAt?: string;
   energyLabel?: EnergyLabel | null;
+  leadEnrichment?: LeadEnrichment | null;
+  leadScore?: LeadScore | null;
   createdAt: string;
   updatedAt: string;
 }
