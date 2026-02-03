@@ -30,6 +30,8 @@ import { ContactInfoComponent } from '../../../shared/components/contact-info/co
 import { LeadServicesCardComponent } from '../../../shared/components/lead-services-card/lead-services-card.component';
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { type SelectOption } from '../../../shared/components/select/select.component';
+import type { ChipVariant } from '../../../shared/components/chip/chip.component';
+import { LeadEnergyLabelCardComponent } from './lead-energy-label-card.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
 import { CallLoggerDialogComponent, type CallLoggerSubmitEvent } from '../../../shared/components/call-logger-dialog';
@@ -40,7 +42,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -166,6 +168,24 @@ export class LeadDetailComponent implements OnInit {
     Closed: this.translate.instant('leads.detail.status.closed'),
   }));
   protected readonly STATUS_COLORS = STATUS_COLORS;
+
+  protected readonly energyLabel = computed(() => this.lead()?.energyLabel ?? null);
+  protected readonly energyLabelClass = computed<string | null>(() => this.energyLabel()?.energieklasse ?? null);
+  protected readonly energyLabelVariant = computed<ChipVariant>(() => {
+    const label = this.energyLabelClass();
+    if (!label) return 'neutral';
+    const normalized = label.toUpperCase();
+    if (normalized.startsWith('A') || normalized.startsWith('B')) {
+      return 'success';
+    }
+    if (normalized.startsWith('C')) {
+      return 'info';
+    }
+    if (normalized.startsWith('D')) {
+      return 'warning';
+    }
+    return 'danger';
+  });
 
   protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => (
     ACCESS_DIFFICULTY_OPTIONS.map(option => ({

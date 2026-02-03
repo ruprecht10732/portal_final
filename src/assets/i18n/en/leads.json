@@ -107,6 +107,22 @@
         "noInitialMessage": "No initial message provided.",
         "hint": "Captured at lead creation before any internal notes."
       },
+      "energyLabel": {
+        "headerLabel": "Energy label",
+        "title": "Energy label",
+        "subtitle": "Synced automatically from EP-Online",
+        "summary": "Latest certification details for this address.",
+        "refreshHint": "Updated automatically every 30 days.",
+        "validUntil": "Valid until",
+        "registeredOn": "Registered on",
+        "buildingType": "Building type",
+        "constructionYear": "Construction year",
+        "energyIndex": "Energy index",
+        "primaryEnergy": "Primary fossil energy",
+        "primaryEnergyUnit": "kWh/m2-year",
+        "notAvailable": "Not available",
+        "missing": "No published energy label found for this address yet."
+      },
       "status": {
         "new": "New",
         "contacted": "Contacted",
@@ -250,6 +266,7 @@
         "city": "City",
         "serviceType": "Service",
         "status": "Status",
+        "energyLabel": "Energy label",
         "assignee": "Assignee",
         "createdAt": "Created"
       },

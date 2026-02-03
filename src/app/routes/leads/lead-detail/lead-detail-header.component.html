@@ -19,11 +19,17 @@
               <span class="text-zinc-500 font-normal">({{ serviceTypeLabel() }})</span>
             }
           </h1>
-          <p class="text-sm text-zinc-500 flex items-center gap-2">
+          <div class="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
             <span>{{ 'leads.detail.statusLabel' | translate }}</span>
             <shared-chip variant="info" [class.hidden]="selectedStatus() !== 'New'">{{ 'leads.detail.status.new' | translate }}</shared-chip>
             <span [class.hidden]="selectedStatus() === 'New'">{{ statusLabel() }}</span>
-          </p>
+            @if (energyLabelClass()) {
+              <span class="hidden sm:inline text-zinc-300">•</span>
+              <shared-chip [variant]="energyLabelVariant()">
+                {{ 'leads.detail.energyLabel.headerLabel' | translate }} {{ energyLabelClass() }}
+              </shared-chip>
+            }
+          </div>
         } @else {
           <h1 class="text-xl font-semibold">{{ 'leads.detail.title' | translate }}</h1>
         }

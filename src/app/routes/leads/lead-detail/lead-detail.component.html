@@ -36,6 +36,8 @@
     [statusOptions]="statusOptions()"
     [selectedStatus]="selectedService()?.status ?? null"
     [statusLabelMap]="headerStatusLabels()"
+    [energyLabelClass]="energyLabelClass()"
+    [energyLabelVariant]="energyLabelVariant()"
     (back)="goBack()"
     (toggleStatusMenu)="toggleStatusMenu()"
     (closeStatusMenu)="closeStatusMenu()"
@@ -70,6 +72,8 @@
       </div>
 
       <div class="lg:hidden flex flex-col gap-4">
+        <app-lead-energy-label-card [energyLabel]="energyLabel()"></app-lead-energy-label-card>
+
         <shared-card padding="none">
           <details>
             <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.consumerInfo' | translate }}</summary>
@@ -206,6 +210,8 @@
             </div>
             <p class="mt-3 text-sm font-medium">{{ getFullAddress() }}</p>
           </shared-card>
+
+          <app-lead-energy-label-card [energyLabel]="energyLabel()"></app-lead-energy-label-card>
 
           <shared-card>
             <h2 class="text-lg font-semibold mb-3">{{ 'leads.detail.contact' | translate }}</h2>

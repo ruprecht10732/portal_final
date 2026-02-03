@@ -246,6 +246,15 @@ export class LeadListComponent implements OnInit {
         })),
       },
       {
+        id: 'energyLabel',
+        header: this.translate.instant('leads.list.columns.energyLabel'),
+        field: 'energyLabelClass' as keyof LeadRow,
+        sortable: false,
+        filterable: false,
+        width: '110px',
+        cellType: 'text',
+      },
+      {
         id: 'assignedAgentId',
         header: this.translate.instant('leads.list.columns.assignee'),
         field: 'assignedAgentId',
@@ -404,6 +413,8 @@ export class LeadListComponent implements OnInit {
       // Map currentService fields to top level for grid display
       serviceType: row.currentService?.serviceType ?? this.getDefaultServiceType(),
       status: row.currentService?.status ?? 'New',
+      energyLabelClass: row.energyLabel?.energieklasse ?? null,
+      energyLabelValidUntil: row.energyLabel?.geldigTot ?? null,
     } as LeadRow;
   }
 

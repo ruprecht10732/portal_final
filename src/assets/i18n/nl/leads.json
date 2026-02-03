@@ -105,6 +105,22 @@
         "noInitialMessage": "Geen initiële boodschap opgegeven.",
         "hint": "Vastgelegd bij het aanmaken van de lead, vóór interne notities."
       },
+      "energyLabel": {
+        "headerLabel": "Energielabel",
+        "title": "Energielabel",
+        "subtitle": "Automatisch gesynchroniseerd met EP-Online",
+        "summary": "Laatste certificeringsdetails voor dit adres.",
+        "refreshHint": "Wordt elke 30 dagen automatisch vernieuwd.",
+        "validUntil": "Geldig tot",
+        "registeredOn": "Geregistreerd op",
+        "buildingType": "Gebouwtype",
+        "constructionYear": "Bouwjaar",
+        "energyIndex": "Energie-index",
+        "primaryEnergy": "Primair fossiel energiegebruik",
+        "primaryEnergyUnit": "kWh/m2-jaar",
+        "notAvailable": "Niet beschikbaar",
+        "missing": "Geen gepubliceerd energielabel voor dit adres gevonden."
+      },
       "status": {
         "new": "Nieuw",
         "contacted": "Benaderd",
@@ -248,6 +264,7 @@
         "city": "Plaats",
         "serviceType": "Dienst",
         "status": "Status",
+        "energyLabel": "Energielabel",
         "assignee": "Toegewezen",
         "createdAt": "Aangemaakt"
       },

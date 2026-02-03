@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { TranslatePipe } from '@ngx-translate/core';
 import type { Lead, LeadStatus } from '../../../core/services/leads.types';
 import type { SelectOption } from '../../../shared/components/select/select.component';
-import { ChipComponent } from '../../../shared/components/chip/chip.component';
+import { ChipComponent, type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 @Component({
@@ -22,6 +22,8 @@ export class LeadDetailHeaderComponent {
   statusOptions = input<SelectOption<LeadStatus>[]>([]);
   selectedStatus = input<LeadStatus | null>(null);
   statusLabelMap = input<Partial<Record<LeadStatus, string>>>({} as Partial<Record<LeadStatus, string>>);
+  energyLabelClass = input<string | null>(null);
+  energyLabelVariant = input<ChipVariant>('neutral');
   back = output<void>();
   toggleStatusMenu = output<void>();
   closeStatusMenu = output<void>();

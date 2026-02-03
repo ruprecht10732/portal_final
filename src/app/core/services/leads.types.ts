@@ -43,6 +43,16 @@ export interface LeadService {
   updatedAt: string;
 }
 
+export interface EnergyLabel {
+  energieklasse: string;
+  energieIndex?: number | null;
+  bouwjaar?: number | null;
+  geldigTot?: string | null;
+  gebouwtype?: string | null;
+  registratiedatum?: string | null;
+  primaireFossieleEnergie?: number | null;
+}
+
 export interface Lead {
   id: string;
   consumer: Consumer;
@@ -54,6 +64,7 @@ export interface Lead {
   assignedAgentId?: string | null;
   viewedById?: string;
   viewedAt?: string;
+  energyLabel?: EnergyLabel | null;
   createdAt: string;
   updatedAt: string;
 }
