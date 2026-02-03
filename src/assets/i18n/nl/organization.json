@@ -16,6 +16,7 @@
       "vatNumber": "BTW-nummer",
       "kvkNumber": "KVK-nummer",
       "addressLine1": "Adresregel 1",
+      "addressSearchPlaceholder": "Begin met typen...",
       "addressLine2": "Adresregel 2",
       "postalCode": "Postcode",
       "city": "Plaats",

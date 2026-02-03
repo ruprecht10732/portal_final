@@ -1,14 +1,17 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, finalize } from 'rxjs';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, finalize, map, of, switchMap } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { OrganizationService, UpdateOrganizationRequest } from '../../../core/services/organization.service';
+import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 
 @Component({
   selector: 'app-organization-overview',
-  imports: [ButtonComponent, InputComponent, TranslatePipe],
+  imports: [ButtonComponent, AutocompleteComponent, InputComponent, TranslatePipe],
   templateUrl: './organization-overview.component.html',
   styleUrl: './organization-overview.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +37,9 @@ export class OrganizationOverviewComponent {
   protected readonly initialCity = signal('');
   protected readonly country = signal('');
   protected readonly initialCountry = signal('');
+  protected readonly addressOptions = signal<AutocompleteOption[]>([]);
+  private readonly addressSuggestions = signal<AddressSuggestion[]>([]);
+  private readonly hasAddressInput = signal(false);
 
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
@@ -41,6 +47,7 @@ export class OrganizationOverviewComponent {
   protected readonly errorMessage = signal('');
 
   private readonly orgService = inject(OrganizationService);
+  private readonly addressService = inject(AddressService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly lang = toSignal(this.translate.onLangChange, {
@@ -83,6 +90,7 @@ export class OrganizationOverviewComponent {
   );
 
   constructor() {
+    this.setupAddressSearch();
     this.loadOrganization();
   }
 
@@ -121,7 +129,67 @@ export class OrganizationOverviewComponent {
         this.initialCity.set(org.city ?? '');
         this.country.set(org.country ?? '');
         this.initialCountry.set(org.country ?? '');
+        this.hasAddressInput.set(false);
+        this.addressOptions.set([]);
+        this.addressSuggestions.set([]);
       });
+  }
+
+  private setupAddressSearch(): void {
+    effect(() => {
+      if (this.addressLine1().trim().length < MIN_LENGTH.address) {
+        this.addressOptions.set([]);
+        this.addressSuggestions.set([]);
+      }
+    });
+
+    toObservable(this.addressLine1)
+      .pipe(
+        map(value => value.trim()),
+        filter(() => this.hasAddressInput()),
+        filter(value => value.length >= MIN_LENGTH.address),
+        debounceTime(DEBOUNCE_MS.search),
+        distinctUntilChanged(),
+        switchMap(query => this.addressService.search(query).pipe(
+          catchError(() => of([]))
+        )),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(results => {
+        this.addressSuggestions.set(results);
+        this.addressOptions.set(results.map(addr => ({
+          label: addr.label,
+          value: addr.label,
+        })));
+      });
+  }
+
+  protected onAddressLine1Change(value: string): void {
+    this.hasAddressInput.set(true);
+    this.addressLine1.set(value);
+
+    const match = this.addressSuggestions().find(suggestion => suggestion.label === value);
+    if (match) {
+      this.applyAddressSuggestion(match);
+    }
+  }
+
+  private applyAddressSuggestion(suggestion: AddressSuggestion): void {
+    this.addressLine1.set(this.formatAddressLine1(suggestion));
+    if (suggestion.zipCode) this.postalCode.set(suggestion.zipCode);
+    if (suggestion.city) this.city.set(suggestion.city);
+    if (suggestion.country) this.country.set(suggestion.country);
+    this.hasAddressInput.set(false);
+    this.addressOptions.set([]);
+    this.addressSuggestions.set([]);
+  }
+
+  private formatAddressLine1(suggestion: AddressSuggestion): string {
+    return [suggestion.street, suggestion.houseNumber]
+      .map(part => part?.trim())
+      .filter(Boolean)
+      .join(' ')
+      .trim();
   }
 
   protected save(): void {

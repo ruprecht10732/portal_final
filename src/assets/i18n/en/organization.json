@@ -16,6 +16,7 @@
       "vatNumber": "VAT number",
       "kvkNumber": "KVK number",
       "addressLine1": "Address line 1",
+      "addressSearchPlaceholder": "Start typing an address...",
       "addressLine2": "Address line 2",
       "postalCode": "Postal code",
       "city": "City",

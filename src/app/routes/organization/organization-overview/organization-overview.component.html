@@ -51,10 +51,13 @@
         />
       </div>
 
-      <shared-input
+      <shared-autocomplete
         [label]="'organization.fields.addressLine1' | translate"
         [value]="addressLine1()"
-        (valueChange)="addressLine1.set($event)"
+        (valueChange)="onAddressLine1Change($event)"
+        [options]="addressOptions()"
+        [filterMode]="'manual'"
+        [placeholder]="'organization.fields.addressSearchPlaceholder' | translate"
       />
 
       <shared-input
