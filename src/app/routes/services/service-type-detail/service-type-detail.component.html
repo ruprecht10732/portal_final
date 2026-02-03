@@ -1,0 +1,226 @@
+<div class="flex flex-col w-full">
+  <!-- Header -->
+  <header class="flex items-center justify-between gap-4 p-4 sm:px-6 border-b border-zinc-200">
+    <div class="flex items-center gap-4">
+      <shared-button
+        type="button"
+        variant="ghost"
+        size="compact"
+        [iconOnly]="true"
+        [fullWidth]="false"
+        [uppercase]="false"
+        (clicked)="goBack()"
+        [ariaLabel]="'common.back' | translate"
+      >
+        <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+      </shared-button>
+
+      <div class="flex flex-col">
+        <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
+          {{ serviceType()?.name || ('services.detail.loading' | translate) }}
+        </h1>
+        <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
+          {{ serviceType()?.slug || '—' }}
+        </span>
+      </div>
+    </div>
+
+    @if (serviceType()) {
+      <div class="flex items-center gap-2">
+        <shared-button
+          type="button"
+          variant="danger"
+          size="compact"
+          [fullWidth]="false"
+          (clicked)="openDeleteDialog()"
+        >
+          <lucide-icon name="trash-2" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+          {{ 'services.detail.delete' | translate }}
+        </shared-button>
+      </div>
+    }
+  </header>
+
+  <!-- Error Alert -->
+  @if (error()) {
+    <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+      <span class="font-bold uppercase text-red-600 shrink-0">{{ 'services.detail.errorLabel' | translate }}</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <!-- Loading State -->
+  @if (loading()) {
+    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
+      <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
+      <p class="text-xs font-mono uppercase text-zinc-400">{{ 'services.detail.loading' | translate }}</p>
+    </div>
+  } @else if (serviceType(); as item) {
+    <div class="flex-1 overflow-y-auto">
+      <div class="grid grid-cols-1 md:grid-cols-2 w-full border-b border-zinc-200">
+        <!-- Section A: Basics -->
+        <section class="p-4 sm:p-6 border-b md:border-b-0 md:border-r border-zinc-200">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">A</span>
+            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+              {{ 'services.detail.sections.basics' | translate }}
+            </h2>
+          </div>
+
+          <dl class="space-y-5">
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                {{ 'services.detail.fields.name' | translate }}
+              </dt>
+              <dd class="mt-1 text-sm font-medium text-zinc-900">
+                {{ item.name }}
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                {{ 'services.detail.fields.slug' | translate }}
+              </dt>
+              <dd class="mt-1 text-sm font-mono text-zinc-600">
+                {{ item.slug }}
+              </dd>
+            </div>
+
+            @if (item.description) {
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {{ 'services.detail.fields.description' | translate }}
+                </dt>
+                <dd class="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">
+                  {{ item.description }}
+                </dd>
+              </div>
+            }
+
+            @if (item.intakeGuidelines) {
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {{ 'services.detail.fields.intakeGuidelines' | translate }}
+                </dt>
+                <dd class="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">
+                  {{ item.intakeGuidelines }}
+                </dd>
+              </div>
+            }
+          </dl>
+        </section>
+
+        <!-- Section B: Configuration -->
+        <section class="p-4 sm:p-6">
+          <div class="flex items-center gap-3 mb-6">
+            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">B</span>
+            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+              {{ 'services.detail.sections.configuration' | translate }}
+            </h2>
+          </div>
+
+          <dl class="space-y-5">
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                {{ 'services.detail.fields.status' | translate }}
+              </dt>
+              <dd class="mt-2">
+                <span
+                  class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
+                  [class.bg-emerald-100]="isActive()"
+                  [class.text-emerald-700]="isActive()"
+                  [class.bg-zinc-200]="!isActive()"
+                  [class.text-zinc-600]="!isActive()"
+                >
+                  {{ isActive() ? ('services.detail.status.active' | translate) : ('services.detail.status.inactive' | translate) }}
+                </span>
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                {{ 'services.detail.fields.icon' | translate }}
+              </dt>
+              <dd class="mt-2">
+                @if (item.icon) {
+                  <div class="flex items-center gap-2 text-sm text-zinc-700">
+                    <lucide-icon [name]="item.icon" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                    <span class="font-mono">{{ item.icon }}</span>
+                  </div>
+                } @else {
+                  <span class="text-sm text-zinc-500">—</span>
+                }
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                {{ 'services.detail.fields.color' | translate }}
+              </dt>
+              <dd class="mt-2">
+                @if (item.color) {
+                  <div class="flex items-center gap-2 text-sm text-zinc-700">
+                    <span class="h-4 w-4 rounded-full border border-zinc-200" [style.backgroundColor]="item.color"></span>
+                    <span class="font-mono">{{ item.color }}</span>
+                  </div>
+                } @else {
+                  <span class="text-sm text-zinc-500">—</span>
+                }
+              </dd>
+            </div>
+
+            <div>
+              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                {{ 'services.detail.fields.displayOrder' | translate }}
+              </dt>
+              <dd class="mt-1 text-sm text-zinc-700">
+                {{ item.displayOrder }}
+              </dd>
+            </div>
+          </dl>
+        </section>
+      </div>
+
+      <!-- Section C: Metadata -->
+      <section class="p-4 sm:p-6">
+        <div class="flex items-center gap-3 mb-6">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">C</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'services.detail.sections.metadata' | translate }}
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div>
+            <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              {{ 'services.detail.fields.createdAt' | translate }}
+            </dt>
+            <dd class="mt-1 text-sm text-zinc-600">
+              {{ item.createdAt | date:'medium' }}
+            </dd>
+          </div>
+          <div>
+            <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+              {{ 'services.detail.fields.updatedAt' | translate }}
+            </dt>
+            <dd class="mt-1 text-sm text-zinc-600">
+              {{ item.updatedAt | date:'medium' }}
+            </dd>
+          </div>
+        </div>
+      </section>
+    </div>
+  }
+
+  <shared-confirm-dialog
+    [isOpen]="showDeleteDialog()"
+    [title]="'services.detail.deleteConfirmTitle' | translate"
+    [message]="'services.detail.deleteConfirmMessage' | translate"
+    [confirmText]="'services.detail.deleteConfirm' | translate"
+    [cancelText]="'services.detail.deleteCancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="deleting()"
+    (confirm)="confirmDelete()"
+    (cancel)="closeDeleteDialog()"
+  />
+</div>

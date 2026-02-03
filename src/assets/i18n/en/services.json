@@ -48,6 +48,37 @@
       "createFailed": "Failed to create service type",
       "saveFailed": "Failed to save service types",
       "deleteFailed": "Failed to delete service types"
+    },
+    "detail": {
+      "loading": "Loading service type...",
+      "errorLabel": "Error",
+      "delete": "Delete",
+      "deleteConfirmTitle": "Delete service type",
+      "deleteConfirmMessage": "Delete this service type? This cannot be undone.",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel",
+      "deleteSuccess": "Service type deleted",
+      "sections": {
+        "basics": "Basics",
+        "configuration": "Configuration",
+        "metadata": "Metadata"
+      },
+      "fields": {
+        "name": "Name",
+        "slug": "Slug",
+        "description": "Description",
+        "intakeGuidelines": "Intake guidelines",
+        "icon": "Icon",
+        "color": "Color",
+        "displayOrder": "Display order",
+        "status": "Status",
+        "createdAt": "Created",
+        "updatedAt": "Updated"
+      },
+      "status": {
+        "active": "Active",
+        "inactive": "Inactive"
+      }
     }
   }
 }

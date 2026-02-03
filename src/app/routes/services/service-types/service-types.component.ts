@@ -169,7 +169,7 @@ export class ServiceTypesComponent implements OnInit {
     cardSubtitleField: 'slug',
     cardSecondarySubtitleField: 'description',
     cardPreviewFieldCount: 4,
-    rowViewActionEnabled: false,
+    rowViewActionEnabled: true,
     rowDeleteActionEnabled: true,
   };
 
@@ -458,6 +458,12 @@ export class ServiceTypesComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  protected onServiceTypeDoubleClick(row: ServiceTypeRow): void {
+    if (row.id) {
+      this.router.navigate(['/app/services', row.id]);
+    }
   }
 
   private getErrorMessage(error: unknown, fallback: string): string {

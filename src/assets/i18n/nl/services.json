@@ -48,6 +48,37 @@
       "createFailed": "Kon diensttype niet aanmaken",
       "saveFailed": "Kon diensttypen niet opslaan",
       "deleteFailed": "Kon diensttypen niet verwijderen"
+    },
+    "detail": {
+      "loading": "Diensttype laden...",
+      "errorLabel": "Fout",
+      "delete": "Verwijderen",
+      "deleteConfirmTitle": "Diensttype verwijderen",
+      "deleteConfirmMessage": "Wil je dit diensttype verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "deleteConfirm": "Verwijderen",
+      "deleteCancel": "Annuleren",
+      "deleteSuccess": "Diensttype verwijderd",
+      "sections": {
+        "basics": "Basis",
+        "configuration": "Configuratie",
+        "metadata": "Metadata"
+      },
+      "fields": {
+        "name": "Naam",
+        "slug": "Slug",
+        "description": "Beschrijving",
+        "intakeGuidelines": "Intake richtlijnen",
+        "icon": "Pictogram",
+        "color": "Kleur",
+        "displayOrder": "Weergavevolgorde",
+        "status": "Status",
+        "createdAt": "Aangemaakt",
+        "updatedAt": "Bijgewerkt"
+      },
+      "status": {
+        "active": "Actief",
+        "inactive": "Inactief"
+      }
     }
   }
 }

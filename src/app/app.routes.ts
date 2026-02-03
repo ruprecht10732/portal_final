@@ -225,6 +225,10 @@ export const routes: Routes = [
 						path: 'new',
 						loadComponent: () => import('./routes/services/service-types/service-type-create.component').then(m => m.ServiceTypeCreateComponent),
 					},
+					{
+						path: ':id',
+						loadComponent: () => import('./routes/services/service-type-detail/service-type-detail.component').then(m => m.ServiceTypeDetailComponent),
+					},
 				],
 			},
 			{

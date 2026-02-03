@@ -17,6 +17,12 @@ export class ServiceTypesService {
     );
   }
 
+  getById(id: string): Observable<ServiceTypeItem> {
+    return this.http.get<ServiceTypeItem>(`${this.baseUrl}/${id}`).pipe(
+      map(item => this.normalizeItem(item)),
+    );
+  }
+
   listAdmin(params: ListServiceTypesParams = {}): Observable<ServiceTypeListResponse> {
     let httpParams = new HttpParams();
     if (params.search) httpParams = httpParams.set('search', params.search);
