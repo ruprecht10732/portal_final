@@ -28,6 +28,7 @@ import type {
   Attachment,
   AttachmentListResponse,
   PresignedDownloadResponse,
+  PhotoAnalysisResponse,
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
@@ -153,6 +154,11 @@ export class LeadsService {
   listAnalyses(id: string, serviceId: string): Observable<LeadAIAnalysisListResponse> {
     const params = new HttpParams().set('serviceId', serviceId);
     return this.http.get<LeadAIAnalysisListResponse>(`${this.baseUrl}/${id}/analysis/history`, { params });
+  }
+
+  // Photo Analysis - AI vision analysis of lead images
+  getPhotoAnalysis(leadId: string, serviceId: string): Observable<PhotoAnalysisResponse> {
+    return this.http.get<PhotoAnalysisResponse>(`${this.baseUrl}/${leadId}/services/${serviceId}/photo-analysis`);
   }
 
   // Call Logger - processes post-call summaries into structured actions

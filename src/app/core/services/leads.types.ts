@@ -255,6 +255,28 @@ export interface AnalyzeLeadResponse {
   analysis?: LeadAIAnalysis;
 }
 
+// Photo Analysis types
+export type PhotoAnalysisConfidence = 'High' | 'Medium' | 'Low';
+
+export interface PhotoAnalysis {
+  id: string;
+  leadId: string;
+  serviceId: string;
+  summary: string;
+  observations: string[];
+  scopeAssessment: string;
+  costIndicators: string;
+  safetyConcerns: string[];
+  additionalInfo: string[];
+  confidenceLevel: PhotoAnalysisConfidence;
+  photoCount: number;
+  createdAt: string;
+}
+
+export interface PhotoAnalysisResponse {
+  analysis: PhotoAnalysis | null;
+}
+
 // Call Logger types
 export interface LogCallRequest {
   summary: string;

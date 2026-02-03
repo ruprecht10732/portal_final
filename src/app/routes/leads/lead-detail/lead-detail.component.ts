@@ -7,7 +7,7 @@ import { LeadsService } from '../../../core/services/leads.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis } from '../../../core/services/leads.types';
 import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
 import type {
   AccessDifficulty,
@@ -120,6 +120,10 @@ export class LeadDetailComponent implements OnInit {
   protected readonly aiAnalysisIsDefault = signal(false);
   protected readonly aiAnalysisNoNewInfo = signal(false);
   protected readonly missingInformation = computed(() => this.aiAnalysis()?.missingInformation ?? []);
+
+  // Photo Analysis
+  protected readonly photoAnalysis = signal<PhotoAnalysis | null>(null);
+  protected readonly photoAnalysisLoading = signal(false);
 
   // ARIA live region for announcements
   protected readonly announcement = signal<string>('');
@@ -697,6 +701,24 @@ export class LeadDetailComponent implements OnInit {
         this.aiAnalysisLoading.set(false);
       },
     });
+
+    // Also load photo analysis
+    this.loadPhotoAnalysis(leadId, serviceId);
+  }
+
+  private loadPhotoAnalysis(leadId: string, serviceId: string): void {
+    this.photoAnalysisLoading.set(true);
+    this.leadsService.getPhotoAnalysis(leadId, serviceId).subscribe({
+      next: (response) => {
+        this.photoAnalysis.set(response.analysis);
+        this.photoAnalysisLoading.set(false);
+      },
+      error: () => {
+        // Photo analysis is optional, don't show error
+        this.photoAnalysis.set(null);
+        this.photoAnalysisLoading.set(false);
+      },
+    });
   }
 
   protected refreshAIAnalysis(force = false): void {
@@ -721,6 +743,8 @@ export class LeadDetailComponent implements OnInit {
           } else {
             this.aiAnalysisNoNewInfo.set(false);
             this.announce(this.translate.instant('leads.detail.announcements.aiUpdated'));
+            // Reload photo analysis as it may have been updated during AI analysis
+            this.loadPhotoAnalysis(lead.id, service.id);
           }
         } else {
           const message = this.translate.instant('leads.detail.errors.unexpectedResponse');

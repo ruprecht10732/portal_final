@@ -1,5 +1,6 @@
-import { ChangeDetectionStrategy, Component, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
+import { SSEService } from '../../core/services/sse.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { ToastContainerComponent } from '../../shared/components/toast-container/toast-container.component';
 import { AuthenticatedMobileNavComponent } from './authenticated-mobile-nav.component';
@@ -20,6 +21,9 @@ import { AuthenticatedSidebarComponent } from './authenticated-sidebar.component
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthenticatedLayoutComponent {
+  // Initialize SSE service for real-time notifications
+  private readonly sse = inject(SSEService);
+
   protected readonly showTimeoutWarning = signal(false);
   protected readonly mobileMenuOpen = signal(false);
 

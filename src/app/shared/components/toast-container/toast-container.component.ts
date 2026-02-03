@@ -1,8 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { RouterLink } from '@angular/router';
 import { ToastService } from '../../../core/services/toast.service';
 
 @Component({
   selector: 'shared-toast-container',
+  imports: [RouterLink],
   templateUrl: './toast-container.component.html',
   styleUrl: './toast-container.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

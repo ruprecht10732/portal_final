@@ -209,7 +209,22 @@
         "openEmail": "E-mail openen",
         "missingPhone": "Geen telefoonnummer beschikbaar",
         "missingEmail": "Geen e-mailadres beschikbaar",
-        "lastAnalyzed": "Laatste analyse"
+        "lastAnalyzed": "Laatste analyse",
+        "photo": {
+          "title": "Foto-analyse",
+          "observations": "Observaties",
+          "scope": "Omvang beoordeling",
+          "cost": "Kostenindicatoren",
+          "safety": "Veiligheidszorgen",
+          "additional": "Aanvullende informatie",
+          "confidence": "Zekerheid",
+          "photoSingular": "foto",
+          "photoPlural": "foto's",
+          "summary": "Samenvatting",
+          "loading": "Foto-analyse laden...",
+          "empty": "Geen foto-analyse beschikbaar",
+          "analyzedAt": "Geanalyseerd"
+        }
       }
     },
     "list": {

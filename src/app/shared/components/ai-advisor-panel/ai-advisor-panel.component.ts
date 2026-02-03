@@ -2,7 +2,7 @@
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
-import type { LeadAIAnalysis, LeadStatus, PreferredContactChannel, UrgencyLevel } from '../../../core/services/leads.types';
+import type { LeadAIAnalysis, LeadStatus, PhotoAnalysis, PreferredContactChannel, UrgencyLevel } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../button/button.component';
 
 const TERMINAL_STATUSES = new Set<LeadStatus>(['Closed', 'Bad_Lead', 'Surveyed']);
@@ -19,6 +19,8 @@ const TERMINAL_STATUSES = new Set<LeadStatus>(['Closed', 'Bad_Lead', 'Surveyed']
 })
 export class AiAdvisorPanelComponent {
   analysis = input<LeadAIAnalysis | null>(null);
+  photoAnalysis = input<PhotoAnalysis | null>(null);
+  photoAnalysisLoading = input<boolean>(false);
   loading = input<boolean>(false);
   error = input<string | null>(null);
   refreshing = input<boolean>(false);
@@ -33,6 +35,7 @@ export class AiAdvisorPanelComponent {
 
   editableMessage = signal<string>('');
   copied = signal<boolean>(false);
+  photoAnalysisExpanded = signal<boolean>(false);
 
   constructor() {
     effect(() => {

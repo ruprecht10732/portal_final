@@ -13,6 +13,15 @@
           <p class="toast__title">{{ toast.title }}</p>
         }
         <p class="toast__message">{{ toast.message }}</p>
+        @if (toast.link) {
+          <a
+            class="toast__link"
+            [routerLink]="toast.link.url"
+            (click)="dismiss(toast.id)"
+          >
+            {{ toast.link.label }}
+          </a>
+        }
       </div>
       @if (toast.dismissible) {
         <button

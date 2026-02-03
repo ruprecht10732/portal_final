@@ -3,6 +3,11 @@ import { TOAST_DURATION_MS } from '../config';
 
 export type ToastVariant = 'info' | 'success' | 'warning' | 'error';
 
+export interface ToastLink {
+  label: string;
+  url: string | string[]; // Can be a string or router link segments
+}
+
 export interface ToastItem {
   id: string;
   message: string;
@@ -11,6 +16,7 @@ export interface ToastItem {
   dismissible: boolean;
   durationMs: number | null;
   createdAt: number;
+  link?: ToastLink;
 }
 
 export interface ToastOptions {
@@ -19,6 +25,7 @@ export interface ToastOptions {
   variant?: ToastVariant;
   dismissible?: boolean;
   durationMs?: number | null;
+  link?: ToastLink;
 }
 
 const DEFAULT_DURATIONS: Record<ToastVariant, number> = TOAST_DURATION_MS;
@@ -44,6 +51,7 @@ export class ToastService {
       dismissible,
       durationMs,
       createdAt: Date.now(),
+      link: options.link,
     };
 
     this.items.update(current => [toast, ...current]);
