@@ -1,14 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { LucideAngularModule } from 'lucide-angular';
 import { firstValueFrom } from 'rxjs';
 import {
   CatalogService,
   type CatalogAsset,
   type CatalogAssetType,
-  type PeriodUnit,
   type Product,
   type ProductType,
   type UpdateProductRequest,
@@ -18,26 +15,20 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
-import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
-import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
-import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { FileUploaderComponent, type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { CatalogFormComponent, type CatalogFormValue } from '../catalog-form/catalog-form.component';
 
 @Component({
   selector: 'app-catalog-edit',
   imports: [
     TranslateModule,
-    ReactiveFormsModule,
-    LucideAngularModule,
     ButtonComponent,
-    InputComponent,
-    NumberInputComponent,
-    SelectComponent,
-    TextareaComponent,
     ConfirmDialogComponent,
     FileUploaderComponent,
+    PageHeaderComponent,
+    CatalogFormComponent,
   ],
   templateUrl: './catalog-edit.component.html',
   styleUrl: './catalog-edit.component.css',
@@ -50,13 +41,11 @@ export class CatalogEditComponent implements OnInit {
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
   private readonly toast = inject(ToastService);
-  private readonly fb = inject(FormBuilder);
 
   protected readonly product = signal<Product | null>(null);
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly submitAttempted = signal(false);
   protected readonly vatRates = signal<VatRate[]>([]);
   protected readonly activeTab = signal<'details' | 'materials' | 'assets'>('details');
   protected readonly selectedType = signal<ProductType>('product');
@@ -83,39 +72,6 @@ export class CatalogEditComponent implements OnInit {
   protected readonly addingMaterials = signal(false);
   protected readonly removingMaterialId = signal<string | null>(null);
 
-  protected readonly form = this.fb.nonNullable.group({
-    title: ['', [Validators.required, Validators.maxLength(200)]],
-    reference: ['', [Validators.required, Validators.maxLength(100)]],
-    description: ['', Validators.maxLength(1000)],
-    price: this.fb.control<number | null>(null, Validators.required),
-    vatRateId: ['', Validators.required],
-    type: this.fb.nonNullable.control<ProductType>('product'),
-    periodCount: this.fb.control<number | null>(null),
-    periodUnit: this.fb.control<PeriodUnit | null>(null),
-  });
-
-  protected readonly typeOptions = computed<SelectOption<ProductType>[]>(() => [
-    { label: this.translate.instant('catalog.products.types.digital_service'), value: 'digital_service' },
-    { label: this.translate.instant('catalog.products.types.service'), value: 'service' },
-    { label: this.translate.instant('catalog.products.types.product'), value: 'product' },
-    { label: this.translate.instant('catalog.products.types.material'), value: 'material' },
-  ]);
-
-  protected readonly periodUnitOptions = computed<SelectOption<PeriodUnit>[]>(() => [
-    { label: this.translate.instant('catalog.products.periodUnits.day'), value: 'day' },
-    { label: this.translate.instant('catalog.products.periodUnits.week'), value: 'week' },
-    { label: this.translate.instant('catalog.products.periodUnits.month'), value: 'month' },
-    { label: this.translate.instant('catalog.products.periodUnits.quarter'), value: 'quarter' },
-    { label: this.translate.instant('catalog.products.periodUnits.year'), value: 'year' },
-  ]);
-
-  protected readonly vatRateOptions = computed<SelectOption<string>[]>(() =>
-    this.vatRates().map(vr => ({
-      label: `${vr.name} (${CatalogService.bpsToRate(vr.rateBps)}%)`,
-      value: vr.id,
-    }))
-  );
-
   /** True for service types that support billing periods */
   protected readonly isServiceType = computed(() => {
     const type = this.selectedType();
@@ -126,7 +82,20 @@ export class CatalogEditComponent implements OnInit {
   protected readonly showMaterialsTab = computed(() => this.isServiceType());
   protected readonly showAssetsTab = computed(() => true);
 
-  protected readonly requiredError = computed(() => this.translate.instant('catalog.products.validation.required'));
+  protected readonly formInitialValue = computed<CatalogFormValue | null>(() => {
+    const product = this.product();
+    if (!product) return null;
+    return {
+      title: product.title,
+      reference: product.reference,
+      description: product.description ?? '',
+      price: CatalogService.centsToPrice(product.priceCents),
+      vatRateId: product.vatRateId,
+      type: product.type,
+      periodCount: product.periodCount ?? null,
+      periodUnit: product.periodUnit ?? null,
+    };
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -147,7 +116,7 @@ export class CatalogEditComponent implements OnInit {
     this.catalogService.getProduct(id).subscribe({
       next: (product) => {
         this.product.set(product);
-        this.populateForm(product);
+        this.selectedType.set(product.type);
         this.loading.set(false);
         this.loadAssets(product.id);
         if (product.type === 'service' || product.type === 'digital_service') {
@@ -160,20 +129,6 @@ export class CatalogEditComponent implements OnInit {
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
       },
-    });
-  }
-
-  private populateForm(product: Product): void {
-    this.selectedType.set(product.type);
-    this.form.patchValue({
-      title: product.title,
-      reference: product.reference,
-      description: product.description ?? '',
-      price: CatalogService.centsToPrice(product.priceCents),
-      vatRateId: product.vatRateId,
-      type: product.type,
-      periodCount: product.periodCount ?? null,
-      periodUnit: product.periodUnit ?? null,
     });
   }
 
@@ -223,74 +178,49 @@ export class CatalogEditComponent implements OnInit {
     });
   }
 
-  protected setType(value: ProductType | null): void {
-    if (value) {
-      const wasServiceType = this.isServiceType();
-      this.form.controls.type.setValue(value);
-      this.selectedType.set(value);
-      
-      // Clear period fields and switch to details tab when switching from service to non-service type
-      const isNowServiceType = value === 'service' || value === 'digital_service';
-      if (wasServiceType && !isNowServiceType) {
-        this.form.controls.periodCount.setValue(null);
-        this.form.controls.periodUnit.setValue(null);
-        this.activeTab.set('details');
-      }
-      
-      // Load materials if switching to service type
-      const product = this.product();
-      if (!wasServiceType && isNowServiceType && product) {
-        this.loadMaterials(product.id);
-      }
+  protected handleTypeChange(value: ProductType): void {
+    const wasServiceType = this.isServiceType();
+    this.selectedType.set(value);
+
+    const isNowServiceType = value === 'service' || value === 'digital_service';
+    if (wasServiceType && !isNowServiceType) {
+      this.activeTab.set('details');
     }
-  }
 
-  protected setVatRate(value: string | null): void {
-    this.form.controls.vatRateId.setValue(value ?? '');
-  }
-
-  protected setPeriodUnit(value: PeriodUnit | null): void {
-    this.form.controls.periodUnit.setValue(value);
+    const product = this.product();
+    if (!wasServiceType && isNowServiceType && product) {
+      this.loadMaterials(product.id);
+    }
   }
 
   protected setActiveTab(tab: 'details' | 'materials' | 'assets'): void {
     this.activeTab.set(tab);
   }
 
-  protected save(): void {
-    this.submitAttempted.set(true);
-    this.form.markAllAsTouched();
-
+  protected save(values: CatalogFormValue): void {
     const product = this.product();
-    if (!product || this.form.invalid || this.saving()) return;
+    if (!product || this.saving()) return;
 
     this.saving.set(true);
     this.error.set(null);
 
-    const controls = this.form.controls;
-    const priceCents = controls.price.value === null ? 0 : CatalogService.priceToCents(controls.price.value);
-    const descriptionValue = controls.description.value.trim();
-    const vatRateIdValue = controls.vatRateId.value;
+    const priceCents = values.price === null ? 0 : CatalogService.priceToCents(values.price);
+    const descriptionValue = values.description.trim();
+    const vatRateIdValue = values.vatRateId;
 
     const request: UpdateProductRequest = {
-      title: controls.title.value.trim(),
-      reference: controls.reference.value.trim(),
+      title: values.title.trim(),
+      reference: values.reference.trim(),
       priceCents,
-      type: controls.type.value,
+      type: values.type,
       ...(descriptionValue && { description: descriptionValue }),
       ...(vatRateIdValue && { vatRateId: vatRateIdValue }),
     };
 
     // Add period fields only for service types
-    if (this.isServiceType()) {
-      const periodCountValue = controls.periodCount.value;
-      const periodUnitValue = controls.periodUnit.value;
-      if (periodCountValue !== null) {
-        request.periodCount = periodCountValue;
-      }
-      if (periodUnitValue !== null) {
-        request.periodUnit = periodUnitValue;
-      }
+    if (values.type === 'service' || values.type === 'digital_service') {
+      if (values.periodCount !== null) request.periodCount = values.periodCount;
+      if (values.periodUnit !== null) request.periodUnit = values.periodUnit;
     }
 
     this.catalogService.updateProduct(product.id, request).subscribe({
@@ -549,12 +479,6 @@ export class CatalogEditComponent implements OnInit {
 
   protected formatPrice(priceCents: number): string {
     return `€${CatalogService.centsToPrice(priceCents).toFixed(2)}`;
-  }
-
-  protected requiredControlError(control: { hasError: (error: string) => boolean } | null): string {
-    if (!this.submitAttempted()) return '';
-    if (!control?.hasError('required')) return '';
-    return this.requiredError();
   }
 
 }

@@ -1,31 +1,12 @@
 <!-- Main Wrapper: Mobile-first vertical flex -->
 <div class="flex flex-col w-full ">
 
-  <!-- Header: Transparent, Mobile-First Padding, Strong Border -->
-  <header class="flex items-center gap-4 p-4 sm:px-6">
-    <shared-button
-      type="button"
-      variant="ghost"
-      size="compact"
-      [iconOnly]="true"
-      [fullWidth]="false"
-      [uppercase]="false"
-      (clicked)="cancel()"
-      [attr.aria-label]="'leads.form.goBack' | translate"
-    >
-      <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-    </shared-button>
-    
-    <div class="flex flex-col">
-      <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
-        {{ isNew() ? ('leads.form.newLead' | translate) : ('leads.form.editLead' | translate) }}
-      </h1>
-      <!-- Optional breadcrumb or status text -->
-      <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
-        {{ 'leads.form.formId' | translate:{status: (isNew() ? ('leads.form.statusNew' | translate) : ('leads.form.statusEdit' | translate))} }}
-      </span>
-    </div>
-  </header>
+  <shared-page-header
+    [title]="isNew() ? ('leads.form.newLead' | translate) : ('leads.form.editLead' | translate)"
+    [subtitle]="'leads.form.formId' | translate:{status: (isNew() ? ('leads.form.statusNew' | translate) : ('leads.form.statusEdit' | translate))}"
+    [backAriaLabel]="'leads.form.goBack' | translate"
+    (back)="cancel()"
+  ></shared-page-header>
 
   <!-- Alerts Section: Stacks vertically -->
   @if (error()) {

@@ -1,79 +1,53 @@
-<section class="w-full space-y-6 bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm">
-  <div class="flex items-center justify-between">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-zinc-900">{{ 'organization.invite.edit' | translate }}</h3>
-      <p class="text-sm text-zinc-500">{{ 'organization.invite.subtitle' | translate }}</p>
-    </div>
-    <a class="text-xs uppercase tracking-widest font-semibold text-zinc-500 hover:text-zinc-900" routerLink="/app/organization/invites">
-      {{ 'organization.invites' | translate }}
-    </a>
+<organization-invite-form
+  [title]="'organization.invite.edit' | translate"
+  [subtitle]="'organization.invite.subtitle' | translate"
+  [listLinkLabel]="'organization.invites' | translate"
+  [errorMessage]="errorMessage()"
+  [successMessage]="successMessage()"
+  [isLoading]="isLoading()"
+  [email]="email()"
+  [emailError]="emailError()"
+  [inviteToken]="inviteToken()"
+  [showSubmit]="false"
+  (emailChange)="email.set($event)"
+>
+  <div extra class="flex flex-wrap gap-2 text-xs uppercase tracking-widest font-semibold text-zinc-500">
+    <span>
+      {{ 'organization.invite.columns.status' | translate }}:
+      {{ isUsed() ? ('organization.invite.statusUsed' | translate) : (isExpired() ? ('organization.invite.statusExpired' | translate) : ('organization.invite.statusPending' | translate)) }}
+    </span>
+    <span>{{ 'organization.invite.columns.expires' | translate }}: {{ expiresAt() | date:'mediumDate' }}</span>
   </div>
 
-  @if (errorMessage()) {
-    <div class="border-y border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:border sm:rounded-sm">
-      {{ errorMessage() }}
-    </div>
-  }
-
-  @if (successMessage()) {
-    <div class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-emerald-700">
-      {{ successMessage() }}
-    </div>
-  }
-
-  @if (isLoading()) {
-    <div class="flex items-center justify-center py-8">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
-    </div>
-  } @else {
-    <div class="space-y-4">
-      <shared-input
-        [label]="'organization.invite.emailLabel' | translate"
-        [value]="email()"
-        (valueChange)="email.set($event)"
-        [error]="emailError()"
-        [required]="true"
-      />
-
-      <div class="flex flex-wrap gap-2 text-xs uppercase tracking-widest font-semibold text-zinc-500">
-        <span>{{ 'organization.invite.columns.status' | translate }}: {{ isUsed() ? ('organization.invite.statusUsed' | translate) : (isExpired() ? ('organization.invite.statusExpired' | translate) : ('organization.invite.statusPending' | translate)) }}</span>
-        <span>{{ 'organization.invite.columns.expires' | translate }}: {{ expiresAt() | date:'mediumDate' }}</span>
-      </div>
-
-      <div class="flex flex-wrap gap-3">
-        <shared-button
-          variant="primary"
-          size="compact"
-          [disabled]="!canSave()"
-          [loading]="isSaving()"
-          (clicked)="save()"
-        >
-          {{ 'organization.save' | translate }}
-        </shared-button>
-        <shared-button
-          variant="ghost"
-          size="compact"
-          [disabled]="!canResend()"
-          [loading]="isSaving()"
-          (clicked)="resend()"
-        >
-          {{ 'organization.invite.resend' | translate }}
-        </shared-button>
-        <shared-button
-          variant="ghost"
-          size="compact"
-          [disabled]="isSaving() || isUsed()"
-          (clicked)="revoke()"
-        >
-          {{ 'organization.invite.revoke' | translate }}
-        </shared-button>
-      </div>
-
-      @if (inviteToken()) {
-        <div class="border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-zinc-600">
-          {{ 'organization.invite.tokenLabel' | translate }}: {{ inviteToken() }}
-        </div>
-      }
-    </div>
-  }
-</section>
+  <div actions class="flex flex-wrap gap-3">
+    <shared-button
+      variant="primary"
+      size="compact"
+      [disabled]="!canSave()"
+      [loading]="isSaving()"
+      type="button"
+      (clicked)="save()"
+    >
+      {{ 'organization.save' | translate }}
+    </shared-button>
+    <shared-button
+      variant="ghost"
+      size="compact"
+      [disabled]="!canResend()"
+      [loading]="isSaving()"
+      type="button"
+      (clicked)="resend()"
+    >
+      {{ 'organization.invite.resend' | translate }}
+    </shared-button>
+    <shared-button
+      variant="ghost"
+      size="compact"
+      [disabled]="isSaving() || isUsed()"
+      type="button"
+      (clicked)="revoke()"
+    >
+      {{ 'organization.invite.revoke' | translate }}
+    </shared-button>
+  </div>
+</organization-invite-form>

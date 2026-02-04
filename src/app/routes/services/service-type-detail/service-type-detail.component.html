@@ -1,45 +1,27 @@
 <div class="flex flex-col w-full">
-  <!-- Header -->
-  <header class="flex items-center justify-between gap-4 p-4 sm:px-6 border-b border-zinc-200">
-    <div class="flex items-center gap-4">
-      <shared-button
-        type="button"
-        variant="ghost"
-        size="compact"
-        [iconOnly]="true"
-        [fullWidth]="false"
-        [uppercase]="false"
-        (clicked)="goBack()"
-        [ariaLabel]="'common.back' | translate"
-      >
-        <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-      </shared-button>
-
-      <div class="flex flex-col">
-        <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
-          {{ serviceType()?.name || ('services.detail.loading' | translate) }}
-        </h1>
-        <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
-          {{ serviceType()?.slug || '—' }}
-        </span>
-      </div>
-    </div>
-
-    @if (serviceType()) {
-      <div class="flex items-center gap-2">
-        <shared-button
-          type="button"
-          variant="danger"
-          size="compact"
-          [fullWidth]="false"
-          (clicked)="openDeleteDialog()"
-        >
-          <lucide-icon name="trash-2" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
-          {{ 'services.detail.delete' | translate }}
-        </shared-button>
-      </div>
-    }
-  </header>
+  <div class="border-b border-zinc-200">
+    <shared-page-header
+      [title]="serviceType()?.name || ('services.detail.loading' | translate)"
+      [subtitle]="serviceType()?.slug || '—'"
+      [backAriaLabel]="'common.back' | translate"
+      (back)="goBack()"
+    >
+      @if (serviceType()) {
+        <div actions class="flex items-center gap-2">
+          <shared-button
+            type="button"
+            variant="danger"
+            size="compact"
+            [fullWidth]="false"
+            (clicked)="openDeleteDialog()"
+          >
+            <lucide-icon name="trash-2" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+            {{ 'services.detail.delete' | translate }}
+          </shared-button>
+        </div>
+      }
+    </shared-page-header>
+  </div>
 
   <!-- Error Alert -->
   @if (error()) {
@@ -190,7 +172,7 @@
           </h2>
         </div>
 
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+        <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4">
           <div>
             <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
               {{ 'services.detail.fields.createdAt' | translate }}
@@ -207,7 +189,7 @@
               {{ item.updatedAt | date:'medium' }}
             </dd>
           </div>
-        </div>
+        </dl>
       </section>
     </div>
   }

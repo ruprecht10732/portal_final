@@ -1,55 +1,37 @@
 <div class="flex flex-col w-full">
-  <!-- Header -->
-  <header class="flex items-center justify-between gap-4 p-4 sm:px-6 border-b border-zinc-200">
-    <div class="flex items-center gap-4">
-      <shared-button
-        type="button"
-        variant="ghost"
-        size="compact"
-        [iconOnly]="true"
-        [fullWidth]="false"
-        [uppercase]="false"
-        (clicked)="goBack()"
-        [ariaLabel]="'catalog.products.goBack' | translate"
-      >
-        <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-      </shared-button>
-      
-      <div class="flex flex-col">
-        <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
-          {{ product()?.title || ('catalog.products.loading' | translate) }}
-        </h1>
-        <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
-          {{ product()?.reference }}
-        </span>
-      </div>
-    </div>
-
-    @if (product()) {
-      <div class="flex items-center gap-2">
-        <shared-button
-          type="button"
-          variant="secondary"
-          size="compact"
-          [fullWidth]="false"
-          (clicked)="edit()"
-        >
-          <lucide-icon name="pencil" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
-          {{ 'catalog.products.edit' | translate }}
-        </shared-button>
-        <shared-button
-          type="button"
-          variant="danger"
-          size="compact"
-          [fullWidth]="false"
-          (clicked)="openDeleteDialog()"
-        >
-          <lucide-icon name="trash-2" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
-          {{ 'catalog.products.delete' | translate }}
-        </shared-button>
-      </div>
-    }
-  </header>
+  <div class="border-b border-zinc-200">
+    <shared-page-header
+      [title]="product()?.title || ('catalog.products.loading' | translate)"
+      [subtitle]="product()?.reference || ''"
+      [backAriaLabel]="'catalog.products.goBack' | translate"
+      (back)="goBack()"
+    >
+      @if (product()) {
+        <div actions class="flex items-center gap-2">
+          <shared-button
+            type="button"
+            variant="secondary"
+            size="compact"
+            [fullWidth]="false"
+            (clicked)="edit()"
+          >
+            <lucide-icon name="pencil" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+            {{ 'catalog.products.edit' | translate }}
+          </shared-button>
+          <shared-button
+            type="button"
+            variant="danger"
+            size="compact"
+            [fullWidth]="false"
+            (clicked)="openDeleteDialog()"
+          >
+            <lucide-icon name="trash-2" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+            {{ 'catalog.products.delete' | translate }}
+          </shared-button>
+        </div>
+      }
+    </shared-page-header>
+  </div>
 
   <!-- Error Alert -->
   @if (error()) {

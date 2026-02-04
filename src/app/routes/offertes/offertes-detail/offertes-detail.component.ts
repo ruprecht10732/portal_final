@@ -11,10 +11,11 @@ import type { Lead } from '../../../core/services/leads.types';
 
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-offertes-detail',
-  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent],
+  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, PageHeaderComponent],
   templateUrl: './offertes-detail.component.html',
   styleUrl: './offertes-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

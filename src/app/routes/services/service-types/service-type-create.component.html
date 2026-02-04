@@ -1,31 +1,12 @@
 <!-- Main Wrapper: Mobile-first vertical flex -->
 <div class="flex flex-col w-full h-full">
 
-  <!-- Header: Transparent, Mobile-First Padding -->
-  <header class="flex items-center gap-4 p-4 sm:px-6">
-    <!-- Back Button (Optional, added to match source feel) -->
-    <shared-button
-      type="button"
-      variant="ghost"
-      size="compact"
-      [iconOnly]="true"
-      [fullWidth]="false"
-      [uppercase]="false"
-      (clicked)="resetForm()" 
-      [attr.aria-label]="'common.back' | translate"
-    >
-      <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-    </shared-button>
-    
-    <div class="flex flex-col">
-      <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
-        {{ 'services.create.title' | translate }}
-      </h1>
-      <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
-        {{ 'services.create.subtitle' | translate }}
-      </span>
-    </div>
-  </header>
+  <shared-page-header
+    [title]="'services.create.title' | translate"
+    [subtitle]="'services.create.subtitle' | translate"
+    [backAriaLabel]="'common.back' | translate"
+    (back)="resetForm()"
+  ></shared-page-header>
 
   <!-- Alerts Section -->
   @if (error()) {

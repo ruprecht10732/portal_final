@@ -11,39 +11,26 @@
       </shared-button>
     </div>
   } @else {
-    <!-- Header -->
-    <header class="flex items-center justify-between gap-4 p-4 sm:px-6 border-b border-zinc-200">
-      <div class="flex items-center gap-4">
-        <shared-button
-          type="button"
-          variant="ghost"
-          size="compact"
-          [iconOnly]="true"
-          [fullWidth]="false"
-          (clicked)="goBack()"
-          [attr.aria-label]="'common.back' | translate"
-        >
-          <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-        </shared-button>
-        
-        <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight truncate">
-          {{ appointment()!.title }}
-        </h1>
-      </div>
-      
-      <div class="flex items-center gap-2">
-        @if (!isEditing()) {
-          <shared-button variant="secondary" size="compact" (clicked)="toggleEdit()">
-            <lucide-icon name="pencil" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
-            {{ 'common.edit' | translate }}
+    <div class="border-b border-zinc-200">
+      <shared-page-header
+        [title]="appointment()!.title"
+        [backAriaLabel]="'common.back' | translate"
+        (back)="goBack()"
+      >
+        <div actions class="flex items-center gap-2">
+          @if (!isEditing()) {
+            <shared-button variant="secondary" size="compact" (clicked)="toggleEdit()">
+              <lucide-icon name="pencil" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
+              {{ 'common.edit' | translate }}
+            </shared-button>
+          }
+          <shared-button variant="danger" size="compact" (clicked)="promptDelete()">
+            <lucide-icon name="trash-2" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
+            {{ 'common.delete' | translate }}
           </shared-button>
-        }
-        <shared-button variant="danger" size="compact" (clicked)="promptDelete()">
-          <lucide-icon name="trash-2" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
-          {{ 'common.delete' | translate }}
-        </shared-button>
-      </div>
-    </header>
+        </div>
+      </shared-page-header>
+    </div>
 
     @if (error()) {
       <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">

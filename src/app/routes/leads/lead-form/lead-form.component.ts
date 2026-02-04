@@ -18,6 +18,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DEBOUNCE_MS, MIN_LENGTH, MAX_LENGTH } from '../../../core/config';
 
 @Component({
@@ -25,7 +26,7 @@ import { DEBOUNCE_MS, MIN_LENGTH, MAX_LENGTH } from '../../../core/config';
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, TranslatePipe, LucideAngularModule, ReactiveFormsModule],
+  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, PageHeaderComponent, TranslatePipe, LucideAngularModule, ReactiveFormsModule],
 })
 export class LeadFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

@@ -1,47 +1,29 @@
 <div class="flex flex-col w-full min-h-full">
-  <!-- Header -->
-  <header class="flex flex-wrap items-center justify-between gap-4 p-4 sm:px-6 border-b border-zinc-200">
-    <div class="flex items-center gap-4">
-      <shared-button
-        type="button"
-        variant="ghost"
-        size="compact"
-        [iconOnly]="true"
-        [fullWidth]="false"
-        [uppercase]="false"
-        (clicked)="cancel()"
-        [attr.aria-label]="'offertes.goBack' | translate"
-      >
-        <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-      </shared-button>
-      
-      <div class="flex flex-col">
-        <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
-          {{ isEditMode() ? ('offertes.editTitle' | translate) : ('offertes.createTitle' | translate) }}
-        </h1>
-        <span class="text-xs uppercase tracking-widest text-zinc-400 mt-1">
-          {{ isEditMode() ? existingQuote()?.quoteNumber : ('offertes.newDraft' | translate) }}
-        </span>
+  <div class="border-b border-zinc-200">
+    <shared-page-header
+      [title]="isEditMode() ? ('offertes.editTitle' | translate) : ('offertes.createTitle' | translate)"
+      [subtitle]="isEditMode() ? (existingQuote()?.quoteNumber ?? '') : ('offertes.newDraft' | translate)"
+      [backAriaLabel]="'offertes.goBack' | translate"
+      (back)="cancel()"
+    >
+      <div actions class="flex flex-wrap items-center gap-2">
+        <shared-split-action
+          [primaryLabel]="'offertes.save'"
+          [primaryVariant]="'primary'"
+          [menuVariant]="'secondary'"
+          [size]="'compact'"
+          [primaryDisabled]="!canSave() || saving()"
+          [primaryLoading]="saving()"
+          [menuSections]="headerActionSections()"
+          [menuTriggerLabel]="'offertes.actions'"
+          (primaryClicked)="saveDraft()"
+          (actionSelected)="onHeaderAction($event)"
+        >
+          <lucide-icon name="save" class="h-4 w-4" primaryIcon></lucide-icon>
+        </shared-split-action>
       </div>
-    </div>
-
-    <div class="flex flex-wrap items-center gap-2">
-      <shared-split-action
-        [primaryLabel]="'offertes.save'"
-        [primaryVariant]="'primary'"
-        [menuVariant]="'secondary'"
-        [size]="'compact'"
-        [primaryDisabled]="!canSave() || saving()"
-        [primaryLoading]="saving()"
-        [menuSections]="headerActionSections()"
-        [menuTriggerLabel]="'offertes.actions'"
-        (primaryClicked)="saveDraft()"
-        (actionSelected)="onHeaderAction($event)"
-      >
-        <lucide-icon name="save" class="h-4 w-4" primaryIcon></lucide-icon>
-      </shared-split-action>
-    </div>
-  </header>
+    </shared-page-header>
+  </div>
 
   <!-- Error Alert -->
   @if (error()) {

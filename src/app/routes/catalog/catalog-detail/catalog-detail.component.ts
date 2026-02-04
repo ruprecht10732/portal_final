@@ -16,6 +16,7 @@ import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ChipComponent, type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-catalog-detail',
@@ -26,6 +27,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     ButtonComponent,
     ChipComponent,
     ConfirmDialogComponent,
+    PageHeaderComponent,
   ],
   templateUrl: './catalog-detail.component.html',
   styleUrl: './catalog-detail.component.css',

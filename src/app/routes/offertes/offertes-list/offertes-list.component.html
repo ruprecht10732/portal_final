@@ -1,27 +1,27 @@
 <section class="flex flex-col h-full">
-  <!-- Header -->
-  <header class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 p-4 sm:px-6 border-b border-zinc-200">
-    <div>
-      <h1 class="text-xl font-bold uppercase tracking-tight">{{ 'offertes.overviewTitle' | translate }}</h1>
-      <p class="text-sm text-zinc-500">{{ 'offertes.overviewSubtitle' | translate }}</p>
-    </div>
-    <div class="flex items-center gap-3">
-      <shared-select
-        class="w-40"
-        [options]="statusOptions()"
-        [value]="statusFilter()"
-        (valueChange)="setStatusFilter($event)"
-      />
-      <shared-button
-        variant="primary"
-        [fullWidth]="false"
-        (clicked)="createQuote()"
-      >
-        <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
-        {{ 'offertes.create' | translate }}
-      </shared-button>
-    </div>
-  </header>
+  <div class="border-b border-zinc-200">
+    <shared-page-header
+      [title]="'offertes.overviewTitle' | translate"
+      [subtitle]="'offertes.overviewSubtitle' | translate"
+    >
+      <div actions class="flex items-center gap-3">
+        <shared-select
+          class="w-40"
+          [options]="statusOptions()"
+          [value]="statusFilter()"
+          (valueChange)="setStatusFilter($event)"
+        />
+        <shared-button
+          variant="primary"
+          [fullWidth]="false"
+          (clicked)="createQuote()"
+        >
+          <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
+          {{ 'offertes.create' | translate }}
+        </shared-button>
+      </div>
+    </shared-page-header>
+  </div>
 
   <!-- Content -->
   <div class="flex-1 p-4 sm:p-6 overflow-y-auto">

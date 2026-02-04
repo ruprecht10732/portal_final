@@ -13,6 +13,7 @@ import type { Lead } from '../../../core/services/leads.types';
 
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 interface QuoteWithLead extends Quote {
   lead?: Lead;
@@ -20,7 +21,7 @@ interface QuoteWithLead extends Quote {
 
 @Component({
   selector: 'app-offertes-list',
-  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, SelectComponent],
+  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, SelectComponent, PageHeaderComponent],
   templateUrl: './offertes-list.component.html',
   styleUrl: './offertes-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

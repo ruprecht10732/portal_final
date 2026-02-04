@@ -10,6 +10,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-service-type-detail',
@@ -19,6 +20,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     LucideAngularModule,
     ButtonComponent,
     ConfirmDialogComponent,
+    PageHeaderComponent,
   ],
   templateUrl: './service-type-detail.component.html',
   styleUrl: './service-type-detail.component.css',

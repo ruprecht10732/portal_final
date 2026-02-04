@@ -1,22 +1,9 @@
 <div class="flex flex-col w-full h-full">
-  <!-- Header -->
-  <header class="flex items-center gap-4 p-4 sm:px-6">
-    <shared-button
-      type="button"
-      variant="ghost"
-      size="compact"
-      [iconOnly]="true"
-      [fullWidth]="false"
-      (clicked)="goBack()"
-      [attr.aria-label]="'common.back' | translate"
-    >
-      <lucide-icon name="arrow-left" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-    </shared-button>
-    
-    <h1 class="text-lg sm:text-xl font-bold uppercase tracking-tight">
-      {{ 'appointments.form.title' | translate }}
-    </h1>
-  </header>
+  <shared-page-header
+    [title]="'appointments.form.title' | translate"
+    [backAriaLabel]="'common.back' | translate"
+    (back)="goBack()"
+  ></shared-page-header>
 
   @if (error()) {
     <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">

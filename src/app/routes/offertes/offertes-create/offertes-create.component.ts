@@ -11,13 +11,13 @@ import type { Quote, TaxRate, DiscountType, PricingMode } from '../../../core/se
 import { TAX_RATE_OPTIONS, DISCOUNT_TYPE_OPTIONS, parseQuantityNumber } from '../../../core/services/quotes.types';
 
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { SplitActionComponent, type SplitMenuSection } from '../../../shared/components/split-action/split-action.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 interface LineItemDraft {
   id: string;
@@ -35,13 +35,13 @@ interface LineItemDraft {
     TranslatePipe,
     LucideAngularModule,
     AutocompleteComponent,
-    ButtonComponent,
     CheckboxComponent,
     InputComponent,
     NumberInputComponent,
     SelectComponent,
     SplitActionComponent,
     TextareaComponent,
+    PageHeaderComponent,
   ],
   templateUrl: './offertes-create.component.html',
   styleUrl: './offertes-create.component.css',

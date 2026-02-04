@@ -1,16 +1,16 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { DatePipe } from '@angular/common';
-import { ActivatedRoute, RouterLink } from '@angular/router';
+import { ActivatedRoute } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
 import { OrganizationInvite, OrganizationService } from '../../../core/services/organization.service';
+import { OrganizationInviteFormComponent } from '../organization-invite-form/organization-invite-form.component';
 
 @Component({
   selector: 'app-organization-invite-edit',
-  imports: [ButtonComponent, InputComponent, RouterLink, TranslatePipe, DatePipe],
+  imports: [ButtonComponent, TranslatePipe, DatePipe, OrganizationInviteFormComponent],
   templateUrl: './organization-invite-edit.component.html',
   styleUrl: './organization-invite-edit.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

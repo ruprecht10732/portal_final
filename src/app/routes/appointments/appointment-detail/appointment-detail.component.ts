@@ -26,6 +26,7 @@ import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { CardComponent } from '../../../shared/components/card/card.component';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 
 @Component({
@@ -33,7 +34,7 @@ import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
   templateUrl: './appointment-detail.component.html',
   styleUrl: './appointment-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, AutocompleteComponent, LucideAngularModule, TranslatePipe, DatePipe],
+  imports: [ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, AutocompleteComponent, PageHeaderComponent, LucideAngularModule, TranslatePipe, DatePipe],
 })
 export class AppointmentDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

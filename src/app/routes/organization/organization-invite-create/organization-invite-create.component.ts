@@ -1,14 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink } from '@angular/router';
 import { catchError, finalize, of } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
 import { OrganizationService } from '../../../core/services/organization.service';
+import { OrganizationInviteFormComponent } from '../organization-invite-form/organization-invite-form.component';
 
 @Component({
   selector: 'app-organization-invite-create',
-  imports: [ButtonComponent, InputComponent, RouterLink, TranslatePipe],
+  imports: [OrganizationInviteFormComponent, TranslatePipe],
   templateUrl: './organization-invite-create.component.html',
   styleUrl: './organization-invite-create.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

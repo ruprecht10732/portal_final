@@ -11,7 +11,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { IconPickerComponent } from '../../../shared/components/icon-picker/icon-picker.component';
 import { ColorPickerComponent } from '../../../shared/components/color-picker/color-picker.component';
-import { LucideAngularModule } from 'lucide-angular';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
   selector: 'app-service-type-create',
@@ -24,7 +24,7 @@ import { LucideAngularModule } from 'lucide-angular';
     ButtonComponent,
     IconPickerComponent,
     ColorPickerComponent,
-    LucideAngularModule,
+    PageHeaderComponent,
     TranslatePipe,
   ],
 })

@@ -17,6 +17,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 
 @Component({
@@ -24,7 +25,7 @@ import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
   templateUrl: './appointment-form.component.html',
   styleUrl: './appointment-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, AutocompleteComponent, LucideAngularModule, TranslatePipe],
+  imports: [ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, AutocompleteComponent, PageHeaderComponent, LucideAngularModule, TranslatePipe],
 })
 export class AppointmentFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
