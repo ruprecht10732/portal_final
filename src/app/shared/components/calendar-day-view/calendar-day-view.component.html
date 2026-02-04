@@ -20,7 +20,7 @@
       <li class="grid grid-cols-[80px_1fr] gap-3 items-start">
         <div class="text-xs text-zinc-500 uppercase tracking-wide pt-1">{{ hour.label }}</div>
         <div
-          class="min-h-12 border border-dashed border-zinc-200 bg-gradient-to-r from-zinc-50 to-white cursor-pointer transition-colors flex flex-col gap-0.5 p-1 relative"
+          class="min-h-12 border border-dashed border-zinc-200 bg-linear-to-r from-zinc-50 to-white cursor-pointer transition-colors flex flex-col gap-0.5 p-1 relative"
           [class.border-solid]="isBlocked(hour.value)"
           [class.border-zinc-400]="isBlocked(hour.value)"
           [class.cursor-not-allowed]="isBlocked(hour.value)"
@@ -28,7 +28,7 @@
         >
           <button
             type="button"
-            class="absolute inset-0 w-full h-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-900 focus-visible:outline-offset-2"
+            class="absolute inset-0 w-full h-full text-left focus-visible:outline-2 focus-visible:outline-zinc-900 focus-visible:outline-offset-2"
             [attr.aria-label]="day() ? ('Select ' + hour.label + ' on ' + day()?.ariaLabel) : ('Select ' + hour.label)"
             [disabled]="isBlocked(hour.value)"
             (click)="onSlotClick(hour.value)"
