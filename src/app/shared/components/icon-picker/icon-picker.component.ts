@@ -11,10 +11,11 @@ import {
 import { OverlayModule } from '@angular/cdk/overlay';
 import { LucideAngularModule } from 'lucide-angular';
 import { AVAILABLE_ICONS } from './available-icons';
+import { FieldShellComponent } from '../field-shell/field-shell.component';
 
 @Component({
   selector: 'shared-icon-picker',
-  imports: [OverlayModule, LucideAngularModule],
+  imports: [OverlayModule, LucideAngularModule, FieldShellComponent],
   templateUrl: './icon-picker.component.html',
   styleUrl: './icon-picker.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

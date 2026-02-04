@@ -1,20 +1,20 @@
 import { Component, computed, input, model, signal, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { FieldShellComponent } from '../field-shell/field-shell.component';
 
 @Component({
   selector: 'shared-input',
-  standalone: true,
-  imports: [FormsModule],
+  imports: [FormsModule, FieldShellComponent],
   template: `
-    <div class="flex flex-col w-full gap-1.5 text-left">
-      @if (label()) {
-        <label [for]="uid" class="text-xs font-semibold uppercase tracking-wider text-zinc-500">
-          {{ label() }}
-          @if (required()) {
-            <span class="text-red-500" aria-hidden="true">*</span>
-          }
-        </label>
-      }
+    <shared-field-shell
+      [label]="label()"
+      [required]="required()"
+      [hint]="hint()"
+      [error]="error()"
+      [uid]="uid"
+      [hintId]="hintId"
+      [errorId]="errorId"
+    >
       <div class="relative">
         <input
           [id]="uid"
@@ -75,17 +75,7 @@ import { FormsModule } from '@angular/forms';
           </button>
         }
       </div>
-      
-      @if (error()) {
-        <p [id]="errorId" class="text-[10px] uppercase font-bold text-red-500 tracking-wide mt-1">
-          {{ error() }}
-        </p>
-      } @else if (hint()) {
-        <p [id]="hintId" class="text-[10px] uppercase font-medium text-zinc-400 tracking-wide mt-1">
-          {{ hint() }}
-        </p>
-      }
-    </div>
+    </shared-field-shell>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
   styles: `

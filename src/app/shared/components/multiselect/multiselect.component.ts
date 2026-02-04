@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { OverlayModule } from '@angular/cdk/overlay';
+import { FieldShellComponent } from '../field-shell/field-shell.component';
 
 export interface MultiSelectOption<T = unknown> {
   label: string;
@@ -17,7 +18,7 @@ export interface MultiSelectOption<T = unknown> {
 
 @Component({
   selector: 'shared-multiselect',
-  imports: [OverlayModule],
+  imports: [OverlayModule, FieldShellComponent],
   templateUrl: './multiselect.component.html',
   styleUrl: './multiselect.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

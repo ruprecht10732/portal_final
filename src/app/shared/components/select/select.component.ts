@@ -9,6 +9,7 @@ import {
   viewChild,
 } from '@angular/core';
 import { OverlayModule } from '@angular/cdk/overlay';
+import { FieldShellComponent } from '../field-shell/field-shell.component';
 
 export interface SelectOption<T = unknown> {
   label: string;
@@ -17,7 +18,7 @@ export interface SelectOption<T = unknown> {
 
 @Component({
   selector: 'shared-select',
-  imports: [OverlayModule],
+  imports: [OverlayModule, FieldShellComponent],
   templateUrl: './select.component.html',
   styleUrl: './select.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
