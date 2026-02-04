@@ -20,7 +20,7 @@ export class StatusBadgeComponent {
     initialValue: { lang: 'en', translations: {} },
   });
 
-  status = input<LeadStatus | null>(null);
+  status = input<unknown>(null);
   type = input<StatusBadgeType>('lead');
   size = input<StatusBadgeSize>('sm');
   emptyLabel = input<string>('-');
@@ -35,10 +35,10 @@ export class StatusBadgeComponent {
 
   protected readonly label = computed(() => {
     const status = this.status();
-    if (!status) {
+    if (status === null || status === undefined || status === '') {
       return this.emptyLabel();
     }
-    if (this.type() === 'lead') {
+    if (this.type() === 'lead' && this.isLeadStatus(status)) {
       return this.statusLabels()[status] ?? String(status);
     }
     return String(status);
@@ -49,10 +49,14 @@ export class StatusBadgeComponent {
     const baseClass = `inline-flex items-center rounded-full font-semibold ${sizeClass}`;
     const status = this.status();
 
-    if (this.type() === 'lead' && status) {
+    if (this.type() === 'lead' && this.isLeadStatus(status)) {
       return `${baseClass} ${STATUS_COLORS[status] ?? 'bg-zinc-100 text-zinc-600'}`;
     }
 
     return `${baseClass} bg-zinc-100 text-zinc-600`;
   });
+
+  private isLeadStatus(status: unknown): status is LeadStatus {
+    return typeof status === 'string' && status in STATUS_COLORS;
+  }
 }

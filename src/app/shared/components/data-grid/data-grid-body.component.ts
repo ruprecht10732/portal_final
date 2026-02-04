@@ -18,7 +18,7 @@ import {
   RowState,
 } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
-import { ChipComponent, type ChipVariant } from '../chip/chip.component';
+import { StatusBadgeComponent } from '../status-badge/status-badge.component';
 import dayjs from 'dayjs';
 import 'dayjs/locale/nl';
 import relativeTime from 'dayjs/plugin/relativeTime';
@@ -37,7 +37,7 @@ dayjs.extend(relativeTime);
   selector: 'data-grid-body',
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
-  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent, ChipComponent, LucideAngularModule, TranslatePipe],
+  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent, StatusBadgeComponent, LucideAngularModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'role': 'rowgroup',
@@ -144,28 +144,6 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     return this.valueToString(value);
   }
 
-  protected getStatusVariant(value: unknown): ChipVariant {
-    const normalized = this.normalizeStatusValue(value);
-    const directMap: Record<string, ChipVariant> = {
-      new: 'info',
-      attempted_contact: 'warning',
-      scheduled: 'info',
-      surveyed: 'success',
-      bad_lead: 'danger',
-      needs_rescheduling: 'warning',
-      closed: 'neutral',
-    };
-
-    const direct = directMap[normalized];
-    if (direct) return direct;
-
-    if (normalized.includes('new')) return 'info';
-    if (normalized.includes('scheduled') || normalized.includes('surveyed') || normalized.includes('success')) return 'success';
-    if (normalized.includes('attempt') || normalized.includes('reschedule') || normalized.includes('warn')) return 'warning';
-    if (normalized.includes('bad') || normalized.includes('error') || normalized.includes('danger')) return 'danger';
-
-    return 'neutral';
-  }
 
   protected isHexColor(value: unknown): boolean {
     return typeof value === 'string' && /^#[0-9a-fA-F]{6}$/.test(value.trim());
@@ -451,14 +429,6 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     return this.valueToString(value);
   }
 
-  private normalizeStatusValue(value: unknown): string {
-    if (value === null || value === undefined) return '';
-    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') {
-      return '';
-    }
-    const text = String(value).trim().toLowerCase();
-    return text.split(/\s+/).join('_');
-  }
 
   private formatRelativeDate(value: unknown): string {
     if (value === null || value === undefined || value === '') {

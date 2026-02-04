@@ -1,4 +1,4 @@
-/* eslint-disable @angular-eslint/component-selector */
+/* eslint-disable @angular-eslint/component-selector, @angular-eslint/no-unused-imports */
 /**
  * Data Grid Cards Component
  * Mobile-friendly card-based view for data grid rows
@@ -24,7 +24,7 @@ import { InputComponent } from '../input/input.component';
 import { SelectComponent } from '../select/select.component';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { ButtonComponent } from '../button/button.component';
-import { ChipComponent, ChipVariant } from '../chip/chip.component';
+import { StatusBadgeComponent } from '../status-badge/status-badge.component';
 import { ColorPickerComponent } from '../color-picker/color-picker.component';
 
 /** Type alias for field paths in the grid */
@@ -41,7 +41,7 @@ export type GridFieldPath<T> = keyof T | string;
     SelectComponent,
     CheckboxComponent,
     ButtonComponent,
-    ChipComponent,
+    StatusBadgeComponent,
     ColorPickerComponent,
     TranslatePipe,
   ],
@@ -225,27 +225,10 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   }
 
   /** Get status text */
-  protected getStatusText(row: RowState<T>): string | null {
+  protected getStatusValue(row: RowState<T>): unknown {
     const field = this.statusField();
     if (!field) return null;
-    const value = this.getValueByPath(row.current, field as string);
-    if (value === null || value === undefined) return null;
-    
-    // Check if there are select options for this field to get the label
-    const col = this.columns().find(c => c.field === field);
-    if (col?.selectOptions) {
-      const opt = col.selectOptions.find(o => o.value === value);
-      if (opt) return opt.label;
-    }
-    
-    return this.stringifyValue(value);
-  }
-
-  protected getStatusVariant(row: RowState<T>): ChipVariant {
-    const field = this.statusField();
-    if (!field) return 'default';
-    const rawValue = this.getValueByPath(row.current, field as string);
-    return this.getStatusVariantFromValue(rawValue);
+    return this.getValueByPath(row.current, field as string);
   }
 
   /** Derive initials for the avatar placeholder */
@@ -455,42 +438,4 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     return true;
   }
 
-  private getStatusVariantFromValue(value: unknown): ChipVariant {
-    const normalized = this.normalizeStatusValue(value);
-
-    switch (normalized) {
-      case 'new':
-        return 'info';
-      case 'attempted_contact':
-        return 'warning';
-      case 'scheduled':
-        return 'info';
-      case 'surveyed':
-        return 'success';
-      case 'bad_lead':
-        return 'danger';
-      case 'needs_rescheduling':
-        return 'warning';
-      case 'closed':
-        return 'neutral';
-      default:
-        break;
-    }
-
-    if (normalized.includes('new')) return 'info';
-    if (normalized.includes('scheduled') || normalized.includes('surveyed') || normalized.includes('success')) return 'success';
-    if (normalized.includes('attempt') || normalized.includes('reschedule') || normalized.includes('warn')) return 'warning';
-    if (normalized.includes('bad') || normalized.includes('error') || normalized.includes('danger')) return 'danger';
-
-    return 'neutral';
-  }
-
-  private normalizeStatusValue(value: unknown): string {
-    if (value === null || value === undefined) return '';
-    if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') {
-      return '';
-    }
-    const text = String(value).trim().toLowerCase();
-    return text.split(/\s+/).join('_');
-  }
 }
