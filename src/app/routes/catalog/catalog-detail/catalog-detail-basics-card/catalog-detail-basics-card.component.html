@@ -31,6 +31,22 @@
         </div>
       </div>
 
+      @if (heroImages().length > 0) {
+        <div class="hero-thumbs">
+          @for (image of heroImages(); track image.id) {
+            <button
+              type="button"
+              class="hero-thumb"
+              [class.is-active]="image.url === heroImageUrl()"
+              (click)="onSelectHeroImage()(image.url)"
+              [attr.aria-label]="image.label"
+            >
+              <img [src]="image.url" [alt]="image.label" />
+            </button>
+          }
+        </div>
+      }
+
       @if (product().description) {
         <div class="pt-4 border-t border-zinc-200">
           <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">

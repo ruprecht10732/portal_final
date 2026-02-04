@@ -122,6 +122,15 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly imageAssets = computed(() => this.assets().filter(asset => asset.assetType === 'image'));
   protected readonly documentAssets = computed(() => this.assets().filter(asset => asset.assetType === 'document'));
   protected readonly termsAssets = computed(() => this.assets().filter(asset => asset.assetType === 'terms_url'));
+  protected readonly heroImages = computed(() =>
+    this.imageAssets()
+      .map(asset => ({
+        id: asset.id,
+        url: this.imagePreviewUrls()[asset.id] || '',
+        label: asset.fileName || asset.fileKey || 'Image',
+      }))
+      .filter(image => Boolean(image.url)),
+  );
 
   protected readonly onOpenAsset = (asset: CatalogAsset): void => this.openAsset(asset);
   protected readonly onPreviewAsset = (asset: CatalogAsset): void => this.openPreview(asset);
@@ -139,6 +148,7 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly onTypeChange = async (type: ProductType): Promise<void> =>
     this.updateProduct({ type });
   protected readonly onOpenAddMaterialDialog = (): void => this.openAddMaterialDialog();
+  protected readonly onSelectHeroImage = (url: string): void => this.heroImageUrl.set(url);
 
   protected readonly previewTitle = computed(() => {
     const asset = this.previewAsset();

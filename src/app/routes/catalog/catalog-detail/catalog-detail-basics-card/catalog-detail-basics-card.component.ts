@@ -14,6 +14,12 @@ interface DetailsRow {
   editable?: boolean;
 }
 
+interface HeroImageOption {
+  id: string;
+  url: string;
+  label: string;
+}
+
 @Component({
   selector: 'app-catalog-detail-basics-card',
   imports: [DecimalPipe, TranslateModule, ChipComponent, LucideAngularModule],
@@ -38,6 +44,8 @@ export class CatalogDetailBasicsCardComponent {
   readonly selectedType = input.required<ProductType>();
   readonly onVatRateChange = input.required<(vatRateId: string) => Promise<void>>();
   readonly onTypeChange = input.required<(type: ProductType) => Promise<void>>();
+  readonly heroImages = input<HeroImageOption[]>([]);
+  readonly onSelectHeroImage = input.required<(url: string) => void>();
 
   private readonly datePipe = inject(DatePipe);
   protected readonly editingField = signal<DetailsRow['key'] | null>(null);
