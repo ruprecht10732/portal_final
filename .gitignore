@@ -47,3 +47,7 @@ report/
 
 # Copilot instruction files
 .github/instructions/codacy.instructions.md
+
+
+#Ignore insiders AI rules
+.github\instructions\codacy.instructions.md
