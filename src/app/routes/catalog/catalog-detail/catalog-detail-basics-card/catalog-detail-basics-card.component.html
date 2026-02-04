@@ -58,7 +58,7 @@
   </div>
 
   <div class="p-4 sm:p-6 space-y-6">
-    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
       <div class="border border-zinc-200 bg-zinc-50 p-4">
         <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">
           {{ 'catalog.products.fields.price' | translate }}
@@ -78,13 +78,24 @@
           </shared-chip>
         </div>
       </div>
+    </div>
 
-      <div class="border border-zinc-200 bg-zinc-50 p-4">
-        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-          {{ 'catalog.products.fields.reference' | translate }}
+    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-zinc-200">
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+          {{ 'catalog.products.fields.createdAt' | translate }}
         </p>
-        <p class="mt-3 text-sm font-mono text-zinc-700">
-          {{ product().reference }}
+        <p class="mt-1 text-sm text-zinc-600">
+          {{ createdAt() | date:'medium' }}
+        </p>
+      </div>
+
+      <div>
+        <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+          {{ 'catalog.products.fields.updatedAt' | translate }}
+        </p>
+        <p class="mt-1 text-sm text-zinc-600">
+          {{ updatedAt() | date:'medium' }}
         </p>
       </div>
     </div>

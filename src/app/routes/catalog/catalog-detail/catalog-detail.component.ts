@@ -25,7 +25,6 @@ import { FilePreviewDialogComponent } from '../../../shared/components/file-prev
 import { CatalogDetailAssetsCardComponent } from './catalog-detail-assets-card/catalog-detail-assets-card.component';
 import { CatalogDetailBasicsCardComponent } from './catalog-detail-basics-card/catalog-detail-basics-card.component';
 import { CatalogDetailMaterialsCardComponent } from './catalog-detail-materials-card/catalog-detail-materials-card.component';
-import { CatalogDetailMetaCardComponent } from './catalog-detail-meta-card/catalog-detail-meta-card.component';
 
 @Component({
   selector: 'app-catalog-detail',
@@ -39,7 +38,6 @@ import { CatalogDetailMetaCardComponent } from './catalog-detail-meta-card/catal
     CatalogDetailAssetsCardComponent,
     CatalogDetailBasicsCardComponent,
     CatalogDetailMaterialsCardComponent,
-    CatalogDetailMetaCardComponent,
   ],
   templateUrl: './catalog-detail.component.html',
   styleUrl: './catalog-detail.component.css',
