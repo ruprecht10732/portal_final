@@ -6,6 +6,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { CreateServiceTypeRequest, ListServiceTypesParams, ServiceTypeItem, UpdateServiceTypeRequest } from '../../../core/services/service-types.types';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -197,7 +198,7 @@ export class ServiceTypesComponent implements OnInit {
         this.ignoreNextRequest = true;
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('services.errors.loadFailed'));
+        const message = extractErrorMessage(err, this.translate.instant('services.errors.loadFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -255,7 +256,7 @@ export class ServiceTypesComponent implements OnInit {
     forkJoin(requestMap).subscribe({
       next: () => this.loadInitialData(),
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('services.errors.saveFailed'));
+        const message = extractErrorMessage(err, this.translate.instant('services.errors.saveFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -290,7 +291,7 @@ export class ServiceTypesComponent implements OnInit {
         this.loadInitialData();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('services.errors.deleteFailed'));
+        const message = extractErrorMessage(err, this.translate.instant('services.errors.deleteFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -472,7 +473,7 @@ export class ServiceTypesComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('services.errors.loadFailed'));
+        const message = extractErrorMessage(err, this.translate.instant('services.errors.loadFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -486,15 +487,5 @@ export class ServiceTypesComponent implements OnInit {
     }
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    return fallback;
-  }
 
 }

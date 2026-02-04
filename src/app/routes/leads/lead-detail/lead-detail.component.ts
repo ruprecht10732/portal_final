@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { LeadsService } from '../../../core/services/leads.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
@@ -369,7 +370,7 @@ export class LeadDetailComponent implements OnInit {
         this.leadsService.markViewed(id).subscribe();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadLead'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadLead'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -381,7 +382,7 @@ export class LeadDetailComponent implements OnInit {
     this.userService.getProfile().subscribe({
       next: profile => this.user.set(profile),
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadProfile'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadProfile'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -401,7 +402,7 @@ export class LeadDetailComponent implements OnInit {
         this.assigneeOptions.set(options);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadUsers'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadUsers'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -419,7 +420,7 @@ export class LeadDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadServiceTypes'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadServiceTypes'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -605,7 +606,7 @@ export class LeadDetailComponent implements OnInit {
         this.announce(this.translate.instant('leads.callLogger.announcements.processed'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.callLogger.errors.process'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.callLogger.errors.process'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.callLoggerProcessing.set(false);
@@ -627,7 +628,7 @@ export class LeadDetailComponent implements OnInit {
         this.announce(this.translate.instant('leads.detail.announcements.statusChanged', { status: this.getStatusLabel(status) }));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.updateStatus'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.updateStatus'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -647,7 +648,7 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.assignLead'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.assignLead'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -681,7 +682,7 @@ export class LeadDetailComponent implements OnInit {
         this.announce(this.translate.instant('leads.detail.announcements.noteAdded'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.addNote'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.addNote'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.noteSaving.set(false);
@@ -695,7 +696,7 @@ export class LeadDetailComponent implements OnInit {
         this.leadNotes.set(response.items || []);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadNotes'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadNotes'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -713,7 +714,7 @@ export class LeadDetailComponent implements OnInit {
         this.aiAnalysisLoading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.loadAIAnalysis'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadAIAnalysis'));
         this.aiAnalysisError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.aiAnalysisLoading.set(false);
@@ -772,7 +773,7 @@ export class LeadDetailComponent implements OnInit {
         this.aiAnalysisRefreshing.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.analyzeLead'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.analyzeLead'));
         this.aiAnalysisError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.aiAnalysisRefreshing.set(false);
@@ -829,7 +830,7 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.addService'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.addService'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -848,7 +849,7 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.errors.updateServiceStatus'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.updateServiceStatus'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -870,16 +871,6 @@ export class LeadDetailComponent implements OnInit {
     return status === 'Closed' || status === 'Bad_Lead' || status === 'Surveyed';
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    return fallback;
-  }
 
   // Announce messages for screen readers
   private announce(message: string): void {
@@ -935,7 +926,7 @@ export class LeadDetailComponent implements OnInit {
         this.announce(this.translate.instant('leads.detail.appointments.created'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.createError'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.createError'));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.appointmentSaving.set(false);
@@ -971,7 +962,7 @@ export class LeadDetailComponent implements OnInit {
         this.announce(this.translate.instant('leads.detail.appointments.reportSaved'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.reportError'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.reportError'));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.reportSaving.set(false);
@@ -1001,7 +992,7 @@ export class LeadDetailComponent implements OnInit {
         this.announce(this.translate.instant('leads.detail.appointments.attachmentSaved'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.attachmentError'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.attachmentError'));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.attachmentSaving.set(false);
@@ -1024,7 +1015,7 @@ export class LeadDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.loadError'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.loadError'));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.appointmentsLoading.set(false);
@@ -1052,7 +1043,7 @@ export class LeadDetailComponent implements OnInit {
           this.reportLoading.set(false);
           return;
         }
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.reportLoadError'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.reportLoadError'));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.reportLoading.set(false);
@@ -1068,7 +1059,7 @@ export class LeadDetailComponent implements OnInit {
         this.attachmentsLoading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.detail.appointments.attachmentsLoadError'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.attachmentsLoadError'));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.attachmentsLoading.set(false);
@@ -1190,7 +1181,7 @@ export class LeadDetailComponent implements OnInit {
         this.serviceAttachmentsLoading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load attachments');
+        const message = extractErrorMessage(err, 'Failed to load attachments');
         this.serviceAttachmentError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.serviceAttachmentsLoading.set(false);
@@ -1251,7 +1242,7 @@ export class LeadDetailComponent implements OnInit {
         this.announce('Attachment deleted');
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to delete attachment');
+        const message = extractErrorMessage(err, 'Failed to delete attachment');
         this.serviceAttachmentError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.serviceAttachmentDeleting.set(null);
@@ -1276,7 +1267,7 @@ export class LeadDetailComponent implements OnInit {
         window.open(response.downloadUrl, '_blank');
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to get download URL');
+        const message = extractErrorMessage(err, 'Failed to get download URL');
         this.serviceAttachmentError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },

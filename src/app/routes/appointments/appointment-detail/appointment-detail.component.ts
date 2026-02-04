@@ -8,6 +8,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import type { 
   AppointmentResponse, 
   AppointmentVisitReportResponse, 
@@ -116,7 +117,10 @@ export class AppointmentDetailComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.detail.errors.load'));
+                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.load'), {
+                  allowErrorMessage: true,
+                  allowMessageField: true,
+                });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -197,7 +201,10 @@ export class AppointmentDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.detail.errors.save'));
+                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.save'), {
+                  allowErrorMessage: true,
+                  allowMessageField: true,
+                });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -269,7 +276,10 @@ export class AppointmentDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.detail.errors.saveReport'));
+                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.saveReport'), {
+                  allowErrorMessage: true,
+                  allowMessageField: true,
+                });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -289,7 +299,10 @@ export class AppointmentDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.detail.errors.updateStatus'));
+                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.updateStatus'), {
+                  allowErrorMessage: true,
+                  allowMessageField: true,
+                });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -318,7 +331,10 @@ export class AppointmentDetailComponent implements OnInit {
         this.router.navigate(['/app/appointments']);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.detail.errors.delete'));
+                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.delete'), {
+                  allowErrorMessage: true,
+                  allowMessageField: true,
+                });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.deleteInProgress.set(false);
@@ -344,18 +360,4 @@ export class AppointmentDetailComponent implements OnInit {
     return map[status] ?? '';
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error instanceof Error && error.message) {
-      return error.message;
-    }
-    if (error && typeof error === 'object') {
-      const e = error as Record<string, unknown>;
-      if (typeof e['message'] === 'string') return e['message'];
-      if (e['error'] && typeof e['error'] === 'object') {
-        const nested = e['error'] as Record<string, unknown>;
-        if (typeof nested['message'] === 'string') return nested['message'];
-      }
-    }
-    return fallback;
-  }
 }

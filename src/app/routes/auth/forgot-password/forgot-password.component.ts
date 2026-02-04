@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, finalize, EMPTY } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { handleSubmitState } from '../../../core/utils/rx-operators';
 
 @Component({
   selector: 'auth-forgot-password',
@@ -46,13 +46,12 @@ export class ForgotPasswordComponent {
 
     this.authService.forgotPassword({ email: this.email() })
       .pipe(
-        catchError(error => {
-          const message = this.authService.getErrorMessage(error);
-          this.globalError.set(message);
-          this.reporter.report(error, { source: 'http', silent: true, userMessage: message });
-          return EMPTY;
+        handleSubmitState({
+          loading: this.isSubmitting,
+          error: this.globalError,
+          reporter: this.reporter,
+          getMessage: (error) => this.authService.getErrorMessage(error),
         }),
-        finalize(() => this.isSubmitting.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {

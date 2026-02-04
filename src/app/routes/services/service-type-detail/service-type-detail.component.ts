@@ -7,6 +7,7 @@ import { ServiceTypesService } from '../../../core/services/service-types.servic
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 
@@ -57,7 +58,7 @@ export class ServiceTypeDetailComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('services.errors.loadFailed'));
+        const message = extractErrorMessage(err, this.translate.instant('services.errors.loadFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -88,7 +89,7 @@ export class ServiceTypeDetailComponent implements OnInit {
         this.router.navigate(['/app/services']);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('services.errors.deleteFailed'));
+        const message = extractErrorMessage(err, this.translate.instant('services.errors.deleteFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.deleting.set(false);
@@ -97,14 +98,4 @@ export class ServiceTypeDetailComponent implements OnInit {
     });
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    return fallback;
-  }
 }

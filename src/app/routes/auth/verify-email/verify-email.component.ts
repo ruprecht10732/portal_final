@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { map, catchError, finalize, EMPTY } from 'rxjs';
+import { map } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { handleSubmitState } from '../../../core/utils/rx-operators';
 
 @Component({
   selector: 'auth-verify-email',
@@ -43,13 +44,12 @@ export class VerifyEmailComponent {
 
       this.authService.verifyEmail({ token: tokenValue })
         .pipe(
-          catchError(error => {
-            const message = this.authService.getErrorMessage(error);
-            this.globalError.set(message);
-            this.reporter.report(error, { source: 'http', silent: true, userMessage: message });
-            return EMPTY;
+          handleSubmitState({
+            loading: this.isVerifying,
+            error: this.globalError,
+            reporter: this.reporter,
+            getMessage: (error) => this.authService.getErrorMessage(error),
           }),
-          finalize(() => this.isVerifying.set(false)),
           takeUntilDestroyed(this.destroyRef)
         )
         .subscribe(() => {

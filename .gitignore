@@ -38,12 +38,12 @@ yarn-error.log
 testem.log
 /typings
 __screenshots__/
+.github/
 
 # System files
 .DS_Store
 Thumbs.db
 report/
 
-
-#Ignore insiders AI rules
-.github\instructions\codacy.instructions.md
+# Copilot instruction files
+.github/instructions/codacy.instructions.md

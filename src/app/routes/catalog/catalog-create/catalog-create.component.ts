@@ -12,6 +12,7 @@ import {
 } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
@@ -109,7 +110,7 @@ export class CatalogCreateComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadVatRates'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadVatRates'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -183,7 +184,7 @@ export class CatalogCreateComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.createProduct'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.createProduct'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -201,14 +202,4 @@ export class CatalogCreateComponent implements OnInit {
     return this.requiredError();
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    return fallback;
-  }
 }

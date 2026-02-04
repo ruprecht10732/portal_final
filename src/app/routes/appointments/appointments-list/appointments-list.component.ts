@@ -6,6 +6,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import type { AppointmentResponse, AppointmentStatus, AppointmentType, ListAppointmentsParams } from '../../../core/services/appointments.types';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -183,7 +184,10 @@ export class AppointmentsListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.list.errors.loadAppointments'));
+        const message = extractErrorMessage(err, this.translate.instant('appointments.list.errors.loadAppointments'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -245,7 +249,10 @@ export class AppointmentsListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.list.errors.loadAppointments'));
+        const message = extractErrorMessage(err, this.translate.instant('appointments.list.errors.loadAppointments'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -295,25 +302,14 @@ export class AppointmentsListComponent implements OnInit {
         this.loadInitialData();
       })
       .catch((err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.list.errors.deleteAppointments'));
+        const message = extractErrorMessage(err, this.translate.instant('appointments.list.errors.deleteAppointments'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.deleteInProgress.set(false);
       });
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error instanceof Error && error.message) {
-      return error.message;
-    }
-    if (error && typeof error === 'object') {
-      const e = error as Record<string, unknown>;
-      if (typeof e['message'] === 'string') return e['message'];
-      if (e['error'] && typeof e['error'] === 'object') {
-        const nested = e['error'] as Record<string, unknown>;
-        if (typeof nested['message'] === 'string') return nested['message'];
-      }
-    }
-    return fallback;
-  }
 }

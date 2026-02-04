@@ -10,6 +10,7 @@ import { AddressService, type AddressSuggestion } from '../../../core/services/a
 import type { CreateAppointmentRequest, AppointmentType } from '../../../core/services/appointments.types';
 import { LeadsService } from '../../../core/services/leads.service';
 import type { Lead, LeadService } from '../../../core/services/leads.types';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
@@ -292,7 +293,10 @@ export class AppointmentFormComponent implements OnInit {
         this.router.navigate(['/app/appointments', created.id]);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.form.errors.create'));
+        const message = extractErrorMessage(err, this.translate.instant('appointments.form.errors.create'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -304,18 +308,4 @@ export class AppointmentFormComponent implements OnInit {
     this.router.navigate(['/app/appointments']);
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error instanceof Error && error.message) {
-      return error.message;
-    }
-    if (error && typeof error === 'object') {
-      const e = error as Record<string, unknown>;
-      if (typeof e['message'] === 'string') return e['message'];
-      if (e['error'] && typeof e['error'] === 'object') {
-        const nested = e['error'] as Record<string, unknown>;
-        if (typeof nested['message'] === 'string') return nested['message'];
-      }
-    }
-    return fallback;
-  }
 }

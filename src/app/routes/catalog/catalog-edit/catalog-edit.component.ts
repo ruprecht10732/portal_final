@@ -16,6 +16,7 @@ import {
 } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
@@ -154,7 +155,7 @@ export class CatalogEditComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadProduct'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadProduct'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -182,7 +183,7 @@ export class CatalogEditComponent implements OnInit {
         this.vatRates.set(response.items);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadVatRates'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadVatRates'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -197,7 +198,7 @@ export class CatalogEditComponent implements OnInit {
         this.materialsLoading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.materialsLoading.set(false);
@@ -214,7 +215,7 @@ export class CatalogEditComponent implements OnInit {
         this.assetsLoading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
         this.assetsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.assetsLoading.set(false);
@@ -298,7 +299,7 @@ export class CatalogEditComponent implements OnInit {
         this.router.navigate(['/app/catalog', product.id]);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -398,7 +399,7 @@ export class CatalogEditComponent implements OnInit {
         this.termsUploading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.createTerms'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.createTerms'));
         this.assetsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.termsUploading.set(false);
@@ -419,7 +420,7 @@ export class CatalogEditComponent implements OnInit {
         this.assetDeletingId.set(null);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.deleteAsset'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.deleteAsset'));
         this.assetsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.assetDeletingId.set(null);
@@ -441,7 +442,7 @@ export class CatalogEditComponent implements OnInit {
         window.open(response.downloadUrl, '_blank');
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
         this.assetsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -484,7 +485,7 @@ export class CatalogEditComponent implements OnInit {
         this.availableMaterials.set(response.items.filter(m => !linkedIds.has(m.id)));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -518,7 +519,7 @@ export class CatalogEditComponent implements OnInit {
         this.toast.success(this.translate.instant('catalog.products.materialsAdded'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.addMaterials'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.addMaterials'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.addingMaterials.set(false);
@@ -538,7 +539,7 @@ export class CatalogEditComponent implements OnInit {
         this.toast.success(this.translate.instant('catalog.products.materialRemoved'));
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.removeMaterial'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.removeMaterial'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.removingMaterialId.set(null);
@@ -556,14 +557,4 @@ export class CatalogEditComponent implements OnInit {
     return this.requiredError();
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    return fallback;
-  }
 }

@@ -12,6 +12,7 @@ import {
 } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ChipComponent, type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -110,7 +111,7 @@ export class CatalogDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadProduct'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadProduct'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -140,7 +141,7 @@ export class CatalogDetailComponent implements OnInit {
         this.materialsLoading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.materialsLoading.set(false);
@@ -158,7 +159,7 @@ export class CatalogDetailComponent implements OnInit {
         this.loadHeroImage(productId, response.items);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
         this.assetsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.assetsLoading.set(false);
@@ -213,7 +214,7 @@ export class CatalogDetailComponent implements OnInit {
         this.router.navigate(['/app/catalog']);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.deleteProduct'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.deleteProduct'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.deleting.set(false);
@@ -242,7 +243,7 @@ export class CatalogDetailComponent implements OnInit {
         this.downloadingAssetId.set(null);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
         this.assetsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.downloadingAssetId.set(null);
@@ -273,14 +274,4 @@ export class CatalogDetailComponent implements OnInit {
     }
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    return fallback;
-  }
 }

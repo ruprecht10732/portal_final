@@ -10,6 +10,7 @@ import { ServiceTypesService } from '../../../core/services/service-types.servic
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { UserService } from '../../../core/services/user.service';
 import { SSEService } from '../../../core/services/sse.service';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import type { Lead, LeadStatus, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { buildLeadStatusLabels, STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
@@ -359,7 +360,10 @@ export class LeadListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.list.errors.loadLeads'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.list.errors.loadLeads'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -377,7 +381,10 @@ export class LeadListComponent implements OnInit {
         this.userOptions.set(options);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.list.errors.loadUsers'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.list.errors.loadUsers'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -388,7 +395,10 @@ export class LeadListComponent implements OnInit {
     this.serviceTypesService.listActive().subscribe({
       next: (response) => this.serviceTypes.set(response.items ?? []),
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.list.errors.loadServiceTypes'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.list.errors.loadServiceTypes'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -567,7 +577,10 @@ export class LeadListComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to load leads');
+        const message = extractErrorMessage(err, 'Failed to load leads', {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         if (!silentRefresh) {
@@ -624,7 +637,10 @@ export class LeadListComponent implements OnInit {
         this.loadInitialData();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, 'Failed to delete leads');
+        const message = extractErrorMessage(err, 'Failed to delete leads', {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.deleteInProgress.set(false);
@@ -682,7 +698,10 @@ export class LeadListComponent implements OnInit {
         this.leadsService.update(row.id, updateRequest).subscribe({
           next: () => this.loadInitialData(),
           error: (err) => {
-            const message = this.getErrorMessage(err, 'Failed to update lead');
+            const message = extractErrorMessage(err, 'Failed to update lead', {
+              allowErrorMessage: true,
+              allowMessageField: true,
+            });
             this.error.set(message);
             this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
           },
@@ -715,7 +734,10 @@ export class LeadListComponent implements OnInit {
               this.leadsService.updateServiceStatus(created.id, currentServiceId, { status: requestedStatus }).subscribe({
                 next: () => this.loadInitialData(),
                 error: (err) => {
-                  const message = this.getErrorMessage(err, 'Failed to set lead status');
+                  const message = extractErrorMessage(err, 'Failed to set lead status', {
+                    allowErrorMessage: true,
+                    allowMessageField: true,
+                  });
                   this.error.set(message);
                   this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
                   this.loadInitialData();
@@ -726,7 +748,10 @@ export class LeadListComponent implements OnInit {
             }
           },
           error: (err) => {
-            const message = this.getErrorMessage(err, 'Failed to create lead');
+            const message = extractErrorMessage(err, 'Failed to create lead', {
+              allowErrorMessage: true,
+              allowMessageField: true,
+            });
             this.error.set(message);
             this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
           }
@@ -735,38 +760,4 @@ export class LeadListComponent implements OnInit {
     });
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    return this.extractMessage(error) ?? fallback;
-  }
-
-  private extractMessage(error: unknown): string | null {
-    if (error instanceof Error && error.message) {
-      return error.message;
-    }
-    if (!error || typeof error !== 'object') {
-      return null;
-    }
-
-    const directMessage = (error as { message?: unknown }).message;
-    if (typeof directMessage === 'string' && directMessage) {
-      return directMessage;
-    }
-
-    const nested = (error as { error?: unknown }).error;
-    if (typeof nested === 'string' && nested) {
-      return nested;
-    }
-    if (nested && typeof nested === 'object') {
-      const nestedError = (nested as { error?: unknown }).error;
-      if (typeof nestedError === 'string' && nestedError) {
-        return nestedError;
-      }
-      const nestedMessage = (nested as { message?: unknown }).message;
-      if (typeof nestedMessage === 'string' && nestedMessage) {
-        return nestedMessage;
-      }
-    }
-
-    return null;
-  }
 }

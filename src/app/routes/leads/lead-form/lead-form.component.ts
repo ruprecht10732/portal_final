@@ -12,6 +12,7 @@ import { ServiceTypesService } from '../../../core/services/service-types.servic
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import type { Lead, ConsumerRole, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
@@ -111,7 +112,7 @@ export class LeadFormComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.form.errors.loadServiceTypes'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.form.errors.loadServiceTypes'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -127,7 +128,7 @@ export class LeadFormComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('leads.form.errors.loadLead'));
+        const message = extractErrorMessage(err, this.translate.instant('leads.form.errors.loadLead'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -299,7 +300,7 @@ export class LeadFormComponent implements OnInit {
           this.router.navigate(['/app/leads', created.id]);
         },
         error: (err) => {
-          const message = this.getErrorMessage(err, this.translate.instant('leads.form.errors.createLead'));
+          const message = extractErrorMessage(err, this.translate.instant('leads.form.errors.createLead'));
           this.error.set(message);
           this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
           this.saving.set(false);
@@ -330,7 +331,7 @@ export class LeadFormComponent implements OnInit {
           this.router.navigate(['/app/leads', updated.id]);
         },
         error: (err) => {
-          const message = this.getErrorMessage(err, this.translate.instant('leads.form.errors.updateLead'));
+          const message = extractErrorMessage(err, this.translate.instant('leads.form.errors.updateLead'));
           this.error.set(message);
           this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
           this.saving.set(false);
@@ -339,16 +340,6 @@ export class LeadFormComponent implements OnInit {
     }
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    return fallback;
-  }
 
   protected cancel(): void {
     if (this.isNew()) {

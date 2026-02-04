@@ -5,6 +5,7 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { CreateServiceTypeRequest } from '../../../core/services/service-types.types';
 import { normalizeIconName } from '../../../core/services/icon-utils';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -72,7 +73,7 @@ export class ServiceTypeCreateComponent {
         this.router.navigate(['/app/services']);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('services.errors.createFailed'));
+        const message = extractErrorMessage(err, this.translate.instant('services.errors.createFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.creating.set(false);
@@ -109,14 +110,4 @@ export class ServiceTypeCreateComponent {
     return parsed;
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    return fallback;
-  }
 }

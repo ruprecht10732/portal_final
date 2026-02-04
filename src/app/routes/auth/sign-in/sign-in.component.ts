@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, finalize, EMPTY, map, of, switchMap } from 'rxjs';
+import { catchError, map, of, switchMap } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
@@ -9,6 +9,7 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { MIN_LENGTH } from '../../../core/config';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { UserService } from '../../../core/services/user.service';
+import { handleSubmitState } from '../../../core/utils/rx-operators';
 
 @Component({
   selector: 'auth-sign-in',
@@ -58,13 +59,12 @@ export class SignInComponent {
 
     this.authService.signIn({ email: this.email(), password: this.password() })
       .pipe(
-        catchError(error => {
-          const message = this.authService.getErrorMessage(error);
-          this.globalError.set(message);
-          this.reporter.report(error, { source: 'http', silent: true, userMessage: message });
-          return EMPTY;
+        handleSubmitState({
+          loading: this.isSubmitting,
+          error: this.globalError,
+          reporter: this.reporter,
+          getMessage: (error) => this.authService.getErrorMessage(error),
         }),
-        finalize(() => this.isSubmitting.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {

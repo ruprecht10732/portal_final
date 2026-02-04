@@ -7,6 +7,7 @@ import { InputComponent } from '../../../shared/components/input/input.component
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { MIN_LENGTH } from '../../../core/config';
+import { handleSubmitState } from '../../../core/utils/rx-operators';
 
 interface PasswordRule {
   label: string;
@@ -122,13 +123,12 @@ export class SignUpComponent implements OnInit {
 
     this.authService.signUp(payload)
       .pipe(
-        catchError(error => {
-          const message = this.authService.getErrorMessage(error);
-          this.globalError.set(message);
-          this.reporter.report(error, { source: 'http', silent: true, userMessage: message });
-          return EMPTY;
+        handleSubmitState({
+          loading: this.isSubmitting,
+          error: this.globalError,
+          reporter: this.reporter,
+          getMessage: (error) => this.authService.getErrorMessage(error),
         }),
-        finalize(() => this.isSubmitting.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {

@@ -4,6 +4,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { FormsModule } from '@angular/forms';
 import { CatalogService, type Product, type ProductType, type ListProductsParams, type PaginatedResponse } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
@@ -84,7 +85,7 @@ export class CatalogListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadProducts'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadProducts'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -141,7 +142,7 @@ export class CatalogListComponent implements OnInit {
         this.loadProducts();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.deleteProduct'));
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.deleteProduct'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.deleteInProgress.set(false);
@@ -186,14 +187,4 @@ export class CatalogListComponent implements OnInit {
     return this.translate.instant(`catalog.products.types.${type}`);
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    return fallback;
-  }
 }

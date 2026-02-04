@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, ElementRef, computed, input, output, signal, viewChild } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../button/button.component';
 
 export interface PresignedUpload {
@@ -147,7 +148,9 @@ export class FileUploaderComponent {
   }
 
   private handleError(error: unknown, fallbackOverride?: string): void {
-    const message = this.getErrorMessage(error, fallbackOverride ?? this.errorFallback());
+    const message = extractErrorMessage(error, fallbackOverride ?? this.errorFallback(), {
+      allowErrorMessage: true,
+    });
     this.errorMessage.set(message);
     this.uploadError.emit({ message, error });
   }
@@ -194,15 +197,4 @@ export class FileUploaderComponent {
     return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error && typeof error === 'object' && 'error' in error) {
-      const nested = (error as { error?: { error?: string } | string }).error;
-      if (typeof nested === 'string') return nested;
-      if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-        return nested.error;
-      }
-    }
-    if (error instanceof Error && error.message) return error.message;
-    return fallback;
-  }
 }

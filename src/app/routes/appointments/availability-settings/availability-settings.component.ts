@@ -8,6 +8,7 @@ import { concatMap, toArray } from 'rxjs/operators';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import type { AvailabilityRuleResponse, AvailabilityOverrideResponse, CreateAvailabilityRuleRequest, CreateAvailabilityOverrideRequest } from '../../../core/services/appointments.types';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
@@ -151,7 +152,10 @@ export class AvailabilitySettingsComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.availability.errors.load'));
+        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.load'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -208,7 +212,10 @@ export class AvailabilitySettingsComponent implements OnInit {
         this.loadData();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.availability.errors.saveRule'));
+        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.saveRule'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -277,7 +284,10 @@ export class AvailabilitySettingsComponent implements OnInit {
             this.loadData();
           },
           error: (err) => {
-            const message = this.getErrorMessage(err, this.translate.instant('appointments.availability.errors.saveRule'));
+            const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.saveRule'), {
+              allowErrorMessage: true,
+              allowMessageField: true,
+            });
             this.error.set(message);
             this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
             this.quickSetupInProgress.set(false);
@@ -285,7 +295,10 @@ export class AvailabilitySettingsComponent implements OnInit {
         });
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.availability.errors.delete'));
+        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.delete'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.quickSetupInProgress.set(false);
@@ -345,7 +358,10 @@ export class AvailabilitySettingsComponent implements OnInit {
         this.loadData();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.availability.errors.saveOverride'));
+        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.saveOverride'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -387,7 +403,10 @@ export class AvailabilitySettingsComponent implements OnInit {
         this.loadData();
       },
       error: (err) => {
-        const message = this.getErrorMessage(err, this.translate.instant('appointments.availability.errors.delete'));
+        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.delete'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.deleteInProgress.set(false);
@@ -395,18 +414,4 @@ export class AvailabilitySettingsComponent implements OnInit {
     });
   }
 
-  private getErrorMessage(error: unknown, fallback: string): string {
-    if (error instanceof Error && error.message) {
-      return error.message;
-    }
-    if (error && typeof error === 'object') {
-      const e = error as Record<string, unknown>;
-      if (typeof e['message'] === 'string') return e['message'];
-      if (e['error'] && typeof e['error'] === 'object') {
-        const nested = e['error'] as Record<string, unknown>;
-        if (typeof nested['message'] === 'string') return nested['message'];
-      }
-    }
-    return fallback;
-  }
 }
