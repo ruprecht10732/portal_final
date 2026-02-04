@@ -231,33 +231,7 @@ export class OffertesCreateComponent implements OnInit {
     this.loading.set(true);
     this.quotesService.getById(id).subscribe({
       next: quote => {
-        if (quote) {
-          this.existingQuote.set(quote);
-          this.lineItems.set(
-            quote.lineItems.map(item => ({
-              id: item.id,
-              description: item.description,
-              quantity: item.quantity,
-              unitPrice: item.unitPrice,
-              taxRate: item.taxRate ?? 21,
-              optional: item.optional ?? false,
-            }))
-          );
-          this.summaryForm.patchValue({
-            discountType: quote.discountType,
-            discountValue: quote.discountValue,
-            validUntil: quote.validUntil ?? '',
-            notes: quote.notes ?? '',
-          });
-          this.discountType.set(quote.discountType);
-          this.discountValue.set(quote.discountValue);
-          this.pricingMode.set(quote.pricingMode ?? 'exclusive');
-          this.lastUsedTaxRate.set(quote.lineItems.at(0)?.taxRate ?? 21);
-          this.ensureInitialLineItem();
-          if (quote.leadId) {
-            this.loadLead(quote.leadId);
-          }
-        }
+        if (quote) this.applyQuote(quote);
         this.loading.set(false);
       },
       error: () => {
@@ -265,6 +239,34 @@ export class OffertesCreateComponent implements OnInit {
         this.error.set(this.translate.instant('offertes.errors.loadQuote'));
       },
     });
+  }
+
+  private applyQuote(quote: Quote): void {
+    this.existingQuote.set(quote);
+    this.lineItems.set(
+      quote.lineItems.map(item => ({
+        id: item.id,
+        description: item.description,
+        quantity: item.quantity,
+        unitPrice: item.unitPrice,
+        taxRate: item.taxRate ?? 21,
+        optional: item.optional ?? false,
+      }))
+    );
+    this.summaryForm.patchValue({
+      discountType: quote.discountType,
+      discountValue: quote.discountValue,
+      validUntil: quote.validUntil ?? '',
+      notes: quote.notes ?? '',
+    });
+    this.discountType.set(quote.discountType);
+    this.discountValue.set(quote.discountValue);
+    this.pricingMode.set(quote.pricingMode ?? 'exclusive');
+    this.lastUsedTaxRate.set(quote.lineItems.at(0)?.taxRate ?? 21);
+    this.ensureInitialLineItem();
+    if (quote.leadId) {
+      this.loadLead(quote.leadId);
+    }
   }
 
   // Line item management

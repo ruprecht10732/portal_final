@@ -154,13 +154,9 @@ export class LeadDetailComponent implements OnInit {
   protected readonly selectedServiceId = signal<string | null>(null);
 
   // Computed selected service - uses selectedServiceId or falls back to currentService
-  protected readonly selectedService = computed(() => {
-    const lead = this.lead();
-    const selectedId = this.selectedServiceId();
-    if (!lead) return null;
-    if (!selectedId) return lead.currentService ?? null;
-    return lead.services.find(s => s.id === selectedId) ?? lead.currentService ?? null;
-  });
+  protected readonly selectedService = computed(() =>
+    this.resolveSelectedService(this.lead(), this.selectedServiceId())
+  );
 
   protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => {
     this.lang();
@@ -235,6 +231,12 @@ export class LeadDetailComponent implements OnInit {
     if (!service) return null;
     return this.serviceTypeLabels()[service.serviceType] ?? service.serviceType;
   });
+
+  private resolveSelectedService(lead: Lead | null, selectedId: string | null): LeadService | null {
+    if (!lead) return null;
+    const selected = selectedId ? lead.services.find(service => service.id === selectedId) : null;
+    return selected ?? lead.currentService ?? null;
+  }
 
 
   protected readonly activityFeed = computed<ActivityEntry[]>(() => {

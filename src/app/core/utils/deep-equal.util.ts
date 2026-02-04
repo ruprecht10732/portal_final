@@ -9,10 +9,17 @@
  */
 export function deepEqual(a: unknown, b: unknown): boolean {
   if (a === b) return true;
-  if (a == null || b == null || typeof a !== 'object' || typeof b !== 'object') return false;
-  if (Array.isArray(a) !== Array.isArray(b)) return false;
-
+  if (!areComparableObjects(a, b)) return false;
   return Array.isArray(a) ? deepEqualArrays(a, b as unknown[]) : deepEqualObjects(a, b);
+}
+
+function areComparableObjects(a: unknown, b: unknown): boolean {
+  if (!isObjectLike(a) || !isObjectLike(b)) return false;
+  return Array.isArray(a) === Array.isArray(b);
+}
+
+function isObjectLike(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
 }
 
 function deepEqualArrays(a: unknown[], b: unknown[]): boolean {

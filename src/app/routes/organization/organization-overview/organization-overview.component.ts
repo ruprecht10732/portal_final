@@ -6,7 +6,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
-import { OrganizationService, UpdateOrganizationRequest } from '../../../core/services/organization.service';
+import { OrganizationService, type Organization, UpdateOrganizationRequest } from '../../../core/services/organization.service';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 
 @Component({
@@ -108,31 +108,33 @@ export class OrganizationOverviewComponent {
         finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(org => {
-        this.name.set(org.name ?? '');
-        this.initialName.set(org.name ?? '');
-        this.email.set(org.email ?? '');
-        this.initialEmail.set(org.email ?? '');
-        this.phone.set(org.phone ?? '');
-        this.initialPhone.set(org.phone ?? '');
-        this.vatNumber.set(org.vatNumber ?? '');
-        this.initialVatNumber.set(org.vatNumber ?? '');
-        this.kvkNumber.set(org.kvkNumber ?? '');
-        this.initialKvkNumber.set(org.kvkNumber ?? '');
-        this.addressLine1.set(org.addressLine1 ?? '');
-        this.initialAddressLine1.set(org.addressLine1 ?? '');
-        this.addressLine2.set(org.addressLine2 ?? '');
-        this.initialAddressLine2.set(org.addressLine2 ?? '');
-        this.postalCode.set(org.postalCode ?? '');
-        this.initialPostalCode.set(org.postalCode ?? '');
-        this.city.set(org.city ?? '');
-        this.initialCity.set(org.city ?? '');
-        this.country.set(org.country ?? '');
-        this.initialCountry.set(org.country ?? '');
-        this.hasAddressInput.set(false);
-        this.addressOptions.set([]);
-        this.addressSuggestions.set([]);
-      });
+      .subscribe(org => this.applyOrganization(org));
+  }
+
+  private applyOrganization(org: Organization): void {
+    this.name.set(org.name ?? '');
+    this.initialName.set(org.name ?? '');
+    this.email.set(org.email ?? '');
+    this.initialEmail.set(org.email ?? '');
+    this.phone.set(org.phone ?? '');
+    this.initialPhone.set(org.phone ?? '');
+    this.vatNumber.set(org.vatNumber ?? '');
+    this.initialVatNumber.set(org.vatNumber ?? '');
+    this.kvkNumber.set(org.kvkNumber ?? '');
+    this.initialKvkNumber.set(org.kvkNumber ?? '');
+    this.addressLine1.set(org.addressLine1 ?? '');
+    this.initialAddressLine1.set(org.addressLine1 ?? '');
+    this.addressLine2.set(org.addressLine2 ?? '');
+    this.initialAddressLine2.set(org.addressLine2 ?? '');
+    this.postalCode.set(org.postalCode ?? '');
+    this.initialPostalCode.set(org.postalCode ?? '');
+    this.city.set(org.city ?? '');
+    this.initialCity.set(org.city ?? '');
+    this.country.set(org.country ?? '');
+    this.initialCountry.set(org.country ?? '');
+    this.hasAddressInput.set(false);
+    this.addressOptions.set([]);
+    this.addressSuggestions.set([]);
   }
 
   private setupAddressSearch(): void {

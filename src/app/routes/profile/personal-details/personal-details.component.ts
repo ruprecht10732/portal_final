@@ -6,6 +6,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { UserService } from '../../../core/services/user.service';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
+import type { UserProfile } from '../../../core/services/user.types';
 
 @Component({
   selector: 'app-personal-details',
@@ -108,22 +109,7 @@ export class PersonalDetailsComponent {
         finalize(() => this.isLoading.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(profile => {
-        const first = profile.firstName ?? '';
-        const last = profile.lastName ?? '';
-        this.email.set(profile.email);
-        this.initialEmail.set(profile.email);
-        this.emailVerified.set(profile.emailVerified);
-        this.roles.set(profile.roles ?? []);
-        this.firstName.set(first);
-        this.lastName.set(last);
-        this.initialFirstName.set(first);
-        this.initialLastName.set(last);
-        this.preferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
-        this.initialPreferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
-        this.createdAt.set(profile.createdAt);
-        this.updatedAt.set(profile.updatedAt);
-      });
+      .subscribe(profile => this.applyProfile(profile, { setInitials: true }));
   }
 
   protected save(): void {
@@ -148,21 +134,36 @@ export class PersonalDetailsComponent {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(profile => {
-        const first = profile.firstName ?? '';
-        const last = profile.lastName ?? '';
-        this.email.set(profile.email);
-        this.initialEmail.set(profile.email);
-        this.emailVerified.set(profile.emailVerified);
-        this.firstName.set(first);
-        this.lastName.set(last);
-        this.initialFirstName.set(first);
-        this.initialLastName.set(last);
-        this.preferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
-        this.initialPreferredLanguage.set(profile.preferredLanguage === 'en' ? 'en' : 'nl');
-        this.updatedAt.set(profile.updatedAt);
+        this.applyProfile(profile, { setInitials: true, setRoles: false, setCreatedAt: false });
         this.successMessage.set(this.translate.instant('profile.personal.success'));
         this.translate.use(this.preferredLanguage());
       });
+  }
+
+  private applyProfile(
+    profile: UserProfile,
+    options: { setInitials: boolean; setRoles?: boolean; setCreatedAt?: boolean }
+  ): void {
+    const first = profile.firstName ?? '';
+    const last = profile.lastName ?? '';
+    const language = profile.preferredLanguage === 'en' ? 'en' : 'nl';
+    const setRoles = options.setRoles ?? true;
+    const setCreatedAt = options.setCreatedAt ?? true;
+
+    this.email.set(profile.email);
+    if (options.setInitials) this.initialEmail.set(profile.email);
+    this.emailVerified.set(profile.emailVerified);
+    if (setRoles) this.roles.set(profile.roles ?? []);
+    this.firstName.set(first);
+    this.lastName.set(last);
+    if (options.setInitials) {
+      this.initialFirstName.set(first);
+      this.initialLastName.set(last);
+    }
+    this.preferredLanguage.set(language);
+    if (options.setInitials) this.initialPreferredLanguage.set(language);
+    if (setCreatedAt) this.createdAt.set(profile.createdAt);
+    this.updatedAt.set(profile.updatedAt);
   }
 
   private normalizeError(error: unknown): string {

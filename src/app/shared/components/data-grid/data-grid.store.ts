@@ -978,40 +978,50 @@ export class DataGridStore<T extends Record<string, unknown>> {
     const validRows: T[] = [];
 
     this._rows.update(rows =>
-      rows.map((row) => {
-        if (!row.dirty) return row;
-
-        const cellErrors = { ...row.cellErrors };
-        let hasError = false;
-
-        for (const column of columns) {
-          if (!column.validator) continue;
-          const value = this.getValueByPath(row.current, column.field as string);
-          const error = column.validator(value, row.current) ?? null;
-
-          if (error) {
-            cellErrors[column.id] = error;
-            hasError = true;
-          } else {
-            delete cellErrors[column.id];
-          }
-        }
-
-        const nextRow = {
-          ...row,
-          cellErrors,
-          error: hasError ? 'Fix validation errors before saving.' : null,
-        };
-
-        if (!hasError) {
-          validRows.push(nextRow.current);
-        }
-
-        return nextRow;
-      })
+      rows.map(row => this.validateDirtyRow(row, columns, validRows))
     );
 
     return validRows;
+  }
+
+  private validateDirtyRow(row: RowState<T>, columns: GridColumn<T>[], validRows: T[]): RowState<T> {
+    if (!row.dirty) return row;
+
+    const { cellErrors, hasError } = this.collectCellErrors(row, columns);
+    const nextRow = {
+      ...row,
+      cellErrors,
+      error: hasError ? 'Fix validation errors before saving.' : null,
+    };
+
+    if (!hasError) {
+      validRows.push(nextRow.current);
+    }
+
+    return nextRow;
+  }
+
+  private collectCellErrors(
+    row: RowState<T>,
+    columns: GridColumn<T>[]
+  ): { cellErrors: Record<string, string>; hasError: boolean } {
+    const cellErrors = { ...row.cellErrors } as Record<string, string>;
+    let hasError = false;
+
+    for (const column of columns) {
+      if (!column.validator) continue;
+      const value = this.getValueByPath(row.current, column.field as string);
+      const error = column.validator(value, row.current) ?? null;
+
+      if (error) {
+        cellErrors[column.id] = error;
+        hasError = true;
+      } else {
+        delete cellErrors[column.id];
+      }
+    }
+
+    return { cellErrors, hasError };
   }
 
   private getValueByPath(obj: T, path: string): unknown {

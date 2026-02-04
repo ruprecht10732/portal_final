@@ -89,36 +89,26 @@ export class MenuComponent {
     if (!items.length) return;
 
     const currentIndex = items.indexOf(document.activeElement as HTMLElement);
+    const handlers: Record<string, () => void> = {
+      ArrowDown: () => this.focusRelativeItem(items, currentIndex, 1),
+      ArrowUp: () => this.focusRelativeItem(items, currentIndex, -1),
+      Home: () => items[0]?.focus(),
+      End: () => items.at(-1)?.focus(),
+      Escape: () => this.close(),
+    };
+    const handler = handlers[event.key];
+    if (!handler) return;
+    event.preventDefault();
+    handler();
+  }
 
-    switch (event.key) {
-      case 'ArrowDown': {
-        event.preventDefault();
-        const nextIndex = currentIndex < 0 ? 0 : (currentIndex + 1) % items.length;
-        items[nextIndex]?.focus();
-        break;
-      }
-      case 'ArrowUp': {
-        event.preventDefault();
-        const nextIndex = currentIndex < 0 ? items.length - 1 : (currentIndex - 1 + items.length) % items.length;
-        items[nextIndex]?.focus();
-        break;
-      }
-      case 'Home': {
-        event.preventDefault();
-        items[0]?.focus();
-        break;
-      }
-      case 'End': {
-        event.preventDefault();
-        items.at(-1)?.focus();
-        break;
-      }
-      case 'Escape': {
-        event.preventDefault();
-        this.close();
-        break;
-      }
-    }
+  private focusRelativeItem(items: HTMLElement[], currentIndex: number, delta: number): void {
+    if (items.length === 0) return;
+    const fallback = delta > 0 ? 0 : items.length - 1;
+    const nextIndex = currentIndex < 0
+      ? fallback
+      : (currentIndex + delta + items.length) % items.length;
+    items[nextIndex]?.focus();
   }
 
   protected selectItem(item: MenuItem): void {

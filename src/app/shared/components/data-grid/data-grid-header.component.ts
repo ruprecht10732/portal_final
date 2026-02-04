@@ -88,19 +88,32 @@ export class DataGridHeaderComponent<T = unknown> {
 
   /** Calculate left position for frozen columns */
   protected getFrozenColumnLeft(columnIndex: number): string {
+    return `${this.getFrozenOffset(columnIndex)}px`;
+  }
+
+  private getFrozenOffset(columnIndex: number): number {
     const cols = this.columns();
-    let left = this.selectable() ? 40 : 0; // checkbox column width
-    
+    const base = this.selectable() ? 40 : 0;
+    return base + this.sumFrozenWidths(cols, columnIndex);
+  }
+
+  private sumFrozenWidths(cols: GridColumn<T>[], columnIndex: number): number {
+    let total = 0;
+
     for (let i = 0; i < columnIndex; i++) {
       const col = cols[i];
-      if (col?.frozen) {
-        // Use minWidth or default
-        const width = col.minWidth ?? col.width ?? '150px';
-        left += Number.parseInt(width, 10) || 150;
-      }
+      if (!col?.frozen) continue;
+      const width = col.minWidth ?? col.width ?? '150px';
+      total += this.parseColumnWidth(width);
     }
-    
-    return `${left}px`;
+
+    return total;
+  }
+
+  private parseColumnWidth(value: string | number): number {
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    const parsed = Number.parseInt(String(value), 10);
+    return Number.isFinite(parsed) ? parsed : 150;
   }
 
   // ============ Resize Handlers ============
