@@ -1,204 +1,155 @@
-<section>
-  <div class="grid gap-5">
-    <div class="min-w-0">
-      <div class="group relative h-60 w-full overflow-hidden rounded-lg border border-zinc-200 sm:h-72">
-        <div class="absolute inset-0 bg-zinc-200"></div>
-        @if (heroImageUrl()) {
-          <div
-            class="absolute inset-0 bg-cover bg-center"
-            [style.background-image]="'url(' + heroImageUrl() + ')'"
-            aria-hidden="true"
-          ></div>
-          <div class="absolute inset-0 bg-black/45" aria-hidden="true"></div>
-        }
-        <div class="absolute bottom-0 left-0 w-full p-5 sm:p-6 flex flex-col gap-3">
-          <div class="flex flex-col gap-2">
-            <h3
-              class="text-2xl sm:text-3xl font-bold leading-tight"
-              [class.text-white]="heroImageUrl()"
-              [class.text-zinc-900]="!heroImageUrl()"
-            >
-              {{ product().title }}
-            </h3>
-          </div>
-        </div>
-        @if (getActiveHero()) {
-          <div class="absolute right-3 top-3 flex gap-2 opacity-0 pointer-events-none transition-opacity group-hover:opacity-100 group-hover:pointer-events-auto">
-            <button
-              type="button"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/40 bg-slate-900/45 text-white transition-colors hover:bg-slate-900/70 hover:border-white/70"
-              (click)="onPreviewHeroImage()(getActiveHero()!.id)"
-              aria-label="Preview"
-            >
-              <lucide-icon name="eye" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-            </button>
-            <button
-              type="button"
-              class="inline-flex h-8 w-8 items-center justify-center rounded-md border border-white/40 bg-slate-900/45 text-white transition-colors hover:bg-slate-900/70 hover:border-white/70"
-              (click)="onDeleteHeroImage()(getActiveHero()!.id)"
-              aria-label="Delete"
-            >
-              <lucide-icon name="trash-2" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-            </button>
-          </div>
-        }
+<section class="h-full w-full bg-white sm:rounded-xl sm:border sm:border-zinc-200 overflow-hidden flex flex-col">
+
+  <div class="group relative w-full bg-zinc-100">
+    <div class="relative aspect-video w-full overflow-hidden sm:h-64">
+      
+      <div class="absolute inset-0 flex items-center justify-center text-zinc-300">
+        <lucide-icon name="image" class="h-10 w-10 opacity-20"></lucide-icon>
       </div>
 
-      @if (heroImages().length > 0) {
-        <div class="mt-3 flex flex-wrap gap-2">
-          @for (image of heroImages(); track image.id) {
-            <button
-              type="button"
-              class="inline-flex h-16 w-16 overflow-hidden rounded-[12px] border border-zinc-200 bg-white transition-colors hover:border-zinc-300 ring-0 ring-blue-300/60"
-              [class.border-blue-300]="image.url === heroImageUrl()"
-              [class.ring-2]="image.url === heroImageUrl()"
-              (click)="onSelectHeroImage()(image.url)"
-              [attr.aria-label]="image.label"
-            >
-              <img [src]="image.url" alt="" aria-hidden="true" />
-            </button>
-          }
+      @if (heroImageUrl()) {
+        <div
+          class="absolute inset-0 bg-cover bg-center transition-transform duration-700 group-hover:scale-105"
+          [style.background-image]="'url(' + heroImageUrl() + ')'"
+          aria-hidden="true"
+        ></div>
+      }
+
+      @if (getActiveHero()) {
+        <div class="absolute right-3 top-3 flex gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+          <button
+            class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors"
+            (click)="onPreviewHeroImage()(getActiveHero()!.id)"
+          >
+            <lucide-icon name="eye" class="h-4 w-4"></lucide-icon>
+          </button>
+          <button
+            class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-red-500/80 text-white backdrop-blur-md hover:bg-red-600 transition-colors"
+            (click)="onDeleteHeroImage()(getActiveHero()!.id)"
+          >
+            <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
+          </button>
         </div>
       }
 
-      @if (product().description) {
-        <div class="pt-4 border-t border-zinc-200">
-          <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-            {{ 'catalog.products.fields.description' | translate }}
-          </p>
-          <p class="mt-2 text-sm text-zinc-700 whitespace-pre-wrap">
-            {{ product().description }}
-          </p>
-        </div>
-      }
+      <div class="absolute bottom-0 left-0 w-full p-5">
+        <h3 class="text-xl font-bold leading-tight text-white sm:text-2xl">
+          {{ product().title }}
+        </h3>
+      </div>
     </div>
+  </div>
 
-    <div class="min-w-0">
-      <div class="grid gap-2 sm:grid-cols-2">
+  <div class="flex-1 overflow-y-auto bg-white p-5">
+    
+    @if (heroImages().length > 0) {
+      <div class="mb-6 flex gap-3 overflow-x-auto pb-2 scrollbar-hide mask-fade-right">
+        @for (image of heroImages(); track image.id) {
+          <button
+            type="button"
+            class="relative h-14 w-14 shrink-0 overflow-hidden rounded-lg border transition-all hover:opacity-100 focus:ring-2 focus:ring-blue-500"
+            [class.border-blue-500]="image.url === heroImageUrl()"
+            [class.border-zinc-200]="image.url !== heroImageUrl()"
+            [class.opacity-100]="image.url === heroImageUrl()"
+            [class.opacity-60]="image.url !== heroImageUrl()"
+            (click)="onSelectHeroImage()(image.url)"
+          >
+            <img [src]="image.url" class="h-full w-full object-cover" alt="" />
+          </button>
+        }
+      </div>
+    }
+
+    @if (product().description) {
+      <div class="mb-6">
+        <h4 class="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
+          {{ 'catalog.products.fields.description' | translate }}
+        </h4>
+        <p class="text-sm leading-relaxed text-zinc-600 whitespace-pre-wrap">
+          {{ product().description }}
+        </p>
+      </div>
+    }
+
+    <div>
+      <h4 class="mb-3 text-sm font-bold text-zinc-900">Details</h4>
+      <div class="divide-y divide-zinc-100 border-t border-b border-zinc-100">
         @for (row of detailsRows(); track row.labelKey) {
-          <div class="flex items-center justify-between gap-3 rounded-[10px] border border-zinc-200 bg-white px-3 py-2 text-sm">
-            <span class="text-xs font-bold uppercase tracking-[0.12em] text-slate-900">{{ row.labelKey | translate }}</span>
-            @switch (row.valueType) {
-              @case ('vatSelect') {
-                <select
-                  class="min-w-[180px] rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-sm text-slate-900"
-                  [value]="selectedVatRateId()"
-                  (change)="onVatRateChange()($any($event.target).value)"
-                >
-                  @for (rate of vatRates(); track rate.id) {
-                    <option [value]="rate.id">
-                      {{ rate.name }} ({{ (rate.rateBps / 100) | number:'1.0-2' }}%)
-                    </option>
-                  }
-                </select>
-              }
-              @case ('typeSelect') {
-                <select
-                  class="min-w-[180px] rounded-lg border border-zinc-200 bg-white px-2 py-1.5 text-sm text-slate-900"
-                  [value]="selectedType()"
-                  (change)="onTypeChange()($any($event.target).value)"
-                >
-                  @for (option of typeOptions(); track option.value) {
-                    <option [value]="option.value">
-                      {{ option.label }}
-                    </option>
-                  }
-                </select>
-              }
-              @case ('chip') {
-                <shared-chip [variant]="row.variant || 'default'">
-                  {{ row.value }}
-                </shared-chip>
-              }
-              @case ('price') {
-                <div class="inline-flex items-center justify-end gap-2">
-                  @if (row.editable && editingField() === row.key) {
-                    <input
-                      class="w-40 rounded-lg border border-zinc-200 px-2 py-1.5 text-sm text-slate-900"
-                      type="number"
-                      step="0.01"
-                      min="0"
-                      [value]="editPrice()"
-                      (input)="editPrice.set($any($event.target).value)"
-                    />
-                    <button
-                      type="button"
-                      class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
-                      (click)="saveEdit(row.key)"
-                      [disabled]="savingField() === row.key"
-                      aria-label="Save"
-                    >
-                      <lucide-icon name="check" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                    </button>
-                    <button
-                      type="button"
-                      class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
-                      (click)="cancelEdit()"
-                      [disabled]="savingField() === row.key"
-                      aria-label="Cancel"
-                    >
-                      <lucide-icon name="x" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                    </button>
-                  } @else {
-                    <span class="text-base font-bold text-slate-900">{{ row.value }}</span>
-                    @if (row.editable) {
-                      <button
-                        type="button"
-                        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
-                        (click)="startEdit(row.key)"
-                        aria-label="Edit"
-                      >
-                        <lucide-icon name="pencil" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                      </button>
+          <div class="group flex items-center justify-between py-3.5 gap-4">
+            
+            <span class="shrink-0 text-sm font-medium text-zinc-500">
+               {{ row.labelKey | translate }}
+            </span>
+
+            <div class="flex min-w-0 flex-1 justify-end">
+              @switch (row.valueType) {
+                
+                @case ('vatSelect') {
+                  <select
+                    class="block w-full max-w-35 rounded-md border-0 bg-zinc-50 py-1.5 pl-3 pr-8 text-right text-sm text-zinc-900 ring-1 ring-inset ring-zinc-200 focus:ring-2 focus:ring-blue-500 sm:text-sm sm:leading-6"
+                    [value]="selectedVatRateId()"
+                    (change)="onVatRateChange()($any($event.target).value)"
+                  >
+                    @for (rate of vatRates(); track rate.id) {
+                      <option [value]="rate.id">{{ rate.name }} ({{ rate.rateBps / 100 }}%)</option>
                     }
-                  }
-                </div>
-              }
-              @default {
-                <div class="inline-flex items-center justify-end gap-2">
-                  @if (row.editable && editingField() === row.key) {
-                    <input
-                      class="w-40 rounded-lg border border-zinc-200 px-2 py-1.5 text-sm text-slate-900"
-                      type="text"
-                      [value]="row.key === 'title' ? editTitle() : editReference()"
-                      (input)="row.key === 'title'
-                        ? editTitle.set($any($event.target).value)
-                        : editReference.set($any($event.target).value)"
-                    />
-                    <button
-                      type="button"
-                      class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
-                      (click)="saveEdit(row.key)"
-                      [disabled]="savingField() === row.key"
-                      aria-label="Save"
-                    >
-                      <lucide-icon name="check" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                    </button>
-                    <button
-                      type="button"
-                      class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
-                      (click)="cancelEdit()"
-                      [disabled]="savingField() === row.key"
-                      aria-label="Cancel"
-                    >
-                      <lucide-icon name="x" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                    </button>
-                  } @else {
-                    <span class="text-sm text-slate-900">{{ row.value }}</span>
-                    @if (row.editable) {
-                      <button
-                        type="button"
-                        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
-                        (click)="startEdit(row.key)"
-                        aria-label="Edit"
-                      >
-                        <lucide-icon name="pencil" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                      </button>
+                  </select>
+                }
+
+                @case ('typeSelect') {
+                   <select
+                    class="block w-full max-w-35 rounded-md border-0 bg-zinc-50 py-1.5 pl-3 pr-8 text-right text-sm text-zinc-900 ring-1 ring-inset ring-zinc-200 focus:ring-2 focus:ring-blue-500 sm:text-sm sm:leading-6"
+                    [value]="selectedType()"
+                    (change)="onTypeChange()($any($event.target).value)"
+                  >
+                    @for (option of typeOptions(); track option.value) {
+                      <option [value]="option.value">{{ option.label }}</option>
                     }
-                  }
-                </div>
+                  </select>
+                }
+
+                @case ('chip') {
+                  <shared-chip [variant]="row.variant || 'default'" size="sm">
+                    {{ row.value }}
+                  </shared-chip>
+                }
+
+                @default {
+                   <div class="relative flex w-full items-center justify-end gap-2">
+                    @if (row.editable && editingField() === row.key) {
+                      <div class="flex flex-1 items-center justify-end gap-2 animate-in fade-in zoom-in-95">
+                        <input
+                          class="w-full max-w-30 rounded-md border-0 py-1.5 text-right text-sm text-zinc-900 ring-1 ring-inset ring-blue-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-blue-500"
+                          [type]="row.valueType === 'price' ? 'number' : 'text'"
+                          [value]="row.valueType === 'price' ? editPrice() : (row.key === 'title' ? editTitle() : editReference())"
+                          (input)="row.valueType === 'price' 
+                            ? editPrice.set($any($event.target).value) 
+                            : (row.key === 'title' ? editTitle.set($any($event.target).value) : editReference.set($any($event.target).value))"
+                        />
+                        <button class="text-green-600 hover:text-green-700" (click)="saveEdit(row.key)">
+                          <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
+                        </button>
+                         <button class="text-zinc-400 hover:text-zinc-500" (click)="cancelEdit()">
+                          <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+                        </button>
+                      </div>
+                    } @else {
+                      <span class="truncate text-sm font-medium text-zinc-900">
+                        {{ row.value }}
+                      </span>
+                      @if (row.editable) {
+                        <button
+                          class="ml-2 hidden text-zinc-400 hover:text-blue-600 group-hover:inline-block"
+                          (click)="startEdit(row.key)"
+                        >
+                          <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
+                        </button>
+                      }
+                    }
+                  </div>
+                }
               }
-            }
+            </div>
           </div>
         }
       </div>

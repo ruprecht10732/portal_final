@@ -1,4 +1,4 @@
-import { DatePipe, DecimalPipe } from '@angular/common';
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { CatalogService, type Product, type ProductType, type UpdateProductRequest, type VatRate } from '../../../../core/services/catalog.service';
@@ -22,7 +22,7 @@ interface HeroImageOption {
 
 @Component({
   selector: 'app-catalog-detail-basics-card',
-  imports: [DecimalPipe, TranslateModule, ChipComponent, LucideAngularModule],
+  imports: [TranslateModule, ChipComponent, LucideAngularModule],
   templateUrl: './catalog-detail-basics-card.component.html',
   providers: [DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
