@@ -80,7 +80,8 @@
               [termsAssets]="termsAssets()"
               [imagePreviewUrls]="imagePreviewUrls()"
               [formatFileSize]="onFormatFileSize"
-              [openAsset]="onOpenAsset"
+              [previewAsset]="onPreviewAsset"
+              [downloadAsset]="onDownloadAsset"
             />
 
             <!-- Materials Section (for services only) -->
@@ -108,5 +109,16 @@
     [confirmDisabled]="deleting()"
     (confirm)="confirmDelete()"
     (cancelled)="closeDeleteDialog()"
+  />
+
+  <shared-file-preview-dialog
+    [isOpen]="previewOpen()"
+    [title]="previewTitle()"
+    [fileUrl]="previewUrl()"
+    [fileName]="previewFileName()"
+    [contentType]="previewContentType()"
+    [isLoading]="previewLoading()"
+    [error]="previewError()"
+    (closed)="closePreview()"
   />
 </div>

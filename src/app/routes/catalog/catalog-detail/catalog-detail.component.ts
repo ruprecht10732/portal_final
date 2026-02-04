@@ -16,6 +16,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { FilePreviewDialogComponent } from '../../../shared/components/file-preview-dialog/file-preview-dialog.component';
 import { CatalogDetailAssetsCardComponent } from './catalog-detail-assets-card/catalog-detail-assets-card.component';
 import { CatalogDetailBasicsCardComponent } from './catalog-detail-basics-card/catalog-detail-basics-card.component';
 import { CatalogDetailMaterialsCardComponent } from './catalog-detail-materials-card/catalog-detail-materials-card.component';
@@ -29,6 +30,7 @@ import { CatalogDetailMetaCardComponent } from './catalog-detail-meta-card/catal
     ButtonComponent,
     ConfirmDialogComponent,
     PageHeaderComponent,
+    FilePreviewDialogComponent,
     CatalogDetailAssetsCardComponent,
     CatalogDetailBasicsCardComponent,
     CatalogDetailMaterialsCardComponent,
@@ -59,6 +61,11 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly downloadingAssetId = signal<string | null>(null);
   protected readonly heroImageUrl = signal<string | null>(null);
   protected readonly imagePreviewUrls = signal<Record<string, string>>({});
+  protected readonly previewOpen = signal(false);
+  protected readonly previewLoading = signal(false);
+  protected readonly previewError = signal<string | null>(null);
+  protected readonly previewUrl = signal<string | null>(null);
+  protected readonly previewAsset = signal<CatalogAsset | null>(null);
 
   // Materials for service products
   protected readonly materials = signal<Product[]>([]);
@@ -100,8 +107,22 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly termsAssets = computed(() => this.assets().filter(asset => asset.assetType === 'terms_url'));
 
   protected readonly onOpenAsset = (asset: CatalogAsset): void => this.openAsset(asset);
+  protected readonly onPreviewAsset = (asset: CatalogAsset): void => this.openPreview(asset);
+  protected readonly onDownloadAsset = (asset: CatalogAsset): void => this.openAsset(asset);
   protected readonly onFormatFileSize = (bytes?: number): string => this.formatFileSize(bytes);
   protected readonly onFormatMaterialPrice = (priceCents: number): string => this.formatMaterialPrice(priceCents);
+
+  protected readonly previewTitle = computed(() => {
+    const asset = this.previewAsset();
+    return asset?.fileName || asset?.fileKey || asset?.url || 'File preview';
+  });
+
+  protected readonly previewFileName = computed(() => {
+    const asset = this.previewAsset();
+    return asset?.fileName || asset?.fileKey || '';
+  });
+
+  protected readonly previewContentType = computed(() => this.previewAsset()?.contentType || null);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -282,6 +303,43 @@ export class CatalogDetailComponent implements OnInit {
         this.downloadingAssetId.set(null);
       },
     });
+  }
+
+  protected openPreview(asset: CatalogAsset): void {
+    const product = this.product();
+    if (!product) return;
+
+    if (asset.assetType === 'terms_url' && asset.url) {
+      window.open(asset.url, '_blank');
+      return;
+    }
+
+    this.previewOpen.set(true);
+    this.previewLoading.set(true);
+    this.previewError.set(null);
+    this.previewUrl.set(null);
+    this.previewAsset.set(asset);
+
+    this.catalogService.getCatalogAssetDownloadUrl(product.id, asset.id).subscribe({
+      next: (response) => {
+        this.previewUrl.set(response.downloadUrl);
+        this.previewLoading.set(false);
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
+        this.previewError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.previewLoading.set(false);
+      },
+    });
+  }
+
+  protected closePreview(): void {
+    this.previewOpen.set(false);
+    this.previewLoading.set(false);
+    this.previewError.set(null);
+    this.previewUrl.set(null);
+    this.previewAsset.set(null);
   }
 
   protected formatFileSize(bytes?: number): string {

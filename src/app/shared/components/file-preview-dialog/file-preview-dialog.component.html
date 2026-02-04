@@ -1,0 +1,71 @@
+@if (isOpen()) {
+  <div
+    class="file-preview-backdrop"
+    (click)="onBackdropClick()"
+    (keydown.enter)="onBackdropClick()"
+    (keydown.space)="onBackdropClick()"
+    aria-hidden="true"
+  ></div>
+}
+
+<dialog
+  [attr.open]="isOpen() ? '' : null"
+  class="file-preview-dialog"
+  [attr.aria-modal]="true"
+  [attr.aria-labelledby]="titleId()"
+  [attr.aria-describedby]="descriptionId()"
+  (keydown.escape)="onCloseClick()"
+>
+  <div class="file-preview-header">
+    <h2 class="file-preview-title" [id]="titleId()">
+      {{ title() || 'File preview' }}
+    </h2>
+    <button
+      type="button"
+      class="file-preview-close"
+      (click)="onCloseClick()"
+      aria-label="Close preview"
+    >
+      <lucide-icon name="x" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+    </button>
+  </div>
+
+  <div class="file-preview-body" [id]="descriptionId()">
+    @if (isLoading()) {
+      <div class="file-preview-state">Loading preview...</div>
+    } @else if (error()) {
+      <div class="file-preview-error">{{ error() }}</div>
+    } @else if (fileUrl()) {
+      @if (isImage()) {
+        <img class="file-preview-image" [src]="fileUrl()!" [alt]="fileName()" />
+      } @else if (safeUrl()) {
+        <iframe
+          class="file-preview-frame"
+          [src]="safeUrl()!"
+          title="File preview"
+          loading="lazy"
+        ></iframe>
+      } @else {
+        <div class="file-preview-state">Preview unavailable.</div>
+      }
+    } @else {
+      <div class="file-preview-state">Preview unavailable.</div>
+    }
+  </div>
+
+  <div class="file-preview-footer">
+    @if (fileUrl()) {
+      <a
+        class="file-preview-link"
+        [href]="fileUrl()!"
+        target="_blank"
+        rel="noopener noreferrer"
+      >
+        Open in new tab
+      </a>
+    }
+    <shared-button variant="secondary" (clicked)="onCloseClick()">
+      Close
+    </shared-button>
+  </div>
+</dialog>
