@@ -16,7 +16,7 @@ interface DetailsRow {
 
 @Component({
   selector: 'app-catalog-detail-basics-card',
-  imports: [DatePipe, DecimalPipe, TranslateModule, ChipComponent, LucideAngularModule],
+  imports: [DecimalPipe, TranslateModule, ChipComponent, LucideAngularModule],
   templateUrl: './catalog-detail-basics-card.component.html',
   styleUrl: './catalog-detail-basics-card.component.css',
   providers: [DatePipe],
