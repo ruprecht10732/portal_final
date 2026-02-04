@@ -139,20 +139,9 @@
   />
 
   <shared-confirm-dialog
-    [isOpen]="showDeleteHeroDialog()"
-    [title]="'catalog.products.assets.deleteImageTitle' | translate"
-    [message]="'catalog.products.assets.deleteImageMessage' | translate"
-    [confirmText]="'catalog.products.confirmDelete' | translate"
-    [cancelText]="'catalog.products.cancel' | translate"
-    confirmVariant="danger"
-    (confirm)="confirmDeleteHeroImage()"
-    (cancelled)="closeDeleteHeroDialog()"
-  />
-
-  <shared-confirm-dialog
     [isOpen]="showDeleteAssetDialog()"
-    [title]="'catalog.products.assets.deleteAssetTitle' | translate"
-    [message]="'catalog.products.assets.deleteAssetMessage' | translate"
+    [title]="deleteAssetTitleKey() | translate"
+    [message]="deleteAssetMessageKey() | translate"
     [confirmText]="'catalog.products.confirmDelete' | translate"
     [cancelText]="'catalog.products.cancel' | translate"
     confirmVariant="danger"

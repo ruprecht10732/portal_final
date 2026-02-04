@@ -1,6 +1,6 @@
 @if (isOpen()) {
   <div
-    class="fixed inset-0 bg-black/50 z-60"
+    class="fixed inset-0 z-60 bg-zinc-900/40 backdrop-blur-sm transition-opacity"
     (click)="onBackdropClick()"
     (keydown.enter)="onBackdropClick()"
     (keydown.space)="onBackdropClick()"
@@ -10,38 +10,44 @@
 
 <dialog
   [attr.open]="isOpen() ? '' : null"
-  class="fixed inset-0 z-70 m-auto w-[calc(100%-2rem)] max-w-md border-0 bg-white p-0 shadow-xl"
+  class="fixed inset-0 z-70 m-auto w-[calc(100%-2rem)] max-w-md overflow-hidden rounded-2xl border border-zinc-100 bg-white p-0 shadow-2xl ring-1 ring-zinc-900/5 focus:outline-none"
   [attr.aria-modal]="true"
   role="alertdialog"
   [attr.aria-labelledby]="titleId()"
   [attr.aria-describedby]="descriptionId()"
   (keydown.escape)="onCancelClick()"
 >
-  <div class="flex flex-col gap-4 p-6">
-    <h2 class="text-base font-bold uppercase tracking-tight text-zinc-900" [id]="titleId()">
-      {{ title() }}
-    </h2>
+  <div class="flex flex-col p-6">
+    <div class="mb-4">
+      <h2 
+        class="text-lg font-semibold leading-6 text-zinc-900" 
+        [id]="titleId()"
+      >
+        {{ title() }}
+      </h2>
 
-    @if (message()) {
-      <p class="text-sm text-zinc-600" [id]="descriptionId()">
-        {{ message() }}
-      </p>
-    } @else {
-      <div [id]="descriptionId()">
-        <ng-content />
+      <div class="mt-2 text-sm leading-relaxed text-zinc-500" [id]="descriptionId()">
+        @if (message()) {
+          <p>{{ message() }}</p>
+        } @else {
+          <ng-content />
+        }
       </div>
-    }
+    </div>
 
-    <div class="grid grid-cols-2 gap-3 pt-2">
+    <div class="mt-2 flex flex-col-reverse gap-3 sm:flex-row sm:justify-end">
       <shared-button
+        class="w-full sm:w-auto"
         variant="secondary"
         (clicked)="onCancelClick()"
         ariaLabel="Cancel"
       >
         {{ cancelText() }}
       </shared-button>
+      
       <shared-button
         #confirmButton
+        class="w-full sm:w-auto"
         [variant]="confirmVariant()"
         [disabled]="confirmDisabled()"
         (clicked)="onConfirmClick()"

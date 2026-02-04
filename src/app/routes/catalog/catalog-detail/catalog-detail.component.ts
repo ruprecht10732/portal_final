@@ -71,10 +71,8 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly previewError = signal<string | null>(null);
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly previewAsset = signal<CatalogAsset | null>(null);
-  protected readonly showDeleteHeroDialog = signal(false);
-  protected readonly deleteHeroAssetId = signal<string | null>(null);
   protected readonly showDeleteAssetDialog = signal(false);
-  protected readonly deleteAssetId = signal<string | null>(null);
+  protected readonly deleteAssetCandidate = signal<CatalogAsset | null>(null);
 
   // Materials for service products
   protected readonly materials = signal<Product[]>([]);
@@ -143,7 +141,7 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly onFormatMaterialPrice = (priceCents: number): string => this.formatMaterialPrice(priceCents);
   protected readonly onAssetUploaded = (asset: CatalogAsset): void => this.handleAssetUploaded(asset);
   protected readonly onAssetError = (event: FileUploadError | null): void => this.handleAssetError(event);
-  protected readonly onDeleteAsset = (asset: CatalogAsset): void => this.requestDeleteAsset(asset.id);
+  protected readonly onDeleteAsset = (asset: CatalogAsset): void => this.requestDeleteAsset(asset);
   protected readonly onCreateTermsUrl = async (url: string, label?: string): Promise<CatalogAsset | null> =>
     this.createTermsUrl(url, label);
   protected readonly onUpdateProduct = async (data: UpdateProductRequest): Promise<void> =>
@@ -168,6 +166,14 @@ export class CatalogDetailComponent implements OnInit {
   });
 
   protected readonly previewContentType = computed(() => this.previewAsset()?.contentType || null);
+
+  protected readonly deleteAssetTitleKey = computed(() =>
+    this.getDeleteAssetCopyKey('title', this.deleteAssetCandidate()?.assetType),
+  );
+
+  protected readonly deleteAssetMessageKey = computed(() =>
+    this.getDeleteAssetCopyKey('message', this.deleteAssetCandidate()?.assetType),
+  );
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -425,45 +431,44 @@ export class CatalogDetailComponent implements OnInit {
   }
 
   private requestDeleteHeroImage(assetId: string): void {
-    this.deleteHeroAssetId.set(assetId);
-    this.showDeleteHeroDialog.set(true);
+    const asset = this.assets().find(item => item.id === assetId);
+    if (asset) {
+      this.requestDeleteAsset(asset);
+    }
   }
 
-  protected closeDeleteHeroDialog(): void {
-    this.showDeleteHeroDialog.set(false);
-    this.deleteHeroAssetId.set(null);
-  }
-
-  protected confirmDeleteHeroImage(): void {
-    const assetId = this.deleteHeroAssetId();
-    if (!assetId) return;
-
-    this.showDeleteHeroDialog.set(false);
-    this.deleteHeroAssetId.set(null);
-    this.deleteHeroImage(assetId);
-  }
-
-  protected requestDeleteAsset(assetId: string): void {
-    this.deleteAssetId.set(assetId);
+  protected requestDeleteAsset(asset: CatalogAsset): void {
+    this.deleteAssetCandidate.set(asset);
     this.showDeleteAssetDialog.set(true);
   }
 
   protected closeDeleteAssetDialog(): void {
     this.showDeleteAssetDialog.set(false);
-    this.deleteAssetId.set(null);
+    this.deleteAssetCandidate.set(null);
   }
 
   protected confirmDeleteAsset(): void {
-    const assetId = this.deleteAssetId();
-    if (!assetId) return;
+    const asset = this.deleteAssetCandidate();
+    if (!asset) return;
 
     this.showDeleteAssetDialog.set(false);
-    this.deleteAssetId.set(null);
-    this.deleteHeroImage(assetId);
+    this.deleteAssetCandidate.set(null);
+    this.deleteAssetById(asset.id);
   }
 
-  private deleteHeroImage(assetId: string): void {
-    this.deleteAssetById(assetId);
+  private getDeleteAssetCopyKey(
+    target: 'title' | 'message',
+    type?: CatalogAsset['assetType'],
+  ): string {
+    switch (type) {
+      case 'document':
+        return `catalog.assets.deleteAsset${target === 'title' ? 'Title' : 'Message'}Document`;
+      case 'terms_url':
+        return `catalog.assets.deleteAsset${target === 'title' ? 'Title' : 'Message'}Url`;
+      case 'image':
+      default:
+        return `catalog.assets.deleteAsset${target === 'title' ? 'Title' : 'Message'}Image`;
+    }
   }
 
   private deleteAssetById(assetId: string): void {
