@@ -111,7 +111,11 @@ export class OrganizationOverviewComponent {
       .subscribe(org => this.applyOrganization(org));
   }
 
-  private applyOrganization(org: Organization): void {
+  private applyOrganization(
+    org: Organization,
+    options?: { resetAddress?: boolean }
+  ): void {
+    const resetAddress = options?.resetAddress ?? true;
     this.name.set(org.name ?? '');
     this.initialName.set(org.name ?? '');
     this.email.set(org.email ?? '');
@@ -132,9 +136,11 @@ export class OrganizationOverviewComponent {
     this.initialCity.set(org.city ?? '');
     this.country.set(org.country ?? '');
     this.initialCountry.set(org.country ?? '');
-    this.hasAddressInput.set(false);
-    this.addressOptions.set([]);
-    this.addressSuggestions.set([]);
+    if (resetAddress) {
+      this.hasAddressInput.set(false);
+      this.addressOptions.set([]);
+      this.addressSuggestions.set([]);
+    }
   }
 
   private setupAddressSearch(): void {
@@ -214,26 +220,7 @@ export class OrganizationOverviewComponent {
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(org => {
-        this.name.set(org.name ?? '');
-        this.initialName.set(org.name ?? '');
-        this.email.set(org.email ?? '');
-        this.initialEmail.set(org.email ?? '');
-        this.phone.set(org.phone ?? '');
-        this.initialPhone.set(org.phone ?? '');
-        this.vatNumber.set(org.vatNumber ?? '');
-        this.initialVatNumber.set(org.vatNumber ?? '');
-        this.kvkNumber.set(org.kvkNumber ?? '');
-        this.initialKvkNumber.set(org.kvkNumber ?? '');
-        this.addressLine1.set(org.addressLine1 ?? '');
-        this.initialAddressLine1.set(org.addressLine1 ?? '');
-        this.addressLine2.set(org.addressLine2 ?? '');
-        this.initialAddressLine2.set(org.addressLine2 ?? '');
-        this.postalCode.set(org.postalCode ?? '');
-        this.initialPostalCode.set(org.postalCode ?? '');
-        this.city.set(org.city ?? '');
-        this.initialCity.set(org.city ?? '');
-        this.country.set(org.country ?? '');
-        this.initialCountry.set(org.country ?? '');
+        this.applyOrganization(org, { resetAddress: false });
         this.successMessage.set(this.translate.instant('organization.saved'));
       });
   }

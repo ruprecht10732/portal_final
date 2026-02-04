@@ -6,7 +6,7 @@ const isPlainObject = (value: unknown): value is Record<string, unknown> => {
   return prototype === Object.prototype || prototype === null;
 };
 
-const stringifyValue = (value: unknown, seen: Set<unknown>): string => {
+const stringifyPrimitive = (value: unknown): string | undefined => {
   if (value === null) return "null";
 
   switch (typeof value) {
@@ -23,38 +23,56 @@ const stringifyValue = (value: unknown, seen: Set<unknown>): string => {
     case "undefined":
       return "null";
     default:
-      break;
+      return undefined;
   }
+};
+
+const stringifyArray = (value: unknown[], seen: Set<unknown>): string => {
+  const items = value.map((item) => stringifyValue(item, seen));
+  return `[${items.join(",")}]`;
+};
+
+const stringifyRecord = (record: Record<string, unknown>, seen: Set<unknown>): string => {
+  const entries = Object.keys(record)
+    .sort((left, right) => left.localeCompare(right))
+    .map((key) => {
+      const entryValue = stringifyValue(record[key], seen);
+      return `${quoteString(key)}:${entryValue}`;
+    });
+
+  return `{${entries.join(",")}}`;
+};
+
+const stringifyObject = (value: object, seen: Set<unknown>): string => {
+  if (seen.has(value)) {
+    return quoteString("[Circular]");
+  }
+  seen.add(value);
+
+  if (!isPlainObject(value)) {
+    seen.delete(value);
+    return quoteString(Object.prototype.toString.call(value));
+  }
+
+  const result = stringifyRecord(value, seen);
+  seen.delete(value);
+  return result;
+};
+
+const stringifyValue = (value: unknown, seen: Set<unknown>): string => {
+  const primitive = stringifyPrimitive(value);
+  if (primitive !== undefined) return primitive;
 
   if (value instanceof Date) {
     return quoteString(value.toISOString());
   }
 
   if (Array.isArray(value)) {
-    const items = value.map((item) => stringifyValue(item, seen));
-    return `[${items.join(",")}]`;
+    return stringifyArray(value, seen);
   }
 
-  if (typeof value === "object") {
-    if (seen.has(value)) {
-      return quoteString("[Circular]");
-    }
-    seen.add(value);
-
-    if (!isPlainObject(value)) {
-      return quoteString(Object.prototype.toString.call(value));
-    }
-
-    const record = value;
-    const entries = Object.keys(record)
-      .sort((left, right) => left.localeCompare(right))
-      .map((key) => {
-        const entryValue = stringifyValue(record[key], seen);
-        return `${quoteString(key)}:${entryValue}`;
-      });
-
-    seen.delete(value);
-    return `{${entries.join(",")}}`;
+  if (value && typeof value === "object") {
+    return stringifyObject(value, seen);
   }
 
   return "null";
