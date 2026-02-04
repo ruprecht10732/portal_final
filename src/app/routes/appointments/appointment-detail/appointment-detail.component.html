@@ -109,10 +109,21 @@
             (valueChange)="editDescription.set($event)"
           />
           
-          <shared-input
+          <shared-autocomplete
             [label]="'appointments.detail.location' | translate"
+            [placeholder]="'appointments.form.locationPlaceholder' | translate"
             [value]="editLocation()"
-            (valueChange)="editLocation.set($event)"
+            (valueChange)="onEditLocationChange($event)"
+            [options]="editLocationOptions()"
+            [filterMode]="'manual'"
+          />
+
+          <shared-input
+            [label]="'appointments.detail.meetingLink' | translate"
+            [placeholder]="'appointments.form.meetingLinkPlaceholder' | translate"
+            [value]="editMeetingLink()"
+            (valueChange)="editMeetingLink.set($event)"
+            type="url"
           />
           
           <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -178,6 +189,24 @@
                   {{ 'appointments.detail.location' | translate }}
                 </dt>
                 <dd class="text-sm">{{ appointment()!.location }}</dd>
+              </div>
+            }
+
+            @if (appointment()!.meetingLink) {
+              <div class="flex gap-3">
+                <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                  {{ 'appointments.detail.meetingLink' | translate }}
+                </dt>
+                <dd class="text-sm">
+                  <a
+                    class="text-blue-600 hover:text-blue-800 underline"
+                    [href]="appointment()!.meetingLink"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    {{ appointment()!.meetingLink }}
+                  </a>
+                </dd>
               </div>
             }
             

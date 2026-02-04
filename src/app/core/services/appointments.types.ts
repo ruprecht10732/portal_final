@@ -19,6 +19,7 @@ export interface AppointmentResponse {
   title: string;
   description?: string;
   location?: string;
+  meetingLink?: string;
   startTime: string;
   endTime: string;
   status: AppointmentStatus;
@@ -35,6 +36,7 @@ export interface CreateAppointmentRequest {
   title: string;
   description?: string;
   location?: string;
+  meetingLink?: string;
   startTime: string;
   endTime: string;
   allDay: boolean;
@@ -45,6 +47,7 @@ export interface UpdateAppointmentRequest {
   title?: string;
   description?: string;
   location?: string;
+  meetingLink?: string;
   startTime?: string;
   endTime?: string;
   allDay?: boolean;

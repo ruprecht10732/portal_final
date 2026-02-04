@@ -1,9 +1,12 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switchMap } from 'rxjs';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
+import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import type { CreateAppointmentRequest, AppointmentType } from '../../../core/services/appointments.types';
 import { LeadsService } from '../../../core/services/leads.service';
 import type { Lead, LeadService } from '../../../core/services/leads.types';
@@ -13,6 +16,7 @@ import { TextareaComponent } from '../../../shared/components/textarea/textarea.
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
+import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 
 @Component({
   selector: 'app-appointment-form',
@@ -26,8 +30,10 @@ export class AppointmentFormComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly appointmentsService = inject(AppointmentsService);
   private readonly leadsService = inject(LeadsService);
+  private readonly addressService = inject(AddressService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -42,6 +48,10 @@ export class AppointmentFormComponent implements OnInit {
   protected readonly title = signal('');
   protected readonly description = signal('');
   protected readonly location = signal('');
+  protected readonly meetingLink = signal('');
+  protected readonly locationOptions = signal<AutocompleteOption[]>([]);
+  private readonly locationSuggestions = signal<AddressSuggestion[]>([]);
+  private readonly hasLocationInput = signal(false);
   protected readonly startTime = signal('');
   protected readonly endTime = signal('');
   protected readonly allDay = signal(false);
@@ -76,6 +86,10 @@ export class AppointmentFormComponent implements OnInit {
     }
     return true;
   });
+
+  constructor() {
+    this.setupLocationSearch();
+  }
 
   ngOnInit(): void {
     // Pre-fill from query params if provided (from calendar slot click)
@@ -160,6 +174,48 @@ export class AppointmentFormComponent implements OnInit {
     });
   }
 
+  protected onLocationChange(value: string): void {
+    this.hasLocationInput.set(true);
+    this.location.set(value);
+
+    const match = this.locationSuggestions().find(suggestion => suggestion.label === value);
+    if (match) {
+      this.location.set(match.label);
+      this.hasLocationInput.set(false);
+      this.locationOptions.set([]);
+      this.locationSuggestions.set([]);
+    }
+  }
+
+  private setupLocationSearch(): void {
+    effect(() => {
+      if (this.location().trim().length < MIN_LENGTH.address) {
+        this.locationOptions.set([]);
+        this.locationSuggestions.set([]);
+      }
+    });
+
+    toObservable(this.location)
+      .pipe(
+        map(value => value.trim()),
+        filter(() => this.hasLocationInput()),
+        filter(value => value.length >= MIN_LENGTH.address),
+        debounceTime(DEBOUNCE_MS.search),
+        distinctUntilChanged(),
+        switchMap(query => this.addressService.search(query).pipe(
+          catchError(() => of([]))
+        )),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(results => {
+        this.locationSuggestions.set(results);
+        this.locationOptions.set(results.map(addr => ({
+          label: addr.label,
+          value: addr.label,
+        })));
+      });
+  }
+
   protected onLeadSelected(value: string): void {
     const lead = this.leadSuggestions().find(l => {
       const label = this.formatLeadLabel(l);
@@ -206,6 +262,7 @@ export class AppointmentFormComponent implements OnInit {
       title: this.title(),
       description: this.description() || undefined,
       location: this.location() || undefined,
+      meetingLink: this.meetingLink().trim() || undefined,
       startTime: new Date(this.startTime()).toISOString(),
       endTime: new Date(this.endTime()).toISOString(),
       allDay: this.allDay(),

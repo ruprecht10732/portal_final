@@ -1,12 +1,13 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
-import { forkJoin, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, debounceTime, distinctUntilChanged, filter, forkJoin, map, of, switchMap } from 'rxjs';
+import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
+import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import type { 
   AppointmentResponse, 
   AppointmentVisitReportResponse, 
@@ -23,20 +24,24 @@ import { SelectComponent, type SelectOption } from '../../../shared/components/s
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { CardComponent } from '../../../shared/components/card/card.component';
+import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
+import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 
 @Component({
   selector: 'app-appointment-detail',
   templateUrl: './appointment-detail.component.html',
   styleUrl: './appointment-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, LucideAngularModule, TranslatePipe, DatePipe],
+  imports: [ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, AutocompleteComponent, LucideAngularModule, TranslatePipe, DatePipe],
 })
 export class AppointmentDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly appointmentsService = inject(AppointmentsService);
+  private readonly addressService = inject(AddressService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly appointment = signal<AppointmentResponse | null>(null);
   protected readonly visitReport = signal<AppointmentVisitReportResponse | null>(null);
@@ -52,6 +57,10 @@ export class AppointmentDetailComponent implements OnInit {
   protected readonly editTitle = signal('');
   protected readonly editDescription = signal('');
   protected readonly editLocation = signal('');
+  protected readonly editMeetingLink = signal('');
+  protected readonly editLocationOptions = signal<AutocompleteOption[]>([]);
+  private readonly editLocationSuggestions = signal<AddressSuggestion[]>([]);
+  private readonly hasEditLocationInput = signal(false);
   protected readonly editStartTime = signal('');
   protected readonly editEndTime = signal('');
   protected readonly editAllDay = signal(false);
@@ -75,6 +84,10 @@ export class AppointmentDetailComponent implements OnInit {
   protected readonly canSaveEdit = computed(() => {
     return this.editTitle().trim() !== '' && this.editStartTime() !== '' && this.editEndTime() !== '';
   });
+
+  constructor() {
+    this.setupEditLocationSearch();
+  }
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -118,9 +131,13 @@ export class AppointmentDetailComponent implements OnInit {
     this.editTitle.set(apt.title);
     this.editDescription.set(apt.description ?? '');
     this.editLocation.set(apt.location ?? '');
+    this.editMeetingLink.set(apt.meetingLink ?? '');
     this.editStartTime.set(this.formatDateTimeLocal(startDate));
     this.editEndTime.set(this.formatDateTimeLocal(endDate));
     this.editAllDay.set(apt.allDay);
+    this.hasEditLocationInput.set(false);
+    this.editLocationOptions.set([]);
+    this.editLocationSuggestions.set([]);
   }
 
   private populateReportForm(report: AppointmentVisitReportResponse): void {
@@ -163,6 +180,7 @@ export class AppointmentDetailComponent implements OnInit {
       title: this.editTitle(),
       description: this.editDescription() || undefined,
       location: this.editLocation() || undefined,
+      meetingLink: this.editMeetingLink().trim() || undefined,
       startTime: new Date(this.editStartTime()).toISOString(),
       endTime: new Date(this.editEndTime()).toISOString(),
       allDay: this.editAllDay(),
@@ -181,6 +199,48 @@ export class AppointmentDetailComponent implements OnInit {
         this.saving.set(false);
       },
     });
+  }
+
+  protected onEditLocationChange(value: string): void {
+    this.hasEditLocationInput.set(true);
+    this.editLocation.set(value);
+
+    const match = this.editLocationSuggestions().find(suggestion => suggestion.label === value);
+    if (match) {
+      this.editLocation.set(match.label);
+      this.hasEditLocationInput.set(false);
+      this.editLocationOptions.set([]);
+      this.editLocationSuggestions.set([]);
+    }
+  }
+
+  private setupEditLocationSearch(): void {
+    effect(() => {
+      if (this.editLocation().trim().length < MIN_LENGTH.address) {
+        this.editLocationOptions.set([]);
+        this.editLocationSuggestions.set([]);
+      }
+    });
+
+    toObservable(this.editLocation)
+      .pipe(
+        map(value => value.trim()),
+        filter(() => this.hasEditLocationInput()),
+        filter(value => value.length >= MIN_LENGTH.address),
+        debounceTime(DEBOUNCE_MS.search),
+        distinctUntilChanged(),
+        switchMap(query => this.addressService.search(query).pipe(
+          catchError(() => of([]))
+        )),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(results => {
+        this.editLocationSuggestions.set(results);
+        this.editLocationOptions.set(results.map(addr => ({
+          label: addr.label,
+          value: addr.label,
+        })));
+      });
   }
 
   protected saveVisitReport(): void {

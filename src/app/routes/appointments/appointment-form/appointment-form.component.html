@@ -116,11 +116,21 @@
             (valueChange)="description.set($event)"
           />
 
-          <shared-input
+          <shared-autocomplete
             [label]="'appointments.form.location' | translate"
             [placeholder]="'appointments.form.locationPlaceholder' | translate"
             [value]="location()"
-            (valueChange)="location.set($event)"
+            (valueChange)="onLocationChange($event)"
+            [options]="locationOptions()"
+            [filterMode]="'manual'"
+          />
+
+          <shared-input
+            [label]="'appointments.form.meetingLink' | translate"
+            [placeholder]="'appointments.form.meetingLinkPlaceholder' | translate"
+            [value]="meetingLink()"
+            (valueChange)="meetingLink.set($event)"
+            type="url"
           />
         </div>
       </section>
