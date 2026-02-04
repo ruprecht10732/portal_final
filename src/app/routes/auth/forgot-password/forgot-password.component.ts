@@ -7,7 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
 import { getErrorMessage } from '../../../core/utils/error-utils';
-import { isEmailValid } from '../../../core/utils/email.util';
+import { getEmailError } from '../../../core/utils/auth-form.utils';
 
 @Component({
   selector: 'auth-forgot-password',
@@ -26,12 +26,7 @@ export class ForgotPasswordComponent {
   private readonly authService = inject(AuthService);
   private readonly reporter = inject(ErrorReportingService);
 
-  protected readonly emailError = computed(() => {
-    const value = this.email();
-    if (!value) return '';
-    const isValid = isEmailValid(value);
-    return isValid ? '' : 'Email format is invalid';
-  });
+  protected readonly emailError = computed(() => getEmailError(this.email()));
 
   protected readonly canSubmit = computed(() =>
     !this.isSubmitting() && !!this.email() && !this.emailError()

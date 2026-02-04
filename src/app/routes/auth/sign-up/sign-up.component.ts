@@ -9,12 +9,13 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { MIN_LENGTH } from '../../../core/config';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
 import { getErrorMessage } from '../../../core/utils/error-utils';
-import { isEmailValid } from '../../../core/utils/email.util';
-
-interface PasswordRule {
-  label: string;
-  met: boolean;
-}
+import {
+  buildPasswordRules,
+  getEmailError,
+  getPasswordChecks,
+  getPasswordMinLengthError,
+  type PasswordRule,
+} from '../../../core/utils/auth-form.utils';
 
 @Component({
   selector: 'auth-sign-up',
@@ -39,33 +40,23 @@ export class SignUpComponent implements OnInit {
   private readonly authService = inject(AuthService);
   private readonly reporter = inject(ErrorReportingService);
 
-  protected readonly emailError = computed(() => {
-    const value = this.email();
-    if (!value) return '';
-    const isValid = isEmailValid(value);
-    return isValid ? '' : 'Email format is invalid';
-  });
+  protected readonly emailError = computed(() => getEmailError(this.email()));
 
-  protected readonly hasMinLength = computed(() => this.password().length >= MIN_LENGTH.password);
-  protected readonly hasNumber = computed(() => /\d/.test(this.password()));
-  protected readonly hasUppercase = computed(() => /[A-Z]/.test(this.password()));
-  protected readonly hasSpecial = computed(() => /[^A-Za-z0-9]/.test(this.password()));
+  protected readonly passwordChecks = computed(() => getPasswordChecks(this.password(), MIN_LENGTH.password));
 
-  protected readonly passwordRules = computed<PasswordRule[]>(() => [
-    { label: `At least ${MIN_LENGTH.password} characters`, met: this.hasMinLength() },
-    { label: 'Contains a number', met: this.hasNumber() },
-    { label: 'Contains an uppercase letter', met: this.hasUppercase() },
-    { label: 'Contains a special character', met: this.hasSpecial() },
-  ]);
+  protected readonly passwordRules = computed<PasswordRule[]>(() =>
+    buildPasswordRules(this.passwordChecks(), MIN_LENGTH.password)
+  );
 
-  protected readonly passwordError = computed(() => {
-    const value = this.password();
-    if (!value) return '';
-    return this.hasMinLength() ? '' : `Password must be at least ${MIN_LENGTH.password} characters`;
-  });
+  protected readonly passwordError = computed(() => getPasswordMinLengthError(this.password(), MIN_LENGTH.password));
 
   protected readonly canSubmit = computed(() =>
-    !this.isSubmitting() && !this.isLoadingInvite() && !!this.email() && !!this.password() && !this.emailError() && this.hasMinLength()
+    !this.isSubmitting() &&
+    !this.isLoadingInvite() &&
+    !!this.email() &&
+    !!this.password() &&
+    !this.emailError() &&
+    this.passwordChecks().hasMinLength
   );
 
   constructor() {

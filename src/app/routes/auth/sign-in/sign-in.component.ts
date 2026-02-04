@@ -11,7 +11,7 @@ import { OrganizationService } from '../../../core/services/organization.service
 import { UserService } from '../../../core/services/user.service';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
 import { getErrorMessage } from '../../../core/utils/error-utils';
-import { isEmailValid } from '../../../core/utils/email.util';
+import { getEmailError, getPasswordMinLengthError } from '../../../core/utils/auth-form.utils';
 
 @Component({
   selector: 'auth-sign-in',
@@ -33,18 +33,9 @@ export class SignInComponent {
   private readonly router = inject(Router);
   private readonly reporter = inject(ErrorReportingService);
 
-  protected readonly emailError = computed(() => {
-    const value = this.email();
-    if (!value) return '';
-    const isValid = isEmailValid(value);
-    return isValid ? '' : 'Email format is invalid';
-  });
+  protected readonly emailError = computed(() => getEmailError(this.email()));
 
-  protected readonly passwordError = computed(() => {
-    const value = this.password();
-    if (!value) return '';
-    return value.length >= MIN_LENGTH.password ? '' : `Password must be at least ${MIN_LENGTH.password} characters`;
-  });
+  protected readonly passwordError = computed(() => getPasswordMinLengthError(this.password(), MIN_LENGTH.password));
 
   protected readonly canSubmit = computed(() =>
     !this.isSubmitting() && !!this.email() && !!this.password() && !this.emailError() && !this.passwordError()
