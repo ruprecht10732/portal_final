@@ -45,36 +45,24 @@
 
     <div class="basics-right">
       <div class="details-list">
-        <div class="details-row">
-          <span class="details-label">{{ 'catalog.products.fields.title' | translate }}</span>
-          <span class="details-meta">{{ product().title }}</span>
-        </div>
-        <div class="details-row">
-          <span class="details-label">{{ 'catalog.products.fields.reference' | translate }}</span>
-          <span class="details-meta">{{ product().reference }}</span>
-        </div>
-        <div class="details-row">
-          <span class="details-label">{{ 'catalog.products.fields.vatRate' | translate }}</span>
-          <span class="details-meta">{{ formattedVatRate() }}</span>
-        </div>
-        <div class="details-row">
-          <span class="details-label">{{ 'catalog.products.fields.price' | translate }}</span>
-          <span class="details-value">{{ formattedPrice() }}</span>
-        </div>
-        <div class="details-row">
-          <span class="details-label">{{ 'catalog.products.fields.type' | translate }}</span>
-          <shared-chip [variant]="typeVariant()">
-            {{ typeLabel() }}
-          </shared-chip>
-        </div>
-        <div class="details-row">
-          <span class="details-label">{{ 'catalog.products.fields.createdAt' | translate }}</span>
-          <span class="details-meta">{{ createdAt() | date:'medium' }}</span>
-        </div>
-        <div class="details-row">
-          <span class="details-label">{{ 'catalog.products.fields.updatedAt' | translate }}</span>
-          <span class="details-meta">{{ updatedAt() | date:'medium' }}</span>
-        </div>
+        @for (row of detailsRows(); track row.labelKey) {
+          <div class="details-row">
+            <span class="details-label">{{ row.labelKey | translate }}</span>
+            @switch (row.valueType) {
+              @case ('chip') {
+                <shared-chip [variant]="row.variant || 'default'">
+                  {{ row.value }}
+                </shared-chip>
+              }
+              @case ('price') {
+                <span class="details-value">{{ row.value }}</span>
+              }
+              @default {
+                <span class="details-meta">{{ row.value }}</span>
+              }
+            }
+          </div>
+        }
       </div>
     </div>
   </div>
