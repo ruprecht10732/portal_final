@@ -1,11 +1,10 @@
 @if (isOpen()) {
-  <div
+  <button
     class="file-preview-backdrop"
+    type="button"
     (click)="onBackdropClick()"
-    (keydown.enter)="onBackdropClick()"
-    (keydown.space)="onBackdropClick()"
-    aria-hidden="true"
-  ></div>
+    aria-label="Close preview"
+  ></button>
 }
 
 <dialog
@@ -15,6 +14,7 @@
   [attr.aria-labelledby]="titleId()"
   [attr.aria-describedby]="descriptionId()"
   (keydown.escape)="onCloseClick()"
+  tabindex="-1"
 >
   <div class="file-preview-header">
     <h2 class="file-preview-title" [id]="titleId()">
