@@ -19,6 +19,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { GridColumn, RowState, CellEditEvent } from './data-grid.types';
+import { stableStringify } from './stable-stringify';
 import { BottomSheetComponent } from '../bottom-sheet';
 import { InputComponent } from '../input/input.component';
 import { SelectComponent } from '../select/select.component';
@@ -371,7 +372,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     
     if (typeof value === 'object') {
       try {
-        return JSON.stringify(value);
+        return stableStringify(value);
       } catch {
         this.lang();
         return this.translate.instant('dataGrid.emptyValue');
@@ -422,7 +423,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     
     if (typeof value === 'object') {
       try {
-        return JSON.stringify(value);
+        return stableStringify(value);
       } catch {
         return '';
       }

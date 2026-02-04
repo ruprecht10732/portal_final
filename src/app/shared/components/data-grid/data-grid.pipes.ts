@@ -5,6 +5,7 @@
 
 import { Pipe, PipeTransform } from '@angular/core';
 import { GridColumn } from './data-grid.types';
+import { stableStringify } from './stable-stringify';
 
 /**
  * Get column label by ID
@@ -39,7 +40,7 @@ export class OptionLabelPipe implements PipeTransform {
     if (value === null || value === undefined) return '';
     if (typeof value === 'string') return value;
     if (typeof value === 'number' || typeof value === 'boolean') return String(value);
-    return JSON.stringify(value);
+    return stableStringify(value);
   }
 }
 
