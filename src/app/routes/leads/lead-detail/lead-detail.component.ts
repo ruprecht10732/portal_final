@@ -31,6 +31,7 @@ import { LeadServicesCardComponent } from '../../../shared/components/lead-servi
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { type SelectOption } from '../../../shared/components/select/select.component';
 import type { ChipVariant } from '../../../shared/components/chip/chip.component';
+import { FileUploaderComponent, type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 import { LeadEnergyLabelCardComponent } from './lead-energy-label-card.component';
 import { LeadEnrichmentCardComponent } from './lead-enrichment-card.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
@@ -43,7 +44,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, FileUploaderComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -101,11 +102,9 @@ export class LeadDetailComponent implements OnInit {
   // Service attachments (per lead service)
   protected readonly serviceAttachments = signal<LeadServiceAttachment[]>([]);
   protected readonly serviceAttachmentsLoading = signal(false);
-  protected readonly serviceAttachmentSaving = signal(false);
   protected readonly serviceAttachmentDeleting = signal<string | null>(null);
   protected readonly serviceAttachmentError = signal<string | null>(null);
-  protected readonly serviceAttachmentFile = signal<File | null>(null);
-  protected readonly serviceAttachmentUploadProgress = signal<number | null>(null);
+  protected readonly serviceAttachmentUploading = signal(false);
 
   protected readonly noteText = signal('');
   protected readonly noteType = signal<LeadNoteType>('note');
@@ -1194,103 +1193,43 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
-  protected onServiceAttachmentFileChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0] ?? null;
-    this.serviceAttachmentFile.set(file);
-    this.serviceAttachmentError.set(null);
-  }
-
-  protected async uploadServiceAttachment(): Promise<void> {
-    const file = this.serviceAttachmentFile();
-    const lead = this.lead();
-    const service = this.selectedService();
-    if (!file || !lead || !service) return;
-
-    // Validate file size (100MB max)
-    const maxSize = 100 * 1024 * 1024;
-    if (file.size > maxSize) {
-      this.serviceAttachmentError.set(`File size exceeds maximum allowed (${Math.round(maxSize / 1024 / 1024)}MB)`);
+  protected handleServiceAttachmentError(event: FileUploadError | null): void {
+    if (!event) {
+      this.serviceAttachmentError.set(null);
       return;
     }
+    this.serviceAttachmentError.set(event.message);
+    this.reporter.report(event.error, { source: 'http', silent: true, userMessage: event.message });
+  }
 
-    this.serviceAttachmentSaving.set(true);
+  protected handleServiceAttachmentUploaded(attachment: LeadServiceAttachment): void {
     this.serviceAttachmentError.set(null);
-    this.serviceAttachmentUploadProgress.set(0);
-
-    try {
-      // Step 1: Get presigned upload URL
-      const presignedResponse = await firstValueFrom(this.leadsService.getPresignedUploadUrl(lead.id, service.id, {
-        fileName: file.name,
-        contentType: file.type,
-        sizeBytes: file.size,
-      }));
-
-      if (!presignedResponse) {
-        throw new Error('Failed to get upload URL');
-      }
-
-      // Step 2: Upload file directly to MinIO
-      await this.uploadFileToMinIO(presignedResponse.uploadUrl, file);
-
-      // Step 3: Create attachment metadata in database
-      const attachment = await firstValueFrom(this.leadsService.createAttachment(lead.id, service.id, {
-        fileKey: presignedResponse.fileKey,
-        fileName: file.name,
-        contentType: file.type,
-        sizeBytes: file.size,
-      }));
-
-      if (attachment) {
-        this.serviceAttachments.update(items => [attachment, ...items]);
-      }
-
-      // Reset form
-      this.serviceAttachmentFile.set(null);
-      this.serviceAttachmentUploadProgress.set(null);
-      this.announce('File uploaded successfully');
-
-      // Reset file input
-      const fileInput = document.getElementById('service-attachment-input') as HTMLInputElement;
-      if (fileInput) fileInput.value = '';
-
-    } catch (err) {
-      const message = this.getErrorMessage(err, 'Failed to upload file');
-      this.serviceAttachmentError.set(message);
-      this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-    } finally {
-      this.serviceAttachmentSaving.set(false);
-      this.serviceAttachmentUploadProgress.set(null);
-    }
+    this.serviceAttachments.update(items => [attachment, ...items]);
+    this.announce(this.translate.instant('leads.detail.files.uploaded'));
   }
 
-  private uploadFileToMinIO(url: string, file: File): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
+  protected readonly presignServiceAttachment = async (file: File): Promise<PresignedUpload> => {
+    const lead = this.lead();
+    const service = this.selectedService();
+    if (!lead || !service) throw new Error('Missing lead or service');
+    return firstValueFrom(this.leadsService.getPresignedUploadUrl(lead.id, service.id, {
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+    }));
+  };
 
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          this.serviceAttachmentUploadProgress.set(progress);
-        }
-      });
-
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve();
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
-        }
-      });
-
-      xhr.addEventListener('error', () => reject(new Error('Upload failed')));
-      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
-
-      xhr.open('PUT', url);
-      xhr.setRequestHeader('Content-Type', file.type);
-      xhr.send(file);
-    });
-  }
+  protected readonly finalizeServiceAttachment = async (file: File, presigned: PresignedUpload): Promise<LeadServiceAttachment> => {
+    const lead = this.lead();
+    const service = this.selectedService();
+    if (!lead || !service) throw new Error('Missing lead or service');
+    return firstValueFrom(this.leadsService.createAttachment(lead.id, service.id, {
+      fileKey: presigned.fileKey,
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+    }));
+  };
 
   protected deleteServiceAttachment(attachmentId: string): void {
     const lead = this.lead();
@@ -1347,8 +1286,8 @@ export class LeadDetailComponent implements OnInit {
     return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
   }
 
-  protected canUploadServiceAttachment(): boolean {
-    return !!this.serviceAttachmentFile() && !!this.selectedService() && !this.serviceAttachmentSaving();
+  protected maxServiceAttachmentSizeBytes(): number {
+    return 100 * 1024 * 1024;
   }
 }
 

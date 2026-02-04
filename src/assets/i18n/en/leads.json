@@ -96,6 +96,8 @@
         "selectFile": "Choose a file",
         "uploading": "Uploading...",
         "uploadButton": "Upload",
+        "uploadError": "Failed to upload file",
+        "uploaded": "File uploaded successfully",
         "attachments": "Uploaded Files",
         "loading": "Loading files...",
         "noFiles": "No files uploaded yet."
@@ -284,6 +286,8 @@
       }
     },
     "list": {
+      "title": "Leads",
+      "subtitle": "Manage all leads",
       "ariaLabel": "Leads data grid",
       "newLead": "New Lead",
       "deleteTitle": "Delete leads",

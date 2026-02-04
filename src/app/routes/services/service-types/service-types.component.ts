@@ -11,6 +11,7 @@ import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../..
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { normalizeIconName } from '../../../core/services/icon-utils';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
 export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
@@ -24,6 +25,7 @@ export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
     DataGridComponent,
     ConfirmDialogComponent,
     FabButtonComponent,
+    PageLayoutComponent,
     TranslatePipe,
   ],
 })

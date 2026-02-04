@@ -16,6 +16,8 @@
       "noShow": "No Show"
     },
     "list": {
+      "title": "Appointments",
+      "subtitle": "Manage appointments",
       "ariaLabel": "Appointments data grid",
       "deleteTitle": "Delete appointments",
       "deleteMessage": "Delete {{count}} appointment(s)? This cannot be undone.",

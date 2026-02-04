@@ -94,6 +94,8 @@
         "selectFile": "Kies een bestand",
         "uploading": "Uploaden...",
         "uploadButton": "Uploaden",
+        "uploadError": "Bestand uploaden mislukt",
+        "uploaded": "Bestand succesvol geupload",
         "attachments": "Geüploade bestanden",
         "loading": "Bestanden laden...",
         "noFiles": "Nog geen bestanden geüpload."
@@ -289,6 +291,8 @@
       "deleteConfirm": "Verwijderen",
       "deleteCancel": "Annuleren",
       "unassigned": "Niet toegewezen",
+        "title": "Leads",
+        "subtitle": "Beheer alle leads",
       "columns": {
         "name": "Naam",
         "firstName": "Voornaam",

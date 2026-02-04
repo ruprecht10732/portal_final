@@ -9,11 +9,12 @@ import { InputComponent } from '../../../shared/components/input/input.component
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { ChipComponent, type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
 @Component({
   selector: 'app-catalog-list',
-  imports: [TranslateModule, FormsModule, ButtonComponent, InputComponent, SelectComponent, ChipComponent, ConfirmDialogComponent],
+  imports: [TranslateModule, FormsModule, ButtonComponent, InputComponent, SelectComponent, ChipComponent, ConfirmDialogComponent, PageLayoutComponent],
   templateUrl: './catalog-list.component.html',
   styleUrl: './catalog-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

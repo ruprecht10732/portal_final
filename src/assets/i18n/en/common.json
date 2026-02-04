@@ -12,7 +12,13 @@
     "success": "Success",
     "confirm": "Confirm",
     "yes": "Yes",
-    "no": "No"
+    "no": "No",
+    "upload": {
+      "dropHint": "Drop a file here or click to browse",
+      "maxSize": "Max size: {{size}}",
+      "sizeError": "File size exceeds maximum allowed",
+      "clear": "Clear"
+    }
   },
   "dashboard": {
     "kpis": {

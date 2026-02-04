@@ -22,6 +22,8 @@
       "deleteConfirm": "Verwijderen",
       "deleteCancel": "Annuleren",
       "newAppointment": "Nieuwe Afspraak",
+       "title": "Afspraken",
+       "subtitle": "Beheer afspraken",
       "columns": {
         "title": "Titel",
         "type": "Type",

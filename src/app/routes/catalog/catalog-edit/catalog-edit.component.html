@@ -325,80 +325,38 @@
         <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
           <div class="rounded-xl border border-zinc-200 p-4">
             <h3 class="text-sm font-semibold mb-3">{{ 'catalog.products.assets.images' | translate }}</h3>
-            <div class="flex flex-col gap-3">
-              <label class="flex flex-col gap-2 text-sm font-medium">
-                {{ 'catalog.products.assets.selectImage' | translate }}
-                <input
-                  id="catalog-image-upload"
-                  type="file"
-                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-sm file:font-medium hover:file:bg-zinc-200"
-                  accept="image/*"
-                  (change)="onImageFileChange($event)"
-                />
-              </label>
-              @if (imageFile(); as file) {
-                <div class="text-xs text-zinc-500">
-                  {{ file.name }} ({{ formatFileSize(file.size) }})
-                </div>
-              }
-              @if (assetUploadProgress() !== null && imageFile()) {
-                <div class="w-full bg-zinc-200 rounded-full h-2">
-                  <div class="bg-black h-2 rounded-full transition-all" [style.width.%]="assetUploadProgress()"></div>
-                </div>
-                <div class="text-xs text-zinc-500 text-center">{{ assetUploadProgress() }}%</div>
-              }
-              <div class="flex justify-end">
-                <shared-button
-                  variant="primary"
-                  size="compact"
-                  [uppercase]="false"
-                  [fullWidth]="false"
-                  [disabled]="!imageFile() || assetUploading()"
-                  (clicked)="uploadAsset('image')"
-                >
-                  {{ assetUploading() ? ('catalog.products.assets.uploading' | translate) : ('catalog.products.assets.uploadImage' | translate) }}
-                </shared-button>
-              </div>
-            </div>
+            <app-file-uploader
+              [label]="'catalog.products.assets.selectImage' | translate"
+              [dropLabel]="'common.upload.dropHint' | translate"
+              [accept]="'image/*'"
+              [buttonLabel]="'catalog.products.assets.uploadImage' | translate"
+              [uploadingLabel]="'catalog.products.assets.uploading' | translate"
+              [errorFallback]="'catalog.products.errors.uploadAsset' | translate"
+              [disabled]="assetUploading()"
+              [presign]="presignImageAsset"
+              [finalize]="finalizeImageAsset"
+              (uploaded)="handleAssetUploaded($any($event))"
+              (uploadError)="handleAssetError($event)"
+              (uploadingChange)="imageUploading.set($event)"
+            />
           </div>
 
           <div class="rounded-xl border border-zinc-200 p-4">
             <h3 class="text-sm font-semibold mb-3">{{ 'catalog.products.assets.documents' | translate }}</h3>
-            <div class="flex flex-col gap-3">
-              <label class="flex flex-col gap-2 text-sm font-medium">
-                {{ 'catalog.products.assets.selectDocument' | translate }}
-                <input
-                  id="catalog-document-upload"
-                  type="file"
-                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-sm file:font-medium hover:file:bg-zinc-200"
-                  accept="application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt"
-                  (change)="onDocumentFileChange($event)"
-                />
-              </label>
-              @if (documentFile(); as file) {
-                <div class="text-xs text-zinc-500">
-                  {{ file.name }} ({{ formatFileSize(file.size) }})
-                </div>
-              }
-              @if (assetUploadProgress() !== null && documentFile()) {
-                <div class="w-full bg-zinc-200 rounded-full h-2">
-                  <div class="bg-black h-2 rounded-full transition-all" [style.width.%]="assetUploadProgress()"></div>
-                </div>
-                <div class="text-xs text-zinc-500 text-center">{{ assetUploadProgress() }}%</div>
-              }
-              <div class="flex justify-end">
-                <shared-button
-                  variant="primary"
-                  size="compact"
-                  [uppercase]="false"
-                  [fullWidth]="false"
-                  [disabled]="!documentFile() || assetUploading()"
-                  (clicked)="uploadAsset('document')"
-                >
-                  {{ assetUploading() ? ('catalog.products.assets.uploading' | translate) : ('catalog.products.assets.uploadDocument' | translate) }}
-                </shared-button>
-              </div>
-            </div>
+            <app-file-uploader
+              [label]="'catalog.products.assets.selectDocument' | translate"
+              [dropLabel]="'common.upload.dropHint' | translate"
+              [accept]="'application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt'"
+              [buttonLabel]="'catalog.products.assets.uploadDocument' | translate"
+              [uploadingLabel]="'catalog.products.assets.uploading' | translate"
+              [errorFallback]="'catalog.products.errors.uploadAsset' | translate"
+              [disabled]="assetUploading()"
+              [presign]="presignDocumentAsset"
+              [finalize]="finalizeDocumentAsset"
+              (uploaded)="handleAssetUploaded($any($event))"
+              (uploadError)="handleAssetError($event)"
+              (uploadingChange)="documentUploading.set($event)"
+            />
           </div>
         </div>
 

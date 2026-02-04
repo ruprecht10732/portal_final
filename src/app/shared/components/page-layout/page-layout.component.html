@@ -1,0 +1,23 @@
+<div class="flex flex-col gap-4 h-full">
+  <header class="flex items-center justify-between p-4 sm:px-6 border-b border-zinc-200">
+    <div>
+      <h1 class="text-xl font-bold uppercase tracking-tight">{{ title() }}</h1>
+      <p class="text-sm text-zinc-500">{{ subtitle() }}</p>
+    </div>
+    <div class="flex gap-2">
+      <ng-content select="[actions]"></ng-content>
+    </div>
+  </header>
+
+  @if (error()) {
+    <div class="px-4 sm:px-6">
+      <div role="alert" aria-live="assertive" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+        {{ error() }}
+      </div>
+    </div>
+  }
+
+  <div class="flex-1 overflow-hidden flex flex-col px-4 sm:px-6 pb-4">
+    <ng-content></ng-content>
+  </div>
+</div>

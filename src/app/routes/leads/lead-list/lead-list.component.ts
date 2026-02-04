@@ -14,6 +14,7 @@ import { STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/le
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import type { GridColumn, GridConfig, DataRequest, DataResponse } from '../../../shared/components/data-grid/data-grid.types';
 import { DEFAULT_PHONE_REGION, MIN_LENGTH, DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 import type { LeadsListResolved } from '../leads-list.resolver';
@@ -26,7 +27,7 @@ type LeadRow = Lead & Record<string, unknown>;
   templateUrl: './lead-list.component.html',
   styleUrl: './lead-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FabButtonComponent, DataGridComponent, ConfirmDialogComponent, TranslatePipe],
+  imports: [FabButtonComponent, DataGridComponent, ConfirmDialogComponent, PageLayoutComponent, TranslatePipe],
 })
 export class LeadListComponent implements OnInit {
   private readonly leadsService = inject(LeadsService);

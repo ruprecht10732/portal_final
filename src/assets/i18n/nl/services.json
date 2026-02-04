@@ -20,6 +20,8 @@
       "reset": "Resetten"
     },
     "list": {
+      "title": "Servicetypes",
+      "subtitle": "Beheer servicetypes",
       "ariaLabel": "Diensttypen tabel",
       "deleteTitle": "Diensttypen verwijderen",
       "deleteMessage": "Wil je {{count}} diensttype(n) verwijderen? Dit kan niet ongedaan worden gemaakt.",

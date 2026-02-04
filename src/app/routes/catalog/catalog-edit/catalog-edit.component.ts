@@ -22,6 +22,7 @@ import { NumberInputComponent } from '../../../shared/components/number-input/nu
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { FileUploaderComponent, type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 
 @Component({
   selector: 'app-catalog-edit',
@@ -35,6 +36,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
     SelectComponent,
     TextareaComponent,
     ConfirmDialogComponent,
+    FileUploaderComponent,
   ],
   templateUrl: './catalog-edit.component.html',
   styleUrl: './catalog-edit.component.css',
@@ -61,11 +63,13 @@ export class CatalogEditComponent implements OnInit {
   protected readonly assets = signal<CatalogAsset[]>([]);
   protected readonly assetsLoading = signal(false);
   protected readonly assetsError = signal<string | null>(null);
-  protected readonly assetUploading = signal(false);
-  protected readonly assetUploadProgress = signal<number | null>(null);
+  protected readonly imageUploading = signal(false);
+  protected readonly documentUploading = signal(false);
+  protected readonly termsUploading = signal(false);
+  protected readonly assetUploading = computed(() =>
+    this.imageUploading() || this.documentUploading() || this.termsUploading()
+  );
   protected readonly assetDeletingId = signal<string | null>(null);
-  protected readonly imageFile = signal<File | null>(null);
-  protected readonly documentFile = signal<File | null>(null);
   protected readonly termsUrl = signal('');
   protected readonly termsLabel = signal('');
 
@@ -303,62 +307,65 @@ export class CatalogEditComponent implements OnInit {
     }
   }
 
-  protected onImageFileChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.imageFile.set(input.files?.[0] ?? null);
+  protected handleAssetUploaded(asset: CatalogAsset): void {
     this.assetsError.set(null);
+    this.assets.update(items => [asset, ...items]);
   }
 
-  protected onDocumentFileChange(event: Event): void {
-    const input = event.target as HTMLInputElement;
-    this.documentFile.set(input.files?.[0] ?? null);
-    this.assetsError.set(null);
-  }
-
-  protected async uploadAsset(type: 'image' | 'document'): Promise<void> {
-    const product = this.product();
-    if (!product || this.assetUploading()) return;
-
-    const file = type === 'image' ? this.imageFile() : this.documentFile();
-    if (!file) return;
-
-    this.assetUploading.set(true);
-    this.assetsError.set(null);
-    this.assetUploadProgress.set(0);
-
-    try {
-      const presigned = await firstValueFrom(this.catalogService.getCatalogAssetPresign(product.id, {
-        fileName: file.name,
-        contentType: file.type,
-        sizeBytes: file.size,
-        assetType: type,
-      }));
-
-      await this.uploadFileToMinIO(presigned.uploadUrl, file);
-
-      const created = await firstValueFrom(this.catalogService.createCatalogAsset(product.id, {
-        assetType: type,
-        fileKey: presigned.fileKey,
-        fileName: file.name,
-        contentType: file.type,
-        sizeBytes: file.size,
-      }));
-
-      this.assets.update(items => [created, ...items]);
-      if (type === 'image') {
-        this.imageFile.set(null);
-      } else {
-        this.documentFile.set(null);
-      }
-    } catch (err) {
-      const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.uploadAsset'));
-      this.assetsError.set(message);
-      this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-    } finally {
-      this.assetUploading.set(false);
-      this.assetUploadProgress.set(null);
+  protected handleAssetError(event: FileUploadError | null): void {
+    if (!event) {
+      this.assetsError.set(null);
+      return;
     }
+    this.assetsError.set(event.message);
+    this.reporter.report(event.error, { source: 'http', silent: true, userMessage: event.message });
   }
+
+  protected readonly presignImageAsset = async (file: File): Promise<PresignedUpload> => {
+    const product = this.product();
+    if (!product) throw new Error('Missing product');
+    return firstValueFrom(this.catalogService.getCatalogAssetPresign(product.id, {
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+      assetType: 'image',
+    }));
+  };
+
+  protected readonly presignDocumentAsset = async (file: File): Promise<PresignedUpload> => {
+    const product = this.product();
+    if (!product) throw new Error('Missing product');
+    return firstValueFrom(this.catalogService.getCatalogAssetPresign(product.id, {
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+      assetType: 'document',
+    }));
+  };
+
+  protected readonly finalizeImageAsset = async (file: File, presigned: PresignedUpload): Promise<CatalogAsset> => {
+    const product = this.product();
+    if (!product) throw new Error('Missing product');
+    return firstValueFrom(this.catalogService.createCatalogAsset(product.id, {
+      assetType: 'image',
+      fileKey: presigned.fileKey,
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+    }));
+  };
+
+  protected readonly finalizeDocumentAsset = async (file: File, presigned: PresignedUpload): Promise<CatalogAsset> => {
+    const product = this.product();
+    if (!product) throw new Error('Missing product');
+    return firstValueFrom(this.catalogService.createCatalogAsset(product.id, {
+      assetType: 'document',
+      fileKey: presigned.fileKey,
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+    }));
+  };
 
   protected createTermsUrl(): void {
     const product = this.product();
@@ -368,7 +375,7 @@ export class CatalogEditComponent implements OnInit {
     if (!url) return;
 
     const label = this.termsLabel().trim();
-    this.assetUploading.set(true);
+    this.termsUploading.set(true);
     this.assetsError.set(null);
 
     this.catalogService.createCatalogURLAsset(product.id, {
@@ -380,13 +387,13 @@ export class CatalogEditComponent implements OnInit {
         this.assets.update(items => [created, ...items]);
         this.termsUrl.set('');
         this.termsLabel.set('');
-        this.assetUploading.set(false);
+        this.termsUploading.set(false);
       },
       error: (err) => {
         const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.createTerms'));
         this.assetsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.assetUploading.set(false);
+        this.termsUploading.set(false);
       },
     });
   }
@@ -447,34 +454,6 @@ export class CatalogEditComponent implements OnInit {
 
   protected getAssetTypeLabel(type: CatalogAssetType): string {
     return this.translate.instant(`catalog.products.assets.types.${type}`);
-  }
-
-  private uploadFileToMinIO(url: string, file: File): Promise<void> {
-    return new Promise((resolve, reject) => {
-      const xhr = new XMLHttpRequest();
-
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          this.assetUploadProgress.set(progress);
-        }
-      });
-
-      xhr.addEventListener('load', () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          resolve();
-        } else {
-          reject(new Error(`Upload failed with status ${xhr.status}`));
-        }
-      });
-
-      xhr.addEventListener('error', () => reject(new Error('Upload failed')));
-      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
-
-      xhr.open('PUT', url);
-      xhr.setRequestHeader('Content-Type', file.type);
-      xhr.send(file);
-    });
   }
 
   // Materials management methods

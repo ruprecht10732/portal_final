@@ -9,6 +9,7 @@ import type { AppointmentResponse, AppointmentStatus, AppointmentType, ListAppoi
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import type { GridColumn, GridConfig, DataRequest, DataResponse } from '../../../shared/components/data-grid/data-grid.types';
 import { DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 
@@ -19,7 +20,7 @@ type AppointmentRow = AppointmentResponse & Record<string, unknown>;
   templateUrl: './appointments-list.component.html',
   styleUrl: './appointments-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FabButtonComponent, DataGridComponent, ConfirmDialogComponent, TranslatePipe],
+  imports: [FabButtonComponent, DataGridComponent, ConfirmDialogComponent, PageLayoutComponent, TranslatePipe],
 })
 export class AppointmentsListComponent implements OnInit {
   private readonly appointmentsService = inject(AppointmentsService);

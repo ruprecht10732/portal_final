@@ -20,6 +20,8 @@
       "reset": "Reset"
     },
     "list": {
+      "title": "Service Types",
+      "subtitle": "Manage service types",
       "ariaLabel": "Service types data grid",
       "deleteTitle": "Delete service types",
       "deleteMessage": "Delete {{count}} service type(s)? This cannot be undone.",
