@@ -1,7 +1,7 @@
 // @ts-check
 import eslint from "@eslint/js";
 import { defineConfig } from "eslint/config";
-import tseslint from "typescript-eslint";
+import { configs } from "typescript-eslint";
 import angular from "angular-eslint";
 
 export default defineConfig([
@@ -9,8 +9,8 @@ export default defineConfig([
     files: ["**/*.ts"],
     extends: [
       eslint.configs.recommended,
-      tseslint.configs.recommended,
-      tseslint.configs.stylistic,
+      configs.recommended,
+      configs.stylistic,
       angular.configs.tsRecommended,
     ],
     processor: angular.processInlineTemplates,
