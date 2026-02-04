@@ -1,7 +1,8 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { toHttpParams } from '../utils/http-utils';
 
 // ============================================================================
 // Interfaces
@@ -247,7 +248,7 @@ export class CatalogService {
   // ========================================================================
 
   listProductAssets(productId: string, type?: CatalogAssetType): Observable<CatalogAssetListResponse> {
-    const params = type ? new HttpParams().set('type', type) : undefined;
+    const params = type ? toHttpParams({ type }) : undefined;
     return this.http.get<CatalogAssetListResponse>(`${this.baseUrl}/products/${productId}/assets`, { params });
   }
 
@@ -284,8 +285,7 @@ export class CatalogService {
   // Private Methods
   // ==========================================================================
 
-  private buildVatRatesParams(params: ListVatRatesParams): HttpParams {
-    let httpParams = new HttpParams();
+  private buildVatRatesParams(params: ListVatRatesParams) {
     const entries: Record<string, string | number | undefined | null> = {
       search: params.search,
       page: params.page,
@@ -294,16 +294,10 @@ export class CatalogService {
       sortOrder: params.sortOrder,
     };
 
-    for (const [key, value] of Object.entries(entries)) {
-      if (value === undefined || value === null || value === '') continue;
-      httpParams = httpParams.set(key, String(value));
-    }
-
-    return httpParams;
+    return toHttpParams(entries);
   }
 
-  private buildProductsParams(params: ListProductsParams): HttpParams {
-    let httpParams = new HttpParams();
+  private buildProductsParams(params: ListProductsParams) {
     const entries: Record<string, string | number | undefined | null> = {
       search: params.search,
       type: params.type,
@@ -314,11 +308,6 @@ export class CatalogService {
       sortOrder: params.sortOrder,
     };
 
-    for (const [key, value] of Object.entries(entries)) {
-      if (value === undefined || value === null || value === '') continue;
-      httpParams = httpParams.set(key, String(value));
-    }
-
-    return httpParams;
+    return toHttpParams(entries);
   }
 }

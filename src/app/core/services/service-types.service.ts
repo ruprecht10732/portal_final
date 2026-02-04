@@ -1,9 +1,10 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { CreateServiceTypeRequest, DeleteServiceTypeResponse, ListServiceTypesParams, ReorderServiceTypesRequest, ServiceTypeItem, ServiceTypeListResponse, UpdateServiceTypeRequest } from './service-types.types';
 import { normalizeIconName } from './icon-utils';
+import { toHttpParams } from '../utils/http-utils';
 
 @Injectable({ providedIn: 'root' })
 export class ServiceTypesService {
@@ -24,13 +25,14 @@ export class ServiceTypesService {
   }
 
   listAdmin(params: ListServiceTypesParams = {}): Observable<ServiceTypeListResponse> {
-    let httpParams = new HttpParams();
-    if (params.search) httpParams = httpParams.set('search', params.search);
-    if (params.isActive !== undefined) httpParams = httpParams.set('isActive', String(params.isActive));
-    if (params.page) httpParams = httpParams.set('page', params.page.toString());
-    if (params.pageSize) httpParams = httpParams.set('pageSize', params.pageSize.toString());
-    if (params.sortBy) httpParams = httpParams.set('sortBy', params.sortBy);
-    if (params.sortOrder) httpParams = httpParams.set('sortOrder', params.sortOrder);
+    const httpParams = toHttpParams({
+      search: params.search,
+      isActive: params.isActive,
+      page: params.page,
+      pageSize: params.pageSize,
+      sortBy: params.sortBy,
+      sortOrder: params.sortOrder,
+    });
     return this.http.get<ServiceTypeListResponse>(this.adminBaseUrl, { params: httpParams }).pipe(
       map(response => this.normalizeResponse(response)),
     );

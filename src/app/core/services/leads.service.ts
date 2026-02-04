@@ -1,8 +1,9 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BaseCrudService } from './base-crud.service';
+import { toHttpParams } from '../utils/http-utils';
 import type {
   Lead,
   LeadListResponse,
@@ -48,8 +49,7 @@ export class LeadsService extends BaseCrudService<
     return this.http.get<LeadListResponse>(this.baseUrl, { params: this.buildListParams(params) });
   }
 
-  private buildListParams(params: ListLeadsParams): HttpParams {
-    let httpParams = new HttpParams();
+  private buildListParams(params: ListLeadsParams) {
     const entries: Record<string, string | number | undefined | null> = {
       status: params.status,
       serviceType: params.serviceType,
@@ -72,12 +72,7 @@ export class LeadsService extends BaseCrudService<
       sortOrder: params.sortOrder,
     };
 
-    for (const [key, value] of Object.entries(entries)) {
-      if (value === undefined || value === null || value === '') continue;
-      httpParams = httpParams.set(key, String(value));
-    }
-
-    return httpParams;
+    return toHttpParams(entries);
   }
 
   getById(id: string): Observable<Lead> {
@@ -122,18 +117,12 @@ export class LeadsService extends BaseCrudService<
 
   checkDuplicate(phone: string): Observable<DuplicateCheckResponse> {
     return this.http.get<DuplicateCheckResponse>(`${this.baseUrl}/check-duplicate`, {
-      params: new HttpParams().set('phone', phone),
+      params: toHttpParams({ phone }),
     });
   }
 
   checkReturningCustomer(phone: string, email?: string): Observable<ReturningCustomerResponse> {
-    let params = new HttpParams();
-    if (phone) {
-      params = params.set('phone', phone);
-    }
-    if (email) {
-      params = params.set('email', email);
-    }
+    const params = toHttpParams({ phone, email });
     return this.http.get<ReturningCustomerResponse>(`${this.baseUrl}/check-returning-customer`, { params });
   }
 
@@ -147,20 +136,17 @@ export class LeadsService extends BaseCrudService<
 
   // AI Analysis methods
   analyzeWithAI(id: string, serviceId: string, force = false): Observable<AnalyzeLeadResponse> {
-    let params = new HttpParams().set('serviceId', serviceId);
-    if (force) {
-      params = params.set('force', 'true');
-    }
+    const params = toHttpParams({ serviceId, force: force ? true : undefined });
     return this.http.post<AnalyzeLeadResponse>(`${this.baseUrl}/${id}/analyze`, {}, { params });
   }
 
   getLatestAnalysis(id: string, serviceId: string): Observable<LeadAIAnalysisResponse> {
-    const params = new HttpParams().set('serviceId', serviceId);
+    const params = toHttpParams({ serviceId });
     return this.http.get<LeadAIAnalysisResponse>(`${this.baseUrl}/${id}/analysis`, { params });
   }
 
   listAnalyses(id: string, serviceId: string): Observable<LeadAIAnalysisListResponse> {
-    const params = new HttpParams().set('serviceId', serviceId);
+    const params = toHttpParams({ serviceId });
     return this.http.get<LeadAIAnalysisListResponse>(`${this.baseUrl}/${id}/analysis/history`, { params });
   }
 

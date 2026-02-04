@@ -1,7 +1,8 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { toHttpParams } from '../utils/http-utils';
 import type {
   AppointmentAttachmentResponse,
   AppointmentListResponse,
@@ -103,20 +104,16 @@ export class AppointmentsService {
   }
 
   getAvailableSlots(params: GetAvailableSlotsParams): Observable<AvailableSlotsResponse> {
-    let httpParams = new HttpParams()
-      .set('startDate', params.startDate)
-      .set('endDate', params.endDate);
-    if (params.userId) {
-      httpParams = httpParams.set('userId', params.userId);
-    }
-    if (params.slotDuration) {
-      httpParams = httpParams.set('slotDuration', params.slotDuration.toString());
-    }
+    const httpParams = toHttpParams({
+      startDate: params.startDate,
+      endDate: params.endDate,
+      userId: params.userId,
+      slotDuration: params.slotDuration,
+    });
     return this.http.get<AvailableSlotsResponse>(`${this.baseUrl}/availability/slots`, { params: httpParams });
   }
 
-  private buildListParams(params: ListAppointmentsParams): HttpParams {
-    let httpParams = new HttpParams();
+  private buildListParams(params: ListAppointmentsParams) {
     const entries: Record<string, string | number | undefined | null> = {
       userId: params.userId,
       leadId: params.leadId,
@@ -131,27 +128,16 @@ export class AppointmentsService {
       pageSize: params.pageSize,
     };
 
-    for (const [key, value] of Object.entries(entries)) {
-      if (value === undefined || value === null || value === '') continue;
-      httpParams = httpParams.set(key, String(value));
-    }
-
-    return httpParams;
+    return toHttpParams(entries);
   }
 
-  private buildAvailabilityParams(params: { userId?: string; startDate?: string; endDate?: string }): HttpParams {
-    let httpParams = new HttpParams();
+  private buildAvailabilityParams(params: { userId?: string; startDate?: string; endDate?: string }) {
     const entries: Record<string, string | undefined> = {
       userId: params.userId,
       startDate: params.startDate,
       endDate: params.endDate,
     };
 
-    for (const [key, value] of Object.entries(entries)) {
-      if (!value) continue;
-      httpParams = httpParams.set(key, value);
-    }
-
-    return httpParams;
+    return toHttpParams(entries);
   }
 }

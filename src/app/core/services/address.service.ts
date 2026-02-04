@@ -1,7 +1,8 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { toHttpParams } from '../utils/http-utils';
 
 export interface AddressSuggestion {
   label: string;
@@ -21,7 +22,7 @@ export class AddressService {
   private readonly baseUrl = `${environment.apiBaseUrl}/maps/address-lookup`;
 
   search(query: string): Observable<AddressSuggestion[]> {
-    const params = new HttpParams().set('q', query);
+    const params = toHttpParams({ q: query });
     return this.http.get<AddressSuggestion[]>(this.baseUrl, { params });
   }
 }

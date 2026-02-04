@@ -1,8 +1,9 @@
-import { HttpClient, HttpParams } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { LeadHeatmapResponse } from './dashboard.types';
+import { toHttpParams } from '../utils/http-utils';
 
 @Injectable({ providedIn: 'root' })
 export class DashboardHeatmapService {
@@ -10,9 +11,7 @@ export class DashboardHeatmapService {
   private readonly baseUrl = `${environment.apiBaseUrl}/leads/heatmap`;
 
   getHeatmap(startDate?: string, endDate?: string): Observable<LeadHeatmapResponse> {
-    let params = new HttpParams();
-    if (startDate) params = params.set('startDate', startDate);
-    if (endDate) params = params.set('endDate', endDate);
+    const params = toHttpParams({ startDate, endDate });
     return this.http.get<LeadHeatmapResponse>(this.baseUrl, { params });
   }
 }
