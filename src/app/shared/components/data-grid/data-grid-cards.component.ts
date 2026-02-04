@@ -1,3 +1,4 @@
+/* eslint-disable @angular-eslint/component-selector */
 /**
  * Data Grid Cards Component
  * Mobile-friendly card-based view for data grid rows
