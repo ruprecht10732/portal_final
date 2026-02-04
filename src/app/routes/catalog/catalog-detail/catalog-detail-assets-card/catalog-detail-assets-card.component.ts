@@ -1,8 +1,14 @@
-import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, signal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { type CatalogAsset } from '../../../../core/services/catalog.service';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { ChipComponent } from '../../../../shared/components/chip/chip.component';
+import {
+  FileUploaderComponent,
+  type FileUploadError,
+  type PresignedUpload,
+} from '../../../../shared/components/file-uploader/file-uploader.component';
 
 interface AssetSection {
   key: 'images' | 'documents' | 'terms';
@@ -20,11 +26,18 @@ interface AssetSection {
   showUrl: boolean;
   countSingularKey: string;
   countPluralKey: string;
+  addLabelKey: string;
 }
 
 @Component({
   selector: 'app-catalog-detail-assets-card',
-  imports: [TranslateModule, LucideAngularModule, ChipComponent],
+  imports: [
+    TranslateModule,
+    LucideAngularModule,
+    ButtonComponent,
+    ChipComponent,
+    FileUploaderComponent,
+  ],
   templateUrl: './catalog-detail-assets-card.component.html',
   styleUrl: './catalog-detail-assets-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -40,6 +53,26 @@ export class CatalogDetailAssetsCardComponent {
   readonly formatFileSize = input.required<(bytes?: number) => string>();
   readonly previewAsset = input.required<(asset: CatalogAsset) => void>();
   readonly downloadAsset = input.required<(asset: CatalogAsset) => void>();
+  readonly presignImageAsset = input.required<(file: File) => Promise<PresignedUpload>>();
+  readonly finalizeImageAsset = input.required<
+    (file: File, presigned: PresignedUpload) => Promise<CatalogAsset>
+  >();
+  readonly presignDocumentAsset = input.required<(file: File) => Promise<PresignedUpload>>();
+  readonly finalizeDocumentAsset = input.required<
+    (file: File, presigned: PresignedUpload) => Promise<CatalogAsset>
+  >();
+  readonly createTermsUrl = input.required<
+    (url: string, label?: string) => Promise<CatalogAsset | null>
+  >();
+  readonly onAssetUploaded = input.required<(asset: CatalogAsset) => void>();
+  readonly onAssetError = input.required<(event: FileUploadError | null) => void>();
+
+  protected readonly addOpen = signal<AssetSection['key'] | null>(null);
+  protected readonly imageUploading = signal(false);
+  protected readonly documentUploading = signal(false);
+  protected readonly termsSubmitting = signal(false);
+  protected readonly termsUrl = signal('');
+  protected readonly termsLabel = signal('');
 
   protected readonly assetSections = computed<AssetSection[]>(() => [
     {
@@ -57,6 +90,7 @@ export class CatalogDetailAssetsCardComponent {
       showUrl: false,
       countSingularKey: 'catalog.products.assets.countFile',
       countPluralKey: 'catalog.products.assets.countFiles',
+      addLabelKey: 'catalog.products.assets.uploadImage',
     },
     {
       key: 'documents',
@@ -73,6 +107,7 @@ export class CatalogDetailAssetsCardComponent {
       showUrl: false,
       countSingularKey: 'catalog.products.assets.countFile',
       countPluralKey: 'catalog.products.assets.countFiles',
+      addLabelKey: 'catalog.products.assets.uploadDocument',
     },
     {
       key: 'terms',
@@ -90,8 +125,39 @@ export class CatalogDetailAssetsCardComponent {
       showUrl: true,
       countSingularKey: 'catalog.products.assets.countUrl',
       countPluralKey: 'catalog.products.assets.countUrls',
+      addLabelKey: 'catalog.products.assets.addTerms',
     },
   ]);
+
+  protected toggleAddSection(key: AssetSection['key']): void {
+    this.addOpen.update(current => (current === key ? null : key));
+  }
+
+  protected handleUploaded(asset: CatalogAsset): void {
+    this.addOpen.set(null);
+    this.onAssetUploaded()(asset);
+  }
+
+  protected async submitTermsUrl(): Promise<void> {
+    if (this.termsSubmitting()) return;
+
+    const url = this.termsUrl().trim();
+    if (!url) return;
+
+    const label = this.termsLabel().trim();
+    this.termsSubmitting.set(true);
+
+    try {
+      const created = await this.createTermsUrl()(url, label || undefined);
+      if (created) {
+        this.termsUrl.set('');
+        this.termsLabel.set('');
+        this.handleUploaded(created);
+      }
+    } finally {
+      this.termsSubmitting.set(false);
+    }
+  }
 
   protected getAssetLabel(asset: CatalogAsset): string {
     return asset.fileName || asset.fileKey || '';

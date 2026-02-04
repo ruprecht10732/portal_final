@@ -22,10 +22,99 @@
             <h3 class="text-sm font-semibold text-black uppercase tracking-wide">
               {{ section.titleKey | translate }}
             </h3>
-            <shared-chip variant="info">
-              {{ section.assets.length }} {{ getCountKey(section, section.assets.length) | translate }}
-            </shared-chip>
+            <div class="flex items-center gap-2">
+              <shared-chip variant="info">
+                {{ section.assets.length }} {{ getCountKey(section, section.assets.length) | translate }}
+              </shared-chip>
+              <shared-button
+                type="button"
+                variant="ghost"
+                size="compact"
+                [iconOnly]="true"
+                [fullWidth]="false"
+                [disabled]="assetsLoading()"
+                [ariaLabel]="section.addLabelKey | translate"
+                [tooltip]="section.addLabelKey | translate"
+                (clicked)="toggleAddSection(section.key)"
+              >
+                <lucide-icon name="plus" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+              </shared-button>
+            </div>
           </div>
+          @if (addOpen() === section.key) {
+            <div class="mb-3">
+              @switch (section.key) {
+                @case ('images') {
+                  <app-file-uploader
+                    [label]="'catalog.products.assets.selectImage' | translate"
+                    [dropLabel]="'common.upload.dropHint' | translate"
+                    [accept]="'image/*'"
+                    [buttonLabel]="'catalog.products.assets.uploadImage' | translate"
+                    [uploadingLabel]="'catalog.products.assets.uploading' | translate"
+                    [errorFallback]="'catalog.products.errors.uploadAsset' | translate"
+                    [disabled]="assetsLoading() || imageUploading()"
+                    [presign]="presignImageAsset()"
+                    [finalize]="finalizeImageAsset()"
+                    (uploaded)="handleUploaded($any($event))"
+                    (uploadError)="onAssetError()($event)"
+                    (uploadingChange)="imageUploading.set($event)"
+                  />
+                }
+                @case ('documents') {
+                  <app-file-uploader
+                    [label]="'catalog.products.assets.selectDocument' | translate"
+                    [dropLabel]="'common.upload.dropHint' | translate"
+                    [accept]="'application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt'"
+                    [buttonLabel]="'catalog.products.assets.uploadDocument' | translate"
+                    [uploadingLabel]="'catalog.products.assets.uploading' | translate"
+                    [errorFallback]="'catalog.products.errors.uploadAsset' | translate"
+                    [disabled]="assetsLoading() || documentUploading()"
+                    [presign]="presignDocumentAsset()"
+                    [finalize]="finalizeDocumentAsset()"
+                    (uploaded)="handleUploaded($any($event))"
+                    (uploadError)="onAssetError()($event)"
+                    (uploadingChange)="documentUploading.set($event)"
+                  />
+                }
+                @case ('terms') {
+                  <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                    <label class="flex flex-col gap-2 text-sm font-medium">
+                      {{ 'catalog.products.assets.termsUrl' | translate }}
+                      <input
+                        type="url"
+                        class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                        [value]="termsUrl()"
+                        (input)="termsUrl.set($any($event.target).value)"
+                        placeholder="https://..."
+                      />
+                    </label>
+                    <label class="flex flex-col gap-2 text-sm font-medium">
+                      {{ 'catalog.products.assets.termsLabel' | translate }}
+                      <input
+                        type="text"
+                        class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                        [value]="termsLabel()"
+                        (input)="termsLabel.set($any($event.target).value)"
+                        placeholder="{{ 'catalog.products.assets.optionalLabel' | translate }}"
+                      />
+                    </label>
+                  </div>
+                  <div class="flex justify-end mt-3">
+                    <shared-button
+                      variant="secondary"
+                      size="compact"
+                      [uppercase]="false"
+                      [fullWidth]="false"
+                      [disabled]="!termsUrl().trim() || termsSubmitting() || assetsLoading()"
+                      (clicked)="submitTermsUrl()"
+                    >
+                      {{ 'catalog.products.assets.addTerms' | translate }}
+                    </shared-button>
+                  </div>
+                }
+              }
+            </div>
+          }
           @if (section.assets.length === 0) {
             <p class="text-xs text-zinc-500">{{ section.emptyKey | translate }}</p>
           } @else {

@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
+import { firstValueFrom } from 'rxjs';
 import {
   CatalogService,
   type CatalogAsset,
@@ -15,6 +16,10 @@ import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import {
+  type FileUploadError,
+  type PresignedUpload,
+} from '../../../shared/components/file-uploader/file-uploader.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { FilePreviewDialogComponent } from '../../../shared/components/file-preview-dialog/file-preview-dialog.component';
 import { CatalogDetailAssetsCardComponent } from './catalog-detail-assets-card/catalog-detail-assets-card.component';
@@ -111,6 +116,10 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly onDownloadAsset = (asset: CatalogAsset): void => this.openAsset(asset);
   protected readonly onFormatFileSize = (bytes?: number): string => this.formatFileSize(bytes);
   protected readonly onFormatMaterialPrice = (priceCents: number): string => this.formatMaterialPrice(priceCents);
+  protected readonly onAssetUploaded = (asset: CatalogAsset): void => this.handleAssetUploaded(asset);
+  protected readonly onAssetError = (event: FileUploadError | null): void => this.handleAssetError(event);
+  protected readonly onCreateTermsUrl = async (url: string, label?: string): Promise<CatalogAsset | null> =>
+    this.createTermsUrl(url, label);
 
   protected readonly previewTitle = computed(() => {
     const asset = this.previewAsset();
@@ -362,6 +371,102 @@ export class CatalogDetailComponent implements OnInit {
         return 'neutral';
       default:
         return 'default';
+    }
+  }
+
+  protected handleAssetUploaded(asset: CatalogAsset): void {
+    const product = this.product();
+    if (!product) return;
+
+    this.assetsError.set(null);
+    this.assets.update(items => [asset, ...items]);
+
+    if (asset.assetType === 'image') {
+      this.catalogService.getCatalogAssetDownloadUrl(product.id, asset.id).subscribe({
+        next: (response) => {
+          this.imagePreviewUrls.update(current => ({ ...current, [asset.id]: response.downloadUrl }));
+          if (!this.heroImageUrl()) {
+            this.heroImageUrl.set(response.downloadUrl);
+          }
+        },
+        error: () => {
+          // Preview is optional; fail silently.
+        },
+      });
+    }
+  }
+
+  protected handleAssetError(event: FileUploadError | null): void {
+    if (!event) {
+      this.assetsError.set(null);
+      return;
+    }
+    this.assetsError.set(event.message);
+    this.reporter.report(event.error, { source: 'http', silent: true, userMessage: event.message });
+  }
+
+  protected readonly presignImageAsset = async (file: File): Promise<PresignedUpload> => {
+    const product = this.product();
+    if (!product) throw new Error('Missing product');
+    return firstValueFrom(this.catalogService.getCatalogAssetPresign(product.id, {
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+      assetType: 'image',
+    }));
+  };
+
+  protected readonly presignDocumentAsset = async (file: File): Promise<PresignedUpload> => {
+    const product = this.product();
+    if (!product) throw new Error('Missing product');
+    return firstValueFrom(this.catalogService.getCatalogAssetPresign(product.id, {
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+      assetType: 'document',
+    }));
+  };
+
+  protected readonly finalizeImageAsset = async (file: File, presigned: PresignedUpload): Promise<CatalogAsset> => {
+    const product = this.product();
+    if (!product) throw new Error('Missing product');
+    return firstValueFrom(this.catalogService.createCatalogAsset(product.id, {
+      assetType: 'image',
+      fileKey: presigned.fileKey,
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+    }));
+  };
+
+  protected readonly finalizeDocumentAsset = async (file: File, presigned: PresignedUpload): Promise<CatalogAsset> => {
+    const product = this.product();
+    if (!product) throw new Error('Missing product');
+    return firstValueFrom(this.catalogService.createCatalogAsset(product.id, {
+      assetType: 'document',
+      fileKey: presigned.fileKey,
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+    }));
+  };
+
+  protected async createTermsUrl(url: string, label?: string): Promise<CatalogAsset | null> {
+    const product = this.product();
+    if (!product) return null;
+
+    try {
+      this.assetsError.set(null);
+      return await firstValueFrom(this.catalogService.createCatalogURLAsset(product.id, {
+        assetType: 'terms_url',
+        url,
+        ...(label && { label }),
+      }));
+    } catch (err) {
+      const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.createTerms'));
+      this.assetsError.set(message);
+      this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      return null;
     }
   }
 
