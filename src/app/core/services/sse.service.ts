@@ -7,16 +7,16 @@ import { ToastService } from './toast.service';
 import { TokenStorageService } from './token-storage.service';
 
 // SSE event types from the backend
-export type SSEEventType = 'photo_analysis_complete' | 'lead_update' | 'appointment_update';
+export type SSEEventType = 'analysis_complete' | 'photo_analysis_complete' | 'lead_updated';
 
 // Base SSE event structure from the backend
 export interface SSEEvent {
   type: SSEEventType;
   leadId?: string;
   serviceId?: string;
-  message: string;
+  message?: string;
   data?: Record<string, unknown>;
-  timestamp: string;
+  timestamp?: string;
 }
 
 // Photo analysis specific event data
@@ -65,10 +65,12 @@ export class SSEService {
 
   // Event subjects for different event types
   private readonly photoAnalysisComplete$ = new Subject<SSEEvent & { data: PhotoAnalysisEventData }>();
+  private readonly leadUpdated$ = new Subject<SSEEvent>();
   private readonly allEvents$ = new Subject<SSEEvent>();
 
   readonly state = this.connectionState.asReadonly();
   readonly photoAnalysisComplete = this.photoAnalysisComplete$.asObservable();
+  readonly leadUpdated = this.leadUpdated$.asObservable();
   readonly events = this.allEvents$.asObservable();
 
   constructor() {
@@ -112,14 +114,27 @@ export class SSEService {
 
         this.eventSource.onmessage = (event) => {
           this.zone.run(() => {
-            try {
-              const data = JSON.parse(event.data) as SSEEvent;
-              this.dispatchEvent(data);
-            } catch (e) {
-              console.error('Failed to parse SSE event:', e);
-            }
+            this.handleEventMessage(event);
           });
         };
+
+        this.eventSource.addEventListener('photo_analysis_complete', (event) => {
+          this.zone.run(() => {
+            this.handleEventMessage(event, 'photo_analysis_complete');
+          });
+        });
+
+        this.eventSource.addEventListener('analysis_complete', (event) => {
+          this.zone.run(() => {
+            this.handleEventMessage(event, 'analysis_complete');
+          });
+        });
+
+        this.eventSource.addEventListener('lead_updated', (event) => {
+          this.zone.run(() => {
+            this.handleEventMessage(event, 'lead_updated');
+          });
+        });
 
         this.eventSource.onerror = () => {
           this.zone.run(() => {
@@ -161,11 +176,28 @@ export class SSEService {
     this.connect();
   }
 
+  private handleEventMessage(event: MessageEvent, overrideType?: SSEEventType): void {
+    if (!event.data) return;
+
+    try {
+      const parsed = JSON.parse(event.data) as SSEEvent;
+      const nextEvent = overrideType
+        ? { ...parsed, type: overrideType }
+        : parsed;
+      this.dispatchEvent(nextEvent);
+    } catch (e) {
+      console.error('Failed to parse SSE event:', e);
+    }
+  }
+
   private dispatchEvent(event: SSEEvent): void {
     this.allEvents$.next(event);
 
     if (event.type === 'photo_analysis_complete') {
       this.photoAnalysisComplete$.next(event as SSEEvent & { data: PhotoAnalysisEventData });
+    }
+    if (event.type === 'lead_updated') {
+      this.leadUpdated$.next(event);
     }
     // Add more event type handlers here as needed
   }

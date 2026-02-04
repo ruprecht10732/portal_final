@@ -226,6 +226,7 @@ export class DataGridComponent<T extends Record<string, unknown>> {
         });
       }
     });
+
   }
 
   // ============ Public API ============

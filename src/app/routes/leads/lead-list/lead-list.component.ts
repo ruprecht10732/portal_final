@@ -1,14 +1,15 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { map, Observable } from 'rxjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { UserService } from '../../../core/services/user.service';
+import { SSEService } from '../../../core/services/sse.service';
 import type { Lead, LeadStatus, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { buildLeadStatusLabels, STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
@@ -37,6 +38,8 @@ export class LeadListComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
+  private readonly sse = inject(SSEService);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly lang = toSignal(this.translate.onLangChange, {
     initialValue: { lang: 'en', translations: {} },
   });
@@ -51,6 +54,7 @@ export class LeadListComponent implements OnInit {
   protected readonly deleteInProgress = signal(false);
   protected readonly pendingDeleteRows = signal<LeadRow[]>([]);
   protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
+  private readonly lastRequest = signal<DataRequest | null>(null);
   private ignoreNextRequest = true;
   private readonly phoneRegion = DEFAULT_PHONE_REGION;
 
@@ -317,6 +321,10 @@ export class LeadListComponent implements OnInit {
   protected readonly fetchDataFn = this.fetchData.bind(this);
 
   ngOnInit(): void {
+    this.sse.leadUpdated
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.refreshFromSse());
+
     const resolved = this.route.snapshot.data['leads'] as LeadsListResolved | undefined;
     if (resolved) {
       const resolvedUsers = resolved.users ?? [];
@@ -341,6 +349,7 @@ export class LeadListComponent implements OnInit {
   }
 
   private loadInitialData(): void {
+    this.lastRequest.set(this.buildDefaultRequest());
     this.loading.set(true);
     this.leadsService.list({ page: 1, pageSize: DEFAULT_PAGE_SIZE, sortBy: 'createdAt', sortOrder: 'desc' }).subscribe({
       next: (response) => {
@@ -517,24 +526,55 @@ export class LeadListComponent implements OnInit {
   }
 
   protected onDataRequest(request: DataRequest): void {
-    if (this.ignoreNextRequest) {
+    this.lastRequest.set(request);
+    this.runDataRequest(request, false, false);
+  }
+
+  private refreshFromSse(): void {
+    if (this.loading()) return;
+    const request = this.lastRequest();
+    if (request) {
+      this.runDataRequest(request, true, true);
+      return;
+    }
+    this.loadInitialData();
+  }
+
+  private runDataRequest(request: DataRequest, skipIgnore: boolean, silentRefresh: boolean): void {
+    if (!skipIgnore && this.ignoreNextRequest) {
       this.ignoreNextRequest = false;
       return;
     }
-    this.loading.set(true);
+    if (!silentRefresh) {
+      this.loading.set(true);
+    }
     this.fetchData(request).subscribe({
       next: (response) => {
         this.leads.set(response.data);
         this.total.set(response.totalItems);
-        this.loading.set(false);
+        if (!silentRefresh) {
+          this.loading.set(false);
+        }
       },
       error: (err) => {
         const message = this.getErrorMessage(err, 'Failed to load leads');
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.loading.set(false);
+        if (!silentRefresh) {
+          this.loading.set(false);
+        }
       },
     });
+  }
+
+  private buildDefaultRequest(): DataRequest {
+    return {
+      page: 1,
+      pageSize: DEFAULT_PAGE_SIZE,
+      sort: { columnId: 'createdAt', direction: 'desc' },
+      filters: [],
+      searchTerm: '',
+    };
   }
 
   protected createLead(): void {

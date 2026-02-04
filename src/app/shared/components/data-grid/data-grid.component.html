@@ -28,7 +28,7 @@
   }
 
   <!-- Loading overlay -->
-  @if (store.loadingState() === 'loading') {
+  @if (store.loadingState() === 'loading' && store.rows().length === 0) {
     <output 
       class="flex items-center justify-center p-8 text-zinc-500"
       aria-live="polite"
@@ -106,7 +106,7 @@
   }
 
   <!-- Main grid content -->
-  @if (store.loadingState() !== 'loading') {
+  @if (store.loadingState() !== 'loading' || store.rows().length > 0) {
     <!-- Card View (Mobile) -->
     @if (store.showCardView()) {
       @defer (on viewport) {
