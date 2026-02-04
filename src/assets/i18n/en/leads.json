@@ -63,7 +63,7 @@
       "notesActivity": "Notes & Activity",
       "location": "Location",
       "contact": "Contact",
-      "confirm": "Confirm",
+      "confirmLabel": "Confirm",
       "cancel": "Cancel",
       "unassigned": "Unassigned",
       "customerNotHome": "Customer not home",

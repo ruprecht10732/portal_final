@@ -1,7 +1,7 @@
 {
   "catalog": {
     "overview": "Overview",
-    "materials": "Materials",
+    "materialsLabel": "Materials",
     "create": "New",
     "assets": {
         "title": "Assets",

@@ -1,7 +1,7 @@
 {
   "catalog": {
     "overview": "Overzicht",
-    "materials": "Materialen",
+    "materialsLabel": "Materialen",
     "create": "Nieuw",
     "assets": {
       "title": "Bestanden",
