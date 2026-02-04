@@ -1,0 +1,38 @@
+{
+  "extends": [
+    "stylelint-config-standard-scss"
+  ],
+  "plugins": ["stylelint-scss"],
+  "rules": {
+    "selector-class-pattern": [
+      "^[a-z][a-zA-Z0-9]*(-[a-z][a-zA-Z0-9]*)*(__[a-z][a-zA-Z0-9]*(-[a-z][a-zA-Z0-9]*)*)?(--[a-z][a-zA-Z0-9]*(-[a-z][a-zA-Z0-9]*)*)?$",
+      {
+        "message": "Expected class selector to be in BEM format"
+      }
+    ],
+    "no-empty-source": null,
+    "selector-pseudo-element-no-unknown": [
+      true,
+      {
+        "ignorePseudoElements": ["/^ng-deep$/"]
+      }
+    ],
+    "property-no-deprecated": null,
+    "media-feature-range-notation": null,
+    "color-function-notation": null,
+    "alpha-value-notation": null,
+    "color-hex-length": null,
+    "color-function-alias-notation": null,
+    "value-keyword-case": null,
+    "import-notation": null,
+    "rule-empty-line-before": null
+  },
+  "overrides": [
+    {
+      "files": ["**/*.scss"],
+      "rules": {
+        "scss/dollar-variable-no-missing-interpolation": true
+      }
+    }
+  ]
+}

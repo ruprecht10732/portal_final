@@ -108,7 +108,7 @@
   cursor: not-allowed;
 }
 
-@media (min-width: 640px) {
+@media (width >= 640px) {
   .day-summary {
     align-items: center;
     text-align: center;
