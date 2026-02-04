@@ -5,6 +5,7 @@
 
 import { computed, Injectable, signal } from '@angular/core';
 import { PAGINATION_DEFAULTS, TIMEOUT_MS } from '../../../core/config';
+import { deepEqual } from '../../../core/utils/deep-equal.util';
 import {
   AriaAnnouncement,
   BulkOperationResult,
@@ -395,7 +396,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
         }
         
         // Check if dirty by comparing with original
-        const isDirty = JSON.stringify(newCurrent) !== JSON.stringify(row.original);
+        const isDirty = !deepEqual(newCurrent, row.original);
         
         return {
           ...row,
@@ -441,7 +442,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
           const cellErrors = { ...row.cellErrors };
           delete cellErrors[column.id];
           
-          const isDirty = JSON.stringify(revertedCurrent) !== JSON.stringify(row.original);
+          const isDirty = !deepEqual(revertedCurrent, row.original);
           
           return {
             ...row,
@@ -1072,7 +1073,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
       }
     });
 
-    const isDirty = JSON.stringify(newCurrent) !== JSON.stringify(row.original);
+    const isDirty = !deepEqual(newCurrent, row.original);
 
     return {
       ...row,
