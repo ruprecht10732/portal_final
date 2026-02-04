@@ -173,6 +173,29 @@ export class CatalogDetailAssetsCardComponent {
     return last.toUpperCase();
   }
 
+  protected getDocumentIcon(asset: CatalogAsset): string {
+    const extension = this.getAssetExtension(asset).toLowerCase();
+    switch (extension) {
+      case 'pdf':
+        return 'book-open';
+      case 'doc':
+      case 'docx':
+        return 'file-text';
+      case 'xls':
+      case 'xlsx':
+        return 'layout-dashboard';
+      case 'ppt':
+      case 'pptx':
+        return 'app-window';
+      case 'csv':
+        return 'list';
+      case 'txt':
+        return 'file-text';
+      default:
+        return 'file-text';
+    }
+  }
+
   protected getCountKey(section: AssetSection, count: number): string {
     return count === 1 ? section.countSingularKey : section.countPluralKey;
   }
