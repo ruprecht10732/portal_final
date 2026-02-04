@@ -3,8 +3,11 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
+import { firstValueFrom } from 'rxjs';
 import {
   CatalogService,
+  type CatalogAsset,
+  type CatalogAssetType,
   type PeriodUnit,
   type Product,
   type ProductType,
@@ -52,8 +55,19 @@ export class CatalogEditComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly submitAttempted = signal(false);
   protected readonly vatRates = signal<VatRate[]>([]);
-  protected readonly activeTab = signal<'details' | 'materials'>('details');
+  protected readonly activeTab = signal<'details' | 'materials' | 'assets'>('details');
   protected readonly selectedType = signal<ProductType>('product');
+
+  protected readonly assets = signal<CatalogAsset[]>([]);
+  protected readonly assetsLoading = signal(false);
+  protected readonly assetsError = signal<string | null>(null);
+  protected readonly assetUploading = signal(false);
+  protected readonly assetUploadProgress = signal<number | null>(null);
+  protected readonly assetDeletingId = signal<string | null>(null);
+  protected readonly imageFile = signal<File | null>(null);
+  protected readonly documentFile = signal<File | null>(null);
+  protected readonly termsUrl = signal('');
+  protected readonly termsLabel = signal('');
 
   // Materials management
   protected readonly materials = signal<Product[]>([]);
@@ -105,6 +119,7 @@ export class CatalogEditComponent implements OnInit {
 
   /** Show materials tab based on current selected type (reactive to type changes) */
   protected readonly showMaterialsTab = computed(() => this.isServiceType());
+  protected readonly showAssetsTab = computed(() => true);
 
   protected readonly requiredError = computed(() => this.translate.instant('catalog.products.validation.required'));
 
@@ -113,6 +128,8 @@ export class CatalogEditComponent implements OnInit {
     const tab = this.route.snapshot.queryParamMap.get('tab');
     if (tab === 'materials') {
       this.activeTab.set('materials');
+    } else if (tab === 'assets') {
+      this.activeTab.set('assets');
     }
     if (id) {
       this.loadVatRates();
@@ -127,6 +144,7 @@ export class CatalogEditComponent implements OnInit {
         this.product.set(product);
         this.populateForm(product);
         this.loading.set(false);
+        this.loadAssets(product.id);
         if (product.type === 'service' || product.type === 'digital_service') {
           this.loadMaterials(id);
         }
@@ -183,6 +201,23 @@ export class CatalogEditComponent implements OnInit {
     });
   }
 
+  private loadAssets(productId: string): void {
+    this.assetsLoading.set(true);
+    this.assetsError.set(null);
+    this.catalogService.listProductAssets(productId).subscribe({
+      next: (response) => {
+        this.assets.set(response.items);
+        this.assetsLoading.set(false);
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
+        this.assetsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetsLoading.set(false);
+      },
+    });
+  }
+
   protected setType(value: ProductType | null): void {
     if (value) {
       const wasServiceType = this.isServiceType();
@@ -213,7 +248,7 @@ export class CatalogEditComponent implements OnInit {
     this.form.controls.periodUnit.setValue(value);
   }
 
-  protected setActiveTab(tab: 'details' | 'materials'): void {
+  protected setActiveTab(tab: 'details' | 'materials' | 'assets'): void {
     this.activeTab.set(tab);
   }
 
@@ -266,6 +301,180 @@ export class CatalogEditComponent implements OnInit {
     } else {
       this.router.navigate(['/app/catalog']);
     }
+  }
+
+  protected onImageFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.imageFile.set(input.files?.[0] ?? null);
+    this.assetsError.set(null);
+  }
+
+  protected onDocumentFileChange(event: Event): void {
+    const input = event.target as HTMLInputElement;
+    this.documentFile.set(input.files?.[0] ?? null);
+    this.assetsError.set(null);
+  }
+
+  protected async uploadAsset(type: 'image' | 'document'): Promise<void> {
+    const product = this.product();
+    if (!product || this.assetUploading()) return;
+
+    const file = type === 'image' ? this.imageFile() : this.documentFile();
+    if (!file) return;
+
+    this.assetUploading.set(true);
+    this.assetsError.set(null);
+    this.assetUploadProgress.set(0);
+
+    try {
+      const presigned = await firstValueFrom(this.catalogService.getCatalogAssetPresign(product.id, {
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+        assetType: type,
+      }));
+
+      await this.uploadFileToMinIO(presigned.uploadUrl, file);
+
+      const created = await firstValueFrom(this.catalogService.createCatalogAsset(product.id, {
+        assetType: type,
+        fileKey: presigned.fileKey,
+        fileName: file.name,
+        contentType: file.type,
+        sizeBytes: file.size,
+      }));
+
+      this.assets.update(items => [created, ...items]);
+      if (type === 'image') {
+        this.imageFile.set(null);
+      } else {
+        this.documentFile.set(null);
+      }
+    } catch (err) {
+      const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.uploadAsset'));
+      this.assetsError.set(message);
+      this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+    } finally {
+      this.assetUploading.set(false);
+      this.assetUploadProgress.set(null);
+    }
+  }
+
+  protected createTermsUrl(): void {
+    const product = this.product();
+    if (!product || this.assetUploading()) return;
+
+    const url = this.termsUrl().trim();
+    if (!url) return;
+
+    const label = this.termsLabel().trim();
+    this.assetUploading.set(true);
+    this.assetsError.set(null);
+
+    this.catalogService.createCatalogURLAsset(product.id, {
+      assetType: 'terms_url',
+      url,
+      label: label || undefined,
+    }).subscribe({
+      next: (created) => {
+        this.assets.update(items => [created, ...items]);
+        this.termsUrl.set('');
+        this.termsLabel.set('');
+        this.assetUploading.set(false);
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.createTerms'));
+        this.assetsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetUploading.set(false);
+      },
+    });
+  }
+
+  protected deleteAsset(asset: CatalogAsset): void {
+    const product = this.product();
+    if (!product || this.assetDeletingId()) return;
+
+    this.assetDeletingId.set(asset.id);
+    this.assetsError.set(null);
+
+    this.catalogService.deleteCatalogAsset(product.id, asset.id).subscribe({
+      next: () => {
+        this.assets.update(items => items.filter(item => item.id !== asset.id));
+        this.assetDeletingId.set(null);
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.deleteAsset'));
+        this.assetsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetDeletingId.set(null);
+      },
+    });
+  }
+
+  protected openAsset(asset: CatalogAsset): void {
+    const product = this.product();
+    if (!product || this.assetUploading()) return;
+
+    if (asset.assetType === 'terms_url' && asset.url) {
+      window.open(asset.url, '_blank');
+      return;
+    }
+
+    this.catalogService.getCatalogAssetDownloadUrl(product.id, asset.id).subscribe({
+      next: (response) => {
+        window.open(response.downloadUrl, '_blank');
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
+        this.assetsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  protected formatAssetLabel(asset: CatalogAsset): string {
+    return asset.fileName || asset.url || this.translate.instant('catalog.products.assets.untitled');
+  }
+
+  protected formatFileSize(bytes?: number): string {
+    if (!bytes) return '—';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
+  }
+
+  protected getAssetTypeLabel(type: CatalogAssetType): string {
+    return this.translate.instant(`catalog.products.assets.types.${type}`);
+  }
+
+  private uploadFileToMinIO(url: string, file: File): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const xhr = new XMLHttpRequest();
+
+      xhr.upload.addEventListener('progress', (event) => {
+        if (event.lengthComputable) {
+          const progress = Math.round((event.loaded / event.total) * 100);
+          this.assetUploadProgress.set(progress);
+        }
+      });
+
+      xhr.addEventListener('load', () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          resolve();
+        } else {
+          reject(new Error(`Upload failed with status ${xhr.status}`));
+        }
+      });
+
+      xhr.addEventListener('error', () => reject(new Error('Upload failed')));
+      xhr.addEventListener('abort', () => reject(new Error('Upload aborted')));
+
+      xhr.open('PUT', url);
+      xhr.setRequestHeader('Content-Type', file.type);
+      xhr.send(file);
+    });
   }
 
   // Materials management methods

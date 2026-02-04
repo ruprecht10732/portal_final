@@ -31,6 +31,19 @@ export interface Product {
 
 export type ProductType = 'digital_service' | 'service' | 'product' | 'material';
 export type PeriodUnit = 'day' | 'week' | 'month' | 'quarter' | 'year';
+export type CatalogAssetType = 'image' | 'document' | 'terms_url';
+
+export interface CatalogAsset {
+  id: string;
+  productId: string;
+  assetType: CatalogAssetType;
+  fileKey?: string;
+  fileName?: string;
+  contentType?: string;
+  sizeBytes?: number;
+  url?: string;
+  createdAt: string;
+}
 
 export interface PaginatedResponse<T> {
   items: T[];
@@ -96,6 +109,42 @@ export interface UpdateProductRequest {
 
 export interface MaterialsRequest {
   materialIds: string[];
+}
+
+export interface PresignCatalogAssetRequest {
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  assetType: 'image' | 'document';
+}
+
+export interface PresignedUploadResponse {
+  uploadUrl: string;
+  fileKey: string;
+  expiresAt: number;
+}
+
+export interface CreateCatalogAssetRequest {
+  assetType: 'image' | 'document';
+  fileKey: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface CreateCatalogURLAssetRequest {
+  assetType: 'terms_url';
+  url: string;
+  label?: string;
+}
+
+export interface CatalogAssetListResponse {
+  items: CatalogAsset[];
+}
+
+export interface PresignedDownloadResponse {
+  downloadUrl: string;
+  expiresAt?: number;
 }
 
 // ============================================================================
@@ -192,6 +241,35 @@ export class CatalogService {
     return this.http.get<Product[]>(`${this.baseUrl}/products/${productId}/materials`);
   }
 
+
+  // ========================================================================
+  // Assets
+  // ========================================================================
+
+  listProductAssets(productId: string, type?: CatalogAssetType): Observable<CatalogAssetListResponse> {
+    const params = type ? new HttpParams().set('type', type) : undefined;
+    return this.http.get<CatalogAssetListResponse>(`${this.baseUrl}/products/${productId}/assets`, { params });
+  }
+
+  getCatalogAssetDownloadUrl(productId: string, assetId: string): Observable<PresignedDownloadResponse> {
+    return this.http.get<PresignedDownloadResponse>(`${this.baseUrl}/products/${productId}/assets/${assetId}/download`);
+  }
+
+  getCatalogAssetPresign(productId: string, data: PresignCatalogAssetRequest): Observable<PresignedUploadResponse> {
+    return this.http.post<PresignedUploadResponse>(`${this.adminBaseUrl}/products/${productId}/assets/presign`, data);
+  }
+
+  createCatalogAsset(productId: string, data: CreateCatalogAssetRequest): Observable<CatalogAsset> {
+    return this.http.post<CatalogAsset>(`${this.adminBaseUrl}/products/${productId}/assets`, data);
+  }
+
+  createCatalogURLAsset(productId: string, data: CreateCatalogURLAssetRequest): Observable<CatalogAsset> {
+    return this.http.post<CatalogAsset>(`${this.adminBaseUrl}/products/${productId}/assets/url`, data);
+  }
+
+  deleteCatalogAsset(productId: string, assetId: string): Observable<void> {
+    return this.http.delete<void>(`${this.adminBaseUrl}/products/${productId}/assets/${assetId}`);
+  }
   addProductMaterials(productId: string, data: MaterialsRequest): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.adminBaseUrl}/products/${productId}/materials`, data);
   }

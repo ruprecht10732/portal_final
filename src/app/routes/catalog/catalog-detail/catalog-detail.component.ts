@@ -5,6 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import {
   CatalogService,
+  type CatalogAsset,
   type Product,
   type ProductType,
   type VatRate,
@@ -44,6 +45,11 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly deleting = signal(false);
   protected readonly showDeleteDialog = signal(false);
 
+  protected readonly assets = signal<CatalogAsset[]>([]);
+  protected readonly assetsLoading = signal(false);
+  protected readonly assetsError = signal<string | null>(null);
+  protected readonly downloadingAssetId = signal<string | null>(null);
+
   // Materials for service products
   protected readonly materials = signal<Product[]>([]);
   protected readonly materialsLoading = signal(false);
@@ -79,6 +85,10 @@ export class CatalogDetailComponent implements OnInit {
     return product?.type === 'service' || product?.type === 'digital_service';
   });
 
+  protected readonly imageAssets = computed(() => this.assets().filter(asset => asset.assetType === 'image'));
+  protected readonly documentAssets = computed(() => this.assets().filter(asset => asset.assetType === 'document'));
+  protected readonly termsAssets = computed(() => this.assets().filter(asset => asset.assetType === 'terms_url'));
+
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -93,6 +103,7 @@ export class CatalogDetailComponent implements OnInit {
         this.product.set(product);
         this.loading.set(false);
         this.loadVatRate(product.vatRateId);
+        this.loadAssets(product.id);
         if (product.type === 'service' || product.type === 'digital_service') {
           this.loadMaterials(id);
         }
@@ -132,6 +143,23 @@ export class CatalogDetailComponent implements OnInit {
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.materialsLoading.set(false);
+      },
+    });
+  }
+
+  private loadAssets(productId: string): void {
+    this.assetsLoading.set(true);
+    this.assetsError.set(null);
+    this.catalogService.listProductAssets(productId).subscribe({
+      next: (response) => {
+        this.assets.set(response.items);
+        this.assetsLoading.set(false);
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
+        this.assetsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetsLoading.set(false);
       },
     });
   }
@@ -177,6 +205,38 @@ export class CatalogDetailComponent implements OnInit {
 
   protected formatMaterialPrice(priceCents: number): string {
     return `€${CatalogService.centsToPrice(priceCents).toFixed(2)}`;
+  }
+
+  protected openAsset(asset: CatalogAsset): void {
+    const product = this.product();
+    if (!product || this.downloadingAssetId()) return;
+
+    if (asset.assetType === 'terms_url' && asset.url) {
+      window.open(asset.url, '_blank');
+      return;
+    }
+
+    this.downloadingAssetId.set(asset.id);
+    this.catalogService.getCatalogAssetDownloadUrl(product.id, asset.id).subscribe({
+      next: (response) => {
+        window.open(response.downloadUrl, '_blank');
+        this.downloadingAssetId.set(null);
+      },
+      error: (err) => {
+        const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
+        this.assetsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.downloadingAssetId.set(null);
+      },
+    });
+  }
+
+  protected formatFileSize(bytes?: number): string {
+    if (!bytes) return '—';
+    const k = 1024;
+    const sizes = ['B', 'KB', 'MB', 'GB'];
+    const i = Math.floor(Math.log(bytes) / Math.log(k));
+    return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
   }
 
   protected getTypeVariant(type: ProductType): ChipVariant {

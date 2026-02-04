@@ -40,7 +40,7 @@
     </div>
   } @else if (product()) {
     <!-- Tabs (if service type) -->
-    @if (showMaterialsTab()) {
+    @if (showMaterialsTab() || showAssetsTab()) {
       <div class="border-b border-zinc-200 px-4 sm:px-6">
         <nav class="flex gap-6" aria-label="Tabs">
           <button
@@ -55,22 +55,36 @@
           >
             {{ 'catalog.products.tabs.details' | translate }}
           </button>
+          @if (showMaterialsTab()) {
+            <button
+              type="button"
+              (click)="setActiveTab('materials')"
+              class="py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors"
+              [class.border-black]="activeTab() === 'materials'"
+              [class.text-black]="activeTab() === 'materials'"
+              [class.border-transparent]="activeTab() !== 'materials'"
+              [class.text-zinc-500]="activeTab() !== 'materials'"
+              [class.hover:text-zinc-700]="activeTab() !== 'materials'"
+            >
+              {{ 'catalog.products.tabs.materials' | translate }}
+              @if (materials().length > 0) {
+                <span class="ml-2 bg-zinc-200 text-zinc-600 px-1.5 py-0.5 text-xs font-bold rounded-sm">
+                  {{ materials().length }}
+                </span>
+              }
+            </button>
+          }
           <button
             type="button"
-            (click)="setActiveTab('materials')"
+            (click)="setActiveTab('assets')"
             class="py-3 text-sm font-bold uppercase tracking-wider border-b-2 transition-colors"
-            [class.border-black]="activeTab() === 'materials'"
-            [class.text-black]="activeTab() === 'materials'"
-            [class.border-transparent]="activeTab() !== 'materials'"
-            [class.text-zinc-500]="activeTab() !== 'materials'"
-            [class.hover:text-zinc-700]="activeTab() !== 'materials'"
+            [class.border-black]="activeTab() === 'assets'"
+            [class.text-black]="activeTab() === 'assets'"
+            [class.border-transparent]="activeTab() !== 'assets'"
+            [class.text-zinc-500]="activeTab() !== 'assets'"
+            [class.hover:text-zinc-700]="activeTab() !== 'assets'"
           >
-            {{ 'catalog.products.tabs.materials' | translate }}
-            @if (materials().length > 0) {
-              <span class="ml-2 bg-zinc-200 text-zinc-600 px-1.5 py-0.5 text-xs font-bold rounded-sm">
-                {{ materials().length }}
-              </span>
-            }
+            {{ 'catalog.products.tabs.assets' | translate }}
           </button>
         </nav>
       </div>
@@ -287,6 +301,197 @@
             }
           </div>
         }
+      </div>
+    }
+    @if (activeTab() === 'assets') {
+      <div class="flex-1 flex flex-col p-4 sm:p-6 gap-6">
+        <div class="flex items-center justify-between">
+          <div>
+            <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-900">
+              {{ 'catalog.products.assets.title' | translate }}
+            </h2>
+            <p class="text-xs text-zinc-500 mt-1">
+              {{ 'catalog.products.assets.subtitle' | translate }}
+            </p>
+          </div>
+        </div>
+
+        @if (assetsError()) {
+          <div role="alert" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+            {{ assetsError() }}
+          </div>
+        }
+
+        <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+          <div class="rounded-xl border border-zinc-200 p-4">
+            <h3 class="text-sm font-semibold mb-3">{{ 'catalog.products.assets.images' | translate }}</h3>
+            <div class="flex flex-col gap-3">
+              <label class="flex flex-col gap-2 text-sm font-medium">
+                {{ 'catalog.products.assets.selectImage' | translate }}
+                <input
+                  id="catalog-image-upload"
+                  type="file"
+                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-sm file:font-medium hover:file:bg-zinc-200"
+                  accept="image/*"
+                  (change)="onImageFileChange($event)"
+                />
+              </label>
+              @if (imageFile(); as file) {
+                <div class="text-xs text-zinc-500">
+                  {{ file.name }} ({{ formatFileSize(file.size) }})
+                </div>
+              }
+              @if (assetUploadProgress() !== null && imageFile()) {
+                <div class="w-full bg-zinc-200 rounded-full h-2">
+                  <div class="bg-black h-2 rounded-full transition-all" [style.width.%]="assetUploadProgress()"></div>
+                </div>
+                <div class="text-xs text-zinc-500 text-center">{{ assetUploadProgress() }}%</div>
+              }
+              <div class="flex justify-end">
+                <shared-button
+                  variant="primary"
+                  size="compact"
+                  [uppercase]="false"
+                  [fullWidth]="false"
+                  [disabled]="!imageFile() || assetUploading()"
+                  (clicked)="uploadAsset('image')"
+                >
+                  {{ assetUploading() ? ('catalog.products.assets.uploading' | translate) : ('catalog.products.assets.uploadImage' | translate) }}
+                </shared-button>
+              </div>
+            </div>
+          </div>
+
+          <div class="rounded-xl border border-zinc-200 p-4">
+            <h3 class="text-sm font-semibold mb-3">{{ 'catalog.products.assets.documents' | translate }}</h3>
+            <div class="flex flex-col gap-3">
+              <label class="flex flex-col gap-2 text-sm font-medium">
+                {{ 'catalog.products.assets.selectDocument' | translate }}
+                <input
+                  id="catalog-document-upload"
+                  type="file"
+                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm file:mr-3 file:rounded file:border-0 file:bg-zinc-100 file:px-3 file:py-1 file:text-sm file:font-medium hover:file:bg-zinc-200"
+                  accept="application/pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt"
+                  (change)="onDocumentFileChange($event)"
+                />
+              </label>
+              @if (documentFile(); as file) {
+                <div class="text-xs text-zinc-500">
+                  {{ file.name }} ({{ formatFileSize(file.size) }})
+                </div>
+              }
+              @if (assetUploadProgress() !== null && documentFile()) {
+                <div class="w-full bg-zinc-200 rounded-full h-2">
+                  <div class="bg-black h-2 rounded-full transition-all" [style.width.%]="assetUploadProgress()"></div>
+                </div>
+                <div class="text-xs text-zinc-500 text-center">{{ assetUploadProgress() }}%</div>
+              }
+              <div class="flex justify-end">
+                <shared-button
+                  variant="primary"
+                  size="compact"
+                  [uppercase]="false"
+                  [fullWidth]="false"
+                  [disabled]="!documentFile() || assetUploading()"
+                  (clicked)="uploadAsset('document')"
+                >
+                  {{ assetUploading() ? ('catalog.products.assets.uploading' | translate) : ('catalog.products.assets.uploadDocument' | translate) }}
+                </shared-button>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-zinc-200 p-4">
+          <h3 class="text-sm font-semibold mb-3">{{ 'catalog.products.assets.termsTitle' | translate }}</h3>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+            <label class="flex flex-col gap-2 text-sm font-medium">
+              {{ 'catalog.products.assets.termsUrl' | translate }}
+              <input
+                type="url"
+                class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                [value]="termsUrl()"
+                (input)="termsUrl.set($any($event.target).value)"
+                placeholder="https://..."
+              />
+            </label>
+            <label class="flex flex-col gap-2 text-sm font-medium">
+              {{ 'catalog.products.assets.termsLabel' | translate }}
+              <input
+                type="text"
+                class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                [value]="termsLabel()"
+                (input)="termsLabel.set($any($event.target).value)"
+                placeholder="{{ 'catalog.products.assets.optionalLabel' | translate }}"
+              />
+            </label>
+          </div>
+          <div class="flex justify-end mt-3">
+            <shared-button
+              variant="secondary"
+              size="compact"
+              [uppercase]="false"
+              [fullWidth]="false"
+              [disabled]="!termsUrl().trim() || assetUploading()"
+              (clicked)="createTermsUrl()"
+            >
+              {{ 'catalog.products.assets.addTerms' | translate }}
+            </shared-button>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-zinc-200 p-4">
+          <div class="flex items-center justify-between mb-3">
+            <h3 class="text-sm font-semibold">{{ 'catalog.products.assets.libraryTitle' | translate }}</h3>
+            <span class="text-xs text-zinc-500">{{ assets().length }} {{ 'catalog.products.items' | translate }}</span>
+          </div>
+          @if (assetsLoading()) {
+            <div class="flex items-center gap-2 text-sm text-zinc-500">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-black" aria-hidden="true"></div>
+              {{ 'catalog.products.assets.loading' | translate }}
+            </div>
+          } @else if (assets().length === 0) {
+            <p class="text-sm text-zinc-500">{{ 'catalog.products.assets.empty' | translate }}</p>
+          } @else {
+            <div class="flex flex-col gap-2">
+              @for (asset of assets(); track asset.id) {
+                <div class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-3">
+                  <div class="min-w-0">
+                    <p class="text-sm font-medium truncate">{{ formatAssetLabel(asset) }}</p>
+                    <p class="text-xs text-zinc-500">{{ getAssetTypeLabel(asset.assetType) }} · {{ formatFileSize(asset.sizeBytes) }}</p>
+                  </div>
+                  <div class="flex items-center gap-2">
+                    <button
+                      type="button"
+                      class="p-1.5 text-zinc-500 hover:text-black hover:bg-zinc-100 rounded"
+                      [attr.aria-label]="'Open ' + formatAssetLabel(asset)"
+                      (click)="openAsset(asset)"
+                    >
+                      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" d="M12 6v12m6-6H6" />
+                      </svg>
+                    </button>
+                    <button
+                      type="button"
+                      class="p-1.5 text-zinc-500 hover:text-red-600 hover:bg-red-50 rounded"
+                      [disabled]="assetDeletingId() === asset.id"
+                      [attr.aria-label]="'Delete ' + formatAssetLabel(asset)"
+                      (click)="deleteAsset(asset)"
+                    >
+                      @if (assetDeletingId() === asset.id) {
+                        <div class="animate-spin h-4 w-4 border-2 border-red-200 border-t-red-600 rounded-full"></div>
+                      } @else {
+                        <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                      }
+                    </button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
       </div>
     }
   }
