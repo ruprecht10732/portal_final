@@ -46,6 +46,8 @@ export class CatalogDetailBasicsCardComponent {
   readonly onTypeChange = input.required<(type: ProductType) => Promise<void>>();
   readonly heroImages = input<HeroImageOption[]>([]);
   readonly onSelectHeroImage = input.required<(url: string) => void>();
+  readonly onPreviewHeroImage = input.required<(assetId: string) => void>();
+  readonly onDeleteHeroImage = input.required<(assetId: string) => void>();
 
   private readonly datePipe = inject(DatePipe);
   protected readonly editingField = signal<DetailsRow['key'] | null>(null);
@@ -102,6 +104,12 @@ export class CatalogDetailBasicsCardComponent {
       valueType: 'text',
     },
   ]);
+
+  protected getActiveHero(): HeroImageOption | null {
+    const current = this.heroImageUrl();
+    if (!current) return null;
+    return this.heroImages().find(image => image.url === current) || null;
+  }
 
   protected startEdit(key: DetailsRow['key']): void {
     if (this.savingField()) return;

@@ -149,6 +149,8 @@ export class CatalogDetailComponent implements OnInit {
     this.updateProduct({ type });
   protected readonly onOpenAddMaterialDialog = (): void => this.openAddMaterialDialog();
   protected readonly onSelectHeroImage = (url: string): void => this.heroImageUrl.set(url);
+  protected readonly onPreviewHeroImage = (assetId: string): void => this.previewHeroImage(assetId);
+  protected readonly onDeleteHeroImage = (assetId: string): void => this.deleteHeroImage(assetId);
 
   protected readonly previewTitle = computed(() => {
     const asset = this.previewAsset();
@@ -408,6 +410,41 @@ export class CatalogDetailComponent implements OnInit {
     await this.updateProduct({ vatRateId });
     const selected = this.vatRates().find(v => v.id === vatRateId) || null;
     this.vatRate.set(selected);
+  }
+
+  private previewHeroImage(assetId: string): void {
+    const asset = this.assets().find(item => item.id === assetId);
+    if (asset) {
+      this.openPreview(asset);
+    }
+  }
+
+  private deleteHeroImage(assetId: string): void {
+    const product = this.product();
+    if (!product) return;
+
+    this.assetsError.set(null);
+    this.catalogService.deleteCatalogAsset(product.id, assetId).subscribe({
+      next: () => {
+        this.assets.update(items => items.filter(item => item.id !== assetId));
+        this.imagePreviewUrls.update(current => {
+          const next = { ...current };
+          delete next[assetId];
+          return next;
+        });
+        if (this.heroImageUrl()) {
+          const remaining = this.imageAssets()
+            .map(asset => this.imagePreviewUrls()[asset.id])
+            .filter(Boolean);
+          this.heroImageUrl.set(remaining[0] || null);
+        }
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.deleteAsset'));
+        this.assetsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
   }
 
 

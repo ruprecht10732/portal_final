@@ -13,13 +13,6 @@
         }
         <div class="absolute bottom-0 left-0 w-full p-5 sm:p-6 flex flex-col gap-3">
           <div class="flex flex-col gap-2">
-            <p
-              class="text-xs font-bold uppercase tracking-widest"
-              [class.text-white]="heroImageUrl()"
-              [class.text-zinc-700]="!heroImageUrl()"
-            >
-              {{ 'catalog.products.fields.title' | translate }}
-            </p>
             <h3
               class="text-2xl sm:text-3xl font-bold leading-tight"
               [class.text-white]="heroImageUrl()"
@@ -29,6 +22,26 @@
             </h3>
           </div>
         </div>
+        @if (getActiveHero()) {
+          <div class="hero-actions">
+            <button
+              type="button"
+              class="hero-action"
+              (click)="onPreviewHeroImage()(getActiveHero()!.id)"
+              aria-label="Preview"
+            >
+              <lucide-icon name="eye" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+            </button>
+            <button
+              type="button"
+              class="hero-action"
+              (click)="onDeleteHeroImage()(getActiveHero()!.id)"
+              aria-label="Delete"
+            >
+              <lucide-icon name="trash-2" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+            </button>
+          </div>
+        }
       </div>
 
       @if (heroImages().length > 0) {
