@@ -7,6 +7,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { OrganizationInvite, OrganizationService } from '../../../core/services/organization.service';
 import { OrganizationInviteFormComponent } from '../organization-invite-form/organization-invite-form.component';
+import { isEmailValid } from '../../../core/utils/email.util';
 
 @Component({
   selector: 'app-organization-invite-edit',
@@ -35,7 +36,7 @@ export class OrganizationInviteEditComponent {
   protected readonly emailError = computed(() => {
     const value = this.email().trim();
     if (!value) return '';
-    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const isValid = isEmailValid(value);
     return isValid ? '' : this.translate.instant('organization.errors.emailInvalid');
   });
 

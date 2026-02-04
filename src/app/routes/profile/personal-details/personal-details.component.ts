@@ -7,6 +7,7 @@ import { InputComponent } from '../../../shared/components/input/input.component
 import { UserService } from '../../../core/services/user.service';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import type { UserProfile } from '../../../core/services/user.types';
+import { isEmailValid } from '../../../core/utils/email.util';
 
 @Component({
   selector: 'app-personal-details',
@@ -53,7 +54,7 @@ export class PersonalDetailsComponent {
     this.lang();
     const value = this.email();
     if (!value) return this.translate.instant('profile.personal.errors.emailRequired');
-    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const isValid = isEmailValid(value);
     return isValid ? '' : this.translate.instant('profile.personal.errors.emailInvalid');
   });
 

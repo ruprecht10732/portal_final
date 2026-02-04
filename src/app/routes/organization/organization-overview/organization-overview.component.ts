@@ -8,6 +8,7 @@ import { InputComponent } from '../../../shared/components/input/input.component
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { OrganizationService, type Organization, UpdateOrganizationRequest } from '../../../core/services/organization.service';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
+import { isEmailValid } from '../../../core/utils/email.util';
 
 @Component({
   selector: 'app-organization-overview',
@@ -65,7 +66,7 @@ export class OrganizationOverviewComponent {
     this.lang();
     const value = this.email().trim();
     if (!value) return '';
-    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const isValid = isEmailValid(value);
     return isValid ? '' : this.translate.instant('organization.errors.emailInvalid');
   });
 
