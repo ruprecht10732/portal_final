@@ -1,6 +1,5 @@
 import { DestroyRef, inject, Injectable, NgZone, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { Router } from '@angular/router';
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ToastService } from './toast.service';
@@ -48,7 +47,6 @@ export interface SSEConnectionState {
 export class SSEService {
   private readonly tokens = inject(TokenStorageService);
   private readonly toast = inject(ToastService);
-  private readonly router = inject(Router);
   private readonly zone = inject(NgZone);
   private readonly destroyRef = inject(DestroyRef);
 

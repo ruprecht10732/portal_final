@@ -69,7 +69,7 @@ export class AppointmentsService {
 
   listAvailabilityRules(userId?: string): Observable<AvailabilityRuleResponse[]> {
     return this.http.get<AvailabilityRuleResponse[]>(`${this.baseUrl}/availability/rules`, {
-      params: this.buildAvailabilityParams({ userId }),
+      params: this.buildAvailabilityParams({ ...(userId !== undefined && { userId }) }),
     });
   }
 

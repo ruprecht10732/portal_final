@@ -328,14 +328,21 @@
   }
 
   <!-- Screen reader announcements -->
-  <output
-    #announcer
-    class="sr-only"
-    [attr.aria-live]="currentAnnouncement() ? currentAnnouncement().politeness : 'polite'"
-    aria-atomic="true"
-  >
-    @if (currentAnnouncement()) {
-      {{ currentAnnouncement().message }}
-    }
-  </output>
+  @if (currentAnnouncement(); as announcement) {
+    <output
+      #announcer
+      class="sr-only"
+      [attr.aria-live]="announcement.politeness"
+      aria-atomic="true"
+    >
+      {{ announcement.message }}
+    </output>
+  } @else {
+    <output
+      #announcer
+      class="sr-only"
+      aria-live="polite"
+      aria-atomic="true"
+    ></output>
+  }
 </div>

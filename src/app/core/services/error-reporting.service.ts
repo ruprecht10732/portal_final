@@ -13,8 +13,8 @@ export interface ErrorContext {
 interface NormalizedError {
   message: string;
   variant: ToastVariant;
-  status?: number;
-  url?: string;
+  status?: number | undefined;
+  url?: string | undefined;
 }
 
 @Injectable({ providedIn: 'root' })

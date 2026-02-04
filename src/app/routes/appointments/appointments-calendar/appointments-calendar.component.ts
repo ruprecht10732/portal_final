@@ -72,7 +72,7 @@ export class AppointmentsCalendarComponent {
   }
 
   private formatDate(date: Date): string {
-    return date.toISOString().split('T')[0];
+    return date.toISOString().split('T')[0] ?? '';
   }
 
   protected onEventClick(event: CalendarEvent): void {

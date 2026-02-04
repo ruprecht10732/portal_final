@@ -105,8 +105,9 @@ export class LeadFormComponent implements OnInit {
       next: (response) => {
         const items = response.items ?? [];
         this.serviceTypes.set(items);
-        if (!this.form.controls.serviceType.value && items.length > 0) {
-          this.form.controls.serviceType.setValue(items[0].name);
+        const firstItem = items[0];
+        if (!this.form.controls.serviceType.value && firstItem) {
+          this.form.controls.serviceType.setValue(firstItem.name);
         }
       },
       error: (err) => {
@@ -275,21 +276,22 @@ export class LeadFormComponent implements OnInit {
     if (this.isNew()) {
       const sourceValue = (values.source ?? '').trim();
       const consumerNoteValue = (values.consumerNote ?? '').trim();
+      const emailValue = (values.email ?? '').trim();
       const request: CreateLeadRequest = {
         firstName: (values.firstName ?? '').trim(),
         lastName: (values.lastName ?? '').trim(),
         phone: (values.phone ?? '').trim(),
-        email: (values.email ?? '').trim() || undefined,
         consumerRole: values.consumerRole,
         street: (values.street ?? '').trim(),
         houseNumber: (values.houseNumber ?? '').trim(),
         zipCode: (values.zipCode ?? '').trim(),
         city: (values.city ?? '').trim(),
-        latitude: values.latitude ?? undefined,
-        longitude: values.longitude ?? undefined,
         serviceType: (values.serviceType ?? '').trim(),
-        source: sourceValue || undefined,
-        consumerNote: consumerNoteValue || undefined,
+        ...(emailValue && { email: emailValue }),
+        ...(values.latitude !== null && { latitude: values.latitude }),
+        ...(values.longitude !== null && { longitude: values.longitude }),
+        ...(sourceValue && { source: sourceValue }),
+        ...(consumerNoteValue && { consumerNote: consumerNoteValue }),
       };
 
       this.leadsService.create(request).subscribe({
@@ -308,18 +310,19 @@ export class LeadFormComponent implements OnInit {
       if (!lead) return;
 
       // Note: serviceType is no longer updated here - services are managed per-service in detail view
+      const emailValue = (values.email ?? '').trim();
       const request: UpdateLeadRequest = {
         firstName: (values.firstName ?? '').trim(),
         lastName: (values.lastName ?? '').trim(),
         phone: (values.phone ?? '').trim(),
-        email: (values.email ?? '').trim() || undefined,
         consumerRole: values.consumerRole,
         street: (values.street ?? '').trim(),
         houseNumber: (values.houseNumber ?? '').trim(),
         zipCode: (values.zipCode ?? '').trim(),
         city: (values.city ?? '').trim(),
-        latitude: values.latitude ?? undefined,
-        longitude: values.longitude ?? undefined,
+        ...(emailValue && { email: emailValue }),
+        ...(values.latitude !== null && { latitude: values.latitude }),
+        ...(values.longitude !== null && { longitude: values.longitude }),
       };
 
       this.leadsService.update(lead.id, request).subscribe({

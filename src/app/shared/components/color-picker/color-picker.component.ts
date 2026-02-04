@@ -87,9 +87,13 @@ export class ColorPickerComponent {
     // Expand short hex (#RGB -> #RRGGBB)
     const shortHexRegex = /^#([0-9a-fA-F]{3})$/;
     const shortMatch = shortHexRegex.exec(candidate);
-    if (shortMatch) {
-      const [r, g, b] = shortMatch[1].split('');
-      candidate = `#${r}${r}${g}${g}${b}${b}`;
+    if (shortMatch?.[1]) {
+      const r = shortMatch[1][0];
+      const g = shortMatch[1][1];
+      const b = shortMatch[1][2];
+      if (r && g && b) {
+        candidate = `#${r}${r}${g}${g}${b}${b}`;
+      }
     }
 
     if (!/^#[0-9a-fA-F]{6}$/.test(candidate)) return '';

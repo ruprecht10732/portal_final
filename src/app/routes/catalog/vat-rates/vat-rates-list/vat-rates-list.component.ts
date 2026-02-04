@@ -223,8 +223,9 @@ export class VatRatesListComponent implements OnInit {
   }
 
   protected onDeleteRows(rows: VatRateRow[]): void {
-    if (rows.length === 0) return;
-    this.openDeleteDialog(rows[0]);
+    const firstRow = rows[0];
+    if (!firstRow) return;
+    this.openDeleteDialog(firstRow);
   }
 
   protected closeDeleteDialog(): void {

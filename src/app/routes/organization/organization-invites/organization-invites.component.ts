@@ -194,18 +194,20 @@ export class OrganizationInvitesComponent {
 
   protected resendSelected(): void {
     const invite = this.selectedInvite();
-    if (!invite || this.isUsed(invite)) return;
-    this.resendInvite(invite);
+    if (!invite) return;
+    if (this.isUsed(invite)) return;
+    this.resendInvite(invite as OrganizationInvite);
   }
 
   protected onDeleteRows(rows: InviteRow[]): void {
     if (rows.length === 0) return;
     const invite = rows[0];
+    if (!invite) return;
     if (this.isUsed(invite)) {
       this.errorMessage.set(this.translate.instant('organization.invite.revokeUsed'));
       return;
     }
-    this.revokeInvite(invite);
+    this.revokeInvite(invite as OrganizationInvite);
   }
 
   protected onRowDoubleClick(row: InviteRow): void {

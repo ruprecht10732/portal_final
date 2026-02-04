@@ -411,8 +411,9 @@ export class LeadDetailComponent implements OnInit {
       next: (response) => {
         const items = response.items ?? [];
         this.serviceTypes.set(items);
-        if (!this.newServiceType() && items.length > 0) {
-          this.newServiceType.set(items[0].name);
+        const firstItem = items[0];
+        if (!this.newServiceType() && firstItem) {
+          this.newServiceType.set(firstItem.name);
         }
       },
       error: (err) => {
@@ -809,11 +810,13 @@ export class LeadDetailComponent implements OnInit {
     if (!lead || !serviceType) return;
 
     this.saving.set(true);
+    const consumerNoteValue = this.newServiceConsumerNote();
+    const sourceValue = this.newServiceSource();
     this.leadsService.addService(lead.id, {
       serviceType,
       closeCurrentStatus: this.closeCurrentService(),
-      consumerNote: this.newServiceConsumerNote() || undefined,
-      source: this.newServiceSource() || undefined,
+      ...(consumerNoteValue && { consumerNote: consumerNoteValue }),
+      ...(sourceValue && { source: sourceValue }),
     }).subscribe({
       next: (updated) => {
         this.lead.set(updated);
@@ -904,16 +907,18 @@ export class LeadDetailComponent implements OnInit {
       return;
     }
 
+    const descriptionValue = this.appointmentNotes().trim();
+    const locationValue = this.appointmentLocation().trim();
     const payload: CreateAppointmentRequest = {
       leadId: lead.id,
       leadServiceId,
       type: 'lead_visit',
       title: this.appointmentTitle().trim() || this.translate.instant('leads.detail.appointments.defaultTitle'),
-      description: this.appointmentNotes().trim() || undefined,
-      location: this.appointmentLocation().trim() || undefined,
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
       allDay: false,
+      ...(descriptionValue && { description: descriptionValue }),
+      ...(locationValue && { location: locationValue }),
     };
 
     this.appointmentSaving.set(true);
@@ -946,10 +951,13 @@ export class LeadDetailComponent implements OnInit {
     const appointment = this.selectedAppointment();
     if (!appointment || !this.canEditReport()) return;
 
+    const measurementsValue = this.reportMeasurements().trim();
+    const accessDifficultyValue = this.reportAccessDifficulty();
+    const notesValue = this.reportNotes().trim();
     const payload: UpsertVisitReportRequest = {
-      measurements: this.reportMeasurements().trim() || undefined,
-      accessDifficulty: this.reportAccessDifficulty() ?? undefined,
-      notes: this.reportNotes().trim() || undefined,
+      ...(measurementsValue && { measurements: measurementsValue }),
+      ...(accessDifficultyValue && { accessDifficulty: accessDifficultyValue }),
+      ...(notesValue && { notes: notesValue }),
     };
 
     this.reportSaving.set(true);
@@ -974,11 +982,12 @@ export class LeadDetailComponent implements OnInit {
     if (!appointment || !this.canAddAttachment()) return;
 
     const sizeBytesValue = Number(this.attachmentSizeBytes());
+    const contentTypeValue = this.attachmentContentType().trim();
     const payload: CreateAppointmentAttachmentRequest = {
       fileKey: this.attachmentFileKey().trim(),
       fileName: this.attachmentFileName().trim(),
-      contentType: this.attachmentContentType().trim() || undefined,
-      sizeBytes: Number.isFinite(sizeBytesValue) ? sizeBytesValue : undefined,
+      ...(contentTypeValue && { contentType: contentTypeValue }),
+      ...(Number.isFinite(sizeBytesValue) && { sizeBytes: sizeBytesValue }),
     };
 
     this.attachmentSaving.set(true);
@@ -1006,9 +1015,10 @@ export class LeadDetailComponent implements OnInit {
         const items = response.items ?? [];
         this.appointments.set(items);
         this.appointmentsLoading.set(false);
-        if (!this.selectedAppointmentId() && items.length > 0) {
-          this.selectedAppointmentId.set(items[0].id);
-          this.loadAppointmentDetails(items[0].id);
+        const firstItem = items[0];
+        if (!this.selectedAppointmentId() && firstItem) {
+          this.selectedAppointmentId.set(firstItem.id);
+          this.loadAppointmentDetails(firstItem.id);
         }
       },
       error: (err) => {

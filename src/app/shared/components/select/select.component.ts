@@ -125,7 +125,7 @@ export class SelectComponent<T = unknown> {
     this.openWithDefaultActiveIndex();
   }
 
-  private handleArrowUp(event: KeyboardEvent, opts: readonly SelectOption<T>[]): void {
+  private handleArrowUp(event: KeyboardEvent, _opts: readonly SelectOption<T>[]): void {
     event.preventDefault();
     if (this.isOpen()) {
       this.activeIndex.update(i => Math.max(i - 1, 0));
@@ -134,12 +134,13 @@ export class SelectComponent<T = unknown> {
     this.openWithDefaultActiveIndex();
   }
 
-  private handleSelectKey(event: KeyboardEvent, opts: readonly SelectOption<T>[]): void {
+  private handleSelectKey(event: KeyboardEvent, _opts: readonly SelectOption<T>[]): void {
     event.preventDefault();
     if (this.isOpen()) {
       const index = this.activeIndex();
-      if (index >= 0) {
-        this.selectOption(opts[index]);
+      const opt = this.options()[index];
+      if (index >= 0 && opt) {
+        this.selectOption(opt);
       }
       return;
     }

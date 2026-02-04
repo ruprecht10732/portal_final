@@ -46,12 +46,12 @@ export class ToastService {
     const toast: ToastItem = {
       id,
       message: options.message,
-      title: options.title,
+      ...(options.title !== undefined && { title: options.title }),
       variant,
       dismissible,
       durationMs,
       createdAt: Date.now(),
-      link: options.link,
+      ...(options.link !== undefined && { link: options.link }),
     };
 
     this.items.update(current => [toast, ...current]);
@@ -67,19 +67,19 @@ export class ToastService {
   }
 
   info(message: string, title?: string): string {
-    return this.show({ message, title, variant: 'info' });
+    return this.show({ message, ...(title !== undefined && { title }), variant: 'info' });
   }
 
   success(message: string, title?: string): string {
-    return this.show({ message, title, variant: 'success' });
+    return this.show({ message, ...(title !== undefined && { title }), variant: 'success' });
   }
 
   warning(message: string, title?: string): string {
-    return this.show({ message, title, variant: 'warning' });
+    return this.show({ message, ...(title !== undefined && { title }), variant: 'warning' });
   }
 
   error(message: string, title?: string): string {
-    return this.show({ message, title, variant: 'error' });
+    return this.show({ message, ...(title !== undefined && { title }), variant: 'error' });
   }
 
   dismiss(id: string): void {

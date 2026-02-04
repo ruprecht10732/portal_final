@@ -21,8 +21,8 @@ import { AuthenticatedSidebarComponent } from './authenticated-sidebar.component
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthenticatedLayoutComponent {
-  // Initialize SSE service for real-time notifications
-  private readonly sse = inject(SSEService);
+  // Initialize SSE service for real-time notifications (side-effect injection)
+  protected readonly _ = inject(SSEService);
 
   protected readonly showTimeoutWarning = signal(false);
   protected readonly mobileMenuOpen = signal(false);

@@ -375,8 +375,8 @@ export class OffertesCreateComponent implements OnInit {
           discountType: values.discountType,
           discountValue: values.discountValue ?? 0,
           pricingMode: this.pricingMode(),
-          validUntil: values.validUntil || undefined,
-          notes: values.notes || undefined,
+          ...(values.validUntil ? { validUntil: values.validUntil } : {}),
+          ...(values.notes ? { notes: values.notes } : {}),
         })
         .subscribe({
           next: updated => {
@@ -403,8 +403,8 @@ export class OffertesCreateComponent implements OnInit {
           discountType: values.discountType,
           discountValue: values.discountValue ?? 0,
           pricingMode: this.pricingMode(),
-          validUntil: values.validUntil || undefined,
-          notes: values.notes || undefined,
+          ...(values.validUntil ? { validUntil: values.validUntil } : {}),
+          ...(values.notes ? { notes: values.notes } : {}),
         })
         .subscribe({
           next: created => {

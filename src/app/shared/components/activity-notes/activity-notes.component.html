@@ -12,8 +12,8 @@
           <p class="text-xs text-zinc-500">{{ activityFeed().length }} updates</p>
         </div>
       </div>
-      @if (activityFeed().length) {
-        <p class="text-xs text-zinc-500">Latest {{ formatTimestamp()(activityFeed()[0].timestamp) }}</p>
+      @if (activityFeed()[0]; as firstEntry) {
+        <p class="text-xs text-zinc-500">Latest {{ formatTimestamp()(firstEntry.timestamp) }}</p>
       }
     </div>
   }

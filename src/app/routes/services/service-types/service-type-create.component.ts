@@ -53,13 +53,17 @@ export class ServiceTypeCreateComponent {
 
     const displayOrderValue = this.parseDisplayOrder(this.displayOrder());
     const normalizedIcon = normalizeIconName(this.normalizeOptional(this.icon()));
+    const description = this.normalizeOptional(this.description());
+    const intakeGuidelines = this.normalizeOptional(this.intakeGuidelines());
+    const icon = normalizedIcon ?? undefined;
+    const color = this.normalizeOptional(this.color());
     const request: CreateServiceTypeRequest = {
       name: this.name().trim(),
-      description: this.normalizeOptional(this.description()),
-      intakeGuidelines: this.normalizeOptional(this.intakeGuidelines()),
-      icon: normalizedIcon ?? undefined,
-      color: this.normalizeOptional(this.color()),
-      displayOrder: displayOrderValue,
+      ...(description !== undefined && { description }),
+      ...(intakeGuidelines !== undefined && { intakeGuidelines }),
+      ...(icon !== undefined && { icon }),
+      ...(color !== undefined && { color }),
+      ...(displayOrderValue !== undefined && { displayOrder: displayOrderValue }),
     };
 
     this.serviceTypesService.create(request).subscribe({

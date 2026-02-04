@@ -117,8 +117,9 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
       if (this.editingCardIndex() !== null) return;
       const rows = this.rows();
       const newRowIndex = rows.findIndex(row => row.isNew && !this.autoOpenedNewRows.has(row));
-      if (newRowIndex >= 0) {
-        this.autoOpenedNewRows.add(rows[newRowIndex]);
+      const newRow = rows[newRowIndex];
+      if (newRowIndex >= 0 && newRow) {
+        this.autoOpenedNewRows.add(newRow);
         this.editingCardIndex.set(newRowIndex);
       }
     });
@@ -202,8 +203,11 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
       }
     }
     
-    const title = this.formatValue(this.getCellValue(row, this.titleColumn()), this.titleColumn());
-    if (title) return title;
+    const titleCol = this.titleColumn();
+    if (titleCol) {
+      const title = this.formatValue(this.getCellValue(row, titleCol), titleCol);
+      if (title) return title;
+    }
     this.lang();
     return this.translate.instant('dataGrid.untitled');
   }
@@ -237,8 +241,10 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     if (!title) return '?';
 
     const parts = title.split(/\s+/).filter(Boolean);
-    if (parts.length >= 2) {
-      return (parts[0][0] + parts[1][0]).toUpperCase();
+    const firstChar = parts[0]?.[0];
+    const secondChar = parts[1]?.[0];
+    if (parts.length >= 2 && firstChar && secondChar) {
+      return (firstChar + secondChar).toUpperCase();
     }
 
     return title.slice(0, 2).toUpperCase();
@@ -332,7 +338,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   }
 
   /** Track function for rows */
-  protected trackByRowId(index: number, row: RowState<T>): string | number {
+  protected trackByRowId(_index: number, row: RowState<T>): string | number {
     return this.getRowId(row);
   }
 

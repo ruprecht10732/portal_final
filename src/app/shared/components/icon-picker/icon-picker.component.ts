@@ -155,8 +155,9 @@ export class IconPickerComponent {
       case 'Enter': {
         event.preventDefault();
         const index = this.activeIndex();
-        if (index >= 0 && index < icons.length) {
-          this.selectIcon(icons[index]);
+        const icon = icons[index];
+        if (index >= 0 && index < icons.length && icon) {
+          this.selectIcon(icon);
         }
         break;
       }
@@ -191,7 +192,7 @@ export class IconPickerComponent {
     this.openWithDefaultActiveIndex();
   }
 
-  private handleArrowUp(event: KeyboardEvent, icons: readonly string[]): void {
+  private handleArrowUp(event: KeyboardEvent, _icons: readonly string[]): void {
     event.preventDefault();
     if (this.isOpen()) {
       this.activeIndex.update(i => Math.max(i - 1, 0));
@@ -200,12 +201,13 @@ export class IconPickerComponent {
     this.openWithDefaultActiveIndex();
   }
 
-  private handleSelectKey(event: KeyboardEvent, icons: readonly string[]): void {
+  private handleSelectKey(event: KeyboardEvent, _icons: readonly string[]): void {
     event.preventDefault();
     if (this.isOpen()) {
       const index = this.activeIndex();
-      if (index >= 0) {
-        this.selectIcon(icons[index]);
+      const icon = this.filteredIcons()[index];
+      if (index >= 0 && icon) {
+        this.selectIcon(icon);
       }
       return;
     }

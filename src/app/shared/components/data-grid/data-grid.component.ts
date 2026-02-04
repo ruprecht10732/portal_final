@@ -133,7 +133,6 @@ export class DataGridComponent<T extends Record<string, unknown>> {
   // ============ View Children ============
   
   private readonly gridContainer = viewChild<ElementRef<HTMLDivElement>>('gridContainer');
-  private readonly announcerRef = viewChild<ElementRef<HTMLDivElement>>('announcer');
 
   // ============ Internal State ============
   
@@ -389,7 +388,7 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     for (let i = 0; i < next.filters.length; i += 1) {
       const a = next.filters[i];
       const b = prev.filters[i];
-      if (!b) return false;
+      if (!a || !b) return false;
       if (a.columnId !== b.columnId || a.operator !== b.operator || a.value !== b.value) {
         return false;
       }
@@ -399,7 +398,7 @@ export class DataGridComponent<T extends Record<string, unknown>> {
   }
 
   private buildSelectionKey(rows: { current: T }[], allSelected: boolean): string {
-    const rowIdField = this.store.config().rowIdField as keyof T;
+    const rowIdField = this.store.config().rowIdField;
     const ids = rows.map(row => String(row.current[rowIdField] ?? ''));
     return `${allSelected}:${ids.join('|')}`;
   }

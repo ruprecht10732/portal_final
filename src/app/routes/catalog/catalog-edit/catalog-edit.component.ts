@@ -268,20 +268,28 @@ export class CatalogEditComponent implements OnInit {
 
     const controls = this.form.controls;
     const priceCents = controls.price.value === null ? 0 : CatalogService.priceToCents(controls.price.value);
+    const descriptionValue = controls.description.value.trim();
+    const vatRateIdValue = controls.vatRateId.value;
 
     const request: UpdateProductRequest = {
       title: controls.title.value.trim(),
       reference: controls.reference.value.trim(),
-      description: controls.description.value.trim() || undefined,
       priceCents,
-      vatRateId: controls.vatRateId.value || undefined,
       type: controls.type.value,
+      ...(descriptionValue && { description: descriptionValue }),
+      ...(vatRateIdValue && { vatRateId: vatRateIdValue }),
     };
 
     // Add period fields only for service types
     if (this.isServiceType()) {
-      request.periodCount = controls.periodCount.value ?? undefined;
-      request.periodUnit = controls.periodUnit.value ?? undefined;
+      const periodCountValue = controls.periodCount.value;
+      const periodUnitValue = controls.periodUnit.value;
+      if (periodCountValue !== null) {
+        request.periodCount = periodCountValue;
+      }
+      if (periodUnitValue !== null) {
+        request.periodUnit = periodUnitValue;
+      }
     }
 
     this.catalogService.updateProduct(product.id, request).subscribe({
@@ -381,7 +389,7 @@ export class CatalogEditComponent implements OnInit {
     this.catalogService.createCatalogURLAsset(product.id, {
       assetType: 'terms_url',
       url,
-      label: label || undefined,
+      ...(label && { label }),
     }).subscribe({
       next: (created) => {
         this.assets.update(items => [created, ...items]);

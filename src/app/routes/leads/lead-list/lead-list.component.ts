@@ -451,9 +451,13 @@ export class LeadListComponent implements OnInit {
     // Map filters to params
     for (const filter of request.filters) {
       switch (filter.columnId) {
-        case 'status':
-          params.status = filter.value as ListLeadsParams['status'];
+        case 'status': {
+          const statusValue = filter.value as LeadStatus | undefined;
+          if (statusValue) {
+            params.status = statusValue;
+          }
           break;
+        }
         case 'serviceType':
           params.serviceType = filter.value;
           break;
@@ -469,9 +473,13 @@ export class LeadListComponent implements OnInit {
         case 'email':
           params.email = filter.value;
           break;
-        case 'role':
-          params.role = filter.value as ListLeadsParams['role'];
+        case 'role': {
+          const roleValue = filter.value as ListLeadsParams['role'] | undefined;
+          if (roleValue) {
+            params.role = roleValue;
+          }
           break;
+        }
         case 'street':
           params.street = filter.value;
           break;
@@ -489,8 +497,8 @@ export class LeadListComponent implements OnInit {
           break;
         case 'createdAt': {
           const range = this.parseCreatedAtFilter(filter.value);
-          if (range.from) params.createdAtFrom = range.from;
-          if (range.to) params.createdAtTo = range.to;
+          if ('from' in range) params.createdAtFrom = range.from;
+          if ('to' in range) params.createdAtTo = range.to;
           break;
         }
         default:
@@ -508,16 +516,18 @@ export class LeadListComponent implements OnInit {
     );
   }
 
-  private parseCreatedAtFilter(value: string): { from?: string; to?: string } {
+  private parseCreatedAtFilter(value: string): { from: string; to: string } | { from: string } | { to: string } | Record<string, never> {
     const trimmed = value.trim();
-    if (!trimmed) return {};
+    if (!trimmed) return {} as Record<string, never>;
 
     const separators = ['..', ' to ', ' - ', ','];
     for (const sep of separators) {
       if (trimmed.includes(sep)) {
         const parts = trimmed.split(sep).map(part => part.trim()).filter(Boolean);
-        if (parts.length >= 2) {
-          return { from: parts[0], to: parts[1] };
+        const fromPart = parts[0];
+        const toPart = parts[1];
+        if (fromPart && toPart) {
+          return { from: fromPart, to: toPart };
         }
       }
     }
@@ -631,14 +641,18 @@ export class LeadListComponent implements OnInit {
       const consumer = (row as Lead).consumer ?? {};
       const address = (row as Lead).address ?? {};
 
-      const normalize = (value?: string | null): string | undefined => {
+      const normalize = (value?: string | null): string => {
+        return value?.trim() ?? '';
+      };
+
+      const normalizeOptional = (value?: string | null): string | undefined => {
         const trimmed = value?.trim();
         return trimmed || undefined;
       };
 
-      const normalizePhone = (value?: string | null): string | undefined => {
+      const normalizePhone = (value?: string | null): string => {
         const trimmed = value?.trim();
-        if (!trimmed) return undefined;
+        if (!trimmed) return '';
         const parsed = parsePhoneNumberFromString(trimmed, this.phoneRegion);
         if (!parsed?.isValid()) {
           return trimmed;
@@ -647,21 +661,22 @@ export class LeadListComponent implements OnInit {
       };
 
       const assigneeId = row.assignedAgentId;
-      const normalizedAssigneeId = assigneeId === '' || assigneeId === 'null' ? null : assigneeId;
+      const normalizedAssigneeId: string | null = assigneeId === '' || assigneeId === 'null' || assigneeId === undefined ? null : assigneeId;
 
       if (row.id) {
         // Handle updates - note: serviceType and status are now per-service, not on lead level
+        const emailValue = normalizeOptional(consumer.email ?? undefined);
         const updateRequest: UpdateLeadRequest = {
           firstName: normalize(consumer.firstName),
           lastName: normalize(consumer.lastName),
           phone: normalizePhone(consumer.phone),
-          email: normalize(consumer.email ?? undefined),
           consumerRole: consumer.role,
           street: normalize(address.street),
           houseNumber: normalize(address.houseNumber),
           zipCode: normalize(address.zipCode),
           city: normalize(address.city),
           assigneeId: normalizedAssigneeId,
+          ...(emailValue && { email: emailValue }),
         };
 
         this.leadsService.update(row.id, updateRequest).subscribe({
@@ -676,11 +691,11 @@ export class LeadListComponent implements OnInit {
         // Example mapping for a new lead
         // The grid likely puts nested objects if the field was 'consumer.firstName' etc.
         // Assuming the store.addNewRow() and cell updates maintain the structure.
+        const emailValue = consumer.email;
         const leadRequest: CreateLeadRequest = {
           firstName: consumer.firstName ?? '',
           lastName: consumer.lastName ?? '',
           phone: normalizePhone(consumer.phone) ?? '',
-          email: consumer.email,
           consumerRole: consumer.role ?? 'Owner',
           street: address.street ?? '',
           houseNumber: address.houseNumber ?? '',
@@ -688,6 +703,7 @@ export class LeadListComponent implements OnInit {
           city: address.city ?? '',
           serviceType: (row['serviceType'] as string | undefined) ?? row.currentService?.serviceType ?? this.getDefaultServiceType(),
           assigneeId: normalizedAssigneeId,
+          ...(emailValue && { email: emailValue }),
         };
 
         const requestedStatus = (row['status'] as LeadStatus | undefined) ?? row.currentService?.status;

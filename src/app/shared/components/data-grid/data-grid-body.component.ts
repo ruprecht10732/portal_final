@@ -458,9 +458,10 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     let left = this.selectable() ? 40 : 0; // checkbox column width
     
     for (let i = 0; i < columnIndex; i++) {
-      if (cols[i]?.frozen) {
+      const col = cols[i];
+      if (col?.frozen) {
         // Use minWidth or default
-        const width = cols[i].minWidth ?? cols[i].width ?? '150px';
+        const width = col.minWidth ?? col.width ?? '150px';
         left += this.parseColumnWidth(width);
       }
     }

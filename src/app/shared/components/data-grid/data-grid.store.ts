@@ -229,19 +229,22 @@ export class DataGridStore<T extends Record<string, unknown>> {
 
   /** Set rows data (transforms to RowState) */
   setData(data: T[], totalItems?: number): void {
-    const rows: RowState<T>[] = data.map(item => ({
-      original: { ...item },
-      current: { ...item },
-      selected: false,
-      editing: false,
-      dirty: false,
-      saving: false,
-      error: null,
-      cellErrors: {},
-      isNew: false,
-      version: (item as Record<string, unknown>)['version'] as number | undefined,
-      recentlyUpdated: false,
-    }));
+    const rows: RowState<T>[] = data.map(item => {
+      const versionValue = (item as Record<string, unknown>)['version'];
+      return {
+        original: { ...item },
+        current: { ...item },
+        selected: false,
+        editing: false,
+        dirty: false,
+        saving: false,
+        error: null,
+        cellErrors: {},
+        isNew: false,
+        version: typeof versionValue === 'number' ? versionValue : undefined,
+        recentlyUpdated: false,
+      };
+    });
     
     this._rows.set(rows);
     this._lastRefresh.set(Date.now());
@@ -367,7 +370,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
       )
     );
     
-    this.announce(`Editing ${column.header}`, 'polite');
+    this.announce(`Editing ${column?.header ?? 'cell'}`, 'polite');
   }
 
   /** Update cell value during edit */
@@ -422,6 +425,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
     
     const { rowIndex, columnIndex } = editingCell;
     const column = this._columns()[columnIndex];
+    if (!column) return;
     
     this._rows.update(rows => 
       rows.map((row, i) => {
@@ -815,7 +819,8 @@ export class DataGridStore<T extends Record<string, unknown>> {
     // Announce for screen readers
     const column = cols[columnIndex];
     const row = rows[rowIndex];
-    const value = row ? this.getValueByPath(row.current, column.field as string) : undefined;
+    if (!column || !row) return;
+    const value = this.getValueByPath(row.current, column.field as string);
     
     this.announce(`${column.header}: ${value}`, 'polite');
   }
@@ -935,11 +940,13 @@ export class DataGridStore<T extends Record<string, unknown>> {
   /** Set multiple columns visibility at once */
   setColumnsVisibility(visibilityMap: Record<string, boolean>): void {
     this._columns.update(cols => 
-      cols.map(col => 
-        Object.hasOwn(visibilityMap, col.id)
-          ? { ...col, visible: visibilityMap[col.id] }
-          : col
-      )
+      cols.map(col => {
+        if (Object.hasOwn(visibilityMap, col.id)) {
+          const newVisible = visibilityMap[col.id];
+          return { ...col, visible: newVisible ?? col.visible };
+        }
+        return col;
+      })
     );
   }
 
@@ -1031,7 +1038,8 @@ export class DataGridStore<T extends Record<string, unknown>> {
 
     for (let i = 0; i < keys.length - 1; i += 1) {
       const key = keys[i];
-      const originalChild = (originalCursor?.[key] as Record<string, unknown>) ?? {};
+      if (key === undefined) continue;
+      const originalChild = (originalCursor[key] as Record<string, unknown>) ?? {};
       const child = { ...originalChild };
       cursor[key] = child;
       cursor = child;
@@ -1039,7 +1047,7 @@ export class DataGridStore<T extends Record<string, unknown>> {
     }
 
     const lastKey = keys.at(-1);
-    if (lastKey) {
+    if (lastKey !== undefined) {
       cursor[lastKey] = value;
     }
 

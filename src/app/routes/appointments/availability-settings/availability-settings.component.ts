@@ -144,8 +144,9 @@ export class AvailabilitySettingsComponent implements OnInit {
         this.rules.set(data.rules);
         this.overrides.set(data.overrides);
         // Auto-select timezone from existing rules if available
-        if (data.rules.length > 0 && data.rules[0].timezone) {
-          this.selectedTimezone.set(data.rules[0].timezone);
+        const firstRule = data.rules[0];
+        if (firstRule?.timezone) {
+          this.selectedTimezone.set(firstRule.timezone);
         }
         this.loading.set(false);
       },
@@ -295,7 +296,7 @@ export class AvailabilitySettingsComponent implements OnInit {
   // Override form methods
   protected openOverrideForm(): void {
     this.editingOverrideId.set(null);
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split('T')[0] ?? '';
     this.overrideDate.set(today);
     this.overrideIsAvailable.set(false);
     this.overrideStartTime.set('09:00');

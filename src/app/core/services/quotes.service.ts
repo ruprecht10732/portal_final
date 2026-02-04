@@ -1,4 +1,4 @@
-import { Injectable, inject, signal, computed } from '@angular/core';
+import { Injectable, signal, computed } from '@angular/core';
 import { Observable, of, delay, tap } from 'rxjs';
 import type {
   Quote,
@@ -12,7 +12,6 @@ import type {
   TaxRate,
 } from './quotes.types';
 import { parseQuantityNumber } from './quotes.types';
-import { LeadsService } from './leads.service';
 
 /**
  * Stub service for quotes - logs operations, ready for backend integration.
@@ -20,8 +19,6 @@ import { LeadsService } from './leads.service';
  */
 @Injectable({ providedIn: 'root' })
 export class QuotesService {
-  private readonly leadsService = inject(LeadsService);
-
   // In-memory store for demo purposes
   private readonly quotesStore = signal<Quote[]>([]);
 
@@ -93,8 +90,8 @@ export class QuotesService {
       taxAmount,
       total,
       pricingMode,
-      validUntil: data.validUntil,
-      notes: data.notes,
+      ...(data.validUntil !== undefined && { validUntil: data.validUntil }),
+      ...(data.notes !== undefined && { notes: data.notes }),
       createdAt: now,
       updatedAt: now,
     };
@@ -142,6 +139,9 @@ export class QuotesService {
     const taxAmount = this.calculateLineTaxAmount(lineItems, discountRatio, pricingMode);
     const total = subtotal - discountAmount + taxAmount;
 
+    const validUntil = data.validUntil ?? existing.validUntil;
+    const notes = data.notes ?? existing.notes;
+
     const updated: Quote = {
       ...existing,
       lineItems,
@@ -152,8 +152,8 @@ export class QuotesService {
       taxAmount,
       total,
       pricingMode,
-      validUntil: data.validUntil ?? existing.validUntil,
-      notes: data.notes ?? existing.notes,
+      ...(validUntil !== undefined && { validUntil }),
+      ...(notes !== undefined && { notes }),
       updatedAt: new Date().toISOString(),
     };
 

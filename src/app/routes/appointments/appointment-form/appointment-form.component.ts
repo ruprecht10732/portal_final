@@ -131,8 +131,9 @@ export class AppointmentFormComponent implements OnInit {
         this.selectedLead.set(lead);
         this.leadSearchQuery.set(this.formatLeadLabel(lead));
         // Auto-select first service
-        if (lead.services?.length) {
-          this.selectedLeadServiceId.set(lead.services[0].id);
+        const firstService = lead.services?.[0];
+        if (firstService) {
+          this.selectedLeadServiceId.set(firstService.id);
         }
         // Pre-fill location from lead address
         if (lead.address && !this.location()) {
@@ -226,7 +227,8 @@ export class AppointmentFormComponent implements OnInit {
       this.selectedLead.set(lead);
       this.leadSearchQuery.set(this.formatLeadLabel(lead));
       // Reset service selection and auto-select first
-      this.selectedLeadServiceId.set(lead.services?.length ? lead.services[0].id : null);
+      const firstService = lead.services?.[0];
+      this.selectedLeadServiceId.set(firstService?.id ?? null);
       // Pre-fill location from lead address
       if (lead.address) {
         this.location.set(`${lead.address.street} ${lead.address.houseNumber}, ${lead.address.zipCode} ${lead.address.city}`);
@@ -257,21 +259,31 @@ export class AppointmentFormComponent implements OnInit {
     this.saving.set(true);
     this.error.set(null);
 
+    const description = this.description();
+    const location = this.location();
+    const meetingLink = this.meetingLink().trim();
+
     const data: CreateAppointmentRequest = {
       type: this.type(),
       title: this.title(),
-      description: this.description() || undefined,
-      location: this.location() || undefined,
-      meetingLink: this.meetingLink().trim() || undefined,
       startTime: new Date(this.startTime()).toISOString(),
       endTime: new Date(this.endTime()).toISOString(),
       allDay: this.allDay(),
+      ...(description && { description }),
+      ...(location && { location }),
+      ...(meetingLink && { meetingLink }),
     };
 
     // Add lead-specific fields for lead_visit type
     if (this.isLeadVisit()) {
-      data.leadId = this.selectedLead()?.id;
-      data.leadServiceId = this.selectedLeadServiceId() ?? undefined;
+      const leadId = this.selectedLead()?.id;
+      const leadServiceId = this.selectedLeadServiceId();
+      if (leadId) {
+        data.leadId = leadId;
+      }
+      if (leadServiceId) {
+        data.leadServiceId = leadServiceId;
+      }
       data.sendConfirmationEmail = this.sendConfirmationEmail();
     }
 

@@ -218,8 +218,9 @@ export class DataGridIconCellComponent {
         event.preventDefault();
         event.stopPropagation();
         const index = this.activeIndex();
-        if (index >= 0 && index < icons.length) {
-          this.selectIcon(icons[index]);
+        const icon = icons[index];
+        if (index >= 0 && icon) {
+          this.selectIcon(icon);
         }
         break;
       }

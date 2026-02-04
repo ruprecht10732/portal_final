@@ -307,23 +307,34 @@ export class ServiceTypesComponent implements OnInit {
     }
 
     const description = this.normalizeNullable(row.description, existing.description ?? null);
-    if (description !== undefined) {
+    if (description !== undefined && description !== null) {
       request.description = description;
+    } else if (description === null) {
+      request.description = null;
     }
 
     const intakeGuidelines = this.normalizeNullable(row.intakeGuidelines, existing.intakeGuidelines ?? null);
-    if (intakeGuidelines !== undefined) {
+    if (intakeGuidelines !== undefined && intakeGuidelines !== null) {
       request.intakeGuidelines = intakeGuidelines;
+    } else if (intakeGuidelines === null) {
+      request.intakeGuidelines = null;
     }
 
     const icon = this.normalizeNullable(row.icon, existing.icon ?? null);
-    if (icon !== undefined) {
-      request.icon = normalizeIconName(icon);
+    if (icon !== undefined && icon !== null) {
+      const normalized = normalizeIconName(icon);
+      if (normalized !== undefined) {
+        request.icon = normalized;
+      }
+    } else if (icon === null) {
+      request.icon = null;
     }
 
     const color = this.normalizeNullable(row.color, existing.color ?? null);
-    if (color !== undefined) {
+    if (color !== undefined && color !== null) {
       request.color = color;
+    } else if (color === null) {
+      request.color = null;
     }
 
     const displayOrder = this.parseDisplayOrder(row.displayOrder);
@@ -338,16 +349,21 @@ export class ServiceTypesComponent implements OnInit {
     const name = this.normalizeOptional(row.name);
     if (!name) return null;
 
-    const icon = normalizeIconName(this.normalizeOptional(row.icon));
+    const rawIcon = normalizeIconName(this.normalizeOptional(row.icon));
+    // Filter out null - only include if it's a valid string
+    const icon = rawIcon === null ? undefined : rawIcon;
     const displayOrder = this.parseDisplayOrder(row.displayOrder);
+    const description = this.normalizeOptional(row.description);
+    const intakeGuidelines = this.normalizeOptional(row.intakeGuidelines);
+    const color = this.normalizeOptional(row.color);
 
     return {
       name,
-      description: this.normalizeOptional(row.description),
-      intakeGuidelines: this.normalizeOptional(row.intakeGuidelines),
-      icon: icon ?? undefined,
-      color: this.normalizeOptional(row.color),
-      displayOrder,
+      ...(description !== undefined && { description }),
+      ...(intakeGuidelines !== undefined && { intakeGuidelines }),
+      ...(icon !== undefined && { icon }),
+      ...(color !== undefined && { color }),
+      ...(displayOrder !== undefined && { displayOrder }),
     };
   }
 
@@ -395,11 +411,13 @@ export class ServiceTypesComponent implements OnInit {
   }
 
   protected fetchData(request: DataRequest): Observable<DataResponse<ServiceTypeRow>> {
+    const sortBy = request.sort?.columnId as ListServiceTypesParams['sortBy'];
+    const sortOrder = request.sort?.direction;
     const params: ListServiceTypesParams = {
       page: request.page,
       pageSize: request.pageSize,
-      sortBy: request.sort?.columnId as ListServiceTypesParams['sortBy'],
-      sortOrder: request.sort?.direction,
+      ...(sortBy !== undefined && { sortBy }),
+      ...(sortOrder !== undefined && { sortOrder }),
     };
 
     if (request.searchTerm) {

@@ -53,7 +53,7 @@
 
     <!-- Page numbers -->
     <div class="hidden sm:flex items-center gap-1">
-      @if (pageNumbers()[0] > 1) {
+      @if (pageNumbers().length > 0 && pageNumbers()[0]! > 1) {
         <span class="px-2 text-zinc-500">...</span>
       }
       
@@ -73,7 +73,7 @@
         </button>
       }
       
-      @if (pageNumbers()[pageNumbers().length - 1] < totalPages()) {
+      @if (pageNumbers().length > 0 && pageNumbers()[pageNumbers().length - 1]! < totalPages()) {
         <span class="px-2 text-zinc-500">...</span>
       }
     </div>

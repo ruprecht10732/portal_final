@@ -102,8 +102,9 @@ export class CatalogCreateComponent implements OnInit {
     this.catalogService.listVatRates({ pageSize: 100 }).subscribe({
       next: (response) => {
         this.vatRates.set(response.items);
-        if (response.items.length > 0 && !this.form.controls.vatRateId.value) {
-          this.form.controls.vatRateId.setValue(response.items[0].id);
+        const firstVatRate = response.items[0];
+        if (firstVatRate && !this.form.controls.vatRateId.value) {
+          this.form.controls.vatRateId.setValue(firstVatRate.id);
         }
         this.loading.set(false);
       },
@@ -150,14 +151,15 @@ export class CatalogCreateComponent implements OnInit {
 
     const values = this.form.getRawValue();
     const priceCents = values.price === null ? 0 : CatalogService.priceToCents(values.price);
+    const descriptionValue = (values.description ?? '').trim();
 
     const request: CreateProductRequest = {
       title: (values.title ?? '').trim(),
       reference: (values.reference ?? '').trim(),
-      description: (values.description ?? '').trim() || undefined,
       priceCents,
       vatRateId: values.vatRateId!,
       type: values.type,
+      ...(descriptionValue && { description: descriptionValue }),
     };
 
     // Add period fields only for service types

@@ -176,14 +176,18 @@ export class AppointmentDetailComponent implements OnInit {
 
     this.saving.set(true);
 
+    const description = this.editDescription();
+    const location = this.editLocation();
+    const meetingLink = this.editMeetingLink().trim();
+
     const data: UpdateAppointmentRequest = {
       title: this.editTitle(),
-      description: this.editDescription() || undefined,
-      location: this.editLocation() || undefined,
-      meetingLink: this.editMeetingLink().trim() || undefined,
       startTime: new Date(this.editStartTime()).toISOString(),
       endTime: new Date(this.editEndTime()).toISOString(),
       allDay: this.editAllDay(),
+      ...(description && { description }),
+      ...(location && { location }),
+      ...(meetingLink && { meetingLink }),
     };
 
     this.appointmentsService.update(apt.id, data).subscribe({
@@ -249,10 +253,14 @@ export class AppointmentDetailComponent implements OnInit {
 
     this.saving.set(true);
 
+    const measurements = this.reportMeasurements();
+    const accessDifficulty = this.reportAccessDifficulty() as AccessDifficulty;
+    const notes = this.reportNotes();
+
     const data: UpsertVisitReportRequest = {
-      measurements: this.reportMeasurements() || undefined,
-      accessDifficulty: (this.reportAccessDifficulty() as AccessDifficulty) || undefined,
-      notes: this.reportNotes() || undefined,
+      ...(measurements && { measurements }),
+      ...(accessDifficulty && { accessDifficulty }),
+      ...(notes && { notes }),
     };
 
     this.appointmentsService.upsertVisitReport(apt.id, data).subscribe({

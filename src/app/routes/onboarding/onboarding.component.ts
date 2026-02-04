@@ -73,11 +73,12 @@ export class OnboardingComponent {
 
   private async persistOnboarding(): Promise<void> {
     try {
+      const orgName = this.needsOrganization() ? this.organizationName().trim() : undefined;
       await firstValueFrom(
         this.userService.completeOnboarding({
           firstName: this.firstName().trim(),
           lastName: this.lastName().trim(),
-          organizationName: this.needsOrganization() ? this.organizationName().trim() : undefined,
+          ...(orgName !== undefined && { organizationName: orgName }),
         })
       );
 

@@ -92,9 +92,10 @@ export class DataGridHeaderComponent<T = unknown> {
     let left = this.selectable() ? 40 : 0; // checkbox column width
     
     for (let i = 0; i < columnIndex; i++) {
-      if (cols[i]?.frozen) {
+      const col = cols[i];
+      if (col?.frozen) {
         // Use minWidth or default
-        const width = cols[i].minWidth ?? cols[i].width ?? '150px';
+        const width = col.minWidth ?? col.width ?? '150px';
         left += Number.parseInt(width, 10) || 150;
       }
     }
@@ -133,7 +134,7 @@ export class DataGridHeaderComponent<T = unknown> {
     this.currentTh.style.width = `${newWidth}px`;
   }
 
-  private onResizeEnd(event: MouseEvent, colIndex: number): void {
+  private onResizeEnd(_event: MouseEvent, colIndex: number): void {
     if (!this.currentTh) return;
 
     const column = this.columns()[colIndex];

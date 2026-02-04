@@ -62,9 +62,10 @@ export class MapPreviewComponent {
         })
         .subscribe({
           next: results => {
-            if (results.length) {
-              const lat = Number(results[0].lat);
-              const lon = Number(results[0].lon);
+            const first = results[0];
+            if (results.length && first) {
+              const lat = Number(first.lat);
+              const lon = Number(first.lon);
               if (Number.isFinite(lat) && Number.isFinite(lon)) {
                 this.coords.set({ lat, lon });
                 this.error.set(null);

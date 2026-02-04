@@ -249,7 +249,9 @@ export class CatalogService {
 
   listProductAssets(productId: string, type?: CatalogAssetType): Observable<CatalogAssetListResponse> {
     const params = type ? toHttpParams({ type }) : undefined;
-    return this.http.get<CatalogAssetListResponse>(`${this.baseUrl}/products/${productId}/assets`, { params });
+    return this.http.get<CatalogAssetListResponse>(`${this.baseUrl}/products/${productId}/assets`, {
+      ...(params !== undefined && { params }),
+    });
   }
 
   getCatalogAssetDownloadUrl(productId: string, assetId: string): Observable<PresignedDownloadResponse> {

@@ -70,7 +70,7 @@ export interface QuoteListResponse {
  */
 export function parseQuantityNumber(quantity: string): number {
   const match = /^([\d.,]+)/.exec(quantity);
-  if (!match) return 1;
+  if (!match?.[1]) return 1;
   return Number.parseFloat(match[1].replace(',', '.')) || 1;
 }
 

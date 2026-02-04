@@ -203,9 +203,9 @@ export class AppointmentsListComponent implements OnInit {
     const params: ListAppointmentsParams = {
       page: request.page,
       pageSize: request.pageSize,
-      search: request.searchTerm || undefined,
-      sortBy: request.sort?.columnId,
-      sortOrder: request.sort?.direction,
+      ...(request.searchTerm && { search: request.searchTerm }),
+      ...(request.sort?.columnId && { sortBy: request.sort.columnId }),
+      ...(request.sort?.direction && { sortOrder: request.sort.direction }),
     };
 
     // Map filters

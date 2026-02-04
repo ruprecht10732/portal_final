@@ -84,10 +84,13 @@ export class OffertesListComponent implements OnInit {
     ).pipe(
       map(results => {
         const leadsMap = new Map<string, Lead | undefined>(results.map(result => [result.id, result.lead]));
-        return items.map(q => ({
-          ...q,
-          lead: leadsMap.get(q.leadId),
-        }));
+        return items.map(q => {
+          const lead = leadsMap.get(q.leadId);
+          return {
+            ...q,
+            ...(lead !== undefined && { lead }),
+          };
+        });
       })
     );
   }

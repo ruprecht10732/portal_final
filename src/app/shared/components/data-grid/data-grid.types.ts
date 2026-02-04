@@ -63,7 +63,7 @@ export interface GridColumn<T = unknown> {
   /** Custom cell template identifier */
   templateId?: string;
   /** Whether column is visible */
-  visible?: boolean;
+  visible?: boolean | undefined;
   /** Alignment for cell content */
   align?: 'left' | 'center' | 'right';
   /** Whether column is frozen */
@@ -121,7 +121,7 @@ export interface RowState<T> {
   /** Whether this is a new (unsaved) row */
   isNew: boolean;
   /** Timestamp for optimistic concurrency */
-  version?: number;
+  version?: number | undefined;
   /** Whether row was recently updated by another user */
   recentlyUpdated: boolean;
 }
@@ -275,14 +275,12 @@ export const DEFAULT_GRID_CONFIG: GridConfig<unknown> = {
   // Mobile/Card View defaults
   cardViewEnabled: true,
   mobileBreakpoint: MOBILE_BREAKPOINT,
-  cardTitleField: undefined,
   cardPreviewFieldCount: CARD_PREVIEW_FIELD_COUNT,
   columnPickerEnabled: true,
   maxMobileColumns: MAX_MOBILE_COLUMNS,
   mobileAddRowEnabled: true,
   rowViewActionEnabled: false,
   rowDeleteActionEnabled: false,
-  rowDeleteActionPredicate: undefined,
 };
 
 /** Cell position for keyboard navigation */

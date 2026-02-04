@@ -124,7 +124,7 @@ export class BottomSheetComponent {
   protected onDragMove(event: TouchEvent | MouseEvent): void {
     if (!this.isDragging()) return;
     
-    const clientY = 'touches' in event ? event.touches[0].clientY : event.clientY;
+    const clientY = 'touches' in event ? (event.touches[0]?.clientY ?? 0) : event.clientY;
     const sheet = this.sheetRef()?.nativeElement;
     
     if (sheet) {

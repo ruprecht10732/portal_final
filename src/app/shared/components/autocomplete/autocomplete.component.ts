@@ -114,12 +114,14 @@ export class AutocompleteComponent {
         this.open();
         this.moveActiveIndex(-1, options.length);
         break;
-      case 'Enter':
-        if (this.activeIndex() >= 0) {
+      case 'Enter': {
+        const option = options[this.activeIndex()];
+        if (this.activeIndex() >= 0 && option) {
           event.preventDefault();
-          this.selectOption(options[this.activeIndex()]);
+          this.selectOption(option);
         }
         break;
+      }
       case 'Escape':
         if (this.isOpen()) {
           event.preventDefault();
