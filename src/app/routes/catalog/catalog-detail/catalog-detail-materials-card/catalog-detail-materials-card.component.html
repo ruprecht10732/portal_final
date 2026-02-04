@@ -3,9 +3,24 @@
     <h2 class="text-sm font-semibold text-black uppercase tracking-wide">
       {{ 'catalog.products.linkedMaterials' | translate }}
     </h2>
-    <shared-chip variant="info">
-      {{ materials().length }} {{ 'catalog.products.items' | translate }}
-    </shared-chip>
+    <div class="flex items-center gap-2">
+      <shared-chip variant="info">
+        {{ materials().length }} {{ 'catalog.products.items' | translate }}
+      </shared-chip>
+      <shared-button
+        type="button"
+        variant="ghost"
+        size="compact"
+        [iconOnly]="true"
+        [fullWidth]="false"
+        [disabled]="materialsLoading()"
+        [ariaLabel]="'catalog.products.addMaterial' | translate"
+        [tooltip]="'catalog.products.addMaterial' | translate"
+        (clicked)="openAddMaterialDialog()()"
+      >
+        <lucide-icon name="plus" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+      </shared-button>
+    </div>
   </div>
 
   @if (materialsLoading()) {

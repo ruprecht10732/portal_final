@@ -1,5 +1,6 @@
 :host {
   display: block;
+  overflow-x: hidden;
 }
 
 .materials-list {
@@ -17,6 +18,8 @@
   background: #ffffff;
   border: 1px solid #e4e4e7;
   border-radius: 10px;
+  min-width: 0;
+  overflow: hidden;
   font-size: 0.875rem;
   transition: border-color 120ms ease, background-color 120ms ease;
 }
@@ -38,6 +41,9 @@
   font-size: 0.75rem;
   color: #71717a;
   font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, 'Liberation Mono', 'Courier New', monospace;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .materials-price {
@@ -45,4 +51,5 @@
   font-weight: 600;
   color: #0f172a;
   flex-shrink: 0;
+  white-space: nowrap;
 }

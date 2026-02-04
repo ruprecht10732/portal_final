@@ -50,7 +50,7 @@
   } @else if (product()) {
     <!-- Content -->
     <div class="flex-1 overflow-y-auto">
-      <div class="w-full p-4 sm:p-6 lg:p-8">
+      <div class="w-full p-4 sm:p-6 lg:p-8 overflow-x-hidden">
         <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
           <div class="lg:col-span-8 flex flex-col gap-6">
             <app-catalog-detail-basics-card
@@ -97,6 +97,7 @@
                 [materials]="materials()"
                 [materialsLoading]="materialsLoading()"
                 [formatMaterialPrice]="onFormatMaterialPrice"
+                [openAddMaterialDialog]="onOpenAddMaterialDialog"
               />
             }
           </div>
@@ -128,4 +129,41 @@
     [error]="previewError()"
     (closed)="closePreview()"
   />
+
+  <shared-confirm-dialog
+    [isOpen]="showAddMaterialDialog()"
+    [title]="'catalog.products.addMaterialTitle' | translate"
+    [confirmText]="'catalog.products.addSelected' | translate"
+    [cancelText]="'catalog.products.cancel' | translate"
+    confirmVariant="primary"
+    [confirmDisabled]="addingMaterials() || selectedMaterialCount() === 0"
+    (confirm)="addSelectedMaterials()"
+    (cancelled)="closeAddMaterialDialog()"
+  >
+    <div class="max-h-64 overflow-y-auto">
+      @if (availableMaterials().length === 0) {
+        <p class="text-sm text-zinc-500 py-4 text-center">
+          {{ 'catalog.products.noAvailableMaterials' | translate }}
+        </p>
+      } @else {
+        <div class="divide-y divide-zinc-100">
+          @for (material of availableMaterials(); track material.id) {
+            <label class="flex items-center gap-3 p-3 hover:bg-zinc-50 cursor-pointer transition-colors">
+              <input
+                type="checkbox"
+                [checked]="isMaterialSelected(material.id)"
+                (change)="toggleMaterialSelection(material.id)"
+                class="h-4 w-4 text-black border-zinc-300 rounded focus:ring-black"
+              />
+              <div class="flex-1 min-w-0">
+                <p class="text-sm font-medium text-zinc-900 truncate">{{ material.title }}</p>
+                <p class="text-xs text-zinc-500 font-mono">{{ material.reference }}</p>
+              </div>
+              <span class="text-sm font-medium text-zinc-600">{{ formatMaterialPrice(material.priceCents) }}</span>
+            </label>
+          }
+        </div>
+      }
+    </div>
+  </shared-confirm-dialog>
 </div>

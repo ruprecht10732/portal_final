@@ -75,6 +75,11 @@ export class CatalogDetailComponent implements OnInit {
   // Materials for service products
   protected readonly materials = signal<Product[]>([]);
   protected readonly materialsLoading = signal(false);
+  protected readonly availableMaterials = signal<Product[]>([]);
+  protected readonly selectedMaterialIds = signal<string[]>([]);
+  protected readonly showAddMaterialDialog = signal(false);
+  protected readonly addingMaterials = signal(false);
+  protected readonly selectedMaterialCount = computed(() => this.selectedMaterialIds().length);
 
   protected readonly formattedPrice = computed(() => {
     const product = this.product();
@@ -120,6 +125,7 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly onAssetError = (event: FileUploadError | null): void => this.handleAssetError(event);
   protected readonly onCreateTermsUrl = async (url: string, label?: string): Promise<CatalogAsset | null> =>
     this.createTermsUrl(url, label);
+  protected readonly onOpenAddMaterialDialog = (): void => this.openAddMaterialDialog();
 
   protected readonly previewTitle = computed(() => {
     const asset = this.previewAsset();
@@ -468,6 +474,63 @@ export class CatalogDetailComponent implements OnInit {
       this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       return null;
     }
+  }
+
+  protected openAddMaterialDialog(): void {
+    this.selectedMaterialIds.set([]);
+    this.loadAvailableMaterials();
+    this.showAddMaterialDialog.set(true);
+  }
+
+  protected closeAddMaterialDialog(): void {
+    this.showAddMaterialDialog.set(false);
+    this.selectedMaterialIds.set([]);
+  }
+
+  private loadAvailableMaterials(): void {
+    this.catalogService.listProducts({ type: 'material', pageSize: 100 }).subscribe({
+      next: (response) => {
+        const linkedIds = new Set(this.materials().map(m => m.id));
+        this.availableMaterials.set(response.items.filter(m => !linkedIds.has(m.id)));
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  protected toggleMaterialSelection(materialId: string): void {
+    this.selectedMaterialIds.update(ids =>
+      ids.includes(materialId) ? ids.filter(id => id !== materialId) : [...ids, materialId],
+    );
+  }
+
+  protected isMaterialSelected(materialId: string): boolean {
+    return this.selectedMaterialIds().includes(materialId);
+  }
+
+  protected addSelectedMaterials(): void {
+    const product = this.product();
+    const ids = this.selectedMaterialIds();
+    if (!product || ids.length === 0) return;
+
+    this.addingMaterials.set(true);
+    this.catalogService.addProductMaterials(product.id, { materialIds: ids }).subscribe({
+      next: () => {
+        this.closeAddMaterialDialog();
+        this.loadMaterials(product.id);
+        this.addingMaterials.set(false);
+        this.toast.success(this.translate.instant('catalog.products.materialsAdded'));
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.addMaterials'));
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.addingMaterials.set(false);
+      },
+    });
   }
 
 }
