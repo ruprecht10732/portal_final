@@ -493,10 +493,15 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     const keys = path.split('.');
     let acc: unknown = obj;
     for (const key of keys) {
+      if (!this.isSafePathKey(key)) return undefined;
       if (!this.isObject(acc) || !Object.hasOwn(acc, key)) return undefined;
       acc = (acc as Record<string, unknown>)[key];
     }
     return acc;
+  }
+
+  private isSafePathKey(key: string): boolean {
+    return key !== '__proto__' && key !== 'prototype' && key !== 'constructor';
   }
 
   private isObject(val: unknown): val is object {
