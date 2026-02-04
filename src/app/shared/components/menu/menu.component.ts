@@ -89,17 +89,30 @@ export class MenuComponent {
     if (!items.length) return;
 
     const currentIndex = items.indexOf(document.activeElement as HTMLElement);
-    const handlers: Record<string, () => void> = {
-      ArrowDown: () => this.focusRelativeItem(items, currentIndex, 1),
-      ArrowUp: () => this.focusRelativeItem(items, currentIndex, -1),
-      Home: () => items[0]?.focus(),
-      End: () => items.at(-1)?.focus(),
-      Escape: () => this.close(),
-    };
-    const handler = handlers[event.key];
-    if (!handler) return;
-    event.preventDefault();
-    handler();
+    switch (event.key) {
+      case 'ArrowDown':
+        event.preventDefault();
+        this.focusRelativeItem(items, currentIndex, 1);
+        return;
+      case 'ArrowUp':
+        event.preventDefault();
+        this.focusRelativeItem(items, currentIndex, -1);
+        return;
+      case 'Home':
+        event.preventDefault();
+        items[0]?.focus();
+        return;
+      case 'End':
+        event.preventDefault();
+        items.at(-1)?.focus();
+        return;
+      case 'Escape':
+        event.preventDefault();
+        this.close();
+        return;
+      default:
+        return;
+    }
   }
 
   private focusRelativeItem(items: HTMLElement[], currentIndex: number, delta: number): void {
