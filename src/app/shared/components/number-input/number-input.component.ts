@@ -1,4 +1,4 @@
-/* eslint-disable @angular-eslint/component-selector */
+ 
 import { Component, computed, input, model, ChangeDetectionStrategy } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 

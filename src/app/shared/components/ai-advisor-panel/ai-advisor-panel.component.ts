@@ -1,4 +1,4 @@
-/* eslint-disable @angular-eslint/component-selector */
+ 
 import { ChangeDetectionStrategy, Component, computed, effect, input, output, signal } from '@angular/core';
 import { DatePipe, NgClass } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';

@@ -1,4 +1,4 @@
-/* eslint-disable @angular-eslint/component-selector */
+ 
 import { ChangeDetectionStrategy, Component, ElementRef, computed, effect, inject, input, output, signal, viewChild } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonComponent } from '../button/button.component';

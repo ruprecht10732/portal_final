@@ -1,4 +1,4 @@
-/* eslint-disable @angular-eslint/component-selector */
+ 
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';

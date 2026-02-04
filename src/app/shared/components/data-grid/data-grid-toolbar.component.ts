@@ -1,4 +1,4 @@
-/* eslint-disable @angular-eslint/component-selector */
+ 
 /**
  * Data Grid Toolbar Component
  * Provides search, filter controls, and action buttons
