@@ -4,7 +4,12 @@
     [class.cursor-not-allowed]="isUnavailable()"
     [class.opacity-60]="isUnavailable()"
     [attr.aria-label]="day()?.ariaLabel"
+    [attr.aria-disabled]="isUnavailable() || null"
+    [attr.tabindex]="isUnavailable() ? -1 : 0"
+    role="button"
     (click)="handleSelect()"
+    (keydown.enter)="handleSelect()"
+    (keydown.space)="handleSelect(); $event.preventDefault()"
   >
     <span class="text-base font-bold tracking-wide uppercase">{{ dayTitle() }}</span>
     <span class="text-sm text-zinc-500">{{ daySubtitle() }}</span>
@@ -23,7 +28,12 @@
           [class.border-zinc-400]="isBlocked(hour.value)"
           [class.cursor-not-allowed]="isBlocked(hour.value)"
           [class.hover:border-zinc-900]="!isBlocked(hour.value)"
+          [attr.aria-disabled]="isBlocked(hour.value) || null"
+          [attr.tabindex]="isBlocked(hour.value) ? -1 : 0"
+          role="button"
           (click)="onSlotClick(hour.value)"
+          (keydown.enter)="onSlotClick(hour.value)"
+          (keydown.space)="onSlotClick(hour.value); $event.preventDefault()"
         >
           @for (event of getEventsForSlot(hour.value); track event.id) {
             <button

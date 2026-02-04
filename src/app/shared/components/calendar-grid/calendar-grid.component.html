@@ -133,7 +133,12 @@
               >
                 <div
                   class="min-h-24 flex flex-col cursor-pointer hover:bg-zinc-50"
+                  [attr.aria-disabled]="isUnavailable(day) || null"
+                  [attr.tabindex]="isUnavailable(day) ? -1 : 0"
+                  role="button"
                   (click)="onSlotClick(day)"
+                  (keydown.enter)="onSlotClick(day)"
+                  (keydown.space)="onSlotClick(day); $event.preventDefault()"
                 >
                   <div
                     class="p-1 text-sm font-medium"
@@ -194,6 +199,7 @@
           [softDisabled]="false"
           selectionMode="explicit"
           (keydown)="onKeyDown($event)"
+          tabindex="0"
           [attr.aria-labelledby]="gridLabelId"
           [attr.aria-describedby]="instructionsId"
           class="w-full border-collapse border border-zinc-900"
@@ -234,7 +240,12 @@
                 >
                   <div
                     class="min-h-24 flex flex-col cursor-pointer hover:bg-zinc-50"
+                    [attr.aria-disabled]="isUnavailable(day) || null"
+                    [attr.tabindex]="isUnavailable(day) ? -1 : 0"
+                    role="button"
                     (click)="onSlotClick(day)"
+                    (keydown.enter)="onSlotClick(day)"
+                    (keydown.space)="onSlotClick(day); $event.preventDefault()"
                   >
                     <div
                       class="p-1 text-sm font-medium"

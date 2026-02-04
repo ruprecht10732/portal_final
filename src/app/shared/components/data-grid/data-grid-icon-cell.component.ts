@@ -52,6 +52,7 @@ import { AVAILABLE_ICONS } from '../icon-picker/available-icons';
         <div
           class="bg-white border border-black shadow-xl mt-px max-h-64 overflow-hidden flex flex-col focus:outline-none z-50"
           (keydown)="onPanelKeydown($event)"
+          tabindex="0"
         >
           <!-- Search input -->
           <div class="p-2 border-b border-zinc-200">

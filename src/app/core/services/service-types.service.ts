@@ -66,10 +66,12 @@ export class ServiceTypesService {
 
   private normalizeItem(item: ServiceTypeItem): ServiceTypeItem {
     const normalizedIcon = normalizeIconName(item.icon);
-    const { icon, ...rest } = item;
+    if (normalizedIcon == null) {
+      return item;
+    }
     return {
-      ...rest,
-      ...(normalizedIcon != null && { icon: normalizedIcon }),
+      ...item,
+      icon: normalizedIcon,
     };
   }
 

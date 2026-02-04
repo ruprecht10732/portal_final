@@ -1,11 +1,10 @@
 @if (isOpen()) {
-  <div
+  <button
+    type="button"
     class="fixed inset-0 bg-black/50 z-60"
     (click)="onBackdropClick()"
-    (keydown.enter)="onBackdropClick()"
-    (keydown.space)="onBackdropClick()"
-    aria-hidden="true"
-  ></div>
+    aria-label="Close dialog"
+  ></button>
 }
 
 <dialog
@@ -14,6 +13,7 @@
   [attr.aria-modal]="true"
   [attr.aria-labelledby]="titleId()"
   [attr.aria-describedby]="descriptionId()"
+  tabindex="-1"
   (keydown.escape)="onCancelClick()"
 >
   <div class="flex flex-col gap-5 p-6">

@@ -22,7 +22,7 @@ export class ConfirmDialogComponent {
   readonly closeOnBackdrop = input<boolean>(true);
 
   readonly confirm = output<void>();
-  readonly cancel = output<void>();
+  readonly cancelled = output<void>();
 
   private readonly confirmButtonRef = viewChild<ElementRef<HTMLButtonElement>>('confirmButton');
 
@@ -41,12 +41,12 @@ export class ConfirmDialogComponent {
 
   protected onBackdropClick(): void {
     if (this.closeOnBackdrop()) {
-      this.cancel.emit();
+      this.cancelled.emit();
     }
   }
 
   protected onCancelClick(): void {
-    this.cancel.emit();
+    this.cancelled.emit();
   }
 
   protected onConfirmClick(): void {

@@ -117,11 +117,11 @@ export class IconPickerComponent {
         this.handleArrowDown(event, icons);
         break;
       case 'ArrowUp':
-        this.handleArrowUp(event, icons);
+        this.handleArrowUp(event);
         break;
       case 'Enter':
       case ' ':
-        this.handleSelectKey(event, icons);
+        this.handleSelectKey(event);
         break;
       case 'Escape':
         this.handleEscape(event);
@@ -192,7 +192,7 @@ export class IconPickerComponent {
     this.openWithDefaultActiveIndex();
   }
 
-  private handleArrowUp(event: KeyboardEvent, _icons: readonly string[]): void {
+  private handleArrowUp(event: KeyboardEvent): void {
     event.preventDefault();
     if (this.isOpen()) {
       this.activeIndex.update(i => Math.max(i - 1, 0));
@@ -201,7 +201,7 @@ export class IconPickerComponent {
     this.openWithDefaultActiveIndex();
   }
 
-  private handleSelectKey(event: KeyboardEvent, _icons: readonly string[]): void {
+  private handleSelectKey(event: KeyboardEvent): void {
     event.preventDefault();
     if (this.isOpen()) {
       const index = this.activeIndex();

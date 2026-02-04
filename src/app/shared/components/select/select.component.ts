@@ -98,11 +98,11 @@ export class SelectComponent<T = unknown> {
         this.handleArrowDown(event, opts);
         break;
       case 'ArrowUp':
-        this.handleArrowUp(event, opts);
+        this.handleArrowUp(event);
         break;
       case 'Enter':
       case ' ':
-        this.handleSelectKey(event, opts);
+        this.handleSelectKey(event);
         break;
       case 'Escape':
         this.handleEscape(event);
@@ -125,7 +125,7 @@ export class SelectComponent<T = unknown> {
     this.openWithDefaultActiveIndex();
   }
 
-  private handleArrowUp(event: KeyboardEvent, _opts: readonly SelectOption<T>[]): void {
+  private handleArrowUp(event: KeyboardEvent): void {
     event.preventDefault();
     if (this.isOpen()) {
       this.activeIndex.update(i => Math.max(i - 1, 0));
@@ -134,7 +134,7 @@ export class SelectComponent<T = unknown> {
     this.openWithDefaultActiveIndex();
   }
 
-  private handleSelectKey(event: KeyboardEvent, _opts: readonly SelectOption<T>[]): void {
+  private handleSelectKey(event: KeyboardEvent): void {
     event.preventDefault();
     if (this.isOpen()) {
       const index = this.activeIndex();

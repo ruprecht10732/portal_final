@@ -49,7 +49,7 @@ export class BottomSheetComponent {
   // ============ Outputs ============
   
   /** Emitted when the sheet should close */
-  readonly close = output<void>();
+  readonly closed = output<void>();
 
   // ============ View Children ============
   
@@ -100,18 +100,18 @@ export class BottomSheetComponent {
   
   protected onEscape(): void {
     if (this.isOpen() && this.closeOnEscape()) {
-      this.close.emit();
+      this.closed.emit();
     }
   }
 
   protected onBackdropClick(): void {
     if (this.closeOnBackdrop()) {
-      this.close.emit();
+      this.closed.emit();
     }
   }
 
   protected onCloseClick(): void {
-    this.close.emit();
+    this.closed.emit();
   }
 
   // ============ Drag/Swipe Handling ============
@@ -150,7 +150,7 @@ export class BottomSheetComponent {
     
     if (offset > threshold) {
       // Close the sheet
-      this.close.emit();
+      this.closed.emit();
     }
     
     // Reset drag offset

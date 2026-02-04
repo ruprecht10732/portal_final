@@ -125,7 +125,7 @@
         <app-bottom-sheet
           [isOpen]="showColumnPicker()"
           [title]="'dataGrid.showHideColumns' | translate"
-          (close)="closeColumnPicker()"
+          (closed)="closeColumnPicker()"
         >
           <div class="py-2 flex flex-col gap-2">
             @for (column of allColumns(); track column.id) {
@@ -292,7 +292,7 @@
   <app-bottom-sheet
     [isOpen]="showFilters()"
     [title]="'dataGrid.filters' | translate"
-    (close)="closeFilters()"
+    (closed)="closeFilters()"
   >
     <div 
       id="filter-panel-mobile"

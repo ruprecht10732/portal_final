@@ -463,7 +463,7 @@
     confirmVariant="primary"
     [confirmDisabled]="addingMaterials() || selectedMaterialIds().length === 0"
     (confirm)="addSelectedMaterials()"
-    (cancel)="closeAddMaterialDialog()"
+    (cancelled)="closeAddMaterialDialog()"
   >
     <div class="max-h-64 overflow-y-auto">
       @if (availableMaterials().length === 0) {
