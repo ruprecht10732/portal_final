@@ -1,10 +1,9 @@
 {
   "catalog": {
     "overview": "Overview",
-        "materials": "Materials",
-        "assets": "Assets"
-    "products": "Products",
-      "assets": {
+    "materials": "Materials",
+    "create": "New",
+    "assets": {
         "title": "Assets",
         "subtitle": "Upload images, documents, and terms URLs.",
         "images": "Images",
@@ -44,11 +43,6 @@
     "filterByType": "Filter by type",
     "allTypes": "All types",
     "types": {
-        "removeMaterial": "Failed to remove material",
-        "uploadAsset": "Failed to upload asset",
-        "deleteAsset": "Failed to delete asset",
-        "loadAssetDownload": "Failed to open asset",
-        "createTerms": "Failed to add terms URL"
       "service": "Service",
       "product": "Product",
       "material": "Material"
@@ -310,6 +304,36 @@
       "tabs": {
         "details": "Details",
         "materials": "Materials"
+      },
+      "assets": {
+        "title": "Assets",
+        "subtitle": "Upload images, documents, and terms URLs.",
+        "images": "Images",
+        "documents": "Documents",
+        "termsTitle": "Terms URLs",
+        "termsUrl": "Terms URL",
+        "termsLabel": "Label",
+        "optionalLabel": "Optional label",
+        "addTerms": "Add terms URL",
+        "selectImage": "Select image",
+        "selectDocument": "Select document",
+        "uploadImage": "Upload image",
+        "uploadDocument": "Upload document",
+        "uploading": "Uploading...",
+        "libraryTitle": "Asset library",
+        "loading": "Loading assets...",
+        "empty": "No assets yet.",
+        "emptyHint": "Upload images or documents, or add a terms URL.",
+        "noImages": "No images yet.",
+        "noDocuments": "No documents yet.",
+        "noTerms": "No terms URLs yet.",
+        "link": "Open",
+        "untitled": "Untitled",
+        "types": {
+          "image": "Image",
+          "document": "Document",
+          "terms_url": "Terms URL"
+        }
       },
       "linkedMaterials": "Linked Materials",
       "linkedMaterialsDescription": "Materials used for this service",
