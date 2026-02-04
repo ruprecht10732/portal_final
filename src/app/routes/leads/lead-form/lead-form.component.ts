@@ -365,7 +365,7 @@ export class LeadFormComponent implements OnInit {
 
   protected requiredControlError(control: AbstractControl | null): string {
     if (!this.submitAttempted()) return '';
-    if (!control || !control.hasError('required')) return '';
+    if (!control?.hasError('required')) return '';
     return this.requiredError();
   }
 }
