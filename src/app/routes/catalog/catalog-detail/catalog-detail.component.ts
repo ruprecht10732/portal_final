@@ -49,6 +49,7 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly assetsLoading = signal(false);
   protected readonly assetsError = signal<string | null>(null);
   protected readonly downloadingAssetId = signal<string | null>(null);
+  protected readonly heroImageUrl = signal<string | null>(null);
 
   // Materials for service products
   protected readonly materials = signal<Product[]>([]);
@@ -154,12 +155,30 @@ export class CatalogDetailComponent implements OnInit {
       next: (response) => {
         this.assets.set(response.items);
         this.assetsLoading.set(false);
+        this.loadHeroImage(productId, response.items);
       },
       error: (err) => {
         const message = this.getErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
         this.assetsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.assetsLoading.set(false);
+      },
+    });
+  }
+
+  private loadHeroImage(productId: string, assets: CatalogAsset[]): void {
+    const imageAsset = assets.find(asset => asset.assetType === 'image');
+    if (!imageAsset) {
+      this.heroImageUrl.set(null);
+      return;
+    }
+
+    this.catalogService.getCatalogAssetDownloadUrl(productId, imageAsset.id).subscribe({
+      next: (response) => {
+        this.heroImageUrl.set(response.downloadUrl);
+      },
+      error: () => {
+        this.heroImageUrl.set(null);
       },
     });
   }
