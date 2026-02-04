@@ -63,6 +63,12 @@
               [createdAt]="product()!.createdAt"
               [updatedAt]="product()!.updatedAt"
               [updateProduct]="onUpdateProduct"
+              [vatRates]="vatRates()"
+              [selectedVatRateId]="product()!.vatRateId"
+              [typeOptions]="typeOptions()"
+              [selectedType]="product()!.type"
+              [onVatRateChange]="onVatRateChange"
+              [onTypeChange]="onTypeChange"
             />
           </div>
 

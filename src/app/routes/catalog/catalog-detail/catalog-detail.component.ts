@@ -54,6 +54,7 @@ export class CatalogDetailComponent implements OnInit {
 
   protected readonly product = signal<Product | null>(null);
   protected readonly vatRate = signal<VatRate | null>(null);
+  protected readonly vatRates = signal<VatRate[]>([]);
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly deleting = signal(false);
@@ -92,6 +93,13 @@ export class CatalogDetailComponent implements OnInit {
     return `${vr.name} (${CatalogService.bpsToRate(vr.rateBps)}%)`;
   });
 
+  protected readonly typeOptions = computed(() => [
+    { value: 'service' as ProductType, label: this.translate.instant('catalog.products.types.service') },
+    { value: 'digital_service' as ProductType, label: this.translate.instant('catalog.products.types.digital_service') },
+    { value: 'product' as ProductType, label: this.translate.instant('catalog.products.types.product') },
+    { value: 'material' as ProductType, label: this.translate.instant('catalog.products.types.material') },
+  ]);
+
   protected readonly formattedPeriod = computed(() => {
     const product = this.product();
     if (!product?.periodCount || !product.periodUnit) return null;
@@ -126,6 +134,10 @@ export class CatalogDetailComponent implements OnInit {
     this.createTermsUrl(url, label);
   protected readonly onUpdateProduct = async (data: UpdateProductRequest): Promise<void> =>
     this.updateProduct(data);
+  protected readonly onVatRateChange = async (vatRateId: string): Promise<void> =>
+    this.updateVatRate(vatRateId);
+  protected readonly onTypeChange = async (type: ProductType): Promise<void> =>
+    this.updateProduct({ type });
   protected readonly onOpenAddMaterialDialog = (): void => this.openAddMaterialDialog();
 
   protected readonly previewTitle = computed(() => {
@@ -171,6 +183,7 @@ export class CatalogDetailComponent implements OnInit {
   private loadVatRate(vatRateId: string): void {
     this.catalogService.listVatRates({ pageSize: 100 }).subscribe({
       next: (response) => {
+        this.vatRates.set(response.items ?? []);
         const vr = response.items.find(v => v.id === vatRateId);
         if (vr) {
           this.vatRate.set(vr);
@@ -381,6 +394,12 @@ export class CatalogDetailComponent implements OnInit {
     }
   }
 
+  private async updateVatRate(vatRateId: string): Promise<void> {
+    await this.updateProduct({ vatRateId });
+    const selected = this.vatRates().find(v => v.id === vatRateId) || null;
+    this.vatRate.set(selected);
+  }
+
 
   private async updateProduct(data: UpdateProductRequest): Promise<void> {
     const product = this.product();
@@ -390,9 +409,6 @@ export class CatalogDetailComponent implements OnInit {
       this.error.set(null);
       const updated = await firstValueFrom(this.catalogService.updateProduct(product.id, data));
       this.product.set(updated);
-      if (data.priceCents !== undefined) {
-        this.formattedPrice;
-      }
       this.toast.success(this.translate.instant('catalog.products.updateSuccess'));
     } catch (err) {
       const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));

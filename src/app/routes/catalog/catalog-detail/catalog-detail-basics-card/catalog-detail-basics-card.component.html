@@ -49,6 +49,32 @@
           <div class="details-row">
             <span class="details-label">{{ row.labelKey | translate }}</span>
             @switch (row.valueType) {
+              @case ('vatSelect') {
+                <select
+                  class="details-select"
+                  [value]="selectedVatRateId()"
+                  (change)="onVatRateChange()($any($event.target).value)"
+                >
+                  @for (rate of vatRates(); track rate.id) {
+                    <option [value]="rate.id">
+                      {{ rate.name }} ({{ (rate.rateBps / 100) | number:'1.0-2' }}%)
+                    </option>
+                  }
+                </select>
+              }
+              @case ('typeSelect') {
+                <select
+                  class="details-select"
+                  [value]="selectedType()"
+                  (change)="onTypeChange()($any($event.target).value)"
+                >
+                  @for (option of typeOptions(); track option.value) {
+                    <option [value]="option.value">
+                      {{ option.label }}
+                    </option>
+                  }
+                </select>
+              }
               @case ('chip') {
                 <shared-chip [variant]="row.variant || 'default'">
                   {{ row.value }}

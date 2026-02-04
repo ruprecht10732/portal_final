@@ -1,7 +1,7 @@
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
-import { CatalogService, type Product, type UpdateProductRequest } from '../../../../core/services/catalog.service';
+import { CatalogService, type Product, type ProductType, type UpdateProductRequest, type VatRate } from '../../../../core/services/catalog.service';
 import { ChipComponent, type ChipVariant } from '../../../../shared/components/chip/chip.component';
 import { LucideAngularModule } from 'lucide-angular';
 
@@ -10,13 +10,13 @@ interface DetailsRow {
   labelKey: string;
   value: string | null;
   variant?: ChipVariant;
-  valueType?: 'text' | 'price' | 'chip';
+  valueType?: 'text' | 'price' | 'chip' | 'vatSelect' | 'typeSelect';
   editable?: boolean;
 }
 
 @Component({
   selector: 'app-catalog-detail-basics-card',
-  imports: [DatePipe, TranslateModule, ChipComponent, LucideAngularModule],
+  imports: [DatePipe, DecimalPipe, TranslateModule, ChipComponent, LucideAngularModule],
   templateUrl: './catalog-detail-basics-card.component.html',
   styleUrl: './catalog-detail-basics-card.component.css',
   providers: [DatePipe],
@@ -32,6 +32,12 @@ export class CatalogDetailBasicsCardComponent {
   readonly createdAt = input.required<string | Date>();
   readonly updatedAt = input.required<string | Date>();
   readonly updateProduct = input.required<(data: UpdateProductRequest) => Promise<void>>();
+  readonly vatRates = input.required<VatRate[]>();
+  readonly selectedVatRateId = input.required<string>();
+  readonly typeOptions = input.required<{ value: ProductType; label: string }[]>();
+  readonly selectedType = input.required<ProductType>();
+  readonly onVatRateChange = input.required<(vatRateId: string) => Promise<void>>();
+  readonly onTypeChange = input.required<(type: ProductType) => Promise<void>>();
 
   private readonly datePipe = inject(DatePipe);
   protected readonly editingField = signal<DetailsRow['key'] | null>(null);
@@ -59,7 +65,7 @@ export class CatalogDetailBasicsCardComponent {
       key: 'vatRate',
       labelKey: 'catalog.products.fields.vatRate',
       value: this.formattedVatRate(),
-      valueType: 'text',
+      valueType: 'vatSelect',
     },
     {
       key: 'price',
@@ -73,7 +79,7 @@ export class CatalogDetailBasicsCardComponent {
       labelKey: 'catalog.products.fields.type',
       value: this.typeLabel(),
       variant: this.typeVariant(),
-      valueType: 'chip',
+      valueType: 'typeSelect',
     },
     {
       key: 'createdAt',

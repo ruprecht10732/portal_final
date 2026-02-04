@@ -78,6 +78,16 @@
   color: #0f172a;
 }
 
+.details-select {
+  min-width: 180px;
+  border: 1px solid #e4e4e7;
+  border-radius: 8px;
+  padding: 6px 8px;
+  font-size: 0.875rem;
+  color: #0f172a;
+  background: #ffffff;
+}
+
 .details-icon {
   display: inline-flex;
   align-items: center;
