@@ -25,6 +25,10 @@
         "noImages": "No images yet.",
         "noDocuments": "No documents yet.",
         "noTerms": "No terms URLs yet.",
+        "countFile": "file",
+        "countFiles": "files",
+        "countUrl": "URL",
+        "countUrls": "URLs",
         "link": "Open",
         "untitled": "Untitled",
         "types": {
@@ -327,6 +331,10 @@
         "noImages": "No images yet.",
         "noDocuments": "No documents yet.",
         "noTerms": "No terms URLs yet.",
+        "countFile": "file",
+        "countFiles": "files",
+        "countUrl": "URL",
+        "countUrls": "URLs",
         "link": "Open",
         "untitled": "Untitled",
         "types": {

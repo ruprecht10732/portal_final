@@ -18,6 +18,8 @@ interface AssetSection {
   subtitleMode: 'fileSize' | 'link';
   subtitleKey?: string;
   showUrl: boolean;
+  countSingularKey: string;
+  countPluralKey: string;
 }
 
 @Component({
@@ -53,6 +55,8 @@ export class CatalogDetailAssetsCardComponent {
       extensionFallback: '—',
       subtitleMode: 'fileSize',
       showUrl: false,
+      countSingularKey: 'catalog.products.assets.countFile',
+      countPluralKey: 'catalog.products.assets.countFiles',
     },
     {
       key: 'documents',
@@ -67,6 +71,8 @@ export class CatalogDetailAssetsCardComponent {
       extensionFallback: '—',
       subtitleMode: 'fileSize',
       showUrl: false,
+      countSingularKey: 'catalog.products.assets.countFile',
+      countPluralKey: 'catalog.products.assets.countFiles',
     },
     {
       key: 'terms',
@@ -82,6 +88,8 @@ export class CatalogDetailAssetsCardComponent {
       subtitleMode: 'link',
       subtitleKey: 'catalog.products.assets.link',
       showUrl: true,
+      countSingularKey: 'catalog.products.assets.countUrl',
+      countPluralKey: 'catalog.products.assets.countUrls',
     },
   ]);
 
@@ -97,5 +105,9 @@ export class CatalogDetailAssetsCardComponent {
     const last = parts.at(-1);
     if (!last) return '';
     return last.toUpperCase();
+  }
+
+  protected getCountKey(section: AssetSection, count: number): string {
+    return count === 1 ? section.countSingularKey : section.countPluralKey;
   }
 }

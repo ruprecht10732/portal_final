@@ -18,11 +18,13 @@
     <div class="space-y-4">
       @for (section of assetSections(); track section.key) {
         <div>
-          <div class="flex items-center gap-2 mb-2">
+          <div class="flex items-center justify-between gap-3 mb-2">
             <h3 class="text-sm font-semibold text-black uppercase tracking-wide">
               {{ section.titleKey | translate }}
             </h3>
-            <shared-chip variant="info">{{ section.assets.length }}</shared-chip>
+            <shared-chip variant="info">
+              {{ section.assets.length }} {{ getCountKey(section, section.assets.length) | translate }}
+            </shared-chip>
           </div>
           @if (section.assets.length === 0) {
             <p class="text-xs text-zinc-500">{{ section.emptyKey | translate }}</p>
