@@ -1,14 +1,11 @@
-<section class="border border-zinc-200 bg-white p-4 sm:p-6">
-  <div class="flex items-center justify-between mb-4">
-    <div class="flex items-center gap-3">
-      <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">D</span>
-      <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-        {{ 'catalog.products.linkedMaterials' | translate }}
-      </h2>
-    </div>
-    <span class="text-xs text-zinc-400">
+<section>
+  <div class="flex items-center justify-between gap-3 mb-4">
+    <h2 class="text-sm font-semibold text-black uppercase tracking-wide">
+      {{ 'catalog.products.linkedMaterials' | translate }}
+    </h2>
+    <shared-chip variant="info">
       {{ materials().length }} {{ 'catalog.products.items' | translate }}
-    </span>
+    </shared-chip>
   </div>
 
   @if (materialsLoading()) {
@@ -24,14 +21,14 @@
       <p class="mt-1 text-xs text-zinc-500">{{ 'catalog.products.noMaterialsDescription' | translate }}</p>
     </div>
   } @else {
-    <div class="border border-zinc-200 bg-white divide-y divide-zinc-100 overflow-hidden">
+    <div class="materials-list">
       @for (material of materials(); track material.id) {
-        <div class="flex items-center justify-between p-4">
-          <div>
-            <p class="text-sm font-medium text-zinc-900">{{ material.title }}</p>
-            <p class="text-xs text-zinc-500 font-mono">{{ material.reference }}</p>
+        <div class="materials-row">
+          <div class="min-w-0">
+            <p class="materials-title">{{ material.title }}</p>
+            <p class="materials-subtitle">{{ material.reference }}</p>
           </div>
-          <span class="text-sm font-medium text-zinc-900">{{ formatMaterialPrice()(material.priceCents) }}</span>
+          <span class="materials-price">{{ formatMaterialPrice()(material.priceCents) }}</span>
         </div>
       }
     </div>
