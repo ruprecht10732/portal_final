@@ -10,7 +10,7 @@ import { ServiceTypesService } from '../../../core/services/service-types.servic
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { UserService } from '../../../core/services/user.service';
 import type { Lead, LeadStatus, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
-import { STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
+import { buildLeadStatusLabels, STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -56,15 +56,7 @@ export class LeadListComponent implements OnInit {
 
   protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => {
     this.lang();
-    return {
-      New: this.translate.instant('leads.detail.status.new'),
-      Attempted_Contact: this.translate.instant('leads.detail.status.contacted'),
-      Scheduled: this.translate.instant('leads.detail.status.scheduled'),
-      Surveyed: this.translate.instant('leads.detail.status.completed'),
-      Bad_Lead: this.translate.instant('leads.detail.status.badLead'),
-      Needs_Rescheduling: this.translate.instant('leads.detail.status.needsRescheduling'),
-      Closed: this.translate.instant('leads.detail.status.closed'),
-    };
+    return buildLeadStatusLabels((key) => this.translate.instant(key));
   });
 
   protected readonly consumerRoleOptions = computed(() => {

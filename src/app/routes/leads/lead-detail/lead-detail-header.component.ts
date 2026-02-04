@@ -4,20 +4,21 @@ import type { Lead, LeadStatus } from '../../../core/services/leads.types';
 import type { SelectOption } from '../../../shared/components/select/select.component';
 import { ChipComponent, type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 
 @Component({
   selector: 'app-lead-detail-header',
   templateUrl: './lead-detail-header.component.html',
   styleUrl: './lead-detail-header.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ChipComponent, TranslatePipe, ButtonComponent],
+  imports: [ChipComponent, TranslatePipe, ButtonComponent, StatusBadgeComponent],
 })
 export class LeadDetailHeaderComponent {
   lead = input<Lead | null>(null);
   fullName = input<string>('');
   serviceTypeLabel = input<string | null>(null);
-  statusLabel = input<string>('');
-  statusPillClass = input<string>('bg-zinc-100 text-zinc-600');
+  status = input<LeadStatus | null>(null);
+  noServiceLabel = input<string>('');
   statusMenuOpen = input(false);
   statusOptions = input<SelectOption<LeadStatus>[]>([]);
   selectedStatus = input<LeadStatus | null>(null);

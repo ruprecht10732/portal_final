@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
@@ -8,7 +9,7 @@ import { AppointmentsService } from '../../../core/services/appointments.service
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis } from '../../../core/services/leads.types';
-import { STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
+import { buildLeadStatusLabels, STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
 import type {
   AccessDifficulty,
   AppointmentAttachmentResponse,
@@ -55,6 +56,9 @@ export class LeadDetailComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
 
   protected readonly lead = signal<Lead | null>(null);
   protected readonly loading = signal(false);
@@ -158,15 +162,10 @@ export class LeadDetailComponent implements OnInit {
     return lead.services.find(s => s.id === selectedId) ?? lead.currentService ?? null;
   });
 
-  protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => ({
-    New: this.translate.instant('leads.detail.status.new'),
-    Attempted_Contact: this.translate.instant('leads.detail.status.contacted'),
-    Scheduled: this.translate.instant('leads.detail.status.scheduled'),
-    Surveyed: this.translate.instant('leads.detail.status.completed'),
-    Bad_Lead: this.translate.instant('leads.detail.status.badLead'),
-    Needs_Rescheduling: this.translate.instant('leads.detail.status.needsRescheduling'),
-    Closed: this.translate.instant('leads.detail.status.closed'),
-  }));
+  protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => {
+    this.lang();
+    return buildLeadStatusLabels((key) => this.translate.instant(key));
+  });
   protected readonly STATUS_COLORS = STATUS_COLORS;
 
   protected readonly energyLabel = computed(() => this.lead()?.energyLabel ?? null);
@@ -226,23 +225,17 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly headerStatusLabels = computed<Record<LeadStatus, string>>(() => this.statusLabels());
 
+  protected readonly headerNoServiceLabel = computed(() => {
+    this.lang();
+    return this.translate.instant('leads.detail.status.noService');
+  });
+
   protected readonly headerServiceTypeLabel = computed(() => {
     const service = this.selectedService();
     if (!service) return null;
     return this.serviceTypeLabels()[service.serviceType] ?? service.serviceType;
   });
 
-  protected readonly headerStatusLabel = computed(() => {
-    const service = this.selectedService();
-    if (!service) return this.translate.instant('leads.detail.status.noService');
-    return this.getStatusLabel(service.status);
-  });
-
-  protected readonly headerStatusPillClass = computed(() => {
-    const service = this.selectedService();
-    if (!service) return 'bg-zinc-100 text-zinc-600';
-    return this.STATUS_COLORS[service.status];
-  });
 
   protected readonly activityFeed = computed<ActivityEntry[]>(() => {
     const lead = this.lead();

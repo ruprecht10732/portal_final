@@ -107,7 +107,7 @@
             <div class="space-y-5">
               <shared-input
                 [label]="'catalog.products.fields.title' | translate"
-                [value]="form.controls.title.value ?? ''"
+                [value]="form.controls.title.value"
                 (valueChange)="form.controls.title.setValue($event)"
                 [required]="true"
                 [error]="requiredControlError(form.controls.title)"
@@ -115,7 +115,7 @@
 
               <shared-input
                 [label]="'catalog.products.fields.reference' | translate"
-                [value]="form.controls.reference.value ?? ''"
+                [value]="form.controls.reference.value"
                 (valueChange)="form.controls.reference.setValue($event)"
                 [required]="true"
                 [error]="requiredControlError(form.controls.reference)"
@@ -124,7 +124,7 @@
 
               <shared-textarea
                 [label]="'catalog.products.fields.description' | translate"
-                [value]="form.controls.description.value ?? ''"
+                [value]="form.controls.description.value"
                 (valueChange)="form.controls.description.setValue($event)"
                 [rows]="4"
               />

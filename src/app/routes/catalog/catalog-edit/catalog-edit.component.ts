@@ -82,13 +82,13 @@ export class CatalogEditComponent implements OnInit {
   protected readonly addingMaterials = signal(false);
   protected readonly removingMaterialId = signal<string | null>(null);
 
-  protected readonly form = this.fb.group({
+  protected readonly form = this.fb.nonNullable.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
     reference: ['', [Validators.required, Validators.maxLength(100)]],
     description: ['', Validators.maxLength(1000)],
     price: this.fb.control<number | null>(null, Validators.required),
     vatRateId: ['', Validators.required],
-    type: this.fb.control<ProductType>('product', { nonNullable: true }),
+    type: this.fb.nonNullable.control<ProductType>('product'),
     periodCount: this.fb.control<number | null>(null),
     periodUnit: this.fb.control<PeriodUnit | null>(null),
   });
@@ -266,22 +266,22 @@ export class CatalogEditComponent implements OnInit {
     this.saving.set(true);
     this.error.set(null);
 
-    const values = this.form.getRawValue();
-    const priceCents = values.price === null ? 0 : CatalogService.priceToCents(values.price);
+    const controls = this.form.controls;
+    const priceCents = controls.price.value === null ? 0 : CatalogService.priceToCents(controls.price.value);
 
     const request: UpdateProductRequest = {
-      title: (values.title ?? '').trim(),
-      reference: (values.reference ?? '').trim(),
-      description: (values.description ?? '').trim() || undefined,
+      title: controls.title.value.trim(),
+      reference: controls.reference.value.trim(),
+      description: controls.description.value.trim() || undefined,
       priceCents,
-      vatRateId: values.vatRateId ?? undefined,
-      type: values.type,
+      vatRateId: controls.vatRateId.value || undefined,
+      type: controls.type.value,
     };
 
     // Add period fields only for service types
     if (this.isServiceType()) {
-      request.periodCount = values.periodCount ?? undefined;
-      request.periodUnit = values.periodUnit ?? undefined;
+      request.periodCount = controls.periodCount.value ?? undefined;
+      request.periodUnit = controls.periodUnit.value ?? undefined;
     }
 
     this.catalogService.updateProduct(product.id, request).subscribe({

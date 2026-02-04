@@ -242,6 +242,26 @@ export const STATUS_COLORS: Record<LeadStatus, string> = {
   Closed: 'bg-gray-100 text-gray-600',
 };
 
+export const LEAD_STATUS_I18N_KEYS: Record<LeadStatus, string> = {
+  New: 'leads.detail.status.new',
+  Attempted_Contact: 'leads.detail.status.contacted',
+  Scheduled: 'leads.detail.status.scheduled',
+  Surveyed: 'leads.detail.status.completed',
+  Bad_Lead: 'leads.detail.status.badLead',
+  Needs_Rescheduling: 'leads.detail.status.needsRescheduling',
+  Closed: 'leads.detail.status.closed',
+};
+
+export const buildLeadStatusLabels = (translate: (key: string) => string): Record<LeadStatus, string> => {
+  const labels = {} as Record<LeadStatus, string>;
+  (Object.keys(LEAD_STATUS_I18N_KEYS) as LeadStatus[]).forEach((status) => {
+    const key = LEAD_STATUS_I18N_KEYS[status];
+    const translated = translate(key);
+    labels[status] = translated || STATUS_LABELS[status];
+  });
+  return labels;
+};
+
 export const CONSUMER_ROLE_OPTIONS: { label: string; value: ConsumerRole }[] = [
   { label: 'Owner', value: 'Owner' },
   { label: 'Tenant', value: 'Tenant' },
