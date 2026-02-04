@@ -493,7 +493,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     const keys = path.split('.');
     let acc: unknown = obj;
     for (const key of keys) {
-      if (!this.isObject(acc)) return undefined;
+      if (!this.isObject(acc) || !Object.hasOwn(acc, key)) return undefined;
       acc = (acc as Record<string, unknown>)[key];
     }
     return acc;
