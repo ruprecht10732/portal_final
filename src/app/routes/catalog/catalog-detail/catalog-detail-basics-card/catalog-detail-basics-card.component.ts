@@ -24,7 +24,6 @@ interface HeroImageOption {
   selector: 'app-catalog-detail-basics-card',
   imports: [DecimalPipe, TranslateModule, ChipComponent, LucideAngularModule],
   templateUrl: './catalog-detail-basics-card.component.html',
-  styleUrl: './catalog-detail-basics-card.component.css',
   providers: [DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })

@@ -118,16 +118,16 @@
           @if (section.assets.length === 0) {
             <p class="text-xs text-zinc-500">{{ section.emptyKey | translate }}</p>
           } @else {
-            <div class="assets-list">
+            <div class="flex flex-col gap-1.5">
               @for (asset of section.assets; track asset.id) {
-                <div class="assets-row">
+                <div class="flex items-center justify-between gap-3 rounded-[10px] border border-zinc-200 bg-white px-2.5 py-2 text-sm transition-colors hover:border-zinc-300 hover:bg-zinc-100">
                   <span
-                    class="flex items-center min-w-0"
+                    class="flex min-w-0 items-center"
                     [class.gap-3]="section.showThumbnail"
                     [class.gap-2]="!section.showThumbnail"
                   >
                     @if (section.showThumbnail) {
-                      <span class="assets-thumb">
+                      <span class="flex h-10 w-10 items-center justify-center overflow-hidden rounded-md border border-zinc-200 bg-white shrink-0">
                         @if (imagePreviewUrls()[asset.id]) {
                           <img
                             class="h-full w-full object-cover rounded"
@@ -144,7 +144,7 @@
                         }
                       </span>
                     } @else {
-                      <span class="assets-icon">
+                      <span class="flex h-8 w-8 items-center justify-center rounded-md border border-zinc-200 bg-white shrink-0">
                         <lucide-icon
                           [name]="section.key === 'documents' ? getDocumentIcon(asset) : section.iconName"
                           class="h-4 w-4 text-zinc-400"
@@ -152,24 +152,24 @@
                         ></lucide-icon>
                       </span>
                     }
-                    <span class="assets-text">
-                      <span class="assets-name">{{ getAssetLabel(asset) }}</span>
+                    <span class="flex min-w-0 flex-col gap-0.5">
+                      <span class="text-sm text-slate-900 truncate">{{ getAssetLabel(asset) }}</span>
                       @if (section.subtitleMode === 'fileSize') {
-                        <span class="assets-subtitle">
+                        <span class="flex items-center gap-1.5 text-xs text-zinc-500">
                           {{ getAssetExtension(asset) || section.extensionFallback }}
-                          <span class="assets-separator">•</span>
+                          <span class="text-zinc-400">•</span>
                           {{ formatFileSize()(asset.sizeBytes) }}
                         </span>
                       }
                       @if (section.showUrl && asset.url) {
-                        <span class="assets-meta">{{ asset.url }}</span>
+                        <span class="text-xs text-blue-500 break-all underline">{{ asset.url }}</span>
                       }
                     </span>
                   </span>
-                  <div class="assets-actions">
+                  <div class="inline-flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
-                      class="assets-action"
+                      class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
                       (click)="previewAsset()(asset)"
                       [attr.aria-label]="section.previewLabel"
                     >
@@ -178,7 +178,7 @@
                     @if (section.showDownload) {
                       <button
                         type="button"
-                        class="assets-action"
+                        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
                         (click)="downloadAsset()(asset)"
                         aria-label="Download"
                       >
@@ -187,7 +187,7 @@
                     }
                     <button
                       type="button"
-                      class="assets-action assets-delete"
+                      class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-red-200 bg-white text-red-600 transition-colors hover:border-red-300 hover:text-red-700"
                       (click)="deleteAsset()(asset)"
                       aria-label="Delete"
                     >

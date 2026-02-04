@@ -39,7 +39,6 @@ interface AssetSection {
     FileUploaderComponent,
   ],
   templateUrl: './catalog-detail-assets-card.component.html',
-  styleUrl: './catalog-detail-assets-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogDetailAssetsCardComponent {

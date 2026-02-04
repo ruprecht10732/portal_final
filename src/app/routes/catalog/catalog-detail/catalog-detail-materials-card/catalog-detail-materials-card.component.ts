@@ -9,7 +9,6 @@ import { LucideAngularModule } from 'lucide-angular';
   selector: 'app-catalog-detail-materials-card',
   imports: [TranslateModule, ButtonComponent, ChipComponent, LucideAngularModule],
   templateUrl: './catalog-detail-materials-card.component.html',
-  styleUrl: './catalog-detail-materials-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CatalogDetailMaterialsCardComponent {
