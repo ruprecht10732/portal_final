@@ -63,15 +63,16 @@
                     }
                     <span class="assets-text">
                       <span class="assets-name">{{ getAssetLabel(asset) }}</span>
-                      <span class="assets-subtitle">
-                        {{ getAssetExtension(asset) || section.extensionFallback }}
-                        <span class="assets-separator">•</span>
-                        @if (section.subtitleMode === 'fileSize') {
+                      @if (section.subtitleMode === 'fileSize') {
+                        <span class="assets-subtitle">
+                          {{ getAssetExtension(asset) || section.extensionFallback }}
+                          <span class="assets-separator">•</span>
                           {{ formatFileSize()(asset.sizeBytes) }}
-                        } @else {
-                          {{ section.subtitleKey | translate }}
-                        }
-                      </span>
+                        </span>
+                      }
+                      @if (section.showUrl && asset.url) {
+                        <span class="assets-meta">{{ asset.url }}</span>
+                      }
                     </span>
                   </span>
                   <div class="assets-actions">
@@ -81,7 +82,7 @@
                       (click)="previewAsset()(asset)"
                       [attr.aria-label]="section.previewLabel"
                     >
-                      <lucide-icon name="eye" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                      <lucide-icon [name]="section.actionIcon" class="h-4 w-4" aria-hidden="true"></lucide-icon>
                     </button>
                     @if (section.showDownload) {
                       <button

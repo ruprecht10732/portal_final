@@ -12,10 +12,12 @@ interface AssetSection {
   iconName: string;
   showThumbnail: boolean;
   showDownload: boolean;
+  actionIcon: string;
   previewLabel: string;
   extensionFallback: string;
   subtitleMode: 'fileSize' | 'link';
   subtitleKey?: string;
+  showUrl: boolean;
 }
 
 @Component({
@@ -46,9 +48,11 @@ export class CatalogDetailAssetsCardComponent {
       iconName: 'image',
       showThumbnail: true,
       showDownload: true,
+      actionIcon: 'eye',
       previewLabel: 'Preview',
       extensionFallback: '—',
       subtitleMode: 'fileSize',
+      showUrl: false,
     },
     {
       key: 'documents',
@@ -58,9 +62,11 @@ export class CatalogDetailAssetsCardComponent {
       iconName: 'file-text',
       showThumbnail: false,
       showDownload: true,
+      actionIcon: 'eye',
       previewLabel: 'Preview',
       extensionFallback: '—',
       subtitleMode: 'fileSize',
+      showUrl: false,
     },
     {
       key: 'terms',
@@ -70,10 +76,12 @@ export class CatalogDetailAssetsCardComponent {
       iconName: 'link-2',
       showThumbnail: false,
       showDownload: false,
+      actionIcon: 'link-2',
       previewLabel: 'Open link',
       extensionFallback: 'LINK',
       subtitleMode: 'link',
       subtitleKey: 'catalog.products.assets.link',
+      showUrl: true,
     },
   ]);
 

@@ -53,8 +53,10 @@
 
 .assets-meta {
   font-size: 0.75rem;
-  color: #71717a;
-  white-space: nowrap;
+  color: #3b82f6;
+  white-space: normal;
+  word-break: break-all;
+  text-decoration: underline;
 }
 
 .assets-actions {
