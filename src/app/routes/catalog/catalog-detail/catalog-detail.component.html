@@ -150,6 +150,17 @@
   />
 
   <shared-confirm-dialog
+    [isOpen]="showDeleteAssetDialog()"
+    [title]="'catalog.products.assets.deleteAssetTitle' | translate"
+    [message]="'catalog.products.assets.deleteAssetMessage' | translate"
+    [confirmText]="'catalog.products.confirmDelete' | translate"
+    [cancelText]="'catalog.products.cancel' | translate"
+    confirmVariant="danger"
+    (confirm)="confirmDeleteAsset()"
+    (cancelled)="closeDeleteAssetDialog()"
+  />
+
+  <shared-confirm-dialog
     [isOpen]="showAddMaterialDialog()"
     [title]="'catalog.products.addMaterialTitle' | translate"
     [confirmText]="'catalog.products.addSelected' | translate"
