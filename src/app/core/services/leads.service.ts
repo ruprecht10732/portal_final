@@ -1,6 +1,6 @@
 import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { Observable, switchMap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { BaseCrudService } from './base-crud.service';
 import type {
@@ -213,44 +213,43 @@ export class LeadsService extends BaseCrudService<
    * 3. Create attachment record in database
    */
   uploadFile(leadId: string, serviceId: string, file: File): Observable<Attachment> {
+    return this.getPresignedUploadUrl(leadId, serviceId, {
+      fileName: file.name,
+      contentType: file.type,
+      sizeBytes: file.size,
+    }).pipe(
+      switchMap(presigned =>
+        this.uploadToPresignedUrl(presigned.uploadUrl, file).pipe(
+          switchMap(() =>
+            this.createAttachment(leadId, serviceId, {
+              fileKey: presigned.fileKey,
+              fileName: file.name,
+              contentType: file.type,
+              sizeBytes: file.size,
+            })
+          )
+        )
+      )
+    );
+  }
+
+  private uploadToPresignedUrl(uploadUrl: string, file: File): Observable<void> {
     return new Observable(observer => {
-      // Step 1: Get presigned URL
-      this.getPresignedUploadUrl(leadId, serviceId, {
-        fileName: file.name,
-        contentType: file.type,
-        sizeBytes: file.size,
-      }).subscribe({
-        next: presigned => {
-          // Step 2: Upload to MinIO using presigned URL
-          const xhr = new XMLHttpRequest();
-          xhr.open('PUT', presigned.uploadUrl, true);
-          xhr.setRequestHeader('Content-Type', file.type);
+      const xhr = new XMLHttpRequest();
+      xhr.open('PUT', uploadUrl, true);
+      xhr.setRequestHeader('Content-Type', file.type);
 
-          xhr.onload = () => {
-            if (xhr.status >= 200 && xhr.status < 300) {
-              // Step 3: Create attachment record
-              this.createAttachment(leadId, serviceId, {
-                fileKey: presigned.fileKey,
-                fileName: file.name,
-                contentType: file.type,
-                sizeBytes: file.size,
-              }).subscribe({
-                next: attachment => {
-                  observer.next(attachment);
-                  observer.complete();
-                },
-                error: err => observer.error(err),
-              });
-            } else {
-              observer.error(new Error(`Upload failed with status ${xhr.status}`));
-            }
-          };
+      xhr.onload = () => {
+        if (xhr.status >= 200 && xhr.status < 300) {
+          observer.next();
+          observer.complete();
+          return;
+        }
+        observer.error(new Error(`Upload failed with status ${xhr.status}`));
+      };
 
-          xhr.onerror = () => observer.error(new Error('Upload failed'));
-          xhr.send(file);
-        },
-        error: err => observer.error(err),
-      });
+      xhr.onerror = () => observer.error(new Error('Upload failed'));
+      xhr.send(file);
     });
   }
 }
