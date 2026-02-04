@@ -27,12 +27,12 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { CardComponent } from '../../../shared/components/card/card.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { ContactInfoComponent } from '../../../shared/components/contact-info/contact-info.component';
-import { LeadServicesCardComponent } from '../../../shared/components/lead-services-card/lead-services-card.component';
+import { LeadServicesCardComponent } from '../../../shared/components/features/lead-services-card/lead-services-card.component';
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { type SelectOption } from '../../../shared/components/select/select.component';
 import type { ChipVariant } from '../../../shared/components/chip/chip.component';
 import { FileUploaderComponent, type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
-import { LeadEnergyLabelCardComponent } from './lead-energy-label-card.component';
+import { LeadEnergyLabelCardComponent } from '../../../shared/components/features/energy-label-card/lead-energy-label-card.component';
 import { LeadEnrichmentCardComponent } from './lead-enrichment-card.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
