@@ -331,6 +331,8 @@
         "noImages": "Nog geen afbeeldingen.",
         "noDocuments": "Nog geen documenten.",
         "noTerms": "Nog geen voorwaarden-urls.",
+        "deleteImageTitle": "Afbeelding verwijderen",
+        "deleteImageMessage": "Weet u zeker dat u deze afbeelding wilt verwijderen? Deze actie kan niet ongedaan worden gemaakt.",
         "countFile": "bestand",
         "countFiles": "bestanden",
         "countUrl": "URL",

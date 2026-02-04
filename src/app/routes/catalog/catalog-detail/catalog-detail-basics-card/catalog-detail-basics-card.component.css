@@ -4,14 +4,8 @@
 
 .basics-layout {
   display: grid;
-  grid-template-columns: minmax(0, 1.6fr) minmax(0, 1fr);
+  grid-template-columns: minmax(0, 1fr);
   gap: 20px;
-}
-
-@media (max-width: 1024px) {
-  .basics-layout {
-    grid-template-columns: minmax(0, 1fr);
-  }
 }
 
 .basics-left,
@@ -20,7 +14,7 @@
 }
 
 .basics-hero {
-  border-radius: 14px;
+  border-radius: 8px;
   overflow: hidden;
   border: 1px solid #e4e4e7;
   position: relative;
@@ -95,9 +89,15 @@
 }
 
 .details-list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 8px;
+}
+
+@media (max-width: 640px) {
+  .details-list {
+    grid-template-columns: minmax(0, 1fr);
+  }
 }
 
 .details-row {

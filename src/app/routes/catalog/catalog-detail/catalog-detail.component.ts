@@ -71,6 +71,8 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly previewError = signal<string | null>(null);
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly previewAsset = signal<CatalogAsset | null>(null);
+  protected readonly showDeleteHeroDialog = signal(false);
+  protected readonly deleteHeroAssetId = signal<string | null>(null);
 
   // Materials for service products
   protected readonly materials = signal<Product[]>([]);
@@ -150,7 +152,7 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly onOpenAddMaterialDialog = (): void => this.openAddMaterialDialog();
   protected readonly onSelectHeroImage = (url: string): void => this.heroImageUrl.set(url);
   protected readonly onPreviewHeroImage = (assetId: string): void => this.previewHeroImage(assetId);
-  protected readonly onDeleteHeroImage = (assetId: string): void => this.deleteHeroImage(assetId);
+  protected readonly onDeleteHeroImage = (assetId: string): void => this.requestDeleteHeroImage(assetId);
 
   protected readonly previewTitle = computed(() => {
     const asset = this.previewAsset();
@@ -417,6 +419,25 @@ export class CatalogDetailComponent implements OnInit {
     if (asset) {
       this.openPreview(asset);
     }
+  }
+
+  private requestDeleteHeroImage(assetId: string): void {
+    this.deleteHeroAssetId.set(assetId);
+    this.showDeleteHeroDialog.set(true);
+  }
+
+  protected closeDeleteHeroDialog(): void {
+    this.showDeleteHeroDialog.set(false);
+    this.deleteHeroAssetId.set(null);
+  }
+
+  protected confirmDeleteHeroImage(): void {
+    const assetId = this.deleteHeroAssetId();
+    if (!assetId) return;
+
+    this.showDeleteHeroDialog.set(false);
+    this.deleteHeroAssetId.set(null);
+    this.deleteHeroImage(assetId);
   }
 
   private deleteHeroImage(assetId: string): void {

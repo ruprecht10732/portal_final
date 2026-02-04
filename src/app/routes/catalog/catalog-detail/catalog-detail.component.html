@@ -51,8 +51,8 @@
     <!-- Content -->
     <div class="flex-1 overflow-y-auto">
       <div class="w-full p-4 sm:p-6 lg:p-8 overflow-x-hidden">
-        <div class="grid grid-cols-1 lg:grid-cols-12 gap-6">
-          <div class="lg:col-span-8 flex flex-col gap-6">
+        <div class="grid grid-cols-1 lg:grid-cols-[minmax(0,1.6fr)_minmax(0,1fr)] gap-6">
+          <div class="flex flex-col gap-6">
             <app-catalog-detail-basics-card
               [product]="product()!"
               [heroImageUrl]="heroImageUrl()"
@@ -76,7 +76,7 @@
             />
           </div>
 
-          <div class="lg:col-span-4 flex flex-col gap-6">
+          <div class="flex flex-col gap-6">
             <!-- Assets Section -->
             <app-catalog-detail-assets-card
               [assetsCount]="assets().length"
@@ -135,6 +135,17 @@
     [isLoading]="previewLoading()"
     [error]="previewError()"
     (closed)="closePreview()"
+  />
+
+  <shared-confirm-dialog
+    [isOpen]="showDeleteHeroDialog()"
+    [title]="'catalog.products.assets.deleteImageTitle' | translate"
+    [message]="'catalog.products.assets.deleteImageMessage' | translate"
+    [confirmText]="'catalog.products.confirmDelete' | translate"
+    [cancelText]="'catalog.products.cancel' | translate"
+    confirmVariant="danger"
+    (confirm)="confirmDeleteHeroImage()"
+    (cancelled)="closeDeleteHeroDialog()"
   />
 
   <shared-confirm-dialog
