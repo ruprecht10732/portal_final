@@ -141,6 +141,7 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly onFormatMaterialPrice = (priceCents: number): string => this.formatMaterialPrice(priceCents);
   protected readonly onAssetUploaded = (asset: CatalogAsset): void => this.handleAssetUploaded(asset);
   protected readonly onAssetError = (event: FileUploadError | null): void => this.handleAssetError(event);
+  protected readonly onDeleteAsset = (asset: CatalogAsset): void => this.deleteAssetById(asset.id);
   protected readonly onCreateTermsUrl = async (url: string, label?: string): Promise<CatalogAsset | null> =>
     this.createTermsUrl(url, label);
   protected readonly onUpdateProduct = async (data: UpdateProductRequest): Promise<void> =>
@@ -441,6 +442,10 @@ export class CatalogDetailComponent implements OnInit {
   }
 
   private deleteHeroImage(assetId: string): void {
+    this.deleteAssetById(assetId);
+  }
+
+  private deleteAssetById(assetId: string): void {
     const product = this.product();
     if (!product) return;
 

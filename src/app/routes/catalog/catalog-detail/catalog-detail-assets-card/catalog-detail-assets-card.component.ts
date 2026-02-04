@@ -53,6 +53,7 @@ export class CatalogDetailAssetsCardComponent {
   readonly formatFileSize = input.required<(bytes?: number) => string>();
   readonly previewAsset = input.required<(asset: CatalogAsset) => void>();
   readonly downloadAsset = input.required<(asset: CatalogAsset) => void>();
+  readonly deleteAsset = input.required<(asset: CatalogAsset) => void>();
   readonly presignImageAsset = input.required<(file: File) => Promise<PresignedUpload>>();
   readonly finalizeImageAsset = input.required<
     (file: File, presigned: PresignedUpload) => Promise<CatalogAsset>

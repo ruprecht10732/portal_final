@@ -66,6 +66,12 @@
   flex-shrink: 0;
 }
 
+.assets-delete {
+  border-color: #fecaca;
+  color: #dc2626;
+  background: #ffffff;
+}
+
 .assets-action {
   display: inline-flex;
   align-items: center;

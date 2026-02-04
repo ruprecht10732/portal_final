@@ -185,6 +185,14 @@
                         <lucide-icon name="download" class="h-4 w-4" aria-hidden="true"></lucide-icon>
                       </button>
                     }
+                    <button
+                      type="button"
+                      class="assets-action assets-delete"
+                      (click)="deleteAsset()(asset)"
+                      aria-label="Delete"
+                    >
+                      <lucide-icon name="trash-2" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                    </button>
                   </div>
                 </div>
               }
