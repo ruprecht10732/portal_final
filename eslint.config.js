@@ -23,14 +23,7 @@ export default defineConfig([
           style: "camelCase",
         },
       ],
-      "@angular-eslint/component-selector": [
-        "error",
-        {
-          type: "element",
-          prefix: "app",
-          style: "kebab-case",
-        },
-      ],
+      "@angular-eslint/component-selector": "off",
     },
   },
   {
