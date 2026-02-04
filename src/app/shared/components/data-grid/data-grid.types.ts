@@ -251,6 +251,8 @@ export interface GridConfig<T> {
   rowViewActionEnabled: boolean;
   /** Show per-row delete action (trash icon) */
   rowDeleteActionEnabled: boolean;
+  /** Predicate to determine if delete action is allowed for a row */
+  rowDeleteActionPredicate?: (row: T) => boolean;
 }
 
 /** Default grid configuration */
@@ -280,6 +282,7 @@ export const DEFAULT_GRID_CONFIG: GridConfig<unknown> = {
   mobileAddRowEnabled: true,
   rowViewActionEnabled: false,
   rowDeleteActionEnabled: false,
+  rowDeleteActionPredicate: undefined,
 };
 
 /** Cell position for keyboard navigation */

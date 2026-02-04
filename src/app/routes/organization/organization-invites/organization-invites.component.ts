@@ -106,6 +106,7 @@ export class OrganizationInvitesComponent {
     mobileAddRowEnabled: false,
     rowViewActionEnabled: true,
     rowDeleteActionEnabled: true,
+    rowDeleteActionPredicate: invite => !invite.usedAt,
   };
 
   constructor() {
@@ -199,7 +200,12 @@ export class OrganizationInvitesComponent {
 
   protected onDeleteRows(rows: InviteRow[]): void {
     if (rows.length === 0) return;
-    this.revokeInvite(rows[0]);
+    const invite = rows[0];
+    if (this.isUsed(invite)) {
+      this.errorMessage.set(this.translate.instant('organization.invite.revokeUsed'));
+      return;
+    }
+    this.revokeInvite(invite);
   }
 
   protected onRowDoubleClick(row: InviteRow): void {

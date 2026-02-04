@@ -42,7 +42,8 @@
       "statusExpired": "Verlopen",
       "resend": "Opnieuw versturen",
       "revoke": "Intrekken",
-      "edit": "Bewerken"
+      "edit": "Bewerken",
+      "revokeUsed": "Gebruikte uitnodigingen kun je niet intrekken."
     },
     "errors": {
       "emailInvalid": "Vul een geldig e-mailadres in",

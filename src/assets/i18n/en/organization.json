@@ -42,7 +42,8 @@
       "statusExpired": "Expired",
       "resend": "Resend",
       "revoke": "Revoke",
-      "edit": "Edit"
+      "edit": "Edit",
+      "revokeUsed": "Used invites cannot be revoked."
     },
     "errors": {
       "emailInvalid": "Enter a valid email",

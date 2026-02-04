@@ -82,6 +82,8 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
 
   /** Show delete action on cards */
   readonly rowDeleteActionEnabled = input<boolean>(false);
+  /** Predicate to determine if delete action is allowed for a row */
+  readonly rowDeleteActionPredicate = input<((row: T) => boolean) | null>(null);
 
   // ============ Outputs ============
   
@@ -339,6 +341,11 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   protected onDelete(index: number, event: Event): void {
     event.stopPropagation();
     this.deleteRow.emit(index);
+  }
+
+  protected canDeleteRow(row: RowState<T>): boolean {
+    const predicate = this.rowDeleteActionPredicate();
+    return predicate ? predicate(row.current) : true;
   }
 
   /** Track function for rows */

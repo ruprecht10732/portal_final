@@ -60,6 +60,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   readonly rowIdField = input<keyof T>('id' as keyof T);
   readonly rowViewActionEnabled = input<boolean>(false);
   readonly rowDeleteActionEnabled = input<boolean>(false);
+  readonly rowDeleteActionPredicate = input<((row: T) => boolean) | null>(null);
   readonly statusField = input<keyof T | string | undefined>(undefined);
 
   // ============ Outputs ============
@@ -348,6 +349,11 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
 
   protected onRowDelete(rowIndex: number): void {
     this.rowDelete.emit(rowIndex);
+  }
+
+  protected canDeleteRow(row: RowState<T>): boolean {
+    const predicate = this.rowDeleteActionPredicate();
+    return predicate ? predicate(row.current) : true;
   }
 
   private isInteractiveElement(target: EventTarget | null): boolean {
