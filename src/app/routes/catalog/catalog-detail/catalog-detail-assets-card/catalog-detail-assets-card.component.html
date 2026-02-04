@@ -28,64 +28,109 @@
     </div>
   } @else {
     <div class="space-y-4">
-      <div class="border border-zinc-200 p-3">
+      <div>
         <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
           {{ 'catalog.products.assets.images' | translate }}
         </h3>
         @if (imageAssets().length === 0) {
           <p class="text-xs text-zinc-500">{{ 'catalog.products.assets.noImages' | translate }}</p>
         } @else {
-          <div class="flex flex-col gap-2">
+          <div class="assets-list">
             @for (asset of imageAssets(); track asset.id) {
               <button
                 type="button"
-                class="flex items-center justify-between bg-zinc-50 px-3 py-2 text-left text-sm"
+                class="assets-row"
                 (click)="openAsset()(asset)"
               >
-                <span class="truncate">{{ asset.fileName || asset.fileKey }}</span>
-                <span class="text-xs text-zinc-500">{{ formatFileSize()(asset.sizeBytes) }}</span>
+                <span class="flex items-center gap-3 min-w-0">
+                  <span class="assets-thumb">
+                    @if (imagePreviewUrls()[asset.id]) {
+                      <img
+                        class="h-full w-full object-cover rounded"
+                        [src]="imagePreviewUrls()[asset.id]"
+                        [alt]="getAssetLabel(asset)"
+                        loading="lazy"
+                      />
+                    } @else {
+                      <lucide-icon name="image" class="h-4 w-4 text-zinc-400" aria-hidden="true"></lucide-icon>
+                    }
+                  </span>
+                  <span class="assets-text">
+                    <span class="assets-name">{{ getAssetLabel(asset) }}</span>
+                    <span class="assets-subtitle">
+                      {{ getAssetExtension(asset) || '—' }}
+                      <span class="assets-separator">•</span>
+                      {{ formatFileSize()(asset.sizeBytes) }}
+                    </span>
+                  </span>
+                </span>
+                <span class="sr-only">{{ formatFileSize()(asset.sizeBytes) }}</span>
               </button>
             }
           </div>
         }
       </div>
-      <div class="border border-zinc-200 p-3">
+      <div>
         <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
           {{ 'catalog.products.assets.documents' | translate }}
         </h3>
         @if (documentAssets().length === 0) {
           <p class="text-xs text-zinc-500">{{ 'catalog.products.assets.noDocuments' | translate }}</p>
         } @else {
-          <div class="flex flex-col gap-2">
+          <div class="assets-list">
             @for (asset of documentAssets(); track asset.id) {
               <button
                 type="button"
-                class="flex items-center justify-between bg-zinc-50 px-3 py-2 text-left text-sm"
+                class="assets-row"
                 (click)="openAsset()(asset)"
               >
-                <span class="truncate">{{ asset.fileName || asset.fileKey }}</span>
-                <span class="text-xs text-zinc-500">{{ formatFileSize()(asset.sizeBytes) }}</span>
+                <span class="flex items-center gap-2 min-w-0">
+                  <span class="assets-icon">
+                    <lucide-icon name="file-text" class="h-4 w-4 text-zinc-400" aria-hidden="true"></lucide-icon>
+                  </span>
+                  <span class="assets-text">
+                    <span class="assets-name">{{ getAssetLabel(asset) }}</span>
+                    <span class="assets-subtitle">
+                      {{ getAssetExtension(asset) || '—' }}
+                      <span class="assets-separator">•</span>
+                      {{ formatFileSize()(asset.sizeBytes) }}
+                    </span>
+                  </span>
+                </span>
+                <span class="sr-only">{{ formatFileSize()(asset.sizeBytes) }}</span>
               </button>
             }
           </div>
         }
       </div>
-      <div class="border border-zinc-200 p-3">
+      <div>
         <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
           {{ 'catalog.products.assets.termsTitle' | translate }}
         </h3>
         @if (termsAssets().length === 0) {
           <p class="text-xs text-zinc-500">{{ 'catalog.products.assets.noTerms' | translate }}</p>
         } @else {
-          <div class="flex flex-col gap-2">
+          <div class="assets-list">
             @for (asset of termsAssets(); track asset.id) {
               <button
                 type="button"
-                class="flex items-center justify-between bg-zinc-50 px-3 py-2 text-left text-sm"
+                class="assets-row"
                 (click)="openAsset()(asset)"
               >
-                <span class="truncate">{{ asset.fileName || asset.url }}</span>
-                <span class="text-xs text-zinc-500">{{ 'catalog.products.assets.link' | translate }}</span>
+                <span class="flex items-center gap-2 min-w-0">
+                  <span class="assets-icon">
+                    <lucide-icon name="link-2" class="h-4 w-4 text-zinc-400" aria-hidden="true"></lucide-icon>
+                  </span>
+                  <span class="assets-text">
+                    <span class="assets-name">{{ getAssetLabel(asset) }}</span>
+                    <span class="assets-subtitle">
+                      {{ getAssetExtension(asset) || 'LINK' }}
+                      <span class="assets-separator">•</span>
+                      {{ 'catalog.products.assets.link' | translate }}
+                    </span>
+                  </span>
+                </span>
+                <span class="sr-only">{{ 'catalog.products.assets.link' | translate }}</span>
               </button>
             }
           </div>

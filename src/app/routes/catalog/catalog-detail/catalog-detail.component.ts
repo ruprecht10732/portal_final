@@ -58,6 +58,7 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly assetsError = signal<string | null>(null);
   protected readonly downloadingAssetId = signal<string | null>(null);
   protected readonly heroImageUrl = signal<string | null>(null);
+  protected readonly imagePreviewUrls = signal<Record<string, string>>({});
 
   // Materials for service products
   protected readonly materials = signal<Product[]>([]);
@@ -168,6 +169,7 @@ export class CatalogDetailComponent implements OnInit {
         this.assets.set(response.items);
         this.assetsLoading.set(false);
         this.loadHeroImage(productId, response.items);
+        this.loadImagePreviews(productId, response.items);
       },
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
@@ -175,6 +177,26 @@ export class CatalogDetailComponent implements OnInit {
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.assetsLoading.set(false);
       },
+    });
+  }
+
+  private loadImagePreviews(productId: string, assets: CatalogAsset[]): void {
+    const images = assets.filter(asset => asset.assetType === 'image');
+    if (images.length === 0) {
+      this.imagePreviewUrls.set({});
+      return;
+    }
+
+    this.imagePreviewUrls.set({});
+    images.forEach((asset) => {
+      this.catalogService.getCatalogAssetDownloadUrl(productId, asset.id).subscribe({
+        next: (response) => {
+          this.imagePreviewUrls.update(current => ({ ...current, [asset.id]: response.downloadUrl }));
+        },
+        error: () => {
+          // Preview is optional; fail silently.
+        },
+      });
     });
   }
 
