@@ -6,6 +6,7 @@ import { InputComponent } from '../../../shared/components/input/input.component
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
+import { getErrorMessage } from '../../../core/utils/error-utils';
 
 @Component({
   selector: 'auth-forgot-password',
@@ -50,7 +51,7 @@ export class ForgotPasswordComponent {
           loading: this.isSubmitting,
           error: this.globalError,
           reporter: this.reporter,
-          getMessage: (error) => this.authService.getErrorMessage(error),
+          getMessage: (error) => getErrorMessage(error),
         }),
         takeUntilDestroyed(this.destroyRef)
       )

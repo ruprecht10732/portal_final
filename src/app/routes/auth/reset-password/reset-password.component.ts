@@ -8,6 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { MIN_LENGTH } from '../../../core/config';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
+import { getErrorMessage } from '../../../core/utils/error-utils';
 
 interface PasswordRule {
   label: string;
@@ -85,7 +86,7 @@ export class ResetPasswordComponent {
           loading: this.isSubmitting,
           error: this.globalError,
           reporter: this.reporter,
-          getMessage: (error) => this.authService.getErrorMessage(error),
+          getMessage: (error) => getErrorMessage(error),
         }),
         takeUntilDestroyed(this.destroyRef)
       )

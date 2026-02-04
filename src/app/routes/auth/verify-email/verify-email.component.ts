@@ -6,6 +6,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
+import { getErrorMessage } from '../../../core/utils/error-utils';
 
 @Component({
   selector: 'auth-verify-email',
@@ -48,7 +49,7 @@ export class VerifyEmailComponent {
             loading: this.isVerifying,
             error: this.globalError,
             reporter: this.reporter,
-            getMessage: (error) => this.authService.getErrorMessage(error),
+            getMessage: (error) => getErrorMessage(error),
           }),
           takeUntilDestroyed(this.destroyRef)
         )

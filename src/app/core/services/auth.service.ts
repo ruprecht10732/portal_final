@@ -1,4 +1,4 @@
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable, finalize, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -41,10 +41,6 @@ interface MessageResponse {
   message: string;
 }
 
-interface ErrorResponse {
-  error?: string;
-  details?: unknown;
-}
 
 @Injectable({ providedIn: 'root' })
 export class AuthService {
@@ -108,25 +104,4 @@ export class AuthService {
     });
   }
 
-  getErrorMessage(error: unknown): string {
-    if (error instanceof HttpErrorResponse) {
-      const data = error.error as ErrorResponse | string | null;
-      if (typeof data === 'string') {
-        return data;
-      }
-      if (data && typeof data === 'object' && data.error) {
-        return data.error;
-      }
-      if (error.status === 0) {
-        return 'Unable to reach the server. Please try again.';
-      }
-      return error.message || 'Request failed. Please try again.';
-    }
-
-    if (error instanceof Error) {
-      return error.message;
-    }
-
-    return 'Something went wrong. Please try again.';
-  }
 }

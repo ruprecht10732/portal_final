@@ -10,6 +10,7 @@ import { MIN_LENGTH } from '../../../core/config';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { UserService } from '../../../core/services/user.service';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
+import { getErrorMessage } from '../../../core/utils/error-utils';
 
 @Component({
   selector: 'auth-sign-in',
@@ -63,7 +64,7 @@ export class SignInComponent {
           loading: this.isSubmitting,
           error: this.globalError,
           reporter: this.reporter,
-          getMessage: (error) => this.authService.getErrorMessage(error),
+          getMessage: (error) => getErrorMessage(error),
         }),
         takeUntilDestroyed(this.destroyRef)
       )

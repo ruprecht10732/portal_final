@@ -8,6 +8,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { MIN_LENGTH } from '../../../core/config';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
+import { getErrorMessage } from '../../../core/utils/error-utils';
 
 interface PasswordRule {
   label: string;
@@ -89,7 +90,7 @@ export class SignUpComponent implements OnInit {
     this.authService.resolveInvite(token)
       .pipe(
         catchError(error => {
-          const message = this.authService.getErrorMessage(error);
+          const message = getErrorMessage(error);
           this.globalError.set(message);
           this.inviteToken.set(null);
           return EMPTY;
@@ -127,7 +128,7 @@ export class SignUpComponent implements OnInit {
           loading: this.isSubmitting,
           error: this.globalError,
           reporter: this.reporter,
-          getMessage: (error) => this.authService.getErrorMessage(error),
+          getMessage: (error) => getErrorMessage(error),
         }),
         takeUntilDestroyed(this.destroyRef)
       )
