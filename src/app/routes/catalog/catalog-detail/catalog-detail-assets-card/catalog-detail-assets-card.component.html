@@ -16,145 +16,87 @@
     </div>
   } @else {
     <div class="space-y-4">
-      <div>
-        <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
-          {{ 'catalog.products.assets.images' | translate }}
-        </h3>
-        @if (imageAssets().length === 0) {
-          <p class="text-xs text-zinc-500">{{ 'catalog.products.assets.noImages' | translate }}</p>
-        } @else {
-          <div class="assets-list">
-            @for (asset of imageAssets(); track asset.id) {
-              <div class="assets-row">
-                <span class="flex items-center gap-3 min-w-0">
-                  <span class="assets-thumb">
-                    @if (imagePreviewUrls()[asset.id]) {
-                      <img
-                        class="h-full w-full object-cover rounded"
-                        [src]="imagePreviewUrls()[asset.id]"
-                        [alt]="getAssetLabel(asset)"
-                        loading="lazy"
-                      />
+      @for (section of assetSections(); track section.key) {
+        <div>
+          <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
+            {{ section.titleKey | translate }}
+          </h3>
+          @if (section.assets.length === 0) {
+            <p class="text-xs text-zinc-500">{{ section.emptyKey | translate }}</p>
+          } @else {
+            <div class="assets-list">
+              @for (asset of section.assets; track asset.id) {
+                <div class="assets-row">
+                  <span
+                    class="flex items-center min-w-0"
+                    [class.gap-3]="section.showThumbnail"
+                    [class.gap-2]="!section.showThumbnail"
+                  >
+                    @if (section.showThumbnail) {
+                      <span class="assets-thumb">
+                        @if (imagePreviewUrls()[asset.id]) {
+                          <img
+                            class="h-full w-full object-cover rounded"
+                            [src]="imagePreviewUrls()[asset.id]"
+                            [alt]="getAssetLabel(asset)"
+                            loading="lazy"
+                          />
+                        } @else {
+                          <lucide-icon
+                            [name]="section.iconName"
+                            class="h-4 w-4 text-zinc-400"
+                            aria-hidden="true"
+                          ></lucide-icon>
+                        }
+                      </span>
                     } @else {
-                      <lucide-icon name="image" class="h-4 w-4 text-zinc-400" aria-hidden="true"></lucide-icon>
+                      <span class="assets-icon">
+                        <lucide-icon
+                          [name]="section.iconName"
+                          class="h-4 w-4 text-zinc-400"
+                          aria-hidden="true"
+                        ></lucide-icon>
+                      </span>
                     }
-                  </span>
-                  <span class="assets-text">
-                    <span class="assets-name">{{ getAssetLabel(asset) }}</span>
-                    <span class="assets-subtitle">
-                      {{ getAssetExtension(asset) || '—' }}
-                      <span class="assets-separator">•</span>
-                      {{ formatFileSize()(asset.sizeBytes) }}
+                    <span class="assets-text">
+                      <span class="assets-name">{{ getAssetLabel(asset) }}</span>
+                      <span class="assets-subtitle">
+                        {{ getAssetExtension(asset) || section.extensionFallback }}
+                        <span class="assets-separator">•</span>
+                        @if (section.subtitleMode === 'fileSize') {
+                          {{ formatFileSize()(asset.sizeBytes) }}
+                        } @else {
+                          {{ section.subtitleKey | translate }}
+                        }
+                      </span>
                     </span>
                   </span>
-                </span>
-                <div class="assets-actions">
-                  <button
-                    type="button"
-                    class="assets-action"
-                    (click)="previewAsset()(asset)"
-                    aria-label="Preview"
-                  >
-                    <lucide-icon name="eye" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                  </button>
-                  <button
-                    type="button"
-                    class="assets-action"
-                    (click)="downloadAsset()(asset)"
-                    aria-label="Download"
-                  >
-                    <lucide-icon name="download" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                  </button>
+                  <div class="assets-actions">
+                    <button
+                      type="button"
+                      class="assets-action"
+                      (click)="previewAsset()(asset)"
+                      [attr.aria-label]="section.previewLabel"
+                    >
+                      <lucide-icon name="eye" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                    </button>
+                    @if (section.showDownload) {
+                      <button
+                        type="button"
+                        class="assets-action"
+                        (click)="downloadAsset()(asset)"
+                        aria-label="Download"
+                      >
+                        <lucide-icon name="download" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                      </button>
+                    }
+                  </div>
                 </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-      <div>
-        <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
-          {{ 'catalog.products.assets.documents' | translate }}
-        </h3>
-        @if (documentAssets().length === 0) {
-          <p class="text-xs text-zinc-500">{{ 'catalog.products.assets.noDocuments' | translate }}</p>
-        } @else {
-          <div class="assets-list">
-            @for (asset of documentAssets(); track asset.id) {
-              <div class="assets-row">
-                <span class="flex items-center gap-2 min-w-0">
-                  <span class="assets-icon">
-                    <lucide-icon name="file-text" class="h-4 w-4 text-zinc-400" aria-hidden="true"></lucide-icon>
-                  </span>
-                  <span class="assets-text">
-                    <span class="assets-name">{{ getAssetLabel(asset) }}</span>
-                    <span class="assets-subtitle">
-                      {{ getAssetExtension(asset) || '—' }}
-                      <span class="assets-separator">•</span>
-                      {{ formatFileSize()(asset.sizeBytes) }}
-                    </span>
-                  </span>
-                </span>
-                <div class="assets-actions">
-                  <button
-                    type="button"
-                    class="assets-action"
-                    (click)="previewAsset()(asset)"
-                    aria-label="Preview"
-                  >
-                    <lucide-icon name="eye" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                  </button>
-                  <button
-                    type="button"
-                    class="assets-action"
-                    (click)="downloadAsset()(asset)"
-                    aria-label="Download"
-                  >
-                    <lucide-icon name="download" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
-      <div>
-        <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
-          {{ 'catalog.products.assets.termsTitle' | translate }}
-        </h3>
-        @if (termsAssets().length === 0) {
-          <p class="text-xs text-zinc-500">{{ 'catalog.products.assets.noTerms' | translate }}</p>
-        } @else {
-          <div class="assets-list">
-            @for (asset of termsAssets(); track asset.id) {
-              <div class="assets-row">
-                <span class="flex items-center gap-2 min-w-0">
-                  <span class="assets-icon">
-                    <lucide-icon name="link-2" class="h-4 w-4 text-zinc-400" aria-hidden="true"></lucide-icon>
-                  </span>
-                  <span class="assets-text">
-                    <span class="assets-name">{{ getAssetLabel(asset) }}</span>
-                    <span class="assets-subtitle">
-                      {{ getAssetExtension(asset) || 'LINK' }}
-                      <span class="assets-separator">•</span>
-                      {{ 'catalog.products.assets.link' | translate }}
-                    </span>
-                  </span>
-                </span>
-                <div class="assets-actions">
-                  <button
-                    type="button"
-                    class="assets-action"
-                    (click)="previewAsset()(asset)"
-                    aria-label="Open link"
-                  >
-                    <lucide-icon name="eye" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                  </button>
-                </div>
-              </div>
-            }
-          </div>
-        }
-      </div>
+              }
+            </div>
+          }
+        </div>
+      }
     </div>
   }
 </section>

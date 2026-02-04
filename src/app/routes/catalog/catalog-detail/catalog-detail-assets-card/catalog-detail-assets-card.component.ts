@@ -1,7 +1,21 @@
-import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { TranslateModule } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { type CatalogAsset } from '../../../../core/services/catalog.service';
+
+interface AssetSection {
+  key: 'images' | 'documents' | 'terms';
+  titleKey: string;
+  emptyKey: string;
+  assets: CatalogAsset[];
+  iconName: string;
+  showThumbnail: boolean;
+  showDownload: boolean;
+  previewLabel: string;
+  extensionFallback: string;
+  subtitleMode: 'fileSize' | 'link';
+  subtitleKey?: string;
+}
 
 @Component({
   selector: 'app-catalog-detail-assets-card',
@@ -21,6 +35,46 @@ export class CatalogDetailAssetsCardComponent {
   readonly formatFileSize = input.required<(bytes?: number) => string>();
   readonly previewAsset = input.required<(asset: CatalogAsset) => void>();
   readonly downloadAsset = input.required<(asset: CatalogAsset) => void>();
+
+  protected readonly assetSections = computed<AssetSection[]>(() => [
+    {
+      key: 'images',
+      titleKey: 'catalog.products.assets.images',
+      emptyKey: 'catalog.products.assets.noImages',
+      assets: this.imageAssets(),
+      iconName: 'image',
+      showThumbnail: true,
+      showDownload: true,
+      previewLabel: 'Preview',
+      extensionFallback: '—',
+      subtitleMode: 'fileSize',
+    },
+    {
+      key: 'documents',
+      titleKey: 'catalog.products.assets.documents',
+      emptyKey: 'catalog.products.assets.noDocuments',
+      assets: this.documentAssets(),
+      iconName: 'file-text',
+      showThumbnail: false,
+      showDownload: true,
+      previewLabel: 'Preview',
+      extensionFallback: '—',
+      subtitleMode: 'fileSize',
+    },
+    {
+      key: 'terms',
+      titleKey: 'catalog.products.assets.termsTitle',
+      emptyKey: 'catalog.products.assets.noTerms',
+      assets: this.termsAssets(),
+      iconName: 'link-2',
+      showThumbnail: false,
+      showDownload: false,
+      previewLabel: 'Open link',
+      extensionFallback: 'LINK',
+      subtitleMode: 'link',
+      subtitleKey: 'catalog.products.assets.link',
+    },
+  ]);
 
   protected getAssetLabel(asset: CatalogAsset): string {
     return asset.fileName || asset.fileKey || '';
