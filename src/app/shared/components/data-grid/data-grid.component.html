@@ -109,42 +109,56 @@
   @if (store.loadingState() !== 'loading') {
     <!-- Card View (Mobile) -->
     @if (store.showCardView()) {
-      <data-grid-cards
-        [columns]="store.columns()"
-        [rows]="store.rows()"
-        [selectable]="store.config().selectable"
-        [rowIdField]="store.config().rowIdField"
-        [cardTitleField]="store.config().cardTitleField"
-        [cardSubtitleField]="store.config().cardSubtitleField"
-        [cardSecondarySubtitleField]="store.config().cardSecondarySubtitleField"
-        [statusField]="store.config().statusField"
-        [previewFieldCount]="store.config().cardPreviewFieldCount"
-        [rowDeleteActionEnabled]="store.config().rowDeleteActionEnabled"
-        [rowDeleteActionPredicate]="store.config().rowDeleteActionPredicate ?? null"
-        (rowSelect)="store.toggleRowSelection($event)"
-        (rowClick)="onRowDoubleClick($event)"
-        (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
-        (cellEditEvent)="onCellEdit($event)"
-        (deleteRow)="onCardDelete($event)"
-      />
+      @defer (on viewport) {
+        <data-grid-cards
+          [columns]="store.columns()"
+          [rows]="store.rows()"
+          [selectable]="store.config().selectable"
+          [rowIdField]="store.config().rowIdField"
+          [cardTitleField]="store.config().cardTitleField"
+          [cardSubtitleField]="store.config().cardSubtitleField"
+          [cardSecondarySubtitleField]="store.config().cardSecondarySubtitleField"
+          [statusField]="store.config().statusField"
+          [previewFieldCount]="store.config().cardPreviewFieldCount"
+          [rowDeleteActionEnabled]="store.config().rowDeleteActionEnabled"
+          [rowDeleteActionPredicate]="store.config().rowDeleteActionPredicate ?? null"
+          (rowSelect)="store.toggleRowSelection($event)"
+          (rowClick)="onRowDoubleClick($event)"
+          (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
+          (cellEditEvent)="onCellEdit($event)"
+          (deleteRow)="onCardDelete($event)"
+        />
 
-      <!-- Add-row bar (mobile/card view: always visible) -->
-      @if (store.rows().length > 0 && store.config().mobileAddRowEnabled) {
-        <div>
-          <shared-button
-            variant="ghost"
-            size="compact"
-            class="w-full"
-            [fullWidth]="true"
-            [ariaLabel]="'dataGrid.addNewRow' | translate"
-            (clicked)="onAddRow()"
-          >
-            <span class="flex w-full items-center justify-center gap-3 py-2 text-center">
-              <span class="h-px flex-1 bg-zinc-200"></span>
-              <span class="px-2 text-sm text-zinc-600">{{ 'dataGrid.addRow' | translate }}</span>
-              <span class="h-px flex-1 bg-zinc-200"></span>
-            </span>
-          </shared-button>
+        <!-- Add-row bar (mobile/card view: always visible) -->
+        @if (store.rows().length > 0 && store.config().mobileAddRowEnabled) {
+          <div>
+            <shared-button
+              variant="ghost"
+              size="compact"
+              class="w-full"
+              [fullWidth]="true"
+              [ariaLabel]="'dataGrid.addNewRow' | translate"
+              (clicked)="onAddRow()"
+            >
+              <span class="flex w-full items-center justify-center gap-3 py-2 text-center">
+                <span class="h-px flex-1 bg-zinc-200"></span>
+                <span class="px-2 text-sm text-zinc-600">{{ 'dataGrid.addRow' | translate }}</span>
+                <span class="h-px flex-1 bg-zinc-200"></span>
+              </span>
+            </shared-button>
+          </div>
+        }
+      } @placeholder {
+        <div class="flex flex-col gap-4">
+          <div class="h-28 rounded-lg bg-zinc-100 animate-pulse"></div>
+          <div class="h-28 rounded-lg bg-zinc-100 animate-pulse"></div>
+          <div class="h-28 rounded-lg bg-zinc-100 animate-pulse"></div>
+        </div>
+      } @loading {
+        <div class="flex flex-col gap-4">
+          <div class="h-28 rounded-lg bg-zinc-100 animate-pulse"></div>
+          <div class="h-28 rounded-lg bg-zinc-100 animate-pulse"></div>
+          <div class="h-28 rounded-lg bg-zinc-100 animate-pulse"></div>
         </div>
       }
     } @else {
