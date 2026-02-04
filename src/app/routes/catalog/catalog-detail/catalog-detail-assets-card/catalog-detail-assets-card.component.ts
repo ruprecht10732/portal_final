@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { TranslateModule } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { type CatalogAsset } from '../../../../core/services/catalog.service';
+import { ChipComponent } from '../../../../shared/components/chip/chip.component';
 
 interface AssetSection {
   key: 'images' | 'documents' | 'terms';
@@ -19,7 +20,7 @@ interface AssetSection {
 
 @Component({
   selector: 'app-catalog-detail-assets-card',
-  imports: [TranslateModule, LucideAngularModule],
+  imports: [TranslateModule, LucideAngularModule, ChipComponent],
   templateUrl: './catalog-detail-assets-card.component.html',
   styleUrl: './catalog-detail-assets-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
