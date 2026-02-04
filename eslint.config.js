@@ -1,10 +1,9 @@
 // @ts-check
 import eslint from "@eslint/js";
-import { defineConfig } from "eslint/config";
 import { configs } from "typescript-eslint";
 import angular from "angular-eslint";
 
-export default defineConfig([
+export default [
   {
     files: ["**/*.ts"],
     extends: [
@@ -34,4 +33,4 @@ export default defineConfig([
     ],
     rules: {},
   }
-]);
+];
