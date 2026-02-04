@@ -1,114 +1,81 @@
-<section class="border border-zinc-200 bg-white overflow-hidden">
-  <div class="relative h-60 sm:h-72 w-full">
-    <div class="absolute inset-0 bg-zinc-200"></div>
-    @if (heroImageUrl()) {
-      <div
-        class="absolute inset-0 bg-cover bg-center"
-        [style.background-image]="'url(' + heroImageUrl() + ')'"
-        aria-hidden="true"
-      ></div>
-      <div class="absolute inset-0 bg-black/45" aria-hidden="true"></div>
-    }
-    <div class="absolute top-0 left-0 p-4 z-10">
-      <div class="inline-flex items-center gap-2 bg-black/70 text-white px-2.5 py-1">
-        <span class="text-xs font-bold">A</span>
-        <span class="text-xs font-bold uppercase tracking-widest">
-          {{ 'catalog.products.sections.basics' | translate }}
-        </span>
-      </div>
-    </div>
-    <div class="absolute bottom-0 left-0 w-full p-5 sm:p-6 flex flex-col gap-3">
-      <div class="flex flex-col gap-2">
-        <p
-          class="text-xs font-bold uppercase tracking-widest"
-          [class.text-white]="heroImageUrl()"
-          [class.text-zinc-700]="!heroImageUrl()"
-        >
-          {{ 'catalog.products.fields.title' | translate }}
-        </p>
-        <h3
-          class="text-2xl sm:text-3xl font-bold leading-tight"
-          [class.text-white]="heroImageUrl()"
-          [class.text-zinc-900]="!heroImageUrl()"
-        >
-          {{ product().title }}
-        </h3>
-      </div>
-      <div class="flex flex-wrap items-center gap-2">
-        <span
-          class="text-xs font-semibold px-2.5 py-1"
-          [class.bg-black/40]="heroImageUrl()"
-          [class.text-white]="heroImageUrl()"
-          [class.bg-zinc-200]="!heroImageUrl()"
-          [class.text-zinc-700]="!heroImageUrl()"
-        >
-          {{ 'catalog.products.fields.reference' | translate }}: {{ product().reference }}
-        </span>
-        <span
-          class="text-xs font-semibold px-2.5 py-1"
-          [class.bg-black/40]="heroImageUrl()"
-          [class.text-white]="heroImageUrl()"
-          [class.bg-zinc-200]="!heroImageUrl()"
-          [class.text-zinc-700]="!heroImageUrl()"
-        >
-          {{ 'catalog.products.fields.vatRate' | translate }}: {{ formattedVatRate() }}
-        </span>
-      </div>
-    </div>
-  </div>
-
-  <div class="p-4 sm:p-6 space-y-6">
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-      <div class="border border-zinc-200 bg-zinc-50 p-4">
-        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-          {{ 'catalog.products.fields.price' | translate }}
-        </p>
-        <p class="mt-3 text-2xl font-bold text-zinc-900">
-          {{ formattedPrice() }}
-        </p>
+<section>
+  <div class="basics-layout">
+    <div class="basics-left">
+      <div class="basics-hero relative h-60 sm:h-72 w-full">
+        <div class="absolute inset-0 bg-zinc-200"></div>
+        @if (heroImageUrl()) {
+          <div
+            class="absolute inset-0 bg-cover bg-center"
+            [style.background-image]="'url(' + heroImageUrl() + ')'"
+            aria-hidden="true"
+          ></div>
+          <div class="absolute inset-0 bg-black/45" aria-hidden="true"></div>
+        }
+        <div class="absolute bottom-0 left-0 w-full p-5 sm:p-6 flex flex-col gap-3">
+          <div class="flex flex-col gap-2">
+            <p
+              class="text-xs font-bold uppercase tracking-widest"
+              [class.text-white]="heroImageUrl()"
+              [class.text-zinc-700]="!heroImageUrl()"
+            >
+              {{ 'catalog.products.fields.title' | translate }}
+            </p>
+            <h3
+              class="text-2xl sm:text-3xl font-bold leading-tight"
+              [class.text-white]="heroImageUrl()"
+              [class.text-zinc-900]="!heroImageUrl()"
+            >
+              {{ product().title }}
+            </h3>
+          </div>
+        </div>
       </div>
 
-      <div class="border border-zinc-200 bg-white p-4">
-        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-          {{ 'catalog.products.fields.type' | translate }}
-        </p>
-        <div class="mt-3">
+      @if (product().description) {
+        <div class="pt-4 border-t border-zinc-200">
+          <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'catalog.products.fields.description' | translate }}
+          </p>
+          <p class="mt-2 text-sm text-zinc-700 whitespace-pre-wrap">
+            {{ product().description }}
+          </p>
+        </div>
+      }
+    </div>
+
+    <div class="basics-right">
+      <div class="details-list">
+        <div class="details-row">
+          <span class="details-label">{{ 'catalog.products.fields.title' | translate }}</span>
+          <span class="details-meta">{{ product().title }}</span>
+        </div>
+        <div class="details-row">
+          <span class="details-label">{{ 'catalog.products.fields.reference' | translate }}</span>
+          <span class="details-meta">{{ product().reference }}</span>
+        </div>
+        <div class="details-row">
+          <span class="details-label">{{ 'catalog.products.fields.vatRate' | translate }}</span>
+          <span class="details-meta">{{ formattedVatRate() }}</span>
+        </div>
+        <div class="details-row">
+          <span class="details-label">{{ 'catalog.products.fields.price' | translate }}</span>
+          <span class="details-value">{{ formattedPrice() }}</span>
+        </div>
+        <div class="details-row">
+          <span class="details-label">{{ 'catalog.products.fields.type' | translate }}</span>
           <shared-chip [variant]="typeVariant()">
             {{ typeLabel() }}
           </shared-chip>
         </div>
+        <div class="details-row">
+          <span class="details-label">{{ 'catalog.products.fields.createdAt' | translate }}</span>
+          <span class="details-meta">{{ createdAt() | date:'medium' }}</span>
+        </div>
+        <div class="details-row">
+          <span class="details-label">{{ 'catalog.products.fields.updatedAt' | translate }}</span>
+          <span class="details-meta">{{ updatedAt() | date:'medium' }}</span>
+        </div>
       </div>
     </div>
-
-    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-zinc-200">
-      <div>
-        <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-          {{ 'catalog.products.fields.createdAt' | translate }}
-        </p>
-        <p class="mt-1 text-sm text-zinc-600">
-          {{ createdAt() | date:'medium' }}
-        </p>
-      </div>
-
-      <div>
-        <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-          {{ 'catalog.products.fields.updatedAt' | translate }}
-        </p>
-        <p class="mt-1 text-sm text-zinc-600">
-          {{ updatedAt() | date:'medium' }}
-        </p>
-      </div>
-    </div>
-
-    @if (product().description) {
-      <div class="pt-4 border-t border-zinc-200">
-        <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-          {{ 'catalog.products.fields.description' | translate }}
-        </p>
-        <p class="mt-2 text-sm text-zinc-700 whitespace-pre-wrap">
-          {{ product().description }}
-        </p>
-      </div>
-    }
   </div>
 </section>
