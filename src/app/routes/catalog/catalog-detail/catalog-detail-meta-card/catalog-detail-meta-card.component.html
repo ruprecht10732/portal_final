@@ -1,0 +1,41 @@
+<section class="border border-zinc-200 bg-white p-4 sm:p-6 space-y-4">
+  <div class="flex items-center justify-between">
+    <div class="flex items-center gap-3">
+      <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">B</span>
+      <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+        {{ 'catalog.products.sections.basics' | translate }}
+      </h2>
+    </div>
+  </div>
+
+  @if (formattedPeriod()) {
+    <div class="border border-zinc-200 bg-zinc-50 p-4">
+      <p class="text-xs font-bold uppercase tracking-wider text-zinc-500 mb-2">
+        {{ 'catalog.products.periodConfiguration' | translate }}
+      </p>
+      <div class="flex items-center gap-2">
+        <span class="text-sm font-medium text-zinc-900">{{ formattedPeriod() }}</span>
+      </div>
+    </div>
+  }
+
+  <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 pt-2 border-t border-zinc-200">
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+        {{ 'catalog.products.fields.createdAt' | translate }}
+      </p>
+      <p class="mt-1 text-sm text-zinc-600">
+        {{ createdAt() | date:'medium' }}
+      </p>
+    </div>
+
+    <div>
+      <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+        {{ 'catalog.products.fields.updatedAt' | translate }}
+      </p>
+      <p class="mt-1 text-sm text-zinc-600">
+        {{ updatedAt() | date:'medium' }}
+      </p>
+    </div>
+  </div>
+</section>

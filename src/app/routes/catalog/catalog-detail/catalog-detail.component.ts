@@ -1,5 +1,4 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
-import { DatePipe } from '@angular/common';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
@@ -14,20 +13,26 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { ChipComponent, type ChipVariant } from '../../../shared/components/chip/chip.component';
+import { type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { CatalogDetailAssetsCardComponent } from './catalog-detail-assets-card/catalog-detail-assets-card.component';
+import { CatalogDetailBasicsCardComponent } from './catalog-detail-basics-card/catalog-detail-basics-card.component';
+import { CatalogDetailMaterialsCardComponent } from './catalog-detail-materials-card/catalog-detail-materials-card.component';
+import { CatalogDetailMetaCardComponent } from './catalog-detail-meta-card/catalog-detail-meta-card.component';
 
 @Component({
   selector: 'app-catalog-detail',
   imports: [
-    DatePipe,
     TranslateModule,
     LucideAngularModule,
     ButtonComponent,
-    ChipComponent,
     ConfirmDialogComponent,
     PageHeaderComponent,
+    CatalogDetailAssetsCardComponent,
+    CatalogDetailBasicsCardComponent,
+    CatalogDetailMaterialsCardComponent,
+    CatalogDetailMetaCardComponent,
   ],
   templateUrl: './catalog-detail.component.html',
   styleUrl: './catalog-detail.component.css',
@@ -92,6 +97,10 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly imageAssets = computed(() => this.assets().filter(asset => asset.assetType === 'image'));
   protected readonly documentAssets = computed(() => this.assets().filter(asset => asset.assetType === 'document'));
   protected readonly termsAssets = computed(() => this.assets().filter(asset => asset.assetType === 'terms_url'));
+
+  protected readonly onOpenAsset = (asset: CatalogAsset): void => this.openAsset(asset);
+  protected readonly onFormatFileSize = (bytes?: number): string => this.formatFileSize(bytes);
+  protected readonly onFormatMaterialPrice = (priceCents: number): string => this.formatMaterialPrice(priceCents);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');

@@ -1,0 +1,96 @@
+<section class="border border-zinc-200 bg-white p-4 sm:p-6">
+  <div class="flex items-center justify-between mb-4">
+    <div class="flex items-center gap-3">
+      <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">C</span>
+      <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+        {{ 'catalog.products.assets.title' | translate }}
+      </h2>
+    </div>
+    <span class="text-xs text-zinc-400">
+      {{ assetsCount() }} {{ 'catalog.products.items' | translate }}
+    </span>
+  </div>
+
+  @if (assetsError()) {
+    <div role="alert" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+      {{ assetsError() }}
+    </div>
+  }
+
+  @if (assetsLoading()) {
+    <div class="flex items-center justify-center p-6">
+      <div class="animate-spin h-6 w-6 border-4 border-zinc-200 border-t-black rounded-full"></div>
+    </div>
+  } @else if (assetsCount() === 0) {
+    <div class="border border-dashed border-zinc-300 p-6 text-center">
+      <h3 class="mt-3 text-sm font-semibold text-zinc-900">{{ 'catalog.products.assets.empty' | translate }}</h3>
+      <p class="mt-1 text-xs text-zinc-500">{{ 'catalog.products.assets.emptyHint' | translate }}</p>
+    </div>
+  } @else {
+    <div class="space-y-4">
+      <div class="border border-zinc-200 p-3">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
+          {{ 'catalog.products.assets.images' | translate }}
+        </h3>
+        @if (imageAssets().length === 0) {
+          <p class="text-xs text-zinc-500">{{ 'catalog.products.assets.noImages' | translate }}</p>
+        } @else {
+          <div class="flex flex-col gap-2">
+            @for (asset of imageAssets(); track asset.id) {
+              <button
+                type="button"
+                class="flex items-center justify-between bg-zinc-50 px-3 py-2 text-left text-sm"
+                (click)="openAsset()(asset)"
+              >
+                <span class="truncate">{{ asset.fileName || asset.fileKey }}</span>
+                <span class="text-xs text-zinc-500">{{ formatFileSize()(asset.sizeBytes) }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+      <div class="border border-zinc-200 p-3">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
+          {{ 'catalog.products.assets.documents' | translate }}
+        </h3>
+        @if (documentAssets().length === 0) {
+          <p class="text-xs text-zinc-500">{{ 'catalog.products.assets.noDocuments' | translate }}</p>
+        } @else {
+          <div class="flex flex-col gap-2">
+            @for (asset of documentAssets(); track asset.id) {
+              <button
+                type="button"
+                class="flex items-center justify-between bg-zinc-50 px-3 py-2 text-left text-sm"
+                (click)="openAsset()(asset)"
+              >
+                <span class="truncate">{{ asset.fileName || asset.fileKey }}</span>
+                <span class="text-xs text-zinc-500">{{ formatFileSize()(asset.sizeBytes) }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+      <div class="border border-zinc-200 p-3">
+        <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
+          {{ 'catalog.products.assets.termsTitle' | translate }}
+        </h3>
+        @if (termsAssets().length === 0) {
+          <p class="text-xs text-zinc-500">{{ 'catalog.products.assets.noTerms' | translate }}</p>
+        } @else {
+          <div class="flex flex-col gap-2">
+            @for (asset of termsAssets(); track asset.id) {
+              <button
+                type="button"
+                class="flex items-center justify-between bg-zinc-50 px-3 py-2 text-left text-sm"
+                (click)="openAsset()(asset)"
+              >
+                <span class="truncate">{{ asset.fileName || asset.url }}</span>
+                <span class="text-xs text-zinc-500">{{ 'catalog.products.assets.link' | translate }}</span>
+              </button>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</section>
