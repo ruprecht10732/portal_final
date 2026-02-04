@@ -79,6 +79,9 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   /** Number of preview fields before expand */
   readonly previewFieldCount = input<number>(3);
 
+  /** Show delete action on cards */
+  readonly rowDeleteActionEnabled = input<boolean>(false);
+
   // ============ Outputs ============
   
   /** Row selection toggle */
@@ -343,8 +346,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   }
 
   /** Get status class for card border */
-  protected getStatusClass(row: RowState<T>): string {
-    void row;
+  protected getStatusClass(): string {
     return '';
   }
 

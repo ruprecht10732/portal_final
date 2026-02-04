@@ -18,92 +18,15 @@
     </shared-button>
   </header>
 
-  <!-- Loading State -->
-  @if (loading()) {
-    <div class="flex items-center justify-center py-12">
-      <svg class="w-8 h-8 animate-spin text-zinc-400" viewBox="0 0 24 24">
-        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" fill="none"></circle>
-        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-      </svg>
-    </div>
-  } @else if (vatRates().length === 0) {
-    <!-- Empty State -->
-    <div class="rounded-2xl border border-dashed border-zinc-300 bg-white p-8 text-center">
-      <svg class="mx-auto h-12 w-12 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M9 14l6-6m-5.5.5h.01m4.99 5h.01M19 21V5a2 2 0 00-2-2H7a2 2 0 00-2 2v16l3.5-2 3.5 2 3.5-2 3.5 2z" />
-      </svg>
-      <h3 class="mt-4 text-sm font-medium text-zinc-900">{{ 'catalog.vatRates.emptyTitle' | translate }}</h3>
-      <p class="mt-1 text-sm text-zinc-500">{{ 'catalog.vatRates.emptyMessage' | translate }}</p>
-      <div class="mt-6">
-        <shared-button
-          variant="primary"
-          [fullWidth]="false"
-          (clicked)="openAddModal()"
-        >
-          {{ 'catalog.vatRates.addFirstRate' | translate }}
-        </shared-button>
-      </div>
-    </div>
-  } @else {
-    <!-- Data Table -->
-    <div class="overflow-hidden rounded-lg border border-zinc-200 bg-white">
-      <table class="min-w-full divide-y divide-zinc-200">
-        <thead class="bg-zinc-50">
-          <tr>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              {{ 'catalog.vatRates.columns.name' | translate }}
-            </th>
-            <th scope="col" class="px-6 py-3 text-left text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              {{ 'catalog.vatRates.columns.rate' | translate }}
-            </th>
-            <th scope="col" class="px-6 py-3 text-right text-xs font-semibold uppercase tracking-wider text-zinc-500">
-              {{ 'catalog.vatRates.columns.actions' | translate }}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-zinc-200 bg-white">
-          @for (rate of vatRates(); track rate.id) {
-            <tr class="hover:bg-zinc-50 transition-colors">
-              <td class="px-6 py-4 whitespace-nowrap text-sm font-medium text-zinc-900">
-                {{ rate.name }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-sm text-zinc-600">
-                {{ formatRate(rate.rateBps) }}
-              </td>
-              <td class="px-6 py-4 whitespace-nowrap text-right text-sm">
-                <div class="flex items-center justify-end gap-2">
-                  <shared-button
-                    variant="ghost"
-                    size="compact"
-                    [iconOnly]="true"
-                    [fullWidth]="false"
-                    (clicked)="openEditModal(rate)"
-                    [ariaLabel]="'catalog.vatRates.editAction' | translate"
-                  >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </shared-button>
-                  <shared-button
-                    variant="ghost"
-                    size="compact"
-                    [iconOnly]="true"
-                    [fullWidth]="false"
-                    (clicked)="openDeleteDialog(rate)"
-                    [ariaLabel]="'catalog.vatRates.deleteAction' | translate"
-                  >
-                    <svg class="w-4 h-4 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </shared-button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-  }
+  <shared-data-grid
+    [columns]="columns()"
+    [data]="vatRateRows()"
+    [loading]="loading()"
+    [config]="gridConfig"
+    (rowDoubleClick)="onRowDoubleClick($event)"
+    (deleteRows)="onDeleteRows($event)"
+    [ariaLabel]="'catalog.vatRates.title'"
+  />
 </section>
 
 <!-- Add/Edit Modal -->

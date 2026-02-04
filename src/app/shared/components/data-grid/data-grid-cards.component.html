@@ -8,13 +8,23 @@
       <button
         type="button"
         class="group relative flex flex-col transition-colors duration-150 cursor-pointer focus:outline-hidden focus:bg-zinc-50 dark:focus:bg-zinc-800/50"
-        [class]="getStatusClass(row) + ' ' + getBgClass(row)"
+        [class]="getStatusClass() + ' ' + getBgClass(row)"
         [attr.aria-pressed]="row.selected ? 'true' : 'false'"
         (click)="onCardClick(rowIndex)"
         (keydown.enter)="onCardClick(rowIndex)"
       >
         <!-- Main Card Content (Horizontal Layout) -->
         <div class="flex items-center gap-4 p-3 font-sans">
+          @if (selectable()) {
+            <div class="flex items-center" (pointerdown)="$event.stopPropagation()">
+              <shared-checkbox
+                [checked]="row.selected"
+                [ariaLabel]="'dataGrid.selectRow' | translate:{rowIndex: rowIndex + 1}"
+                [dense]="true"
+                (checkedChange)="onSelect(rowIndex)"
+              />
+            </div>
+          }
           <!-- Avatar / Initials (Square) -->
           <div class="flex h-12 w-12 shrink-0 items-center justify-center bg-zinc-100 text-sm font-bold uppercase text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
             {{ getInitials(row) }}
@@ -26,11 +36,26 @@
               <p class="truncate text-base font-bold leading-tight text-zinc-900 dark:text-white pr-2">
                 {{ getTitleText(row) }}
               </p>
-              <span class="text-zinc-400 dark:text-zinc-600">
-                <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                  <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                </svg>
-              </span>
+              <div class="flex items-center gap-2">
+                @if (rowDeleteActionEnabled()) {
+                  <button
+                    type="button"
+                    class="flex h-7 w-7 items-center justify-center rounded-md bg-white text-red-600 shadow-sm ring-1 ring-zinc-200 focus:outline-none focus:ring-2 focus:ring-black"
+                    aria-label="{{ 'dataGrid.delete' | translate }}"
+                    title="{{ 'dataGrid.delete' | translate }}"
+                    (click)="onDelete(rowIndex, $event)"
+                  >
+                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8m-9 0V5a2 2 0 012-2h4a2 2 0 012 2v2" />
+                    </svg>
+                  </button>
+                }
+                <span class="text-zinc-400 dark:text-zinc-600">
+                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                  </svg>
+                </span>
+              </div>
             </div>
 
             @if (getSubtitleText(row)) {

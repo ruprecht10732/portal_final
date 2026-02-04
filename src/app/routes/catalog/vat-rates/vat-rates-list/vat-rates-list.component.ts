@@ -8,6 +8,12 @@ import { ButtonComponent } from '../../../../shared/components/button/button.com
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { DataGridComponent } from '../../../../shared/components/data-grid/data-grid.component';
+import type { GridColumn, GridConfig } from '../../../../shared/components/data-grid/data-grid.types';
+import { MOBILE_BREAKPOINT } from '../../../../core/config';
+import { toSignal } from '@angular/core/rxjs-interop';
+
+type VatRateRow = VatRate & { rateDisplay: string } & Record<string, unknown>;
 
 @Component({
   selector: 'app-vat-rates-list',
@@ -21,12 +27,16 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
     InputComponent,
     NumberInputComponent,
     ConfirmDialogComponent,
+    DataGridComponent,
   ],
 })
 export class VatRatesListComponent implements OnInit {
   private readonly catalogService = inject(CatalogService);
   private readonly toastService = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
 
   // State
   protected readonly vatRates = signal<VatRate[]>([]);
@@ -66,6 +76,52 @@ export class VatRatesListComponent implements OnInit {
       ? this.translate.instant('catalog.vatRates.editTitle')
       : this.translate.instant('catalog.vatRates.addTitle')
   );
+
+  protected readonly vatRateRows = computed<VatRateRow[]>(() =>
+    this.vatRates().map(rate => ({
+      ...rate,
+      rateDisplay: this.formatRate(rate.rateBps),
+    }))
+  );
+
+  protected readonly columns = computed<GridColumn<VatRateRow>[]>(() => {
+    this.lang();
+    return [
+      {
+        id: 'name',
+        header: this.translate.instant('catalog.vatRates.columns.name'),
+        field: 'name',
+        sortable: false,
+        filterable: false,
+        width: '240px',
+        cellType: 'text',
+      },
+      {
+        id: 'rate',
+        header: this.translate.instant('catalog.vatRates.columns.rate'),
+        field: 'rateDisplay',
+        sortable: false,
+        filterable: false,
+        width: '140px',
+        align: 'right',
+        cellType: 'text',
+      },
+    ];
+  });
+
+  protected readonly gridConfig: Partial<GridConfig<VatRateRow>> = {
+    rowIdField: 'id',
+    selectable: false,
+    multiSelect: false,
+    cardViewEnabled: true,
+    mobileBreakpoint: MOBILE_BREAKPOINT,
+    cardTitleField: 'name',
+    cardSubtitleField: 'rateDisplay',
+    cardPreviewFieldCount: 2,
+    mobileAddRowEnabled: false,
+    rowViewActionEnabled: true,
+    rowDeleteActionEnabled: true,
+  };
 
   ngOnInit(): void {
     this.loadVatRates();
@@ -114,13 +170,20 @@ export class VatRatesListComponent implements OnInit {
   protected saveRate(): void {
     if (!this.isFormValid() || this.saving()) return;
 
-    const rateBps = CatalogService.rateToBps(this.formRate()!);
+    const rawRate = this.formRate();
+    if (rawRate === null || rawRate === undefined) return;
+    const rateBps = CatalogService.rateToBps(rawRate);
     const name = this.formName().trim();
 
     this.saving.set(true);
 
     if (this.isEditing()) {
-      const rateId = this.editingRate()!.id;
+      const editing = this.editingRate();
+      if (!editing) {
+        this.saving.set(false);
+        return;
+      }
+      const rateId = editing.id;
       this.catalogService.updateVatRate(rateId, { name, rateBps }).subscribe({
         next: () => {
           this.toastService.success(this.translate.instant('catalog.vatRates.updateSuccess'));
@@ -153,6 +216,15 @@ export class VatRatesListComponent implements OnInit {
   protected openDeleteDialog(rate: VatRate): void {
     this.pendingDeleteRate.set(rate);
     this.isDeleteDialogOpen.set(true);
+  }
+
+  protected onRowDoubleClick(row: VatRateRow): void {
+    this.openEditModal(row);
+  }
+
+  protected onDeleteRows(rows: VatRateRow[]): void {
+    if (rows.length === 0) return;
+    this.openDeleteDialog(rows[0]);
   }
 
   protected closeDeleteDialog(): void {

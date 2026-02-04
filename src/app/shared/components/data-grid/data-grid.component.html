@@ -119,6 +119,7 @@
         [cardSecondarySubtitleField]="store.config().cardSecondarySubtitleField"
         [statusField]="store.config().statusField"
         [previewFieldCount]="store.config().cardPreviewFieldCount"
+        [rowDeleteActionEnabled]="store.config().rowDeleteActionEnabled"
         (rowSelect)="store.toggleRowSelection($event)"
         (rowClick)="onRowDoubleClick($event)"
         (cellValueChange)="store.updateCellValue($event.rowIndex, $event.columnId, $event.value)"
