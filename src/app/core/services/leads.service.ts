@@ -2,6 +2,7 @@ import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { BaseCrudService } from './base-crud.service';
 import type {
   Lead,
   LeadListResponse,
@@ -32,7 +33,14 @@ import type {
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
-export class LeadsService {
+export class LeadsService extends BaseCrudService<
+  Lead,
+  ListLeadsParams,
+  LeadListResponse,
+  CreateLeadRequest,
+  UpdateLeadRequest,
+  { message: string }
+> {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/leads`;
 

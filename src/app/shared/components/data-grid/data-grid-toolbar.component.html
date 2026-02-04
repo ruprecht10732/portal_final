@@ -248,9 +248,9 @@
           <span class="text-xs font-medium text-zinc-600">
             {{ activeFilterColumnData()?.header }}:
           </span>
-          @if (activeFilterIsBoolean()) {
+          @if (activeFilterUiConfig().inputType === 'select') {
             <shared-select
-              [options]="booleanFilterOptions()"
+              [options]="activeFilterUiConfig().options ?? []"
               [value]="filterValue()"
               (valueChange)="filterValue.set($event ?? '')"
               [placeholder]="'dataGrid.selectOption' | translate"
@@ -348,9 +348,9 @@
             <span class="text-sm font-medium text-zinc-700">
               {{ activeFilterColumnData()?.header }}
             </span>
-            @if (activeFilterIsBoolean()) {
+            @if (activeFilterUiConfig().inputType === 'select') {
               <shared-select
-                [options]="booleanFilterOptions()"
+                [options]="activeFilterUiConfig().options ?? []"
                 [value]="filterValue()"
                 (valueChange)="filterValue.set($event ?? '')"
                 [placeholder]="'dataGrid.selectOption' | translate"
