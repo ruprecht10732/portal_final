@@ -8,6 +8,7 @@ import {
   type CatalogAsset,
   type Product,
   type ProductType,
+  type UpdateProductRequest,
   type VatRate,
 } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -123,6 +124,8 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly onAssetError = (event: FileUploadError | null): void => this.handleAssetError(event);
   protected readonly onCreateTermsUrl = async (url: string, label?: string): Promise<CatalogAsset | null> =>
     this.createTermsUrl(url, label);
+  protected readonly onUpdateProduct = async (data: UpdateProductRequest): Promise<void> =>
+    this.updateProduct(data);
   protected readonly onOpenAddMaterialDialog = (): void => this.openAddMaterialDialog();
 
   protected readonly previewTitle = computed(() => {
@@ -378,6 +381,25 @@ export class CatalogDetailComponent implements OnInit {
     }
   }
 
+
+  private async updateProduct(data: UpdateProductRequest): Promise<void> {
+    const product = this.product();
+    if (!product) return;
+
+    try {
+      this.error.set(null);
+      const updated = await firstValueFrom(this.catalogService.updateProduct(product.id, data));
+      this.product.set(updated);
+      if (data.priceCents !== undefined) {
+        this.formattedPrice;
+      }
+      this.toast.success(this.translate.instant('catalog.products.updateSuccess'));
+    } catch (err) {
+      const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
+      this.error.set(message);
+      this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+    }
+  }
   protected handleAssetUploaded(asset: CatalogAsset): void {
     const product = this.product();
     if (!product) return;

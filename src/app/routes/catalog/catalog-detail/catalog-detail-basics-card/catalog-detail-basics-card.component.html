@@ -55,10 +55,92 @@
                 </shared-chip>
               }
               @case ('price') {
-                <span class="details-value">{{ row.value }}</span>
+                <div class="details-value-group">
+                  @if (row.editable && editingField() === row.key) {
+                    <input
+                      class="details-input"
+                      type="number"
+                      step="0.01"
+                      min="0"
+                      [value]="editPrice()"
+                      (input)="editPrice.set($any($event.target).value)"
+                    />
+                    <button
+                      type="button"
+                      class="details-icon"
+                      (click)="saveEdit(row.key)"
+                      [disabled]="savingField() === row.key"
+                      aria-label="Save"
+                    >
+                      <lucide-icon name="check" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="details-icon"
+                      (click)="cancelEdit()"
+                      [disabled]="savingField() === row.key"
+                      aria-label="Cancel"
+                    >
+                      <lucide-icon name="x" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                    </button>
+                  } @else {
+                    <span class="details-value">{{ row.value }}</span>
+                    @if (row.editable) {
+                      <button
+                        type="button"
+                        class="details-icon"
+                        (click)="startEdit(row.key)"
+                        aria-label="Edit"
+                      >
+                        <lucide-icon name="pencil" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                      </button>
+                    }
+                  }
+                </div>
               }
               @default {
-                <span class="details-meta">{{ row.value }}</span>
+                <div class="details-value-group">
+                  @if (row.editable && editingField() === row.key) {
+                    <input
+                      class="details-input"
+                      type="text"
+                      [value]="row.key === 'title' ? editTitle() : editReference()"
+                      (input)="row.key === 'title'
+                        ? editTitle.set($any($event.target).value)
+                        : editReference.set($any($event.target).value)"
+                    />
+                    <button
+                      type="button"
+                      class="details-icon"
+                      (click)="saveEdit(row.key)"
+                      [disabled]="savingField() === row.key"
+                      aria-label="Save"
+                    >
+                      <lucide-icon name="check" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                    </button>
+                    <button
+                      type="button"
+                      class="details-icon"
+                      (click)="cancelEdit()"
+                      [disabled]="savingField() === row.key"
+                      aria-label="Cancel"
+                    >
+                      <lucide-icon name="x" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                    </button>
+                  } @else {
+                    <span class="details-meta">{{ row.value }}</span>
+                    @if (row.editable) {
+                      <button
+                        type="button"
+                        class="details-icon"
+                        (click)="startEdit(row.key)"
+                        aria-label="Edit"
+                      >
+                        <lucide-icon name="pencil" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+                      </button>
+                    }
+                  }
+                </div>
               }
             }
           </div>
