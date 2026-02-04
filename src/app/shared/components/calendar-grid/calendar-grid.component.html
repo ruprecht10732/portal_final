@@ -131,56 +131,57 @@
                 [attr.aria-disabled]="isUnavailable(day) || null"
                 class="align-top border border-zinc-200 p-0"
               >
-                <div
-                  class="min-h-24 flex flex-col cursor-pointer hover:bg-zinc-50"
-                  [attr.aria-disabled]="isUnavailable(day) || null"
-                  [attr.tabindex]="isUnavailable(day) ? -1 : 0"
-                  role="button"
-                  (click)="onSlotClick(day)"
-                  (keydown.enter)="onSlotClick(day)"
-                  (keydown.space)="onSlotClick(day); $event.preventDefault()"
-                >
-                  <div
-                    class="p-1 text-sm font-medium"
-                    [class.bg-zinc-900]="isToday(day)"
-                    [class.text-white]="isToday(day)"
-                    [class.rounded-full]="isToday(day)"
-                    [class.w-7]="isToday(day)"
-                    [class.h-7]="isToday(day)"
-                    [class.flex]="isToday(day)"
-                    [class.items-center]="isToday(day)"
-                    [class.justify-center]="isToday(day)"
-                    [class.mx-1]="isToday(day)"
-                    [class.mt-1]="isToday(day)"
-                    [class.text-zinc-400]="!day.inMonth"
-                  >
-                    {{ day.displayName }}
-                  </div>
-                  <div class="flex-1 overflow-hidden px-1 space-y-0.5 pb-1">
-                    @for (event of getEventsForDay(day).slice(0, maxVisibleEvents()); track event.id) {
-                      <button
-                        type="button"
-                        class="w-full text-left text-xs px-1.5 py-0.5 rounded truncate"
-                        [class.bg-blue-100]="event.status === 'scheduled'"
-                        [class.text-blue-800]="event.status === 'scheduled'"
-                        [class.bg-green-100]="event.status === 'completed'"
-                        [class.text-green-800]="event.status === 'completed'"
-                        [class.bg-red-100]="event.status === 'cancelled'"
-                        [class.text-red-800]="event.status === 'cancelled'"
-                        [class.bg-amber-100]="event.status === 'no_show'"
-                        [class.text-amber-800]="event.status === 'no_show'"
-                        [class.bg-zinc-100]="!event.status"
-                        [class.text-zinc-800]="!event.status"
-                        (click)="onEventClick(event, $event)"
-                      >
-                        {{ event.title }}
-                      </button>
-                    }
-                    @if (getEventsForDay(day).length > maxVisibleEvents()) {
-                      <div class="text-xs text-zinc-500 px-1">
-                        +{{ getEventsForDay(day).length - maxVisibleEvents() }} more
-                      </div>
-                    }
+                <div class="min-h-24 flex flex-col hover:bg-zinc-50 relative">
+                  <button
+                    type="button"
+                    class="absolute inset-0 w-full h-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-900 focus-visible:outline-offset-2"
+                    [attr.aria-label]="day.ariaLabel"
+                    [disabled]="isUnavailable(day)"
+                    (click)="onSlotClick(day)"
+                  ></button>
+                  <div class="relative z-10 flex flex-col h-full">
+                    <div
+                      class="p-1 text-sm font-medium"
+                      [class.bg-zinc-900]="isToday(day)"
+                      [class.text-white]="isToday(day)"
+                      [class.rounded-full]="isToday(day)"
+                      [class.w-7]="isToday(day)"
+                      [class.h-7]="isToday(day)"
+                      [class.flex]="isToday(day)"
+                      [class.items-center]="isToday(day)"
+                      [class.justify-center]="isToday(day)"
+                      [class.mx-1]="isToday(day)"
+                      [class.mt-1]="isToday(day)"
+                      [class.text-zinc-400]="!day.inMonth"
+                    >
+                      {{ day.displayName }}
+                    </div>
+                    <div class="flex-1 overflow-hidden px-1 space-y-0.5 pb-1">
+                      @for (event of getEventsForDay(day).slice(0, maxVisibleEvents()); track event.id) {
+                        <button
+                          type="button"
+                          class="w-full text-left text-xs px-1.5 py-0.5 rounded truncate"
+                          [class.bg-blue-100]="event.status === 'scheduled'"
+                          [class.text-blue-800]="event.status === 'scheduled'"
+                          [class.bg-green-100]="event.status === 'completed'"
+                          [class.text-green-800]="event.status === 'completed'"
+                          [class.bg-red-100]="event.status === 'cancelled'"
+                          [class.text-red-800]="event.status === 'cancelled'"
+                          [class.bg-amber-100]="event.status === 'no_show'"
+                          [class.text-amber-800]="event.status === 'no_show'"
+                          [class.bg-zinc-100]="!event.status"
+                          [class.text-zinc-800]="!event.status"
+                          (click)="onEventClick(event, $event)"
+                        >
+                          {{ event.title }}
+                        </button>
+                      }
+                      @if (getEventsForDay(day).length > maxVisibleEvents()) {
+                        <div class="text-xs text-zinc-500 px-1">
+                          +{{ getEventsForDay(day).length - maxVisibleEvents() }} more
+                        </div>
+                      }
+                    </div>
                   </div>
                 </div>
               </td>
@@ -238,15 +239,15 @@
                   [attr.aria-disabled]="isUnavailable(day) || null"
                   class="align-top border border-zinc-200 p-0"
                 >
-                  <div
-                    class="min-h-24 flex flex-col cursor-pointer hover:bg-zinc-50"
-                    [attr.aria-disabled]="isUnavailable(day) || null"
-                    [attr.tabindex]="isUnavailable(day) ? -1 : 0"
-                    role="button"
+                <div class="min-h-24 flex flex-col hover:bg-zinc-50 relative">
+                  <button
+                    type="button"
+                    class="absolute inset-0 w-full h-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-900 focus-visible:outline-offset-2"
+                    [attr.aria-label]="day.ariaLabel"
+                    [disabled]="isUnavailable(day)"
                     (click)="onSlotClick(day)"
-                    (keydown.enter)="onSlotClick(day)"
-                    (keydown.space)="onSlotClick(day); $event.preventDefault()"
-                  >
+                  ></button>
+                  <div class="relative z-10 flex flex-col h-full">
                     <div
                       class="p-1 text-sm font-medium"
                       [class.bg-zinc-900]="isToday(day)"
@@ -290,6 +291,7 @@
                       }
                     </div>
                   </div>
+                </div>
                 </td>
               }
               @if ($last && week.length + daysFromPrevMonth().length < 7) {

@@ -1,59 +1,59 @@
 <section class="flex flex-col gap-4">
-  <div
+  <button
+    type="button"
     class="flex flex-col items-start gap-1 border border-zinc-900 p-3 bg-white cursor-pointer text-left"
     [class.cursor-not-allowed]="isUnavailable()"
     [class.opacity-60]="isUnavailable()"
     [attr.aria-label]="day()?.ariaLabel"
-    [attr.aria-disabled]="isUnavailable() || null"
-    [attr.tabindex]="isUnavailable() ? -1 : 0"
-    role="button"
+    [disabled]="isUnavailable()"
     (click)="handleSelect()"
-    (keydown.enter)="handleSelect()"
-    (keydown.space)="handleSelect(); $event.preventDefault()"
   >
     <span class="text-base font-bold tracking-wide uppercase">{{ dayTitle() }}</span>
     <span class="text-sm text-zinc-500">{{ daySubtitle() }}</span>
     @if (holidayName()) {
       <span class="text-xs text-red-500 uppercase tracking-wide">{{ holidayName() }}</span>
     }
-  </div>
+  </button>
 
   <ul class="flex flex-col gap-2 list-none p-0 m-0 max-h-96 overflow-y-auto pr-1">
     @for (hour of hours(); track hour.value) {
       <li class="grid grid-cols-[80px_1fr] gap-3 items-start">
         <div class="text-xs text-zinc-500 uppercase tracking-wide pt-1">{{ hour.label }}</div>
         <div
-          class="min-h-12 border border-dashed border-zinc-200 bg-gradient-to-r from-zinc-50 to-white cursor-pointer transition-colors flex flex-col gap-0.5 p-1"
+          class="min-h-12 border border-dashed border-zinc-200 bg-gradient-to-r from-zinc-50 to-white cursor-pointer transition-colors flex flex-col gap-0.5 p-1 relative"
           [class.border-solid]="isBlocked(hour.value)"
           [class.border-zinc-400]="isBlocked(hour.value)"
           [class.cursor-not-allowed]="isBlocked(hour.value)"
           [class.hover:border-zinc-900]="!isBlocked(hour.value)"
-          [attr.aria-disabled]="isBlocked(hour.value) || null"
-          [attr.tabindex]="isBlocked(hour.value) ? -1 : 0"
-          role="button"
-          (click)="onSlotClick(hour.value)"
-          (keydown.enter)="onSlotClick(hour.value)"
-          (keydown.space)="onSlotClick(hour.value); $event.preventDefault()"
         >
-          @for (event of getEventsForSlot(hour.value); track event.id) {
-            <button
-              type="button"
-              class="w-full text-left text-xs px-2 py-1 rounded truncate"
-              [class.bg-blue-100]="event.status === 'scheduled'"
-              [class.text-blue-800]="event.status === 'scheduled'"
-              [class.bg-green-100]="event.status === 'completed'"
-              [class.text-green-800]="event.status === 'completed'"
-              [class.bg-red-100]="event.status === 'cancelled'"
-              [class.text-red-800]="event.status === 'cancelled'"
-              [class.bg-amber-100]="event.status === 'no_show'"
-              [class.text-amber-800]="event.status === 'no_show'"
-              [class.bg-zinc-100]="!event.status"
-              [class.text-zinc-800]="!event.status"
-              (click)="onEventClick(event, $event)"
-            >
-              {{ event.title }}
-            </button>
-          }
+          <button
+            type="button"
+            class="absolute inset-0 w-full h-full text-left focus-visible:outline focus-visible:outline-2 focus-visible:outline-zinc-900 focus-visible:outline-offset-2"
+            [attr.aria-label]="day() ? ('Select ' + hour.label + ' on ' + day()?.ariaLabel) : ('Select ' + hour.label)"
+            [disabled]="isBlocked(hour.value)"
+            (click)="onSlotClick(hour.value)"
+          ></button>
+          <div class="relative z-10 flex flex-col gap-0.5">
+            @for (event of getEventsForSlot(hour.value); track event.id) {
+              <button
+                type="button"
+                class="w-full text-left text-xs px-2 py-1 rounded truncate"
+                [class.bg-blue-100]="event.status === 'scheduled'"
+                [class.text-blue-800]="event.status === 'scheduled'"
+                [class.bg-green-100]="event.status === 'completed'"
+                [class.text-green-800]="event.status === 'completed'"
+                [class.bg-red-100]="event.status === 'cancelled'"
+                [class.text-red-800]="event.status === 'cancelled'"
+                [class.bg-amber-100]="event.status === 'no_show'"
+                [class.text-amber-800]="event.status === 'no_show'"
+                [class.bg-zinc-100]="!event.status"
+                [class.text-zinc-800]="!event.status"
+                (click)="onEventClick(event, $event)"
+              >
+                {{ event.title }}
+              </button>
+            }
+          </div>
         </div>
       </li>
     }
