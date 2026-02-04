@@ -4,7 +4,6 @@
  */
 
 import { computed, Injectable, signal } from '@angular/core';
-import { BehaviorSubject, Subject } from 'rxjs';
 import { PAGINATION_DEFAULTS, TIMEOUT_MS } from '../../../core/config';
 import {
   AriaAnnouncement,
@@ -60,11 +59,6 @@ export class DataGridStore<T extends Record<string, unknown>> {
   // ============ Viewport/Mobile State ============
   private readonly _viewportWidth = signal(globalThis.window === undefined ? 1024 : globalThis.window.innerWidth);
   private readonly _scrollState = signal({ scrollLeft: 0, scrollWidth: 0, clientWidth: 0 });
-
-  // ============ Observables for data fetching ============
-  private readonly _dataRequest$ = new BehaviorSubject<DataRequest | null>(null);
-  private readonly _refreshTrigger$ = new Subject<void>();
-  private readonly _realTimeUpdates$ = new Subject<RealTimeUpdate<T>>();
 
   // ============ Public Readonly Signals ============
   readonly rows = this._rows.asReadonly();

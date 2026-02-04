@@ -13,6 +13,7 @@ import {
   inject,
   input,
   output,
+  signal,
   viewChild,
 } from '@angular/core';
 import { DOCUMENT } from '@angular/common';
@@ -41,7 +42,7 @@ import {
   SelectionChangeEvent,
   SortChangeEvent,
 } from './data-grid.types';
-import { fromEvent, Observable, Subject } from 'rxjs';
+import { fromEvent, Observable } from 'rxjs';
 
 @Component({
   selector: 'shared-data-grid',
@@ -137,8 +138,8 @@ export class DataGridComponent<T extends Record<string, unknown>> {
   // ============ Internal State ============
   
   protected readonly uid = 'grid-' + Math.random().toString(36).substring(2, 9);
-  private readonly realTimeUpdates$ = new Subject<RealTimeUpdate<T>>();
-  private lastRequest: DataRequest | null = null;
+  private readonly lastRequest = signal<DataRequest | null>(null);
+  private readonly lastSelectionKey = signal('');
 
   // ============ Computed Values ============
   
@@ -205,8 +206,8 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     effect(() => {
       if (this.serverSide()) {
         const request = this.store.currentRequest();
-        if (!this.isSameRequest(request, this.lastRequest)) {
-          this.lastRequest = request;
+        if (!this.isSameRequest(request, this.lastRequest())) {
+          this.lastRequest.set(request);
           this.dataRequest.emit(request);
         }
       }
@@ -215,10 +216,15 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     // Handle selection changes
     effect(() => {
       const selectedRows = this.store.selectedRows();
-      this.selectionChange.emit({
-        selectedRows: selectedRows.map(r => r.current),
-        allSelected: this.store.allSelected(),
-      });
+      const allSelected = this.store.allSelected();
+      const selectionKey = this.buildSelectionKey(selectedRows, allSelected);
+      if (selectionKey !== this.lastSelectionKey()) {
+        this.lastSelectionKey.set(selectionKey);
+        this.selectionChange.emit({
+          selectedRows: selectedRows.map(r => r.current),
+          allSelected,
+        });
+      }
     });
   }
 
@@ -389,5 +395,11 @@ export class DataGridComponent<T extends Record<string, unknown>> {
     }
 
     return true;
+  }
+
+  private buildSelectionKey(rows: { current: T }[], allSelected: boolean): string {
+    const rowIdField = this.store.config().rowIdField as keyof T;
+    const ids = rows.map(row => String(row.current[rowIdField] ?? ''));
+    return `${allSelected}:${ids.join('|')}`;
   }
 }
