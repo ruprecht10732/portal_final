@@ -19,7 +19,7 @@
       @for (section of assetSections(); track section.key) {
         <div>
           <div class="flex items-center gap-2 mb-2">
-            <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            <h3 class="text-sm font-semibold text-black uppercase tracking-wide">
               {{ section.titleKey | translate }}
             </h3>
             <shared-chip variant="info">{{ section.assets.length }}</shared-chip>
