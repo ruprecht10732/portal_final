@@ -9,6 +9,7 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { MIN_LENGTH } from '../../../core/config';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
 import { getErrorMessage } from '../../../core/utils/error-utils';
+import { isEmailValid } from '../../../core/utils/email.util';
 
 interface PasswordRule {
   label: string;
@@ -41,7 +42,7 @@ export class SignUpComponent implements OnInit {
   protected readonly emailError = computed(() => {
     const value = this.email();
     if (!value) return '';
-    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const isValid = isEmailValid(value);
     return isValid ? '' : 'Email format is invalid';
   });
 

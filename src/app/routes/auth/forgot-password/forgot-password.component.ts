@@ -7,6 +7,7 @@ import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { handleSubmitState } from '../../../core/utils/rx-operators';
 import { getErrorMessage } from '../../../core/utils/error-utils';
+import { isEmailValid } from '../../../core/utils/email.util';
 
 @Component({
   selector: 'auth-forgot-password',
@@ -28,7 +29,7 @@ export class ForgotPasswordComponent {
   protected readonly emailError = computed(() => {
     const value = this.email();
     if (!value) return '';
-    const isValid = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value);
+    const isValid = isEmailValid(value);
     return isValid ? '' : 'Email format is invalid';
   });
 
