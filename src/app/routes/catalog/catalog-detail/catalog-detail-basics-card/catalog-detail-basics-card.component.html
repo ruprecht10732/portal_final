@@ -54,7 +54,7 @@
               (click)="onSelectHeroImage()(image.url)"
               [attr.aria-label]="image.label"
             >
-              <img [src]="image.url" [alt]="image.label" />
+              <img [src]="image.url" alt="" aria-hidden="true" />
             </button>
           }
         </div>

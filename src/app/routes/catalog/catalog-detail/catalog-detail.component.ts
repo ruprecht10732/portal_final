@@ -454,10 +454,10 @@ export class CatalogDetailComponent implements OnInit {
           return next;
         });
         if (this.heroImageUrl()) {
-          const remaining = this.imageAssets()
+          const nextHero = this.imageAssets()
             .map(asset => this.imagePreviewUrls()[asset.id])
-            .filter(Boolean);
-          this.heroImageUrl.set(remaining[0] || null);
+            .find(Boolean);
+          this.heroImageUrl.set(nextHero || null);
         }
       },
       error: (err) => {
