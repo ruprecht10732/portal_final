@@ -1,149 +1,154 @@
 <shared-card>
-  <section class="flex flex-col gap-4">
-    <header class="flex items-start justify-between gap-4">
-      <div>
-        <h2 class="text-lg font-semibold">{{ 'leads.detail.enrichment.title' | translate }}</h2>
-        <p class="text-sm text-zinc-500">{{ 'leads.detail.enrichment.subtitle' | translate }}</p>
+  <section class="flex flex-col gap-5">
+    <!-- Header -->
+    <header class="flex items-start justify-between gap-3">
+      <div class="min-w-0 flex-1">
+        <h2 class="text-base font-semibold text-zinc-900">{{ 'leads.detail.enrichment.title' | translate }}</h2>
+        <p class="mt-0.5 text-sm text-zinc-500">{{ 'leads.detail.enrichment.subtitle' | translate }}</p>
       </div>
       @if (scoreValue() !== null) {
-        <div [class]="badgeClass()">{{ scoreValue() }}</div>
+        <div [class]="badgeClass()" class="shrink-0">{{ scoreValue() }}</div>
       }
     </header>
 
     @if (leadEnrichment() || leadScore()) {
-      <div class="grid gap-4">
-        <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-3">
-          <div class="text-xs uppercase tracking-wide text-zinc-500">{{ 'leads.detail.enrichment.scoreTitle' | translate }}</div>
-          <div class="mt-2 flex flex-wrap gap-4 text-sm">
-            <div>
-              <div class="text-zinc-500">{{ 'leads.detail.enrichment.scoreFinal' | translate }}</div>
-              <div class="font-semibold">{{ scoreValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</div>
-            </div>
-            <div>
-              <div class="text-zinc-500">{{ 'leads.detail.enrichment.scorePreAi' | translate }}</div>
-              <div class="font-semibold">{{ scorePreAI() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</div>
-            </div>
-            <div>
-              <div class="text-zinc-500">{{ 'leads.detail.enrichment.scoreVersion' | translate }}</div>
-              <div class="font-semibold">{{ scoreVersion() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</div>
-            </div>
-            <div>
-              <div class="text-zinc-500">{{ 'leads.detail.enrichment.scoreUpdated' | translate }}</div>
-              <div class="font-semibold">{{ scoreUpdatedAt() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</div>
-            </div>
-          </div>
-
-          @if (topFactors().length > 0) {
-            <div class="mt-3">
-              <div class="text-xs uppercase tracking-wide text-zinc-500">{{ 'leads.detail.enrichment.scoreFactors' | translate }}</div>
-              <div class="mt-2 flex flex-wrap gap-2">
-                @for (factor of topFactors(); track factor.key) {
-                  <span class="rounded-full bg-white px-2 py-1 text-xs font-medium text-zinc-600 border border-zinc-200">
-                    {{ factor.key }}: {{ formatNumber(factor.value, 0) }}
-                  </span>
-                }
-              </div>
-            </div>
-          }
+      <!-- Lead Score Section -->
+      <div class="rounded-xl border border-zinc-100 bg-linear-to-br from-zinc-50 to-white p-4">
+        <div class="flex items-center gap-2 text-xs font-semibold uppercase tracking-wider text-zinc-500">
+          <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+            <path stroke-linecap="round" stroke-linejoin="round" d="M3 13.125C3 12.504 3.504 12 4.125 12h2.25c.621 0 1.125.504 1.125 1.125v6.75C7.5 20.496 6.996 21 6.375 21h-2.25A1.125 1.125 0 013 19.875v-6.75zM9.75 8.625c0-.621.504-1.125 1.125-1.125h2.25c.621 0 1.125.504 1.125 1.125v11.25c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V8.625zM16.5 4.125c0-.621.504-1.125 1.125-1.125h2.25C20.496 3 21 3.504 21 4.125v15.75c0 .621-.504 1.125-1.125 1.125h-2.25a1.125 1.125 0 01-1.125-1.125V4.125z" />
+          </svg>
+          {{ 'leads.detail.enrichment.scoreTitle' | translate }}
         </div>
 
-        <dl class="grid gap-3 sm:grid-cols-2 text-sm">
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.source' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.source' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">{{ leadEnrichment()?.source ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</dd>
+        <div class="mt-3 grid grid-cols-2 gap-3">
+          <div class="space-y-0.5">
+            <div class="text-xs text-zinc-400">{{ 'leads.detail.enrichment.scoreFinal' | translate }}</div>
+            <div class="text-lg font-bold text-zinc-900">{{ scoreValue() ?? '–' }}</div>
           </div>
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.postcode6' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.postcode6' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">{{ leadEnrichment()?.postcode6 ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</dd>
+          <div class="space-y-0.5">
+            <div class="text-xs text-zinc-400">{{ 'leads.detail.enrichment.scorePreAi' | translate }}</div>
+            <div class="text-lg font-bold text-zinc-900">{{ scorePreAI() ?? '–' }}</div>
           </div>
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.buurtcode' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.buurtcode' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">{{ leadEnrichment()?.buurtcode ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</dd>
+          <div class="space-y-0.5">
+            <div class="text-xs text-zinc-400">{{ 'leads.detail.enrichment.scoreVersion' | translate }}</div>
+            <div class="text-sm font-medium text-zinc-700">{{ scoreVersion() ?? '–' }}</div>
           </div>
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.gas' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.gas' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">
-              {{ formatNumber(leadEnrichment()?.gemAardgasverbruik, 0) ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
+          <div class="space-y-0.5">
+            <div class="text-xs text-zinc-400">{{ 'leads.detail.enrichment.scoreUpdated' | translate }}</div>
+            <div class="text-sm font-medium text-zinc-700">{{ scoreUpdatedAt() ?? '–' }}</div>
           </div>
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.household' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.household' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">
-              {{ formatNumber(leadEnrichment()?.huishoudenGrootte, 1) ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
+        </div>
+
+        @if (topFactors().length > 0) {
+          <div class="mt-4 border-t border-zinc-100 pt-3">
+            <div class="text-xs font-medium text-zinc-400">{{ 'leads.detail.enrichment.scoreFactors' | translate }}</div>
+            <div class="mt-2 flex flex-wrap gap-1.5">
+              @for (factor of topFactors(); track factor.key) {
+                <span class="inline-flex items-center gap-1 rounded-md bg-white px-2 py-1 text-xs font-medium text-zinc-600 ring-1 ring-inset ring-zinc-200">
+                  <span class="text-zinc-400">{{ factor.key }}</span>
+                  <span class="font-semibold">{{ formatNumber(factor.value, 0) }}</span>
+                </span>
+              }
+            </div>
           </div>
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.koop' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.koop' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">
-              {{ formatNumber(leadEnrichment()?.koopwoningenPct, 0) ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.bouwjaar' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.bouwjaar' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">
-              {{ formatNumber(leadEnrichment()?.bouwjaarVanaf2000Pct, 0) ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.vermogen' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.vermogen' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">
-              {{ formatNumber(leadEnrichment()?.mediaanVermogenX1000, 1) ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.kinderen' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.kinderen' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">
-              {{ formatNumber(leadEnrichment()?.huishoudensMetKinderenPct, 0) ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
-          <div class="flex flex-col gap-1">
-            <dt class="flex items-center text-xs uppercase tracking-wide text-zinc-500">
-              {{ 'leads.detail.enrichment.confidence' | translate }}
-              <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.confidence' | translate" />
-            </dt>
-            <dd class="font-medium text-zinc-900">
-              {{ formatNumber(leadEnrichment()?.confidence, 2) ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
-          <div class="flex flex-col gap-1">
-            <dt class="text-xs uppercase tracking-wide text-zinc-500">{{ 'leads.detail.enrichment.fetchedAt' | translate }}</dt>
-            <dd class="font-medium text-zinc-900">
-              {{ formatDate(leadEnrichment()?.fetchedAt) ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
-        </dl>
+        }
       </div>
+
+      <!-- Data Grid -->
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-4">
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.source' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.source' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ leadEnrichment()?.source ?? '–' }}</dd>
+        </div>
+
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.postcode6' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.postcode6' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ leadEnrichment()?.postcode6 ?? '–' }}</dd>
+        </div>
+
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.buurtcode' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.buurtcode' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ leadEnrichment()?.buurtcode ?? '–' }}</dd>
+        </div>
+
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.gas' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.gas' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ formatNumber(leadEnrichment()?.gemAardgasverbruik, 0) ?? '–' }}</dd>
+        </div>
+
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.household' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.household' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ formatNumber(leadEnrichment()?.huishoudenGrootte, 1) ?? '–' }}</dd>
+        </div>
+
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.koop' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.koop' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ formatNumber(leadEnrichment()?.koopwoningenPct, 0) ?? '–' }}<span class="text-zinc-400">%</span></dd>
+        </div>
+
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.bouwjaar' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.bouwjaar' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ formatNumber(leadEnrichment()?.bouwjaarVanaf2000Pct, 0) ?? '–' }}<span class="text-zinc-400">%</span></dd>
+        </div>
+
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.vermogen' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.vermogen' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ formatNumber(leadEnrichment()?.mediaanVermogenX1000, 1) ?? '–' }}</dd>
+        </div>
+
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.kinderen' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.kinderen' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ formatNumber(leadEnrichment()?.huishoudensMetKinderenPct, 0) ?? '–' }}<span class="text-zinc-400">%</span></dd>
+        </div>
+
+        <div class="space-y-1">
+          <dt class="flex items-center gap-1 text-xs font-medium uppercase tracking-wider text-zinc-400">
+            {{ 'leads.detail.enrichment.confidence' | translate }}
+            <shared-info-tooltip [text]="'leads.detail.enrichment.tooltips.confidence' | translate" />
+          </dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ formatNumber(leadEnrichment()?.confidence, 2) ?? '–' }}</dd>
+        </div>
+
+        <div class="col-span-2 border-t border-zinc-100 pt-3 space-y-1">
+          <dt class="text-xs font-medium uppercase tracking-wider text-zinc-400">{{ 'leads.detail.enrichment.fetchedAt' | translate }}</dt>
+          <dd class="text-sm font-medium text-zinc-700">{{ formatDate(leadEnrichment()?.fetchedAt) ?? '–' }}</dd>
+        </div>
+      </dl>
     } @else {
-      <p class="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-sm text-zinc-500">
-        {{ 'leads.detail.enrichment.missing' | translate }}
-      </p>
+      <div class="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 px-4 py-6 text-center">
+        <svg class="mx-auto h-8 w-8 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 3v11.25A2.25 2.25 0 006 16.5h2.25M3.75 3h-1.5m1.5 0h16.5m0 0h1.5m-1.5 0v11.25A2.25 2.25 0 0118 16.5h-2.25m-7.5 0h7.5m-7.5 0l-1 3m8.5-3l1 3m0 0l.5 1.5m-.5-1.5h-9.5m0 0l-.5 1.5m.75-9l3-3 2.148 2.148A12.061 12.061 0 0116.5 7.605" />
+        </svg>
+        <p class="mt-2 text-sm text-zinc-500">{{ 'leads.detail.enrichment.missing' | translate }}</p>
+      </div>
     }
   </section>
 </shared-card>

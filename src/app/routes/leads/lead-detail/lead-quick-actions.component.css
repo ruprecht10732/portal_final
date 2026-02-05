@@ -1,0 +1,45 @@
+:host {
+  display: contents;
+}
+
+/* Safe area padding for iOS */
+.pb-safe {
+  padding-bottom: max(12px, env(safe-area-inset-bottom));
+}
+
+/* Focus visible styles */
+button:focus-visible {
+  outline: 2px solid #4f46e5;
+  outline-offset: 2px;
+}
+
+/* Active press feedback */
+button:active {
+  transform: scale(0.97);
+}
+
+/* Disabled state */
+button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+button:disabled:active {
+  transform: none;
+}
+
+/* Smooth transitions */
+button {
+  transition: transform 100ms ease-out, background-color 150ms ease, color 150ms ease;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+  
+  button:active {
+    transform: none;
+  }
+}

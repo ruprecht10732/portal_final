@@ -1,77 +1,73 @@
 <shared-card>
-  <section class="flex flex-col gap-4">
-    <header class="flex items-start justify-between gap-4">
-      <div>
-        <h2 class="text-lg font-semibold">{{ 'leads.detail.energyLabel.title' | translate }}</h2>
-        <p class="text-sm text-zinc-500">{{ 'leads.detail.energyLabel.subtitle' | translate }}</p>
+  <section class="flex flex-col gap-5">
+    <!-- Header -->
+    <header class="flex items-start justify-between gap-3">
+      <div class="min-w-0 flex-1">
+        <h2 class="text-base font-semibold text-zinc-900">{{ 'leads.detail.energyLabel.title' | translate }}</h2>
+        <p class="mt-0.5 text-sm text-zinc-500">{{ 'leads.detail.energyLabel.subtitle' | translate }}</p>
       </div>
-      @if (labelClass()) {
-        <shared-chip [variant]="chipVariant()">{{ labelClass() }}</shared-chip>
+      @if (energyLabel()?.energieklasse) {
+        <div [class]="badgeClasses()" class="shrink-0">{{ energyLabel()?.energieklasse }}</div>
       }
     </header>
 
     @if (energyLabel(); as label) {
-      <div class="flex flex-col gap-4">
-        <div class="flex items-center gap-4">
-          <div [class]="badgeClasses()">{{ label.energieklasse }}</div>
-          <div class="space-y-1 text-sm text-zinc-600">
-            <p>{{ 'leads.detail.energyLabel.summary' | translate }}</p>
-            <p>{{ 'leads.detail.energyLabel.refreshHint' | translate }}</p>
-          </div>
+      <!-- Summary banner -->
+      <div class="flex items-start gap-3 rounded-lg bg-zinc-50 p-3">
+        <svg class="mt-0.5 h-4 w-4 shrink-0 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
+        </svg>
+        <div class="text-sm text-zinc-600 leading-relaxed">
+          <p>{{ 'leads.detail.energyLabel.summary' | translate }}</p>
+          <p class="mt-1 text-xs text-zinc-400">{{ 'leads.detail.energyLabel.refreshHint' | translate }}</p>
+        </div>
+      </div>
+
+      <!-- Data grid -->
+      <dl class="grid grid-cols-2 gap-x-4 gap-y-4">
+        <div class="space-y-1">
+          <dt class="text-xs font-medium uppercase tracking-wider text-zinc-400">{{ 'leads.detail.energyLabel.validUntil' | translate }}</dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ validUntilValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</dd>
         </div>
 
-        <dl class="grid gap-3 sm:grid-cols-2">
-          <div class="flex flex-col gap-1">
-            <dt class="text-xs uppercase tracking-wide text-zinc-500">{{ 'leads.detail.energyLabel.validUntil' | translate }}</dt>
-            <dd class="text-sm font-medium text-zinc-900">
-              {{ validUntilValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
+        <div class="space-y-1">
+          <dt class="text-xs font-medium uppercase tracking-wider text-zinc-400">{{ 'leads.detail.energyLabel.registeredOn' | translate }}</dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ registeredValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</dd>
+        </div>
 
-          <div class="flex flex-col gap-1">
-            <dt class="text-xs uppercase tracking-wide text-zinc-500">{{ 'leads.detail.energyLabel.registeredOn' | translate }}</dt>
-            <dd class="text-sm font-medium text-zinc-900">
-              {{ registeredValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
+        <div class="space-y-1">
+          <dt class="text-xs font-medium uppercase tracking-wider text-zinc-400">{{ 'leads.detail.energyLabel.buildingType' | translate }}</dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ buildingTypeValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</dd>
+        </div>
 
-          <div class="flex flex-col gap-1">
-            <dt class="text-xs uppercase tracking-wide text-zinc-500">{{ 'leads.detail.energyLabel.buildingType' | translate }}</dt>
-            <dd class="text-sm font-medium text-zinc-900">
-              {{ buildingTypeValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
+        <div class="space-y-1">
+          <dt class="text-xs font-medium uppercase tracking-wider text-zinc-400">{{ 'leads.detail.energyLabel.constructionYear' | translate }}</dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ constructionYearValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</dd>
+        </div>
 
-          <div class="flex flex-col gap-1">
-            <dt class="text-xs uppercase tracking-wide text-zinc-500">{{ 'leads.detail.energyLabel.constructionYear' | translate }}</dt>
-            <dd class="text-sm font-medium text-zinc-900">
-              {{ constructionYearValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
+        <div class="space-y-1">
+          <dt class="text-xs font-medium uppercase tracking-wider text-zinc-400">{{ 'leads.detail.energyLabel.energyIndex' | translate }}</dt>
+          <dd class="text-sm font-medium text-zinc-900">{{ energyIndexValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}</dd>
+        </div>
 
-          <div class="flex flex-col gap-1">
-            <dt class="text-xs uppercase tracking-wide text-zinc-500">{{ 'leads.detail.energyLabel.energyIndex' | translate }}</dt>
-            <dd class="text-sm font-medium text-zinc-900">
-              {{ energyIndexValue() ?? ('leads.detail.energyLabel.notAvailable' | translate) }}
-            </dd>
-          </div>
-
-          <div class="flex flex-col gap-1">
-            <dt class="text-xs uppercase tracking-wide text-zinc-500">{{ 'leads.detail.energyLabel.primaryEnergy' | translate }}</dt>
-            <dd class="text-sm font-medium text-zinc-900">
-              @if (primaryEnergyValue()) {
-                {{ primaryEnergyValue() }} {{ 'leads.detail.energyLabel.primaryEnergyUnit' | translate }}
-              } @else {
-                {{ 'leads.detail.energyLabel.notAvailable' | translate }}
-              }
-            </dd>
-          </div>
-        </dl>
-      </div>
+        <div class="space-y-1">
+          <dt class="text-xs font-medium uppercase tracking-wider text-zinc-400">{{ 'leads.detail.energyLabel.primaryEnergy' | translate }}</dt>
+          <dd class="text-sm font-medium text-zinc-900">
+            @if (primaryEnergyValue()) {
+              {{ primaryEnergyValue() }} <span class="text-zinc-500 font-normal">{{ 'leads.detail.energyLabel.primaryEnergyUnit' | translate }}</span>
+            } @else {
+              {{ 'leads.detail.energyLabel.notAvailable' | translate }}
+            }
+          </dd>
+        </div>
+      </dl>
     } @else {
-      <p class="rounded-lg border border-dashed border-zinc-300 bg-zinc-50 px-3 py-4 text-sm text-zinc-500">
-        {{ 'leads.detail.energyLabel.missing' | translate }}
-      </p>
+      <div class="rounded-lg border border-dashed border-zinc-200 bg-zinc-50/50 px-4 py-6 text-center">
+        <svg class="mx-auto h-8 w-8 text-zinc-300" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" d="M3.75 13.5l10.5-11.25L12 10.5h8.25L9.75 21.75 12 13.5H3.75z" />
+        </svg>
+        <p class="mt-2 text-sm text-zinc-500">{{ 'leads.detail.energyLabel.missing' | translate }}</p>
+      </div>
     }
   </section>
 </shared-card>

@@ -1,0 +1,94 @@
+<div class="flex flex-col gap-4 px-4" aria-busy="true" aria-label="Loading lead details">
+  <!-- Header skeleton -->
+  <div class="flex items-center gap-3 py-4">
+    <shared-skeleton width="40px" height="40px" variant="circle" />
+    <div class="flex flex-col gap-2">
+      <shared-skeleton width="180px" height="24px" />
+      <div class="flex gap-2">
+        <shared-skeleton width="80px" height="20px" />
+        <shared-skeleton width="60px" height="20px" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Main content skeleton -->
+  <div class="lg:grid lg:grid-cols-[1fr_2fr] gap-4">
+    <!-- Left sidebar skeleton -->
+    <aside class="flex flex-col gap-4">
+      <!-- Location card -->
+      <shared-card>
+        <shared-skeleton width="100%" height="180px" variant="rectangle" />
+        <div class="mt-4 flex flex-col gap-2">
+          <shared-skeleton width="70%" height="16px" />
+          <shared-skeleton width="50%" height="14px" />
+        </div>
+        <div class="mt-6 pt-5 border-t border-zinc-200">
+          <shared-skeleton width="120px" height="20px" />
+          <div class="mt-3 flex flex-col gap-2">
+            <shared-skeleton width="60%" height="16px" />
+            <shared-skeleton width="80%" height="16px" />
+          </div>
+        </div>
+      </shared-card>
+
+      <!-- Energy label card -->
+      <shared-card>
+        <div class="flex justify-between items-start">
+          <shared-skeleton width="140px" height="20px" />
+          <shared-skeleton width="48px" height="48px" variant="circle" />
+        </div>
+        <div class="mt-4 grid gap-3">
+          @for (item of [1,2,3,4]; track item) {
+            <div class="flex justify-between">
+              <shared-skeleton width="100px" height="14px" />
+              <shared-skeleton width="60px" height="14px" />
+            </div>
+          }
+        </div>
+      </shared-card>
+
+      <!-- Services card -->
+      <shared-card>
+        <shared-skeleton width="100px" height="18px" />
+        <div class="mt-3 flex flex-col gap-2">
+          @for (item of [1,2]; track item) {
+            <shared-skeleton width="100%" height="52px" />
+          }
+        </div>
+      </shared-card>
+    </aside>
+
+    <!-- Main content area -->
+    <main class="flex flex-col gap-4 mt-4 lg:mt-0">
+      <shared-card>
+        <!-- Tabs skeleton -->
+        <div class="flex gap-2 mb-4">
+          @for (tab of [1,2,3,4]; track tab) {
+            <shared-skeleton width="100px" height="40px" />
+          }
+        </div>
+
+        <!-- Content skeleton -->
+        <div class="flex flex-col gap-4">
+          <!-- Note input skeleton -->
+          <shared-skeleton width="100%" height="80px" />
+          
+          <!-- Activity feed skeleton -->
+          @for (item of [1,2,3]; track item) {
+            <div class="flex gap-3 py-3">
+              <shared-skeleton width="32px" height="32px" variant="circle" />
+              <div class="flex-1 flex flex-col gap-2">
+                <div class="flex gap-2">
+                  <shared-skeleton width="80px" height="14px" />
+                  <shared-skeleton width="100px" height="14px" />
+                </div>
+                <shared-skeleton width="90%" height="16px" />
+                <shared-skeleton width="60%" height="16px" />
+              </div>
+            </div>
+          }
+        </div>
+      </shared-card>
+    </main>
+  </div>
+</div>

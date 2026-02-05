@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 
 type CardPadding = 'none' | 'compact' | 'default' | 'spacious';
+type CardVariant = 'default' | 'elevated' | 'interactive';
 
 @Component({
   selector: 'shared-card',
@@ -9,10 +10,12 @@ type CardPadding = 'none' | 'compact' | 'default' | 'spacious';
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     '[class]': 'containerClass()',
+    '[attr.tabindex]': 'variant() === "interactive" ? 0 : null',
   },
 })
 export class CardComponent {
   padding = input<CardPadding>('default');
+  variant = input<CardVariant>('default');
   className = input('');
 
   protected readonly paddingClass = computed(() => {
@@ -33,7 +36,9 @@ export class CardComponent {
       'bg-white',
       'border',
       'border-zinc-200',
+      'rounded-xl',
       this.paddingClass(),
+      this.variant(),
       this.className(),
     ].filter(Boolean);
     return classes.join(' ');

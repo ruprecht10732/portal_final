@@ -1,4 +1,47 @@
 :host {
   display: block;
   width: 100%;
+  border-radius: 0.75rem;
+  transition: box-shadow 200ms ease, transform 200ms ease;
+}
+
+/* Interactive card variant (when clickable) */
+:host(.interactive) {
+  cursor: pointer;
+}
+
+:host(.interactive:hover) {
+  box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+}
+
+:host(.interactive:active) {
+  transform: scale(0.995);
+}
+
+/* Elevated variant */
+:host(.elevated) {
+  box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.04), 0 1px 2px -1px rgb(0 0 0 / 0.04);
+}
+
+:host(.elevated:hover) {
+  box-shadow: 0 4px 12px -2px rgb(0 0 0 / 0.08), 0 2px 4px -2px rgb(0 0 0 / 0.04);
+}
+
+/* Focus visible outline for keyboard navigation */
+:host(.interactive:focus-visible) {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  :host,
+  :host(.interactive),
+  :host(.elevated) {
+    transition: none;
+  }
+  
+  :host(.interactive:active) {
+    transform: none;
+  }
 }

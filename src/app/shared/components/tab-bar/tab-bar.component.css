@@ -1,0 +1,41 @@
+:host {
+  display: block;
+}
+
+/* Focus visible styles */
+button:focus-visible {
+  outline: 2px solid #2563eb;
+  outline-offset: 2px;
+}
+
+/* Smooth transitions */
+button {
+  will-change: background-color, color;
+}
+
+/* Active indicator animation */
+button span.absolute {
+  animation: fadeIn 150ms ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* Reduced motion support */
+@media (prefers-reduced-motion: reduce) {
+  button {
+    transition: none;
+  }
+  
+  button span.absolute {
+    animation: none;
+  }
+}

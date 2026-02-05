@@ -77,6 +77,13 @@
         "timeline": "Tijdlijn",
         "files": "Bestanden"
       },
+      "quickActions": {
+        "call": "Bellen",
+        "email": "E-mail",
+        "navigate": "Navigeren",
+        "logCall": "Log gesprek",
+        "quote": "Offerte"
+      },
       "appointments": {
         "defaultTitle": "Leadbezoek",
         "created": "Afspraak aangemaakt",

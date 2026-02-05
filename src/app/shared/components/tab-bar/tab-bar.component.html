@@ -1,0 +1,30 @@
+<nav [class]="containerClass()" role="tablist">
+  @for (tab of tabsWithState(); track tab.id) {
+    <button
+      type="button"
+      role="tab"
+      [attr.aria-selected]="tab.isActive"
+      [attr.aria-controls]="tab.id + '-panel'"
+      [id]="tab.id + '-tab'"
+      [class]="getTabClass(tab.isActive)"
+      (click)="selectTab(tab.id)"
+    >
+      @if (tab.icon) {
+        <svg class="w-4 h-4" [innerHTML]="tab.icon"></svg>
+      }
+      <span>{{ tab.label }}</span>
+      @if (tab.badge !== undefined && tab.badge !== null) {
+        <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-semibold rounded-full"
+              [class.bg-zinc-900]="tab.isActive"
+              [class.text-white]="tab.isActive"
+              [class.bg-zinc-200]="!tab.isActive"
+              [class.text-zinc-600]="!tab.isActive">
+          {{ tab.badge }}
+        </span>
+      }
+      @if (tab.isActive && variant() === 'pills') {
+        <span class="absolute inset-0 rounded-lg ring-2 ring-zinc-900/5" aria-hidden="true"></span>
+      }
+    </button>
+  }
+</nav>

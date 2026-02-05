@@ -53,13 +53,24 @@
   }
 
   @if (loading()) {
-    <div class="flex items-center justify-center py-12">
-      <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-black" aria-hidden="true"></div>
-      <span class="sr-only">{{ 'leads.detail.loading' | translate }}</span>
-    </div>
+    <app-lead-detail-skeleton />
   }
 
   @if (lead(); as l) {
+    <div class="px-4">
+      <!-- Quick Actions Bar -->
+      <app-lead-quick-actions
+        [phone]="l.consumer.phone"
+        [email]="l.consumer.email ?? null"
+        [hasSelectedService]="!!selectedService()"
+        (callClicked)="callLead()"
+        (emailClicked)="emailLead()"
+        (navigateClicked)="navigateToLead()"
+        (logCallClicked)="openCallLogger()"
+        (quoteClicked)="createQuote()"
+      />
+    </div>
+
     <div class="px-4">
       <div class="lg:hidden mb-4">
         <a
@@ -278,49 +289,13 @@
 
         <main class="flex flex-col gap-4">
           <shared-card>
-            <div class="flex items-center justify-between mb-4">
-              <div class="flex gap-2">
-                <button
-                  type="button"
-                  class="px-3 py-2 text-sm font-semibold rounded-lg"
-                  [class.bg-black]="activeTab() === 'activity'"
-                  [class.text-white]="activeTab() === 'activity'"
-                  [class.bg-zinc-100]="activeTab() !== 'activity'"
-                  (click)="activeTab.set('activity')"
-                >
-                  {{ 'leads.detail.tabs.activity' | translate }}
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-2 text-sm font-semibold rounded-lg"
-                  [class.bg-black]="activeTab() === 'appointments'"
-                  [class.text-white]="activeTab() === 'appointments'"
-                  [class.bg-zinc-100]="activeTab() !== 'appointments'"
-                  (click)="activeTab.set('appointments')"
-                >
-                  {{ 'leads.detail.tabs.appointments' | translate }}
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-2 text-sm font-semibold rounded-lg"
-                  [class.bg-black]="activeTab() === 'timeline'"
-                  [class.text-white]="activeTab() === 'timeline'"
-                  [class.bg-zinc-100]="activeTab() !== 'timeline'"
-                  (click)="activeTab.set('timeline')"
-                >
-                  {{ 'leads.detail.tabs.timeline' | translate }}
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-2 text-sm font-semibold rounded-lg"
-                  [class.bg-black]="activeTab() === 'files'"
-                  [class.text-white]="activeTab() === 'files'"
-                  [class.bg-zinc-100]="activeTab() !== 'files'"
-                  (click)="activeTab.set('files')"
-                >
-                  {{ 'leads.detail.tabs.files' | translate }}
-                </button>
-              </div>
+            <div class="mb-4">
+              <shared-tab-bar
+                [tabs]="tabs()"
+                [activeTab]="activeTab()"
+                variant="pills"
+                (tabChange)="onTabChange($event)"
+              />
             </div>
 
             @if (activeTab() === 'activity') {

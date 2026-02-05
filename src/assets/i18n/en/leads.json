@@ -77,6 +77,13 @@
         "timeline": "Timeline",
         "files": "Files"
       },
+      "quickActions": {
+        "call": "Call",
+        "email": "Email",
+        "navigate": "Navigate",
+        "logCall": "Log Call",
+        "quote": "Quote"
+      },
       "appointments": {
         "defaultTitle": "Lead visit",
         "created": "Appointment created",

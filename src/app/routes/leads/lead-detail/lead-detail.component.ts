@@ -38,6 +38,9 @@ import { LeadEnrichmentCardComponent } from './lead-enrichment-card.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
 import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
 import { CallLoggerDialogComponent, type CallLoggerSubmitEvent } from '../../../shared/components/call-logger-dialog';
+import { TabBarComponent, type TabItem } from '../../../shared/components/tab-bar/tab-bar.component';
+import { LeadQuickActionsComponent } from './lead-quick-actions.component';
+import { LeadDetailSkeletonComponent } from './lead-detail-skeleton.component';
 import { TIMEOUT_MS } from '../../../core/config';
 
 @Component({
@@ -45,7 +48,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, FileUploaderComponent, TranslatePipe],
+  imports: [ActivityNotesComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, FileUploaderComponent, TabBarComponent, LeadQuickActionsComponent, LeadDetailSkeletonComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -74,6 +77,16 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly statusMenuOpen = signal(false);
   protected readonly activeTab = signal<'activity' | 'appointments' | 'timeline' | 'files'>('activity');
+  protected readonly tabs = computed<TabItem[]>(() => {
+    // Read lang to trigger recomputation on language change
+    this.lang();
+    return [
+      { id: 'activity', label: this.translate.instant('leads.detail.tabs.activity') },
+      { id: 'appointments', label: this.translate.instant('leads.detail.tabs.appointments') },
+      { id: 'timeline', label: this.translate.instant('leads.detail.tabs.timeline') },
+      { id: 'files', label: this.translate.instant('leads.detail.tabs.files') },
+    ];
+  });
 
   protected readonly appointments = signal<AppointmentResponse[]>([]);
   protected readonly appointmentsLoading = signal(false);
@@ -627,6 +640,32 @@ export class LeadDetailComponent implements OnInit {
     }
     this.copiedAddress.set(true);
     setTimeout(() => this.copiedAddress.set(false), TIMEOUT_MS.feedbackClear);
+  }
+
+  protected callLead(): void {
+    const phone = this.lead()?.consumer.phone;
+    if (phone) {
+      globalThis.location.href = `tel:${phone}`;
+    }
+  }
+
+  protected emailLead(): void {
+    const email = this.lead()?.consumer.email;
+    if (email) {
+      globalThis.location.href = `mailto:${email}`;
+    }
+  }
+
+  protected navigateToLead(): void {
+    const url = this.getMapUrl();
+    globalThis.open(url, '_blank', 'noopener');
+  }
+
+  protected onTabChange(tabId: string): void {
+    const validTabs = ['activity', 'appointments', 'timeline', 'files'] as const;
+    if (validTabs.includes(tabId as typeof validTabs[number])) {
+      this.activeTab.set(tabId as 'activity' | 'appointments' | 'timeline' | 'files');
+    }
   }
 
   protected focusNoteBox(): void {
