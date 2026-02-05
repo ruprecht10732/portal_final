@@ -659,6 +659,24 @@
                           </div>
                           <p class="mt-2 text-sm font-semibold text-zinc-900">{{ item.title }}</p>
                           <p class="mt-1 text-sm text-zinc-600">{{ item.summary }}</p>
+                          @if (getTimelinePartnerSummary(item); as partnerSummary) {
+                            <p class="mt-2 text-xs text-zinc-500">
+                              {{ 'leads.detail.timeline.partnerMatches' | translate:{ partners: partnerSummary } }}
+                            </p>
+                          }
+                          @if (getTimelineEstimation(item); as estimation) {
+                            <div class="mt-2 space-y-1 text-xs text-zinc-500">
+                              @if (estimation.priceRange) {
+                                <p>{{ 'leads.detail.timeline.priceRange' | translate:{ value: estimation.priceRange } }}</p>
+                              }
+                              @if (estimation.scope) {
+                                <p>{{ 'leads.detail.timeline.scope' | translate:{ value: estimation.scope } }}</p>
+                              }
+                              @if (estimation.notes) {
+                                <p>{{ 'leads.detail.timeline.estimationNotes' | translate:{ value: estimation.notes } }}</p>
+                              }
+                            </div>
+                          }
                           
                           @if (getTimelineRecommendedAction(item); as action) {
                             @if (action === 'CallImmediately') {

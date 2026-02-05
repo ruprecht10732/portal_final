@@ -914,6 +914,51 @@ export class LeadDetailComponent implements OnInit {
     return typeof action === 'string' && action.trim() !== '' ? action.trim() : null;
   }
 
+  protected getTimelinePartnerSummary(item: LeadTimelineItem): string | null {
+    const metadata = item.metadata;
+    const matches = metadata['matches'];
+    if (!Array.isArray(matches)) {
+      return null;
+    }
+    const normalized = matches
+      .map((match) => this.parsePartnerMatch(match))
+      .filter((match): match is { name: string; distanceKm?: number } => Boolean(match));
+    if (normalized.length === 0) {
+      return null;
+    }
+    const preview = normalized.slice(0, 2).map((match) => {
+      if (typeof match.distanceKm === 'number') {
+        return `${match.name} (${this.formatDistanceKm(match.distanceKm)})`;
+      }
+      return match.name;
+    });
+    if (normalized.length > 2) {
+      preview.push(`+${normalized.length - 2}`);
+    }
+    return preview.join(', ');
+  }
+
+  protected getTimelineEstimation(item: LeadTimelineItem): { priceRange?: string; scope?: string; notes?: string } | null {
+    const metadata = item.metadata;
+    const priceRange = this.readTimelineText(metadata['priceRange']);
+    const scope = this.readTimelineText(metadata['scope']);
+    const notes = this.readTimelineText(metadata['notes']);
+    if (!priceRange && !scope && !notes) {
+      return null;
+    }
+    const result: { priceRange?: string; scope?: string; notes?: string } = {};
+    if (priceRange) {
+      result.priceRange = priceRange;
+    }
+    if (scope) {
+      result.scope = scope;
+    }
+    if (notes) {
+      result.notes = notes;
+    }
+    return result;
+  }
+
   protected readonly copiedContactMessage = signal<string | null>(null);
 
   protected copyContactMessage(itemId: string, message: string): void {
@@ -959,6 +1004,36 @@ export class LeadDetailComponent implements OnInit {
       result.version = versionValue;
     }
     return result;
+  }
+
+  private readTimelineText(value: unknown): string | null {
+    if (typeof value !== 'string') {
+      return null;
+    }
+    const trimmed = value.trim();
+    return trimmed ? trimmed : null;
+  }
+
+  private parsePartnerMatch(value: unknown): { name: string; distanceKm?: number } | null {
+    if (!value || typeof value !== 'object') {
+      return null;
+    }
+    const record = value as Record<string, unknown>;
+    const nameValue = record['businessName'] ?? record['BusinessName'] ?? record['name'] ?? record['Name'];
+    if (typeof nameValue !== 'string' || nameValue.trim() === '') {
+      return null;
+    }
+    const distanceValue = record['distanceKm'] ?? record['DistanceKm'];
+    const parsedDistance = this.parseTimelineNumber(distanceValue ?? null);
+    if (parsedDistance === null) {
+      return { name: nameValue.trim() };
+    }
+    return { name: nameValue.trim(), distanceKm: parsedDistance };
+  }
+
+  private formatDistanceKm(value: number): string {
+    const rounded = Math.round(value * 10) / 10;
+    return `${rounded} km`;
   }
 
   private parseTimelineNumber(value: unknown): number | null {
