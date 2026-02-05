@@ -8,14 +8,26 @@
     >
       @if (partner()) {
         <ng-container actions>
-          <shared-button
-            variant="secondary"
-            size="compact"
-            [fullWidth]="false"
-            (clicked)="editPartner()"
-          >
-            {{ 'partners.detail.edit' | translate }}
-          </shared-button>
+          <div class="flex items-center gap-2">
+            <shared-button
+              variant="secondary"
+              size="compact"
+              [fullWidth]="false"
+              (clicked)="editPartner()"
+            >
+              <lucide-icon name="pencil" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+              {{ 'partners.detail.edit' | translate }}
+            </shared-button>
+            <shared-button
+              variant="danger"
+              size="compact"
+              [fullWidth]="false"
+              (clicked)="openDeleteDialog()"
+            >
+              <lucide-icon name="trash-2" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+              {{ 'partners.detail.delete' | translate }}
+            </shared-button>
+          </div>
         </ng-container>
       }
     </shared-page-header>
@@ -198,4 +210,16 @@
       </div>
     </div>
   }
+
+  <shared-confirm-dialog
+    [isOpen]="showDeleteDialog()"
+    [title]="'partners.detail.deleteConfirmTitle' | translate"
+    [message]="'partners.detail.deleteConfirmMessage' | translate"
+    [confirmText]="'partners.detail.deleteConfirm' | translate"
+    [cancelText]="'partners.detail.deleteCancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="deleting()"
+    (confirm)="confirmDelete()"
+    (cancelled)="closeDeleteDialog()"
+  />
 </div>

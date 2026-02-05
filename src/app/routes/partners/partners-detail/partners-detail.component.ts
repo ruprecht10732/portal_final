@@ -1,14 +1,16 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import { PartnersService } from '../../../core/services/partners.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { Partner } from '../../../core/services/partners.types';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
-import { CardComponent } from '../../../shared/components/card/card.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
@@ -16,7 +18,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
   templateUrl: './partners-detail.component.html',
   styleUrl: './partners-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, ButtonComponent, CardComponent, PageHeaderComponent],
+  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, PageHeaderComponent],
 })
 export class PartnersDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -25,10 +27,13 @@ export class PartnersDetailComponent implements OnInit {
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
 
   protected readonly partner = signal<Partner | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly deleting = signal(false);
+  protected readonly showDeleteDialog = signal(false);
   protected readonly logoDownloadUrl = signal<string | null>(null);
   protected readonly logoError = signal<string | null>(null);
   protected readonly logoImageError = signal(false);
@@ -71,6 +76,34 @@ export class PartnersDetailComponent implements OnInit {
     const partner = this.partner();
     if (!partner) return;
     this.router.navigate(['/app/partners', partner.id, 'edit']);
+  }
+
+  protected openDeleteDialog(): void {
+    this.showDeleteDialog.set(true);
+  }
+
+  protected closeDeleteDialog(): void {
+    this.showDeleteDialog.set(false);
+  }
+
+  protected confirmDelete(): void {
+    const partner = this.partner();
+    if (!partner || this.deleting()) return;
+
+    this.deleting.set(true);
+    this.partnersService.delete(partner.id).subscribe({
+      next: () => {
+        this.toast.success(this.translate.instant('partners.detail.deleteSuccess'));
+        this.router.navigate(['/app/partners']);
+      },
+      error: err => {
+        const message = extractErrorMessage(err, this.translate.instant('partners.errors.deleteFailed'));
+        this.toast.error(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.deleting.set(false);
+        this.closeDeleteDialog();
+      },
+    });
   }
 
   protected formatDate(value: string): string {
