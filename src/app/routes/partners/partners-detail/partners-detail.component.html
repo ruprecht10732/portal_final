@@ -1,0 +1,118 @@
+<div class="flex flex-col h-full">
+  <div class="border-b border-zinc-200">
+    <shared-page-header
+      [title]="partner()?.businessName ?? ('partners.detail.title' | translate)"
+      [subtitle]="'partners.detail.subtitle' | translate"
+      [backAriaLabel]="'partners.detail.goBack' | translate"
+      (back)="goBack()"
+    ></shared-page-header>
+  </div>
+
+  @if (error()) {
+    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
+      <p class="text-sm text-zinc-600">{{ error() }}</p>
+      <shared-button variant="secondary" [fullWidth]="false" (clicked)="goBack()">
+        {{ 'partners.detail.goBack' | translate }}
+      </shared-button>
+    </div>
+  } @else if (loading()) {
+    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
+      <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
+      <p class="text-xs font-mono uppercase text-zinc-400">{{ 'partners.detail.loading' | translate }}</p>
+    </div>
+  } @else if (partner(); as p) {
+    <div class="flex-1 overflow-y-auto">
+      <div class="p-4 sm:p-6 grid gap-4">
+        <shared-card>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">
+            {{ 'partners.detail.companyInfo' | translate }}
+          </h2>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.businessName' | translate }}</dt>
+              <dd class="font-medium">{{ p.businessName }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.kvkNumber' | translate }}</dt>
+              <dd class="font-medium">{{ p.kvkNumber }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.vatNumber' | translate }}</dt>
+              <dd class="font-medium">{{ p.vatNumber }}</dd>
+            </div>
+          </dl>
+        </shared-card>
+
+        <shared-card>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">
+            {{ 'partners.detail.contactInfo' | translate }}
+          </h2>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.contactName' | translate }}</dt>
+              <dd class="font-medium">{{ p.contactName }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.contactEmail' | translate }}</dt>
+              <dd class="font-medium">
+                <a class="text-blue-600 hover:underline" [href]="'mailto:' + p.contactEmail">{{ p.contactEmail }}</a>
+              </dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.contactPhone' | translate }}</dt>
+              <dd class="font-medium">
+                <a class="text-blue-600 hover:underline" [href]="'tel:' + p.contactPhone">{{ p.contactPhone }}</a>
+              </dd>
+            </div>
+          </dl>
+        </shared-card>
+
+        <shared-card>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">
+            {{ 'partners.detail.address' | translate }}
+          </h2>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.addressLine1' | translate }}</dt>
+              <dd class="font-medium">{{ p.addressLine1 }}</dd>
+            </div>
+            @if (p.addressLine2) {
+              <div>
+                <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.addressLine2' | translate }}</dt>
+                <dd class="font-medium">{{ p.addressLine2 }}</dd>
+              </div>
+            }
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.postalCode' | translate }}</dt>
+              <dd class="font-medium">{{ p.postalCode }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.city' | translate }}</dt>
+              <dd class="font-medium">{{ p.city }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.form.country' | translate }}</dt>
+              <dd class="font-medium">{{ p.country }}</dd>
+            </div>
+          </dl>
+        </shared-card>
+
+        <shared-card>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">
+            {{ 'partners.detail.metadata' | translate }}
+          </h2>
+          <dl class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.detail.createdAt' | translate }}</dt>
+              <dd class="font-medium">{{ formatDate(p.createdAt) }}</dd>
+            </div>
+            <div>
+              <dt class="text-xs uppercase text-zinc-500">{{ 'partners.detail.updatedAt' | translate }}</dt>
+              <dd class="font-medium">{{ formatDate(p.updatedAt) }}</dd>
+            </div>
+          </dl>
+        </shared-card>
+      </div>
+    </div>
+  }
+</div>

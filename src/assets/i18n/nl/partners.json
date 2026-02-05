@@ -1,0 +1,87 @@
+{
+  "partners": {
+    "overview": "Partneroverzicht",
+    "create": "Partner aanmaken",
+    "form": {
+      "newPartner": "Nieuwe partner",
+      "subtitle": "Maak een partnerbedrijf aan",
+      "goBack": "Terug naar partners",
+      "errorLabel": "Fout",
+      "companyInfo": "Bedrijfsgegevens",
+      "contactInfo": "Contactpersoon",
+      "address": "Adres",
+      "businessName": "Bedrijfsnaam",
+      "kvkNumber": "KVK-nummer",
+      "vatNumber": "BTW-nummer",
+      "contactName": "Contactnaam",
+      "contactEmail": "Contact e-mail",
+      "contactPhone": "Contact telefoon",
+      "addressLine1": "Adresregel 1",
+      "addressLine2": "Adresregel 2",
+      "postalCode": "Postcode",
+      "city": "Plaats",
+      "country": "Land",
+      "cancel": "Annuleren",
+      "saving": "Opslaan...",
+      "createPartner": "Partner aanmaken",
+      "validation": {
+        "required": "Vul alle verplichte velden in",
+        "invalidEmail": "Ongeldig e-mailadres",
+        "invalidKvk": "KVK-nummer moet 8 cijfers bevatten",
+        "invalidVat": "BTW-nummer moet NL123456789B01 zijn",
+        "maxLength": "Maximaal {{max}} tekens"
+      },
+      "errors": {
+        "createFailed": "Partner aanmaken mislukt"
+      }
+    },
+    "list": {
+      "title": "Partners",
+      "subtitle": "Beheer partnerbedrijven",
+      "ariaLabel": "Partners gegevensraster",
+      "newPartner": "Nieuwe partner",
+      "deleteTitle": "Partners verwijderen",
+      "deleteMessage": "{{count}} partner(s) verwijderen?",
+      "deleteConfirm": "Verwijderen",
+      "deleteCancel": "Annuleren",
+      "columns": {
+        "businessName": "Bedrijfsnaam",
+        "contactName": "Contact",
+        "contactEmail": "Contact e-mail",
+        "contactPhone": "Contact telefoon",
+        "kvkNumber": "KVK",
+        "vatNumber": "BTW",
+        "addressLine1": "Adresregel 1",
+        "addressLine2": "Adresregel 2",
+        "postalCode": "Postcode",
+        "city": "Plaats",
+        "country": "Land",
+        "createdAt": "Aangemaakt"
+      },
+      "validation": {
+        "required": "Verplicht",
+        "invalidEmail": "Ongeldig e-mailadres",
+        "invalidKvk": "KVK moet 8 cijfers bevatten",
+        "invalidVat": "BTW moet NL123456789B01 zijn",
+        "maxLength": "Max {{max}} tekens"
+      }
+    },
+    "detail": {
+      "title": "Partnergegevens",
+      "subtitle": "Bedrijfsoverzicht",
+      "goBack": "Terug naar partners",
+      "companyInfo": "Bedrijfsgegevens",
+      "contactInfo": "Contactpersoon",
+      "address": "Adres",
+      "metadata": "Metadata",
+      "createdAt": "Aangemaakt",
+      "updatedAt": "Bijgewerkt",
+      "loading": "Partner laden"
+    },
+    "errors": {
+      "loadFailed": "Kon partners niet laden",
+      "saveFailed": "Kon partners niet opslaan",
+      "deleteFailed": "Kon partners niet verwijderen"
+    }
+  }
+}

@@ -146,6 +146,30 @@ export const routes: Routes = [
 				],
 			},
 			{
+				path: 'partners',
+				loadComponent: () => import('./routes/partners/partners-layout/partners-layout.component').then(m => m.PartnersLayoutComponent),
+				data: {
+					panelItems: [
+						{ label: 'partners.overview', route: '/app/partners', icon: 'list', exact: true },
+						{ label: 'partners.create', route: '/app/partners/new', icon: 'plus' },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						loadComponent: () => import('./routes/partners/partners-list/partners-list.component').then(m => m.PartnersListComponent),
+					},
+					{
+						path: 'new',
+						loadComponent: () => import('./routes/partners/partners-create/partners-create.component').then(m => m.PartnersCreateComponent),
+					},
+					{
+						path: ':id',
+						loadComponent: () => import('./routes/partners/partners-detail/partners-detail.component').then(m => m.PartnersDetailComponent),
+					},
+				],
+			},
+			{
 				path: 'offertes',
 				loadComponent: () => import('./routes/offertes/offertes-layout/offertes-layout.component').then(m => m.OffertesLayoutComponent),
 				data: {

@@ -18,7 +18,7 @@ import type { UserProfile } from '../../core/services/user.types';
 interface SidebarItem {
   label: string;
   route: string;
-  icon: 'dashboard' | 'leads' | 'appointments' | 'services' | 'offertes' | 'catalog' | 'organization' | 'profile';
+  icon: 'dashboard' | 'leads' | 'partners' | 'appointments' | 'services' | 'offertes' | 'catalog' | 'organization' | 'profile';
 }
 
 @Component({
@@ -66,6 +66,7 @@ export class AuthenticatedSidebarComponent {
     const base: SidebarItem[] = [
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
+      { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
       { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },
       { label: 'navigation.catalog', route: '/app/catalog', icon: 'catalog' },

@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ArrowLeftRight,
   BookOpen,
+  Briefcase,
   Brush,
   Building,
   Calendar,
@@ -80,6 +81,7 @@ const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLo
   { prefix: '/assets/i18n/', suffix: '/services.json' },
   { prefix: '/assets/i18n/', suffix: '/offertes.json' },
   { prefix: '/assets/i18n/', suffix: '/catalog.json' },
+  { prefix: '/assets/i18n/', suffix: '/partners.json' },
   { prefix: '/assets/i18n/', suffix: '/organization.json' },
   { prefix: '/assets/i18n/', suffix: '/appointments.json' },
 ]);
@@ -107,6 +109,7 @@ export const appConfig: ApplicationConfig = {
         ArrowLeft,
         ArrowLeftRight,
         BookOpen,
+        Briefcase,
         Brush,
         Building,
         Calendar,

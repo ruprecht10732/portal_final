@@ -1,0 +1,163 @@
+<div class="flex flex-col w-full">
+  <shared-page-header
+    [title]="'partners.form.newPartner' | translate"
+    [subtitle]="'partners.form.subtitle' | translate"
+    [backAriaLabel]="'partners.form.goBack' | translate"
+    (back)="cancel()"
+  ></shared-page-header>
+
+  @if (error()) {
+    <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+      <span class="font-bold uppercase text-red-600 shrink-0">{{ 'partners.form.errorLabel' | translate }}</span>
+      <span>{{ error() }}</span>
+    </div>
+  }
+
+  <form [formGroup]="form" (ngSubmit)="save()" class="flex-1 flex flex-col">
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 p-4 sm:p-6">
+      <section class="space-y-4">
+        <div class="flex items-center gap-3">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">01</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'partners.form.companyInfo' | translate }}
+          </h2>
+        </div>
+
+        <shared-input
+          [label]="'partners.form.businessName' | translate"
+          [value]="form.controls.businessName.value ?? ''"
+          (valueChange)="form.controls.businessName.setValue($event)"
+          [required]="true"
+          [error]="controlError('businessName', { maxLength: 200 })"
+        />
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <shared-input
+            [label]="'partners.form.kvkNumber' | translate"
+            [value]="form.controls.kvkNumber.value ?? ''"
+            (valueChange)="form.controls.kvkNumber.setValue($event)"
+            [required]="true"
+            [error]="controlError('kvkNumber', { maxLength: 20, patternError: invalidKvkError() })"
+          />
+          <shared-input
+            [label]="'partners.form.vatNumber' | translate"
+            [value]="form.controls.vatNumber.value ?? ''"
+            (valueChange)="form.controls.vatNumber.setValue($event)"
+            [required]="true"
+            [error]="controlError('vatNumber', { maxLength: 20, patternError: invalidVatError() })"
+          />
+        </div>
+      </section>
+
+      <section class="space-y-4">
+        <div class="flex items-center gap-3">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">02</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'partners.form.contactInfo' | translate }}
+          </h2>
+        </div>
+
+        <shared-input
+          [label]="'partners.form.contactName' | translate"
+          [value]="form.controls.contactName.value ?? ''"
+          (valueChange)="form.controls.contactName.setValue($event)"
+          [required]="true"
+          [error]="controlError('contactName', { maxLength: 120 })"
+        />
+
+        <shared-input
+          [label]="'partners.form.contactEmail' | translate"
+          type="email"
+          [value]="form.controls.contactEmail.value ?? ''"
+          (valueChange)="form.controls.contactEmail.setValue($event)"
+          [required]="true"
+          [error]="emailControlError()"
+        />
+
+        <shared-input
+          [label]="'partners.form.contactPhone' | translate"
+          type="tel"
+          [value]="form.controls.contactPhone.value ?? ''"
+          (valueChange)="form.controls.contactPhone.setValue($event)"
+          [required]="true"
+          [error]="controlError('contactPhone', { maxLength: 50 })"
+        />
+      </section>
+
+      <section class="space-y-4 md:col-span-2">
+        <div class="flex items-center gap-3">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">03</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'partners.form.address' | translate }}
+          </h2>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <shared-input
+            [label]="'partners.form.addressLine1' | translate"
+            [value]="form.controls.addressLine1.value ?? ''"
+            (valueChange)="form.controls.addressLine1.setValue($event)"
+            [required]="true"
+            [error]="controlError('addressLine1', { maxLength: 200 })"
+          />
+          <shared-input
+            [label]="'partners.form.addressLine2' | translate"
+            [value]="form.controls.addressLine2.value ?? ''"
+            (valueChange)="form.controls.addressLine2.setValue($event)"
+            [error]="optionalControlError('addressLine2', 200)"
+          />
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          <shared-input
+            [label]="'partners.form.postalCode' | translate"
+            [value]="form.controls.postalCode.value ?? ''"
+            (valueChange)="form.controls.postalCode.setValue($event)"
+            [required]="true"
+            [error]="controlError('postalCode', { maxLength: 20 })"
+          />
+          <shared-input
+            [label]="'partners.form.city' | translate"
+            [value]="form.controls.city.value ?? ''"
+            (valueChange)="form.controls.city.setValue($event)"
+            [required]="true"
+            [error]="controlError('city', { maxLength: 120 })"
+          />
+          <shared-input
+            [label]="'partners.form.country' | translate"
+            [value]="form.controls.country.value ?? ''"
+            (valueChange)="form.controls.country.setValue($event)"
+            [required]="true"
+            [error]="controlError('country', { maxLength: 120 })"
+          />
+        </div>
+      </section>
+    </div>
+
+    <div class="p-4 sm:p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
+      @if (submitAttempted() && form.invalid) {
+        <p class="text-xs font-semibold uppercase tracking-wide text-red-600 sm:mr-auto">
+          {{ 'partners.form.validation.required' | translate }}
+        </p>
+      }
+      <shared-button
+        variant="secondary"
+        type="button"
+        (clicked)="cancel()"
+        class="w-full sm:w-auto"
+      >
+        {{ 'partners.form.cancel' | translate }}
+      </shared-button>
+
+      <shared-button
+        variant="primary"
+        type="submit"
+        class="w-full sm:w-auto"
+        [disabled]="form.invalid || saving()"
+        [loading]="saving()"
+      >
+        {{ saving() ? ('partners.form.saving' | translate) : ('partners.form.createPartner' | translate) }}
+      </shared-button>
+    </div>
+  </form>
+</div>

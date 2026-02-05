@@ -1,0 +1,44 @@
+<shared-page-layout
+  [title]="'partners.list.title' | translate"
+  [subtitle]="'partners.list.subtitle' | translate"
+  [error]="error()"
+>
+  <shared-fab-button
+    actions
+    class="hidden sm:flex"
+    [ariaLabel]="'partners.list.newPartner' | translate"
+    (clicked)="addPartner()"
+  >
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    {{ 'partners.list.newPartner' | translate }}
+  </shared-fab-button>
+
+  <shared-data-grid
+    [columns]="columns()"
+    [data]="partners()"
+    [totalItems]="total()"
+    [loading]="loading()"
+    [config]="gridConfig"
+    [serverSide]="true"
+    [fetchData]="fetchDataFn"
+    (dataRequest)="onDataRequest($event)"
+    (saveRows)="onSavePartners($event)"
+    (deleteRows)="onDeleteRows($event)"
+    (rowDoubleClick)="onRowDoubleClick($event)"
+    [ariaLabel]="'partners.list.ariaLabel' | translate"
+  />
+
+  <shared-confirm-dialog
+    [isOpen]="isDeleteDialogOpen()"
+    [title]="'partners.list.deleteTitle' | translate"
+    [message]="'partners.list.deleteMessage' | translate:{count: deleteCount()}"
+    [confirmText]="'partners.list.deleteConfirm' | translate"
+    [cancelText]="'partners.list.deleteCancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="saving()"
+    (confirm)="confirmDelete()"
+    (cancelled)="closeDeleteDialog()"
+  />
+</shared-page-layout>

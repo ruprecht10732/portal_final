@@ -1,0 +1,87 @@
+{
+  "partners": {
+    "overview": "Partner overview",
+    "create": "Create partner",
+    "form": {
+      "newPartner": "New Partner",
+      "subtitle": "Create a partner company",
+      "goBack": "Go back to partners",
+      "errorLabel": "Error",
+      "companyInfo": "Company details",
+      "contactInfo": "Contact person",
+      "address": "Address",
+      "businessName": "Business name",
+      "kvkNumber": "KVK number",
+      "vatNumber": "VAT number",
+      "contactName": "Contact name",
+      "contactEmail": "Contact email",
+      "contactPhone": "Contact phone",
+      "addressLine1": "Address line 1",
+      "addressLine2": "Address line 2",
+      "postalCode": "Postal code",
+      "city": "City",
+      "country": "Country",
+      "cancel": "Cancel",
+      "saving": "Saving...",
+      "createPartner": "Create Partner",
+      "validation": {
+        "required": "Please fill all required fields",
+        "invalidEmail": "Invalid email",
+        "invalidKvk": "KVK number must be 8 digits",
+        "invalidVat": "VAT number must be in NL123456789B01 format",
+        "maxLength": "Must be {{max}} characters or less"
+      },
+      "errors": {
+        "createFailed": "Failed to create partner"
+      }
+    },
+    "list": {
+      "title": "Partners",
+      "subtitle": "Manage partner companies",
+      "ariaLabel": "Partners data grid",
+      "newPartner": "New Partner",
+      "deleteTitle": "Delete partners",
+      "deleteMessage": "Delete {{count}} partner(s)?",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel",
+      "columns": {
+        "businessName": "Business name",
+        "contactName": "Contact",
+        "contactEmail": "Contact email",
+        "contactPhone": "Contact phone",
+        "kvkNumber": "KVK",
+        "vatNumber": "VAT",
+        "addressLine1": "Address line 1",
+        "addressLine2": "Address line 2",
+        "postalCode": "Postal code",
+        "city": "City",
+        "country": "Country",
+        "createdAt": "Created"
+      },
+      "validation": {
+        "required": "Required",
+        "invalidEmail": "Invalid email",
+        "invalidKvk": "KVK must be 8 digits",
+        "invalidVat": "VAT must be NL123456789B01",
+        "maxLength": "Max {{max}} characters"
+      }
+    },
+    "detail": {
+      "title": "Partner details",
+      "subtitle": "Company overview",
+      "goBack": "Go back to partners",
+      "companyInfo": "Company details",
+      "contactInfo": "Contact person",
+      "address": "Address",
+      "metadata": "Metadata",
+      "createdAt": "Created",
+      "updatedAt": "Updated",
+      "loading": "Loading partner"
+    },
+    "errors": {
+      "loadFailed": "Failed to load partners",
+      "saveFailed": "Failed to save partners",
+      "deleteFailed": "Failed to delete partners"
+    }
+  }
+}
