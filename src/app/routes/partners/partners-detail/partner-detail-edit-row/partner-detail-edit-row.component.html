@@ -1,0 +1,35 @@
+<div class="group flex items-center justify-between py-3.5 gap-4">
+  <span class="shrink-0 text-sm font-medium text-zinc-500">
+    {{ labelKey() | translate }}
+  </span>
+  <div class="flex min-w-0 flex-1 justify-end">
+    @if (isEditing()) {
+      <div class="flex flex-1 items-center justify-end gap-2 animate-in fade-in zoom-in-95">
+        <input
+          class="w-full max-w-40 rounded-md border-0 py-1.5 text-right text-sm text-zinc-900 ring-1 ring-inset ring-blue-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-blue-500"
+          type="text"
+          [value]="editValue()"
+          (input)="editValueChange.emit($any($event.target).value)"
+        />
+        <button class="text-green-600 hover:text-green-700" (click)="saveEdit.emit()">
+          <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
+        </button>
+        <button class="text-zinc-400 hover:text-zinc-500" (click)="cancelEdit.emit()">
+          <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+        </button>
+      </div>
+    } @else {
+      <span class="truncate text-sm font-semibold text-zinc-900">
+        {{ value() || '—' }}
+      </span>
+      @if (editable()) {
+        <button
+          class="ml-2 hidden text-zinc-400 hover:text-blue-600 group-hover:inline-block"
+          (click)="startEdit.emit()"
+        >
+          <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
+        </button>
+      }
+    }
+  </div>
+</div>

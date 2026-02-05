@@ -1,0 +1,20 @@
+<section class="rounded-xl border border-zinc-200 bg-white p-5">
+  <h3 class="text-sm font-semibold text-black uppercase tracking-wide mb-3">
+    {{ titleKey() | translate }}
+  </h3>
+  <div class="divide-y divide-zinc-100">
+    @for (row of rows(); track row.key) {
+      <app-partner-detail-edit-row
+        [labelKey]="row.labelKey"
+        [value]="row.value"
+        [editable]="true"
+        [isEditing]="editingKey() === row.key"
+        [editValue]="editValue()"
+        (startEdit)="startEdit.emit(row.key)"
+        (cancelEdit)="cancelEdit.emit()"
+        (saveEdit)="saveEdit.emit(row.key)"
+        (editValueChange)="editValueChange.emit($event)"
+      />
+    }
+  </div>
+</section>

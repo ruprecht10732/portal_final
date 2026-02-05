@@ -11,9 +11,13 @@ import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
-import { MultiSelectComponent, type MultiSelectOption } from '../../../shared/components/multiselect/multiselect.component';
+import { type MultiSelectOption } from '../../../shared/components/multiselect/multiselect.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { PartnerDetailAddressCardComponent } from './partner-detail-address-card/partner-detail-address-card.component';
+import { PartnerDetailCompanyCardComponent } from './partner-detail-company-card/partner-detail-company-card.component';
+import { PartnerDetailContactCardComponent } from './partner-detail-contact-card/partner-detail-contact-card.component';
+import { PartnerDetailHeroCardComponent } from './partner-detail-hero-card/partner-detail-hero-card.component';
+import { PartnerDetailServicesCardComponent } from './partner-detail-services-card/partner-detail-services-card.component';
 
 @Component({
   selector: 'app-partners-detail',
@@ -25,9 +29,12 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
     LucideAngularModule,
     ButtonComponent,
     ConfirmDialogComponent,
-    MapPreviewComponent,
-    MultiSelectComponent,
     PageHeaderComponent,
+    PartnerDetailHeroCardComponent,
+    PartnerDetailCompanyCardComponent,
+    PartnerDetailContactCardComponent,
+    PartnerDetailAddressCardComponent,
+    PartnerDetailServicesCardComponent,
   ],
 })
 export class PartnersDetailComponent implements OnInit {
@@ -209,8 +216,9 @@ export class PartnersDetailComponent implements OnInit {
     this.router.navigate(['/app/partners', partner.id, 'edit']);
   }
 
-  protected startEdit(key: EditablePartnerField): void {
+  protected startEdit(key: EditablePartnerField | string): void {
     if (this.savingField()) return;
+    if (!this.isEditableField(key)) return;
     this.editValue.set(this.getFieldValue(key));
     this.editingField.set(key);
   }
@@ -220,8 +228,9 @@ export class PartnersDetailComponent implements OnInit {
     this.editValue.set('');
   }
 
-  protected saveEdit(key: EditablePartnerField): void {
+  protected saveEdit(key: EditablePartnerField | string): void {
     if (this.savingField()) return;
+    if (!this.isEditableField(key)) return;
     const partner = this.partner();
     if (!partner) return;
 
@@ -465,6 +474,10 @@ export class PartnersDetailComponent implements OnInit {
     const request: UpdatePartnerRequest = { [key]: value } as UpdatePartnerRequest;
     return request;
   }
+
+  private isEditableField(key: EditablePartnerField | string): key is EditablePartnerField {
+    return EDITABLE_FIELDS.has(key as EditablePartnerField);
+  }
 }
 
 type EditablePartnerField =
@@ -479,6 +492,20 @@ type EditablePartnerField =
   | 'postalCode'
   | 'city'
   | 'country';
+
+const EDITABLE_FIELDS = new Set<EditablePartnerField>([
+  'businessName',
+  'kvkNumber',
+  'vatNumber',
+  'contactName',
+  'contactEmail',
+  'contactPhone',
+  'addressLine1',
+  'addressLine2',
+  'postalCode',
+  'city',
+  'country',
+]);
 
 interface DetailRow {
   key: EditablePartnerField;

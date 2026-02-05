@@ -1,0 +1,82 @@
+<section class="rounded-xl border border-zinc-200 bg-white p-5">
+  <div class="flex items-center justify-between gap-3 mb-3">
+    <h3 class="text-sm font-semibold text-black uppercase tracking-wide">
+      {{ 'partners.detail.services' | translate }}
+    </h3>
+    <div class="flex items-center gap-2">
+      <span class="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600">
+        {{ serviceTypeIds().length || 0 }}
+      </span>
+      <shared-button
+        type="button"
+        variant="ghost"
+        size="compact"
+        [iconOnly]="true"
+        [fullWidth]="false"
+        [disabled]="serviceTypesLoading() || serviceTypesSaving()"
+        [ariaLabel]="'partners.detail.servicesAdd' | translate"
+        [tooltip]="'partners.detail.servicesAdd' | translate"
+        (clicked)="openEdit.emit()"
+      >
+        <lucide-icon name="plus" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+      </shared-button>
+    </div>
+  </div>
+  @if (serviceTypesError()) {
+    <div class="text-sm text-red-600">{{ serviceTypesError() }}</div>
+  } @else if (serviceTypesLoading()) {
+    <div class="text-sm text-zinc-500">{{ 'partners.detail.servicesLoading' | translate }}</div>
+  } @else if (serviceTypesEditing()) {
+    <div class="space-y-3">
+      <shared-multiselect
+        [label]="'partners.form.serviceTypes' | translate"
+        [placeholder]="'partners.form.serviceTypesPlaceholder' | translate"
+        [options]="serviceTypeOptions()"
+        [value]="serviceTypeSelection()"
+        (valueChange)="selectionChange.emit([...$event])"
+        [disabled]="serviceTypesSaving()"
+      />
+      <div class="flex justify-end gap-2">
+        <shared-button
+          type="button"
+          variant="secondary"
+          size="compact"
+          [fullWidth]="false"
+          [disabled]="serviceTypesSaving()"
+          (clicked)="closeEdit.emit()"
+        >
+          {{ 'partners.detail.servicesCancel' | translate }}
+        </shared-button>
+        <shared-button
+          type="button"
+          variant="primary"
+          size="compact"
+          [fullWidth]="false"
+          [disabled]="serviceTypesSaving()"
+          (clicked)="saveEdit.emit()"
+        >
+          {{ 'partners.detail.servicesSave' | translate }}
+        </shared-button>
+      </div>
+    </div>
+  } @else if (serviceTypeIds().length) {
+    <ul class="flex flex-wrap gap-2">
+      @for (serviceTypeId of serviceTypeIds(); track serviceTypeId) {
+        <li class="flex items-center gap-2 rounded-full bg-zinc-100 px-3 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-600">
+          <span>{{ serviceTypeLabels()[serviceTypeId] || serviceTypeId }}</span>
+          <button
+            type="button"
+            class="text-zinc-400 hover:text-red-600"
+            [disabled]="serviceTypesSaving()"
+            [attr.aria-label]="'partners.detail.servicesRemove' | translate"
+            (click)="removeServiceType.emit(serviceTypeId)"
+          >
+            <lucide-icon name="trash-2" class="h-3.5 w-3.5"></lucide-icon>
+          </button>
+        </li>
+      }
+    </ul>
+  } @else {
+    <p class="text-sm text-zinc-500">{{ 'partners.detail.servicesEmpty' | translate }}</p>
+  }
+</section>

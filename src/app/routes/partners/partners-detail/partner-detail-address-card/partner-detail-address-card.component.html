@@ -1,0 +1,34 @@
+<section class="rounded-xl border border-zinc-200 bg-white p-5">
+  <h3 class="text-sm font-semibold text-black uppercase tracking-wide mb-3">
+    {{ titleKey() | translate }}
+  </h3>
+  <div class="mb-4 space-y-3">
+    <shared-map-preview [address]="mapAddress()" [height]="180" />
+    <shared-button
+      type="button"
+      variant="secondary"
+      size="compact"
+      [fullWidth]="false"
+      [disabled]="!googleMapsUrl()"
+      (clicked)="openGoogleMaps.emit()"
+    >
+      <lucide-icon name="map" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+      {{ 'partners.detail.mapNavigate' | translate }}
+    </shared-button>
+  </div>
+  <div class="divide-y divide-zinc-100">
+    @for (row of rows(); track row.key) {
+      <app-partner-detail-edit-row
+        [labelKey]="row.labelKey"
+        [value]="row.value"
+        [editable]="true"
+        [isEditing]="editingKey() === row.key"
+        [editValue]="editValue()"
+        (startEdit)="startEdit.emit(row.key)"
+        (cancelEdit)="cancelEdit.emit()"
+        (saveEdit)="saveEdit.emit(row.key)"
+        (editValueChange)="editValueChange.emit($event)"
+      />
+    }
+  </div>
+</section>
