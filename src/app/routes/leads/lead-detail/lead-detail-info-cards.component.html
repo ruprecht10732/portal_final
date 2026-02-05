@@ -1,0 +1,8 @@
+<app-lead-energy-label-card [energyLabel]="energyLabel()"></app-lead-energy-label-card>
+<app-lead-enrichment-card
+  [leadEnrichment]="leadEnrichment()"
+  [leadScore]="leadScore()"
+></app-lead-enrichment-card>
+<shared-card>
+  <app-lead-inquiry-card [lead]="lead()" [selectedService]="selectedService()"></app-lead-inquiry-card>
+</shared-card>

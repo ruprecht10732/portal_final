@@ -1,0 +1,14 @@
+<shared-activity-notes
+  #notesPanel
+  [noteId]="noteId()"
+  [noteText]="noteText()"
+  [noteType]="noteType()"
+  [canSubmit]="canSubmit()"
+  [isSaving]="isSaving()"
+  [activityFeed]="activityFeed()"
+  [formatTimestamp]="formatTimestamp()"
+  [showHeader]="showHeader()"
+  (noteTextChange)="noteTextChange.emit($event)"
+  (noteTypeChange)="noteTypeChange.emit($event)"
+  (addNote)="addNote.emit()"
+></shared-activity-notes>

@@ -2,14 +2,14 @@ import { ChangeDetectionStrategy, Component, computed, input } from '@angular/co
 import { TranslatePipe } from '@ngx-translate/core';
 import type { EnergyLabel } from '../../../../core/services/leads.types';
 import { CardComponent } from '../../card/card.component';
-import { ChipComponent, type ChipVariant } from '../../chip/chip.component';
+import type { ChipVariant } from '../../chip/chip.component';
 
 @Component({
   selector: 'app-lead-energy-label-card',
   templateUrl: './lead-energy-label-card.component.html',
   styleUrl: './lead-energy-label-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, ChipComponent, TranslatePipe],
+  imports: [CardComponent, TranslatePipe],
 })
 export class LeadEnergyLabelCardComponent {
   energyLabel = input<EnergyLabel | null>(null);

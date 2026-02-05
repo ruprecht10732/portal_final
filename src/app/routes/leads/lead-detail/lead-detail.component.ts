@@ -23,24 +23,24 @@ import type {
 import { ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/appointments.types';
 import { UserService } from '../../../core/services/user.service';
 import type { UserProfile } from '../../../core/services/user.types';
-import { ActivityNotesComponent } from '../../../shared/components/activity-notes/activity-notes.component';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { CardComponent } from '../../../shared/components/card/card.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { ContactInfoComponent } from '../../../shared/components/contact-info/contact-info.component';
-import { LeadServicesCardComponent } from '../../../shared/components/features/lead-services-card/lead-services-card.component';
-import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { type SelectOption } from '../../../shared/components/select/select.component';
 import type { ChipVariant } from '../../../shared/components/chip/chip.component';
-import { FileUploaderComponent, type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
-import { LeadEnergyLabelCardComponent } from '../../../shared/components/features/energy-label-card/lead-energy-label-card.component';
-import { LeadEnrichmentCardComponent } from './lead-enrichment-card.component';
-import { LeadDetailHeaderComponent } from './lead-detail-header.component';
-import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
+import { type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 import { CallLoggerDialogComponent, type CallLoggerSubmitEvent } from '../../../shared/components/call-logger-dialog';
-import { TabBarComponent, type TabItem } from '../../../shared/components/tab-bar/tab-bar.component';
-import { LeadQuickActionsComponent } from './lead-quick-actions.component';
+import { type TabItem } from '../../../shared/components/tab-bar/tab-bar.component';
 import { LeadDetailSkeletonComponent } from './lead-detail-skeleton.component';
+import { LeadDetailAppointmentsTabComponent } from './lead-detail-appointments-tab.component';
+import { LeadDetailFilesTabComponent } from './lead-detail-files-tab.component';
+import { LeadDetailInfoCardsComponent } from './lead-detail-info-cards.component';
+import { LeadDetailMobileConsumerCardComponent } from './lead-detail-mobile-consumer-card.component';
+import { LeadDetailNotesPanelComponent } from './lead-detail-notes-panel.component';
+import { LeadDetailServicesPanelComponent } from './lead-detail-services-panel.component';
+import { LeadDetailSidebarInfoComponent } from './lead-detail-sidebar-info.component';
+import { LeadDetailTabsShellComponent } from './lead-detail-tabs-shell.component';
+import { LeadDetailTopSectionComponent } from './lead-detail-top-section.component';
+import { LeadDetailTimelineTabComponent } from './lead-detail-timeline-tab.component';
 import { TIMEOUT_MS } from '../../../core/config';
 
 @Component({
@@ -48,7 +48,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, FileUploaderComponent, TabBarComponent, LeadQuickActionsComponent, LeadDetailSkeletonComponent, TranslatePipe],
+  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -127,8 +127,8 @@ export class LeadDetailComponent implements OnInit {
   protected readonly noteType = signal<LeadNoteType>('note');
   protected readonly leadNotes = signal<LeadNote[]>([]);
   protected readonly copiedAddress = signal(false);
-  protected readonly notePanelDesktop = viewChild<ActivityNotesComponent>('notePanelDesktop');
-  protected readonly notePanelMobile = viewChild<ActivityNotesComponent>('notePanelMobile');
+  protected readonly notePanelDesktop = viewChild<LeadDetailNotesPanelComponent>('notePanelDesktop');
+  protected readonly notePanelMobile = viewChild<LeadDetailNotesPanelComponent>('notePanelMobile');
   protected readonly serviceTypes = signal<ServiceTypeItem[]>([]);
 
   // AI Analysis
@@ -391,7 +391,7 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly minDate = computed(() => {
     const today = new Date();
-    return today.toISOString().split('T')[0];
+    return today.toISOString().split('T')[0] ?? '';
   });
 
   // Track which service ID we have analysis loaded for
@@ -912,12 +912,12 @@ export class LeadDetailComponent implements OnInit {
     return match?.label ?? this.translate.instant('leads.detail.unassigned');
   };
 
-  protected getTimelineTypeLabel(type: LeadTimelineItem['type']): string {
+  protected readonly getTimelineTypeLabel = (type: LeadTimelineItem['type']): string => {
     this.lang();
     return this.translate.instant(`leads.detail.timeline.types.${type}`);
-  }
+  };
 
-  protected getTimelineTypeBadgeClass(type: LeadTimelineItem['type']): string {
+  protected readonly getTimelineTypeBadgeClass = (type: LeadTimelineItem['type']): string => {
     if (type === 'ai') {
       return 'bg-indigo-100 text-indigo-700';
     }
@@ -925,18 +925,18 @@ export class LeadDetailComponent implements OnInit {
       return 'bg-emerald-100 text-emerald-700';
     }
     return 'bg-zinc-100 text-zinc-700';
-  }
+  };
 
-  protected getTimelineMissingInformation(item: LeadTimelineItem): string[] {
+  protected readonly getTimelineMissingInformation = (item: LeadTimelineItem): string[] => {
     const metadata = item.metadata;
     const value = metadata['missingInformation'];
     if (!Array.isArray(value)) {
       return [];
     }
     return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim() !== '');
-  }
+  };
 
-  protected getTimelineContactMessage(item: LeadTimelineItem): { channel: 'WhatsApp' | 'Email'; message: string } | null {
+  protected readonly getTimelineContactMessage = (item: LeadTimelineItem): { channel: 'WhatsApp' | 'Email'; message: string } | null => {
     const metadata = item.metadata;
     const channel = metadata['preferredContactChannel'];
     const message = metadata['suggestedContactMessage'];
@@ -945,15 +945,15 @@ export class LeadDetailComponent implements OnInit {
       return { channel, message: message.trim() };
     }
     return null;
-  }
+  };
 
-  protected getTimelineRecommendedAction(item: LeadTimelineItem): string | null {
+  protected readonly getTimelineRecommendedAction = (item: LeadTimelineItem): string | null => {
     const metadata = item.metadata;
     const action = metadata['recommendedAction'];
     return typeof action === 'string' && action.trim() !== '' ? action.trim() : null;
-  }
+  };
 
-  protected getTimelinePartnerSummary(item: LeadTimelineItem): string | null {
+  protected readonly getTimelinePartnerSummary = (item: LeadTimelineItem): string | null => {
     const metadata = item.metadata;
     const matches = metadata['matches'];
     if (!Array.isArray(matches)) {
@@ -975,9 +975,9 @@ export class LeadDetailComponent implements OnInit {
       preview.push(`+${normalized.length - 2}`);
     }
     return preview.join(', ');
-  }
+  };
 
-  protected getTimelineEstimation(item: LeadTimelineItem): { priceRange?: string; scope?: string; notes?: string } | null {
+  protected readonly getTimelineEstimation = (item: LeadTimelineItem): { priceRange?: string; scope?: string; notes?: string } | null => {
     const metadata = item.metadata;
     const priceRange = this.readTimelineText(metadata['priceRange']);
     const scope = this.readTimelineText(metadata['scope']);
@@ -996,7 +996,7 @@ export class LeadDetailComponent implements OnInit {
       result.notes = notes;
     }
     return result;
-  }
+  };
 
   protected readonly copiedContactMessage = signal<string | null>(null);
 
@@ -1027,7 +1027,7 @@ export class LeadDetailComponent implements OnInit {
     globalThis.location.href = `mailto:${email}?subject=${encodedSubject}&body=${encodedBody}`;
   }
 
-  protected getTimelineScore(item: LeadTimelineItem): { score: number; preAi?: number; version?: string } | null {
+  protected readonly getTimelineScore = (item: LeadTimelineItem): { score: number; preAi?: number; version?: string } | null => {
     const metadata = item.metadata;
     const score = this.parseTimelineNumber(metadata['leadScore']);
     if (score === null) {
@@ -1043,7 +1043,7 @@ export class LeadDetailComponent implements OnInit {
       result.version = versionValue;
     }
     return result;
-  }
+  };
 
   private readTimelineText(value: unknown): string | null {
     if (typeof value !== 'string') {

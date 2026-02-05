@@ -1,0 +1,12 @@
+<shared-card>
+  <div class="mb-4">
+    <shared-tab-bar
+      [tabs]="tabs()"
+      [activeTab]="activeTab()"
+      [variant]="variant()"
+      (tabChange)="tabChange.emit($event)"
+    />
+  </div>
+
+  <ng-content></ng-content>
+</shared-card>

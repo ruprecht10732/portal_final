@@ -1,0 +1,33 @@
+<app-lead-detail-header
+  [lead]="lead()"
+  [fullName]="fullName()"
+  [serviceTypeLabel]="serviceTypeLabel()"
+  [status]="status()"
+  [pipelineStage]="pipelineStage()"
+  [noServiceLabel]="noServiceLabel()"
+  [statusMenuOpen]="statusMenuOpen()"
+  [statusOptions]="statusOptions()"
+  [selectedStatus]="selectedStatus()"
+  [statusLabelMap]="statusLabelMap()"
+  [energyLabelClass]="energyLabelClass()"
+  [energyLabelVariant]="energyLabelVariant()"
+  (back)="back.emit()"
+  (toggleStatusMenu)="toggleStatusMenu.emit()"
+  (closeStatusMenu)="closeStatusMenu.emit()"
+  (selectStatus)="selectStatus.emit($event)"
+  (createQuote)="createQuote.emit()"
+></app-lead-detail-header>
+
+<div class="px-4">
+  <!-- Quick Actions Bar -->
+  <app-lead-quick-actions
+    [phone]="phone()"
+    [email]="email()"
+    [hasSelectedService]="hasSelectedService()"
+    (callClicked)="callClicked.emit()"
+    (emailClicked)="emailClicked.emit()"
+    (navigateClicked)="navigateClicked.emit()"
+    (logCallClicked)="logCallClicked.emit()"
+    (quoteClicked)="quoteClicked.emit()"
+  />
+</div>

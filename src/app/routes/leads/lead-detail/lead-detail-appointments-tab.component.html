@@ -1,0 +1,298 @@
+<div class="flex flex-col gap-6">
+  <div class="flex items-center justify-between">
+    <div>
+      <h3 class="text-lg font-semibold">Appointments</h3>
+      <p class="text-sm text-zinc-500">Schedule lead visits and manage visit reports.</p>
+    </div>
+    <shared-button
+      variant="primary"
+      size="compact"
+      [uppercase]="false"
+      [fullWidth]="false"
+      (clicked)="toggleAppointmentForm.emit()"
+    >
+      {{ showAppointmentForm() ? 'Hide form' : 'New appointment' }}
+    </shared-button>
+  </div>
+
+  @if (appointmentsError()) {
+    <div role="alert" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+      {{ appointmentsError() }}
+    </div>
+  }
+
+  @if (showAppointmentForm()) {
+    <div class="grid gap-4 rounded-xl border border-zinc-200 p-4">
+      <div class="grid gap-4 md:grid-cols-3">
+        <label class="flex flex-col gap-2 text-sm font-medium">
+          Date
+          <input
+            type="date"
+            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            [min]="minDate() ?? ''"
+            [value]="appointmentDate()"
+            (input)="setAppointmentDate.emit($any($event.target).value)"
+          />
+        </label>
+        <label class="flex flex-col gap-2 text-sm font-medium">
+          Time
+          <input
+            type="time"
+            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            [value]="appointmentTime()"
+            (input)="setAppointmentTime.emit($any($event.target).value)"
+          />
+        </label>
+        <label class="flex flex-col gap-2 text-sm font-medium">
+          Duration (minutes)
+          <input
+            type="number"
+            min="15"
+            step="5"
+            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            [value]="appointmentDurationMinutes()"
+            (input)="setAppointmentDurationMinutes.emit($any($event.target).value)"
+          />
+        </label>
+      </div>
+      <div class="grid gap-4 md:grid-cols-2">
+        <label class="flex flex-col gap-2 text-sm font-medium">
+          Title
+          <input
+            type="text"
+            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            placeholder="Lead visit"
+            [value]="appointmentTitle()"
+            (input)="setAppointmentTitle.emit($any($event.target).value)"
+          />
+        </label>
+        <label class="flex flex-col gap-2 text-sm font-medium">
+          Location
+          <input
+            type="text"
+            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            placeholder="Address or reference"
+            [value]="appointmentLocation()"
+            (input)="setAppointmentLocation.emit($any($event.target).value)"
+          />
+        </label>
+      </div>
+      <label class="flex flex-col gap-2 text-sm font-medium">
+        Notes
+        <textarea
+          rows="3"
+          class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+          placeholder="Optional notes"
+          [value]="appointmentNotes()"
+          (input)="setAppointmentNotes.emit($any($event.target).value)"
+        ></textarea>
+      </label>
+      <div class="flex justify-end">
+        <shared-button
+          variant="primary"
+          size="compact"
+          [uppercase]="false"
+          [fullWidth]="false"
+          [disabled]="!canSaveAppointment()"
+          (clicked)="createAppointment.emit()"
+        >
+          {{ appointmentSaving() ? 'Saving...' : 'Create appointment' }}
+        </shared-button>
+      </div>
+    </div>
+  }
+
+  <div class="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
+    <div class="flex flex-col gap-3">
+      <h4 class="text-sm font-semibold text-zinc-700">Scheduled visits</h4>
+      @if (appointmentsLoading()) {
+        <div class="flex items-center gap-2 text-sm text-zinc-500">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-black" aria-hidden="true"></div>
+          Loading appointments...
+        </div>
+      } @else if (appointments().length === 0) {
+        <p class="text-sm text-zinc-500">No appointments yet.</p>
+      } @else {
+        <div class="flex flex-col gap-2">
+          @for (appointment of appointments(); track appointment.id) {
+            <button
+              type="button"
+              class="w-full rounded-lg border px-3 py-3 text-left"
+              [class.border-black]="appointment.id === selectedAppointmentId()"
+              [class.bg-black]="appointment.id === selectedAppointmentId()"
+              [class.text-white]="appointment.id === selectedAppointmentId()"
+              [class.border-zinc-200]="appointment.id !== selectedAppointmentId()"
+              (click)="selectAppointment.emit(appointment.id)"
+            >
+              <div class="flex items-center justify-between">
+                <span class="text-sm font-semibold">{{ appointment.title }}</span>
+                <span class="text-xs uppercase tracking-wide">{{ appointment.status }}</span>
+              </div>
+              <div class="mt-1 text-xs opacity-80">
+                {{ formatHumanDateTime()(appointment.startTime) }}
+              </div>
+            </button>
+          }
+        </div>
+      }
+    </div>
+
+    <div class="flex flex-col gap-4">
+      <h4 class="text-sm font-semibold text-zinc-700">Visit report</h4>
+      @if (!selectedAppointment()) {
+        <p class="text-sm text-zinc-500">Select an appointment to view details.</p>
+      } @else {
+        <div class="rounded-xl border border-zinc-200 p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="text-sm font-semibold">{{ selectedAppointment()?.title }}</p>
+              <p class="text-xs text-zinc-500">{{ formatHumanDateTime()(selectedAppointment()?.startTime) }}</p>
+            </div>
+            <span class="text-xs uppercase tracking-wide text-zinc-500">{{ selectedAppointment()?.status }}</span>
+          </div>
+
+          @if (selectedAppointment()?.status !== 'completed') {
+            <p class="mt-3 text-xs text-zinc-500">
+              You can prepare your visit report in advance.
+            </p>
+          }
+
+          <div class="mt-4 grid gap-3">
+            <label class="flex flex-col gap-2 text-sm font-medium">
+              Measurements
+              <textarea
+                rows="3"
+                class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                [value]="reportMeasurements()"
+                [disabled]="!canEditReport()"
+                (input)="setReportMeasurements.emit($any($event.target).value)"
+              ></textarea>
+            </label>
+            <label class="flex flex-col gap-2 text-sm font-medium">
+              Access difficulty
+              <select
+                class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                [value]="reportAccessDifficulty() ?? ''"
+                [disabled]="!canEditReport()"
+                (change)="setAccessDifficulty.emit($any($event.target).value)"
+              >
+                <option value="">Select</option>
+                @for (option of accessDifficultyOptions(); track option.value) {
+                  <option [value]="option.value">{{ option.label }}</option>
+                }
+              </select>
+            </label>
+            <label class="flex flex-col gap-2 text-sm font-medium">
+              Notes
+              <textarea
+                rows="3"
+                class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                [value]="reportNotes()"
+                [disabled]="!canEditReport()"
+                (input)="setReportNotes.emit($any($event.target).value)"
+              ></textarea>
+            </label>
+            <div class="flex justify-end">
+              <shared-button
+                variant="primary"
+                size="compact"
+                [uppercase]="false"
+                [fullWidth]="false"
+                [disabled]="!canEditReport()"
+                (clicked)="saveVisitReport.emit()"
+              >
+                {{ reportSaving() ? 'Saving...' : 'Save report' }}
+              </shared-button>
+            </div>
+          </div>
+        </div>
+
+        <div class="rounded-xl border border-zinc-200 p-4">
+          <div class="flex items-center justify-between">
+            <div>
+              <h5 class="text-sm font-semibold">Attachments</h5>
+              <p class="text-xs text-zinc-500">Store metadata after uploading the file to MinIO.</p>
+            </div>
+          </div>
+
+          @if (attachmentsLoading()) {
+            <p class="mt-3 text-sm text-zinc-500">Loading attachments...</p>
+          } @else if (attachments().length === 0) {
+            <p class="mt-3 text-sm text-zinc-500">No attachments yet.</p>
+          } @else {
+            <div class="mt-3 flex flex-col gap-2">
+              @for (attachment of attachments(); track attachment.id) {
+                <div class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 text-xs">
+                  <div>
+                    <p class="font-semibold">{{ attachment.fileName }}</p>
+                    <p class="text-zinc-500">{{ attachment.fileKey }}</p>
+                  </div>
+                  <div class="text-zinc-500">
+                    {{ attachment.sizeBytes ?? 0 }} bytes
+                  </div>
+                </div>
+              }
+            </div>
+          }
+
+          <div class="mt-4 grid gap-3">
+            <div class="grid gap-3 md:grid-cols-2">
+              <label class="flex flex-col gap-2 text-sm font-medium">
+                File key
+                <input
+                  type="text"
+                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                  [value]="attachmentFileKey()"
+                  (input)="setAttachmentFileKey.emit($any($event.target).value)"
+                />
+              </label>
+              <label class="flex flex-col gap-2 text-sm font-medium">
+                File name
+                <input
+                  type="text"
+                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                  [value]="attachmentFileName()"
+                  (input)="setAttachmentFileName.emit($any($event.target).value)"
+                />
+              </label>
+            </div>
+            <div class="grid gap-3 md:grid-cols-2">
+              <label class="flex flex-col gap-2 text-sm font-medium">
+                Content type
+                <input
+                  type="text"
+                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                  placeholder="image/jpeg"
+                  [value]="attachmentContentType()"
+                  (input)="setAttachmentContentType.emit($any($event.target).value)"
+                />
+              </label>
+              <label class="flex flex-col gap-2 text-sm font-medium">
+                Size (bytes)
+                <input
+                  type="number"
+                  min="0"
+                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                  [value]="attachmentSizeBytes()"
+                  (input)="setAttachmentSizeBytes.emit($any($event.target).value)"
+                />
+              </label>
+            </div>
+            <div class="flex justify-end">
+              <shared-button
+                variant="primary"
+                size="compact"
+                [uppercase]="false"
+                [fullWidth]="false"
+                [disabled]="!canAddAttachment()"
+                (clicked)="addAttachment.emit()"
+              >
+                {{ attachmentSaving() ? 'Saving...' : 'Add attachment' }}
+              </shared-button>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+  </div>
+</div>

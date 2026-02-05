@@ -1,0 +1,61 @@
+<shared-card padding="none">
+  <details>
+    <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">
+      {{ 'leads.detail.consumerInfo' | translate }}
+    </summary>
+    <div class="px-4 pb-4">
+      <dl class="grid gap-3">
+        <div class="flex justify-between">
+          <dt class="text-zinc-500">{{ 'leads.detail.name' | translate }}</dt>
+          <dd class="font-medium">{{ fullName() }}</dd>
+        </div>
+      </dl>
+      <div class="mt-4">
+        <shared-contact-info
+          [phone]="phone()"
+          [email]="email()"
+          [role]="role()"
+          [assignedTo]="assignedTo()"
+        ></shared-contact-info>
+        @if (hasSelectedService()) {
+          <div class="mt-4 pt-4 border-t border-zinc-200">
+            <shared-button
+              variant="secondary"
+              [fullWidth]="true"
+              (clicked)="openCallLogger.emit()"
+            >
+              <span class="flex items-center justify-center gap-2">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="1.5" stroke="currentColor">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M2.25 6.75c0 8.284 6.716 15 15 15h2.25a2.25 2.25 0 002.25-2.25v-1.372c0-.516-.351-.966-.852-1.091l-4.423-1.106c-.44-.11-.902.055-1.173.417l-.97 1.293c-.282.376-.769.542-1.21.38a12.035 12.035 0 01-7.143-7.143c-.162-.441.004-.928.38-1.21l1.293-.97c.363-.271.527-.734.417-1.173L6.963 3.102a1.125 1.125 0 00-1.091-.852H4.5A2.25 2.25 0 002.25 4.5v2.25z" />
+                </svg>
+                {{ 'leads.callLogger.openButton' | translate }}
+              </span>
+            </shared-button>
+          </div>
+        }
+      </div>
+      <div class="mt-4 border-t border-zinc-200 pt-4">
+        <p class="text-sm font-medium">{{ fullAddress() }}</p>
+        <div class="mt-2 flex flex-wrap gap-2">
+          <a
+            class="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm"
+            [href]="mapUrl()"
+            target="_blank"
+            rel="noopener"
+          >
+            {{ 'leads.detail.viewOnMaps' | translate }}
+          </a>
+          <shared-button
+            variant="ghost"
+            size="compact"
+            [uppercase]="false"
+            [fullWidth]="false"
+            (clicked)="copyAddress.emit()"
+          >
+            {{ copiedAddress() ? ('leads.detail.copied' | translate) : ('leads.detail.copyAddress' | translate) }}
+          </shared-button>
+        </div>
+      </div>
+    </div>
+  </details>
+</shared-card>

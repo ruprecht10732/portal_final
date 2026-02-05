@@ -19,6 +19,7 @@ export class App {
   constructor() {
     this.translate.addLangs(['en', 'nl']);
     this.translate.setFallbackLang('en');
+    this.translate.use('nl');
 
     if (this.tokens.accessTokenValue) {
       this.userService
@@ -41,11 +42,11 @@ export class App {
         )
         .subscribe(profile => {
           const lang = profile.preferredLanguage === 'en' ? 'en' : 'nl';
-          this.translate.use(lang);
+          if (lang !== this.translate.currentLang) {
+            this.translate.use(lang);
+          }
         });
       return;
     }
-
-    this.translate.use('nl');
   }
 }
