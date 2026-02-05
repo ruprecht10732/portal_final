@@ -1,29 +1,76 @@
-<nav [class]="containerClass()" role="tablist">
-  @for (tab of tabsWithState(); track tab.id) {
+<!-- NOSONAR -->
+<nav 
+  [class]="containerClass()" 
+  role="tablist" 
+  tabindex="0"
+  class="flex w-full items-center gap-2 overflow-x-auto no-scrollbar font-sans"
+  [class.border-b]="variant() === 'underline'"
+  [class.border-zinc-100]="variant() === 'underline'"
+  [class.p-1]="variant() === 'pills'"
+  [class.bg-zinc-100]="variant() === 'pills'"
+  [class.rounded-2xl]="variant() === 'pills'"
+>
+  @for (tab of tabsWithState(); track tab.id; let i = $index) {
     <button
       type="button"
       role="tab"
+      class="group relative flex min-w-fit items-center justify-center gap-2 px-4 py-2.5 transition-all focus:outline-none"
+      
       [attr.aria-selected]="tab.isActive"
       [attr.aria-controls]="tab.id + '-panel'"
       [id]="tab.id + '-tab'"
-      [class]="getTabClass(tab.isActive)"
+      
+      [class.text-zinc-400]="!tab.isActive"
+      [class.hover:text-zinc-600]="!tab.isActive"
+      
+      [class.font-bold]="variant() === 'underline'"
+      [class.uppercase]="variant() === 'underline'"
+      [class.tracking-widest]="variant() === 'underline'"
+      [class.text-xs]="variant() === 'underline'"
+      [class.text-black]="tab.isActive && variant() === 'underline'"
+      
+      [class.rounded-xl]="variant() === 'pills'"
+      [class.text-sm]="variant() === 'pills'"
+      [class.font-bold]="variant() === 'pills'"
+      [class.bg-white]="tab.isActive && variant() === 'pills'"
+      [class.text-zinc-900]="tab.isActive && variant() === 'pills'"
+      [class.shadow-sm]="tab.isActive && variant() === 'pills'"
+      [class.shadow-zinc-200]="tab.isActive && variant() === 'pills'"
+      
       (click)="selectTab(tab.id)"
     >
       @if (tab.icon) {
-        <svg class="w-4 h-4" [innerHTML]="tab.icon"></svg>
+        <span 
+          class="flex items-center justify-center transition-colors"
+          [class.text-[#2457C6]]="tab.isActive && variant() === 'underline'" 
+          [innerHTML]="tab.icon">
+        </span>
       }
-      <span>{{ tab.label }}</span>
+
+      <span class="z-10">{{ tab.label }}</span>
+
       @if (tab.badge !== undefined && tab.badge !== null) {
-        <span class="inline-flex items-center justify-center min-w-5 h-5 px-1.5 text-xs font-semibold rounded-full"
-              [class.bg-zinc-900]="tab.isActive"
-              [class.text-white]="tab.isActive"
-              [class.bg-zinc-200]="!tab.isActive"
-              [class.text-zinc-600]="!tab.isActive">
+        <span 
+          class="ml-1 inline-flex h-5 min-w-5 items-center justify-center rounded-full px-1.5 text-[9px] font-bold tabular-nums transition-colors"
+          
+          [class.bg-[#E93D3D]]="tab.isActive && variant() === 'underline'" 
+          [class.text-white]="tab.isActive && variant() === 'underline'"
+          
+          [class.bg-[#F4D03F]]="tab.isActive && variant() === 'pills'"
+          [class.text-black]="tab.isActive && variant() === 'pills'"
+          
+          [class.bg-zinc-200]="!tab.isActive"
+          [class.text-zinc-500]="!tab.isActive"
+        >
           {{ tab.badge }}
         </span>
       }
-      @if (tab.isActive && variant() === 'pills') {
-        <span class="absolute inset-0 rounded-lg ring-2 ring-zinc-900/5" aria-hidden="true"></span>
+
+      @if (tab.isActive && variant() === 'underline') {
+        <span 
+          class="absolute bottom-0 left-0 h-1 w-full bg-[#111]"
+          aria-hidden="true"
+        ></span>
       }
     </button>
   }

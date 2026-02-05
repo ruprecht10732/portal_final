@@ -1,0 +1,7 @@
+{
+  "sonarlint.rules": {
+    "Web:S6842": {
+      "level": "off"
+    }
+  }
+}

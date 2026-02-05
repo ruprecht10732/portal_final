@@ -62,6 +62,21 @@
       "copyAddress": "Copy Address",
       "copied": "Copied",
       "notesActivity": "Notes & Activity",
+      "notes": {
+        "createEntry": "Create Entry",
+        "placeholder": "Add a note...",
+        "addEntry": "Add Entry",
+        "processing": "Processing...",
+        "empty": "Stream Empty",
+        "type": {
+          "note": "Note",
+          "call": "Call",
+          "text": "Text",
+          "email": "Email",
+          "system": "System",
+          "audit": "Audit"
+        }
+      },
       "location": "Location",
       "contact": "Contact",
       "confirmLabel": "Confirm",

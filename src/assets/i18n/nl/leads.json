@@ -62,6 +62,21 @@
       "copyAddress": "Adres kopiëren",
       "copied": "Gekopieerd",
       "notesActivity": "Notities & activiteit",
+      "notes": {
+        "createEntry": "Item aanmaken",
+        "placeholder": "Notitie toevoegen...",
+        "addEntry": "Item toevoegen",
+        "processing": "Bezig...",
+        "empty": "Geen items",
+        "type": {
+          "note": "Notitie",
+          "call": "Telefoongesprek",
+          "text": "Tekst",
+          "email": "E-mail",
+          "system": "Systeem",
+          "audit": "Audit"
+        }
+      },
       "location": "Locatie",
       "contact": "Contact",
       "confirmLabel": "Bevestigen",
