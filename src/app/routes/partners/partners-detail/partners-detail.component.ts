@@ -4,13 +4,14 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { PartnersService } from '../../../core/services/partners.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
-import type { Partner } from '../../../core/services/partners.types';
+import type { Partner, UpdatePartnerRequest } from '../../../core/services/partners.types';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { MultiSelectComponent, type MultiSelectOption } from '../../../shared/components/multiselect/multiselect.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
 @Component({
@@ -18,7 +19,14 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
   templateUrl: './partners-detail.component.html',
   styleUrl: './partners-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, PageHeaderComponent],
+  imports: [
+    TranslatePipe,
+    LucideAngularModule,
+    ButtonComponent,
+    ConfirmDialogComponent,
+    MultiSelectComponent,
+    PageHeaderComponent,
+  ],
 })
 export class PartnersDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -40,11 +48,20 @@ export class PartnersDetailComponent implements OnInit {
   protected readonly serviceTypes = signal<ServiceTypeItem[]>([]);
   protected readonly serviceTypesLoading = signal(false);
   protected readonly serviceTypesError = signal<string | null>(null);
+  protected readonly serviceTypesEditing = signal(false);
+  protected readonly serviceTypesSaving = signal(false);
+  protected readonly serviceTypeSelection = signal<string[]>([]);
+  protected readonly editingField = signal<EditablePartnerField | null>(null);
+  protected readonly savingField = signal<EditablePartnerField | null>(null);
+  protected readonly editValue = signal('');
   protected readonly serviceTypeLabels = computed<Record<string, string>>(() => (
     this.serviceTypes().reduce((acc, item) => {
       acc[item.id] = item.name;
       return acc;
     }, {} as Record<string, string>)
+  ));
+  protected readonly serviceTypeOptions = computed<MultiSelectOption<string>[]>(() => (
+    this.serviceTypes().map(item => ({ label: item.name, value: item.id }))
   ));
   protected readonly logoPreviewUrl = computed(() => {
     return this.logoDownloadUrl();
@@ -57,6 +74,79 @@ export class PartnersDetailComponent implements OnInit {
     if (parts.length === 1) return (first.slice(0, 2) || 'P').toUpperCase();
     const initials = `${first[0] ?? ''}${parts[1]?.[0] ?? ''}`.trim();
     return (initials || first.slice(0, 2) || 'P').toUpperCase();
+  });
+
+  protected readonly companyRows = computed<DetailRow[]>(() => {
+    const partner = this.partner();
+    return [
+      {
+        key: 'businessName',
+        labelKey: 'partners.form.businessName',
+        value: partner?.businessName ?? '',
+      },
+      {
+        key: 'kvkNumber',
+        labelKey: 'partners.form.kvkNumber',
+        value: partner?.kvkNumber ?? '',
+      },
+      {
+        key: 'vatNumber',
+        labelKey: 'partners.form.vatNumber',
+        value: partner?.vatNumber ?? '',
+      },
+    ];
+  });
+
+  protected readonly contactRows = computed<DetailRow[]>(() => {
+    const partner = this.partner();
+    return [
+      {
+        key: 'contactName',
+        labelKey: 'partners.form.contactName',
+        value: partner?.contactName ?? '',
+      },
+      {
+        key: 'contactEmail',
+        labelKey: 'partners.form.contactEmail',
+        value: partner?.contactEmail ?? '',
+      },
+      {
+        key: 'contactPhone',
+        labelKey: 'partners.form.contactPhone',
+        value: partner?.contactPhone ?? '',
+      },
+    ];
+  });
+
+  protected readonly addressRows = computed<DetailRow[]>(() => {
+    const partner = this.partner();
+    return [
+      {
+        key: 'addressLine1',
+        labelKey: 'partners.form.addressLine1',
+        value: partner?.addressLine1 ?? '',
+      },
+      {
+        key: 'addressLine2',
+        labelKey: 'partners.form.addressLine2',
+        value: partner?.addressLine2 ?? '',
+      },
+      {
+        key: 'postalCode',
+        labelKey: 'partners.form.postalCode',
+        value: partner?.postalCode ?? '',
+      },
+      {
+        key: 'city',
+        labelKey: 'partners.form.city',
+        value: partner?.city ?? '',
+      },
+      {
+        key: 'country',
+        labelKey: 'partners.form.country',
+        value: partner?.country ?? '',
+      },
+    ];
   });
 
   ngOnInit(): void {
@@ -76,6 +166,97 @@ export class PartnersDetailComponent implements OnInit {
     const partner = this.partner();
     if (!partner) return;
     this.router.navigate(['/app/partners', partner.id, 'edit']);
+  }
+
+  protected startEdit(key: EditablePartnerField): void {
+    if (this.savingField()) return;
+    this.editValue.set(this.getFieldValue(key));
+    this.editingField.set(key);
+  }
+
+  protected cancelEdit(): void {
+    this.editingField.set(null);
+    this.editValue.set('');
+  }
+
+  protected saveEdit(key: EditablePartnerField): void {
+    if (this.savingField()) return;
+    const partner = this.partner();
+    if (!partner) return;
+
+    const rawValue = this.editValue().trim();
+    const request = this.buildUpdateRequest(key, rawValue);
+    if (!request) return;
+
+    this.savingField.set(key);
+    this.partnersService.update(partner.id, request).subscribe({
+      next: updated => {
+        this.partner.set(updated);
+        this.savingField.set(null);
+        this.cancelEdit();
+      },
+      error: err => {
+        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.updateFailed'));
+        this.toast.error(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.savingField.set(null);
+      },
+    });
+  }
+
+  protected openServiceTypesEdit(): void {
+    const partner = this.partner();
+    if (!partner) return;
+    this.serviceTypeSelection.set([...(partner.serviceTypeIds ?? [])]);
+    this.serviceTypesEditing.set(true);
+  }
+
+  protected closeServiceTypesEdit(): void {
+    this.serviceTypesEditing.set(false);
+  }
+
+  protected saveServiceTypes(): void {
+    const partner = this.partner();
+    if (!partner || this.serviceTypesSaving()) return;
+
+    const serviceTypeIds = this.serviceTypeSelection();
+    this.serviceTypesSaving.set(true);
+
+    this.partnersService.update(partner.id, { serviceTypeIds }).subscribe({
+      next: updated => {
+        this.partner.set(updated);
+        this.serviceTypesSaving.set(false);
+        this.serviceTypesEditing.set(false);
+      },
+      error: err => {
+        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.updateFailed'));
+        this.toast.error(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.serviceTypesSaving.set(false);
+      },
+    });
+  }
+
+  protected removeServiceType(serviceTypeId: string): void {
+    const partner = this.partner();
+    if (!partner || this.serviceTypesSaving()) return;
+
+    const current = partner.serviceTypeIds ?? [];
+    const next = current.filter(id => id !== serviceTypeId);
+    this.serviceTypesSaving.set(true);
+
+    this.partnersService.update(partner.id, { serviceTypeIds: next }).subscribe({
+      next: updated => {
+        this.partner.set(updated);
+        this.serviceTypesSaving.set(false);
+      },
+      error: err => {
+        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.updateFailed'));
+        this.toast.error(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.serviceTypesSaving.set(false);
+      },
+    });
   }
 
   protected openDeleteDialog(): void {
@@ -176,4 +357,66 @@ export class PartnersDetailComponent implements OnInit {
       },
     });
   }
+
+  private getFieldValue(key: EditablePartnerField): string {
+    const partner = this.partner();
+    if (!partner) return '';
+
+    switch (key) {
+      case 'businessName':
+        return partner.businessName ?? '';
+      case 'kvkNumber':
+        return partner.kvkNumber ?? '';
+      case 'vatNumber':
+        return partner.vatNumber ?? '';
+      case 'contactName':
+        return partner.contactName ?? '';
+      case 'contactEmail':
+        return partner.contactEmail ?? '';
+      case 'contactPhone':
+        return partner.contactPhone ?? '';
+      case 'addressLine1':
+        return partner.addressLine1 ?? '';
+      case 'addressLine2':
+        return partner.addressLine2 ?? '';
+      case 'postalCode':
+        return partner.postalCode ?? '';
+      case 'city':
+        return partner.city ?? '';
+      case 'country':
+        return partner.country ?? '';
+      default:
+        return '';
+    }
+  }
+
+  private buildUpdateRequest(key: EditablePartnerField, value: string): UpdatePartnerRequest | null {
+    if (key === 'addressLine2') {
+      return { addressLine2: value ? value : null };
+    }
+
+    if (!value) return null;
+
+    const request: UpdatePartnerRequest = { [key]: value } as UpdatePartnerRequest;
+    return request;
+  }
+}
+
+type EditablePartnerField =
+  | 'businessName'
+  | 'kvkNumber'
+  | 'vatNumber'
+  | 'contactName'
+  | 'contactEmail'
+  | 'contactPhone'
+  | 'addressLine1'
+  | 'addressLine2'
+  | 'postalCode'
+  | 'city'
+  | 'country';
+
+interface DetailRow {
+  key: EditablePartnerField;
+  labelKey: string;
+  value: string;
 }
