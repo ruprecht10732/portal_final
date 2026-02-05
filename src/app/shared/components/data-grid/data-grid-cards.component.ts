@@ -296,8 +296,19 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
   }
 
   /** Handle card click for navigation/action */
-  protected onCardClick(index: number): void {
+  protected onCardClick(index: number, event?: Event): void {
+    if (event?.target instanceof Element && event.target.closest('[data-row-select]')) {
+      return;
+    }
     this.rowClick.emit(index);
+  }
+
+  protected onCardKeydown(event: KeyboardEvent, index: number): void {
+    if (event.key !== 'Enter' && event.key !== ' ') {
+      return;
+    }
+    event.preventDefault();
+    this.onCardClick(index);
   }
 
   protected getEditableColumns(row: RowState<T>): GridColumn<T>[] {

@@ -1,46 +1,19 @@
+/* architectural-note: 
+  Visual styles (heights, colors, layout) have been moved to the HTML template 
+  using Tailwind utilities to support Mobile-First RWD.
+*/
+
 :host {
   display: block;
   width: 100%;
+  
+  /* Optional: Ensures the component doesn't collapse if empty */
+  min-height: 0; 
 }
 
-.heatmap-shell {
-  position: relative;
-  width: 100%;
-  min-height: 360px;
-  border: 1px solid #e4e4e7;
-  overflow: hidden;
-  margin-top: 8px;
-}
-
+/* Edge Case: If your map library (e.g., Leaflet/Google Maps) injects 
+  elements that ignore Tailwind's z-index, force a new stacking context here.
+*/
 .heatmap-map {
-  width: 100%;
-  height: 420px;
-}
-
-.heatmap-overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgb(255 255 255 / 88%);
-  text-align: center;
-  padding: 16px;
-}
-
-.heatmap-controls {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 12px 16px;
-  align-items: flex-end;
-}
-
-.heatmap-date {
-  min-width: 180px;
-}
-
-.heatmap-actions {
-  display: flex;
-  gap: 8px;
-  flex-wrap: wrap;
+  isolation: isolate;
 }

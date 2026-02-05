@@ -1,153 +1,147 @@
-<!-- Card List Container -->
-<ul
-  class="flex flex-col divide-y divide-zinc-100 dark:divide-zinc-800 border-y border-zinc-100 dark:border-zinc-800"
-  [attr.aria-label]="'dataGrid.dataCards' | translate"
->
-  @for (row of rows(); track trackByRowId($index, row); let rowIndex = $index) {
-    <li>
-      <button
-        type="button"
-        class="group relative flex flex-col transition-colors duration-150 cursor-pointer focus:outline-hidden focus:bg-zinc-50 dark:focus:bg-zinc-800/50"
-        [class]="getStatusClass() + ' ' + getBgClass(row)"
-        [attr.aria-pressed]="row.selected ? 'true' : 'false'"
-        (click)="onCardClick(rowIndex)"
-        (keydown.enter)="onCardClick(rowIndex)"
-      >
-        <!-- Main Card Content (Horizontal Layout) -->
-        <div class="flex items-center gap-4 p-3 font-sans">
-          @if (selectable()) {
-            <div class="flex items-center" (pointerdown)="$event.stopPropagation()">
-              <shared-checkbox
-                [checked]="row.selected"
-                [ariaLabel]="'dataGrid.selectRow' | translate:{rowIndex: rowIndex + 1}"
-                [dense]="true"
-                (checkedChange)="onSelect(rowIndex)"
-              />
-            </div>
-          }
-          <!-- Avatar / Initials (Square) -->
-          <div class="flex h-12 w-12 shrink-0 items-center justify-center bg-zinc-100 text-sm font-bold uppercase text-zinc-600 dark:bg-zinc-800 dark:text-zinc-400">
-            {{ getInitials(row) }}
-          </div>
-
-          <!-- Text Details -->
-          <div class="flex min-w-0 flex-1 flex-col py-0.5">
-            <div class="flex items-start justify-between">
-              <p class="truncate text-base font-bold leading-tight text-zinc-900 dark:text-white pr-2">
-                {{ getTitleText(row) }}
-              </p>
-              <div class="flex items-center gap-2">
-                @if (rowDeleteActionEnabled() && canDeleteRow(row)) {
-                  <button
-                    type="button"
-                    class="flex h-7 w-7 items-center justify-center rounded-md bg-white text-red-600 shadow-sm ring-1 ring-zinc-200 focus:outline-none focus:ring-2 focus:ring-black"
-                    aria-label="{{ 'dataGrid.delete' | translate }}"
-                    title="{{ 'dataGrid.delete' | translate }}"
-                    (click)="onDelete(rowIndex, $event)"
-                  >
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8m-9 0V5a2 2 0 012-2h4a2 2 0 012 2v2" />
-                    </svg>
-                  </button>
-                }
-                <span class="text-zinc-400 dark:text-zinc-600">
-                  <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
-                  </svg>
-                </span>
-              </div>
-            </div>
-
-            @if (getSubtitleText(row)) {
-              <p class="truncate text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                {{ getSubtitleText(row) }}
-              </p>
-            }
-
-            @if (getSecondarySubtitleText(row)) {
-              <p class="truncate text-xs font-medium text-zinc-500 dark:text-zinc-400">
-                {{ getSecondarySubtitleText(row) }}
-              </p>
-            }
-
-            @if (getStatusValue(row)) {
-              <div class="mt-1.5 flex items-center gap-2">
-                <shared-status-badge
-                  [status]="$any(getStatusValue(row))"
-                  type="lead"
-                ></shared-status-badge>
-                
-                @if (row.recentlyUpdated) {
-                  <span class="h-1.5 w-1.5 rounded-full bg-blue-500 animate-pulse" aria-hidden="true"></span>
-                }
-              </div>
-            }
-          </div>
-        </div>
-
-        @if (row.error) {
-          <div class="border-t border-red-200 bg-red-50 px-4 py-2 text-[10px] font-bold uppercase tracking-tight text-red-700 dark:border-red-900/50 dark:bg-red-950/40 dark:text-red-200">
-            {{ row.error }}
-          </div>
+<ul class="flex flex-col w-full divide-y divide-zinc-100 bg-white dark:divide-zinc-800 dark:bg-zinc-900"
+  [attr.aria-label]="'dataGrid.dataCards' | translate"> @for (row of rows(); track trackByRowId($index, row); let
+  rowIndex = $index) { <li class="relative">
+    <button type="button"
+      class="group relative flex w-full flex-col text-left transition-colors duration-200 hover:bg-zinc-50 active:bg-zinc-100 dark:hover:bg-zinc-800/50 dark:active:bg-zinc-800 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-blue-500"
+      [class.bg-blue-50]="row.selected"
+      [class.dark:bg-blue-900/10]="row.selected"
+      [attr.aria-pressed]="row.selected ? 'true' : 'false'"
+      (click)="onCardClick(rowIndex, $event)" (keydown)="onCardKeydown($event, rowIndex)">
+      
+      <div class="flex w-full items-start gap-4 p-4 text-left"> 
+        @if (selectable()) { 
+          <div class="flex h-12 w-6 shrink-0 items-center justify-center -ml-1" data-row-select>
+            <shared-checkbox
+              [checked]="row.selected" [ariaLabel]="'dataGrid.selectRow' | translate:{rowIndex: rowIndex + 1}"
+              [dense]="true" (checkedChange)="onSelect(rowIndex)" /> 
+          </div> 
         }
 
-        <!-- Edit bottom sheet -->
-        <app-bottom-sheet
-          [isOpen]="isEditing(rowIndex)"
-          [title]="row.isNew ? ('dataGrid.newRecord' | translate) : ('dataGrid.editRecord' | translate)"
-          (close)="closeEdit()"
-        >
-          <div class="flex flex-col gap-4 p-4">
-            @if (getEditableColumns(row).length === 0) {
-              <p class="text-sm text-zinc-500">{{ 'dataGrid.noEditableFields' | translate }}</p>
-            } @else {
-              @for (column of getEditableColumns(row); track column.id) {
-                <div class="flex flex-col gap-2">
-                  @if (column.cellType === 'boolean') {
-                    <shared-checkbox
-                      [checked]="!!getCellValue(row, column)"
-                      (checkedChange)="onCellValueChange(rowIndex, column, $event)"
-                      [label]="column.header"
-                    />
-                  } @else if (column.cellType === 'select') {
-                    <shared-select
-                      [options]="column.selectOptions ?? []"
-                      [value]="getInputValue(row, column)"
-                      (valueChange)="onCellValueChange(rowIndex, column, $event)"
-                      [label]="column.header"
-                      [placeholder]="'dataGrid.selectAnOption' | translate"
-                    />
-                  } @else if (column.cellType === 'color') {
-                    <shared-color-picker
-                      [value]="getInputString(row, column)"
-                      (valueChange)="onCellValueChange(rowIndex, column, $event)"
-                      [label]="column.header"
-                      placeholder="#3B82F6"
-                    />
-                  } @else {
-                    <shared-input
-                      [type]="column.cellType === 'number' ? 'number' : 'text'"
-                      [value]="getInputString(row, column)"
-                      (valueChange)="onCellValueChange(rowIndex, column, $event)"
-                      [label]="column.header"
-                      [placeholder]="'dataGrid.enterValue' | translate"
-                    />
-                  }
-                </div>
-              }
-            }
-            <shared-button (clicked)="closeEdit()">
-              {{ row.isNew ? ('dataGrid.create' | translate) : ('dataGrid.save' | translate) }}
-            </shared-button>
+        <div class="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-100 ring-1 ring-inset ring-black/5 dark:bg-zinc-800 dark:ring-white/10">
+          <span class="text-sm font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+            {{ getInitials(row) }}
+          </span>
+        </div>
+
+        <div class="flex min-w-0 flex-1 flex-col justify-center gap-0.5 min-h-12">
+          <div class="flex items-start justify-between gap-4">
+            <h3 class="truncate text-base font-semibold leading-6 text-zinc-900 dark:text-zinc-100">
+              {{ getTitleText(row) }}
+            </h3>
+            
+            <div class="flex shrink-0 items-center gap-1 text-zinc-400">
+              <svg
+                class="h-5 w-5 transition-transform group-hover:translate-x-0.5"
+                fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+              </svg>
+            </div>
           </div>
-        </app-bottom-sheet>
-      </button>
-    </li>
+
+          @if (getSubtitleText(row)) {
+          <p class="truncate text-sm text-zinc-500 dark:text-zinc-400">
+            {{ getSubtitleText(row) }}
+          </p>
+          }
+
+          @if (getSecondarySubtitleText(row)) {
+          <p class="truncate text-xs font-medium text-zinc-400 dark:text-zinc-500 mt-0.5">
+            {{ getSecondarySubtitleText(row) }}
+          </p>
+          }
+
+          @if (getStatusValue(row)) {
+          <div class="mt-3 flex items-center gap-3">
+            <shared-status-badge [status]="$any(getStatusValue(row))" type="lead"
+              class="origin-left"></shared-status-badge>
+
+            @if (row.recentlyUpdated) {
+            <span class="flex h-2.5 w-2.5 relative">
+              <span class="absolute inline-flex h-full w-full animate-ping rounded-full bg-blue-400 opacity-75"></span>
+              <span class="relative inline-flex h-2.5 w-2.5 rounded-full bg-blue-500"></span>
+            </span>
+            }
+          </div>
+          }
+        </div>
+      </div>
+
+      @if (row.error) {
+      <div
+        class="flex w-full items-center gap-2 border-t border-red-100 bg-red-50/50 px-4 py-2.5 text-xs font-medium text-red-600 dark:border-red-900/30 dark:bg-red-900/10 dark:text-red-400">
+        <svg class="h-4 w-4 shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+            d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+        </svg>
+        {{ row.error }}
+      </div>
+      }
+    </button>
+    
+    @if (rowDeleteActionEnabled() && canDeleteRow(row)) {
+    <button type="button"
+      class="absolute right-4 top-4 z-10 flex h-8 w-8 items-center justify-center rounded-full bg-white/50 text-zinc-400 backdrop-blur-sm transition-all hover:bg-red-50 hover:text-red-600 focus:outline-none focus:ring-2 focus:ring-red-500/20 active:scale-90 dark:bg-zinc-800/50 dark:hover:bg-red-900/30 dark:hover:text-red-400"
+      aria-label="{{ 'dataGrid.delete' | translate }}" title="{{ 'dataGrid.delete' | translate }}"
+      (click)="onDelete(rowIndex, $event); $event.stopPropagation()">
+      <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8m-9 0V5a2 2 0 012-2h4a2 2 0 012 2v2" />
+      </svg>
+    </button>
+    }
+
+    <app-bottom-sheet [isOpen]="isEditing(rowIndex)"
+      [title]="row.isNew ? ('dataGrid.newRecord' | translate) : ('dataGrid.editRecord' | translate)"
+      (close)="closeEdit()">
+      <div class="flex flex-col gap-5 p-6">
+        @if (getEditableColumns(row).length === 0) {
+        <div class="flex flex-col items-center justify-center py-8 text-zinc-500">
+          <p class="text-sm">{{ 'dataGrid.noEditableFields' | translate }}</p>
+        </div>
+        } @else {
+        <div class="flex flex-col gap-4">
+          @for (column of getEditableColumns(row); track column.id) {
+          <div class="flex flex-col gap-1.5">
+            @if (column.cellType === 'boolean') {
+            <shared-checkbox [checked]="!!getCellValue(row, column)"
+              (checkedChange)="onCellValueChange(rowIndex, column, $event)" [label]="column.header" />
+            } @else if (column.cellType === 'select') {
+            <shared-select [options]="column.selectOptions ?? []" [value]="getInputValue(row, column)"
+              (valueChange)="onCellValueChange(rowIndex, column, $event)" [label]="column.header"
+              [placeholder]="'dataGrid.selectAnOption' | translate" />
+            } @else if (column.cellType === 'color') {
+            <shared-color-picker [value]="getInputString(row, column)"
+              (valueChange)="onCellValueChange(rowIndex, column, $event)" [label]="column.header"
+              placeholder="#3B82F6" />
+            } @else {
+            <shared-input [type]="column.cellType === 'number' ? 'number' : 'text'"
+              [value]="getInputString(row, column)" (valueChange)="onCellValueChange(rowIndex, column, $event)"
+              [label]="column.header" [placeholder]="'dataGrid.enterValue' | translate" />
+            }
+          </div>
+          }
+        </div>
+        }
+        <div class="pt-2">
+          <shared-button [fullWidth]="true" variant="primary" size="default" (clicked)="closeEdit()">
+            {{ row.isNew ? ('dataGrid.create' | translate) : ('dataGrid.save' | translate) }}
+          </shared-button>
+        </div>
+      </div>
+    </app-bottom-sheet>
+  </li>
+
   }
 
-  @if (rows().length === 0) {
-    <div class="flex flex-col items-center justify-center border border-dashed border-zinc-200 p-12 text-zinc-300 dark:border-zinc-800">
-      <span class="text-[10px] font-bold uppercase tracking-[0.2em]">{{ 'dataGrid.noResults' | translate }}</span>
-    </div>
-  }
+  @if (rows().length === 0) { <li
+    class="flex flex-col items-center justify-center gap-3 border-dashed border-zinc-200 py-16 text-center dark:border-zinc-800">
+    <div
+      class="flex h-12 w-12 items-center justify-center rounded-full bg-zinc-50 text-zinc-300 dark:bg-zinc-800/50 dark:text-zinc-600">
+      <svg class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5"
+          d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 012-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10" />
+      </svg> </div> <span class="text-xs font-semibold uppercase tracking-widest text-zinc-400 dark:text-zinc-500"> {{
+      'dataGrid.noResults' | translate }} </span>
+  </li> }
+
 </ul>
