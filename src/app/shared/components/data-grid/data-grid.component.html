@@ -165,7 +165,7 @@
           <table
             [attr.aria-rowcount]="store.pagination().totalItems"
             [attr.aria-colcount]="store.visibleColumns().length + (store.config().selectable ? 1 : 0)"
-            class="w-full min-w-full border-collapse table-fixed"
+            class="w-max min-w-full border-collapse"
           >
             <thead class="sticky top-0 z-10 bg-zinc-50/95 backdrop-blur-sm shadow-[inset_0_-1px_0_0_#e4e4e7]">
               <tr class="sr-only" hidden>
