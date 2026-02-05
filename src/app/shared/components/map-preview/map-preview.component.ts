@@ -44,8 +44,8 @@ export class MapPreviewComponent {
     effect(() => {
       const lat = this.latitude();
       const lon = this.longitude();
-      if (Number.isFinite(lat) && Number.isFinite(lon)) {
-        this.coords.set({ lat: lat as number, lon: lon as number });
+      if (lat !== null && lon !== null && Number.isFinite(lat) && Number.isFinite(lon)) {
+        this.coords.set({ lat, lon });
         this.error.set(null);
         this.loading.set(false);
         this.lastQuery.set('');
