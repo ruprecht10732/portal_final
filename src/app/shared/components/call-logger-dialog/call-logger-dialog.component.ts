@@ -35,6 +35,15 @@ export class CallLoggerDialogComponent {
   readonly dismiss = output<void>();
 
   protected readonly summaryText = signal('');
+  protected readonly maxSummaryLength = 2000;
+  protected readonly summaryLength = computed(() => this.summaryText().length);
+  protected readonly summaryTooLong = computed(() => this.summaryLength() > this.maxSummaryLength);
+  protected readonly summaryRemaining = computed(() => Math.max(0, this.maxSummaryLength - this.summaryLength()));
+  protected readonly summaryError = computed(() =>
+    this.summaryTooLong()
+      ? 'Maximum ' + this.maxSummaryLength + ' characters allowed.'
+      : null
+  );
   protected readonly sendConfirmationEmail = signal(true);
   protected readonly textareaRef = viewChild<ElementRef<HTMLTextAreaElement>>('summaryTextarea');
 
@@ -52,7 +61,7 @@ export class CallLoggerDialogComponent {
 
   protected readonly canSubmit = computed(() => {
     const text = this.summaryText().trim();
-    return text.length > 0 && !this.isProcessing() && !this.result();
+    return text.length > 0 && !this.isProcessing() && !this.result() && !this.summaryTooLong();
   });
 
   protected readonly showResult = computed(() => !!this.result());

@@ -21,7 +21,7 @@
     [isOpen]="showCallLoggerDialog()"
     [isProcessing]="callLoggerProcessing()"
     [result]="callLoggerResult()"
-    [missingInformation]="missingInformation()"
+    [missingInformation]="callLoggerMissingInformation()"
     (submitSummary)="submitCallLogger($event)"
     (dismiss)="closeCallLogger()"
   />
@@ -75,6 +75,55 @@
       <div class="lg:hidden flex flex-col gap-4">
         <app-lead-energy-label-card [energyLabel]="energyLabel()"></app-lead-energy-label-card>
         <app-lead-enrichment-card [leadEnrichment]="leadEnrichment()" [leadScore]="leadScore()"></app-lead-enrichment-card>
+
+        <shared-card>
+          <h2 class="text-lg font-semibold mb-3">{{ 'leads.detail.ai.title' | translate }}</h2>
+          @if (aiAnalysisLoading()) {
+            <div class="flex items-center gap-2 text-sm text-zinc-500">
+              <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-black" aria-hidden="true"></div>
+              {{ 'leads.detail.ai.loading' | translate }}
+            </div>
+          } @else if (aiAnalysisError()) {
+            <p class="text-sm text-red-600">{{ aiAnalysisError() }}</p>
+          } @else if (!aiInsightsAvailable()) {
+            <p class="text-sm text-zinc-500">{{ 'leads.detail.ai.empty' | translate }}</p>
+          } @else {
+            @if (aiAnalysis(); as analysis) {
+              <div class="grid gap-3 sm:grid-cols-2">
+                <div class="rounded-lg border border-zinc-200 p-3">
+                  <p class="text-xs uppercase text-zinc-500">{{ 'leads.detail.ai.recommendedAction' | translate }}</p>
+                  <p class="text-sm font-semibold mt-1">{{ analysis.recommendedAction }}</p>
+                </div>
+                <div class="rounded-lg border border-zinc-200 p-3">
+                  <p class="text-xs uppercase text-zinc-500">{{ 'leads.detail.ai.urgency' | translate }}</p>
+                  <p class="text-sm font-semibold mt-1">{{ analysis.urgencyLevel }}</p>
+                </div>
+              </div>
+              @if (analysis.summary) {
+                <p class="mt-3 text-sm text-zinc-600">{{ analysis.summary }}</p>
+              }
+            }
+
+            @if (aiInsightsMissingInformation().length > 0) {
+              <div class="mt-3 rounded-lg bg-zinc-50 px-3 py-2">
+                <p class="text-xs font-semibold text-zinc-600">{{ 'leads.detail.ai.missingInformation' | translate }}</p>
+                <ul class="mt-2 list-disc pl-4 text-xs text-zinc-600">
+                  @for (info of aiInsightsMissingInformation(); track info) {
+                    <li>{{ info }}</li>
+                  }
+                </ul>
+              </div>
+            }
+
+            @if (leadScore(); as score) {
+              @if (score.score != null || score.preAi != null) {
+                <p class="mt-3 text-xs text-zinc-500">
+                  {{ 'leads.detail.timeline.leadScore' | translate:{ score: score.score ?? '-', preAi: score.preAi ?? '-' } }}
+                </p>
+              }
+            }
+          }
+        </shared-card>
 
         <shared-card padding="none">
           <details>
@@ -220,6 +269,55 @@
 
           <app-lead-energy-label-card [energyLabel]="energyLabel()"></app-lead-energy-label-card>
           <app-lead-enrichment-card [leadEnrichment]="leadEnrichment()" [leadScore]="leadScore()"></app-lead-enrichment-card>
+
+          <shared-card>
+            <h2 class="text-lg font-semibold mb-3">{{ 'leads.detail.ai.title' | translate }}</h2>
+            @if (aiAnalysisLoading()) {
+              <div class="flex items-center gap-2 text-sm text-zinc-500">
+                <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-black" aria-hidden="true"></div>
+                {{ 'leads.detail.ai.loading' | translate }}
+              </div>
+            } @else if (aiAnalysisError()) {
+              <p class="text-sm text-red-600">{{ aiAnalysisError() }}</p>
+            } @else if (!aiInsightsAvailable()) {
+              <p class="text-sm text-zinc-500">{{ 'leads.detail.ai.empty' | translate }}</p>
+            } @else {
+              @if (aiAnalysis(); as analysis) {
+                <div class="grid gap-3 sm:grid-cols-2">
+                  <div class="rounded-lg border border-zinc-200 p-3">
+                    <p class="text-xs uppercase text-zinc-500">{{ 'leads.detail.ai.recommendedAction' | translate }}</p>
+                    <p class="text-sm font-semibold mt-1">{{ analysis.recommendedAction }}</p>
+                  </div>
+                  <div class="rounded-lg border border-zinc-200 p-3">
+                    <p class="text-xs uppercase text-zinc-500">{{ 'leads.detail.ai.urgency' | translate }}</p>
+                    <p class="text-sm font-semibold mt-1">{{ analysis.urgencyLevel }}</p>
+                  </div>
+                </div>
+                @if (analysis.summary) {
+                  <p class="mt-3 text-sm text-zinc-600">{{ analysis.summary }}</p>
+                }
+              }
+
+              @if (aiInsightsMissingInformation().length > 0) {
+                <div class="mt-3 rounded-lg bg-zinc-50 px-3 py-2">
+                  <p class="text-xs font-semibold text-zinc-600">{{ 'leads.detail.ai.missingInformation' | translate }}</p>
+                  <ul class="mt-2 list-disc pl-4 text-xs text-zinc-600">
+                    @for (info of aiInsightsMissingInformation(); track info) {
+                      <li>{{ info }}</li>
+                    }
+                  </ul>
+                </div>
+              }
+
+              @if (leadScore(); as score) {
+                @if (score.score != null || score.preAi != null) {
+                  <p class="mt-3 text-xs text-zinc-500">
+                    {{ 'leads.detail.timeline.leadScore' | translate:{ score: score.score ?? '-', preAi: score.preAi ?? '-' } }}
+                  </p>
+                }
+              }
+            }
+          </shared-card>
 
           <shared-card>
             <h2 class="text-lg font-semibold mb-3">{{ 'leads.detail.contact' | translate }}</h2>

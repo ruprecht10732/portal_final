@@ -126,6 +126,26 @@ export class LeadDetailComponent implements OnInit {
   protected readonly aiAnalysisIsDefault = signal(false);
   protected readonly aiAnalysisNoNewInfo = signal(false);
   protected readonly missingInformation = computed(() => this.aiAnalysis()?.missingInformation ?? []);
+  protected readonly callLoggerMissingInformation = computed(() => {
+    const aiMissing = this.missingInformation();
+    if (aiMissing.length > 0) {
+      return aiMissing;
+    }
+    for (const item of this.timelineItems()) {
+      const missing = this.getTimelineMissingInformation(item);
+      if (missing.length > 0) {
+        return missing;
+      }
+    }
+    return [];
+  });
+  protected readonly aiInsightsMissingInformation = computed(() => this.callLoggerMissingInformation());
+  protected readonly aiInsightsAvailable = computed(() => {
+    const analysis = this.aiAnalysis();
+    const missing = this.aiInsightsMissingInformation();
+    const score = this.leadScore();
+    return Boolean(analysis) || missing.length > 0 || Boolean(score?.score) || Boolean(score?.preAi);
+  });
 
   // Photo Analysis
   protected readonly photoAnalysis = signal<PhotoAnalysis | null>(null);
@@ -157,6 +177,17 @@ export class LeadDetailComponent implements OnInit {
   protected readonly newServiceSource = signal('');
   protected readonly closeCurrentService = signal(true);
   protected readonly selectedServiceId = signal<string | null>(null);
+
+  // Add Service Consumer Note validation (max 2000 chars)
+  protected readonly maxConsumerNoteLength = 2000;
+  protected readonly consumerNoteLength = computed(() => this.newServiceConsumerNote().length);
+  protected readonly consumerNoteTooLong = computed(() => this.consumerNoteLength() > this.maxConsumerNoteLength);
+  protected readonly consumerNoteRemaining = computed(() => Math.max(0, this.maxConsumerNoteLength - this.consumerNoteLength()));
+  protected readonly consumerNoteError = computed(() =>
+    this.consumerNoteTooLong()
+      ? this.translate.instant('leads.detail.addService.consumerNoteTooLong', { max: this.maxConsumerNoteLength })
+      : null
+  );
 
   // Computed selected service - uses selectedServiceId or falls back to currentService
   protected readonly selectedService = computed(() =>
@@ -888,6 +919,11 @@ export class LeadDetailComponent implements OnInit {
     const lead = this.lead();
     const serviceType = this.newServiceType();
     if (!lead || !serviceType) return;
+    // Prevent submit if note is too long
+    if (this.consumerNoteTooLong()) {
+      this.error.set(this.consumerNoteError());
+      return;
+    }
 
     this.saving.set(true);
     const consumerNoteValue = this.newServiceConsumerNote();

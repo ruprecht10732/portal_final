@@ -77,7 +77,14 @@
           (input)="summaryText.set($any($event.target).value)"
           (keydown)="onKeydown($event)"
           [disabled]="isProcessing()"
+          [attr.maxLength]="maxSummaryLength"
         ></textarea>
+        <div class="flex items-center justify-between mt-1">
+          <span class="text-xs text-zinc-400">{{ summaryRemaining() }} characters left</span>
+          @if (summaryTooLong()) {
+            <span class="text-xs text-red-600">{{ summaryError() }}</span>
+          }
+        </div>
       </div>
 
       <!-- Email Confirmation Option -->
