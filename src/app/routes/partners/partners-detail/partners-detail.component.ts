@@ -98,6 +98,25 @@ export class PartnersDetailComponent implements OnInit {
     return `https://www.google.com/maps/search/?api=1&query=${query}`;
   });
 
+  protected readonly contactEmailUrl = computed(() => {
+    const email = this.partner()?.contactEmail?.trim();
+    return email ? `mailto:${email}` : '';
+  });
+
+  protected readonly contactPhoneUrl = computed(() => {
+    const phone = this.partner()?.contactPhone?.trim();
+    return phone ? `tel:${phone}` : '';
+  });
+
+  protected readonly whatsappUrl = computed(() => {
+    const phone = this.partner()?.contactPhone?.trim();
+    if (!phone) return '';
+    const sanitized = phone.replace(/[^0-9+]/g, '');
+    const number = sanitized.startsWith('+') ? sanitized.slice(1) : sanitized;
+    if (!number) return '';
+    return `https://wa.me/${number}`;
+  });
+
   protected readonly companyRows = computed<DetailRow[]>(() => {
     const partner = this.partner();
     return [
@@ -313,6 +332,24 @@ export class PartnersDetailComponent implements OnInit {
     const url = this.googleMapsUrl();
     if (!url) return;
     window.open(url, '_blank', 'noopener');
+  }
+
+  protected openWhatsApp(): void {
+    const url = this.whatsappUrl();
+    if (!url) return;
+    window.open(url, '_blank', 'noopener');
+  }
+
+  protected openCall(): void {
+    const url = this.contactPhoneUrl();
+    if (!url) return;
+    window.open(url, '_self');
+  }
+
+  protected openEmail(): void {
+    const url = this.contactEmailUrl();
+    if (!url) return;
+    window.open(url, '_self');
   }
 
   protected formatDate(value: string): string {
