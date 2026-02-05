@@ -1,56 +1,76 @@
-<tbody>
+<tbody class="divide-y divide-zinc-200 bg-white">
   @for (row of rows(); track trackByRowId($index, row); let rowIndex = $index) {
     <tr
       role="row"
       [attr.aria-selected]="row.selected"
       [attr.aria-rowindex]="rowIndex + 2"
-      class="group transition-colors duration-200 cursor-pointer"
-      [class.bg-white]="rowIndex % 2 === 0 && !row.recentlyUpdated && !row.error && !row.dirty && !row.isNew"
-      [class.bg-zinc-50]="rowIndex % 2 === 1 && !row.recentlyUpdated && !row.error && !row.dirty && !row.isNew"
+      class="group transition-colors duration-200 ease-in-out"
+      [class.bg-white]="
+        rowIndex % 2 === 0 && !row.recentlyUpdated && !row.error && !row.dirty && !row.isNew
+      "
+      [class.bg-zinc-50]="
+        rowIndex % 2 === 1 && !row.recentlyUpdated && !row.error && !row.dirty && !row.isNew
+      "
       [class.bg-green-50]="row.recentlyUpdated"
       [class.bg-red-50]="row.error"
       [class.bg-amber-50]="row.dirty && !row.isNew && !row.error && !row.recentlyUpdated"
       [class.bg-blue-50]="row.isNew && !row.error && !row.recentlyUpdated"
       [class.hover:bg-zinc-100]="!row.recentlyUpdated && !row.error && !row.dirty && !row.isNew"
     >
-      <!-- Selection checkbox (always sticky if present) -->
       @if (selectable()) {
         <td
           role="gridcell"
           [attr.aria-colindex]="1"
-          class="w-10 px-0 py-2 border-b border-r border-zinc-200 sticky left-0 z-10 bg-inherit"
+          class="w-12 border-b border-r border-zinc-200 sticky left-0 z-20 bg-inherit p-0"
           [class.border-b-0]="rowIndex === rows().length - 1"
           [attr.title]="getRowStatusTooltip(row)"
         >
-          <div class="relative flex w-full min-h-7 items-center justify-center">
+          <div class="relative flex h-full w-full items-center justify-center">
             @if (row.saving) {
-              <!-- Saving spinner -->
-              <svg class="w-4 h-4 animate-spin text-zinc-500 absolute" viewBox="0 0 24 24" fill="none">
-                <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4" />
-                <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
+              <svg
+                class="absolute h-4 w-4 animate-spin text-zinc-500"
+                viewBox="0 0 24 24"
+                fill="none"
+              >
+                <circle
+                  class="opacity-25"
+                  cx="12"
+                  cy="12"
+                  r="10"
+                  stroke="currentColor"
+                  stroke-width="4"
+                />
+                <path
+                  class="opacity-75"
+                  fill="currentColor"
+                  d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                />
               </svg>
             } @else {
               @if (row.dirty || row.error || row.isNew || row.recentlyUpdated) {
-                <span 
-                  class="absolute left-0 top-0 bottom-0 w-1"
+                <span
+                  class="absolute inset-y-0 left-0 w-1"
                   [class.bg-green-500]="row.recentlyUpdated"
                   [class.bg-red-500]="row.error && !row.recentlyUpdated"
-                  [class.bg-amber-500]="row.dirty && !row.isNew && !row.error && !row.recentlyUpdated"
+                  [class.bg-amber-500]="
+                    row.dirty && !row.isNew && !row.error && !row.recentlyUpdated
+                  "
                   [class.bg-blue-500]="row.isNew && !row.error && !row.recentlyUpdated"
                 ></span>
               }
-              <shared-checkbox
-                [checked]="row.selected"
-                [ariaLabel]="'dataGrid.selectRow' | translate:{rowIndex: rowIndex + 1}"
-                [dense]="true"
-                (checkedChange)="onRowSelect(rowIndex)"
-              />
+              <div class="flex items-center justify-center p-3">
+                <shared-checkbox
+                  [checked]="row.selected"
+                  [ariaLabel]="'dataGrid.selectRow' | translate: { rowIndex: rowIndex + 1 }"
+                  [dense]="true"
+                  (checkedChange)="onRowSelect(rowIndex)"
+                />
+              </div>
             }
           </div>
         </td>
       }
 
-      <!-- Data cells -->
       @for (column of columns(); track column.id; let colIndex = $index) {
         <td
           #cellRef
@@ -60,7 +80,7 @@
           (click)="onCellClick(rowIndex, colIndex)"
           (keydown)="onCellKeydown($event, rowIndex, colIndex)"
           (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
-          class="px-2 py-2 text-sm border-b border-zinc-200 outline-none"
+          class="relative whitespace-nowrap border-b border-zinc-200 px-3 py-2.5 text-sm outline-none transition-colors"
           [class.border-r]="colIndex !== columns().length - 1"
           [class.border-r-0]="colIndex === columns().length - 1"
           [class.border-b-0]="rowIndex === rows().length - 1"
@@ -77,14 +97,11 @@
           [class.ring-2]="isCellFocused(rowIndex, colIndex)"
           [class.ring-black]="isCellFocused(rowIndex, colIndex)"
           [class.ring-inset]="isCellFocused(rowIndex, colIndex)"
+          [class.z-[15]]="isCellFocused(rowIndex, colIndex)"
         >
           @if (isCellEditable(rowIndex, column)) {
-            <!-- Always-editable mode (contenteditable) -->
             <div class="flex flex-col gap-1">
-              <div
-                #inputRef
-                class="relative w-full min-h-7"
-              >
+              <div #inputRef class="relative w-full">
                 @switch (column.cellType) {
                   @case ('address') {
                     <data-grid-address-cell
@@ -106,89 +123,139 @@
                     />
                   }
                   @case ('select') {
-                    <select
-                      class="w-full min-h-7 px-2 py-1 text-sm bg-transparent border border-transparent focus:outline-none"
-                      [class.pr-8]="colIndex === 0"
-                      (change)="onInputChange(rowIndex, column, $event)"
-                      (keydown.enter)="onInputEnter($event)"
-                      (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
-                      [class.text-zinc-500]="getInputValue(row, column) === ''"
-                      [class.border-red-500]="getCellError(row, column.id)"
-                      [class.border]="getCellError(row, column.id)"
-                      [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
-                      [attr.aria-describedby]="getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null"
-                    >
-                      <option value="" disabled [selected]="getInputValue(row, column) === ''">{{ 'dataGrid.selectOption' | translate }}</option>
-                      @for (option of column.selectOptions ?? []; track option.value) {
-                        <option [value]="option.value" [selected]="option.value === getInputValue(row, column)">{{ option.label }}</option>
-                      }
-                    </select>
+                    <div class="relative">
+                      <select
+                        class="w-full appearance-none rounded-md border bg-transparent px-2.5 py-1.5 pr-8 text-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
+                        [class.text-zinc-500]="getInputValue(row, column) === ''"
+                        [class.border-transparent]="!getCellError(row, column.id)"
+                        [class.border-red-500]="getCellError(row, column.id)"
+                        [class.bg-red-50]="getCellError(row, column.id)"
+                        [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
+                        [attr.aria-describedby]="
+                          getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null
+                        "
+                        (change)="onInputChange(rowIndex, column, $event)"
+                        (keydown.enter)="onInputEnter($event)"
+                        (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
+                      >
+                        <option value="" disabled [selected]="getInputValue(row, column) === ''">
+                          {{ 'dataGrid.selectOption' | translate }}
+                        </option>
+                        @for (option of column.selectOptions ?? []; track option.value) {
+                          <option
+                            [value]="option.value"
+                            [selected]="option.value === getInputValue(row, column)"
+                          >
+                            {{ option.label }}
+                          </option>
+                        }
+                      </select>
+                      <div
+                        class="pointer-events-none absolute inset-y-0 right-0 flex items-center px-2 text-zinc-500"
+                      >
+                        <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 9l-7 7-7-7"
+                          />
+                        </svg>
+                      </div>
+                    </div>
                   }
                   @case ('boolean') {
-                    <input
-                      type="checkbox"
-                      class="w-4 h-4"
-                      [checked]="!!getCellValue(row, column)"
-                      (change)="onInputChange(rowIndex, column, $event)"
-                      (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
-                      [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
-                      [attr.aria-describedby]="getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null"
-                    />
+                    <div class="flex justify-center">
+                      <input
+                        type="checkbox"
+                        class="h-4 w-4 rounded border-zinc-300 text-black focus:ring-black"
+                        [checked]="!!getCellValue(row, column)"
+                        (change)="onInputChange(rowIndex, column, $event)"
+                        (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
+                        [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
+                        [attr.aria-describedby]="
+                          getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null
+                        "
+                      />
+                    </div>
                   }
                   @default {
                     <input
                       [type]="getInputType(column)"
-                      class="w-full min-h-7 px-2 py-1 text-sm bg-transparent focus:outline-none"
+                      class="w-full rounded-md border bg-transparent px-2.5 py-1.5 text-base sm:text-sm focus:border-zinc-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900"
                       [class.pr-8]="colIndex === 0"
                       [value]="getInputValue(row, column)"
+                      [class.text-zinc-500]="getInputValue(row, column) === ''"
+                      [class.border-transparent]="!getCellError(row, column.id)"
+                      [class.border-red-500]="getCellError(row, column.id)"
+                      [class.bg-red-50]="getCellError(row, column.id)"
+                      [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
+                      [attr.aria-describedby]="
+                        getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null
+                      "
                       (input)="onInputChange(rowIndex, column, $event)"
                       (keydown.enter)="onInputEnter($event)"
                       (focus)="cellFocus.emit({ rowIndex: rowIndex, columnIndex: colIndex })"
-                      [class.text-zinc-500]="getInputValue(row, column) === ''"
-                      [class.border-red-500]="getCellError(row, column.id)"
-                      [class.border]="getCellError(row, column.id)"
-                      [attr.aria-invalid]="getCellError(row, column.id) ? true : null"
-                      [attr.aria-describedby]="getCellError(row, column.id) ? getCellErrorId(rowIndex, column.id) : null"
                     />
                   }
                 }
-                @if (colIndex === 0 && (rowViewActionEnabled() || (rowDeleteActionEnabled() && canDeleteRow(row)))) {
-                  <div class="absolute right-0 top-1/2 z-10 -translate-y-1/2 flex items-center gap-1 opacity-0 transition-opacity duration-150 group-hover:opacity-100 focus-within:opacity-100">
+
+                @if (
+                  colIndex === 0 &&
+                  (rowViewActionEnabled() || (rowDeleteActionEnabled() && canDeleteRow(row)))
+                ) {
+                  <div
+                    class="absolute right-1 top-1/2 z-20 flex -translate-y-1/2 items-center gap-1 rounded-md bg-inherit py-0.5 pl-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100 focus-within:opacity-100"
+                  >
                     @if (rowViewActionEnabled()) {
                       <button
                         type="button"
-                        class="flex h-7 w-7 items-center justify-center rounded-md bg-white text-zinc-600 shadow-sm ring-1 ring-zinc-200 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer"
+                        class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-colors hover:bg-zinc-50 hover:text-black focus:outline-none focus:ring-2 focus:ring-black"
                         aria-label="{{ 'dataGrid.viewDetails' | translate }}"
                         title="{{ 'dataGrid.viewDetails' | translate }}"
                         (click)="onRowDoubleClick(rowIndex); $event.stopPropagation()"
                       >
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.522 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M2.458 12C3.732 7.943 7.522 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"
+                          />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                          />
                         </svg>
                       </button>
                     }
                     @if (rowDeleteActionEnabled() && canDeleteRow(row)) {
                       <button
                         type="button"
-                        class="flex h-7 w-7 items-center justify-center rounded-md bg-white text-red-600 shadow-sm ring-1 ring-zinc-200 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer"
+                        class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-zinc-200 bg-white text-red-600 shadow-sm transition-colors hover:bg-red-50 hover:border-red-200 focus:outline-none focus:ring-2 focus:ring-red-600"
                         aria-label="{{ 'dataGrid.delete' | translate }}"
                         title="{{ 'dataGrid.delete' | translate }}"
                         (click)="onRowDelete(rowIndex); $event.stopPropagation()"
                       >
                         <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8m-9 0V5a2 2 0 012-2h4a2 2 0 012 2v2" />
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8m-9 0V5a2 2 0 012-2h4a2 2 0 012 2v2"
+                          />
                         </svg>
                       </button>
                     }
                   </div>
                 }
               </div>
-              
-              <!-- Validation error -->
+
               @if (getCellError(row, column.id)) {
-                <span 
-                  class="text-xs font-semibold uppercase tracking-wide text-red-700"
+                <span
+                  class="block px-1 text-[10px] font-bold uppercase tracking-wider text-red-600"
                   role="alert"
                   [id]="getCellErrorId(rowIndex, column.id)"
                 >
@@ -197,30 +264,70 @@
               }
             </div>
           } @else {
-            <!-- Read mode -->
-            <div class="flex items-center gap-2" [class.justify-between]="colIndex === 0">
-              <span 
+            <div
+              class="flex min-h-7 items-center gap-2"
+              [class.justify-between]="colIndex === 0"
+            >
+              <span
                 class="truncate"
                 [title]="getCellDisplayValue(row, column)"
-                [class.text-zinc-500]="getCellValue(row, column) === null || getCellValue(row, column) === undefined || getCellValue(row, column) === ''"
+                [class.text-zinc-400]="
+                  getCellValue(row, column) === null ||
+                  getCellValue(row, column) === undefined ||
+                  getCellValue(row, column) === ''
+                "
               >
                 @if (column.cellType === 'boolean') {
                   @if (getCellValue(row, column)) {
-                    <svg class="w-4 h-4 text-green-700" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7" />
-                    </svg>
+                    <div
+                      class="flex items-center gap-1.5 rounded-full bg-green-50 px-2 py-0.5 text-xs font-medium text-green-700"
+                    >
+                      <svg
+                        class="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M5 13l4 4L19 7"
+                        />
+                      </svg>
+                      <span>Yes</span>
+                    </div>
                   } @else {
-                    <svg class="w-4 h-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
+                    <div
+                      class="flex items-center gap-1.5 rounded-full bg-zinc-100 px-2 py-0.5 text-xs font-medium text-zinc-500"
+                    >
+                      <svg
+                        class="h-3.5 w-3.5"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                        stroke="currentColor"
+                      >
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M6 18L18 6M6 6l12 12"
+                        />
+                      </svg>
+                      <span>No</span>
+                    </div>
                   }
                 } @else if (column.cellType === 'color') {
-                  <span
-                    class="inline-block h-3 w-3 shrink-0 border border-zinc-200"
-                    [style.backgroundColor]="hexOrTransparent(getCellValue(row, column))"
-                    aria-hidden="true"
-                  ></span>
-                  <span class="truncate">{{ getCellValue(row, column) ?? '—' }}</span>
+                  <div class="flex items-center gap-2">
+                    <span
+                      class="h-4 w-4 shrink-0 rounded-full border border-zinc-200 shadow-sm"
+                      [style.backgroundColor]="hexOrTransparent(getCellValue(row, column))"
+                      aria-hidden="true"
+                    ></span>
+                    <span class="truncate font-mono text-xs">{{
+                      getCellValue(row, column) ?? '—'
+                    }}</span>
+                  </div>
                 } @else if (isStatusColumn(column)) {
                   <shared-status-badge
                     [status]="$any(getCellValue(row, column))"
@@ -229,57 +336,81 @@
                 } @else if (column.cellType === 'select') {
                   @let meta = getSelectMeta(column, getCellValue(row, column));
                   @if (meta) {
-                    <span
-                      class="inline-flex items-center gap-2"
-                      [title]="meta.description ?? ''"
-                    >
+                    <span class="inline-flex items-center gap-2" [title]="meta.description ?? ''">
                       @if (meta.color) {
                         <span
-                          class="inline-block h-3 w-3 shrink-0 rounded-full border border-zinc-200"
+                          class="h-2 w-2 shrink-0 rounded-full"
                           [style.backgroundColor]="hexOrTransparent(meta.color)"
                           aria-hidden="true"
                         ></span>
                       }
                       @if (meta.icon) {
-                        <lucide-icon [name]="meta.icon" class="h-4 w-4 shrink-0"></lucide-icon>
+                        <lucide-icon
+                          [name]="meta.icon"
+                          class="h-4 w-4 shrink-0 text-zinc-500"
+                        ></lucide-icon>
                       }
-                      <span class="truncate">{{ meta.label ?? (column.selectOptions | optionLabel:getCellValue(row, column)) }}</span>
+                      <span class="truncate">{{
+                        meta.label ??
+                          (column.selectOptions | optionLabel: getCellValue(row, column))
+                      }}</span>
                     </span>
                   } @else {
-                    {{ column.selectOptions | optionLabel:getCellValue(row, column) }}
+                    {{ column.selectOptions | optionLabel: getCellValue(row, column) }}
                   }
                 } @else if (column.cellType === 'date') {
-                  {{ getRelativeDateValue(row, column) }}
+                  <span class="tabular-nums">{{ getRelativeDateValue(row, column) }}</span>
                 } @else {
                   {{ getCellValue(row, column) ?? '—' }}
                 }
               </span>
-              @if (colIndex === 0 && (rowViewActionEnabled() || (rowDeleteActionEnabled() && canDeleteRow(row)))) {
-                <div class="ml-2 flex items-center gap-1">
+
+              @if (
+                colIndex === 0 &&
+                (rowViewActionEnabled() || (rowDeleteActionEnabled() && canDeleteRow(row)))
+              ) {
+                <div
+                  class="ml-2 flex items-center gap-1 opacity-0 transition-opacity duration-200 group-hover:opacity-100 has-focus:opacity-100"
+                >
                   @if (rowViewActionEnabled()) {
                     <button
                       type="button"
-                      class="flex h-7 w-7 items-center justify-center rounded-md bg-white text-zinc-600 opacity-0 shadow-sm ring-1 ring-zinc-200 transition-opacity duration-150 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer"
+                      class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-600 shadow-sm transition-colors hover:bg-zinc-50 hover:text-black focus:outline-none focus:ring-2 focus:ring-black"
                       aria-label="{{ 'dataGrid.viewDetails' | translate }}"
                       title="{{ 'dataGrid.viewDetails' | translate }}"
                       (click)="onRowDoubleClick(rowIndex); $event.stopPropagation()"
                     >
                       <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.522 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.478 0-8.268-2.943-9.542-7z" />
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M2.458 12C3.732 7.943 7.522 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.478 0-8.268-2.943-9.542-7z"
+                        />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"
+                        />
                       </svg>
                     </button>
                   }
                   @if (rowDeleteActionEnabled() && canDeleteRow(row)) {
                     <button
                       type="button"
-                      class="flex h-7 w-7 items-center justify-center rounded-md bg-white text-red-600 opacity-0 shadow-sm ring-1 ring-zinc-200 transition-opacity duration-150 group-hover:opacity-100 focus:opacity-100 focus:outline-none focus:ring-2 focus:ring-black cursor-pointer"
+                      class="flex h-7 w-7 cursor-pointer items-center justify-center rounded-md border border-zinc-200 bg-white text-red-600 shadow-sm transition-colors hover:bg-red-50 hover:border-red-200 focus:outline-none focus:ring-2 focus:ring-red-600"
                       aria-label="{{ 'dataGrid.delete' | translate }}"
                       title="{{ 'dataGrid.delete' | translate }}"
                       (click)="onRowDelete(rowIndex); $event.stopPropagation()"
                     >
                       <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8m-9 0V5a2 2 0 012-2h4a2 2 0 012 2v2" />
+                        <path
+                          stroke-linecap="round"
+                          stroke-linejoin="round"
+                          stroke-width="2"
+                          d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6M9 7h6m-7 0h8m-9 0V5a2 2 0 012-2h4a2 2 0 012 2v2"
+                        />
                       </svg>
                     </button>
                   }
@@ -290,7 +421,5 @@
         </td>
       }
     </tr>
-  } @empty {
-    <!-- Empty state handled by parent -->
-  }
+  } @empty {}
 </tbody>
