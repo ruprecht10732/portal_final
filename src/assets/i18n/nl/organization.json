@@ -47,6 +47,8 @@
     },
     "errors": {
       "emailInvalid": "Vul een geldig e-mailadres in",
+      "vatInvalid": "Vul een geldig BTW-nummer in",
+      "kvkInvalid": "Vul een geldig KVK-nummer in",
       "nameRequired": "Organisatienaam is verplicht",
       "generic": "Er is iets misgegaan."
     }

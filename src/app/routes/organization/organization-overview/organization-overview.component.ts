@@ -9,6 +9,7 @@ import { AddressService, type AddressSuggestion } from '../../../core/services/a
 import { OrganizationService, type Organization, UpdateOrganizationRequest } from '../../../core/services/organization.service';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 import { isEmailValid } from '../../../core/utils/email.util';
+import { isKvkValid, isVatValid } from '../../../core/utils/partner-validation.util';
 
 @Component({
   selector: 'app-organization-overview',
@@ -70,6 +71,24 @@ export class OrganizationOverviewComponent {
     return isValid ? '' : this.translate.instant('organization.errors.emailInvalid');
   });
 
+  protected readonly vatError = computed(() => {
+    this.lang();
+    const value = this.vatNumber().trim();
+    if (!value) return '';
+    return isVatValid(value)
+      ? ''
+      : this.translate.instant('organization.errors.vatInvalid');
+  });
+
+  protected readonly kvkError = computed(() => {
+    this.lang();
+    const value = this.kvkNumber().trim();
+    if (!value) return '';
+    return isKvkValid(value)
+      ? ''
+      : this.translate.instant('organization.errors.kvkInvalid');
+  });
+
   protected readonly hasChanges = computed(() =>
     this.name().trim() !== this.initialName().trim() ||
     this.email().trim() !== this.initialEmail().trim() ||
@@ -87,6 +106,8 @@ export class OrganizationOverviewComponent {
     !this.isSaving() &&
     !this.nameError() &&
     !this.emailError() &&
+    !this.vatError() &&
+    !this.kvkError() &&
     this.hasChanges()
   );
 

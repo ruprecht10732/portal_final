@@ -43,11 +43,13 @@
           [label]="'organization.fields.vatNumber' | translate"
           [value]="vatNumber()"
           (valueChange)="vatNumber.set($event)"
+          [error]="vatError()"
         />
         <shared-input
           [label]="'organization.fields.kvkNumber' | translate"
           [value]="kvkNumber()"
           (valueChange)="kvkNumber.set($event)"
+          [error]="kvkError()"
         />
       </div>
 

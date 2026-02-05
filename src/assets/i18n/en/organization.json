@@ -47,6 +47,8 @@
     },
     "errors": {
       "emailInvalid": "Enter a valid email",
+      "vatInvalid": "Enter a valid VAT number",
+      "kvkInvalid": "Enter a valid KVK number",
       "nameRequired": "Organization name is required",
       "generic": "Something went wrong."
     }
