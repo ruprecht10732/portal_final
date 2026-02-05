@@ -185,6 +185,20 @@
               <h3 class="text-sm font-semibold text-black uppercase tracking-wide mb-3">
                 {{ 'partners.detail.address' | translate }}
               </h3>
+              <div class="mb-4 space-y-3">
+                <shared-map-preview [address]="mapAddress()" [height]="180" />
+                <shared-button
+                  type="button"
+                  variant="secondary"
+                  size="compact"
+                  [fullWidth]="false"
+                  [disabled]="!googleMapsUrl()"
+                  (clicked)="openGoogleMaps()"
+                >
+                  <lucide-icon name="map" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
+                  {{ 'partners.detail.mapNavigate' | translate }}
+                </shared-button>
+              </div>
               <div class="divide-y divide-zinc-100">
                 @for (row of addressRows(); track row.key) {
                   <div class="group flex items-center justify-between py-3 gap-4">

@@ -11,6 +11,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { MultiSelectComponent, type MultiSelectOption } from '../../../shared/components/multiselect/multiselect.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 
@@ -24,6 +25,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
     LucideAngularModule,
     ButtonComponent,
     ConfirmDialogComponent,
+    MapPreviewComponent,
     MultiSelectComponent,
     PageHeaderComponent,
   ],
@@ -74,6 +76,26 @@ export class PartnersDetailComponent implements OnInit {
     if (parts.length === 1) return (first.slice(0, 2) || 'P').toUpperCase();
     const initials = `${first[0] ?? ''}${parts[1]?.[0] ?? ''}`.trim();
     return (initials || first.slice(0, 2) || 'P').toUpperCase();
+  });
+
+  protected readonly mapAddress = computed(() => {
+    const partner = this.partner();
+    if (!partner) return '';
+    const parts = [
+      partner.addressLine1,
+      partner.addressLine2,
+      partner.postalCode,
+      partner.city,
+      partner.country,
+    ].filter(Boolean);
+    return parts.join(', ');
+  });
+
+  protected readonly googleMapsUrl = computed(() => {
+    const address = this.mapAddress().trim();
+    if (!address) return '';
+    const query = encodeURIComponent(address);
+    return `https://www.google.com/maps/search/?api=1&query=${query}`;
   });
 
   protected readonly companyRows = computed<DetailRow[]>(() => {
@@ -285,6 +307,12 @@ export class PartnersDetailComponent implements OnInit {
         this.closeDeleteDialog();
       },
     });
+  }
+
+  protected openGoogleMaps(): void {
+    const url = this.googleMapsUrl();
+    if (!url) return;
+    window.open(url, '_blank', 'noopener');
   }
 
   protected formatDate(value: string): string {
