@@ -118,7 +118,7 @@ export class PartnersDetailComponent implements OnInit {
   protected readonly whatsappUrl = computed(() => {
     const phone = this.partner()?.contactPhone?.trim();
     if (!phone) return '';
-    const sanitized = phone.replace(/[^0-9+]/g, '');
+    const sanitized = phone.replaceAll(/[^0-9+]/g, '');
     const number = sanitized.startsWith('+') ? sanitized.slice(1) : sanitized;
     if (!number) return '';
     return `https://wa.me/${number}`;
@@ -216,11 +216,15 @@ export class PartnersDetailComponent implements OnInit {
     this.router.navigate(['/app/partners', partner.id, 'edit']);
   }
 
-  protected startEdit(key: EditablePartnerField | string): void {
+  protected startEdit(key: EditablePartnerField): void {
     if (this.savingField()) return;
-    if (!this.isEditableField(key)) return;
     this.editValue.set(this.getFieldValue(key));
     this.editingField.set(key);
+  }
+
+  protected startEditFromEvent(key: string): void {
+    if (!this.isEditableField(key)) return;
+    this.startEdit(key);
   }
 
   protected cancelEdit(): void {
@@ -228,9 +232,8 @@ export class PartnersDetailComponent implements OnInit {
     this.editValue.set('');
   }
 
-  protected saveEdit(key: EditablePartnerField | string): void {
+  protected saveEdit(key: EditablePartnerField): void {
     if (this.savingField()) return;
-    if (!this.isEditableField(key)) return;
     const partner = this.partner();
     if (!partner) return;
 
@@ -252,6 +255,11 @@ export class PartnersDetailComponent implements OnInit {
         this.savingField.set(null);
       },
     });
+  }
+
+  protected saveEditFromEvent(key: string): void {
+    if (!this.isEditableField(key)) return;
+    this.saveEdit(key);
   }
 
   protected openServiceTypesEdit(): void {
@@ -466,7 +474,7 @@ export class PartnersDetailComponent implements OnInit {
 
   private buildUpdateRequest(key: EditablePartnerField, value: string): UpdatePartnerRequest | null {
     if (key === 'addressLine2') {
-      return { addressLine2: value ? value : null };
+      return { addressLine2: value || null };
     }
 
     if (!value) return null;
@@ -475,7 +483,7 @@ export class PartnersDetailComponent implements OnInit {
     return request;
   }
 
-  private isEditableField(key: EditablePartnerField | string): key is EditablePartnerField {
+  private isEditableField(key: string): key is EditablePartnerField {
     return EDITABLE_FIELDS.has(key as EditablePartnerField);
   }
 }

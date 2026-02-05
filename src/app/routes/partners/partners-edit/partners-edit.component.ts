@@ -15,8 +15,8 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { MultiSelectComponent, type MultiSelectOption } from '../../../shared/components/multiselect/multiselect.component';
 import { FileUploaderComponent, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 
-const KVK_PATTERN = /^[0-9]{8}$/;
-const VAT_PATTERN = /^NL[0-9]{9}B[0-9]{2}$/i;
+const KVK_PATTERN = /^\d{8}$/;
+const VAT_PATTERN = /^NL\d{9}B\d{2}$/i;
 const MAX_LENGTHS = {
   businessName: 200,
   kvkNumber: 20,

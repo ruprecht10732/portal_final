@@ -16,8 +16,8 @@ import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
 export type PartnerRow = Partner & Record<string, unknown>;
 
-const KVK_PATTERN = /^[0-9]{8}$/;
-const VAT_PATTERN = /^NL[0-9]{9}B[0-9]{2}$/i;
+const KVK_PATTERN = /^\d{8}$/;
+const VAT_PATTERN = /^NL\d{9}B\d{2}$/i;
 const MAX_LENGTHS = {
   businessName: 200,
   kvkNumber: 20,
@@ -386,32 +386,33 @@ export class PartnersListComponent implements OnInit {
     const contactPhone = this.normalizeRequired(row.contactPhone);
     const addressLine2 = this.normalizeOptional(row.addressLine2);
 
-    const requiredValues = [
+    if (
+      !businessName
+      || !kvkNumber
+      || !vatNumber
+      || !addressLine1
+      || !postalCode
+      || !city
+      || !country
+      || !contactName
+      || !contactEmail
+      || !contactPhone
+    ) {
+      return null;
+    }
+
+    return {
       businessName,
       kvkNumber,
       vatNumber,
       addressLine1,
+      ...(addressLine2 && { addressLine2 }),
       postalCode,
       city,
       country,
       contactName,
       contactEmail,
       contactPhone,
-    ];
-    if (requiredValues.some(value => !value)) return null;
-
-    return {
-      businessName: businessName!,
-      kvkNumber: kvkNumber!,
-      vatNumber: vatNumber!,
-      addressLine1: addressLine1!,
-      ...(addressLine2 && { addressLine2 }),
-      postalCode: postalCode!,
-      city: city!,
-      country: country!,
-      contactName: contactName!,
-      contactEmail: contactEmail!,
-      contactPhone: contactPhone!,
     };
   }
 
