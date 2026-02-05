@@ -8,12 +8,15 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  ElementRef,
   inject,
   input,
   output,
   signal,
+  viewChild,
 } from '@angular/core';
 import { FormsModule } from '@angular/forms';
+import { OverlayModule } from '@angular/cdk/overlay';
 import { TranslatePipe } from '@ngx-translate/core';
 import { FilterConfig, GridColumn } from './data-grid.types';
 import { ColumnLabelPipe } from './data-grid.pipes';
@@ -26,13 +29,19 @@ import { SelectComponent } from '../select/select.component';
 
 @Component({
   selector: 'data-grid-toolbar',
-  imports: [FormsModule, ColumnLabelPipe, BottomSheetComponent, InputComponent, ButtonComponent, CheckboxComponent, SelectComponent, TranslatePipe],
+  imports: [FormsModule, OverlayModule, ColumnLabelPipe, BottomSheetComponent, InputComponent, ButtonComponent, CheckboxComponent, SelectComponent, TranslatePipe],
   templateUrl: './data-grid-toolbar.component.html',
   styleUrl: './data-grid-toolbar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class DataGridToolbarComponent<T = unknown> {
   private readonly filterConfig = inject(DataGridFilterConfigService);
+  
+  // ============ View Children ============
+  
+  protected readonly filterTrigger = viewChild<ElementRef<HTMLButtonElement>>('filterTrigger');
+  protected readonly columnPickerTrigger = viewChild<ElementRef<HTMLButtonElement>>('columnPickerTrigger');
+  
   // ============ Inputs ============
   
   readonly columns = input<GridColumn<T>[]>([]);

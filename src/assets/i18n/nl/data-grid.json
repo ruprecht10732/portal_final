@@ -22,6 +22,8 @@
     "filterInactive": "Inactief",
     "enterValue": "Voer waarde in...",
     "apply": "Toepassen",
+    "back": "Terug",
+    "activeFilters": "Actieve filters",
     "columns": "Kolommen",
     "columnsShort": "Kol.",
     "toggleColumnVisibility": "Kolomweergave wisselen",

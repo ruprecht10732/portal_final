@@ -22,6 +22,8 @@
     "filterInactive": "Inactive",
     "enterValue": "Enter value...",
     "apply": "Apply",
+    "back": "Back",
+    "activeFilters": "Active filters",
     "columns": "Columns",
     "columnsShort": "Cols",
     "toggleColumnVisibility": "Toggle column visibility",
