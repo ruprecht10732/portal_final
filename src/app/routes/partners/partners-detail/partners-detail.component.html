@@ -83,6 +83,15 @@
                     {{ p.businessName }}
                   </h3>
                   <p class="text-xs text-zinc-200">{{ p.contactEmail }}</p>
+                  <div class="mt-2 flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-zinc-200">
+                    <span>
+                      {{ 'partners.detail.createdAt' | translate }}: {{ formatDate(p.createdAt) }}
+                    </span>
+                    <span class="text-zinc-300">•</span>
+                    <span>
+                      {{ 'partners.detail.updatedAt' | translate }}: {{ formatDate(p.updatedAt) }}
+                    </span>
+                  </div>
                 </div>
               </div>
             </div>
@@ -364,21 +373,6 @@
               }
             </section>
 
-            <section class="rounded-xl border border-zinc-200 bg-white p-5">
-              <h3 class="text-sm font-semibold text-black uppercase tracking-wide mb-3">
-                {{ 'partners.detail.metadata' | translate }}
-              </h3>
-              <div class="divide-y divide-zinc-100">
-                <div class="flex items-center justify-between py-3 gap-4">
-                  <span class="text-sm text-zinc-500">{{ 'partners.detail.createdAt' | translate }}</span>
-                  <span class="text-sm font-semibold text-zinc-900">{{ formatDate(p.createdAt) }}</span>
-                </div>
-                <div class="flex items-center justify-between py-3 gap-4">
-                  <span class="text-sm text-zinc-500">{{ 'partners.detail.updatedAt' | translate }}</span>
-                  <span class="text-sm font-semibold text-zinc-900">{{ formatDate(p.updatedAt) }}</span>
-                </div>
-              </div>
-            </section>
           </div>
         </div>
       </div>
