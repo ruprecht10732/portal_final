@@ -1,6 +1,6 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, ElementRef, inject, input, output, viewChild } from '@angular/core';
 import type { LeadNoteType } from '../../../core/services/leads.types';
-import { ButtonComponent } from '../button/button.component';
 
 export interface ActivityNoteEntry {
   id: string;
@@ -20,7 +20,7 @@ export interface NoteTypeOption {
   templateUrl: './activity-notes.component.html',
   styleUrl: './activity-notes.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent],
+  imports: [DatePipe],
   host: {
     '[class]': "'block w-full'",
   },

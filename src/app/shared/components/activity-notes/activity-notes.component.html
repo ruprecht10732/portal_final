@@ -1,141 +1,120 @@
-<div class="flex flex-col gap-4">
-  @if (showHeader()) {
-    <div class="flex flex-wrap items-center justify-between gap-3">
-      <div class="flex items-center gap-2">
-        <span class="flex h-8 w-8 items-center justify-center border border-zinc-200 bg-white text-zinc-600">
-          <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 10h8M8 14h5M7 19h10a2 2 0 002-2V7a2 2 0 00-2-2H7a2 2 0 00-2 2v10a2 2 0 002 2z" />
-          </svg>
-        </span>
-        <div>
-          <h3 class="text-sm font-semibold">Notes & Activity</h3>
-          <p class="text-xs text-zinc-500">{{ activityFeed().length }} updates</p>
+<div class="flex w-full flex-col gap-8 font-sans text-zinc-800">
+  
+  <section class="flex flex-col gap-5 rounded-3xl bg-white p-6 border border-zinc-100">
+    
+    <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+      <label [for]="noteId()" class="text-sm font-bold text-zinc-900">
+        Create Entry
+      </label>
+
+      @if (showTypeSelector()) {
+        <div class="flex gap-2 overflow-x-auto no-scrollbar">
+          @for (option of noteTypeOptions(); track option.value) {
+            <button
+              type="button"
+              class="group relative flex items-center gap-2 rounded-lg px-4 py-2 transition-all hover:bg-zinc-50"
+              [class.ring-2]="noteType() === option.value"
+              [class.ring-inset]="noteType() === option.value"
+              [class.ring-zinc-900]="noteType() === option.value"
+              (click)="noteTypeChange.emit(option.value)"
+            >
+              @switch (option.value) {
+                @case ('call') { <div class="h-2.5 w-2.5 rounded-full bg-[#E93D3D]"></div> }
+                @case ('email') { <div class="h-0 w-0 border-l-[5px] border-r-[5px] border-b-[8px] border-l-transparent border-r-transparent border-b-[#2457C6]"></div> }
+                @default { <div class="h-2.5 w-2.5 bg-[#F4D03F]"></div> }
+              }
+              <span class="text-xs font-bold uppercase tracking-wide text-zinc-600 group-hover:text-zinc-900">
+                {{ option.label }}
+              </span>
+            </button>
+          }
         </div>
-      </div>
-      @if (activityFeed()[0]; as firstEntry) {
-        <p class="text-xs text-zinc-500">Latest {{ formatTimestamp()(firstEntry.timestamp) }}</p>
       }
     </div>
-  }
 
-  <div class="grid gap-2">
-    <label
-      [for]="noteId()"
-      class="text-xs font-semibold uppercase tracking-wider text-zinc-500"
-    >
-      {{ noteLabel() }}
-    </label>
-    @if (showTypeSelector()) {
-      <div class="flex flex-wrap gap-2">
-        @for (option of noteTypeOptions(); track option.value) {
-          <button
-            type="button"
-            class="border px-3 py-1 text-xs font-semibold uppercase tracking-wide transition-colors"
-            [class.border-black]="noteType() === option.value"
-            [class.bg-black]="noteType() === option.value"
-            [class.text-white]="noteType() === option.value"
-            [class.border-zinc-200]="noteType() !== option.value"
-            [class.text-zinc-600]="noteType() !== option.value"
-            (click)="noteTypeChange.emit(option.value)"
-            [attr.aria-pressed]="noteType() === option.value ? 'true' : 'false'"
-          >
-            {{ option.label }}
-          </button>
-        }
+    <div class="relative">
+      <textarea
+        #noteInput
+        [id]="noteId()"
+        class="min-h-[120px] w-full rounded-2xl bg-zinc-50 p-4 text-base text-zinc-900 placeholder:text-zinc-400 focus:bg-zinc-100 focus:outline-none focus:ring-0"
+        [value]="noteText()"
+        (input)="noteTextChange.emit($any($event.target).value)"
+        [placeholder]="notePlaceholder()"
+      ></textarea>
+      
+      <div class="mt-3 flex justify-end">
+        <button
+          class="rounded-xl bg-zinc-900 px-8 py-3 text-xs font-bold uppercase tracking-widest text-white transition-transform hover:-translate-y-0.5 disabled:bg-zinc-200 disabled:text-zinc-400"
+          [disabled]="!canSubmit()"
+          (click)="addNote.emit()"
+        >
+          {{ isSaving() ? 'Processing...' : 'Add Entry' }}
+        </button>
       </div>
-    }
-    <textarea
-      #noteInput
-      [id]="noteId()"
-      class="w-full border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus-visible:ring-2 focus-visible:ring-black focus-visible:ring-offset-2"
-      rows="3"
-      [value]="noteText()"
-      (input)="noteTextChange.emit($any($event.target).value)"
-      [placeholder]="notePlaceholder()"
-    ></textarea>
-    <div class="flex flex-wrap items-center justify-between gap-2">
-      <p class="text-xs text-zinc-500">Share updates so the team stays aligned.</p>
-      <shared-button
-        variant="secondary"
-        size="compact"
-        [uppercase]="false"
-        [fullWidth]="false"
-        [disabled]="!canSubmit()"
-        (clicked)="addNote.emit()"
-      >
-        {{ isSaving() ? 'Adding...' : 'Add Note' }}
-      </shared-button>
     </div>
-  </div>
+  </section>
 
-  <div class="grid gap-2">
+  <div class="flex flex-col gap-4">
+    
     @if (activityFeed().length === 0) {
-      <div class="border border-dashed border-zinc-200 bg-zinc-50 px-4 py-6 text-center">
-        <p class="text-sm font-semibold">No activity yet</p>
-        <p class="text-xs text-zinc-500 mt-1">Notes and system updates will appear here.</p>
+      <div class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-zinc-100 bg-white/50 p-12 text-center">
+        <div class="mb-3 h-3 w-3 rounded-full bg-zinc-200"></div>
+        <p class="text-xs font-bold uppercase tracking-widest text-zinc-400">Stream Empty</p>
       </div>
     } @else {
-      <ul class="grid gap-2">
-        @for (entry of activityFeed(); track entry.id) {
-          <li class="border border-zinc-200 bg-white px-3 py-3">
-            <div class="flex items-start gap-3">
-              <span class="mt-0.5 flex h-8 w-8 items-center justify-center border border-zinc-200 text-zinc-500">
-                @switch (entry.type) {
-                  @case ('call') {
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 5.5C3 4.12 4.12 3 5.5 3h2.2c.6 0 1.12.42 1.28 1l.9 3.1c.12.46 0 .96-.32 1.3l-1.58 1.58a15.5 15.5 0 007.5 7.5l1.58-1.58c.34-.32.84-.44 1.3-.32l3.1.9c.58.16 1 .68 1 1.28v2.2c0 1.38-1.12 2.5-2.5 2.5H19c-8.28 0-15-6.72-15-15V5.5z" />
-                    </svg>
-                  }
-                  @case ('text') {
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 15a4 4 0 01-4 4H7l-4 3V7a4 4 0 014-4h10a4 4 0 014 4v8z" />
-                    </svg>
-                  }
-                  @case ('email') {
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M3 7.5l8.4 5.6a1.5 1.5 0 001.6 0L21 7.5M5 19h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z" />
-                    </svg>
-                  }
-                  @case ('system') {
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 2a10 10 0 110 20 10 10 0 010-20z" />
-                    </svg>
-                  }
-                  @case ('audit') {
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3M12 2a10 10 0 110 20 10 10 0 010-20z" />
-                    </svg>
-                  }
-                  @default {
-                    <svg class="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 8h10M7 12h6M5 20h8l6-6V5a2 2 0 00-2-2H7a2 2 0 00-2 2v13z" />
-                    </svg>
-                  }
-                }
-              </span>
-              <div class="min-w-0 flex-1">
-                <div class="flex items-center justify-between gap-3 text-xs text-zinc-500">
-                  <div class="flex flex-wrap items-center gap-2">
-                    <span class="font-semibold text-zinc-700">{{ entry.user }}</span>
-                    <span class="border border-zinc-200 px-2 py-0.5 text-[10px] uppercase tracking-wide text-zinc-600">
-                      @switch (entry.type) {
-                        @case ('call') { Call }
-                        @case ('text') { Text }
-                        @case ('email') { Email }
-                        @case ('system') { System }
-                        @case ('audit') { System }
-                        @default { Note }
-                      }
-                    </span>
-                  </div>
-                  <span>{{ formatTimestamp()(entry.timestamp) }}</span>
-                </div>
-                <p class="mt-1 text-sm text-zinc-800">{{ entry.message }}</p>
-              </div>
+      @for (entry of activityFeed(); track entry.id) {
+        <article class="group relative flex items-start gap-5 overflow-hidden rounded-2xl bg-white p-5 border border-zinc-100 transition-all hover:border-zinc-200">
+          
+          <div class="absolute left-0 top-0 bottom-0 w-1.5"
+            [class.bg-[#E93D3D]]="entry.type === 'call'"
+            [class.bg-[#2457C6]]="entry.type === 'email'"
+            [class.bg-[#111]]="entry.type === 'system'"
+            [class.bg-[#F4D03F]]="entry.type !== 'call' && entry.type !== 'email' && entry.type !== 'system'"
+          ></div>
+
+          <div class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full transition-colors mt-0.5"
+            [class.bg-[#E93D3D]/10]="entry.type === 'call'"
+            [class.bg-[#2457C6]/10]="entry.type === 'email'"
+            [class.bg-[#111]/5]="entry.type === 'system'"
+            [class.bg-[#F4D03F]/20]="entry.type !== 'call' && entry.type !== 'email' && entry.type !== 'system'"
+          >
+             @switch (entry.type) {
+              @case ('call') { <div class="h-3 w-3 rounded-full bg-[#E93D3D]"></div> }
+              @case ('email') { <div class="h-0 w-0 border-l-[5px] border-r-[5px] border-b-[8px] border-l-transparent border-r-transparent border-b-[#2457C6]"></div> }
+              @case ('system') { <div class="h-3 w-3 bg-[#111]"></div> }
+              @default { <div class="h-3 w-3 bg-[#F4D03F]"></div> }
+             }
+          </div>
+
+          <div class="flex-1 min-w-0">
+            <div class="flex items-baseline justify-between gap-4 mb-1">
+              <h3 class="truncate text-sm font-bold text-zinc-900">{{ entry.user }}</h3>
+              <time class="shrink-0 text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                {{ formatTimestamp()(entry.timestamp) }}
+              </time>
             </div>
-          </li>
-        }
-      </ul>
+            
+            <p class="text-sm font-medium leading-relaxed text-zinc-600">
+              {{ entry.message }}
+            </p>
+            
+            <div class="mt-3 flex">
+               <span class="inline-flex items-center rounded-md px-2 py-0.5 text-[9px] font-bold uppercase tracking-widest"
+                [class.text-[#E93D3D]]="entry.type === 'call'"
+                [class.bg-[#E93D3D]/5]="entry.type === 'call'"
+                [class.text-[#2457C6]]="entry.type === 'email'"
+                [class.bg-[#2457C6]/5]="entry.type === 'email'"
+                [class.text-zinc-600]="entry.type === 'system'"
+                [class.bg-zinc-100]="entry.type === 'system'"
+                [class.text-[#B4950B]]="entry.type !== 'call' && entry.type !== 'email' && entry.type !== 'system'"
+                [class.bg-[#F4D03F]/10]="entry.type !== 'call' && entry.type !== 'email' && entry.type !== 'system'"
+               >
+                 {{ entry.type }}
+               </span>
+            </div>
+          </div>
+        </article>
+      }
     }
   </div>
 </div>
