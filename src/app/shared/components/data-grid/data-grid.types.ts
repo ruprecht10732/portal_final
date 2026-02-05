@@ -28,6 +28,10 @@ export interface AddressFieldMapping {
   state?: string;
   /** Field key for country */
   country?: string;
+  /** Field key for latitude */
+  latitude?: string;
+  /** Field key for longitude */
+  longitude?: string;
 }
 
 /** Column definition for the data grid */

@@ -23,6 +23,8 @@ export class MapPreviewComponent {
   address = input<string>('');
   height = input(MAP_CONFIG.defaultHeight);
   zoom = input(MAP_CONFIG.defaultZoom);
+  latitude = input<number | null>(null);
+  longitude = input<number | null>(null);
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -40,6 +42,16 @@ export class MapPreviewComponent {
 
   constructor() {
     effect(() => {
+      const lat = this.latitude();
+      const lon = this.longitude();
+      if (Number.isFinite(lat) && Number.isFinite(lon)) {
+        this.coords.set({ lat: lat as number, lon: lon as number });
+        this.error.set(null);
+        this.loading.set(false);
+        this.lastQuery.set('');
+        return;
+      }
+
       const address = this.address().trim();
       if (!address) {
         this.coords.set(null);

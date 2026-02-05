@@ -26,6 +26,7 @@ const MAX_LENGTHS = {
   kvkNumber: 20,
   vatNumber: 20,
   addressLine1: 200,
+  houseNumber: 20,
   addressLine2: 200,
   postalCode: 20,
   city: 120,
@@ -90,10 +91,13 @@ export class PartnersCreateComponent implements OnInit {
     contactEmail: ['', [Validators.required, Validators.email]],
     contactPhone: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.contactPhone)]],
     addressLine1: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.addressLine1)]],
+    houseNumber: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.houseNumber)]],
     addressLine2: ['', [Validators.maxLength(MAX_LENGTHS.addressLine2)]],
     postalCode: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.postalCode)]],
     city: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.city)]],
     country: ['NL', [Validators.required, Validators.maxLength(MAX_LENGTHS.country)]],
+    latitude: this.fb.control<number | null>(null),
+    longitude: this.fb.control<number | null>(null),
     serviceTypeIds: this.fb.control<string[]>([]),
   });
 
@@ -140,10 +144,13 @@ export class PartnersCreateComponent implements OnInit {
       contactEmail: (values.contactEmail ?? '').trim(),
       contactPhone: (values.contactPhone ?? '').trim(),
       addressLine1: (values.addressLine1 ?? '').trim(),
+      houseNumber: (values.houseNumber ?? '').trim(),
       ...(values.addressLine2?.trim() ? { addressLine2: values.addressLine2.trim() } : {}),
       postalCode: (values.postalCode ?? '').trim(),
       city: (values.city ?? '').trim(),
       country: (values.country ?? '').trim(),
+      ...(values.latitude !== null && { latitude: values.latitude }),
+      ...(values.longitude !== null && { longitude: values.longitude }),
       ...(serviceTypeIds.length > 0 ? { serviceTypeIds } : {}),
     };
 
@@ -220,7 +227,30 @@ export class PartnersCreateComponent implements OnInit {
     const match = this.addressSuggestions().find(suggestion => suggestion.label === value);
     if (match) {
       this.applyAddressSuggestion(match);
+      return;
     }
+
+    this.clearCoordinates();
+  }
+
+  protected onPostalCodeChange(value: string): void {
+    this.form.controls.postalCode.setValue(value);
+    this.clearCoordinates();
+  }
+
+  protected onHouseNumberChange(value: string): void {
+    this.form.controls.houseNumber.setValue(value);
+    this.clearCoordinates();
+  }
+
+  protected onCityChange(value: string): void {
+    this.form.controls.city.setValue(value);
+    this.clearCoordinates();
+  }
+
+  protected onCountryChange(value: string): void {
+    this.form.controls.country.setValue(value);
+    this.clearCoordinates();
   }
 
   private loadServiceTypes(): void {
@@ -268,11 +298,27 @@ export class PartnersCreateComponent implements OnInit {
 
   private applyAddressSuggestion(suggestion: AddressSuggestion): void {
     this.form.patchValue({
-      addressLine1: suggestion.label ?? '',
+      addressLine1: suggestion.street ?? suggestion.label ?? '',
+      houseNumber: suggestion.houseNumber ?? '',
       postalCode: suggestion.zipCode ?? '',
       city: suggestion.city ?? '',
       country: suggestion.country ?? '',
+      latitude: this.parseCoordinate(suggestion.lat),
+      longitude: this.parseCoordinate(suggestion.lon),
     });
+  }
+
+  private clearCoordinates(): void {
+    this.form.patchValue({
+      latitude: null,
+      longitude: null,
+    });
+  }
+
+  private parseCoordinate(value?: string): number | null {
+    if (!value) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private loadLogoDownloadUrl(partner: Partner): void {

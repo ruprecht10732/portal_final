@@ -3,7 +3,12 @@
     {{ titleKey() | translate }}
   </h3>
   <div class="mb-4 space-y-3">
-    <shared-map-preview [address]="mapAddress()" [height]="180" />
+    <shared-map-preview
+      [address]="mapAddress()"
+      [latitude]="latitude()"
+      [longitude]="longitude()"
+      [height]="180"
+    />
     <shared-button
       type="button"
       variant="secondary"

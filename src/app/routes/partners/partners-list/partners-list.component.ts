@@ -22,6 +22,7 @@ const MAX_LENGTHS = {
   kvkNumber: 20,
   vatNumber: 20,
   addressLine1: 200,
+  houseNumber: 20,
   addressLine2: 200,
   postalCode: 20,
   city: 120,
@@ -142,12 +143,26 @@ export class PartnersListComponent implements OnInit {
         width: '220px',
         cellType: 'address',
         addressMapping: {
-          label: 'addressLine1',
+          street: 'addressLine1',
+          houseNumber: 'houseNumber',
           zipCode: 'postalCode',
           city: 'city',
           country: 'country',
+          latitude: 'latitude',
+          longitude: 'longitude',
         },
         validator: value => this.requiredMaxLengthValidator(value, MAX_LENGTHS.addressLine1),
+      },
+      {
+        id: 'houseNumber',
+        header: this.translate.instant('partners.list.columns.houseNumber'),
+        field: 'houseNumber',
+        sortable: false,
+        filterable: true,
+        editable: true,
+        width: '120px',
+        cellType: 'text',
+        validator: value => this.requiredMaxLengthValidator(value, MAX_LENGTHS.houseNumber),
       },
       {
         id: 'addressLine2',
@@ -383,6 +398,7 @@ export class PartnersListComponent implements OnInit {
     const kvkNumber = this.normalizeRequired(row.kvkNumber);
     const vatNumber = this.normalizeRequired(row.vatNumber);
     const addressLine1 = this.normalizeRequired(row.addressLine1);
+    const houseNumber = this.normalizeRequired(row.houseNumber);
     const postalCode = this.normalizeRequired(row.postalCode);
     const city = this.normalizeRequired(row.city);
     const country = this.normalizeRequired(row.country);
@@ -390,12 +406,15 @@ export class PartnersListComponent implements OnInit {
     const contactEmail = this.normalizeRequired(row.contactEmail);
     const contactPhone = this.normalizeRequired(row.contactPhone);
     const addressLine2 = this.normalizeOptional(row.addressLine2);
+    const latitude = this.normalizeOptionalNumber(row.latitude);
+    const longitude = this.normalizeOptionalNumber(row.longitude);
 
     if (
       !businessName
       || !kvkNumber
       || !vatNumber
       || !addressLine1
+      || !houseNumber
       || !postalCode
       || !city
       || !country
@@ -411,6 +430,7 @@ export class PartnersListComponent implements OnInit {
       kvkNumber,
       vatNumber,
       addressLine1,
+      houseNumber,
       ...(addressLine2 && { addressLine2 }),
       postalCode,
       city,
@@ -418,23 +438,28 @@ export class PartnersListComponent implements OnInit {
       contactName,
       contactEmail,
       contactPhone,
+      ...(latitude !== undefined && { latitude }),
+      ...(longitude !== undefined && { longitude }),
     };
   }
 
   private buildUpdateRequest(row: PartnerRow, existing: Partner): UpdatePartnerRequest {
     const updates: {
       key: keyof UpdatePartnerRequest;
-      value: string | null | undefined;
-      existingValue: string | null | undefined;
+      value: string | number | null | undefined;
+      existingValue: string | number | null | undefined;
     }[] = [
       { key: 'businessName', value: this.normalizeOptional(row.businessName), existingValue: existing.businessName },
       { key: 'kvkNumber', value: this.normalizeOptional(row.kvkNumber), existingValue: existing.kvkNumber },
       { key: 'vatNumber', value: this.normalizeOptional(row.vatNumber), existingValue: existing.vatNumber },
       { key: 'addressLine1', value: this.normalizeOptional(row.addressLine1), existingValue: existing.addressLine1 },
+      { key: 'houseNumber', value: this.normalizeOptional(row.houseNumber), existingValue: existing.houseNumber ?? null },
       { key: 'addressLine2', value: this.normalizeNullable(row.addressLine2, existing.addressLine2 ?? null), existingValue: existing.addressLine2 ?? null },
       { key: 'postalCode', value: this.normalizeOptional(row.postalCode), existingValue: existing.postalCode },
       { key: 'city', value: this.normalizeOptional(row.city), existingValue: existing.city },
       { key: 'country', value: this.normalizeOptional(row.country), existingValue: existing.country },
+      { key: 'latitude', value: this.normalizeOptionalNumber(row.latitude), existingValue: existing.latitude ?? null },
+      { key: 'longitude', value: this.normalizeOptionalNumber(row.longitude), existingValue: existing.longitude ?? null },
       { key: 'contactName', value: this.normalizeOptional(row.contactName), existingValue: existing.contactName },
       { key: 'contactEmail', value: this.normalizeOptional(row.contactEmail), existingValue: existing.contactEmail },
       { key: 'contactPhone', value: this.normalizeOptional(row.contactPhone), existingValue: existing.contactPhone },
@@ -442,7 +467,7 @@ export class PartnersListComponent implements OnInit {
 
     return updates.reduce<UpdatePartnerRequest>((request, update) => {
       if (update.value !== undefined && update.value !== update.existingValue) {
-        const target = request as Record<string, string | null>;
+        const target = request as Record<string, string | number | null>;
         target[update.key] = update.value;
       }
       return request;
@@ -486,6 +511,18 @@ export class PartnersListComponent implements OnInit {
         return trimmed;
       }
       return undefined;
+    }
+    return undefined;
+  }
+
+  private normalizeOptionalNumber(value: unknown): number | undefined {
+    if (value === null || value === undefined) return undefined;
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+      const trimmed = value.trim();
+      if (!trimmed) return undefined;
+      const parsed = Number(trimmed);
+      return Number.isFinite(parsed) ? parsed : undefined;
     }
     return undefined;
   }

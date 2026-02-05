@@ -26,6 +26,7 @@ const MAX_LENGTHS = {
   kvkNumber: 20,
   vatNumber: 20,
   addressLine1: 200,
+  houseNumber: 20,
   addressLine2: 200,
   postalCode: 20,
   city: 120,
@@ -94,10 +95,13 @@ export class PartnersEditComponent implements OnInit {
     contactEmail: ['', [Validators.required, Validators.email]],
     contactPhone: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.contactPhone)]],
     addressLine1: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.addressLine1)]],
+    houseNumber: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.houseNumber)]],
     addressLine2: ['', [Validators.maxLength(MAX_LENGTHS.addressLine2)]],
     postalCode: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.postalCode)]],
     city: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.city)]],
     country: ['NL', [Validators.required, Validators.maxLength(MAX_LENGTHS.country)]],
+    latitude: this.fb.control<number | null>(null),
+    longitude: this.fb.control<number | null>(null),
     serviceTypeIds: this.fb.control<string[]>([]),
   });
 
@@ -154,10 +158,13 @@ export class PartnersEditComponent implements OnInit {
       contactEmail: (values.contactEmail ?? '').trim(),
       contactPhone: (values.contactPhone ?? '').trim(),
       addressLine1: (values.addressLine1 ?? '').trim(),
+      houseNumber: (values.houseNumber ?? '').trim(),
       addressLine2: values.addressLine2?.trim() || null,
       postalCode: (values.postalCode ?? '').trim(),
       city: (values.city ?? '').trim(),
       country: (values.country ?? '').trim(),
+      ...(values.latitude !== null && { latitude: values.latitude }),
+      ...(values.longitude !== null && { longitude: values.longitude }),
       serviceTypeIds,
     };
 
@@ -253,7 +260,30 @@ export class PartnersEditComponent implements OnInit {
     const match = this.addressSuggestions().find(suggestion => suggestion.label === value);
     if (match) {
       this.applyAddressSuggestion(match);
+      return;
     }
+
+    this.clearCoordinates();
+  }
+
+  protected onPostalCodeChange(value: string): void {
+    this.form.controls.postalCode.setValue(value);
+    this.clearCoordinates();
+  }
+
+  protected onHouseNumberChange(value: string): void {
+    this.form.controls.houseNumber.setValue(value);
+    this.clearCoordinates();
+  }
+
+  protected onCityChange(value: string): void {
+    this.form.controls.city.setValue(value);
+    this.clearCoordinates();
+  }
+
+  protected onCountryChange(value: string): void {
+    this.form.controls.country.setValue(value);
+    this.clearCoordinates();
   }
 
   protected controlError(
@@ -302,10 +332,13 @@ export class PartnersEditComponent implements OnInit {
           contactEmail: partner.contactEmail,
           contactPhone: partner.contactPhone,
           addressLine1: partner.addressLine1,
+          houseNumber: partner.houseNumber ?? '',
           addressLine2: partner.addressLine2 ?? '',
           postalCode: partner.postalCode,
           city: partner.city,
           country: partner.country,
+          latitude: partner.latitude ?? null,
+          longitude: partner.longitude ?? null,
           serviceTypeIds: partner.serviceTypeIds ?? [],
         });
         this.loading.set(false);
@@ -348,11 +381,27 @@ export class PartnersEditComponent implements OnInit {
 
   private applyAddressSuggestion(suggestion: AddressSuggestion): void {
     this.form.patchValue({
-      addressLine1: suggestion.label ?? '',
+      addressLine1: suggestion.street ?? suggestion.label ?? '',
+      houseNumber: suggestion.houseNumber ?? '',
       postalCode: suggestion.zipCode ?? '',
       city: suggestion.city ?? '',
       country: suggestion.country ?? '',
+      latitude: this.parseCoordinate(suggestion.lat),
+      longitude: this.parseCoordinate(suggestion.lon),
     });
+  }
+
+  private clearCoordinates(): void {
+    this.form.patchValue({
+      latitude: null,
+      longitude: null,
+    });
+  }
+
+  private parseCoordinate(value?: string): number | null {
+    if (!value) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private loadServiceTypes(): void {

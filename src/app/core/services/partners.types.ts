@@ -5,9 +5,12 @@ export interface Partner {
   vatNumber: string;
   addressLine1: string;
   addressLine2?: string | null;
+  houseNumber?: string | null;
   postalCode: string;
   city: string;
   country: string;
+  latitude?: number | null;
+  longitude?: number | null;
   contactName: string;
   contactEmail: string;
   contactPhone: string;
@@ -34,9 +37,12 @@ export interface CreatePartnerRequest {
   vatNumber: string;
   addressLine1: string;
   addressLine2?: string | null;
+  houseNumber?: string | null;
   postalCode: string;
   city: string;
   country: string;
+  latitude?: number | null;
+  longitude?: number | null;
   contactName: string;
   contactEmail: string;
   contactPhone: string;
@@ -49,9 +55,12 @@ export interface UpdatePartnerRequest {
   vatNumber?: string;
   addressLine1?: string;
   addressLine2?: string | null;
+  houseNumber?: string | null;
   postalCode?: string;
   city?: string;
   country?: string;
+  latitude?: number | null;
+  longitude?: number | null;
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;

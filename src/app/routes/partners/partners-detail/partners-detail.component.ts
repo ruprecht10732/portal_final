@@ -89,8 +89,19 @@ export class PartnersDetailComponent implements OnInit {
   protected readonly mapAddress = computed(() => {
     const partner = this.partner();
     if (!partner) return '';
+    const addressLine1 = partner.addressLine1 ?? '';
+    const hasHouseNumber = !!partner.houseNumber?.trim();
+    const containsPostal = partner.postalCode ? addressLine1.includes(partner.postalCode) : false;
+    const containsCity = partner.city ? addressLine1.includes(partner.city) : false;
+
+    if (!hasHouseNumber && (containsPostal || containsCity)) {
+      const legacyParts = [addressLine1, partner.country].filter(Boolean);
+      return legacyParts.join(', ');
+    }
+
     const parts = [
-      partner.addressLine1,
+      addressLine1,
+      partner.houseNumber,
       partner.addressLine2,
       partner.postalCode,
       partner.city,
@@ -98,6 +109,9 @@ export class PartnersDetailComponent implements OnInit {
     ].filter(Boolean);
     return parts.join(', ');
   });
+
+  protected readonly mapLatitude = computed(() => this.partner()?.latitude ?? null);
+  protected readonly mapLongitude = computed(() => this.partner()?.longitude ?? null);
 
   protected readonly googleMapsUrl = computed(() => {
     const address = this.mapAddress().trim();
@@ -174,6 +188,11 @@ export class PartnersDetailComponent implements OnInit {
         key: 'addressLine1',
         labelKey: 'partners.form.addressLine1',
         value: partner?.addressLine1 ?? '',
+      },
+      {
+        key: 'houseNumber',
+        labelKey: 'partners.form.houseNumber',
+        value: partner?.houseNumber ?? '',
       },
       {
         key: 'addressLine2',
@@ -269,11 +288,16 @@ export class PartnersDetailComponent implements OnInit {
     if (!partner) return;
 
     const suggestion = payload.suggestion;
+    const latitude = this.parseCoordinate(suggestion.lat);
+    const longitude = this.parseCoordinate(suggestion.lon);
     const request: UpdatePartnerRequest = {
-      addressLine1: suggestion.label ?? partner.addressLine1,
+      addressLine1: suggestion.street ?? suggestion.label ?? partner.addressLine1,
+      houseNumber: suggestion.houseNumber ?? partner.houseNumber ?? undefined,
       postalCode: suggestion.zipCode ?? partner.postalCode,
       city: suggestion.city ?? partner.city,
       country: suggestion.country ?? partner.country,
+      ...(latitude !== null && { latitude }),
+      ...(longitude !== null && { longitude }),
     };
 
     this.savingField.set('addressLine1');
@@ -406,6 +430,12 @@ export class PartnersDetailComponent implements OnInit {
     }).format(new Date(value));
   }
 
+  private parseCoordinate(value?: string): number | null {
+    if (!value) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
+  }
+
   private loadPartner(id: string): void {
     this.loading.set(true);
     this.partnersService.getById(id).subscribe({
@@ -489,6 +519,8 @@ export class PartnersDetailComponent implements OnInit {
         return partner.contactPhone ?? '';
       case 'addressLine1':
         return partner.addressLine1 ?? '';
+      case 'houseNumber':
+        return partner.houseNumber ?? '';
       case 'addressLine2':
         return partner.addressLine2 ?? '';
       case 'postalCode':
@@ -526,6 +558,7 @@ type EditablePartnerField =
   | 'contactEmail'
   | 'contactPhone'
   | 'addressLine1'
+  | 'houseNumber'
   | 'addressLine2'
   | 'postalCode'
   | 'city'
@@ -539,6 +572,7 @@ const EDITABLE_FIELDS = new Set<EditablePartnerField>([
   'contactEmail',
   'contactPhone',
   'addressLine1',
+  'houseNumber',
   'addressLine2',
   'postalCode',
   'city',

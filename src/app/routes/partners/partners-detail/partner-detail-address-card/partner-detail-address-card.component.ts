@@ -31,6 +31,8 @@ export class PartnerDetailAddressCardComponent {
   readonly editingKey = input<string | null>(null);
   readonly editValue = input('');
   readonly mapAddress = input<string>('');
+  readonly latitude = input<number | null>(null);
+  readonly longitude = input<number | null>(null);
   readonly googleMapsUrl = input<string>('');
 
   readonly startEdit = output<string>();

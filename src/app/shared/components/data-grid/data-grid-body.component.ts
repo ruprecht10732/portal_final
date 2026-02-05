@@ -311,6 +311,10 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     if (mapping.city) updates[mapping.city] = address.city;
     if (mapping.state && address.state !== undefined) updates[mapping.state] = address.state;
     if (mapping.country && address.country !== undefined) updates[mapping.country] = address.country;
+    const latitude = this.parseCoordinate(address.lat);
+    if (mapping.latitude && latitude !== null) updates[mapping.latitude] = latitude;
+    const longitude = this.parseCoordinate(address.lon);
+    if (mapping.longitude && longitude !== null) updates[mapping.longitude] = longitude;
 
     if (Object.keys(updates).length === 0) return;
 
@@ -428,6 +432,12 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     }
 
     return this.valueToString(value);
+  }
+
+  private parseCoordinate(value?: string): number | null {
+    if (!value) return null;
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
 

@@ -104,6 +104,13 @@
             [error]="controlError('addressLine1', { maxLength: 200 })"
           />
           <shared-input
+            [label]="'partners.form.houseNumber' | translate"
+            [value]="form.controls.houseNumber.value ?? ''"
+            (valueChange)="onHouseNumberChange($event)"
+            [required]="true"
+            [error]="controlError('houseNumber', { maxLength: 20 })"
+          />
+          <shared-input
             [label]="'partners.form.addressLine2' | translate"
             [value]="form.controls.addressLine2.value ?? ''"
             (valueChange)="form.controls.addressLine2.setValue($event)"
@@ -115,21 +122,21 @@
           <shared-input
             [label]="'partners.form.postalCode' | translate"
             [value]="form.controls.postalCode.value ?? ''"
-            (valueChange)="form.controls.postalCode.setValue($event)"
+            (valueChange)="onPostalCodeChange($event)"
             [required]="true"
             [error]="controlError('postalCode', { maxLength: 20 })"
           />
           <shared-input
             [label]="'partners.form.city' | translate"
             [value]="form.controls.city.value ?? ''"
-            (valueChange)="form.controls.city.setValue($event)"
+            (valueChange)="onCityChange($event)"
             [required]="true"
             [error]="controlError('city', { maxLength: 120 })"
           />
           <shared-input
             [label]="'partners.form.country' | translate"
             [value]="form.controls.country.value ?? ''"
-            (valueChange)="form.controls.country.setValue($event)"
+            (valueChange)="onCountryChange($event)"
             [required]="true"
             [error]="controlError('country', { maxLength: 120 })"
           />
