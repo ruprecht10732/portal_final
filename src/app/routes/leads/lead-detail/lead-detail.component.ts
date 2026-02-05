@@ -977,15 +977,15 @@ export class LeadDetailComponent implements OnInit {
 
   protected openWhatsApp(phone: string, message: string): void {
     const encodedMessage = encodeURIComponent(message);
-    const cleanPhone = phone.replace(/[^0-9+]/g, '');
-    window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+    const cleanPhone = phone.replaceAll(/[^0-9+]/g, '');
+    globalThis.open?.(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
   }
 
   protected composeEmail(email: string | undefined, message: string): void {
     if (!email) return;
     const encodedSubject = encodeURIComponent('Follow-up on your request');
     const encodedBody = encodeURIComponent(message);
-    window.location.href = `mailto:${email}?subject=${encodedSubject}&body=${encodedBody}`;
+    globalThis.location.href = `mailto:${email}?subject=${encodedSubject}&body=${encodedBody}`;
   }
 
   protected getTimelineScore(item: LeadTimelineItem): { score: number; preAi?: number; version?: string } | null {
@@ -1011,7 +1011,7 @@ export class LeadDetailComponent implements OnInit {
       return null;
     }
     const trimmed = value.trim();
-    return trimmed ? trimmed : null;
+    return trimmed || null;
   }
 
   private parsePartnerMatch(value: unknown): { name: string; distanceKm?: number } | null {
