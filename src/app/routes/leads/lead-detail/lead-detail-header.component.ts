@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import type { Lead, LeadStatus } from '../../../core/services/leads.types';
+import type { Lead, LeadStatus, PipelineStage } from '../../../core/services/leads.types';
 import type { SelectOption } from '../../../shared/components/select/select.component';
 import { ChipComponent, type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -18,6 +18,7 @@ export class LeadDetailHeaderComponent {
   fullName = input<string>('');
   serviceTypeLabel = input<string | null>(null);
   status = input<LeadStatus | null>(null);
+  pipelineStage = input<PipelineStage | null>(null);
   noServiceLabel = input<string>('');
   statusMenuOpen = input(false);
   statusOptions = input<SelectOption<LeadStatus>[]>([]);

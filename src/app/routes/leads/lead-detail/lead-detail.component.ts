@@ -9,7 +9,7 @@ import { LeadsService } from '../../../core/services/leads.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem } from '../../../core/services/leads.types';
 import { buildLeadStatusLabels, STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
 import type {
   AccessDifficulty,
@@ -24,7 +24,6 @@ import { ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/appointments.t
 import { UserService } from '../../../core/services/user.service';
 import type { UserProfile } from '../../../core/services/user.types';
 import { ActivityNotesComponent } from '../../../shared/components/activity-notes/activity-notes.component';
-import { AiAdvisorPanelComponent } from '../../../shared/components/ai-advisor-panel/ai-advisor-panel.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { CardComponent } from '../../../shared/components/card/card.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -46,7 +45,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ActivityNotesComponent, AiAdvisorPanelComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, FileUploaderComponent, TranslatePipe],
+  imports: [ActivityNotesComponent, CallLoggerDialogComponent, CardComponent, ButtonComponent, ConfirmDialogComponent, ContactInfoComponent, LeadServicesCardComponent, MapPreviewComponent, LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent, LeadDetailHeaderComponent, LeadInquiryCardComponent, FileUploaderComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -74,7 +73,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly newStatus = signal<LeadStatus | null>(null);
 
   protected readonly statusMenuOpen = signal(false);
-  protected readonly activeTab = signal<'activity' | 'appointments' | 'ai' | 'files'>('activity');
+  protected readonly activeTab = signal<'activity' | 'appointments' | 'timeline' | 'files'>('activity');
 
   protected readonly appointments = signal<AppointmentResponse[]>([]);
   protected readonly appointmentsLoading = signal(false);
@@ -131,6 +130,11 @@ export class LeadDetailComponent implements OnInit {
   // Photo Analysis
   protected readonly photoAnalysis = signal<PhotoAnalysis | null>(null);
   protected readonly photoAnalysisLoading = signal(false);
+
+  // Timeline
+  protected readonly timelineItems = signal<LeadTimelineItem[]>([]);
+  protected readonly timelineLoading = signal(false);
+  protected readonly timelineError = signal<string | null>(null);
 
   // ARIA live region for announcements
   protected readonly announcement = signal<string>('');
@@ -365,6 +369,7 @@ export class LeadDetailComponent implements OnInit {
         this.loading.set(false);
         this.loadNotes(lead.id);
         this.loadAppointments(lead.id);
+        this.loadTimeline(lead.id);
         // AI Analysis is loaded automatically by effect when selectedService changes
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
@@ -603,6 +608,7 @@ export class LeadDetailComponent implements OnInit {
         this.callLoggerProcessing.set(false);
         // Reload data to reflect changes
         this.loadLead(lead.id);
+        this.loadTimeline(lead.id);
         this.announce(this.translate.instant('leads.callLogger.announcements.processed'));
       },
       error: (err) => {
@@ -678,6 +684,7 @@ export class LeadDetailComponent implements OnInit {
         this.noteText.set('');
         this.noteType.set('note');
         this.noteSaving.set(false);
+        this.loadTimeline(lead.id);
         this.focusNoteBox();
         this.announce(this.translate.instant('leads.detail.announcements.noteAdded'));
       },
@@ -699,6 +706,23 @@ export class LeadDetailComponent implements OnInit {
         const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadNotes'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  private loadTimeline(id: string): void {
+    this.timelineLoading.set(true);
+    this.timelineError.set(null);
+    this.leadsService.getTimeline(id).subscribe({
+      next: (response) => {
+        this.timelineItems.set(response.items ?? []);
+        this.timelineLoading.set(false);
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadTimeline'));
+        this.timelineError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.timelineLoading.set(false);
       },
     });
   }
@@ -790,6 +814,59 @@ export class LeadDetailComponent implements OnInit {
     const match = this.assigneeOptions().find(option => option.value === id);
     return match?.label ?? this.translate.instant('leads.detail.unassigned');
   };
+
+  protected getTimelineTypeLabel(type: LeadTimelineItem['type']): string {
+    this.lang();
+    return this.translate.instant(`leads.detail.timeline.types.${type}`);
+  }
+
+  protected getTimelineTypeBadgeClass(type: LeadTimelineItem['type']): string {
+    if (type === 'ai') {
+      return 'bg-indigo-100 text-indigo-700';
+    }
+    if (type === 'stage') {
+      return 'bg-emerald-100 text-emerald-700';
+    }
+    return 'bg-zinc-100 text-zinc-700';
+  }
+
+  protected getTimelineMissingInformation(item: LeadTimelineItem): string[] {
+    const metadata = item.metadata;
+    const value = metadata['missingInformation'];
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim() !== '');
+  }
+
+  protected getTimelineScore(item: LeadTimelineItem): { score: number; preAi?: number; version?: string } | null {
+    const metadata = item.metadata;
+    const score = this.parseTimelineNumber(metadata['leadScore']);
+    if (score === null) {
+      return null;
+    }
+    const preAi = this.parseTimelineNumber(metadata['leadScorePreAI']);
+    const versionValue = typeof metadata['leadScoreVersion'] === 'string' ? metadata['leadScoreVersion'] : null;
+    const result: { score: number; preAi?: number; version?: string } = { score };
+    if (preAi !== null) {
+      result.preAi = preAi;
+    }
+    if (versionValue) {
+      result.version = versionValue;
+    }
+    return result;
+  }
+
+  private parseTimelineNumber(value: unknown): number | null {
+    if (typeof value === 'number' && Number.isFinite(value)) {
+      return value;
+    }
+    if (typeof value === 'string' && value.trim() !== '') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  }
 
   // Services management methods
   protected openAddServiceForm(): void {

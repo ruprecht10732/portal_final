@@ -2,6 +2,16 @@
 
 export type ConsumerRole = 'Owner' | 'Tenant' | 'Landlord';
 export type LeadStatus = 'New' | 'Attempted_Contact' | 'Scheduled' | 'Surveyed' | 'Bad_Lead' | 'Needs_Rescheduling' | 'Closed';
+export type PipelineStage =
+  | 'Triage'
+  | 'Nurturing'
+  | 'Ready_For_Estimator'
+  | 'Ready_For_Partner'
+  | 'Partner_Matching'
+  | 'Partner_Assigned'
+  | 'Manual_Intervention'
+  | 'Completed'
+  | 'Lost';
 export type LeadNoteType = 'note' | 'call' | 'text' | 'email' | 'system';
 
 export interface Consumer {
@@ -38,6 +48,7 @@ export interface LeadService {
   id: string;
   serviceType: string;
   status: LeadStatus;
+  pipelineStage: PipelineStage;
   consumerNote?: string;
   createdAt: string;
   updatedAt: string;
@@ -103,6 +114,20 @@ export interface LeadListResponse {
   page: number;
   pageSize: number;
   totalPages: number;
+}
+
+export interface LeadTimelineItem {
+  id: string;
+  type: 'ai' | 'user' | 'stage';
+  title: string;
+  summary: string;
+  timestamp: string;
+  actor: string;
+  metadata: Record<string, unknown>;
+}
+
+export interface LeadTimelineResponse {
+  items: LeadTimelineItem[];
 }
 
 export interface CreateLeadRequest {
@@ -242,6 +267,30 @@ export const STATUS_COLORS: Record<LeadStatus, string> = {
   Closed: 'bg-gray-100 text-gray-600',
 };
 
+export const PIPELINE_STAGE_LABELS: Record<PipelineStage, string> = {
+  Triage: 'Triage',
+  Nurturing: 'Nurturing',
+  Ready_For_Estimator: 'Ready for Estimator',
+  Ready_For_Partner: 'Ready for Partner',
+  Partner_Matching: 'Partner Matching',
+  Partner_Assigned: 'Partner Assigned',
+  Manual_Intervention: 'Manual Intervention',
+  Completed: 'Completed',
+  Lost: 'Lost',
+};
+
+export const PIPELINE_STAGE_COLORS: Record<PipelineStage, string> = {
+  Triage: 'bg-blue-100 text-blue-800',
+  Nurturing: 'bg-amber-100 text-amber-800',
+  Ready_For_Estimator: 'bg-indigo-100 text-indigo-800',
+  Ready_For_Partner: 'bg-sky-100 text-sky-800',
+  Partner_Matching: 'bg-purple-100 text-purple-800',
+  Partner_Assigned: 'bg-emerald-100 text-emerald-800',
+  Manual_Intervention: 'bg-red-100 text-red-800',
+  Completed: 'bg-zinc-200 text-zinc-700',
+  Lost: 'bg-zinc-200 text-zinc-600',
+};
+
 export const LEAD_STATUS_I18N_KEYS: Record<LeadStatus, string> = {
   New: 'leads.detail.status.new',
   Attempted_Contact: 'leads.detail.status.contacted',
@@ -258,6 +307,28 @@ export const buildLeadStatusLabels = (translate: (key: string) => string): Recor
     const key = LEAD_STATUS_I18N_KEYS[status];
     const translated = translate(key);
     labels[status] = translated || STATUS_LABELS[status];
+  });
+  return labels;
+};
+
+export const PIPELINE_STAGE_I18N_KEYS: Record<PipelineStage, string> = {
+  Triage: 'leads.pipeline.triage',
+  Nurturing: 'leads.pipeline.nurturing',
+  Ready_For_Estimator: 'leads.pipeline.readyForEstimator',
+  Ready_For_Partner: 'leads.pipeline.readyForPartner',
+  Partner_Matching: 'leads.pipeline.partnerMatching',
+  Partner_Assigned: 'leads.pipeline.partnerAssigned',
+  Manual_Intervention: 'leads.pipeline.manualIntervention',
+  Completed: 'leads.pipeline.completed',
+  Lost: 'leads.pipeline.lost',
+};
+
+export const buildPipelineStageLabels = (translate: (key: string) => string): Record<PipelineStage, string> => {
+  const labels = {} as Record<PipelineStage, string>;
+  (Object.keys(PIPELINE_STAGE_I18N_KEYS) as PipelineStage[]).forEach((stage) => {
+    const key = PIPELINE_STAGE_I18N_KEYS[stage];
+    const translated = translate(key);
+    labels[stage] = translated || PIPELINE_STAGE_LABELS[stage];
   });
   return labels;
 };

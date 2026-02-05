@@ -2,9 +2,10 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
-import { buildLeadStatusLabels, STATUS_COLORS, type LeadStatus } from '../../../core/services/leads.types';
+import { merge } from 'rxjs';
+import { buildLeadStatusLabels, buildPipelineStageLabels, PIPELINE_STAGE_COLORS, STATUS_COLORS, type LeadStatus, type PipelineStage } from '../../../core/services/leads.types';
 
-type StatusBadgeType = 'lead';
+type StatusBadgeType = 'lead' | 'pipeline';
 
 type StatusBadgeSize = 'sm' | 'md';
 
@@ -16,9 +17,12 @@ type StatusBadgeSize = 'sm' | 'md';
 })
 export class StatusBadgeComponent {
   private readonly translate = inject(TranslateService);
-  private readonly lang = toSignal(this.translate.onLangChange, {
+  private readonly lang = toSignal(
+    merge(this.translate.onLangChange, this.translate.onTranslationChange),
+    {
     initialValue: { lang: 'en', translations: {} },
-  });
+    }
+  );
 
   status = input<unknown>(null);
   type = input<StatusBadgeType>('lead');
@@ -33,6 +37,11 @@ export class StatusBadgeComponent {
     return buildLeadStatusLabels((key) => this.translate.instant(key));
   });
 
+  protected readonly pipelineLabels = computed<Record<PipelineStage, string>>(() => {
+    this.lang();
+    return buildPipelineStageLabels((key) => this.translate.instant(key));
+  });
+
   protected readonly label = computed(() => {
     const status = this.status();
     if (status === null || status === undefined || status === '') {
@@ -41,7 +50,10 @@ export class StatusBadgeComponent {
     if (this.type() === 'lead' && this.isLeadStatus(status)) {
       return this.statusLabels()[status] ?? String(status);
     }
-    return String(status);
+    if (this.isPipelineStage(status)) {
+      return this.pipelineLabels()[status] ?? String(status);
+    }
+    return this.formatStatusValue(status);
   });
 
   protected readonly badgeClass = computed(() => {
@@ -53,10 +65,36 @@ export class StatusBadgeComponent {
       return `${baseClass} ${STATUS_COLORS[status] ?? 'bg-zinc-100 text-zinc-600'}`;
     }
 
+    if (this.isPipelineStage(status)) {
+      return `${baseClass} ${PIPELINE_STAGE_COLORS[status] ?? 'bg-zinc-100 text-zinc-600'}`;
+    }
+
     return `${baseClass} bg-zinc-100 text-zinc-600`;
   });
 
   private isLeadStatus(status: unknown): status is LeadStatus {
     return typeof status === 'string' && status in STATUS_COLORS;
+  }
+
+  private isPipelineStage(status: unknown): status is PipelineStage {
+    return typeof status === 'string' && status in PIPELINE_STAGE_COLORS;
+  }
+
+  private formatStatusValue(status: unknown): string {
+    if (typeof status === 'string' || typeof status === 'number' || typeof status === 'boolean') {
+      return String(status);
+    }
+    if (status instanceof Date) {
+      return status.toISOString();
+    }
+    if (typeof status === 'object' && status !== null) {
+      try {
+        const value = JSON.stringify(status);
+        return value === '{}' ? this.emptyLabel() : value;
+      } catch {
+        return this.emptyLabel();
+      }
+    }
+    return this.emptyLabel();
   }
 }

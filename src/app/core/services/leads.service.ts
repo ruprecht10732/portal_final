@@ -31,6 +31,7 @@ import type {
   AttachmentListResponse,
   PresignedDownloadResponse,
   PhotoAnalysisResponse,
+  LeadTimelineResponse,
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
@@ -77,6 +78,10 @@ export class LeadsService extends BaseCrudService<
 
   getById(id: string): Observable<Lead> {
     return this.http.get<Lead>(`${this.baseUrl}/${id}`);
+  }
+
+  getTimeline(id: string): Observable<LeadTimelineResponse> {
+    return this.http.get<LeadTimelineResponse>(`${this.baseUrl}/${id}/timeline`);
   }
 
   create(data: CreateLeadRequest): Observable<Lead> {

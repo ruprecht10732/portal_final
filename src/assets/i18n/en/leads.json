@@ -53,6 +53,7 @@
       "title": "Lead Details",
       "backToList": "Go back to leads list",
       "statusLabel": "Status:",
+      "pipelineLabel": "Pipeline:",
       "loading": "Loading lead details...",
       "navigateToAddress": "Navigate to Address",
       "consumerInfo": "Consumer Info",
@@ -73,6 +74,7 @@
         "activity": "Activity / Notes",
         "appointments": "Appointments",
         "ai": "AI Advisor",
+        "timeline": "Timeline",
         "files": "Files"
       },
       "appointments": {
@@ -208,6 +210,18 @@
         "aiNoNewInfo": "No new information since last analysis",
         "aiUpdated": "AI analysis updated"
       },
+      "timeline": {
+        "loading": "Loading timeline...",
+        "empty": "No timeline events yet.",
+        "actor": "By",
+        "leadScore": "Lead score: {{score}} (pre-AI {{preAi}})",
+        "missingInfo": "Missing information",
+        "types": {
+          "ai": "AI",
+          "user": "User",
+          "stage": "Stage"
+        }
+      },
       "errors": {
         "loadLead": "Failed to load lead",
         "loadProfile": "Failed to load user profile",
@@ -222,6 +236,7 @@
         "addNote": "Failed to add note",
         "loadNotes": "Failed to load notes",
         "loadVisitHistory": "Failed to load visit history",
+        "loadTimeline": "Failed to load timeline",
         "loadAIAnalysis": "Failed to load AI analysis",
         "analyzeLead": "Failed to analyze lead",
         "unexpectedResponse": "Unexpected response from server",
@@ -284,6 +299,17 @@
           "analyzedAt": "Analyzed"
         }
       }
+    },
+    "pipeline": {
+      "triage": "Triage",
+      "nurturing": "Nurturing",
+      "readyForEstimator": "Ready for estimator",
+      "readyForPartner": "Ready for partner",
+      "partnerMatching": "Partner matching",
+      "partnerAssigned": "Partner assigned",
+      "manualIntervention": "Manual intervention",
+      "completed": "Completed",
+      "lost": "Lost"
     },
     "list": {
       "title": "Leads",

@@ -53,6 +53,7 @@
       "title": "Leadgegevens",
       "backToList": "Terug naar leads",
       "statusLabel": "Status:",
+      "pipelineLabel": "Pipeline:",
       "loading": "Leadgegevens laden...",
       "navigateToAddress": "Navigeer naar adres",
       "consumerInfo": "Consumentinfo",
@@ -73,6 +74,7 @@
         "activity": "Activiteit / notities",
         "appointments": "Afspraken",
         "ai": "AI-adviseur",
+        "timeline": "Tijdlijn",
         "files": "Bestanden"
       },
       "appointments": {
@@ -206,6 +208,18 @@
         "aiNoNewInfo": "Geen nieuwe informatie sinds de laatste analyse",
         "aiUpdated": "AI-analyse bijgewerkt"
       },
+      "timeline": {
+        "loading": "Tijdlijn laden...",
+        "empty": "Nog geen tijdlijnitems.",
+        "actor": "Door",
+        "leadScore": "Leadscore: {{score}} (pre-AI {{preAi}})",
+        "missingInfo": "Ontbrekende informatie",
+        "types": {
+          "ai": "AI",
+          "user": "Gebruiker",
+          "stage": "Fase"
+        }
+      },
       "errors": {
         "loadLead": "Kon lead niet laden",
         "loadProfile": "Kon gebruikersprofiel niet laden",
@@ -220,6 +234,7 @@
         "addNote": "Kon notitie niet toevoegen",
         "loadNotes": "Kon notities niet laden",
         "loadVisitHistory": "Kon bezoekgeschiedenis niet laden",
+        "loadTimeline": "Kon tijdlijn niet laden",
         "loadAIAnalysis": "Kon AI-analyse niet laden",
         "analyzeLead": "Kon lead niet analyseren",
         "unexpectedResponse": "Onverwacht antwoord van de server",
@@ -282,6 +297,17 @@
           "analyzedAt": "Geanalyseerd"
         }
       }
+    },
+    "pipeline": {
+      "triage": "Triage",
+      "nurturing": "Opvolging",
+      "readyForEstimator": "Klaar voor inschatting",
+      "readyForPartner": "Klaar voor partner",
+      "partnerMatching": "Partner koppeling",
+      "partnerAssigned": "Partner toegewezen",
+      "manualIntervention": "Handmatige interventie",
+      "completed": "Afgerond",
+      "lost": "Verloren"
     },
     "list": {
       "ariaLabel": "Leads gegevensraster",

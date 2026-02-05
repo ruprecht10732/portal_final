@@ -27,6 +27,16 @@
               size="sm"
               [emptyLabel]="noServiceLabel()"
             ></shared-status-badge>
+            @if (pipelineStage()) {
+              <span class="hidden sm:inline text-zinc-300">•</span>
+              <span>{{ 'leads.detail.pipelineLabel' | translate }}</span>
+              <shared-status-badge
+                [status]="pipelineStage()"
+                type="pipeline"
+                size="sm"
+                [emptyLabel]="noServiceLabel()"
+              ></shared-status-badge>
+            }
             @if (energyLabelClass()) {
               <span class="hidden sm:inline text-zinc-300">•</span>
               <shared-chip [variant]="energyLabelVariant()">

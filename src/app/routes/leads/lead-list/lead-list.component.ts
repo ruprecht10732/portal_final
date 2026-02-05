@@ -11,8 +11,8 @@ import type { ServiceTypeItem } from '../../../core/services/service-types.types
 import { UserService } from '../../../core/services/user.service';
 import { SSEService } from '../../../core/services/sse.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
-import type { Lead, LeadStatus, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
-import { buildLeadStatusLabels, STATUS_OPTIONS, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
+import type { Lead, LeadStatus, PipelineStage, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
+import { buildLeadStatusLabels, buildPipelineStageLabels, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -62,6 +62,11 @@ export class LeadListComponent implements OnInit {
   protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => {
     this.lang();
     return buildLeadStatusLabels((key) => this.translate.instant(key));
+  });
+
+  protected readonly pipelineStageLabels = computed<Record<PipelineStage, string>>(() => {
+    this.lang();
+    return buildPipelineStageLabels((key) => this.translate.instant(key));
   });
 
   protected readonly consumerRoleOptions = computed(() => {
@@ -229,19 +234,14 @@ export class LeadListComponent implements OnInit {
         cellType: 'select',
       },
       {
-        id: 'status',
+        id: 'pipelineStage',
         header: this.translate.instant('leads.list.columns.status'),
-        field: 'status',
-        sortable: true,
-        filterable: true,
-        editable: true,
-        editableWhen: 'new-only',
+        field: 'pipelineStage',
+        sortable: false,
+        filterable: false,
+        editable: false,
         width: '140px',
-        cellType: 'select',
-        selectOptions: STATUS_OPTIONS.map(opt => ({
-          label: this.statusLabels()[opt.value],
-          value: opt.value,
-        })),
+        cellType: 'text',
       },
       {
         id: 'energyLabel',
@@ -312,7 +312,7 @@ export class LeadListComponent implements OnInit {
     cardTitleField: 'fullName',
     cardSubtitleField: 'consumer.phone',
     cardSecondarySubtitleField: 'consumer.email',
-    statusField: 'status',
+    statusField: 'pipelineStage',
     cardPreviewFieldCount: 4,
     mobileAddRowEnabled: false,
     rowViewActionEnabled: true,
@@ -425,6 +425,7 @@ export class LeadListComponent implements OnInit {
       // Map currentService fields to top level for grid display
       serviceType: row.currentService?.serviceType ?? this.getDefaultServiceType(),
       status: row.currentService?.status ?? 'New',
+      pipelineStage: row.currentService?.pipelineStage ?? 'Triage',
       energyLabelClass: row.energyLabel?.energieklasse ?? null,
       energyLabelValidUntil: row.energyLabel?.geldigTot ?? null,
     } as LeadRow;
@@ -461,13 +462,6 @@ export class LeadListComponent implements OnInit {
     // Map filters to params
     for (const filter of request.filters) {
       switch (filter.columnId) {
-        case 'status': {
-          const statusValue = filter.value as LeadStatus | undefined;
-          if (statusValue) {
-            params.status = statusValue;
-          }
-          break;
-        }
         case 'serviceType':
           params.serviceType = filter.value;
           break;
@@ -725,27 +719,9 @@ export class LeadListComponent implements OnInit {
           ...(emailValue && { email: emailValue }),
         };
 
-        const requestedStatus = (row['status'] as LeadStatus | undefined) ?? row.currentService?.status;
-
         this.leadsService.create(leadRequest).subscribe({
-          next: (created) => {
-            const currentServiceId = created.currentService?.id;
-            if (requestedStatus && requestedStatus !== 'New' && currentServiceId) {
-              this.leadsService.updateServiceStatus(created.id, currentServiceId, { status: requestedStatus }).subscribe({
-                next: () => this.loadInitialData(),
-                error: (err) => {
-                  const message = extractErrorMessage(err, 'Failed to set lead status', {
-                    allowErrorMessage: true,
-                    allowMessageField: true,
-                  });
-                  this.error.set(message);
-                  this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-                  this.loadInitialData();
-                },
-              });
-            } else {
-              this.loadInitialData();
-            }
+          next: () => {
+            this.loadInitialData();
           },
           error: (err) => {
             const message = extractErrorMessage(err, 'Failed to create lead', {

@@ -31,6 +31,7 @@
     [fullName]="getFullName()"
     [serviceTypeLabel]="headerServiceTypeLabel()"
     [status]="selectedService()?.status ?? null"
+    [pipelineStage]="selectedService()?.pipelineStage ?? null"
     [noServiceLabel]="headerNoServiceLabel()"
     [statusMenuOpen]="statusMenuOpen()"
     [statusOptions]="statusOptions()"
@@ -296,22 +297,22 @@
                 <button
                   type="button"
                   class="px-3 py-2 text-sm font-semibold rounded-lg"
+                  [class.bg-black]="activeTab() === 'timeline'"
+                  [class.text-white]="activeTab() === 'timeline'"
+                  [class.bg-zinc-100]="activeTab() !== 'timeline'"
+                  (click)="activeTab.set('timeline')"
+                >
+                  {{ 'leads.detail.tabs.timeline' | translate }}
+                </button>
+                <button
+                  type="button"
+                  class="px-3 py-2 text-sm font-semibold rounded-lg"
                   [class.bg-black]="activeTab() === 'files'"
                   [class.text-white]="activeTab() === 'files'"
                   [class.bg-zinc-100]="activeTab() !== 'files'"
                   (click)="activeTab.set('files')"
                 >
                   {{ 'leads.detail.tabs.files' | translate }}
-                </button>
-                <button
-                  type="button"
-                  class="px-3 py-2 text-sm font-semibold rounded-lg"
-                  [class.bg-black]="activeTab() === 'ai'"
-                  [class.text-white]="activeTab() === 'ai'"
-                  [class.bg-zinc-100]="activeTab() !== 'ai'"
-                  (click)="activeTab.set('ai')"
-                >
-                  {{ 'leads.detail.tabs.ai' | translate }}
                 </button>
               </div>
             </div>
@@ -629,6 +630,65 @@
                   </div>
                 </div>
               </div>
+            } @else if (activeTab() === 'timeline') {
+              <div class="flex flex-col gap-4">
+                @if (timelineError()) {
+                  <div role="alert" class="bg-red-50 border border-red-200 text-red-800 px-4 py-3 text-sm">
+                    {{ timelineError() }}
+                  </div>
+                }
+
+                @if (timelineLoading()) {
+                  <div class="flex items-center gap-2 text-sm text-zinc-500">
+                    <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-black" aria-hidden="true"></div>
+                    {{ 'leads.detail.timeline.loading' | translate }}
+                  </div>
+                } @else if (timelineItems().length === 0) {
+                  <p class="text-sm text-zinc-500">{{ 'leads.detail.timeline.empty' | translate }}</p>
+                } @else {
+                  <div class="flex flex-col gap-4">
+                    @for (item of timelineItems(); track item.id) {
+                      <div class="flex items-start gap-3">
+                        <div class="mt-2 h-2 w-2 rounded-full bg-black"></div>
+                        <div class="flex-1">
+                          <div class="flex flex-wrap items-center gap-2">
+                            <span class="text-xs font-semibold uppercase tracking-wide rounded-full px-2 py-0.5 {{ getTimelineTypeBadgeClass(item.type) }}">
+                              {{ getTimelineTypeLabel(item.type) }}
+                            </span>
+                            <span class="text-xs text-zinc-500">{{ formatHumanDateTime(item.timestamp) }}</span>
+                          </div>
+                          <p class="mt-2 text-sm font-semibold text-zinc-900">{{ item.title }}</p>
+                          <p class="mt-1 text-sm text-zinc-600">{{ item.summary }}</p>
+                          @if (getTimelineScore(item); as score) {
+                            <p class="mt-2 text-xs text-zinc-500">
+                              {{ 'leads.detail.timeline.leadScore' | translate:{ score: score.score, preAi: score.preAi ?? '-' } }}
+                            </p>
+                          }
+                          @if (getTimelineMissingInformation(item); as missing) {
+                            @if (missing.length > 0) {
+                              <div class="mt-3 rounded-lg bg-zinc-50 px-3 py-2">
+                                <p class="text-xs font-semibold text-zinc-600">
+                                  {{ 'leads.detail.timeline.missingInfo' | translate }}
+                                </p>
+                                <ul class="mt-2 list-disc pl-4 text-xs text-zinc-600">
+                                  @for (info of missing; track info) {
+                                    <li>{{ info }}</li>
+                                  }
+                                </ul>
+                              </div>
+                            }
+                          }
+                          @if (item.actor) {
+                            <p class="mt-2 text-xs text-zinc-500">
+                              {{ 'leads.detail.timeline.actor' | translate }} {{ item.actor }}
+                            </p>
+                          }
+                        </div>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
             } @else if (activeTab() === 'files') {
               <div class="flex flex-col gap-6">
                 <div class="flex items-center justify-between">
@@ -743,22 +803,6 @@
                   </div>
                 }
               </div>
-            } @else {
-              <shared-ai-advisor-panel
-                [analysis]="aiAnalysis()"
-                [photoAnalysis]="photoAnalysis()"
-                [photoAnalysisLoading]="photoAnalysisLoading()"
-                [loading]="aiAnalysisLoading()"
-                [error]="aiAnalysisError()"
-                [refreshing]="aiAnalysisRefreshing()"
-                [isDefault]="aiAnalysisIsDefault()"
-                [noNewInfo]="aiAnalysisNoNewInfo()"
-                [serviceStatus]="selectedService()?.status ?? null"
-                [consumerPhone]="lead()?.consumer?.phone ?? null"
-                [consumerEmail]="lead()?.consumer?.email ?? null"
-                (refresh)="refreshAIAnalysis()"
-                (forceRefresh)="forceRefreshAIAnalysis()"
-              ></shared-ai-advisor-panel>
             }
           </shared-card>
         </main>
