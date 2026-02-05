@@ -11,6 +11,11 @@ export interface Partner {
   contactName: string;
   contactEmail: string;
   contactPhone: string;
+  logoFileKey?: string | null;
+  logoFileName?: string | null;
+  logoContentType?: string | null;
+  logoSizeBytes?: number | null;
+  serviceTypeIds?: string[];
   createdAt: string;
   updatedAt: string;
 }
@@ -35,6 +40,7 @@ export interface CreatePartnerRequest {
   contactName: string;
   contactEmail: string;
   contactPhone: string;
+  serviceTypeIds?: string[];
 }
 
 export interface UpdatePartnerRequest {
@@ -49,6 +55,31 @@ export interface UpdatePartnerRequest {
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
+  serviceTypeIds?: string[];
+}
+
+export interface PartnerLogoPresignRequest {
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface PartnerLogoPresignResponse {
+  uploadUrl: string;
+  fileKey: string;
+  expiresAt: number;
+}
+
+export interface SetPartnerLogoRequest {
+  fileKey: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface PartnerLogoDownloadResponse {
+  downloadUrl: string;
+  expiresAt: number;
 }
 
 export interface ListPartnersParams {

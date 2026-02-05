@@ -10,6 +10,10 @@ import type {
   CreatePartnerRequest,
   UpdatePartnerRequest,
   ListPartnersParams,
+  PartnerLogoPresignRequest,
+  PartnerLogoPresignResponse,
+  SetPartnerLogoRequest,
+  PartnerLogoDownloadResponse,
 } from './partners.types';
 
 @Injectable({ providedIn: 'root' })
@@ -50,5 +54,21 @@ export class PartnersService extends BaseCrudService<
 
   delete(id: string): Observable<{ message: string }> {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/${id}`);
+  }
+
+  presignLogo(id: string, request: PartnerLogoPresignRequest): Observable<PartnerLogoPresignResponse> {
+    return this.http.post<PartnerLogoPresignResponse>(`${this.baseUrl}/${id}/logo/presign`, request);
+  }
+
+  setLogo(id: string, request: SetPartnerLogoRequest): Observable<Partner> {
+    return this.http.post<Partner>(`${this.baseUrl}/${id}/logo`, request);
+  }
+
+  getLogoDownloadUrl(id: string): Observable<PartnerLogoDownloadResponse> {
+    return this.http.get<PartnerLogoDownloadResponse>(`${this.baseUrl}/${id}/logo/download`);
+  }
+
+  deleteLogo(id: string): Observable<Partner> {
+    return this.http.delete<Partner>(`${this.baseUrl}/${id}/logo`);
   }
 }

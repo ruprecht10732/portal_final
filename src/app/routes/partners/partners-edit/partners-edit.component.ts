@@ -1,19 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
-import { Router } from '@angular/router';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { PartnersService } from '../../../core/services/partners.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
-import type { CreatePartnerRequest, Partner } from '../../../core/services/partners.types';
+import type { Partner, UpdatePartnerRequest } from '../../../core/services/partners.types';
+import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { MultiSelectComponent, type MultiSelectOption } from '../../../shared/components/multiselect/multiselect.component';
 import { FileUploaderComponent, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
-import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 
 const KVK_PATTERN = /^[0-9]{8}$/;
 const VAT_PATTERN = /^NL[0-9]{9}B[0-9]{2}$/i;
@@ -31,9 +31,9 @@ const MAX_LENGTHS = {
 } as const;
 
 @Component({
-  selector: 'app-partners-create',
-  templateUrl: './partners-create.component.html',
-  styleUrl: './partners-create.component.css',
+  selector: 'app-partners-edit',
+  templateUrl: './partners-edit.component.html',
+  styleUrl: './partners-edit.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     ReactiveFormsModule,
@@ -45,25 +45,29 @@ const MAX_LENGTHS = {
     TranslatePipe,
   ],
 })
-export class PartnersCreateComponent implements OnInit {
+export class PartnersEditComponent implements OnInit {
   private readonly partnersService = inject(PartnersService);
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
+  private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
 
+  protected readonly partner = signal<Partner | null>(null);
+  protected readonly loading = signal(true);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly createdPartner = signal<Partner | null>(null);
+  protected readonly submitAttempted = signal(false);
+
+  protected readonly serviceTypes = signal<ServiceTypeItem[]>([]);
+  protected readonly serviceTypesLoading = signal(false);
+  protected readonly serviceTypesError = signal<string | null>(null);
+
   protected readonly logoDownloadUrl = signal<string | null>(null);
   protected readonly logoLoading = signal(false);
   protected readonly logoError = signal<string | null>(null);
   protected readonly logoImageError = signal(false);
-  protected readonly serviceTypes = signal<ServiceTypeItem[]>([]);
-  protected readonly serviceTypesLoading = signal(false);
-  protected readonly serviceTypesError = signal<string | null>(null);
-  protected readonly submitAttempted = signal(false);
 
   protected readonly form = this.fb.group({
     businessName: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.businessName)]],
@@ -99,7 +103,7 @@ export class PartnersCreateComponent implements OnInit {
     return this.logoDownloadUrl();
   });
   protected readonly logoInitials = computed(() => {
-    const name = this.createdPartner()?.businessName || this.form.controls.businessName.value || '';
+    const name = this.partner()?.businessName || '';
     const parts = name.trim().split(/\s+/).filter(Boolean);
     if (parts.length === 0) return 'P';
     const first = parts[0] ?? '';
@@ -109,20 +113,30 @@ export class PartnersCreateComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (!id) {
+      this.router.navigate(['/app/partners']);
+      return;
+    }
     this.loadServiceTypes();
+    this.loadPartner(id);
   }
 
   protected save(): void {
     this.submitAttempted.set(true);
     this.form.markAllAsTouched();
-    if (this.form.invalid || this.saving() || this.createdPartner()) return;
+    if (this.form.invalid || this.saving()) return;
+
+    const partner = this.partner();
+    if (!partner) return;
 
     this.saving.set(true);
     this.error.set(null);
 
     const values = this.form.getRawValue();
     const serviceTypeIds = values.serviceTypeIds ?? [];
-    const request: CreatePartnerRequest = {
+
+    const request: UpdatePartnerRequest = {
       businessName: (values.businessName ?? '').trim(),
       kvkNumber: (values.kvkNumber ?? '').trim(),
       vatNumber: (values.vatNumber ?? '').trim().toUpperCase(),
@@ -130,22 +144,20 @@ export class PartnersCreateComponent implements OnInit {
       contactEmail: (values.contactEmail ?? '').trim(),
       contactPhone: (values.contactPhone ?? '').trim(),
       addressLine1: (values.addressLine1 ?? '').trim(),
-      ...(values.addressLine2?.trim() ? { addressLine2: values.addressLine2.trim() } : {}),
+      addressLine2: values.addressLine2?.trim() || null,
       postalCode: (values.postalCode ?? '').trim(),
       city: (values.city ?? '').trim(),
       country: (values.country ?? '').trim(),
-      ...(serviceTypeIds.length > 0 ? { serviceTypeIds } : {}),
+      serviceTypeIds,
     };
 
-    this.partnersService.create(request).subscribe({
-      next: (partner) => {
-        this.createdPartner.set(partner);
-        this.form.disable();
+    this.partnersService.update(partner.id, request).subscribe({
+      next: (updated) => {
+        this.partner.set(updated);
         this.saving.set(false);
-        this.loadLogoDownloadUrl(partner);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.createFailed'));
+        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.updateFailed'));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -154,17 +166,16 @@ export class PartnersCreateComponent implements OnInit {
   }
 
   protected cancel(): void {
+    const partner = this.partner();
+    if (partner) {
+      this.router.navigate(['/app/partners', partner.id]);
+      return;
+    }
     this.router.navigate(['/app/partners']);
   }
 
-  protected goToEdit(): void {
-    const partner = this.createdPartner();
-    if (!partner) return;
-    this.router.navigate(['/app/partners', partner.id, 'edit']);
-  }
-
   protected presignLogo = async (file: File): Promise<PresignedUpload> => {
-    const partner = this.createdPartner();
+    const partner = this.partner();
     if (!partner) {
       throw new Error(this.translate.instant('partners.form.logoUnavailable'));
     }
@@ -183,7 +194,7 @@ export class PartnersCreateComponent implements OnInit {
   };
 
   protected finalizeLogo = async (file: File, presigned: PresignedUpload): Promise<unknown> => {
-    const partner = this.createdPartner();
+    const partner = this.partner();
     if (!partner) {
       throw new Error(this.translate.instant('partners.form.logoUnavailable'));
     }
@@ -199,45 +210,26 @@ export class PartnersCreateComponent implements OnInit {
       throw new Error(this.translate.instant('partners.form.errors.logoUploadFailed'));
     }
 
-    this.createdPartner.set(updated);
+    this.partner.set(updated);
     this.loadLogoDownloadUrl(updated);
     return updated;
   };
 
-  private loadServiceTypes(): void {
-    this.serviceTypesLoading.set(true);
-    this.serviceTypesError.set(null);
-    this.serviceTypesService.listActive().subscribe({
-      next: response => {
-        this.serviceTypes.set(response.items ?? []);
-        this.serviceTypesLoading.set(false);
-      },
-      error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.loadServiceTypes'));
-        this.serviceTypesError.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.serviceTypesLoading.set(false);
-      },
-    });
-  }
-
-  private loadLogoDownloadUrl(partner: Partner): void {
-    if (!partner.logoFileKey) {
-      this.logoDownloadUrl.set(null);
-      return;
-    }
+  protected deleteLogo(): void {
+    const partner = this.partner();
+    if (!partner) return;
 
     this.logoLoading.set(true);
     this.logoError.set(null);
 
-    this.partnersService.getLogoDownloadUrl(partner.id).subscribe({
-      next: (response) => {
-        this.logoDownloadUrl.set(response.downloadUrl);
-        this.logoImageError.set(false);
+    this.partnersService.deleteLogo(partner.id).subscribe({
+      next: (updated) => {
+        this.partner.set(updated);
+        this.logoDownloadUrl.set(null);
         this.logoLoading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.logoLoadFailed'));
+        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.logoDeleteFailed'));
         this.logoError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.logoLoading.set(false);
@@ -276,5 +268,85 @@ export class PartnersCreateComponent implements OnInit {
     if (control.hasError('required')) return this.requiredError();
     if (control.hasError('email')) return this.emailError();
     return '';
+  }
+
+  private loadPartner(id: string): void {
+    this.loading.set(true);
+    this.partnersService.getById(id).subscribe({
+      next: (partner) => {
+        this.partner.set(partner);
+        this.form.patchValue({
+          businessName: partner.businessName,
+          kvkNumber: partner.kvkNumber,
+          vatNumber: partner.vatNumber,
+          contactName: partner.contactName,
+          contactEmail: partner.contactEmail,
+          contactPhone: partner.contactPhone,
+          addressLine1: partner.addressLine1,
+          addressLine2: partner.addressLine2 ?? '',
+          postalCode: partner.postalCode,
+          city: partner.city,
+          country: partner.country,
+          serviceTypeIds: partner.serviceTypeIds ?? [],
+        });
+        this.loading.set(false);
+        this.loadLogoDownloadUrl(partner);
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('partners.errors.loadFailed'));
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.loading.set(false);
+      },
+    });
+  }
+
+  private loadServiceTypes(): void {
+    this.serviceTypesLoading.set(true);
+    this.serviceTypesError.set(null);
+    this.serviceTypesService.listAdmin({ page: 1, pageSize: 100, sortBy: 'displayOrder', sortOrder: 'asc' }).subscribe({
+      next: response => {
+        this.serviceTypes.set(response.items ?? []);
+        this.serviceTypesLoading.set(false);
+      },
+      error: () => {
+        this.serviceTypesService.listActive().subscribe({
+          next: response => {
+            this.serviceTypes.set(response.items ?? []);
+            this.serviceTypesLoading.set(false);
+          },
+          error: (err) => {
+            const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.loadServiceTypes'));
+            this.serviceTypesError.set(message);
+            this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+            this.serviceTypesLoading.set(false);
+          },
+        });
+      },
+    });
+  }
+
+  private async loadLogoDownloadUrl(partner: Partner): Promise<void> {
+    if (!partner.logoFileKey) {
+      this.logoDownloadUrl.set(null);
+      return;
+    }
+
+      this.logoLoading.set(true);
+      this.logoError.set(null);
+
+    this.partnersService.getLogoDownloadUrl(partner.id).subscribe({
+      next: (response) => {
+        this.logoDownloadUrl.set(response.downloadUrl);
+        this.logoImageError.set(false);
+          this.logoLoading.set(false);
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.logoLoadFailed'));
+        this.logoError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+          this.logoLoading.set(false);
+      },
+    });
   }
 }

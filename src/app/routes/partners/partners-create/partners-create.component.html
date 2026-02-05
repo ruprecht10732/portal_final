@@ -132,6 +132,83 @@
           />
         </div>
       </section>
+
+      <section class="space-y-4 md:col-span-2">
+        <div class="flex items-center gap-3">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">04</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'partners.form.services' | translate }}
+          </h2>
+        </div>
+
+        <shared-multiselect
+          [label]="'partners.form.serviceTypes' | translate"
+          [placeholder]="'partners.form.serviceTypesPlaceholder' | translate"
+          [options]="serviceTypeOptions()"
+          [value]="form.controls.serviceTypeIds.value ?? []"
+          (valueChange)="form.controls.serviceTypeIds.setValue([...$event])"
+          [disabled]="serviceTypesLoading()"
+          [error]="serviceTypesError() || ''"
+        />
+      </section>
+
+      <section class="space-y-4 md:col-span-2">
+        <div class="flex items-center gap-3">
+          <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">05</span>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+            {{ 'partners.form.logo' | translate }}
+          </h2>
+        </div>
+
+        @if (logoError()) {
+          <div class="bg-red-50 border border-red-200 text-red-800 px-3 py-2 text-sm">
+            {{ logoError() }}
+          </div>
+        }
+
+        @if (logoPreviewUrl() && !logoImageError()) {
+          <div class="flex items-center gap-4 rounded-xl border border-zinc-200 p-3">
+            <img
+              [src]="logoPreviewUrl()"
+              [alt]="createdPartner()?.businessName ?? 'Partner logo'"
+              class="h-16 w-16 rounded-lg object-cover border border-zinc-200"
+              (error)="logoImageError.set(true)"
+            />
+            <div class="flex flex-col gap-1 text-sm">
+              <span class="font-medium">{{ createdPartner()?.logoFileName }}</span>
+              @if (logoPreviewUrl()) {
+                <a class="text-blue-600 hover:underline" [href]="logoPreviewUrl()" target="_blank" rel="noopener">
+                  {{ 'partners.form.logoDownload' | translate }}
+                </a>
+              }
+            </div>
+          </div>
+        } @else if (createdPartner()) {
+          <div class="flex items-center gap-4 rounded-xl border border-dashed border-zinc-200 p-3">
+            <div class="h-16 w-16 rounded-lg bg-zinc-100 flex items-center justify-center text-sm font-semibold text-zinc-600">
+              {{ logoInitials() }}
+            </div>
+            <div class="text-sm text-zinc-500">
+              {{ 'partners.form.logoEmpty' | translate }}
+            </div>
+          </div>
+        }
+
+        <app-file-uploader
+          [label]="'partners.form.logoSelect' | translate"
+          [dropLabel]="'common.upload.dropHint' | translate"
+          [helpText]="'partners.form.logoHelp' | translate"
+          [accept]="'image/*'"
+          [buttonLabel]="'partners.form.logoUpload' | translate"
+          [uploadingLabel]="'partners.form.logoUploading' | translate"
+          [errorFallback]="'partners.form.errors.logoUploadFailed' | translate"
+          [maxSizeBytes]="5242880"
+          [maxSizeError]="'partners.form.logoMaxSize' | translate"
+          [disabled]="!createdPartner() || saving() || logoLoading()"
+          [presign]="presignLogo"
+          [finalize]="finalizeLogo"
+        />
+      </section>
     </div>
 
     <div class="p-4 sm:p-6 flex flex-col-reverse sm:flex-row sm:justify-end gap-3 sm:gap-4">
@@ -151,12 +228,17 @@
 
       <shared-button
         variant="primary"
-        type="submit"
+        type="button"
         class="w-full sm:w-auto"
-        [disabled]="form.invalid || saving()"
+        [disabled]="saving()"
         [loading]="saving()"
+        (clicked)="createdPartner() ? goToEdit() : save()"
       >
-        {{ saving() ? ('partners.form.saving' | translate) : ('partners.form.createPartner' | translate) }}
+        @if (createdPartner()) {
+          {{ 'partners.form.editPartner' | translate }}
+        } @else {
+          {{ saving() ? ('partners.form.saving' | translate) : ('partners.form.createPartner' | translate) }}
+        }
       </shared-button>
     </div>
   </form>

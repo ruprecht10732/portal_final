@@ -167,6 +167,10 @@ export const routes: Routes = [
 						path: ':id',
 						loadComponent: () => import('./routes/partners/partners-detail/partners-detail.component').then(m => m.PartnersDetailComponent),
 					},
+					{
+						path: ':id/edit',
+						loadComponent: () => import('./routes/partners/partners-edit/partners-edit.component').then(m => m.PartnersEditComponent),
+					},
 				],
 			},
 			{

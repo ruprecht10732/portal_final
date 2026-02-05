@@ -21,9 +21,26 @@
       "postalCode": "Postcode",
       "city": "Plaats",
       "country": "Land",
+      "services": "Diensten",
+      "serviceTypes": "Type diensten",
+      "serviceTypesPlaceholder": "Selecteer diensten",
+      "logo": "Logo",
+      "logoSelect": "Logo selecteren",
+      "logoUpload": "Logo uploaden",
+      "logoUploading": "Logo uploaden...",
+      "logoDownload": "Logo downloaden",
+      "logoDelete": "Logo verwijderen",
+      "logoHelp": "Sla de partner eerst op om logo-uploads te activeren.",
+      "logoHelpEdit": "Upload bij voorkeur een vierkant beeld.",
+      "logoMaxSize": "Max 5 MB",
+      "logoUnavailable": "Sla de partner op voordat je een logo uploadt",
       "cancel": "Annuleren",
       "saving": "Opslaan...",
       "createPartner": "Partner aanmaken",
+      "savePartner": "Partner opslaan",
+      "editPartner": "Partner bewerken",
+      "editSubtitle": "Werk partnergegevens bij",
+      "loading": "Partner laden...",
       "validation": {
         "required": "Vul alle verplichte velden in",
         "invalidEmail": "Ongeldig e-mailadres",
@@ -32,7 +49,12 @@
         "maxLength": "Maximaal {{max}} tekens"
       },
       "errors": {
-        "createFailed": "Partner aanmaken mislukt"
+        "createFailed": "Partner aanmaken mislukt",
+        "updateFailed": "Partner bijwerken mislukt",
+        "loadServiceTypes": "Diensten laden mislukt",
+        "logoUploadFailed": "Logo uploaden mislukt",
+        "logoDeleteFailed": "Logo verwijderen mislukt",
+        "logoLoadFailed": "Logo laden mislukt"
       }
     },
     "list": {
@@ -70,13 +92,24 @@
       "title": "Partnergegevens",
       "subtitle": "Bedrijfsoverzicht",
       "goBack": "Terug naar partners",
+      "edit": "Bewerken",
       "companyInfo": "Bedrijfsgegevens",
       "contactInfo": "Contactpersoon",
       "address": "Adres",
+      "services": "Type diensten",
+      "servicesEmpty": "Geen diensten geselecteerd",
+      "servicesLoading": "Diensten laden...",
+      "logo": "Logo",
+      "logoEmpty": "Geen logo geupload",
+      "logoDownload": "Logo downloaden",
       "metadata": "Metadata",
       "createdAt": "Aangemaakt",
       "updatedAt": "Bijgewerkt",
-      "loading": "Partner laden"
+      "loading": "Partner laden",
+      "errors": {
+        "loadServiceTypes": "Diensten laden mislukt",
+        "loadLogo": "Logo laden mislukt"
+      }
     },
     "errors": {
       "loadFailed": "Kon partners niet laden",

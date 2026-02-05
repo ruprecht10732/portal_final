@@ -5,7 +5,18 @@
       [subtitle]="'partners.detail.subtitle' | translate"
       [backAriaLabel]="'partners.detail.goBack' | translate"
       (back)="goBack()"
-    ></shared-page-header>
+    >
+      <ng-container actions>
+        <shared-button
+          variant="secondary"
+          size="compact"
+          [fullWidth]="false"
+          (clicked)="editPartner()"
+        >
+          {{ 'partners.detail.edit' | translate }}
+        </shared-button>
+      </ng-container>
+    </shared-page-header>
   </div>
 
   @if (error()) {
@@ -23,6 +34,44 @@
   } @else if (partner(); as p) {
     <div class="flex-1 overflow-y-auto">
       <div class="p-4 sm:p-6 grid gap-4">
+        <shared-card>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">
+            {{ 'partners.detail.logo' | translate }}
+          </h2>
+          @if (logoError()) {
+            <div class="bg-red-50 border border-red-200 text-red-800 px-3 py-2 text-sm mb-3">
+              {{ logoError() }}
+            </div>
+          }
+            @if (logoPreviewUrl()) {
+              <div class="flex items-center gap-4">
+                @if (!logoImageError()) {
+                  <img
+                    [src]="logoPreviewUrl()"
+                    [alt]="partner()?.businessName || 'Partner'"
+                    class="h-16 w-16 rounded-lg object-cover border border-zinc-200"
+                    (error)="logoImageError.set(true)"
+                  />
+                } @else {
+                  <div class="h-16 w-16 rounded-lg border border-zinc-200 bg-zinc-100 text-zinc-600 flex items-center justify-center text-lg font-semibold">
+                    {{ logoInitials() }}
+                  </div>
+                }
+                <div class="text-sm">
+                  <div class="font-medium">{{ p.logoFileName || p.businessName }}</div>
+                  <a class="text-blue-600 hover:underline" [href]="logoDownloadUrl()" target="_blank" rel="noopener">
+                    {{ 'partners.detail.logoDownload' | translate }}
+                  </a>
+                </div>
+              </div>
+            } @else {
+              <div class="h-16 w-16 rounded-lg border border-zinc-200 bg-zinc-100 text-zinc-600 flex items-center justify-center text-lg font-semibold">
+                {{ logoInitials() }}
+              </div>
+              <p class="text-sm text-zinc-500 mt-3">{{ 'partners.detail.logoEmpty' | translate }}</p>
+            }
+        </shared-card>
+
         <shared-card>
           <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">
             {{ 'partners.detail.companyInfo' | translate }}
@@ -95,6 +144,27 @@
               <dd class="font-medium">{{ p.country }}</dd>
             </div>
           </dl>
+        </shared-card>
+
+        <shared-card>
+          <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-4">
+            {{ 'partners.detail.services' | translate }}
+          </h2>
+          @if (serviceTypesError()) {
+            <div class="text-sm text-red-600">{{ serviceTypesError() }}</div>
+          } @else if (serviceTypesLoading()) {
+            <div class="text-sm text-zinc-500">{{ 'partners.detail.servicesLoading' | translate }}</div>
+          } @else if (p.serviceTypeIds?.length) {
+            <ul class="flex flex-wrap gap-2">
+              @for (serviceTypeId of p.serviceTypeIds; track serviceTypeId) {
+                <li class="px-3 py-1 rounded-full bg-zinc-100 text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                  {{ serviceTypeLabels()[serviceTypeId] || serviceTypeId }}
+                </li>
+              }
+            </ul>
+          } @else {
+            <p class="text-sm text-zinc-500">{{ 'partners.detail.servicesEmpty' | translate }}</p>
+          }
         </shared-card>
 
         <shared-card>

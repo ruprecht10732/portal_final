@@ -21,9 +21,26 @@
       "postalCode": "Postal code",
       "city": "City",
       "country": "Country",
+      "services": "Services",
+      "serviceTypes": "Service types",
+      "serviceTypesPlaceholder": "Select service types",
+      "logo": "Logo",
+      "logoSelect": "Select logo",
+      "logoUpload": "Upload logo",
+      "logoUploading": "Uploading logo...",
+      "logoDownload": "Download logo",
+      "logoDelete": "Remove logo",
+      "logoHelp": "Save the partner first to enable logo uploads.",
+      "logoHelpEdit": "Upload a square image for best results.",
+      "logoMaxSize": "Max 5 MB",
+      "logoUnavailable": "Save the partner before uploading a logo",
       "cancel": "Cancel",
       "saving": "Saving...",
       "createPartner": "Create Partner",
+      "savePartner": "Save Partner",
+      "editPartner": "Edit Partner",
+      "editSubtitle": "Update partner details",
+      "loading": "Loading partner...",
       "validation": {
         "required": "Please fill all required fields",
         "invalidEmail": "Invalid email",
@@ -32,7 +49,12 @@
         "maxLength": "Must be {{max}} characters or less"
       },
       "errors": {
-        "createFailed": "Failed to create partner"
+        "createFailed": "Failed to create partner",
+        "updateFailed": "Failed to update partner",
+        "loadServiceTypes": "Failed to load service types",
+        "logoUploadFailed": "Failed to upload logo",
+        "logoDeleteFailed": "Failed to remove logo",
+        "logoLoadFailed": "Failed to load logo"
       }
     },
     "list": {
@@ -70,13 +92,24 @@
       "title": "Partner details",
       "subtitle": "Company overview",
       "goBack": "Go back to partners",
+      "edit": "Edit",
       "companyInfo": "Company details",
       "contactInfo": "Contact person",
       "address": "Address",
+      "services": "Service types",
+      "servicesEmpty": "No service types selected",
+      "servicesLoading": "Loading service types...",
+      "logo": "Logo",
+      "logoEmpty": "No logo uploaded",
+      "logoDownload": "Download logo",
       "metadata": "Metadata",
       "createdAt": "Created",
       "updatedAt": "Updated",
-      "loading": "Loading partner"
+      "loading": "Loading partner",
+      "errors": {
+        "loadServiceTypes": "Failed to load service types",
+        "loadLogo": "Failed to load logo"
+      }
     },
     "errors": {
       "loadFailed": "Failed to load partners",
