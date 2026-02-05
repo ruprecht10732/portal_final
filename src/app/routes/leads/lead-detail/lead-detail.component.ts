@@ -34,6 +34,7 @@ import { LeadDetailSkeletonComponent } from './lead-detail-skeleton.component';
 import { LeadDetailAppointmentsTabComponent } from './lead-detail-appointments-tab.component';
 import { LeadDetailFilesTabComponent } from './lead-detail-files-tab.component';
 import { LeadDetailInfoCardsComponent } from './lead-detail-info-cards.component';
+import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
 import { LeadDetailMobileConsumerCardComponent } from './lead-detail-mobile-consumer-card.component';
 import { LeadDetailNotesPanelComponent } from './lead-detail-notes-panel.component';
 import { LeadDetailServicesPanelComponent } from './lead-detail-services-panel.component';
@@ -48,7 +49,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, TranslatePipe],
+  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

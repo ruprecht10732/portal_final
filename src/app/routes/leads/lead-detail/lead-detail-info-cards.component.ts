@@ -1,8 +1,6 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
 import type { EnergyLabel, Lead, LeadEnrichment, LeadScore, LeadService } from '../../../core/services/leads.types';
-import { CardComponent } from '../../../shared/components/card/card.component';
 import { LeadEnergyLabelCardComponent } from '../../../shared/components/features/energy-label-card/lead-energy-label-card.component';
-import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
 import { LeadEnrichmentCardComponent } from './lead-enrichment-card.component';
 
 @Component({
@@ -10,7 +8,7 @@ import { LeadEnrichmentCardComponent } from './lead-enrichment-card.component';
   templateUrl: './lead-detail-info-cards.component.html',
   styleUrl: './lead-detail-info-cards.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent, LeadInquiryCardComponent],
+  imports: [LeadEnergyLabelCardComponent, LeadEnrichmentCardComponent],
 })
 export class LeadDetailInfoCardsComponent {
   energyLabel = input<EnergyLabel | null>(null);

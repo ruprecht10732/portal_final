@@ -164,13 +164,9 @@
             (openCallLogger)="openCallLogger()"
           />
 
-          <app-lead-detail-info-cards
-            [energyLabel]="energyLabel()"
-            [leadEnrichment]="leadEnrichment()"
-            [leadScore]="leadScore()"
-            [lead]="l"
-            [selectedService]="selectedService()"
-          />
+          <shared-card>
+            <app-lead-inquiry-card [lead]="l" [selectedService]="selectedService()"></app-lead-inquiry-card>
+          </shared-card>
 
           <app-lead-detail-services-panel
             [services]="l.services"
@@ -193,6 +189,14 @@
             (newServiceConsumerNoteChange)="newServiceConsumerNote.set($event)"
             (newServiceSourceChange)="newServiceSource.set($event)"
             (closeCurrentServiceChange)="closeCurrentService.set($event)"
+          />
+
+          <app-lead-detail-info-cards
+            [energyLabel]="energyLabel()"
+            [leadEnrichment]="leadEnrichment()"
+            [leadScore]="leadScore()"
+            [lead]="l"
+            [selectedService]="selectedService()"
           />
         </aside>
 
