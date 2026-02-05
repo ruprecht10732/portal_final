@@ -140,8 +140,35 @@ export class LeadDetailComponent implements OnInit {
     return [];
   });
   protected readonly aiInsightsMissingInformation = computed(() => this.callLoggerMissingInformation());
+  
+  // Create an effective AI analysis from API or timeline fallback
+  protected readonly effectiveAiAnalysis = computed(() => {
+    const apiAnalysis = this.aiAnalysis();
+    if (apiAnalysis) {
+      return apiAnalysis;
+    }
+    // Fallback to timeline metadata if no API analysis
+    for (const item of this.timelineItems()) {
+      const metadata = item.metadata;
+      const action = metadata['recommendedAction'];
+      const urgency = metadata['urgencyLevel'];
+      if (typeof action === 'string' && typeof urgency === 'string') {
+        // Found analysis data in timeline, construct a minimal analysis object
+        return {
+          recommendedAction: action,
+          urgencyLevel: urgency,
+          summary: typeof metadata['summary'] === 'string' ? metadata['summary'] : item.summary,
+          missingInformation: Array.isArray(metadata['missingInformation']) ? metadata['missingInformation'] as string[] : [],
+          preferredContactChannel: (metadata['preferredContactChannel'] as 'WhatsApp' | 'Email') || undefined,
+          suggestedContactMessage: typeof metadata['suggestedContactMessage'] === 'string' ? metadata['suggestedContactMessage'] : undefined,
+        } as LeadAIAnalysis;
+      }
+    }
+    return null;
+  });
+  
   protected readonly aiInsightsAvailable = computed(() => {
-    const analysis = this.aiAnalysis();
+    const analysis = this.effectiveAiAnalysis();
     const missing = this.aiInsightsMissingInformation();
     const score = this.leadScore();
     return Boolean(analysis) || missing.length > 0 || Boolean(score?.score) || Boolean(score?.preAi);
@@ -868,6 +895,52 @@ export class LeadDetailComponent implements OnInit {
       return [];
     }
     return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim() !== '');
+  }
+
+  protected getTimelineContactMessage(item: LeadTimelineItem): { channel: 'WhatsApp' | 'Email'; message: string } | null {
+    const metadata = item.metadata;
+    const channel = metadata['preferredContactChannel'];
+    const message = metadata['suggestedContactMessage'];
+    
+    if ((channel === 'WhatsApp' || channel === 'Email') && typeof message === 'string' && message.trim() !== '') {
+      return { channel, message: message.trim() };
+    }
+    return null;
+  }
+
+  protected getTimelineRecommendedAction(item: LeadTimelineItem): string | null {
+    const metadata = item.metadata;
+    const action = metadata['recommendedAction'];
+    return typeof action === 'string' && action.trim() !== '' ? action.trim() : null;
+  }
+
+  protected readonly copiedContactMessage = signal<string | null>(null);
+
+  protected copyContactMessage(itemId: string, message: string): void {
+    navigator.clipboard.writeText(message).then(() => {
+      this.copiedContactMessage.set(itemId);
+      this.announce(this.translate.instant('leads.detail.timeline.messageCopied'));
+      setTimeout(() => {
+        if (this.copiedContactMessage() === itemId) {
+          this.copiedContactMessage.set(null);
+        }
+      }, 2000);
+    }).catch(err => {
+      this.reporter.report(err, { source: 'runtime', silent: true });
+    });
+  }
+
+  protected openWhatsApp(phone: string, message: string): void {
+    const encodedMessage = encodeURIComponent(message);
+    const cleanPhone = phone.replace(/[^0-9+]/g, '');
+    window.open(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+  }
+
+  protected composeEmail(email: string | undefined, message: string): void {
+    if (!email) return;
+    const encodedSubject = encodeURIComponent('Follow-up on your request');
+    const encodedBody = encodeURIComponent(message);
+    window.location.href = `mailto:${email}?subject=${encodedSubject}&body=${encodedBody}`;
   }
 
   protected getTimelineScore(item: LeadTimelineItem): { score: number; preAi?: number; version?: string } | null {
