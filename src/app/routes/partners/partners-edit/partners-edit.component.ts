@@ -7,6 +7,7 @@ import { PartnersService } from '../../../core/services/partners.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { KVK_REGEX, VAT_REGEX } from '../../../core/utils/partner-validation.util';
 import type { Partner, UpdatePartnerRequest } from '../../../core/services/partners.types';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { InputComponent } from '../../../shared/components/input/input.component';
@@ -15,8 +16,6 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { MultiSelectComponent, type MultiSelectOption } from '../../../shared/components/multiselect/multiselect.component';
 import { FileUploaderComponent, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 
-const KVK_PATTERN = /^\d{8}$/;
-const VAT_PATTERN = /^NL\d{9}B\d{2}$/i;
 const MAX_LENGTHS = {
   businessName: 200,
   kvkNumber: 20,
@@ -74,12 +73,12 @@ export class PartnersEditComponent implements OnInit {
     kvkNumber: ['', [
       Validators.required,
       Validators.maxLength(MAX_LENGTHS.kvkNumber),
-      Validators.pattern(KVK_PATTERN),
+      Validators.pattern(KVK_REGEX),
     ]],
     vatNumber: ['', [
       Validators.required,
       Validators.maxLength(MAX_LENGTHS.vatNumber),
-      Validators.pattern(VAT_PATTERN),
+      Validators.pattern(VAT_REGEX),
     ]],
     contactName: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.contactName)]],
     contactEmail: ['', [Validators.required, Validators.email]],

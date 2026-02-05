@@ -7,6 +7,7 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { PartnersService } from '../../../core/services/partners.service';
 import type { CreatePartnerRequest, ListPartnersParams, Partner, UpdatePartnerRequest } from '../../../core/services/partners.types';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { isKvkValid, isVatValid } from '../../../core/utils/partner-validation.util';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -16,8 +17,6 @@ import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
 export type PartnerRow = Partner & Record<string, unknown>;
 
-const KVK_PATTERN = /^\d{8}$/;
-const VAT_PATTERN = /^NL\d{9}B\d{2}$/i;
 const MAX_LENGTHS = {
   businessName: 200,
   kvkNumber: 20,
@@ -503,7 +502,7 @@ export class PartnersListComponent implements OnInit {
     const normalized = this.normalizeRequired(value);
     if (!normalized) return this.translate.instant('partners.list.validation.required');
     if (normalized.length > MAX_LENGTHS.kvkNumber) return this.maxLengthMessage(MAX_LENGTHS.kvkNumber);
-    return KVK_PATTERN.test(normalized)
+    return isKvkValid(normalized)
       ? null
       : this.translate.instant('partners.list.validation.invalidKvk');
   }
@@ -512,7 +511,7 @@ export class PartnersListComponent implements OnInit {
     const normalized = this.normalizeRequired(value);
     if (!normalized) return this.translate.instant('partners.list.validation.required');
     if (normalized.length > MAX_LENGTHS.vatNumber) return this.maxLengthMessage(MAX_LENGTHS.vatNumber);
-    return VAT_PATTERN.test(normalized)
+    return isVatValid(normalized)
       ? null
       : this.translate.instant('partners.list.validation.invalidVat');
   }
