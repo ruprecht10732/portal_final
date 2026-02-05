@@ -14,6 +14,8 @@ import {
 
 /** Address mapping configuration for address cells */
 export interface AddressFieldMapping {
+  /** Field key for full address label */
+  label?: string;
   /** Field key for street */
   street?: string;
   /** Field key for house number */

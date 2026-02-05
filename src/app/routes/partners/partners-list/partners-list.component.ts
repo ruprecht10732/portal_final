@@ -140,7 +140,13 @@ export class PartnersListComponent implements OnInit {
         filterable: true,
         editable: true,
         width: '220px',
-        cellType: 'text',
+        cellType: 'address',
+        addressMapping: {
+          label: 'addressLine1',
+          zipCode: 'postalCode',
+          city: 'city',
+          country: 'country',
+        },
         validator: value => this.requiredMaxLengthValidator(value, MAX_LENGTHS.addressLine1),
       },
       {

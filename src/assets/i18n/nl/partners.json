@@ -17,6 +17,7 @@
       "contactEmail": "Contact e-mail",
       "contactPhone": "Contact telefoon",
       "addressLine1": "Adresregel 1",
+      "addressSearchPlaceholder": "Begin met typen...",
       "addressLine2": "Adresregel 2",
       "postalCode": "Postcode",
       "city": "Plaats",
@@ -51,6 +52,7 @@
       "errors": {
         "createFailed": "Partner aanmaken mislukt",
         "updateFailed": "Partner bijwerken mislukt",
+        "searchAddresses": "Adresvoorstellen laden mislukt",
         "loadServiceTypes": "Diensten laden mislukt",
         "logoUploadFailed": "Logo uploaden mislukt",
         "logoDeleteFailed": "Logo verwijderen mislukt",

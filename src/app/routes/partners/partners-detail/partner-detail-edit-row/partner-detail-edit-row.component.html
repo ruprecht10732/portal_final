@@ -5,12 +5,21 @@
   <div class="flex min-w-0 flex-1 justify-end">
     @if (isEditing()) {
       <div class="flex flex-1 items-center justify-end gap-2 animate-in fade-in zoom-in-95">
-        <input
-          class="w-full max-w-40 rounded-md border-0 py-1.5 text-right text-sm text-zinc-900 ring-1 ring-inset ring-blue-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-blue-500"
-          type="text"
-          [value]="editValue()"
-          (input)="editValueChange.emit($any($event.target).value)"
-        />
+        @if (useAddressAutocomplete()) {
+          <data-grid-address-cell
+            class="w-full max-w-60"
+            [value]="editValue()"
+            (valueChange)="editValueChange.emit($event)"
+            (addressSelect)="addressSelect.emit($event)"
+          />
+        } @else {
+          <input
+            class="w-full max-w-40 rounded-md border-0 py-1.5 text-right text-sm text-zinc-900 ring-1 ring-inset ring-blue-300 placeholder:text-zinc-400 focus:ring-2 focus:ring-inset focus:ring-blue-500"
+            type="text"
+            [value]="editValue()"
+            (input)="editValueChange.emit($any($event.target).value)"
+          />
+        }
         <button class="text-green-600 hover:text-green-700" (click)="saveEdit.emit()">
           <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
         </button>

@@ -93,10 +93,13 @@
         </div>
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <shared-input
+          <shared-autocomplete
             [label]="'partners.form.addressLine1' | translate"
             [value]="form.controls.addressLine1.value ?? ''"
-            (valueChange)="form.controls.addressLine1.setValue($event)"
+            (valueChange)="onAddressLine1Change($event)"
+            [options]="addressOptions()"
+            [filterMode]="'manual'"
+            [placeholder]="'partners.form.addressSearchPlaceholder' | translate"
             [required]="true"
             [error]="controlError('addressLine1', { maxLength: 200 })"
           />

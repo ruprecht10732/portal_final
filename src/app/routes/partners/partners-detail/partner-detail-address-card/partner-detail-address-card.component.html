@@ -24,10 +24,12 @@
         [editable]="true"
         [isEditing]="editingKey() === row.key"
         [editValue]="editValue()"
+        [useAddressAutocomplete]="row.key === 'addressLine1'"
         (startEdit)="startEdit.emit(row.key)"
         (cancelEdit)="cancelEdit.emit()"
         (saveEdit)="saveEdit.emit(row.key)"
         (editValueChange)="editValueChange.emit($event)"
+        (addressSelect)="addressSelect.emit({ key: row.key, suggestion: $event })"
       />
     }
   </div>

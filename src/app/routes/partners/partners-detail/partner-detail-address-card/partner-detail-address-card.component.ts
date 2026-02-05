@@ -4,6 +4,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { MapPreviewComponent } from '../../../../shared/components/map-preview/map-preview.component';
 import { PartnerDetailEditRowComponent } from '../partner-detail-edit-row/partner-detail-edit-row.component';
+import { AddressSuggestion } from '../../../../core/services/address.service';
 
 interface DetailRow {
   key: string;
@@ -37,4 +38,5 @@ export class PartnerDetailAddressCardComponent {
   readonly saveEdit = output<string>();
   readonly editValueChange = output<string>();
   readonly openGoogleMaps = output<void>();
+  readonly addressSelect = output<{ key: string; suggestion: AddressSuggestion }>();
 }

@@ -17,6 +17,7 @@
       "contactEmail": "Contact email",
       "contactPhone": "Contact phone",
       "addressLine1": "Address line 1",
+      "addressSearchPlaceholder": "Start typing an address...",
       "addressLine2": "Address line 2",
       "postalCode": "Postal code",
       "city": "City",
@@ -51,6 +52,7 @@
       "errors": {
         "createFailed": "Failed to create partner",
         "updateFailed": "Failed to update partner",
+        "searchAddresses": "Failed to load address suggestions",
         "loadServiceTypes": "Failed to load service types",
         "logoUploadFailed": "Failed to upload logo",
         "logoDeleteFailed": "Failed to remove logo",

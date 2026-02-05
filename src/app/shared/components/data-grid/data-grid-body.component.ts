@@ -304,6 +304,7 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
     if (!mapping) return;
 
     const updates: Record<string, unknown> = {};
+    if (mapping.label) updates[mapping.label] = address.label;
     if (mapping.street) updates[mapping.street] = address.street;
     if (mapping.houseNumber) updates[mapping.houseNumber] = address.houseNumber;
     if (mapping.zipCode) updates[mapping.zipCode] = address.zipCode;

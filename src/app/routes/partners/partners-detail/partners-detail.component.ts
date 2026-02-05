@@ -18,6 +18,7 @@ import { PartnerDetailCompanyCardComponent } from './partner-detail-company-card
 import { PartnerDetailContactCardComponent } from './partner-detail-contact-card/partner-detail-contact-card.component';
 import { PartnerDetailHeroCardComponent } from './partner-detail-hero-card/partner-detail-hero-card.component';
 import { PartnerDetailServicesCardComponent } from './partner-detail-services-card/partner-detail-services-card.component';
+import { AddressSuggestion } from '../../../core/services/address.service';
 
 @Component({
   selector: 'app-partners-detail',
@@ -260,6 +261,35 @@ export class PartnersDetailComponent implements OnInit {
   protected saveEditFromEvent(key: string): void {
     if (!this.isEditableField(key)) return;
     this.saveEdit(key);
+  }
+
+  protected applyAddressSuggestion(payload: { key: string; suggestion: AddressSuggestion }): void {
+    if (payload.key !== 'addressLine1' || this.savingField()) return;
+    const partner = this.partner();
+    if (!partner) return;
+
+    const suggestion = payload.suggestion;
+    const request: UpdatePartnerRequest = {
+      addressLine1: suggestion.label ?? partner.addressLine1,
+      postalCode: suggestion.zipCode ?? partner.postalCode,
+      city: suggestion.city ?? partner.city,
+      country: suggestion.country ?? partner.country,
+    };
+
+    this.savingField.set('addressLine1');
+    this.partnersService.update(partner.id, request).subscribe({
+      next: updated => {
+        this.partner.set(updated);
+        this.savingField.set(null);
+        this.cancelEdit();
+      },
+      error: err => {
+        const message = extractErrorMessage(err, this.translate.instant('partners.form.errors.updateFailed'));
+        this.toast.error(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.savingField.set(null);
+      },
+    });
   }
 
   protected openServiceTypesEdit(): void {

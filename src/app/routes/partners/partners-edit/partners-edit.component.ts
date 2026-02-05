@@ -1,13 +1,16 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switchMap } from 'rxjs';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { PartnersService } from '../../../core/services/partners.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { KVK_REGEX, VAT_REGEX } from '../../../core/utils/partner-validation.util';
+import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import type { Partner, UpdatePartnerRequest } from '../../../core/services/partners.types';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { InputComponent } from '../../../shared/components/input/input.component';
@@ -15,6 +18,8 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { MultiSelectComponent, type MultiSelectOption } from '../../../shared/components/multiselect/multiselect.component';
 import { FileUploaderComponent, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
+import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
+import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 
 const MAX_LENGTHS = {
   businessName: 200,
@@ -39,6 +44,7 @@ const MAX_LENGTHS = {
     InputComponent,
     ButtonComponent,
     PageHeaderComponent,
+    AutocompleteComponent,
     MultiSelectComponent,
     FileUploaderComponent,
     TranslatePipe,
@@ -52,6 +58,8 @@ export class PartnersEditComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly fb = inject(FormBuilder);
+  private readonly addressService = inject(AddressService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly partner = signal<Partner | null>(null);
   protected readonly loading = signal(true);
@@ -62,6 +70,8 @@ export class PartnersEditComponent implements OnInit {
   protected readonly serviceTypes = signal<ServiceTypeItem[]>([]);
   protected readonly serviceTypesLoading = signal(false);
   protected readonly serviceTypesError = signal<string | null>(null);
+  protected readonly addressOptions = signal<AutocompleteOption[]>([]);
+  private readonly addressSuggestions = signal<AddressSuggestion[]>([]);
 
   protected readonly logoDownloadUrl = signal<string | null>(null);
   protected readonly logoLoading = signal(false);
@@ -119,6 +129,7 @@ export class PartnersEditComponent implements OnInit {
     }
     this.loadServiceTypes();
     this.loadPartner(id);
+    this.setupAddressSearch();
   }
 
   protected save(): void {
@@ -236,6 +247,15 @@ export class PartnersEditComponent implements OnInit {
     });
   }
 
+  protected onAddressLine1Change(value: string): void {
+    this.form.controls.addressLine1.setValue(value);
+
+    const match = this.addressSuggestions().find(suggestion => suggestion.label === value);
+    if (match) {
+      this.applyAddressSuggestion(match);
+    }
+  }
+
   protected controlError(
     controlName: keyof typeof this.form.controls,
     options: { maxLength?: number; patternError?: string } = {},
@@ -297,6 +317,41 @@ export class PartnersEditComponent implements OnInit {
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
       },
+    });
+  }
+
+  private setupAddressSearch(): void {
+    this.form.controls.addressLine1.valueChanges.pipe(
+      map(value => (value ?? '').trim()),
+      filter(value => value.length >= MIN_LENGTH.address),
+      debounceTime(DEBOUNCE_MS.search),
+      distinctUntilChanged(),
+      switchMap(query => this.addressService.search(query).pipe(
+        catchError((err) => {
+          this.reporter.report(err, {
+            source: 'http',
+            silent: true,
+            userMessage: this.translate.instant('partners.form.errors.searchAddresses'),
+          });
+          return of([]);
+        })
+      )),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(results => {
+      this.addressSuggestions.set(results);
+      this.addressOptions.set(results.map(addr => ({
+        label: addr.label,
+        value: addr.label,
+      })));
+    });
+  }
+
+  private applyAddressSuggestion(suggestion: AddressSuggestion): void {
+    this.form.patchValue({
+      addressLine1: suggestion.label ?? '',
+      postalCode: suggestion.zipCode ?? '',
+      city: suggestion.city ?? '',
+      country: suggestion.country ?? '',
     });
   }
 
