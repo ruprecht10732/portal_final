@@ -1,15 +1,13 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import type { Lead, LeadService } from '../../../core/services/leads.types';
-import { CardComponent } from '../../../shared/components/card/card.component';
-import { ChipComponent } from '../../../shared/components/chip/chip.component';
 
 @Component({
   selector: 'app-lead-inquiry-card',
   templateUrl: './lead-inquiry-card.component.html',
   styleUrl: './lead-inquiry-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, ChipComponent, TranslatePipe],
+  imports: [TranslatePipe],
 })
 export class LeadInquiryCardComponent {
   lead = input<Lead | null>(null);

@@ -44,7 +44,7 @@
       <textarea
         #noteInput
         [id]="noteId()"
-        class="block w-full resize-none border-0 bg-transparent p-4 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-0 min-h-[120px]"
+        class="block w-full resize-none border-0 bg-transparent p-4 text-sm text-slate-900 placeholder:text-slate-400 focus:ring-0 min-h-30"
         [value]="noteText()"
         (input)="noteTextChange.emit($any($event.target).value)"
         [placeholder]="notePlaceholder() | translate"

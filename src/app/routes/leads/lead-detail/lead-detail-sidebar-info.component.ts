@@ -1,6 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
-import { CardComponent } from '../../../shared/components/card/card.component';
 import { ContactInfoComponent } from '../../../shared/components/contact-info/contact-info.component';
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 
@@ -9,7 +8,7 @@ import { MapPreviewComponent } from '../../../shared/components/map-preview/map-
   templateUrl: './lead-detail-sidebar-info.component.html',
   styleUrl: './lead-detail-sidebar-info.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, ContactInfoComponent, MapPreviewComponent, TranslatePipe],
+  imports: [ContactInfoComponent, MapPreviewComponent, TranslatePipe],
 })
 export class LeadDetailSidebarInfoComponent {
   fullAddress = input<string>('');
