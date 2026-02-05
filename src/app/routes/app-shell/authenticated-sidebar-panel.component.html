@@ -1,12 +1,24 @@
-<section class="h-full w-64 border border-zinc-200 border-l-0 bg-white px-5 py-6">
-  <div class="text-xs font-semibold uppercase tracking-[0.32em] text-zinc-400">{{ 'sidebar.current' | translate }}</div>
-  <div class="mt-2 text-lg font-semibold text-zinc-900">
-    {{ title() | translate }}
-  </div>
+<section class="flex h-full w-full flex-col bg-white px-5 py-6 
+                md:w-64 md:border-r md:border-zinc-200 md:border-l-0">
+  
+  <header class="mb-6 flex flex-col gap-1">
+    <div class="text-[10px] font-bold uppercase tracking-[0.2em] text-zinc-400 
+                md:text-xs md:tracking-[0.32em]">
+      {{ 'sidebar.current' | translate }}
+    </div>
+    
+    <h2 class="text-xl font-bold text-zinc-900 md:text-lg">
+      {{ title() | translate }}
+    </h2>
+  </header>
+
   @if (items().length > 0) {
-    <nav class="mt-6 flex flex-col gap-2" [attr.aria-label]="'sidebar.sectionNavigation' | translate">
+    <nav class="flex flex-1 flex-col gap-2 overflow-y-auto pb-safe md:pb-0" 
+         [attr.aria-label]="'sidebar.sectionNavigation' | translate">
+      
       @for (item of items(); track item.route) {
         <app-authenticated-sidebar-nav-item
+          class="block"
           [label]="item.label"
           [route]="item.route"
           [icon]="item.icon ?? null"

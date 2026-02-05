@@ -3,13 +3,22 @@
   routerLinkActive
   #navActive="routerLinkActive"
   [routerLinkActiveOptions]="{ exact: exact() }"
-  class="flex items-center gap-2 text-sm font-medium text-zinc-700 transition-colors hover:text-zinc-900"
+  class="group flex min-h-11 w-full items-center gap-3 text-base font-medium text-zinc-600 transition-colors 
+         touch-manipulation hover:text-zinc-900 active:text-zinc-900
+         md:min-h-0 md:gap-2 md:text-sm md:text-zinc-700"
   [class.text-zinc-900]="navActive.isActive"
   [class.font-semibold]="navActive.isActive"
   [attr.aria-label]="label() | translate"
 >
   @if (icon()) {
-    <lucide-icon [name]="icon()!" class="h-4 w-4"></lucide-icon>
+    <lucide-icon 
+      [name]="icon()!" 
+      class="h-5 w-5 shrink-0 text-zinc-400 transition-colors group-hover:text-zinc-600 md:h-4 md:w-4"
+      [class.text-zinc-900]="navActive.isActive"
+    ></lucide-icon>
   }
-  {{ label() | translate }}
+  
+  <span class="truncate">
+    {{ label() | translate }}
+  </span>
 </a>
