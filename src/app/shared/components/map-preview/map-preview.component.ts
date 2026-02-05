@@ -21,7 +21,7 @@ export class MapPreviewComponent {
   private readonly reporter = inject(ErrorReportingService);
 
   address = input<string>('');
-  height = input(MAP_CONFIG.defaultHeight);
+  height = input<number>(MAP_CONFIG.defaultHeight);
   zoom = input(MAP_CONFIG.defaultZoom);
   latitude = input<number | null>(null);
   longitude = input<number | null>(null);

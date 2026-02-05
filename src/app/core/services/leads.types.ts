@@ -50,6 +50,7 @@ export interface LeadService {
   status: LeadStatus;
   pipelineStage: PipelineStage;
   consumerNote?: string;
+  source?: string | null;
   createdAt: string;
   updatedAt: string;
 }

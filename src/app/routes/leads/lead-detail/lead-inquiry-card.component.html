@@ -1,30 +1,45 @@
-<section class="flex flex-col gap-4">
-  <!-- Header -->
-  <header class="flex items-center justify-between gap-3">
+<section class="flex flex-col font-sans">
+  
+  <header class="flex items-center justify-between pb-3">
     <div class="flex items-center gap-2">
-      <svg class="h-4.5 w-4.5 text-zinc-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true">
+      <svg class="h-4 w-4 text-slate-400" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
         <path stroke-linecap="round" stroke-linejoin="round" d="M7 8h10M7 12h6M4 6a2 2 0 012-2h12a2 2 0 012 2v12l-4-4H6a2 2 0 01-2-2V6z" />
       </svg>
-      <h3 class="text-xs font-semibold uppercase tracking-wider text-zinc-500">
+      <h3 class="text-sm font-semibold text-slate-900">
         {{ 'leads.detail.inquiry.title' | translate }}
       </h3>
     </div>
+
     @if (sourceLabel(); as source) {
-      <shared-chip variant="neutral" class="shrink-0">{{ 'leads.detail.inquiry.source' | translate:{source: source} }}</shared-chip>
+      <span class="text-xs font-medium text-slate-500 bg-slate-100/50 px-2 py-0.5 rounded-md">
+        {{ 'leads.detail.inquiry.source' | translate:{source: source} }}
+      </span>
     } @else {
-      <span class="text-xs text-zinc-400">{{ 'leads.detail.inquiry.sourceUnknown' | translate }}</span>
+      <span class="text-xs text-slate-400">
+        {{ 'leads.detail.inquiry.sourceUnknown' | translate }}
+      </span>
     }
   </header>
 
-  <!-- Message Content -->
-  <div class="rounded-lg border border-zinc-100 bg-zinc-50/50 p-4">
-    @if (noteText(); as note) {
-      <p class="whitespace-pre-line text-sm leading-relaxed text-zinc-700">{{ note }}</p>
-    } @else {
-      <p class="text-sm italic text-zinc-400">{{ 'leads.detail.inquiry.noInitialMessage' | translate }}</p>
-    }
-  </div>
+  <div class="flex flex-col gap-3">
+    
+    <div class="relative pl-3.5">
+      <div class="absolute inset-y-1 left-0 w-[2px] bg-slate-200 rounded-full"></div>
+      
+      @if (noteText(); as note) {
+        <p class="whitespace-pre-line text-sm leading-relaxed text-slate-700">
+          {{ note }}
+        </p>
+      } @else {
+        <p class="text-sm italic text-slate-400">
+          {{ 'leads.detail.inquiry.noInitialMessage' | translate }}
+        </p>
+      }
+    </div>
 
-  <!-- Hint -->
-  <p class="text-xs text-zinc-400">{{ 'leads.detail.inquiry.hint' | translate }}</p>
+    <p class="text-xs text-slate-400 pl-3.5">
+      {{ 'leads.detail.inquiry.hint' | translate }}
+    </p>
+
+  </div>
 </section>
