@@ -35,6 +35,19 @@ export class LeadDetailTimelineTabComponent {
   composeEmail = output<{ email: string | undefined; message: string }>();
   copyContactMessage = output<{ itemId: string; message: string }>();
 
+  protected formatEstimationNotes(value: string): string {
+    const escaped = this.escapeHtml(value);
+    const bolded = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    return bolded.replace(/\r?\n/g, '<br />');
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replace(/&/g, '&amp;')
+      .replace(/</g, '&lt;')
+      .replace(/>/g, '&gt;');
+  }
+
   protected t(key: string, params?: Record<string, unknown>): string {
     return this.translate.instant(key, params);
   }

@@ -89,7 +89,7 @@
                   @if (estimation.notes) {
                     <div class="flex gap-2">
                       <span class="font-bold w-14 shrink-0">Notes:</span>
-                      <span class="italic text-amber-800">{{ t('leads.detail.timeline.estimationNotes', { value: estimation.notes }) }}</span>
+                      <span class="text-amber-800 leading-relaxed" [innerHTML]="formatEstimationNotes(t('leads.detail.timeline.estimationNotes', { value: estimation.notes }))"></span>
                     </div>
                   }
                 </div>
