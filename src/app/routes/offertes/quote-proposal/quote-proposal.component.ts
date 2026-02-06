@@ -1,10 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, NgZone, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, NgClass } from '@angular/common';
-import { interval, filter, switchMap } from 'rxjs';
 
+import { environment } from '../../../../environments/environment';
 import { PublicQuoteService } from '../../../core/services/public-quote.service';
 import type {
   PublicQuoteResponse,
@@ -26,6 +25,8 @@ export class QuoteProposalComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly publicQuoteService = inject(PublicQuoteService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly zone = inject(NgZone);
+  private eventSource: EventSource | null = null;
 
   // State signals
   protected readonly loading = signal(true);
@@ -72,23 +73,39 @@ export class QuoteProposalComponent implements OnInit {
     }
     this.token.set(t);
     this.loadQuote(t);
-    this.startAnnotationPolling(t);
+    this.connectSSE(t);
+
+    // Clean up EventSource on destroy
+    this.destroyRef.onDestroy(() => this.disconnectSSE());
   }
 
   /**
-   * Poll the quote every 10 s while the quote is still in "Sent" status,
-   * so agent replies and toggle changes appear in near-real-time.
+   * Connect to the public SSE endpoint so agent replies and state
+   * changes arrive in real-time without polling.
    */
-  private startAnnotationPolling(token: string): void {
-    interval(10_000)
-      .pipe(
-        filter(() => !this.isFinalized() && !this.loading()),
-        switchMap(() => this.publicQuoteService.getByToken(token)),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: updated => this.quote.set(updated),
-      });
+  private connectSSE(token: string): void {
+    const url = `${environment.apiBaseUrl}/public/quotes/${encodeURIComponent(token)}/events`;
+
+    this.zone.runOutsideAngular(() => {
+      const es = new EventSource(url);
+      this.eventSource = es;
+
+      // Quote-relevant events trigger a lightweight reload
+      for (const evtType of ['quote_annotated', 'quote_item_toggled', 'quote_accepted', 'quote_rejected'] as const) {
+        es.addEventListener(evtType, () => {
+          this.zone.run(() => this.loadQuote(token));
+        });
+      }
+
+      es.onerror = () => {
+        // EventSource auto-reconnects; nothing extra needed
+      };
+    });
+  }
+
+  private disconnectSSE(): void {
+    this.eventSource?.close();
+    this.eventSource = null;
   }
 
   private loadQuote(token: string): void {
