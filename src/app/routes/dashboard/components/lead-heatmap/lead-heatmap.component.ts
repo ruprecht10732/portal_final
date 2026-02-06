@@ -2,7 +2,6 @@ import { AfterViewInit, ChangeDetectionStrategy, Component, DestroyRef, ElementR
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe } from '@ngx-translate/core';
 import * as L from 'leaflet';
-import 'leaflet.heat';
 import { DashboardHeatmapService } from '../../../../core/services/dashboard-heatmap.service';
 import type { LeadHeatmapPoint } from '../../../../core/services/dashboard.types';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
@@ -37,6 +36,7 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
 
   private map: L.Map | null = null;
   private heatLayer: L.HeatLayer | null = null;
+  private heatPluginLoaded = false;
   private resizeHandler: (() => void) | null = null;
 
   ngAfterViewInit(): void {
@@ -117,7 +117,17 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
   }
 
   private updateHeatLayer(): void {
+    void this.updateHeatLayerAsync();
+  }
+
+  private async updateHeatLayerAsync(): Promise<void> {
     if (this.map === null) return;
+
+    if (!this.heatPluginLoaded) {
+      (globalThis as { L?: typeof L }).L = L;
+      await import('leaflet.heat');
+      this.heatPluginLoaded = true;
+    }
 
     const points = this.points();
     const heatData: [number, number, number][] = points.map(point => [point.latitude, point.longitude, 0.7]);

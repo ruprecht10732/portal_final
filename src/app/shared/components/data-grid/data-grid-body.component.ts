@@ -19,9 +19,9 @@ import {
 } from './data-grid.types';
 import { OptionLabelPipe } from './data-grid.pipes';
 import { StatusBadgeComponent } from '../status-badge/status-badge.component';
-import dayjs from 'dayjs';
-import 'dayjs/locale/nl';
-import relativeTime from 'dayjs/plugin/relativeTime';
+import dayjs from 'dayjs/esm';
+import 'dayjs/esm/locale/nl';
+import relativeTime from 'dayjs/esm/plugin/relativeTime';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { DataGridAddressCellComponent } from './data-grid-address-cell.component';
