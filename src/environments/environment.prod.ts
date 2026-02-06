@@ -1,4 +1,4 @@
 export const environment = {
   production: true,
-  apiBaseUrl: 'https://portal-dev.salestainable.nl/api/v1',
+  apiBaseUrl: 'https://portaldev.salestainable.nl/api/v1',
 };
