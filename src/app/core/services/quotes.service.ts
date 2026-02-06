@@ -85,4 +85,11 @@ export class QuotesService {
   getActivities(quoteId: string): Observable<QuoteActivityResponse[]> {
     return this.http.get<QuoteActivityResponse[]>(`${this.baseUrl}/${quoteId}/activities`);
   }
+
+  /** Download the quote PDF as a blob */
+  downloadPdf(quoteId: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${quoteId}/pdf`, {
+      responseType: 'blob',
+    });
+  }
 }

@@ -35,6 +35,7 @@ export class QuoteProposalComponent implements OnInit {
   protected readonly toggling = signal<string | null>(null); // itemId being toggled
   protected readonly accepting = signal(false);
   protected readonly rejecting = signal(false);
+  protected readonly downloadingPdf = signal(false);
 
   // Accept form
   protected readonly signatureName = signal('');
@@ -275,6 +276,28 @@ export class QuoteProposalComponent implements OnInit {
 
   protected getVatBreakdown(): VatBreakdown[] {
     return this.quote()?.vatBreakdown ?? [];
+  }
+
+  protected downloadPdf(): void {
+    const t = this.token();
+    const q = this.quote();
+    if (!t || !q) return;
+
+    this.downloadingPdf.set(true);
+    this.publicQuoteService.downloadPdf(t).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Offerte-${q.quoteNumber}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingPdf.set(false);
+      },
+      error: () => {
+        this.downloadingPdf.set(false);
+      },
+    });
   }
 
   protected trackById(_: number, item: { id: string }): string {

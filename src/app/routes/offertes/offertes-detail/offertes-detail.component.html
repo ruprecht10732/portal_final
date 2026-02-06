@@ -85,6 +85,19 @@
               <lucide-icon name="printer" class="h-4 w-4"></lucide-icon>
             </shared-button>
 
+            @if (q.pdfFileKey) {
+              <shared-button
+                variant="secondary"
+                size="compact"
+                [fullWidth]="false"
+                [loading]="downloadingPdf()"
+                (clicked)="downloadPdf()"
+              >
+                <lucide-icon name="download" class="h-4 w-4"></lucide-icon>
+                PDF downloaden
+              </shared-button>
+            }
+
             <shared-button
               variant="ghost"
               size="compact"

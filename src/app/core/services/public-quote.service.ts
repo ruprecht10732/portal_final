@@ -49,4 +49,11 @@ export class PublicQuoteService {
   reject(token: string, data: RejectQuoteRequest): Observable<PublicQuoteResponse> {
     return this.http.post<PublicQuoteResponse>(`${this.baseUrl}/${token}/reject`, data);
   }
+
+  /** Download the quote PDF as a blob */
+  downloadPdf(token: string): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/${token}/pdf`, {
+      responseType: 'blob',
+    });
+  }
 }

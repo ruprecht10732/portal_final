@@ -55,6 +55,7 @@ export interface QuoteResponse {
   validUntil?: string;
   notes?: string;
   items: QuoteItemResponse[];
+  pdfFileKey?: string;
   createdAt: string;
   updatedAt: string;
 }

@@ -38,6 +38,7 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly showDeleteConfirm = signal(false);
   protected readonly updating = signal(false);
   protected readonly sending = signal(false);
+  protected readonly downloadingPdf = signal(false);
 
   // Reply text per item (keyed by item ID)
   protected readonly replyTexts = signal<Record<string, string>>({});
@@ -223,6 +224,27 @@ export class OffertesDetailComponent implements OnInit {
 
   protected print(): void {
     globalThis.print();
+  }
+
+  protected downloadPdf(): void {
+    const q = this.quote();
+    if (!q?.pdfFileKey) return;
+
+    this.downloadingPdf.set(true);
+    this.quotesService.downloadPdf(q.id).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Offerte-${q.quoteNumber}.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingPdf.set(false);
+      },
+      error: () => {
+        this.downloadingPdf.set(false);
+      },
+    });
   }
 
   protected sendProposal(): void {
