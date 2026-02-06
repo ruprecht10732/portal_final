@@ -37,15 +37,15 @@ export class LeadDetailTimelineTabComponent {
 
   protected formatEstimationNotes(value: string): string {
     const escaped = this.escapeHtml(value);
-    const bolded = escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
-    return bolded.replace(/\r?\n/g, '<br />');
+    const bolded = escaped.replaceAll(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+    return bolded.replaceAll(/\r?\n/g, '<br />');
   }
 
   private escapeHtml(value: string): string {
     return value
-      .replace(/&/g, '&amp;')
-      .replace(/</g, '&lt;')
-      .replace(/>/g, '&gt;');
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;');
   }
 
   protected t(key: string, params?: Record<string, unknown>): string {

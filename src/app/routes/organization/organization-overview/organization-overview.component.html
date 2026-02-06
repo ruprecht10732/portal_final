@@ -1,109 +1,171 @@
 @if (isLoading()) {
-  <div class="flex items-center justify-center py-12">
-    <div class="animate-spin rounded-full h-8 w-8 border-b-2 border-black"></div>
+  <div class="flex items-center justify-center py-24">
+    <div class="animate-spin rounded-full h-8 w-8 border-2 border-slate-200 border-t-indigo-600"></div>
   </div>
 } @else {
-  <section class="w-full space-y-6 bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-zinc-900">{{ 'organization.profileTitle' | translate }}</h3>
-      <p class="text-sm text-zinc-500">{{ 'organization.profileSubtitle' | translate }}</p>
-    </div>
+  <div class="mx-auto max-w-4xl px-4 py-10 font-sans">
+    
+    <header class="mb-10 text-center sm:text-left">
+      <h3 class="text-2xl font-bold tracking-tight text-slate-900">{{ 'organization.profileTitle' | translate }}</h3>
+      <p class="mt-2 text-sm text-slate-500">{{ 'organization.profileSubtitle' | translate }}</p>
+    </header>
 
     @if (errorMessage()) {
-      <div class="border-y border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:border sm:rounded-sm">
-        {{ errorMessage() }}
+      <div class="mb-8 flex items-center gap-3 rounded-xl bg-red-50 p-4 text-sm text-red-800 border border-red-100 animate-in fade-in zoom-in-95">
+        <svg class="h-5 w-5 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+        <span class="font-medium">{{ errorMessage() }}</span>
       </div>
     }
 
-    <div class="grid gap-5">
-      <shared-input
-        [label]="'organization.fields.name' | translate"
-        [value]="name()"
-        (valueChange)="name.set($event)"
-        [error]="nameError()"
-        [required]="true"
-      />
+    <div class="flex flex-col gap-10">
+      
+      <section class="flex flex-col gap-6">
+        <div class="border-b border-slate-100 pb-4">
+          <h4 class="text-sm font-bold uppercase tracking-wider text-slate-400">{{ 'organization.logo.title' | translate }}</h4>
+        </div>
 
-      <div class="grid gap-4 sm:grid-cols-2">
-        <shared-input
-          [label]="'organization.fields.email' | translate"
-          [value]="email()"
-          (valueChange)="email.set($event)"
-          [error]="emailError()"
-        />
-        <shared-input
-          [label]="'organization.fields.phone' | translate"
-          [value]="phone()"
-          (valueChange)="phone.set($event)"
-        />
-      </div>
+        <div class="flex flex-col sm:flex-row items-start sm:items-center gap-8">
+          @if (logoUrl()) {
+            <div class="group relative">
+              <img
+                [src]="logoUrl()"
+                [alt]="name() || 'Organization logo'"
+                class="h-24 w-24 rounded-2xl object-cover border-2 border-white bg-white shadow-md ring-1 ring-slate-200 transition-transform group-hover:scale-105"
+              />
+              <button
+                (click)="deleteLogo()"
+                [disabled]="logoDeletingInProgress()"
+                class="absolute -right-2 -top-2 flex h-7 w-7 items-center justify-center rounded-full bg-white border border-slate-200 text-slate-400 shadow-sm hover:text-red-600 hover:border-red-100 transition-all active:scale-90"
+              >
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" /></svg>
+              </button>
+            </div>
+          } @else {
+            <div class="h-24 w-24 rounded-2xl bg-slate-50 border-2 border-dashed border-slate-200 flex items-center justify-center text-slate-300">
+               <svg class="h-8 w-8" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="1.5"><path stroke-linecap="round" stroke-linejoin="round" d="M2.25 15.75l5.159-5.159a2.25 2.25 0 013.182 0l5.159 5.159m-1.5-1.5l1.409-1.409a2.25 2.25 0 013.182 0l2.909 2.909m-18 3.75h16.5a1.5 1.5 0 001.5-1.5V6a1.5 1.5 0 00-1.5-1.5H3.75A1.5 1.5 0 002.25 6v12a1.5 1.5 0 001.5 1.5zm10.5-11.25h.008v.008h-.008V6.75zm.375 0a.375.375 0 11-.75 0 .375.375 0 01.75 0z" /></svg>
+            </div>
+          }
 
-      <div class="grid gap-4 sm:grid-cols-2">
-        <shared-input
-          [label]="'organization.fields.vatNumber' | translate"
-          [value]="vatNumber()"
-          (valueChange)="vatNumber.set($event)"
-          [error]="vatError()"
-        />
-        <shared-input
-          [label]="'organization.fields.kvkNumber' | translate"
-          [value]="kvkNumber()"
-          (valueChange)="kvkNumber.set($event)"
-          [error]="kvkError()"
-        />
-      </div>
+          <div class="flex-1">
+            <app-file-uploader
+              [label]="'organization.logo.select' | translate"
+              [helpText]="'organization.logo.helpText' | translate"
+              [accept]="'image/*'"
+              [buttonLabel]="'organization.logo.upload' | translate"
+              [uploadingLabel]="'organization.logo.uploading' | translate"
+              [errorFallback]="'organization.logo.uploadFailed' | translate"
+              [maxSizeBytes]="5242880"
+              [maxSizeError]="'organization.logo.maxSize' | translate"
+              [disabled]="isSaving() || isLoading()"
+              [presign]="presignLogo"
+              [finalize]="finalizeLogo"
+            />
+          </div>
+        </div>
+      </section>
 
-      <shared-autocomplete
-        [label]="'organization.fields.addressLine1' | translate"
-        [value]="addressLine1()"
-        (valueChange)="onAddressLine1Change($event)"
-        [options]="addressOptions()"
-        [filterMode]="'manual'"
-        [placeholder]="'organization.fields.addressSearchPlaceholder' | translate"
-      />
+      <section class="flex flex-col gap-6">
+        <div class="border-b border-slate-100 pb-4">
+          <h4 class="text-sm font-bold uppercase tracking-wider text-slate-400">Core Details</h4>
+        </div>
 
-      <shared-input
-        [label]="'organization.fields.addressLine2' | translate"
-        [value]="addressLine2()"
-        (valueChange)="addressLine2.set($event)"
-      />
+        <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+          <shared-input
+            class="sm:col-span-2"
+            [label]="'organization.fields.name' | translate"
+            [value]="name()"
+            (valueChange)="name.set($event)"
+            [error]="nameError()"
+            [required]="true"
+          />
+          <shared-input
+            [label]="'organization.fields.email' | translate"
+            [value]="email()"
+            (valueChange)="email.set($event)"
+            [error]="emailError()"
+          />
+          <shared-input
+            [label]="'organization.fields.phone' | translate"
+            [value]="phone()"
+            (valueChange)="phone.set($event)"
+          />
+          <shared-input
+            [label]="'organization.fields.vatNumber' | translate"
+            [value]="vatNumber()"
+            (valueChange)="vatNumber.set($event)"
+            [error]="vatError()"
+          />
+          <shared-input
+            [label]="'organization.fields.kvkNumber' | translate"
+            [value]="kvkNumber()"
+            (valueChange)="kvkNumber.set($event)"
+            [error]="kvkError()"
+          />
+        </div>
+      </section>
 
-      <div class="grid gap-4 sm:grid-cols-2">
-        <shared-input
-          [label]="'organization.fields.postalCode' | translate"
-          [value]="postalCode()"
-          (valueChange)="postalCode.set($event)"
-        />
-        <shared-input
-          [label]="'organization.fields.city' | translate"
-          [value]="city()"
-          (valueChange)="city.set($event)"
-        />
-      </div>
+      <section class="flex flex-col gap-6">
+        <div class="border-b border-slate-100 pb-4">
+          <h4 class="text-sm font-bold uppercase tracking-wider text-slate-400">Location</h4>
+        </div>
 
-      <shared-input
-        [label]="'organization.fields.country' | translate"
-        [value]="country()"
-        (valueChange)="country.set($event)"
-      />
+        <div class="grid grid-cols-1 gap-6">
+          <shared-autocomplete
+            [label]="'organization.fields.addressLine1' | translate"
+            [value]="addressLine1()"
+            (valueChange)="onAddressLine1Change($event)"
+            [options]="addressOptions()"
+            [filterMode]="'manual'"
+            [placeholder]="'Search business address...'"
+          />
+          <shared-input
+            [label]="'organization.fields.addressLine2' | translate"
+            [value]="addressLine2()"
+            (valueChange)="addressLine2.set($event)"
+          />
+          <div class="grid grid-cols-1 gap-6 sm:grid-cols-2">
+            <shared-input
+              [label]="'organization.fields.postalCode' | translate"
+              [value]="postalCode()"
+              (valueChange)="postalCode.set($event)"
+            />
+            <shared-input
+              [label]="'organization.fields.city' | translate"
+              [value]="city()"
+              (valueChange)="city.set($event)"
+            />
+          </div>
+          <shared-input
+            [label]="'organization.fields.country' | translate"
+            [value]="country()"
+            (valueChange)="country.set($event)"
+          />
+        </div>
+      </section>
+
+      <footer class="mt-6 flex flex-col sm:flex-row items-center justify-between gap-4 pt-8 border-t border-slate-200">
+        <div>
+          @if (successMessage()) {
+            <p class="text-sm font-bold text-emerald-600 flex items-center gap-2">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" /></svg>
+              {{ successMessage() }}
+            </p>
+          } @else {
+            <p class="text-xs text-slate-400">Ensure all legal information is accurate.</p>
+          }
+        </div>
+
+        <button
+          class="w-full sm:w-auto inline-flex items-center justify-center gap-2 rounded-xl bg-indigo-600 px-10 py-3.5 text-sm font-bold text-white shadow-indigo-100 transition-all hover:bg-indigo-700 hover:shadow-lg hover:shadow-indigo-200 active:scale-95 disabled:opacity-50"
+          [disabled]="!canSave() || isSaving()"
+          (click)="save()"
+        >
+          @if (isSaving()) {
+            <svg class="animate-spin h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+          }
+          {{ 'organization.save' | translate }}
+        </button>
+      </footer>
     </div>
-
-    <div class="flex flex-col sm:flex-row sm:justify-end">
-      <shared-button
-        class="w-full sm:w-auto"
-        variant="primary"
-        size="compact"
-        [disabled]="!canSave()"
-        [loading]="isSaving()"
-        [ariaLabel]="'organization.save' | translate"
-        (clicked)="save()"
-      >
-        {{ 'organization.save' | translate }}
-      </shared-button>
-    </div>
-
-    @if (successMessage()) {
-      <p class="text-sm text-green-600 text-center sm:text-left">{{ successMessage() }}</p>
-    }
-  </section>
+  </div>
 }

@@ -86,7 +86,20 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly formattedPrice = computed(() => {
     const product = this.product();
     if (!product) return '—';
-    return `€${CatalogService.centsToPrice(product.priceCents).toFixed(2)}`;
+    if (product.priceCents > 0) {
+      return `€${CatalogService.centsToPrice(product.priceCents).toFixed(2)}`;
+    }
+    if (product.unitPriceCents > 0 && product.unitLabel) {
+      return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)} / ${product.unitLabel}`;
+    }
+    return '—';
+  });
+
+  protected readonly formattedUnitPrice = computed(() => {
+    const product = this.product();
+    if (!product || product.unitPriceCents <= 0) return '—';
+    const unit = product.unitLabel ? ` / ${product.unitLabel}` : '';
+    return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)}${unit}`;
   });
 
   protected readonly formattedVatRate = computed(() => {
@@ -138,7 +151,8 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly onPreviewAsset = (asset: CatalogAsset): void => this.openPreview(asset);
   protected readonly onDownloadAsset = (asset: CatalogAsset): void => this.openAsset(asset);
   protected readonly onFormatFileSize = (bytes?: number): string => this.formatFileSize(bytes);
-  protected readonly onFormatMaterialPrice = (priceCents: number): string => this.formatMaterialPrice(priceCents);
+  protected readonly onFormatMaterialPrice = (product: Product): string =>
+    this.formatMaterialPrice(product.priceCents, product.unitPriceCents, product.unitLabel);
   protected readonly onAssetUploaded = (asset: CatalogAsset): void => this.handleAssetUploaded(asset);
   protected readonly onAssetError = (event: FileUploadError | null): void => this.handleAssetError(event);
   protected readonly onDeleteAsset = (asset: CatalogAsset): void => this.requestDeleteAsset(asset);
@@ -329,8 +343,15 @@ export class CatalogDetailComponent implements OnInit {
     });
   }
 
-  protected formatMaterialPrice(priceCents: number): string {
-    return `€${CatalogService.centsToPrice(priceCents).toFixed(2)}`;
+  protected formatMaterialPrice(priceCents: number, unitPriceCents?: number, unitLabel?: string): string {
+    if (priceCents > 0) {
+      return `€${CatalogService.centsToPrice(priceCents).toFixed(2)}`;
+    }
+    if (unitPriceCents && unitPriceCents > 0) {
+      const unit = unitLabel ? ` / ${unitLabel}` : '';
+      return `€${CatalogService.centsToPrice(unitPriceCents).toFixed(2)}${unit}`;
+    }
+    return '—';
   }
 
   protected openAsset(asset: CatalogAsset): void {

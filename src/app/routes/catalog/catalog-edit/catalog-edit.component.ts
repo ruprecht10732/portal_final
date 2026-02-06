@@ -85,11 +85,16 @@ export class CatalogEditComponent implements OnInit {
   protected readonly formInitialValue = computed<CatalogFormValue | null>(() => {
     const product = this.product();
     if (!product) return null;
+    const priceType = product.unitPriceCents > 0 ? 'unit' : 'fixed';
     return {
       title: product.title,
       reference: product.reference,
       description: product.description ?? '',
+      priceType,
       price: CatalogService.centsToPrice(product.priceCents),
+      unitPrice: CatalogService.centsToPrice(product.unitPriceCents ?? 0),
+      unitLabel: product.unitLabel ?? '',
+      laborTimeText: product.laborTimeText ?? '',
       vatRateId: product.vatRateId,
       type: product.type,
       periodCount: product.periodCount ?? null,
@@ -204,14 +209,20 @@ export class CatalogEditComponent implements OnInit {
     this.saving.set(true);
     this.error.set(null);
 
-    const priceCents = values.price === null ? 0 : CatalogService.priceToCents(values.price);
+    const isFixed = values.priceType === 'fixed';
+    const priceCents = isFixed && values.price !== null ? CatalogService.priceToCents(values.price) : 0;
+    const unitPriceCents = !isFixed && values.unitPrice !== null ? CatalogService.priceToCents(values.unitPrice) : 0;
+    const unitLabelValue = values.unitLabel.trim();
     const descriptionValue = values.description.trim();
     const vatRateIdValue = values.vatRateId;
+    const laborTimeTextValue = values.laborTimeText.trim();
 
     const request: UpdateProductRequest = {
       title: values.title.trim(),
       reference: values.reference.trim(),
       priceCents,
+      unitPriceCents,
+      ...(isFixed ? { unitLabel: '' } : { unitLabel: unitLabelValue }),
       type: values.type,
       ...(descriptionValue && { description: descriptionValue }),
       ...(vatRateIdValue && { vatRateId: vatRateIdValue }),
@@ -221,6 +232,7 @@ export class CatalogEditComponent implements OnInit {
     if (values.type === 'service' || values.type === 'digital_service') {
       if (values.periodCount !== null) request.periodCount = values.periodCount;
       if (values.periodUnit !== null) request.periodUnit = values.periodUnit;
+      if (laborTimeTextValue) request.laborTimeText = laborTimeTextValue;
     }
 
     this.catalogService.updateProduct(product.id, request).subscribe({

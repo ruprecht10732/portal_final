@@ -60,22 +60,29 @@ export class CatalogCreateComponent implements OnInit {
     this.saving.set(true);
     this.error.set(null);
 
-    const priceCents = values.price === null ? 0 : CatalogService.priceToCents(values.price);
+    const isFixed = values.priceType === 'fixed';
+    const priceCents = isFixed && values.price !== null ? CatalogService.priceToCents(values.price) : 0;
+    const unitPriceCents = !isFixed && values.unitPrice !== null ? CatalogService.priceToCents(values.unitPrice) : 0;
+    const unitLabelValue = (values.unitLabel ?? '').trim();
     const descriptionValue = (values.description ?? '').trim();
+    const laborTimeTextValue = (values.laborTimeText ?? '').trim();
 
     const request: CreateProductRequest = {
       title: values.title,
       reference: values.reference,
       priceCents,
+      unitPriceCents,
       vatRateId: values.vatRateId,
       type: values.type,
       ...(descriptionValue && { description: descriptionValue }),
+      ...(!isFixed && unitLabelValue && { unitLabel: unitLabelValue }),
     };
 
     // Add period fields only for service types
     if (values.type === 'service' || values.type === 'digital_service') {
       if (values.periodCount !== null) request.periodCount = values.periodCount;
       if (values.periodUnit !== null) request.periodUnit = values.periodUnit;
+      if (laborTimeTextValue) request.laborTimeText = laborTimeTextValue;
     }
 
     this.catalogService.createProduct(request).subscribe({

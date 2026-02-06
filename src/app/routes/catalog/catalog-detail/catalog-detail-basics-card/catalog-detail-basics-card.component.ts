@@ -6,7 +6,7 @@ import { ChipComponent, type ChipVariant } from '../../../../shared/components/c
 import { LucideAngularModule } from 'lucide-angular';
 
 interface DetailsRow {
-  key: 'title' | 'reference' | 'vatRate' | 'price' | 'type' | 'createdAt' | 'updatedAt';
+  key: 'title' | 'reference' | 'vatRate' | 'price' | 'unitPrice' | 'laborTimeText' | 'type' | 'createdAt' | 'updatedAt';
   labelKey: string;
   value: string | null;
   variant?: ChipVariant;
@@ -32,6 +32,7 @@ export class CatalogDetailBasicsCardComponent {
   readonly heroImageUrl = input<string | null>(null);
   readonly formattedVatRate = input.required<string>();
   readonly formattedPrice = input.required<string>();
+  readonly formattedUnitPrice = input.required<string>();
   readonly typeLabel = input.required<string>();
   readonly typeVariant = input.required<ChipVariant>();
   readonly createdAt = input.required<string | Date>();
@@ -55,7 +56,8 @@ export class CatalogDetailBasicsCardComponent {
   protected readonly editReference = signal('');
   protected readonly editPrice = signal('');
 
-  protected readonly detailsRows = computed<DetailsRow[]>(() => [
+  protected readonly detailsRows = computed<DetailsRow[]>(() => {
+    const rows: DetailsRow[] = [
     {
       key: 'title',
       labelKey: 'catalog.products.fields.title',
@@ -84,6 +86,26 @@ export class CatalogDetailBasicsCardComponent {
       editable: true,
     },
     {
+      key: 'unitPrice',
+      labelKey: 'catalog.products.fields.unitPrice',
+      value: this.formattedUnitPrice(),
+      valueType: 'text',
+    },
+    ];
+
+    const product = this.product();
+    const laborTimeText = product.laborTimeText?.trim();
+    if ((product.type === 'service' || product.type === 'digital_service') && laborTimeText) {
+      rows.push({
+        key: 'laborTimeText',
+        labelKey: 'catalog.products.fields.laborTimeText',
+        value: laborTimeText,
+        valueType: 'text',
+      });
+    }
+
+    rows.push(
+    {
       key: 'type',
       labelKey: 'catalog.products.fields.type',
       value: this.typeLabel(),
@@ -102,7 +124,10 @@ export class CatalogDetailBasicsCardComponent {
       value: this.updatedAt() ? this.datePipe.transform(this.updatedAt(), 'medium') : null,
       valueType: 'text',
     },
-  ]);
+    );
+
+    return rows;
+  });
 
   protected getActiveHero(): HeroImageOption | null {
     const current = this.heroImageUrl();

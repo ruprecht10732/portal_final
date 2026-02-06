@@ -51,6 +51,18 @@
       "kvkInvalid": "Enter a valid KVK number",
       "nameRequired": "Organization name is required",
       "generic": "Something went wrong."
+    },
+    "logo": {
+      "title": "Organization logo",
+      "subtitle": "Upload a logo that represents your organization.",
+      "select": "Select logo",
+      "upload": "Upload logo",
+      "uploading": "Uploading...",
+      "delete": "Remove logo",
+      "helpText": "Accepted formats: JPG, PNG, GIF, WebP, SVG.",
+      "maxSize": "Maximum file size: 5 MB",
+      "uploadFailed": "Logo upload failed.",
+      "deleteFailed": "Failed to remove logo."
     }
   }
 }

@@ -58,6 +58,7 @@
               [heroImageUrl]="heroImageUrl()"
               [formattedVatRate]="formattedVatRate()"
               [formattedPrice]="formattedPrice()"
+              [formattedUnitPrice]="formattedUnitPrice()"
               [typeLabel]="typeLabel()"
               [typeVariant]="getTypeVariant(product()!.type)"
               [createdAt]="product()!.createdAt"
@@ -178,7 +179,7 @@
                 <p class="text-sm font-medium text-zinc-900 truncate">{{ material.title }}</p>
                 <p class="text-xs text-zinc-500 font-mono">{{ material.reference }}</p>
               </div>
-              <span class="text-sm font-medium text-zinc-600">{{ formatMaterialPrice(material.priceCents) }}</span>
+              <span class="text-sm font-medium text-zinc-600">{{ formatMaterialPrice(material.priceCents, material.unitPriceCents, material.unitLabel) }}</span>
             </label>
           }
         </div>

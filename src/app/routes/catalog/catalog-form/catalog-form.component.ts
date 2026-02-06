@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, input, output, signal } from '@angular/core';
-import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { FormBuilder, ReactiveFormsModule, Validators, type AbstractControl, type ValidationErrors } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
   CatalogService,
@@ -17,7 +17,11 @@ export interface CatalogFormValue {
   title: string;
   reference: string;
   description: string;
+  priceType: 'fixed' | 'unit';
   price: number | null;
+  unitPrice: number | null;
+  unitLabel: string;
+  laborTimeText: string;
   vatRateId: string;
   type: ProductType;
   periodCount: number | null;
@@ -61,12 +65,16 @@ export class CatalogFormComponent {
     title: ['', [Validators.required, Validators.maxLength(200)]],
     reference: ['', [Validators.required, Validators.maxLength(100)]],
     description: ['', Validators.maxLength(1000)],
-    price: this.fb.control<number | null>(null, Validators.required),
+    priceType: this.fb.control<'fixed' | 'unit'>('fixed', { nonNullable: true }),
+    price: this.fb.control<number | null>(null, Validators.min(0)),
+    unitPrice: this.fb.control<number | null>(null, Validators.min(0)),
+    unitLabel: this.fb.control<string>('', Validators.maxLength(50)),
+    laborTimeText: this.fb.control<string>('', Validators.maxLength(100)),
     vatRateId: ['', Validators.required],
     type: this.fb.control<ProductType>('product', { nonNullable: true }),
     periodCount: this.fb.control<number | null>(null),
     periodUnit: this.fb.control<PeriodUnit | null>(null),
-  });
+  }, { validators: [this.pricingValidator] });
 
   protected readonly typeOptions = computed<SelectOption<ProductType>[]>(() => [
     { label: this.translate.instant('catalog.products.types.digital_service'), value: 'digital_service' },
@@ -81,6 +89,11 @@ export class CatalogFormComponent {
     { label: this.translate.instant('catalog.products.periodUnits.month'), value: 'month' },
     { label: this.translate.instant('catalog.products.periodUnits.quarter'), value: 'quarter' },
     { label: this.translate.instant('catalog.products.periodUnits.year'), value: 'year' },
+  ]);
+
+  protected readonly priceTypeOptions = computed<SelectOption<'fixed' | 'unit'>[]>(() => [
+    { label: this.translate.instant('catalog.products.pricing.fixed'), value: 'fixed' },
+    { label: this.translate.instant('catalog.products.pricing.unit'), value: 'unit' },
   ]);
 
   protected readonly vatRateOptions = computed<SelectOption<string>[]>(() =>
@@ -105,7 +118,11 @@ export class CatalogFormComponent {
         title: initial.title,
         reference: initial.reference,
         description: initial.description ?? '',
+        priceType: initial.priceType,
         price: initial.price,
+        unitPrice: initial.unitPrice,
+        unitLabel: initial.unitLabel ?? '',
+        laborTimeText: initial.laborTimeText ?? '',
         vatRateId: initial.vatRateId,
         type: initial.type,
         periodCount: initial.periodCount ?? null,
@@ -135,6 +152,7 @@ export class CatalogFormComponent {
     if (wasServiceType && !isNowServiceType) {
       this.form.controls.periodCount.setValue(null);
       this.form.controls.periodUnit.setValue(null);
+      this.form.controls.laborTimeText.setValue('');
     }
 
     this.typeChanged.emit(value);
@@ -142,6 +160,17 @@ export class CatalogFormComponent {
 
   protected setVatRate(value: string | null): void {
     this.form.controls.vatRateId.setValue(value ?? '');
+  }
+
+  protected setPriceType(value: 'fixed' | 'unit' | null): void {
+    if (!value) return;
+    this.form.controls.priceType.setValue(value);
+    if (value === 'fixed') {
+      this.form.controls.unitPrice.setValue(null);
+      this.form.controls.unitLabel.setValue('');
+    } else {
+      this.form.controls.price.setValue(null);
+    }
   }
 
   protected setPeriodUnit(value: PeriodUnit | null): void {
@@ -159,7 +188,11 @@ export class CatalogFormComponent {
       title: (values.title ?? '').trim(),
       reference: (values.reference ?? '').trim(),
       description: (values.description ?? '').trim(),
+      priceType: values.priceType,
       price: values.price,
+      unitPrice: values.unitPrice,
+      unitLabel: (values.unitLabel ?? '').trim(),
+      laborTimeText: (values.laborTimeText ?? '').trim(),
       vatRateId: values.vatRateId ?? '',
       type: values.type,
       periodCount: values.periodCount ?? null,
@@ -175,5 +208,31 @@ export class CatalogFormComponent {
     if (!this.submitAttempted()) return '';
     if (!control?.hasError('required')) return '';
     return this.requiredError();
+  }
+
+  private pricingValidator(control: AbstractControl): ValidationErrors | null {
+    const price = (control.get('price')?.value as number | null) ?? 0;
+    const unitPrice = (control.get('unitPrice')?.value as number | null) ?? 0;
+    const unitLabel = String(control.get('unitLabel')?.value ?? '').trim();
+    const priceType = (control.get('priceType')?.value as 'fixed' | 'unit' | null) ?? 'fixed';
+
+    const hasFixedPrice = Number.isFinite(price) && price > 0;
+    const hasUnitPrice = Number.isFinite(unitPrice) && unitPrice > 0;
+
+    if (priceType === 'fixed') {
+      if (!hasFixedPrice) {
+        return { fixedPriceRequired: true };
+      }
+      return null;
+    }
+
+    if (!hasUnitPrice) {
+      return { unitPriceRequired: true };
+    }
+    if (!unitLabel) {
+      return { unitLabelRequired: true };
+    }
+
+    return null;
   }
 }

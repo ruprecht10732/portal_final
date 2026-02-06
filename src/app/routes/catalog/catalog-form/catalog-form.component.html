@@ -37,17 +37,50 @@
         />
 
         <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-          <shared-number-input
-            [label]="'catalog.products.fields.price' | translate"
-            [value]="form.controls.price.value"
-            (valueChange)="form.controls.price.setValue($event)"
+          <shared-select
+            [label]="'catalog.products.fields.pricingMode' | translate"
+            [options]="priceTypeOptions()"
+            [value]="form.controls.priceType.value"
+            (valueChange)="setPriceType($event)"
             [required]="true"
-            [error]="requiredControlError(form.controls.price)"
-            prefix="€"
-            [min]="0"
-            [step]="0.01"
-            [placeholder]="'0.00'"
           />
+
+          @if (form.controls.priceType.value === 'fixed') {
+            <shared-number-input
+              [label]="'catalog.products.fields.price' | translate"
+              [value]="form.controls.price.value"
+              (valueChange)="form.controls.price.setValue($event)"
+              [required]="true"
+              [error]="submitAttempted() && form.hasError('fixedPriceRequired') ? ('catalog.products.validation.fixedPriceRequired' | translate) : ''"
+              prefix="€"
+              [min]="0"
+              [step]="0.01"
+              [placeholder]="'0.00'"
+            />
+          }
+
+          @if (form.controls.priceType.value === 'unit') {
+            <shared-number-input
+              [label]="'catalog.products.fields.unitPrice' | translate"
+              [value]="form.controls.unitPrice.value"
+              (valueChange)="form.controls.unitPrice.setValue($event)"
+              [required]="true"
+              [error]="submitAttempted() && form.hasError('unitPriceRequired') ? ('catalog.products.validation.unitPriceRequired' | translate) : ''"
+              prefix="€"
+              [min]="0"
+              [step]="0.01"
+              [placeholder]="'0.00'"
+            />
+
+            <shared-input
+              [label]="'catalog.products.fields.unitLabel' | translate"
+              [value]="form.controls.unitLabel.value ?? ''"
+              (valueChange)="form.controls.unitLabel.setValue($event)"
+              [required]="true"
+              [error]="submitAttempted() && form.hasError('unitLabelRequired') ? ('catalog.products.validation.unitLabelRequired' | translate) : ''"
+              [placeholder]="'catalog.products.placeholders.unitLabel' | translate"
+            />
+          }
 
           <shared-select
             [label]="'catalog.products.fields.vatRate' | translate"
@@ -79,6 +112,13 @@
         />
 
         @if (isServiceType()) {
+          <shared-input
+            [label]="'catalog.products.fields.laborTimeText' | translate"
+            [value]="form.controls.laborTimeText.value ?? ''"
+            (valueChange)="form.controls.laborTimeText.setValue($event)"
+            [placeholder]="'catalog.products.placeholders.laborTimeText' | translate"
+          />
+
           <div class="border border-zinc-200 p-4 bg-zinc-50 space-y-4">
             <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">
               {{ 'catalog.products.periodConfiguration' | translate }}

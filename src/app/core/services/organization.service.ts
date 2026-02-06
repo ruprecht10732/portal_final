@@ -15,6 +15,10 @@ export interface Organization {
   postalCode?: string;
   city?: string;
   country?: string;
+  logoFileKey?: string;
+  logoFileName?: string;
+  logoContentType?: string;
+  logoSizeBytes?: number;
 }
 
 export interface UpdateOrganizationRequest {
@@ -28,6 +32,30 @@ export interface UpdateOrganizationRequest {
   postalCode?: string;
   city?: string;
   country?: string;
+}
+
+export interface OrgLogoPresignRequest {
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface OrgLogoPresignResponse {
+  uploadUrl: string;
+  fileKey: string;
+  expiresAt: number;
+}
+
+export interface SetOrgLogoRequest {
+  fileKey: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface OrgLogoDownloadResponse {
+  downloadUrl: string;
+  expiresAt: number;
 }
 
 export interface InviteRequest {
@@ -90,5 +118,21 @@ export class OrganizationService {
 
   revokeInvite(inviteId: string): Observable<OrganizationInvite> {
     return this.http.delete<OrganizationInvite>(`${this.baseUrl}/invites/${inviteId}`);
+  }
+
+  presignLogo(request: OrgLogoPresignRequest): Observable<OrgLogoPresignResponse> {
+    return this.http.post<OrgLogoPresignResponse>(`${this.baseUrl}/me/logo/presign`, request);
+  }
+
+  setLogo(request: SetOrgLogoRequest): Observable<Organization> {
+    return this.http.post<Organization>(`${this.baseUrl}/me/logo`, request);
+  }
+
+  getLogoDownloadUrl(): Observable<OrgLogoDownloadResponse> {
+    return this.http.get<OrgLogoDownloadResponse>(`${this.baseUrl}/me/logo/download`);
+  }
+
+  deleteLogo(): Observable<Organization> {
+    return this.http.delete<Organization>(`${this.baseUrl}/me/logo`);
   }
 }

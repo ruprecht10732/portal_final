@@ -14,6 +14,6 @@ import { LucideAngularModule } from 'lucide-angular';
 export class CatalogDetailMaterialsCardComponent {
   readonly materials = input.required<Product[]>();
   readonly materialsLoading = input.required<boolean>();
-  readonly formatMaterialPrice = input.required<(priceCents: number) => string>();
+  readonly formatMaterialPrice = input.required<(product: Product) => string>();
   readonly openAddMaterialDialog = input.required<() => void>();
 }

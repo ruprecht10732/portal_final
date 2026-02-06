@@ -23,6 +23,9 @@ export interface Product {
   reference: string;
   description?: string;
   priceCents: number; // 1050 = €10.50
+  unitPriceCents: number; // 95000 = €950.00
+  unitLabel?: string;
+  laborTimeText?: string;
   type: ProductType;
   periodCount?: number;
   periodUnit?: PeriodUnit;
@@ -92,6 +95,9 @@ export interface CreateProductRequest {
   reference: string;
   description?: string;
   priceCents: number;
+  unitPriceCents?: number;
+  unitLabel?: string;
+  laborTimeText?: string;
   type: ProductType;
   periodCount?: number;
   periodUnit?: PeriodUnit;
@@ -103,6 +109,9 @@ export interface UpdateProductRequest {
   reference?: string;
   description?: string;
   priceCents?: number;
+  unitPriceCents?: number;
+  unitLabel?: string;
+  laborTimeText?: string;
   type?: ProductType;
   periodCount?: number;
   periodUnit?: PeriodUnit;

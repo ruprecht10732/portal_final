@@ -164,8 +164,17 @@ export class CatalogListComponent implements OnInit {
     }
   }
 
-  protected formatPrice(priceCents: number): string {
-    return `€${CatalogService.centsToPrice(priceCents).toFixed(2)}`;
+  protected formatPrice(product: Product): string {
+    if (product.priceCents > 0) {
+      return `€${CatalogService.centsToPrice(product.priceCents).toFixed(2)}`;
+    }
+    if (product.unitPriceCents > 0 && product.unitLabel) {
+      return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)} / ${product.unitLabel}`;
+    }
+    if (product.unitPriceCents > 0) {
+      return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)}`;
+    }
+    return '—';
   }
 
   protected getTypeVariant(type: ProductType): ChipVariant {

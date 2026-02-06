@@ -246,7 +246,9 @@
         "title": "bijv. Warmtepomp Onderhoud",
         "reference": "bijv. SRV-HP-01",
         "description": "Optionele productomschrijving...",
-        "periodUnit": "Selecteer eenheid"
+        "periodUnit": "Selecteer eenheid",
+        "unitLabel": "bijv. m2, stuk, uur",
+        "laborTimeText": "bijv. 2-4 uur"
       },
       "sections": {
         "basics": "Basisgegevens",
@@ -256,7 +258,11 @@
         "title": "Titel",
         "reference": "Referentie",
         "description": "Beschrijving",
+        "pricingMode": "Prijsmodel",
         "price": "Prijs",
+        "unitPrice": "Prijs per eenheid",
+        "unitLabel": "Eenheid",
+        "laborTimeText": "Geschatte arbeidstijd",
         "vatRate": "BTW-tarief",
         "type": "Type",
         "periodCount": "Periode aantal",
@@ -286,7 +292,14 @@
       "periodConfiguration": "Periodeconfiguratie",
       "validation": {
         "required": "Dit veld is verplicht",
+        "fixedPriceRequired": "Vul een vaste prijs in",
+        "unitPriceRequired": "Vul een prijs per eenheid in",
+        "unitLabelRequired": "Eenheid is verplicht bij prijs per eenheid",
         "fixErrors": "Corrigeer de fouten om door te gaan"
+      },
+      "pricing": {
+        "fixed": "Vaste prijs",
+        "unit": "Prijs per eenheid"
       },
       "errors": {
         "loadProducts": "Kon producten niet laden",

@@ -1,10 +1,11 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, finalize, map, of, switchMap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, finalize, firstValueFrom, map, of, switchMap } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { FileUploaderComponent, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { OrganizationService, type Organization, UpdateOrganizationRequest } from '../../../core/services/organization.service';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
@@ -13,7 +14,7 @@ import { isKvkValid, isVatValid } from '../../../core/utils/partner-validation.u
 
 @Component({
   selector: 'app-organization-overview',
-  imports: [ButtonComponent, AutocompleteComponent, InputComponent, TranslatePipe],
+  imports: [ButtonComponent, AutocompleteComponent, InputComponent, FileUploaderComponent, TranslatePipe],
   templateUrl: './organization-overview.component.html',
   styleUrl: './organization-overview.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -47,6 +48,12 @@ export class OrganizationOverviewComponent {
   protected readonly isSaving = signal(false);
   protected readonly successMessage = signal('');
   protected readonly errorMessage = signal('');
+
+  // Logo state
+  protected readonly logoUrl = signal<string | null>(null);
+  protected readonly logoLoading = signal(false);
+  protected readonly logoError = signal<string | null>(null);
+  protected readonly logoDeletingInProgress = signal(false);
 
   private readonly orgService = inject(OrganizationService);
   private readonly addressService = inject(AddressService);
@@ -163,6 +170,8 @@ export class OrganizationOverviewComponent {
       this.addressOptions.set([]);
       this.addressSuggestions.set([]);
     }
+
+    this.loadLogoDownloadUrl(org);
   }
 
   private setupAddressSearch(): void {
@@ -285,5 +294,84 @@ export class OrganizationOverviewComponent {
       if (value) return value;
     }
     return this.translate.instant('organization.errors.generic');
+  }
+
+  // ---------------------------------------------------------------------------
+  // Logo upload
+  // ---------------------------------------------------------------------------
+
+  protected presignLogo = async (file: File): Promise<PresignedUpload> => {
+    const response = await firstValueFrom(this.orgService.presignLogo({
+      fileName: file.name,
+      contentType: file.type || 'application/octet-stream',
+      sizeBytes: file.size,
+    }));
+
+    if (!response) {
+      throw new Error(this.translate.instant('organization.logo.uploadFailed'));
+    }
+
+    return { uploadUrl: response.uploadUrl, fileKey: response.fileKey };
+  };
+
+  protected finalizeLogo = async (file: File, presigned: PresignedUpload): Promise<unknown> => {
+    const updated = await firstValueFrom(this.orgService.setLogo({
+      fileKey: presigned.fileKey,
+      fileName: file.name,
+      contentType: file.type || 'application/octet-stream',
+      sizeBytes: file.size,
+    }));
+
+    if (!updated) {
+      throw new Error(this.translate.instant('organization.logo.uploadFailed'));
+    }
+
+    this.applyOrganization(updated, { resetAddress: false });
+    this.loadLogoDownloadUrl(updated);
+    return updated;
+  };
+
+  protected deleteLogo(): void {
+    this.logoDeletingInProgress.set(true);
+    this.logoError.set(null);
+
+    this.orgService
+      .deleteLogo()
+      .pipe(
+        catchError(error => {
+          this.logoError.set(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.logoDeletingInProgress.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(org => {
+        this.applyOrganization(org, { resetAddress: false });
+        this.logoUrl.set(null);
+      });
+  }
+
+  private loadLogoDownloadUrl(org: Organization): void {
+    if (!org.logoFileKey) {
+      this.logoUrl.set(null);
+      return;
+    }
+
+    this.logoLoading.set(true);
+    this.logoError.set(null);
+
+    this.orgService
+      .getLogoDownloadUrl()
+      .pipe(
+        catchError(() => {
+          this.logoUrl.set(null);
+          return EMPTY;
+        }),
+        finalize(() => this.logoLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(result => {
+        this.logoUrl.set(result.downloadUrl);
+      });
   }
 }

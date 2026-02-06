@@ -254,7 +254,9 @@
         "title": "e.g., Heat Pump Maintenance",
         "reference": "e.g., SRV-HP-01",
         "description": "Optional product description...",
-        "periodUnit": "Select unit"
+        "periodUnit": "Select unit",
+        "unitLabel": "e.g., m2, stuk, uur",
+        "laborTimeText": "e.g., 2-4 hours"
       },
       "sections": {
         "basics": "Basics",
@@ -264,7 +266,11 @@
         "title": "Title",
         "reference": "Reference",
         "description": "Description",
+        "pricingMode": "Pricing mode",
         "price": "Price",
+        "unitPrice": "Unit price",
+        "unitLabel": "Unit",
+        "laborTimeText": "Estimated labor time",
         "vatRate": "VAT Rate",
         "type": "Type",
         "periodCount": "Period Count",
@@ -294,7 +300,14 @@
       "periodConfiguration": "Period Configuration",
       "validation": {
         "required": "This field is required",
+        "fixedPriceRequired": "Enter a fixed price",
+        "unitPriceRequired": "Enter a unit price",
+        "unitLabelRequired": "Unit is required when unit price is set",
         "fixErrors": "Please fix the errors to continue"
+      },
+      "pricing": {
+        "fixed": "Fixed price",
+        "unit": "Price per unit"
       },
       "errors": {
         "loadProducts": "Failed to load products",
