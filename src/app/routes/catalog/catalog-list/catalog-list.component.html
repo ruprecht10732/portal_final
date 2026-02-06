@@ -27,6 +27,7 @@
     [fetchData]="gridFetchDataFn"
     (dataRequest)="onDataRequest($event)"
     (deleteRows)="onGridDeleteRows($event)"
+    (saveRows)="onGridSaveRows($event)"
     (rowDoubleClick)="onGridRowDoubleClick($event)"
     [ariaLabel]="'catalog.products.title' | translate"
   />

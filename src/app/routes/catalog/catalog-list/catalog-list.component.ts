@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { map, Observable } from 'rxjs';
-import { CatalogService, type Product, type ProductType, type ListProductsParams, type VatRate } from '../../../core/services/catalog.service';
+import { CatalogService, type Product, type ProductType, type ListProductsParams, type VatRate, type UpdateProductRequest } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -14,7 +14,8 @@ import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../..
 import { DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 
 type ProductRow = Product & {
-  priceLabel: string;
+  priceValue: number | null;
+  isUnitPrice: boolean;
   thumbnailUrl?: string | null;
 };
 
@@ -84,6 +85,10 @@ export class CatalogListComponent {
         field: 'reference',
         sortable: true,
         filterable: true,
+        editable: true,
+        validator: value => (typeof value === 'string' && value.trim().length > 0
+          ? null
+          : this.translate.instant('catalog.products.validation.referenceRequired')),
         width: '160px',
       },
       {
@@ -92,6 +97,10 @@ export class CatalogListComponent {
         field: 'title',
         sortable: true,
         filterable: true,
+        editable: true,
+        validator: value => (typeof value === 'string' && value.trim().length > 0
+          ? null
+          : this.translate.instant('catalog.products.validation.titleRequired')),
         minWidth: '220px',
       },
       {
@@ -102,6 +111,10 @@ export class CatalogListComponent {
         filterable: true,
         cellType: 'select',
         selectOptions: this.typeOptions(),
+        editable: true,
+        validator: value => this.typeOptions().some(option => option.value === value)
+          ? null
+          : this.translate.instant('catalog.products.validation.typeRequired'),
         width: '160px',
       },
       {
@@ -112,12 +125,21 @@ export class CatalogListComponent {
         filterable: true,
         cellType: 'select',
         selectOptions: this.vatRateOptions(),
+        editable: true,
+        validator: value => this.vatRateOptions().some(option => option.value === value)
+          ? null
+          : this.translate.instant('catalog.products.validation.vatRateRequired'),
         minWidth: '220px',
       },
       {
-        id: 'priceLabel',
+        id: 'priceValue',
         header: this.translate.instant('catalog.products.columns.price'),
-        field: 'priceLabel',
+        field: 'priceValue',
+        cellType: 'number',
+        editable: true,
+        validator: value => (value === null || value === '' || Number(value) < 0
+          ? this.translate.instant('catalog.products.validation.priceMin')
+          : null),
         align: 'right',
         width: '160px',
       },
@@ -189,6 +211,42 @@ export class CatalogListComponent {
 
   protected onGridDeleteRows(rows: Record<string, unknown>[]): void {
     this.onDeleteRows(rows as unknown as ProductRow[]);
+  }
+
+  protected onSaveRows(rows: ProductRow[]): void {
+    rows.forEach(row => {
+      if (!row.id) return;
+
+      const nextPrice = row.priceValue;
+      const updateRequest: UpdateProductRequest = {
+        title: row.title?.trim(),
+        reference: row.reference?.trim(),
+        type: row.type,
+        vatRateId: row.vatRateId,
+      };
+
+      if (typeof nextPrice === 'number' && Number.isFinite(nextPrice)) {
+        const nextCents = CatalogService.priceToCents(nextPrice);
+        if (row.isUnitPrice) {
+          updateRequest.unitPriceCents = nextCents;
+        } else {
+          updateRequest.priceCents = nextCents;
+        }
+      }
+
+      this.catalogService.updateProduct(row.id, updateRequest).subscribe({
+        next: () => this.refreshFromLastRequest(),
+        error: (err) => {
+          const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
+          this.error.set(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        },
+      });
+    });
+  }
+
+  protected onGridSaveRows(rows: Record<string, unknown>[]): void {
+    this.onSaveRows(rows as unknown as ProductRow[]);
   }
 
   protected confirmDelete(product: Product): void {
@@ -298,9 +356,13 @@ export class CatalogListComponent {
   }
 
   private buildProductRow(product: Product): ProductRow {
+    const hasFixedPrice = product.priceCents > 0 || product.unitPriceCents === 0;
+    const priceCents = hasFixedPrice ? product.priceCents : product.unitPriceCents;
+    const priceValue = priceCents > 0 ? CatalogService.centsToPrice(priceCents) : null;
     return {
       ...product,
-      priceLabel: this.formatPrice(product),
+      priceValue,
+      isUnitPrice: !hasFixedPrice,
       thumbnailUrl: this.thumbnailCache.get(product.id) ?? null,
     };
   }
@@ -359,6 +421,8 @@ export class CatalogListComponent {
         return 'type';
       case 'vatRateId':
         return 'vatRateId';
+      case 'priceValue':
+        return 'priceCents';
       case 'createdAt':
         return 'createdAt';
       case 'updatedAt':
@@ -366,18 +430,5 @@ export class CatalogListComponent {
       default:
         return 'createdAt';
     }
-  }
-
-  protected formatPrice(product: Product): string {
-    if (product.priceCents > 0) {
-      return `€${CatalogService.centsToPrice(product.priceCents).toFixed(2)}`;
-    }
-    if (product.unitPriceCents > 0 && product.unitLabel) {
-      return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)} / ${product.unitLabel}`;
-    }
-    if (product.unitPriceCents > 0) {
-      return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)}`;
-    }
-    return '—';
   }
 }
