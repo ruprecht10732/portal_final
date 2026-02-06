@@ -16,168 +16,20 @@
     {{ 'catalog.products.newProduct' | translate }}
   </shared-button>
 
-  <!-- Filters -->
-  <div class="flex flex-col sm:flex-row gap-3">
-    <div class="flex-1 max-w-md">
-      <shared-input
-        [placeholder]="'catalog.products.searchPlaceholder' | translate"
-        [value]="searchTerm()"
-        (valueChange)="onSearchChange($event)"
-        (keydown.enter)="onSearch()"
-        [clearable]="true"
-      />
-    </div>
-    <div class="w-full sm:w-48">
-      <shared-select
-        [options]="typeOptions()"
-        [value]="typeFilter()"
-        (valueChange)="onTypeFilterChange($event)"
-        [placeholder]="'catalog.products.filterByType' | translate"
-      />
-    </div>
-    <shared-button
-      variant="secondary"
-      [fullWidth]="false"
-      (clicked)="onSearch()"
-      [ariaLabel]="'catalog.products.search' | translate"
-    >
-      {{ 'catalog.products.search' | translate }}
-    </shared-button>
-  </div>
-
-  <!-- Loading State -->
-  @if (loading()) {
-    <div class="flex items-center justify-center p-12">
-      <div class="animate-spin h-8 w-8 border-4 border-zinc-200 border-t-black rounded-full"></div>
-    </div>
-  } @else if (isEmpty()) {
-    <!-- Empty State -->
-    <div class="rounded-lg border border-dashed border-zinc-300 bg-white p-12 text-center">
-      <svg class="mx-auto h-12 w-12 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M20 7l-8-4-8 4m16 0l-8 4m8-4v10l-8 4m0-10L4 7m8 4v10M4 7v10l8 4" />
-      </svg>
-      <h3 class="mt-4 text-sm font-semibold text-zinc-900">{{ 'catalog.products.emptyTitle' | translate }}</h3>
-      <p class="mt-1 text-sm text-zinc-500">{{ 'catalog.products.emptyDescription' | translate }}</p>
-      <div class="mt-6">
-        <shared-button
-          variant="primary"
-          [fullWidth]="false"
-          (clicked)="createProduct()"
-        >
-          {{ 'catalog.products.createFirst' | translate }}
-        </shared-button>
-      </div>
-    </div>
-  } @else {
-    <!-- Data Table -->
-    <div class="overflow-x-auto border border-zinc-200 bg-white">
-      <table class="min-w-full divide-y divide-zinc-200">
-        <thead class="bg-zinc-50">
-          <tr>
-            <th scope="col" class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-zinc-500">
-              {{ 'catalog.products.columns.reference' | translate }}
-            </th>
-            <th scope="col" class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-zinc-500">
-              {{ 'catalog.products.columns.title' | translate }}
-            </th>
-            <th scope="col" class="px-4 py-3 text-left text-xs font-bold uppercase tracking-wider text-zinc-500">
-              {{ 'catalog.products.columns.type' | translate }}
-            </th>
-            <th scope="col" class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-zinc-500">
-              {{ 'catalog.products.columns.price' | translate }}
-            </th>
-            <th scope="col" class="px-4 py-3 text-right text-xs font-bold uppercase tracking-wider text-zinc-500">
-              {{ 'catalog.products.columns.actions' | translate }}
-            </th>
-          </tr>
-        </thead>
-        <tbody class="divide-y divide-zinc-100">
-          @for (product of products(); track product.id) {
-            <tr class="hover:bg-zinc-50 transition-colors">
-              <td class="px-4 py-3 text-sm font-mono text-zinc-600 whitespace-nowrap">
-                {{ product.reference }}
-              </td>
-              <td class="px-4 py-3 text-sm font-medium text-zinc-900">
-                {{ product.title }}
-              </td>
-              <td class="px-4 py-3 whitespace-nowrap">
-                <shared-chip [variant]="getTypeVariant(product.type)">
-                  {{ getTypeLabel(product.type) }}
-                </shared-chip>
-              </td>
-              <td class="px-4 py-3 text-sm text-zinc-900 text-right font-medium whitespace-nowrap">
-                {{ formatPrice(product) }}
-              </td>
-              <td class="px-4 py-3 text-right whitespace-nowrap">
-                <div class="flex items-center justify-end gap-1">
-                  <button
-                    type="button"
-                    (click)="viewProduct(product)"
-                    class="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded transition-colors"
-                    [attr.aria-label]="'catalog.products.view' | translate"
-                  >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    (click)="editProduct(product)"
-                    class="p-2 text-zinc-500 hover:text-zinc-900 hover:bg-zinc-100 rounded transition-colors"
-                    [attr.aria-label]="'catalog.products.edit' | translate"
-                  >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
-                    </svg>
-                  </button>
-                  <button
-                    type="button"
-                    (click)="confirmDelete(product)"
-                    class="p-2 text-zinc-500 hover:text-red-600 hover:bg-red-50 rounded transition-colors"
-                    [attr.aria-label]="'catalog.products.delete' | translate"
-                  >
-                    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
-                    </svg>
-                  </button>
-                </div>
-              </td>
-            </tr>
-          }
-        </tbody>
-      </table>
-    </div>
-
-    <!-- Pagination -->
-    @if (totalPages() > 1) {
-      <div class="flex items-center justify-between border-t border-zinc-200 bg-white px-4 py-3">
-        <div class="text-sm text-zinc-500">
-          {{ 'catalog.products.pagination.showing' | translate:{page: page(), total: totalPages(), count: total()} }}
-        </div>
-        <div class="flex gap-2">
-          <shared-button
-            variant="secondary"
-            size="compact"
-            [fullWidth]="false"
-            [disabled]="page() <= 1"
-            (clicked)="prevPage()"
-          >
-            {{ 'catalog.products.pagination.previous' | translate }}
-          </shared-button>
-          <shared-button
-            variant="secondary"
-            size="compact"
-            [fullWidth]="false"
-            [disabled]="page() >= totalPages()"
-            (clicked)="nextPage()"
-          >
-            {{ 'catalog.products.pagination.next' | translate }}
-          </shared-button>
-        </div>
-      </div>
-    }
-  }
+  <shared-data-grid
+    [columns]="gridColumns()"
+    [data]="gridData()"
+    [totalItems]="total()"
+    [loading]="loading()"
+    [error]="error() ?? ''"
+    [config]="gridConfigAdapter"
+    [serverSide]="true"
+    [fetchData]="gridFetchDataFn"
+    (dataRequest)="onDataRequest($event)"
+    (deleteRows)="onGridDeleteRows($event)"
+    (rowDoubleClick)="onGridRowDoubleClick($event)"
+    [ariaLabel]="'catalog.products.title' | translate"
+  />
 
   <!-- Delete Confirmation Dialog -->
   <shared-confirm-dialog
