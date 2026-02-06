@@ -1,7 +1,9 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe, NgClass } from '@angular/common';
+import { interval, filter, switchMap } from 'rxjs';
 
 import { PublicQuoteService } from '../../../core/services/public-quote.service';
 import type {
@@ -23,6 +25,7 @@ import { SignaturePadComponent } from '../../../shared/components/signature-pad/
 export class QuoteProposalComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly publicQuoteService = inject(PublicQuoteService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // State signals
   protected readonly loading = signal(true);
@@ -69,6 +72,23 @@ export class QuoteProposalComponent implements OnInit {
     }
     this.token.set(t);
     this.loadQuote(t);
+    this.startAnnotationPolling(t);
+  }
+
+  /**
+   * Poll the quote every 10 s while the quote is still in "Sent" status,
+   * so agent replies and toggle changes appear in near-real-time.
+   */
+  private startAnnotationPolling(token: string): void {
+    interval(10_000)
+      .pipe(
+        filter(() => !this.isFinalized() && !this.loading()),
+        switchMap(() => this.publicQuoteService.getByToken(token)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: updated => this.quote.set(updated),
+      });
   }
 
   private loadQuote(token: string): void {
