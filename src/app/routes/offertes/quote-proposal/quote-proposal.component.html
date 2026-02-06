@@ -296,18 +296,26 @@
       <p class="mt-2 text-sm text-zinc-500">
         Door te ondertekenen gaat u akkoord met de voorwaarden van deze offerte.
       </p>
+
+      <!-- Signer name -->
       <div class="mt-4">
         <label for="signatureName" class="block text-sm font-medium text-zinc-700">Uw volledige naam</label>
         <input
           id="signatureName"
           type="text"
           class="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
-          placeholder="Uw naam als digitale handtekening"
+          placeholder="Uw volledige naam"
           [value]="signatureName()"
           (input)="signatureName.set($any($event.target).value)"
-          (keydown.enter)="signatureName().trim() && acceptQuote()"
         />
       </div>
+
+      <!-- Signature pad -->
+      <div class="mt-4">
+        <label class="block text-sm font-medium text-zinc-700 mb-1">Uw handtekening</label>
+        <app-signature-pad (signatureChange)="onSignatureChange($event)" />
+      </div>
+
       <div class="mt-6 flex justify-end gap-3">
         <button
           type="button"
@@ -320,7 +328,7 @@
           type="button"
           class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-50"
           (click)="acceptQuote()"
-          [disabled]="!signatureName().trim() || accepting()"
+          [disabled]="!signatureName().trim() || !signatureData() || accepting()"
         >
           @if (accepting()) {
             <span class="flex items-center gap-2">

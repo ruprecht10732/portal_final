@@ -7,7 +7,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { QuotesService } from '../../../core/services/quotes.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { SSEService } from '../../../core/services/sse.service';
-import type { QuoteResponse, QuoteStatus } from '../../../core/services/quotes.types';
+import type { QuoteResponse, QuoteStatus, QuoteActivityResponse } from '../../../core/services/quotes.types';
 import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros } from '../../../core/services/quotes.types';
 import type { Lead } from '../../../core/services/leads.types';
 
@@ -39,17 +39,34 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly updating = signal(false);
   protected readonly sending = signal(false);
 
-  // SSE activity feed
+  // SSE activity feed — starts with persisted history, live events prepend
   protected readonly realtimeEvents = signal<{ type: string; message: string; time: Date }[]>([]);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadQuote(id);
+      this.loadActivityHistory(id);
       this.listenForSSEEvents(id);
     } else {
       this.router.navigate(['/app/offertes']);
     }
+  }
+
+  private loadActivityHistory(quoteId: string): void {
+    this.quotesService.getActivities(quoteId).subscribe({
+      next: (activities: QuoteActivityResponse[]) => {
+        const mapped = activities.map(a => ({
+          type: a.eventType,
+          message: a.message,
+          time: new Date(a.createdAt),
+        }));
+        this.realtimeEvents.set(mapped);
+      },
+      error: () => {
+        // silently ignore — history is non-critical
+      },
+    });
   }
 
   private listenForSSEEvents(quoteId: string): void {

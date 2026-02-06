@@ -11,10 +11,11 @@ import type {
   VatBreakdown,
 } from '../../../core/services/quotes.types';
 import { centsToEuros, QUOTE_STATUS_COLORS } from '../../../core/services/quotes.types';
+import { SignaturePadComponent } from '../../../shared/components/signature-pad/signature-pad.component';
 
 @Component({
   selector: 'app-quote-proposal',
-  imports: [FormsModule, DatePipe, NgClass],
+  imports: [FormsModule, DatePipe, NgClass, SignaturePadComponent],
   templateUrl: './quote-proposal.component.html',
   styleUrl: './quote-proposal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -33,6 +34,7 @@ export class QuoteProposalComponent implements OnInit {
 
   // Accept form
   protected readonly signatureName = signal('');
+  protected readonly signatureData = signal<string | null>(null);
   protected readonly showAcceptDialog = signal(false);
   protected readonly showRejectDialog = signal(false);
   protected readonly rejectReason = signal('');
@@ -162,6 +164,11 @@ export class QuoteProposalComponent implements OnInit {
   protected openAcceptDialog(): void {
     this.showAcceptDialog.set(true);
     this.signatureName.set('');
+    this.signatureData.set(null);
+  }
+
+  protected onSignatureChange(data: string | null): void {
+    this.signatureData.set(data);
   }
 
   protected closeAcceptDialog(): void {
@@ -170,12 +177,13 @@ export class QuoteProposalComponent implements OnInit {
 
   protected acceptQuote(): void {
     const name = this.signatureName().trim();
-    if (!name) return;
+    const sigData = this.signatureData();
+    if (!name || !sigData) return;
 
     this.accepting.set(true);
     this.publicQuoteService.accept(this.token(), {
       signatureName: name,
-      signatureData: `signed_by_${name}_at_${new Date().toISOString()}`,
+      signatureData: sigData,
     }).subscribe({
       next: updated => {
         this.quote.set(updated);

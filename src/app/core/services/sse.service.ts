@@ -214,7 +214,52 @@ export class SSEService {
     if (event.type === 'lead_updated') {
       this.leadUpdated$.next(event);
     }
-    // Add more event type handlers here as needed
+
+    // Quote events — show global toasts so agents are notified from any page
+    this.handleQuoteEventToast(event);
+  }
+
+  private handleQuoteEventToast(event: SSEEvent): void {
+    const payload = event.data?.['payload'] as Record<string, unknown> | undefined;
+    const quoteId = event.data?.['quoteId'] as string | undefined;
+    if (!quoteId) return;
+
+    let message = '';
+    let variant: 'info' | 'success' | 'error' = 'info';
+
+    switch (event.type) {
+      case 'quote_viewed':
+        message = 'Een klant heeft uw offerte geopend';
+        break;
+      case 'quote_item_toggled':
+        message = `Klant heeft een optie ${payload?.['isSelected'] ? 'ingeschakeld' : 'uitgeschakeld'}`;
+        break;
+      case 'quote_annotated':
+        message = `Nieuwe vraag: "${(payload?.['text'] as string)?.substring(0, 60) ?? ''}"`;
+        break;
+      case 'quote_accepted':
+        message = `Offerte geaccepteerd door ${typeof payload?.['signatureName'] === 'string' ? payload['signatureName'] : 'klant'}`;
+        variant = 'success';
+        break;
+      case 'quote_rejected':
+        message = 'Offerte afgewezen door klant';
+        variant = 'error';
+        break;
+      default:
+        return;
+    }
+
+    this.toast.show({
+      message,
+      title: 'Offerte update',
+      variant,
+      dismissible: true,
+      durationMs: 8000,
+      link: {
+        label: 'Bekijk offerte →',
+        url: ['/app/offertes', quoteId],
+      },
+    });
   }
 
   private handlePhotoAnalysisEvent(event: SSEEvent & { data: PhotoAnalysisEventData }): void {

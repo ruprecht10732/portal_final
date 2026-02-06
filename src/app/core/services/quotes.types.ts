@@ -252,3 +252,13 @@ export interface AcceptQuoteRequest {
 export interface RejectQuoteRequest {
   reason?: string | undefined;
 }
+
+// ── Activity timeline ─────────────────────────────────────────────────────────
+
+export interface QuoteActivityResponse {
+  id: string;
+  eventType: string;
+  message: string;
+  metadata?: Record<string, unknown>;
+  createdAt: string;
+}

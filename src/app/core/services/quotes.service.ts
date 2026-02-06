@@ -12,6 +12,7 @@ import type {
   QuoteCalculationRequest,
   QuoteCalculationResponse,
   AnnotationResponse,
+  QuoteActivityResponse,
 } from './quotes.types';
 
 /**
@@ -78,5 +79,10 @@ export class QuotesService {
       `${this.baseUrl}/${quoteId}/items/${itemId}/annotations`,
       { text },
     );
+  }
+
+  /** Get the persisted activity history for a quote */
+  getActivities(quoteId: string): Observable<QuoteActivityResponse[]> {
+    return this.http.get<QuoteActivityResponse[]>(`${this.baseUrl}/${quoteId}/activities`);
   }
 }
