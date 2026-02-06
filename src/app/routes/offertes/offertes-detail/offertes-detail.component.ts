@@ -39,6 +39,10 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly updating = signal(false);
   protected readonly sending = signal(false);
 
+  // Reply text per item (keyed by item ID)
+  protected readonly replyTexts = signal<Record<string, string>>({});
+  protected readonly replyingItemId = signal<string | null>(null);
+
   // SSE activity feed — starts with persisted history, live events prepend
   protected readonly realtimeEvents = signal<{ type: string; message: string; time: Date }[]>([]);
 
@@ -81,15 +85,21 @@ export class OffertesDetailComponent implements OnInit {
 
         let message = '';
         switch (event.type) {
+          case 'quote_sent':
+            message = 'Offerte verstuurd naar de klant';
+            break;
           case 'quote_viewed':
             message = 'Klant heeft de offerte geopend';
             break;
-          case 'quote_item_toggled':
-            message = `Klant heeft een item ${payload?.['isSelected'] ? 'ingeschakeld' : 'uitgeschakeld'}`;
+          case 'quote_item_toggled': {
+            const desc = (payload?.['itemDescription'] as string) || 'een item';
+            message = `Klant heeft '${desc}' ${payload?.['isSelected'] ? 'ingeschakeld' : 'uitgeschakeld'}`;
             this.loadQuote(quoteId); // refresh totals
             break;
+          }
           case 'quote_annotated':
             message = `Nieuwe vraag: "${(payload?.['text'] as string)?.substring(0, 50) ?? ''}"`;
+            this.loadQuote(quoteId); // refresh to show new annotations
             break;
           case 'quote_accepted':
             message = `Offerte geaccepteerd door ${typeof payload?.['signatureName'] === 'string' ? payload['signatureName'] : 'klant'}`;
@@ -143,6 +153,30 @@ export class OffertesDetailComponent implements OnInit {
 
   protected goBack(): void {
     this.router.navigate(['/app/offertes']);
+  }
+
+  protected updateReplyText(itemId: string, text: string): void {
+    this.replyTexts.update(prev => ({ ...prev, [itemId]: text }));
+  }
+
+  protected submitReply(itemId: string): void {
+    const q = this.quote();
+    if (!q) return;
+    const text = (this.replyTexts()[itemId] ?? '').trim();
+    if (!text) return;
+
+    this.replyingItemId.set(itemId);
+    this.quotesService.annotateItem(q.id, itemId, text).subscribe({
+      next: () => {
+        this.replyTexts.update(prev => ({ ...prev, [itemId]: '' }));
+        this.replyingItemId.set(null);
+        // Reload quote to refresh annotations
+        this.loadQuote(q.id);
+      },
+      error: () => {
+        this.replyingItemId.set(null);
+      },
+    });
   }
 
   protected editQuote(): void {
@@ -231,6 +265,15 @@ export class OffertesDetailComponent implements OnInit {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
+    }).format(new Date(date));
+  }
+
+  protected formatAnnotationDate(date: string): string {
+    return new Intl.DateTimeFormat('nl-NL', {
+      day: 'numeric',
+      month: 'short',
+      hour: '2-digit',
+      minute: '2-digit',
     }).format(new Date(date));
   }
 }

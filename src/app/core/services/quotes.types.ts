@@ -31,6 +31,7 @@ export interface QuoteItemResponse {
   totalBeforeTaxCents: number;
   totalTaxCents: number;
   lineTotalCents: number;
+  annotations: AnnotationResponse[];
 }
 
 export interface VatBreakdown {

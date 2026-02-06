@@ -168,6 +168,7 @@
               <table class="w-full text-sm">
                 <thead>
                   <tr class="border-b border-zinc-200">
+                    <th class="text-left py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-8"></th>
                     <th class="text-left py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500">{{ 'offertes.description' | translate }}</th>
                     <th class="text-left py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-24">{{ 'offertes.qty' | translate }}</th>
                     <th class="text-right py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-28">{{ 'offertes.price' | translate }}</th>
@@ -177,11 +178,27 @@
                 </thead>
                 <tbody>
                   @for (item of q.items; track item.id) {
-                    <tr class="border-b border-zinc-100" [class.opacity-50]="item.isOptional">
+                    <tr class="border-b border-zinc-100" [class.opacity-40]="item.isOptional && !item.isSelected">
+                      <td class="py-2 px-2 text-center">
+                        @if (item.isOptional) {
+                          @if (item.isSelected) {
+                            <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-600">
+                              <lucide-icon name="check" class="h-3 w-3"></lucide-icon>
+                            </span>
+                          } @else {
+                            <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
+                              <lucide-icon name="x" class="h-3 w-3"></lucide-icon>
+                            </span>
+                          }
+                        }
+                      </td>
                       <td class="py-2 px-2">
                         <span class="text-zinc-900">{{ item.description }}</span>
                         @if (item.isOptional) {
-                          <span class="ml-2 text-[10px] font-bold uppercase text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded">{{ 'offertes.optional' | translate }}</span>
+                          <span class="ml-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded"
+                            [class]="item.isSelected ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-orange-50'">
+                            {{ item.isSelected ? 'Geselecteerd' : ('offertes.optional' | translate) }}
+                          </span>
                         }
                       </td>
                       <td class="py-2 px-2 text-zinc-600">{{ item.quantity }}</td>
@@ -189,6 +206,49 @@
                       <td class="py-2 px-2 text-right text-zinc-400">{{ item.taxRateBps / 100 }}%</td>
                       <td class="py-2 px-2 text-right font-medium text-zinc-900">{{ formatCentsCurrency(item.lineTotalCents) }}</td>
                     </tr>
+                    <!-- Annotations for this item -->
+                    @if (item.annotations.length > 0 || q.status === 'Sent') {
+                      <tr class="border-b border-zinc-100">
+                        <td colspan="6" class="px-2 py-2">
+                          @if (item.annotations.length > 0) {
+                            <div class="space-y-1.5 mb-2">
+                              @for (ann of item.annotations; track ann.id) {
+                                <div class="flex items-start gap-2 text-xs">
+                                  <span class="shrink-0 font-semibold px-1.5 py-0.5 rounded"
+                                    [class]="ann.authorType === 'agent' ? 'bg-blue-100 text-blue-700' : 'bg-zinc-100 text-zinc-600'">
+                                    {{ ann.authorType === 'agent' ? 'Agent' : 'Klant' }}
+                                  </span>
+                                  <span class="text-zinc-700 flex-1">{{ ann.text }}</span>
+                                  <span class="text-zinc-400 shrink-0">{{ formatAnnotationDate(ann.createdAt) }}</span>
+                                </div>
+                              }
+                            </div>
+                          }
+                          @if (q.status === 'Sent') {
+                            <div class="flex items-center gap-2">
+                              <input
+                                type="text"
+                                class="flex-1 text-xs border border-zinc-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-black"
+                                placeholder="Antwoord typen..."
+                                [value]="replyTexts()[item.id] ?? ''"
+                                (input)="updateReplyText(item.id, $any($event.target).value)"
+                                (keydown.enter)="submitReply(item.id)"
+                              />
+                              <shared-button
+                                variant="primary"
+                                size="compact"
+                                [fullWidth]="false"
+                                [loading]="replyingItemId() === item.id"
+                                [disabled]="!(replyTexts()[item.id] ?? '').trim()"
+                                (clicked)="submitReply(item.id)"
+                              >
+                                <lucide-icon name="send" class="h-3 w-3"></lucide-icon>
+                              </shared-button>
+                            </div>
+                          }
+                        </td>
+                      </tr>
+                    }
                   }
                 </tbody>
               </table>

@@ -10,6 +10,7 @@ export type SSEEventType =
   | 'analysis_complete'
   | 'photo_analysis_complete'
   | 'lead_updated'
+  | 'quote_sent'
   | 'quote_viewed'
   | 'quote_item_toggled'
   | 'quote_annotated'
@@ -143,7 +144,7 @@ export class SSEService {
         });
 
         // Quote events
-        for (const evtType of ['quote_viewed', 'quote_item_toggled', 'quote_annotated', 'quote_accepted', 'quote_rejected'] as const) {
+        for (const evtType of ['quote_sent', 'quote_viewed', 'quote_item_toggled', 'quote_annotated', 'quote_accepted', 'quote_rejected'] as const) {
           this.eventSource.addEventListener(evtType, (event) => {
             this.zone.run(() => {
               this.handleEventMessage(event, evtType);
@@ -228,12 +229,18 @@ export class SSEService {
     let variant: 'info' | 'success' | 'error' = 'info';
 
     switch (event.type) {
+      case 'quote_sent':
+        message = 'Offerte is verstuurd naar de klant';
+        variant = 'success';
+        break;
       case 'quote_viewed':
         message = 'Een klant heeft uw offerte geopend';
         break;
-      case 'quote_item_toggled':
-        message = `Klant heeft een optie ${payload?.['isSelected'] ? 'ingeschakeld' : 'uitgeschakeld'}`;
+      case 'quote_item_toggled': {
+        const desc = (payload?.['itemDescription'] as string) || 'een optie';
+        message = `Klant heeft '${desc}' ${payload?.['isSelected'] ? 'ingeschakeld' : 'uitgeschakeld'}`;
         break;
+      }
       case 'quote_annotated':
         message = `Nieuwe vraag: "${(payload?.['text'] as string)?.substring(0, 60) ?? ''}"`;
         break;
