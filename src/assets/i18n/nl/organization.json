@@ -20,8 +20,11 @@
       "addressLine2": "Adresregel 2",
       "postalCode": "Postcode",
       "city": "Plaats",
-      "country": "Land"
+      "country": "Land",
+      "coreDetails": "Kerngegevens",
+      "location": "Locatie"
     },
+    "legalDisclaimer": "Zorg dat alle juridische informatie klopt.",
     "invite": {
       "title": "Teamuitnodigingen",
       "subtitle": "Nodig teamleden uit om mee te doen.",

@@ -20,8 +20,11 @@
       "addressLine2": "Address line 2",
       "postalCode": "Postal code",
       "city": "City",
-      "country": "Country"
+      "country": "Country",
+      "coreDetails": "Core details",
+      "location": "Location"
     },
+    "legalDisclaimer": "Ensure all legal information is accurate.",
     "invite": {
       "title": "Team invites",
       "subtitle": "Invite teammates to join your organization.",

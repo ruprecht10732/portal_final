@@ -6,6 +6,9 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { FileUploaderComponent, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
+import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { OrganizationService, type Organization, UpdateOrganizationRequest } from '../../../core/services/organization.service';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
@@ -14,7 +17,7 @@ import { isKvkValid, isVatValid } from '../../../core/utils/partner-validation.u
 
 @Component({
   selector: 'app-organization-overview',
-  imports: [ButtonComponent, AutocompleteComponent, InputComponent, FileUploaderComponent, TranslatePipe],
+  imports: [ButtonComponent, AutocompleteComponent, InputComponent, FileUploaderComponent, PageLayoutComponent, CardComponent, SkeletonComponent, TranslatePipe],
   templateUrl: './organization-overview.component.html',
   styleUrl: './organization-overview.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
