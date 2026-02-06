@@ -3,7 +3,7 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { map, Observable } from 'rxjs';
-import { CatalogService, type Product, type ProductType, type ListProductsParams } from '../../../core/services/catalog.service';
+import { CatalogService, type Product, type ProductType, type ListProductsParams, type VatRate } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -37,6 +37,8 @@ export class CatalogListComponent {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly total = signal(0);
+  protected readonly vatRates = signal<VatRate[]>([]);
+  private readonly vatRatesLoading = signal(false);
   private readonly lastRequest = signal<DataRequest | null>(null);
 
   // Delete dialog
@@ -54,6 +56,14 @@ export class CatalogListComponent {
     ] as const;
   });
 
+  protected readonly vatRateOptions = computed(() => {
+    this.lang();
+    return this.vatRates().map(rate => ({
+      label: `${rate.name} (${CatalogService.bpsToRate(rate.rateBps)}%)`,
+      value: rate.id,
+    }));
+  });
+
   protected readonly columns = computed<GridColumn<ProductRow>[]>(() => {
     this.lang();
     return [
@@ -62,6 +72,7 @@ export class CatalogListComponent {
         header: this.translate.instant('catalog.products.columns.reference'),
         field: 'reference',
         sortable: true,
+        filterable: true,
         width: '160px',
       },
       {
@@ -69,6 +80,7 @@ export class CatalogListComponent {
         header: this.translate.instant('catalog.products.columns.title'),
         field: 'title',
         sortable: true,
+        filterable: true,
         minWidth: '220px',
       },
       {
@@ -82,11 +94,39 @@ export class CatalogListComponent {
         width: '160px',
       },
       {
+        id: 'vatRateId',
+        header: this.translate.instant('catalog.products.columns.vatRate'),
+        field: 'vatRateId',
+        sortable: true,
+        filterable: true,
+        cellType: 'select',
+        selectOptions: this.vatRateOptions(),
+        minWidth: '220px',
+      },
+      {
         id: 'priceLabel',
         header: this.translate.instant('catalog.products.columns.price'),
         field: 'priceLabel',
         align: 'right',
         width: '160px',
+      },
+      {
+        id: 'createdAt',
+        header: this.translate.instant('catalog.products.fields.createdAt'),
+        field: 'createdAt',
+        sortable: true,
+        filterable: true,
+        cellType: 'date',
+        width: '140px',
+      },
+      {
+        id: 'updatedAt',
+        header: this.translate.instant('catalog.products.fields.updatedAt'),
+        field: 'updatedAt',
+        sortable: true,
+        filterable: true,
+        cellType: 'date',
+        width: '140px',
       },
     ];
   });
@@ -171,6 +211,7 @@ export class CatalogListComponent {
   }
 
   protected onDataRequest(request: DataRequest): void {
+    this.ensureVatRatesLoaded();
     this.lastRequest.set(request);
     this.loading.set(true);
     this.error.set(null);
@@ -206,6 +247,9 @@ export class CatalogListComponent {
       if (filter.columnId === 'type') {
         params.type = filter.value as ProductType;
       }
+      if (filter.columnId === 'vatRateId') {
+        params.vatRateId = filter.value;
+      }
     }
 
     return this.catalogService.listProducts(params).pipe(
@@ -225,6 +269,22 @@ export class CatalogListComponent {
     }
   }
 
+  private ensureVatRatesLoaded(): void {
+    if (this.vatRates().length > 0 || this.vatRatesLoading()) return;
+    this.vatRatesLoading.set(true);
+    this.catalogService.listVatRates({ pageSize: 100 }).subscribe({
+      next: (response) => {
+        this.vatRates.set(response.items);
+        this.vatRatesLoading.set(false);
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadVatRates'));
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.vatRatesLoading.set(false);
+      },
+    });
+  }
+
   private buildProductRow(product: Product): ProductRow {
     return {
       ...product,
@@ -240,6 +300,12 @@ export class CatalogListComponent {
         return 'title';
       case 'type':
         return 'type';
+      case 'vatRateId':
+        return 'vatRateId';
+      case 'createdAt':
+        return 'createdAt';
+      case 'updatedAt':
+        return 'updatedAt';
       default:
         return 'createdAt';
     }

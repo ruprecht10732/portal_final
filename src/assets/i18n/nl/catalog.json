@@ -242,6 +242,7 @@
         "reference": "Referentie",
         "title": "Titel",
         "type": "Type",
+        "vatRate": "BTW-tarief",
         "price": "Prijs",
         "actions": "Acties"
       },

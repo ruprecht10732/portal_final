@@ -242,6 +242,7 @@
         "reference": "Reference",
         "title": "Title",
         "type": "Type",
+        "vatRate": "VAT Rate",
         "price": "Price",
         "actions": "Actions"
       },

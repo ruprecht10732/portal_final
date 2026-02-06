@@ -390,6 +390,11 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     if (column.cellType === 'boolean') {
       return ''; // Will use icon instead
     }
+
+    if (column.cellType === 'select' && column.selectOptions) {
+      const option = column.selectOptions.find(o => o.value === value);
+      if (option?.label) return option.label;
+    }
     
     if (typeof value === 'object') {
       try {
