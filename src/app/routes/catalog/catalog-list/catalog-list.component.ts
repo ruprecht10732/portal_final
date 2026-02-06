@@ -2,10 +2,11 @@ import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@a
 import { toSignal } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { map, Observable } from 'rxjs';
+import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { CatalogService, type Product, type ProductType, type ListProductsParams, type VatRate, type UpdateProductRequest } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { ToastService } from '../../../core/services/toast.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
@@ -31,6 +32,7 @@ export class CatalogListComponent {
   private readonly router = inject(Router);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
   private readonly lang = toSignal(this.translate.onLangChange, {
     initialValue: { lang: 'en', translations: {} },
   });
@@ -214,34 +216,47 @@ export class CatalogListComponent {
   }
 
   protected onSaveRows(rows: ProductRow[]): void {
-    rows.forEach(row => {
-      if (!row.id) return;
+    const updates = rows
+      .filter(row => !!row.id)
+      .map(row => {
+        const nextPrice = row.priceValue;
+        const updateRequest: UpdateProductRequest = {
+          title: row.title?.trim(),
+          reference: row.reference?.trim(),
+          type: row.type,
+          vatRateId: row.vatRateId,
+        };
 
-      const nextPrice = row.priceValue;
-      const updateRequest: UpdateProductRequest = {
-        title: row.title?.trim(),
-        reference: row.reference?.trim(),
-        type: row.type,
-        vatRateId: row.vatRateId,
-      };
-
-      if (typeof nextPrice === 'number' && Number.isFinite(nextPrice)) {
-        const nextCents = CatalogService.priceToCents(nextPrice);
-        if (row.isUnitPrice) {
-          updateRequest.unitPriceCents = nextCents;
-        } else {
-          updateRequest.priceCents = nextCents;
+        if (typeof nextPrice === 'number' && Number.isFinite(nextPrice)) {
+          const nextCents = CatalogService.priceToCents(nextPrice);
+          if (row.isUnitPrice) {
+            updateRequest.unitPriceCents = nextCents;
+          } else {
+            updateRequest.priceCents = nextCents;
+          }
         }
-      }
 
-      this.catalogService.updateProduct(row.id, updateRequest).subscribe({
-        next: () => this.refreshFromLastRequest(),
-        error: (err) => {
-          const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
-          this.error.set(message);
-          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        },
+        return this.catalogService.updateProduct(row.id, updateRequest).pipe(
+          map(() => ({ ok: true })),
+          catchError((err) => {
+            const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
+            this.error.set(message);
+            this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+            return of({ ok: false });
+          })
+        );
       });
+
+    if (updates.length === 0) return;
+
+    forkJoin(updates).subscribe((results) => {
+      const failed = results.some(result => !result.ok);
+      if (failed) {
+        this.toast.error(this.translate.instant('catalog.products.errors.updateProduct'));
+      } else {
+        this.toast.success(this.translate.instant('catalog.products.updateSuccess'));
+      }
+      this.refreshFromLastRequest();
     });
   }
 
