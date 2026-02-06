@@ -26,6 +26,7 @@ export interface QuoteItemResponse {
   unitPriceCents: number;
   taxRateBps: number;
   isOptional: boolean;
+  isSelected: boolean;
   sortOrder: number;
   totalBeforeTaxCents: number;
   totalTaxCents: number;
@@ -187,3 +188,67 @@ export const DISCOUNT_TYPE_OPTIONS: { label: string; value: DiscountType }[] = [
   { label: '%', value: 'percentage' },
   { label: '€', value: 'fixed' },
 ];
+
+// ── Public Quote Proposal types ───────────────────────────────────────────────
+
+export interface AnnotationResponse {
+  id: string;
+  itemId: string;
+  authorType: 'customer' | 'agent';
+  authorId?: string;
+  text: string;
+  isResolved: boolean;
+  createdAt: string;
+}
+
+export interface PublicQuoteItemResponse {
+  id: string;
+  description: string;
+  quantity: string;
+  unitPriceCents: number;
+  taxRateBps: number;
+  isOptional: boolean;
+  isSelected: boolean;
+  sortOrder: number;
+  totalBeforeTaxCents: number;
+  totalTaxCents: number;
+  lineTotalCents: number;
+  annotations: AnnotationResponse[];
+}
+
+export interface PublicQuoteResponse {
+  id: string;
+  quoteNumber: string;
+  status: QuoteStatus;
+  pricingMode: PricingMode;
+  organizationName: string;
+  customerName: string;
+  subtotalCents: number;
+  discountAmountCents: number;
+  taxTotalCents: number;
+  totalCents: number;
+  validUntil?: string;
+  notes?: string;
+  viewedAt?: string;
+  acceptedAt?: string;
+  rejectedAt?: string;
+  items: PublicQuoteItemResponse[];
+  vatBreakdown: VatBreakdown[];
+}
+
+export interface ToggleItemResponse {
+  subtotalCents: number;
+  discountAmountCents: number;
+  taxTotalCents: number;
+  totalCents: number;
+  vatBreakdown: VatBreakdown[];
+}
+
+export interface AcceptQuoteRequest {
+  signatureName: string;
+  signatureData: string;
+}
+
+export interface RejectQuoteRequest {
+  reason?: string | undefined;
+}

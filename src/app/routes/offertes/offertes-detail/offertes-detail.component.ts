@@ -1,10 +1,12 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 
 import { QuotesService } from '../../../core/services/quotes.service';
 import { LeadsService } from '../../../core/services/leads.service';
+import { SSEService } from '../../../core/services/sse.service';
 import type { QuoteResponse, QuoteStatus } from '../../../core/services/quotes.types';
 import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros } from '../../../core/services/quotes.types';
 import type { Lead } from '../../../core/services/leads.types';
@@ -26,6 +28,8 @@ export class OffertesDetailComponent implements OnInit {
   private readonly quotesService = inject(QuotesService);
   private readonly leadsService = inject(LeadsService);
   private readonly translate = inject(TranslateService);
+  private readonly sse = inject(SSEService);
+  private readonly destroyRef = inject(DestroyRef);
 
   protected readonly loading = signal(true);
   protected readonly quote = signal<QuoteResponse | null>(null);
@@ -33,14 +37,60 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly showDeleteConfirm = signal(false);
   protected readonly updating = signal(false);
+  protected readonly sending = signal(false);
+
+  // SSE activity feed
+  protected readonly realtimeEvents = signal<{ type: string; message: string; time: Date }[]>([]);
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadQuote(id);
+      this.listenForSSEEvents(id);
     } else {
       this.router.navigate(['/app/offertes']);
     }
+  }
+
+  private listenForSSEEvents(quoteId: string): void {
+    this.sse.events
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe(event => {
+        const data = event.data;
+        const evtQuoteId = (data?.['quoteId'] as string) ?? '';
+        if (evtQuoteId !== quoteId) return;
+
+        const payload = data?.['payload'] as Record<string, unknown> | undefined;
+
+        let message = '';
+        switch (event.type) {
+          case 'quote_viewed':
+            message = 'Klant heeft de offerte geopend';
+            break;
+          case 'quote_item_toggled':
+            message = `Klant heeft een item ${payload?.['isSelected'] ? 'ingeschakeld' : 'uitgeschakeld'}`;
+            this.loadQuote(quoteId); // refresh totals
+            break;
+          case 'quote_annotated':
+            message = `Nieuwe vraag: "${(payload?.['text'] as string)?.substring(0, 50) ?? ''}"`;
+            break;
+          case 'quote_accepted':
+            message = `Offerte geaccepteerd door ${typeof payload?.['signatureName'] === 'string' ? payload['signatureName'] : 'klant'}`;
+            this.loadQuote(quoteId);
+            break;
+          case 'quote_rejected':
+            message = 'Offerte afgewezen door klant';
+            this.loadQuote(quoteId);
+            break;
+          default:
+            return;
+        }
+
+        this.realtimeEvents.update(events => [
+          { type: event.type, message, time: new Date() },
+          ...events.slice(0, 19), // keep last 20
+        ]);
+      });
   }
 
   private loadQuote(id: string): void {
@@ -122,6 +172,22 @@ export class OffertesDetailComponent implements OnInit {
 
   protected print(): void {
     globalThis.print();
+  }
+
+  protected sendProposal(): void {
+    const q = this.quote();
+    if (!q) return;
+
+    this.sending.set(true);
+    this.quotesService.send(q.id).subscribe({
+      next: updated => {
+        if (updated) this.quote.set(updated);
+        this.sending.set(false);
+      },
+      error: () => {
+        this.sending.set(false);
+      },
+    });
   }
 
   protected getStatusLabel(status: QuoteStatus): string {

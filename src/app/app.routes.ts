@@ -43,6 +43,10 @@ export const routes: Routes = [
 		canActivate: [guestGuard],
 	},
 	{
+		path: 'quote/:token',
+		loadComponent: () => import('./routes/offertes/quote-proposal/quote-proposal.component').then(m => m.QuoteProposalComponent),
+	},
+	{
 		path: 'app',
 		loadComponent: () => import('./routes/app-shell/authenticated-layout.component').then(m => m.AuthenticatedLayoutComponent),
 		canActivate: [authGuard],

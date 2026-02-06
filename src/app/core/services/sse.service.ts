@@ -6,7 +6,15 @@ import { ToastService } from './toast.service';
 import { TokenStorageService } from './token-storage.service';
 
 // SSE event types from the backend
-export type SSEEventType = 'analysis_complete' | 'photo_analysis_complete' | 'lead_updated';
+export type SSEEventType =
+  | 'analysis_complete'
+  | 'photo_analysis_complete'
+  | 'lead_updated'
+  | 'quote_viewed'
+  | 'quote_item_toggled'
+  | 'quote_annotated'
+  | 'quote_accepted'
+  | 'quote_rejected';
 
 // Base SSE event structure from the backend
 export interface SSEEvent {
@@ -133,6 +141,15 @@ export class SSEService {
             this.handleEventMessage(event, 'lead_updated');
           });
         });
+
+        // Quote events
+        for (const evtType of ['quote_viewed', 'quote_item_toggled', 'quote_annotated', 'quote_accepted', 'quote_rejected'] as const) {
+          this.eventSource.addEventListener(evtType, (event) => {
+            this.zone.run(() => {
+              this.handleEventMessage(event, evtType);
+            });
+          });
+        }
 
         this.eventSource.onerror = () => {
           this.zone.run(() => {

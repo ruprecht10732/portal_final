@@ -11,6 +11,7 @@ import type {
   QuoteStatus,
   QuoteCalculationRequest,
   QuoteCalculationResponse,
+  AnnotationResponse,
 } from './quotes.types';
 
 /**
@@ -64,5 +65,18 @@ export class QuotesService {
   /** Preview calculation — server-side totals without persisting */
   calculate(data: QuoteCalculationRequest): Observable<QuoteCalculationResponse> {
     return this.http.post<QuoteCalculationResponse>(`${this.baseUrl}/calculate`, data);
+  }
+
+  /** Send a quote proposal to the lead via magic link */
+  send(id: string): Observable<QuoteResponse> {
+    return this.http.post<QuoteResponse>(`${this.baseUrl}/${id}/send`, {});
+  }
+
+  /** Add an agent annotation to a quote item */
+  annotateItem(quoteId: string, itemId: string, text: string): Observable<AnnotationResponse> {
+    return this.http.post<AnnotationResponse>(
+      `${this.baseUrl}/${quoteId}/items/${itemId}/annotations`,
+      { text },
+    );
   }
 }

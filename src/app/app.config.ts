@@ -1,4 +1,6 @@
-import { ApplicationConfig, ErrorHandler, importProvidersFrom, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { ApplicationConfig, ErrorHandler, importProvidersFrom, LOCALE_ID, provideBrowserGlobalErrorListeners } from '@angular/core';
+import { registerLocaleData } from '@angular/common';
+import localeNl from '@angular/common/locales/nl';
 import { HttpBackend, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
 import { provideAnimations } from '@angular/platform-browser/animations';
@@ -70,6 +72,8 @@ import { GlobalErrorHandler } from './core/handlers/global-error.handler';
 import { TranslateLoader, provideTranslateService } from '@ngx-translate/core';
 import { MultiTranslateHttpLoader } from 'ngx-translate-multi-http-loader';
 
+registerLocaleData(localeNl);
+
 const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLoader(handler, [
   { prefix: '/assets/i18n/', suffix: '/common.json' },
   { prefix: '/assets/i18n/', suffix: '/navigation.json' },
@@ -92,6 +96,7 @@ export const appConfig: ApplicationConfig = {
     provideBrowserGlobalErrorListeners(),
     provideAnimations(), // Required by ColorPickerModule until migration to native CSS animations
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
+    { provide: LOCALE_ID, useValue: 'nl' },
     provideRouter(routes),
     provideHttpClient(withInterceptors([errorReportingInterceptor, authInterceptor])),
     provideTranslateService({

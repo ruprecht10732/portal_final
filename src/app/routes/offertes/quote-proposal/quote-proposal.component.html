@@ -1,0 +1,384 @@
+<!-- Public Quote Proposal Page -->
+<div class="min-h-screen bg-linear-to-br from-zinc-50 to-zinc-100">
+  <!-- Loading -->
+  @if (loading()) {
+    <div class="flex h-screen items-center justify-center">
+      <div class="text-center">
+        <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600"></div>
+        <p class="mt-4 text-sm text-zinc-500">Offerte laden…</p>
+      </div>
+    </div>
+  }
+
+  <!-- Error -->
+  @if (error(); as err) {
+    <div class="flex h-screen items-center justify-center">
+      <div class="rounded-xl bg-white p-8 shadow-lg text-center max-w-md">
+        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+        </div>
+        <h2 class="text-lg font-semibold text-zinc-900">Offerte niet beschikbaar</h2>
+        <p class="mt-2 text-sm text-zinc-500">{{ err }}</p>
+      </div>
+    </div>
+  }
+
+  <!-- Quote Content -->
+  @if (!loading() && !error() && quote(); as q) {
+    <div class="mx-auto max-w-4xl px-4 py-8 sm:px-6 lg:px-8">
+      <!-- Header -->
+      <div class="mb-8 rounded-xl bg-white p-6 shadow-sm">
+        <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div>
+            <h1 class="text-2xl font-bold text-zinc-900">Offerte {{ q.quoteNumber }}</h1>
+            <p class="mt-1 text-sm text-zinc-500">Van {{ q.organizationName }}</p>
+            <p class="mt-0.5 text-sm text-zinc-500">Voor {{ q.customerName }}</p>
+          </div>
+          <div class="text-right">
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium" [ngClass]="statusColor()">
+              @switch (q.status) {
+                @case ('Draft') { Concept }
+                @case ('Sent') { Verzonden }
+                @case ('Accepted') { Geaccepteerd }
+                @case ('Rejected') { Afgewezen }
+                @case ('Expired') { Verlopen }
+              }
+            </span>
+            @if (q.validUntil) {
+              <p class="mt-2 text-xs text-zinc-500">
+                Geldig tot {{ q.validUntil | date:'d MMMM yyyy':'':'nl' }}
+              </p>
+            }
+          </div>
+        </div>
+      </div>
+
+      <!-- Accepted / Rejected banner -->
+      @if (q.status === 'Accepted') {
+        <div class="mb-6 rounded-xl border border-green-200 bg-green-50 p-4">
+          <div class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <div>
+              <p class="font-medium text-green-800">Offerte geaccepteerd</p>
+              @if (q.acceptedAt) {
+                <p class="text-sm text-green-600">Op {{ q.acceptedAt | date:'d MMMM yyyy, HH:mm':'':'nl' }}</p>
+              }
+            </div>
+          </div>
+        </div>
+      }
+      @if (q.status === 'Rejected') {
+        <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+          <div class="flex items-center gap-3">
+            <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <p class="font-medium text-red-800">Offerte afgewezen</p>
+          </div>
+        </div>
+      }
+
+      <!-- Line Items -->
+      <div class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm">
+        <div class="border-b border-zinc-100 px-6 py-4">
+          <h2 class="text-lg font-semibold text-zinc-900">Onderdelen</h2>
+          @if (!isFinalized()) {
+            <p class="mt-1 text-xs text-zinc-400">Klik op optionele items om ze in- of uit te schakelen</p>
+          }
+        </div>
+
+        <!-- Table header -->
+        <div class="hidden border-b border-zinc-100 bg-zinc-50 px-6 py-3 sm:grid sm:grid-cols-12 sm:gap-4">
+          <span class="col-span-5 text-xs font-medium uppercase tracking-wider text-zinc-500">Omschrijving</span>
+          <span class="col-span-2 text-xs font-medium uppercase tracking-wider text-zinc-500">Aantal</span>
+          <span class="col-span-2 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Prijs</span>
+          <span class="col-span-1 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">BTW</span>
+          <span class="col-span-2 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Totaal</span>
+        </div>
+
+        <!-- Items -->
+        @for (item of q.items; track item.id) {
+          <div
+            class="border-b border-zinc-50 px-6 py-4 transition-colors"
+            [class.opacity-50]="item.isOptional && !item.isSelected"
+            [class.cursor-pointer]="item.isOptional && !isFinalized()"
+            [class.hover:bg-zinc-50]="item.isOptional && !isFinalized()"
+          >
+            <!-- Item row -->
+            <div
+              class="sm:grid sm:grid-cols-12 sm:items-center sm:gap-4"
+              (click)="item.isOptional ? toggleItem(item) : null"
+              (keydown.enter)="item.isOptional ? toggleItem(item) : null"
+              [attr.tabindex]="item.isOptional && !isFinalized() ? 0 : null"
+              [attr.role]="item.isOptional ? 'checkbox' : null"
+              [attr.aria-checked]="item.isOptional ? item.isSelected : null"
+            >
+              <!-- Description -->
+              <div class="col-span-5">
+                <div class="flex items-center gap-2">
+                  @if (item.isOptional) {
+                    <button
+                      type="button"
+                      class="flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors"
+                      [class.bg-blue-600]="item.isSelected"
+                      [class.border-blue-600]="item.isSelected"
+                      [class.border-zinc-300]="!item.isSelected"
+                      [disabled]="isFinalized() || toggling() === item.id"
+                    >
+                      @if (item.isSelected) {
+                        <svg class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+                      }
+                    </button>
+                  }
+                  <div>
+                    <span class="text-sm font-medium text-zinc-900">{{ item.description }}</span>
+                    @if (item.isOptional) {
+                      <span class="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">optie</span>
+                    }
+                  </div>
+                </div>
+                @if (toggling() === item.id) {
+                  <div class="mt-1 h-1 w-16 animate-pulse rounded-full bg-blue-200"></div>
+                }
+              </div>
+
+              <!-- Quantity -->
+              <div class="col-span-2 mt-2 text-sm text-zinc-600 sm:mt-0">
+                {{ item.quantity }}
+              </div>
+
+              <!-- Unit Price -->
+              <div class="col-span-2 mt-1 text-right text-sm text-zinc-600 sm:mt-0">
+                {{ formatCents(item.unitPriceCents) }}
+              </div>
+
+              <!-- Tax Rate -->
+              <div class="col-span-1 text-right text-sm text-zinc-500">
+                {{ formatTaxRate(item.taxRateBps) }}
+              </div>
+
+              <!-- Line Total -->
+              <div class="col-span-2 mt-1 text-right text-sm font-medium text-zinc-900 sm:mt-0">
+                {{ formatCents(item.lineTotalCents) }}
+              </div>
+            </div>
+
+            <!-- Annotations -->
+            @if (getItemAnnotations(item).length > 0) {
+              <div class="mt-3 space-y-2 border-t border-zinc-100 pt-3">
+                @for (annotation of getItemAnnotations(item); track annotation.id) {
+                  <div class="flex items-start gap-2 rounded-lg bg-zinc-50 p-2.5">
+                    <span class="shrink-0 rounded-full px-1.5 py-0.5 text-[10px] font-medium"
+                      [class.bg-blue-100]="annotation.authorType === 'agent'"
+                      [class.text-blue-700]="annotation.authorType === 'agent'"
+                      [class.bg-zinc-200]="annotation.authorType === 'customer'"
+                      [class.text-zinc-700]="annotation.authorType === 'customer'">
+                      {{ annotation.authorType === 'agent' ? 'Agent' : 'U' }}
+                    </span>
+                    <p class="text-sm text-zinc-700">{{ annotation.text }}</p>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Annotation input -->
+            @if (!isFinalized()) {
+              @if (annotatingItemId() === item.id) {
+                <div class="mt-3 flex gap-2">
+                  <input
+                    type="text"
+                    class="flex-1 rounded-lg border border-zinc-200 px-3 py-2 text-sm placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Stel een vraag over dit onderdeel…"
+                    [value]="annotationText()"
+                    (input)="annotationText.set($any($event.target).value)"
+                    (keydown.enter)="submitAnnotation(item.id)"
+                    [disabled]="submittingAnnotation()"
+                  />
+                  <button
+                    type="button"
+                    class="rounded-lg bg-blue-600 px-3 py-2 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
+                    (click)="submitAnnotation(item.id)"
+                    [disabled]="!annotationText().trim() || submittingAnnotation()"
+                  >
+                    @if (submittingAnnotation()) {
+                      <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+                    } @else {
+                      Verstuur
+                    }
+                  </button>
+                  <button
+                    type="button"
+                    class="rounded-lg border border-zinc-200 px-3 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50"
+                    (click)="cancelAnnotation()"
+                  >
+                    Annuleer
+                  </button>
+                </div>
+              } @else {
+                <button
+                  type="button"
+                  class="mt-2 text-xs text-blue-600 hover:text-blue-800 transition-colors"
+                  (click)="startAnnotation(item.id); $event.stopPropagation()"
+                >
+                  Stel een vraag →
+                </button>
+              }
+            }
+          </div>
+        }
+      </div>
+
+      <!-- Totals -->
+      <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
+        <div class="space-y-3">
+          <div class="flex justify-between text-sm">
+            <span class="text-zinc-500">Subtotaal</span>
+            <span class="text-zinc-900">{{ formatCents(q.subtotalCents) }}</span>
+          </div>
+          @if (q.discountAmountCents > 0) {
+            <div class="flex justify-between text-sm">
+              <span class="text-zinc-500">Korting</span>
+              <span class="text-green-600">-{{ formatCents(q.discountAmountCents) }}</span>
+            </div>
+          }
+          <!-- VAT Breakdown -->
+          @for (vat of getVatBreakdown(); track vat.rateBps) {
+            <div class="flex justify-between text-sm">
+              <span class="text-zinc-500">BTW {{ formatTaxRate(vat.rateBps) }}</span>
+              <span class="text-zinc-900">{{ formatCents(vat.amountCents) }}</span>
+            </div>
+          }
+          <div class="border-t border-zinc-200 pt-3">
+            <div class="flex justify-between">
+              <span class="text-base font-semibold text-zinc-900">Totaal</span>
+              <span class="text-xl font-bold text-zinc-900">{{ formatCents(q.totalCents) }}</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      @if (q.notes) {
+        <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
+          <h3 class="mb-2 text-sm font-medium text-zinc-500">Opmerkingen</h3>
+          <p class="text-sm text-zinc-700 whitespace-pre-wrap">{{ q.notes }}</p>
+        </div>
+      }
+
+      <!-- Action buttons -->
+      @if (!isFinalized()) {
+        <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+          <button
+            type="button"
+            class="rounded-xl border border-red-200 bg-white px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50"
+            (click)="openRejectDialog()"
+            [disabled]="rejecting()"
+          >
+            Afwijzen
+          </button>
+          <button
+            type="button"
+            class="rounded-xl bg-green-600 px-8 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-green-700"
+            (click)="openAcceptDialog()"
+            [disabled]="accepting()"
+          >
+            Accepteren & Ondertekenen
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>
+
+<!-- Accept Dialog -->
+@if (showAcceptDialog()) {
+  <dialog open class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" aria-modal="true" tabindex="-1" (click)="closeAcceptDialog()" (keydown.escape)="closeAcceptDialog()">
+    <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" tabindex="-1" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+      <h3 class="text-lg font-semibold text-zinc-900">Offerte accepteren</h3>
+      <p class="mt-2 text-sm text-zinc-500">
+        Door te ondertekenen gaat u akkoord met de voorwaarden van deze offerte.
+      </p>
+      <div class="mt-4">
+        <label for="signatureName" class="block text-sm font-medium text-zinc-700">Uw volledige naam</label>
+        <input
+          id="signatureName"
+          type="text"
+          class="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500"
+          placeholder="Uw naam als digitale handtekening"
+          [value]="signatureName()"
+          (input)="signatureName.set($any($event.target).value)"
+          (keydown.enter)="signatureName().trim() && acceptQuote()"
+        />
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <button
+          type="button"
+          class="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50"
+          (click)="closeAcceptDialog()"
+        >
+          Annuleer
+        </button>
+        <button
+          type="button"
+          class="rounded-lg bg-green-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-green-700 disabled:opacity-50"
+          (click)="acceptQuote()"
+          [disabled]="!signatureName().trim() || accepting()"
+        >
+          @if (accepting()) {
+            <span class="flex items-center gap-2">
+              <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+              Bezig…
+            </span>
+          } @else {
+            Ondertekenen
+          }
+        </button>
+      </div>
+    </div>
+  </dialog>
+}
+
+<!-- Reject Dialog -->
+@if (showRejectDialog()) {
+  <dialog open class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4" aria-modal="true" tabindex="-1" (click)="closeRejectDialog()" (keydown.escape)="closeRejectDialog()">
+    <div class="w-full max-w-md rounded-xl bg-white p-6 shadow-xl" tabindex="-1" (click)="$event.stopPropagation()" (keydown)="$event.stopPropagation()">
+      <h3 class="text-lg font-semibold text-zinc-900">Offerte afwijzen</h3>
+      <p class="mt-2 text-sm text-zinc-500">
+        Weet u zeker dat u deze offerte wilt afwijzen? U kunt optioneel een reden opgeven.
+      </p>
+      <div class="mt-4">
+        <label for="rejectReason" class="block text-sm font-medium text-zinc-700">Reden (optioneel)</label>
+        <textarea
+          id="rejectReason"
+          rows="3"
+          class="mt-1 w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm placeholder:text-zinc-400 focus:border-red-500 focus:outline-none focus:ring-1 focus:ring-red-500"
+          placeholder="Geef een reden op waarom u afwijst…"
+          [value]="rejectReason()"
+          (input)="rejectReason.set($any($event.target).value)"
+        ></textarea>
+      </div>
+      <div class="mt-6 flex justify-end gap-3">
+        <button
+          type="button"
+          class="rounded-lg border border-zinc-200 px-4 py-2 text-sm text-zinc-600 transition-colors hover:bg-zinc-50"
+          (click)="closeRejectDialog()"
+        >
+          Annuleer
+        </button>
+        <button
+          type="button"
+          class="rounded-lg bg-red-600 px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-red-700 disabled:opacity-50"
+          (click)="rejectQuote()"
+          [disabled]="rejecting()"
+        >
+          @if (rejecting()) {
+            <span class="flex items-center gap-2">
+              <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+              Bezig…
+            </span>
+          } @else {
+            Afwijzen
+          }
+        </button>
+      </div>
+    </div>
+  </dialog>
+}

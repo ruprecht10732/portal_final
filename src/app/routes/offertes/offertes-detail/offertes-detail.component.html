@@ -21,10 +21,20 @@
                   variant="primary"
                   size="compact"
                   [fullWidth]="false"
+                  [loading]="sending()"
+                  (clicked)="sendProposal()"
+                >
+                  <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                  Offerte versturen
+                </shared-button>
+                <shared-button
+                  variant="secondary"
+                  size="compact"
+                  [fullWidth]="false"
                   [loading]="updating()"
                   (clicked)="updateStatus('Sent')"
                 >
-                  <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                  <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
                   {{ 'offertes.markSent' | translate }}
                 </shared-button>
               }
@@ -215,6 +225,24 @@
               {{ 'offertes.notes' | translate }}
             </h3>
             <p class="text-sm text-zinc-700 whitespace-pre-wrap">{{ q.notes }}</p>
+          </div>
+        }
+
+        <!-- Real-time activity feed (SSE) -->
+        @if (realtimeEvents().length > 0) {
+          <div class="mt-6 print:hidden">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">Live activiteit</h3>
+            <div class="space-y-2">
+              @for (evt of realtimeEvents(); track $index) {
+                <div class="flex items-start gap-3 rounded-lg bg-blue-50 p-3 text-sm">
+                  <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-blue-500 animate-pulse"></span>
+                  <div class="flex-1">
+                    <p class="text-zinc-800">{{ evt.message }}</p>
+                    <p class="text-[10px] text-zinc-400">{{ evt.time.toLocaleTimeString('nl-NL') }}</p>
+                  </div>
+                </div>
+              }
+            </div>
           </div>
         }
       </div>
