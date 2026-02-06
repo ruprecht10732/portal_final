@@ -18,9 +18,17 @@
         }
 
         <div class="relative flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-full bg-zinc-100 ring-1 ring-inset ring-black/5 dark:bg-zinc-800 dark:ring-white/10">
-          <span class="text-sm font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
-            {{ getInitials(row) }}
-          </span>
+          @if (getThumbnailUrl(row)) {
+            <img
+              [src]="getThumbnailUrl(row)!"
+              [alt]="getTitleText(row)"
+              class="h-full w-full rounded-full object-cover"
+            />
+          } @else {
+            <span class="text-sm font-bold uppercase tracking-wider text-zinc-600 dark:text-zinc-400">
+              {{ getInitials(row) }}
+            </span>
+          }
         </div>
 
         <div class="flex min-w-0 flex-1 flex-col justify-center gap-0.5 min-h-12">
@@ -113,6 +121,14 @@
             <shared-color-picker [value]="getInputString(row, column)"
               (valueChange)="onCellValueChange(rowIndex, column, $event)" [label]="column.header"
               placeholder="#3B82F6" />
+            } @else if (column.cellType === 'thumbnail') {
+            <div class="flex flex-col gap-1.5">
+              <span class="text-sm font-medium text-zinc-700">{{ column.header }}</span>
+              <data-grid-thumbnail-cell
+                [value]="getInputString(row, column) || null"
+                [config]="column.thumbnailConfig"
+              />
+            </div>
             } @else {
             <shared-input [type]="column.cellType === 'number' ? 'number' : 'text'"
               [value]="getInputString(row, column)" (valueChange)="onCellValueChange(rowIndex, column, $event)"

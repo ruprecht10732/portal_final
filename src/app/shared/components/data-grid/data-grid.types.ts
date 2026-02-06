@@ -11,6 +11,7 @@ import {
   CARD_PREVIEW_FIELD_COUNT,
   MAX_MOBILE_COLUMNS,
 } from '../../../core/config';
+import type { ThumbnailConfig } from './data-grid-thumbnail-cell.component';
 
 /** Address mapping configuration for address cells */
 export interface AddressFieldMapping {
@@ -57,9 +58,11 @@ export interface GridColumn<T = unknown> {
   /** Editability scope (defaults to always when editable is true) */
   editableWhen?: 'always' | 'new-only';
   /** Custom cell renderer type */
-  cellType?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'custom' | 'address' | 'icon' | 'color';
+  cellType?: 'text' | 'number' | 'date' | 'boolean' | 'select' | 'custom' | 'address' | 'icon' | 'color' | 'thumbnail';
   /** Address field mapping for address cell type */
   addressMapping?: AddressFieldMapping;
+  /** Thumbnail display configuration */
+  thumbnailConfig?: ThumbnailConfig;
   /** Options for select type cells */
   selectOptions?: readonly { label: string; value: unknown }[];
   /** Metadata for select options (icon/color/description) */

@@ -27,6 +27,7 @@ import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { DataGridAddressCellComponent } from './data-grid-address-cell.component';
 import { DataGridIconCellComponent } from './data-grid-icon-cell.component';
 import { DataGridColorCellComponent } from './data-grid-color-cell.component';
+import { DataGridThumbnailCellComponent } from './data-grid-thumbnail-cell.component';
 import { DataGridStore } from './data-grid.store';
 import { AddressSuggestion } from '../../../core/services/address.service';
 import { LucideAngularModule } from 'lucide-angular';
@@ -37,7 +38,7 @@ dayjs.extend(relativeTime);
   selector: 'data-grid-body',
   templateUrl: './data-grid-body.component.html',
   styleUrl: './data-grid-body.component.css',
-  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridAddressCellComponent, StatusBadgeComponent, LucideAngularModule, TranslatePipe],
+  imports: [CheckboxComponent, OptionLabelPipe, DataGridIconCellComponent, DataGridColorCellComponent, DataGridThumbnailCellComponent, DataGridAddressCellComponent, StatusBadgeComponent, LucideAngularModule, TranslatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     'role': 'rowgroup',
@@ -84,7 +85,19 @@ export class DataGridBodyComponent<T extends Record<string, unknown>> {
   }
 
   // ============ Methods ============
-  
+
+  /** Whether the given column index should host the row action buttons.
+   *  Skips thumbnail columns so buttons don't overlay images. */
+  protected isActionColumn(colIndex: number): boolean {
+    const cols = this.columns();
+    for (let i = 0; i < cols.length; i++) {
+      if (cols[i]?.cellType !== 'thumbnail') {
+        return colIndex === i;
+      }
+    }
+    return colIndex === 0;
+  }
+
   protected isCellFocused(rowIndex: number, columnIndex: number): boolean {
     const focused = this.focusedCell();
     return focused?.rowIndex === rowIndex && focused?.columnIndex === columnIndex;

@@ -70,6 +70,7 @@
       "deleteConfirm": "Delete",
       "deleteCancel": "Cancel",
       "columns": {
+        "logo": "Logo",
         "businessName": "Business name",
         "contactName": "Contact",
         "contactEmail": "Contact email",

@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router } from '@angular/router';
-import { forkJoin, map, Observable } from 'rxjs';
+import { catchError, EMPTY, forkJoin, map, Observable } from 'rxjs';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -15,7 +16,7 @@ import { FabButtonComponent } from '../../../shared/components/fab-button/fab-bu
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
-export type PartnerRow = Partner & Record<string, unknown>;
+export type PartnerRow = Partner & { logoUrl?: string | null } & Record<string, unknown>;
 
 const MAX_LENGTHS = {
   businessName: 200,
@@ -49,6 +50,7 @@ export class PartnersListComponent implements OnInit {
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
   private readonly router = inject(Router);
+  private readonly destroyRef = inject(DestroyRef);
   private readonly lang = toSignal(this.translate.onLangChange, {
     initialValue: { lang: 'en', translations: {} },
   });
@@ -67,6 +69,17 @@ export class PartnersListComponent implements OnInit {
   protected readonly columns = computed<GridColumn<PartnerRow>[]>(() => {
     this.lang();
     return [
+      {
+        id: 'logo',
+        header: this.translate.instant('partners.list.columns.logo'),
+        field: 'logoUrl',
+        sortable: false,
+        filterable: false,
+        editable: false,
+        width: '64px',
+        cellType: 'thumbnail',
+        thumbnailConfig: { width: 36, height: 36 },
+      },
       {
         id: 'businessName',
         header: this.translate.instant('partners.list.columns.businessName'),
@@ -254,11 +267,13 @@ export class PartnersListComponent implements OnInit {
     this.partnersService.list(params).subscribe({
       next: (response) => {
         const items = response.items ?? [];
-        this.partners.set(items.map(item => ({ ...item }) as PartnerRow));
+        const rows = items.map(item => ({ ...item, logoUrl: null }) as PartnerRow);
+        this.partners.set(rows);
         this.total.set(response.total ?? items.length);
         this.loading.set(false);
         this.saving.set(false);
         this.ignoreNextRequest = true;
+        this.resolveLogoUrls(rows);
       },
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant('partners.errors.loadFailed'));
@@ -362,13 +377,35 @@ export class PartnersListComponent implements OnInit {
     }
 
     return this.partnersService.list(params).pipe(
-      map(response => ({
-        data: (response.items ?? []).map(item => ({ ...item }) as PartnerRow),
-        totalItems: response.total ?? 0,
-        page: response.page ?? request.page,
-        pageSize: response.pageSize ?? request.pageSize,
-      }))
+      map(response => {
+        const rows = (response.items ?? []).map(item => ({ ...item, logoUrl: null }) as PartnerRow);
+        this.resolveLogoUrls(rows);
+        return {
+          data: rows,
+          totalItems: response.total ?? 0,
+          page: response.page ?? request.page,
+          pageSize: response.pageSize ?? request.pageSize,
+        };
+      })
     );
+  }
+
+  private resolveLogoUrls(rows: PartnerRow[]): void {
+    for (const row of rows) {
+      if (!row.logoFileKey) continue;
+      this.partnersService
+        .getLogoDownloadUrl(row.id)
+        .pipe(
+          catchError(() => EMPTY),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe(response => {
+          row['logoUrl'] = response.downloadUrl;
+          this.partners.update(current =>
+            current.map(r => (r.id === row.id ? { ...r, logoUrl: response.downloadUrl } : r)),
+          );
+        });
+    }
   }
 
   protected onDataRequest(request: DataRequest): void {

@@ -1,18 +1,11 @@
 <div class="flex h-svh w-full flex-col-reverse bg-zinc-50 md:flex-row">
-
-  <aside class="fixed bottom-0 z-50 flex h-16 w-full flex-row items-center justify-between border-t border-zinc-200 bg-zinc-100 px-2 shadow-lg 
-                md:relative md:h-full md:w-20 md:flex-col md:justify-start md:border-r md:border-t-0 md:px-2 md:py-6 md:shadow-none">
-
-    <div class="hidden w-full items-center justify-center md:mb-8 md:flex">
-      <div class="flex h-11 w-11 items-center justify-center rounded-2xl bg-zinc-900 text-sm font-semibold text-white">
-        PF
-      </div>
-    </div>
-
-    <nav class="no-scrollbar flex flex-1 flex-row items-center justify-around gap-1 overflow-x-auto px-2 
-                md:flex-col md:justify-start md:gap-4 md:overflow-y-auto md:px-0" 
-         [attr.aria-label]="'sidebar.primary' | translate">
-      
+  <aside
+    class="fixed bottom-0 z-50 flex h-16 w-full flex-row items-center justify-between border-t border-zinc-200 bg-zinc-100 px-2 shadow-lg md:relative md:h-full md:w-20 md:flex-col md:justify-start md:border-r md:border-t-0 md:px-2 md:py-6 md:shadow-none"
+  >
+    <nav
+      class="no-scrollbar flex flex-1 flex-row items-center justify-around gap-1 overflow-x-auto px-2 md:flex-col md:justify-start md:gap-4 md:overflow-y-auto md:px-0"
+      [attr.aria-label]="'sidebar.primary' | translate"
+    >
       @for (item of items(); track item.route) {
         <shared-button
           class="sidebar-item touch-manipulation"
@@ -29,20 +22,37 @@
           [tooltip]="item.label | translate"
         >
           @switch (item.icon) {
-            @case ('dashboard') { <lucide-icon name="layout-dashboard" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon> }
-            @case ('leads') { <lucide-icon name="users" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon> }
-            @case ('partners') { <lucide-icon name="briefcase" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon> }
-            @case ('appointments') { <lucide-icon name="calendar-check" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon> }
-            @case ('services') { <lucide-icon name="wrench" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon> }
-            @case ('offertes') { <lucide-icon name="file-text" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon> }
-            @case ('catalog') { <lucide-icon name="book-open" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon> }
-            @case ('organization') { <lucide-icon name="building" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon> }
-            @case ('profile') { <lucide-icon name="user" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon> }
+            @case ('dashboard') {
+              <lucide-icon name="layout-dashboard" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+            }
+            @case ('leads') {
+              <lucide-icon name="users" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+            }
+            @case ('partners') {
+              <lucide-icon name="briefcase" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+            }
+            @case ('appointments') {
+              <lucide-icon name="calendar-check" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+            }
+            @case ('services') {
+              <lucide-icon name="wrench" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+            }
+            @case ('offertes') {
+              <lucide-icon name="file-text" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+            }
+            @case ('catalog') {
+              <lucide-icon name="book-open" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+            }
+            @case ('organization') {
+              <lucide-icon name="building" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+            }
+            @case ('profile') {
+              <lucide-icon name="user" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+            }
           }
         </shared-button>
       }
-      
-      </nav>
+    </nav>
 
     <div class="hidden flex-col items-center gap-4 border-t border-zinc-100 pt-6 md:flex">
       <shared-button
@@ -52,7 +62,9 @@
         [iconOnly]="true"
         shape="square"
         [fullWidth]="false"
-        [ariaLabel]="isExpanded() ? ('sidebar.collapse' | translate) : ('sidebar.expand' | translate)"
+        [ariaLabel]="
+          isExpanded() ? ('sidebar.collapse' | translate) : ('sidebar.expand' | translate)
+        "
         [tooltip]="isExpanded() ? ('sidebar.collapse' | translate) : ('sidebar.expand' | translate)"
         (clicked)="toggleExpanded()"
       >
@@ -84,5 +96,4 @@
       [items]="panelItems()"
     ></app-authenticated-sidebar-panel>
   }
-  
-  </div>
+</div>

@@ -122,6 +122,12 @@
                       (valueChange)="onInputChange(rowIndex, column, $event)"
                     />
                   }
+                  @case ('thumbnail') {
+                    <data-grid-thumbnail-cell
+                      [value]="getInputStringValue(row, column) || null"
+                      [config]="column.thumbnailConfig"
+                    />
+                  }
                   @case ('select') {
                     <div class="relative">
                       <select
@@ -183,7 +189,7 @@
                     <input
                       [type]="getInputType(column)"
                       class="w-full rounded-md border bg-transparent px-2.5 py-1.5 text-base sm:text-sm focus:border-zinc-900 focus:bg-white focus:outline-none focus:ring-1 focus:ring-zinc-900"
-                      [class.pr-8]="colIndex === 0"
+                      [class.pr-8]="isActionColumn(colIndex)"
                       [value]="getInputValue(row, column)"
                       [class.text-zinc-500]="getInputValue(row, column) === ''"
                       [class.border-transparent]="!getCellError(row, column.id)"
@@ -201,7 +207,7 @@
                 }
 
                 @if (
-                  colIndex === 0 &&
+                  isActionColumn(colIndex) &&
                   (rowViewActionEnabled() || (rowDeleteActionEnabled() && canDeleteRow(row)))
                 ) {
                   <div
@@ -266,7 +272,7 @@
           } @else {
             <div
               class="flex min-h-7 items-center gap-2"
-              [class.justify-between]="colIndex === 0"
+              [class.justify-between]="isActionColumn(colIndex)"
             >
               <span
                 class="truncate"
@@ -358,6 +364,11 @@
                   } @else {
                     {{ column.selectOptions | optionLabel: getCellValue(row, column) }}
                   }
+                } @else if (column.cellType === 'thumbnail') {
+                  <data-grid-thumbnail-cell
+                    [value]="getInputStringValue(row, column) || null"
+                    [config]="column.thumbnailConfig"
+                  />
                 } @else if (column.cellType === 'date') {
                   <span class="tabular-nums">{{ getRelativeDateValue(row, column) }}</span>
                 } @else {
@@ -366,7 +377,7 @@
               </span>
 
               @if (
-                colIndex === 0 &&
+                isActionColumn(colIndex) &&
                 (rowViewActionEnabled() || (rowDeleteActionEnabled() && canDeleteRow(row)))
               ) {
                 <div

@@ -26,6 +26,7 @@ import { CheckboxComponent } from '../checkbox/checkbox.component';
 import { ButtonComponent } from '../button/button.component';
 import { StatusBadgeComponent } from '../status-badge/status-badge.component';
 import { ColorPickerComponent } from '../color-picker/color-picker.component';
+import { DataGridThumbnailCellComponent } from './data-grid-thumbnail-cell.component';
 
 /** Type alias for field paths in the grid */
 export type GridFieldPath<T> = keyof T | string;
@@ -43,6 +44,7 @@ export type GridFieldPath<T> = keyof T | string;
     ButtonComponent,
     StatusBadgeComponent,
     ColorPickerComponent,
+    DataGridThumbnailCellComponent,
     TranslatePipe,
   ],
 })
@@ -233,6 +235,15 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     const field = this.statusField();
     if (!field) return null;
     return this.getValueByPath(row.current, field as string);
+  }
+
+  /** Get the first thumbnail column's URL for a row, used as card avatar */
+  protected getThumbnailUrl(row: RowState<T>): string | null {
+    const thumbCol = this.columns().find(col => col.cellType === 'thumbnail' && col.visible !== false);
+    if (!thumbCol) return null;
+    const value = this.getCellValue(row, thumbCol);
+    if (typeof value === 'string' && value.length > 0) return value;
+    return null;
   }
 
   /** Derive initials for the avatar placeholder */

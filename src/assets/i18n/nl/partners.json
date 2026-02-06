@@ -70,6 +70,7 @@
       "deleteConfirm": "Verwijderen",
       "deleteCancel": "Annuleren",
       "columns": {
+        "logo": "Logo",
         "businessName": "Bedrijfsnaam",
         "contactName": "Contact",
         "contactEmail": "Contact e-mail",
