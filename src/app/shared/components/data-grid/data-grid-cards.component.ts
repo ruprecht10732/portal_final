@@ -136,7 +136,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     const count = this.previewFieldCount();
     
     return cols
-      .filter(col => col.visible !== false && col.field !== titleField)
+      .filter(col => col.visible !== false && col.field !== titleField && col.cellType !== 'thumbnail')
       .slice(0, count);
   });
 
@@ -147,7 +147,7 @@ export class DataGridCardsComponent<T extends Record<string, unknown>> {
     const count = this.previewFieldCount();
     
     return cols
-      .filter(col => col.visible !== false && col.field !== titleField)
+      .filter(col => col.visible !== false && col.field !== titleField && col.cellType !== 'thumbnail')
       .slice(count);
   });
 

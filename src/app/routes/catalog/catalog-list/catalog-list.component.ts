@@ -15,6 +15,7 @@ import { DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 
 type ProductRow = Product & {
   priceLabel: string;
+  thumbnailUrl?: string | null;
 };
 
 @Component({
@@ -40,6 +41,8 @@ export class CatalogListComponent {
   protected readonly vatRates = signal<VatRate[]>([]);
   private readonly vatRatesLoading = signal(false);
   private readonly lastRequest = signal<DataRequest | null>(null);
+  private readonly thumbnailCache = new Map<string, string | null>();
+  private readonly thumbnailLoading = new Set<string>();
 
   // Delete dialog
   protected readonly isDeleteDialogOpen = signal(false);
@@ -67,6 +70,14 @@ export class CatalogListComponent {
   protected readonly columns = computed<GridColumn<ProductRow>[]>(() => {
     this.lang();
     return [
+      {
+        id: 'thumbnail',
+        header: this.translate.instant('catalog.products.columns.thumbnail'),
+        field: 'thumbnailUrl',
+        cellType: 'thumbnail',
+        width: '64px',
+        minWidth: '64px',
+      },
       {
         id: 'reference',
         header: this.translate.instant('catalog.products.columns.reference'),
@@ -219,6 +230,7 @@ export class CatalogListComponent {
     this.fetchData(request).subscribe({
       next: (response) => {
         this.products.set(response.data);
+        this.ensureThumbnailsLoaded(response.data);
         this.total.set(response.totalItems);
         this.loading.set(false);
       },
@@ -289,9 +301,54 @@ export class CatalogListComponent {
     return {
       ...product,
       priceLabel: this.formatPrice(product),
+      thumbnailUrl: this.thumbnailCache.get(product.id) ?? null,
     };
   }
 
+  private ensureThumbnailsLoaded(rows: ProductRow[]): void {
+    rows.forEach((row) => {
+      if (this.thumbnailCache.has(row.id) || this.thumbnailLoading.has(row.id)) return;
+      this.thumbnailLoading.add(row.id);
+
+      this.catalogService.listProductAssets(row.id, 'image').subscribe({
+        next: (response) => {
+          const first = response.items[0];
+          if (!first) {
+            this.setThumbnail(row.id, null);
+            this.thumbnailLoading.delete(row.id);
+            return;
+          }
+          if (first.url) {
+            this.setThumbnail(row.id, first.url);
+            this.thumbnailLoading.delete(row.id);
+            return;
+          }
+          this.catalogService.getCatalogAssetDownloadUrl(row.id, first.id).subscribe({
+            next: (download) => {
+              this.setThumbnail(row.id, download.downloadUrl ?? null);
+            },
+            error: () => {
+              this.setThumbnail(row.id, null);
+            },
+            complete: () => {
+              this.thumbnailLoading.delete(row.id);
+            },
+          });
+        },
+        error: () => {
+          this.setThumbnail(row.id, null);
+          this.thumbnailLoading.delete(row.id);
+        },
+      });
+    });
+  }
+
+  private setThumbnail(productId: string, url: string | null): void {
+    this.thumbnailCache.set(productId, url);
+    this.products.update(rows => rows.map(row => (
+      row.id === productId ? { ...row, thumbnailUrl: url } : row
+    )));
+  }
   private mapSortField(columnId?: string | null): string {
     switch (columnId) {
       case 'reference':

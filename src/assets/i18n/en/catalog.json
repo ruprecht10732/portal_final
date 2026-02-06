@@ -239,6 +239,7 @@
       "deleteConfirm": "Delete",
       "deleteCancel": "Cancel",
       "columns": {
+        "thumbnail": "Image",
         "reference": "Reference",
         "title": "Title",
         "type": "Type",
