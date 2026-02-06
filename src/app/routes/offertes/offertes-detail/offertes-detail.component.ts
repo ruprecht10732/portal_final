@@ -5,8 +5,8 @@ import { LucideAngularModule } from 'lucide-angular';
 
 import { QuotesService } from '../../../core/services/quotes.service';
 import { LeadsService } from '../../../core/services/leads.service';
-import type { Quote, QuoteStatus } from '../../../core/services/quotes.types';
-import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS } from '../../../core/services/quotes.types';
+import type { QuoteResponse, QuoteStatus } from '../../../core/services/quotes.types';
+import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros } from '../../../core/services/quotes.types';
 import type { Lead } from '../../../core/services/leads.types';
 
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -28,7 +28,7 @@ export class OffertesDetailComponent implements OnInit {
   private readonly translate = inject(TranslateService);
 
   protected readonly loading = signal(true);
-  protected readonly quote = signal<Quote | null>(null);
+  protected readonly quote = signal<QuoteResponse | null>(null);
   protected readonly lead = signal<Lead | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly showDeleteConfirm = signal(false);
@@ -130,6 +130,10 @@ export class OffertesDetailComponent implements OnInit {
 
   protected getStatusColor(status: QuoteStatus): string {
     return QUOTE_STATUS_COLORS[status];
+  }
+
+  protected formatCentsCurrency(cents: number): string {
+    return this.formatCurrency(centsToEuros(cents));
   }
 
   protected formatCurrency(amount: number): string {

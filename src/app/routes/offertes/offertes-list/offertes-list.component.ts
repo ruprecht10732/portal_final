@@ -7,17 +7,12 @@ import { catchError, map, switchMap } from 'rxjs/operators';
 
 import { QuotesService } from '../../../core/services/quotes.service';
 import { LeadsService } from '../../../core/services/leads.service';
-import type { Quote, QuoteStatus } from '../../../core/services/quotes.types';
-import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS } from '../../../core/services/quotes.types';
+import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros, type QuoteResponse, type QuoteStatus, type QuoteWithLead } from '../../../core/services/quotes.types';
 import type { Lead } from '../../../core/services/leads.types';
 
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
-
-interface QuoteWithLead extends Quote {
-  lead?: Lead;
-}
 
 @Component({
   selector: 'app-offertes-list',
@@ -37,11 +32,11 @@ export class OffertesListComponent implements OnInit {
 
   protected readonly statusOptions = computed<SelectOption<QuoteStatus | 'all'>[]>(() => [
     { label: 'All', value: 'all' },
-    { label: QUOTE_STATUS_LABELS.draft, value: 'draft' },
-    { label: QUOTE_STATUS_LABELS.sent, value: 'sent' },
-    { label: QUOTE_STATUS_LABELS.accepted, value: 'accepted' },
-    { label: QUOTE_STATUS_LABELS.rejected, value: 'rejected' },
-    { label: QUOTE_STATUS_LABELS.expired, value: 'expired' },
+    { label: QUOTE_STATUS_LABELS.Draft, value: 'Draft' },
+    { label: QUOTE_STATUS_LABELS.Sent, value: 'Sent' },
+    { label: QUOTE_STATUS_LABELS.Accepted, value: 'Accepted' },
+    { label: QUOTE_STATUS_LABELS.Rejected, value: 'Rejected' },
+    { label: QUOTE_STATUS_LABELS.Expired, value: 'Expired' },
   ]);
 
   protected readonly filteredQuotes = computed(() => {
@@ -71,7 +66,7 @@ export class OffertesListComponent implements OnInit {
       });
   }
 
-  private loadLeadsForQuotes(items: Quote[]): Observable<QuoteWithLead[]> {
+  private loadLeadsForQuotes(items: QuoteResponse[]): Observable<QuoteWithLead[]> {
     const leadIds = [...new Set(items.map(q => q.leadId))];
     if (leadIds.length === 0) return of([]);
 
@@ -114,6 +109,10 @@ export class OffertesListComponent implements OnInit {
 
   protected getStatusColor(status: QuoteStatus): string {
     return QUOTE_STATUS_COLORS[status];
+  }
+
+  protected formatCentsCurrency(cents: number): string {
+    return this.formatCurrency(centsToEuros(cents));
   }
 
   protected formatCurrency(amount: number): string {

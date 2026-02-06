@@ -5,36 +5,36 @@
       [backAriaLabel]="'offertes.goBack' | translate"
       (back)="goBack()"
     >
-      @if (quote(); as q) {
-        <ng-container subtitle>
+      <ng-container subtitle>
+        @if (quote(); as q) {
           <span class="text-xs font-semibold uppercase px-2 py-0.5 rounded mt-1 w-fit" [class]="getStatusColor(q.status)">
             {{ getStatusLabel(q.status) }}
           </span>
-        </ng-container>
-      }
-      @if (quote(); as q) {
-        <ng-container actions>
+        }
+      </ng-container>
+      <ng-container actions>
+        @if (quote(); as q) {
           <div class="flex items-center gap-2">
             @switch (q.status) {
-              @case ('draft') {
+              @case ('Draft') {
                 <shared-button
                   variant="primary"
                   size="compact"
                   [fullWidth]="false"
                   [loading]="updating()"
-                  (clicked)="updateStatus('sent')"
+                  (clicked)="updateStatus('Sent')"
                 >
                   <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
                   {{ 'offertes.markSent' | translate }}
                 </shared-button>
               }
-              @case ('sent') {
+              @case ('Sent') {
                 <shared-button
                   variant="success"
                   size="compact"
                   [fullWidth]="false"
                   [loading]="updating()"
-                  (clicked)="updateStatus('accepted')"
+                  (clicked)="updateStatus('Accepted')"
                 >
                   <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
                   {{ 'offertes.markAccepted' | translate }}
@@ -44,7 +44,7 @@
                   size="compact"
                   [fullWidth]="false"
                   [loading]="updating()"
-                  (clicked)="updateStatus('rejected')"
+                  (clicked)="updateStatus('Rejected')"
                 >
                   <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
                   {{ 'offertes.markRejected' | translate }}
@@ -52,7 +52,7 @@
               }
             }
 
-            @if (q.status === 'draft') {
+            @if (q.status === 'Draft') {
               <shared-button
                 variant="secondary"
                 size="compact"
@@ -86,8 +86,8 @@
               <lucide-icon name="trash-2" class="h-4 w-4 text-red-500"></lucide-icon>
             </shared-button>
           </div>
-        </ng-container>
-      }
+        }
+      </ng-container>
     </shared-page-header>
   </div>
 
@@ -120,7 +120,7 @@
             </div>
             <div class="text-right">
               <span class="text-xs uppercase tracking-widest text-zinc-500">{{ 'offertes.totalAmount' | translate }}</span>
-              <div class="text-xl font-bold">{{ formatCurrency(q.total) }}</div>
+              <div class="text-xl font-bold">{{ formatCentsCurrency(q.totalCents) }}</div>
             </div>
           </div>
         </div>
@@ -132,9 +132,85 @@
           </div>
         }
 
+        <!-- Lead info -->
+        @if (lead(); as l) {
+          <div class="mb-6">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
+              {{ 'offertes.customer' | translate }}
+            </h3>
+            <div class="text-sm text-zinc-700">
+              <p class="font-semibold">{{ l.consumer.firstName }} {{ l.consumer.lastName }}</p>
+              <p>{{ l.address.street }} {{ l.address.houseNumber }}, {{ l.address.zipCode }} {{ l.address.city }}</p>
+              @if (l.consumer.phone) {
+                <p class="text-zinc-400">{{ l.consumer.phone }}</p>
+              }
+            </div>
+          </div>
+        }
+
+        <!-- Line items table -->
+        @if (q.items.length > 0) {
+          <div class="mb-6">
+            <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">
+              {{ 'offertes.lineItems' | translate }}
+            </h3>
+            <div class="overflow-x-auto">
+              <table class="w-full text-sm">
+                <thead>
+                  <tr class="border-b border-zinc-200">
+                    <th class="text-left py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500">{{ 'offertes.description' | translate }}</th>
+                    <th class="text-left py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-24">{{ 'offertes.qty' | translate }}</th>
+                    <th class="text-right py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-28">{{ 'offertes.price' | translate }}</th>
+                    <th class="text-right py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-24">{{ 'offertes.tax' | translate }}</th>
+                    <th class="text-right py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-28">{{ 'offertes.total' | translate }}</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  @for (item of q.items; track item.id) {
+                    <tr class="border-b border-zinc-100" [class.opacity-50]="item.isOptional">
+                      <td class="py-2 px-2">
+                        <span class="text-zinc-900">{{ item.description }}</span>
+                        @if (item.isOptional) {
+                          <span class="ml-2 text-[10px] font-bold uppercase text-orange-500 bg-orange-50 px-1.5 py-0.5 rounded">{{ 'offertes.optional' | translate }}</span>
+                        }
+                      </td>
+                      <td class="py-2 px-2 text-zinc-600">{{ item.quantity }}</td>
+                      <td class="py-2 px-2 text-right text-zinc-600">{{ formatCentsCurrency(item.unitPriceCents) }}</td>
+                      <td class="py-2 px-2 text-right text-zinc-400">{{ item.taxRateBps / 100 }}%</td>
+                      <td class="py-2 px-2 text-right font-medium text-zinc-900">{{ formatCentsCurrency(item.lineTotalCents) }}</td>
+                    </tr>
+                  }
+                </tbody>
+              </table>
+            </div>
+          </div>
+        }
+
+        <!-- Financial summary -->
+        <div class="border-t border-zinc-200 pt-4 space-y-2">
+          <div class="flex justify-between text-sm">
+            <span class="text-zinc-500">{{ 'offertes.subtotal' | translate }}</span>
+            <span class="font-medium">{{ formatCentsCurrency(q.subtotalCents) }}</span>
+          </div>
+          @if (q.discountAmountCents > 0) {
+            <div class="flex justify-between text-sm text-green-600">
+              <span>{{ 'offertes.discount' | translate }}</span>
+              <span>-{{ formatCentsCurrency(q.discountAmountCents) }}</span>
+            </div>
+          }
+          <div class="flex justify-between text-sm">
+            <span class="text-zinc-500">{{ 'offertes.tax' | translate }}</span>
+            <span>{{ formatCentsCurrency(q.taxTotalCents) }}</span>
+          </div>
+          <div class="flex justify-between pt-3 border-t-2 border-zinc-300">
+            <span class="text-lg font-bold uppercase">{{ 'offertes.totalAmount' | translate }}</span>
+            <span class="text-2xl font-bold">{{ formatCentsCurrency(q.totalCents) }}</span>
+          </div>
+        </div>
+
         <!-- Notes -->
         @if (q.notes) {
-          <div class="bg-zinc-50 rounded-lg p-4 print:bg-transparent print:border print:border-zinc-200">
+          <div class="mt-6 bg-zinc-50 rounded-lg p-4 print:bg-transparent print:border print:border-zinc-200">
             <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
               {{ 'offertes.notes' | translate }}
             </h3>

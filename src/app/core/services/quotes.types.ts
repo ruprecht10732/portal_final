@@ -1,68 +1,134 @@
-// Quote types - frontend-only for now, ready for backend integration
+// Quote types — aligned with backend API (cents-based)
 
 import type { Lead } from './leads.types';
 
-export type QuoteStatus = 'draft' | 'sent' | 'accepted' | 'rejected' | 'expired';
+// Backend uses PascalCase enum values
+export type QuoteStatus = 'Draft' | 'Sent' | 'Accepted' | 'Rejected' | 'Expired';
 
 export type DiscountType = 'percentage' | 'fixed';
 
-export type TaxRate = 0 | 9 | 21;
+/**
+ * Tax rate in basis points. 2100 = 21%, 900 = 9%, 0 = 0%.
+ * The backend stores and returns BPS; the frontend converts for display.
+ */
+
+/** Legacy display-friendly rate (0 | 9 | 21). Used only in the UI. */
+export type TaxRateDisplay = 0 | 9 | 21;
 
 export type PricingMode = 'exclusive' | 'inclusive';
 
-export interface QuoteLineItem {
+// ── API Response types (from backend) ─────────────────────────────────────────
+
+export interface QuoteItemResponse {
   id: string;
   description: string;
-  quantity: string; // Free-form: "5 x", "10 m²", "3 uur", etc.
-  unitPrice: number;
-  taxRate: TaxRate;
-  optional: boolean;
-  total: number;
+  quantity: string;
+  unitPriceCents: number;
+  taxRateBps: number;
+  isOptional: boolean;
+  sortOrder: number;
+  totalBeforeTaxCents: number;
+  totalTaxCents: number;
+  lineTotalCents: number;
 }
 
-export interface Quote {
+export interface VatBreakdown {
+  rateBps: number;
+  amountCents: number;
+}
+
+export interface QuoteResponse {
   id: string;
   quoteNumber: string;
   leadId: string;
-  lead?: Lead; // populated on fetch
+  leadServiceId?: string;
   status: QuoteStatus;
-  lineItems: QuoteLineItem[];
-  subtotal: number;
-  discountType: DiscountType;
-  discountValue: number;
-  discountAmount: number;
-  taxAmount: number;
-  total: number;
   pricingMode: PricingMode;
+  discountType: DiscountType;
+  discountValue: number; // percentage int or cents
+  subtotalCents: number;
+  discountAmountCents: number;
+  taxTotalCents: number;
+  totalCents: number;
   validUntil?: string;
   notes?: string;
+  items: QuoteItemResponse[];
   createdAt: string;
   updatedAt: string;
 }
 
+export interface QuoteListResponse {
+  items: QuoteResponse[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface CalculatedLineItem {
+  description: string;
+  quantity: string;
+  unitPriceCents: number;
+  taxRateBps: number;
+  isOptional: boolean;
+  totalBeforeTaxCents: number;
+  totalTaxCents: number;
+  lineTotalCents: number;
+}
+
+export interface QuoteCalculationResponse {
+  lines: CalculatedLineItem[];
+  subtotalCents: number;
+  discountAmountCents: number;
+  vatTotalCents: number;
+  vatBreakdown: VatBreakdown[];
+  totalCents: number;
+}
+
+// ── API Request types ─────────────────────────────────────────────────────────
+
+export interface QuoteItemRequest {
+  description: string;
+  quantity: string;
+  unitPriceCents: number;
+  taxRateBps: number;
+  isOptional: boolean;
+}
+
 export interface CreateQuoteRequest {
   leadId: string;
-  lineItems: Omit<QuoteLineItem, 'id' | 'total'>[];
+  leadServiceId?: string;
+  pricingMode?: PricingMode;
   discountType?: DiscountType;
   discountValue?: number;
-  pricingMode?: PricingMode;
   validUntil?: string;
   notes?: string;
+  items: QuoteItemRequest[];
 }
 
 export interface UpdateQuoteRequest {
-  lineItems?: Omit<QuoteLineItem, 'id' | 'total'>[];
+  pricingMode?: PricingMode;
   discountType?: DiscountType;
   discountValue?: number;
-  pricingMode?: PricingMode;
   validUntil?: string;
   notes?: string;
+  items?: QuoteItemRequest[];
 }
 
-export interface QuoteListResponse {
-  items: Quote[];
-  total: number;
+export interface QuoteCalculationRequest {
+  items: QuoteItemRequest[];
+  pricingMode?: PricingMode;
+  discountType?: DiscountType;
+  discountValue?: number;
 }
+
+// ── Enriched frontend type (quote + lead info) ────────────────────────────────
+
+export interface QuoteWithLead extends QuoteResponse {
+  lead?: Lead;
+}
+
+// ── Helpers ───────────────────────────────────────────────────────────────────
 
 /**
  * Parse numeric value from free-form quantity string.
@@ -74,27 +140,47 @@ export function parseQuantityNumber(quantity: string): number {
   return Number.parseFloat(match[1].replace(',', '.')) || 1;
 }
 
-// Status display helpers
+/** Convert a display tax rate (21) to basis points (2100). */
+export function taxDisplayToBps(rate: TaxRateDisplay): number {
+  return rate * 100;
+}
+
+/** Convert basis points (2100) to a display rate (21). */
+export function taxBpsToDisplay(bps: number): TaxRateDisplay {
+  return (bps / 100) as TaxRateDisplay;
+}
+
+/** Convert euros to cents. */
+export function eurosToCents(euros: number): number {
+  return Math.round(euros * 100);
+}
+
+/** Convert cents to euros. */
+export function centsToEuros(cents: number): number {
+  return cents / 100;
+}
+
+// Status display helpers — keys match backend PascalCase enum
 export const QUOTE_STATUS_LABELS: Record<QuoteStatus, string> = {
-  draft: 'Draft',
-  sent: 'Sent',
-  accepted: 'Accepted',
-  rejected: 'Rejected',
-  expired: 'Expired',
+  Draft: 'Draft',
+  Sent: 'Sent',
+  Accepted: 'Accepted',
+  Rejected: 'Rejected',
+  Expired: 'Expired',
 };
 
 export const QUOTE_STATUS_COLORS: Record<QuoteStatus, string> = {
-  draft: 'bg-zinc-100 text-zinc-600',
-  sent: 'bg-blue-100 text-blue-700',
-  accepted: 'bg-green-100 text-green-700',
-  rejected: 'bg-red-100 text-red-700',
-  expired: 'bg-orange-100 text-orange-700',
+  Draft: 'bg-zinc-100 text-zinc-600',
+  Sent: 'bg-blue-100 text-blue-700',
+  Accepted: 'bg-green-100 text-green-700',
+  Rejected: 'bg-red-100 text-red-700',
+  Expired: 'bg-orange-100 text-orange-700',
 };
 
-export const TAX_RATE_OPTIONS: { label: string; value: TaxRate }[] = [
-  { label: '21% BTW', value: 21 },
-  { label: '9% BTW', value: 9 },
-  { label: '0% (vrijgesteld)', value: 0 },
+export const TAX_RATE_OPTIONS: { label: string; value: TaxRateDisplay; bps: number }[] = [
+  { label: '21% BTW', value: 21, bps: 2100 },
+  { label: '9% BTW', value: 9, bps: 900 },
+  { label: '0% (vrijgesteld)', value: 0, bps: 0 },
 ];
 
 export const DISCOUNT_TYPE_OPTIONS: { label: string; value: DiscountType }[] = [
