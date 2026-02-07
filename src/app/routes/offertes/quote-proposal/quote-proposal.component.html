@@ -4,15 +4,12 @@
     <section class="quote-intro">
       <button class="intro-skip" type="button" (click)="continueToQuote()">Overslaan</button>
 
-      <div
+      <button
         class="intro-scene"
         id="intro-trigger"
-        role="button"
-        tabindex="0"
+        type="button"
         aria-label="Offerte onthullen"
         (click)="toggleIntro()"
-        (keydown.enter)="toggleIntro()"
-        (keydown.space)="toggleIntro()"
       >
         <div class="intro-envelope" id="intro-envelope">
           <div class="intro-lid" id="intro-lid"></div>
@@ -39,7 +36,7 @@
         </div>
 
         <div class="intro-ground-shadow" id="intro-shadow"></div>
-      </div>
+      </button>
 
       <div class="intro-hint" [class.is-visible]="!introOpen()" [class.is-open]="introOpen()">{{ introHint() }}</div>
       @if (introOpen()) {

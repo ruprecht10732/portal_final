@@ -75,7 +75,7 @@ export class QuoteProposalComponent implements OnInit {
   protected readonly downloadingPdf = signal(false);
   protected readonly showIntro = signal(true);
   protected readonly introOpen = signal(false);
-  protected readonly prefersReducedMotion = signal(false);
+  protected readonly prefersReducedMotion = signal<boolean>(false);
 
   // Accept form
   protected readonly signatureName = signal('');
@@ -161,7 +161,7 @@ export class QuoteProposalComponent implements OnInit {
       return;
     }
 
-    if (!this.introTimeline) {
+    if (this.introTimeline === null) {
       this.introOpen.set(true);
       return;
     }
@@ -223,7 +223,7 @@ export class QuoteProposalComponent implements OnInit {
           rotationX: -12,
           y: 30,
           scale: 0.92,
-          duration: 1.0,
+		  duration: 1,
           ease: 'power2.inOut',
         },
         '-=0.5',
@@ -261,7 +261,7 @@ export class QuoteProposalComponent implements OnInit {
           clipPath: 'inset(0% 0% 0% 0%)',
           rotationX: 0,
           rotationZ: 0,
-          duration: 1.0,
+		  duration: 1,
           ease: 'power2.out',
           boxShadow: '0 30px 80px -15px rgba(0,0,0,0.5)',
         },
@@ -291,7 +291,7 @@ export class QuoteProposalComponent implements OnInit {
         '#intro-shine',
         {
           left: '150%',
-          duration: 1.0,
+		  duration: 1,
           ease: 'power2.inOut',
         },
         '-=0.7',

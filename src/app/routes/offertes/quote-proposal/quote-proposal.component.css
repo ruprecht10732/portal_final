@@ -72,9 +72,9 @@
 	font-size: 11px;
 	letter-spacing: 0.2em;
 	text-transform: uppercase;
-	background: rgba(255, 255, 255, 0.04);
+	background: #0f172a;
 	border: 1px solid rgba(194, 163, 93, 0.3);
-	color: rgba(229, 199, 138, 0.7);
+	color: #e5c78a;
 	padding: 8px 16px;
 	border-radius: 999px;
 	cursor: pointer;
@@ -84,8 +84,8 @@
 }
 
 .intro-skip:hover {
-	background: rgba(194, 163, 93, 0.12);
-	border-color: rgba(194, 163, 93, 0.6);
+	background: #1a2332;
+	border-color: #c2a35d;
 	color: #e5c78a;
 	box-shadow: 0 0 20px rgba(194, 163, 93, 0.1);
 }
@@ -95,6 +95,11 @@
 	width: 380px;
 	height: 340px;
 	cursor: pointer;
+	border: 0;
+	background: transparent;
+	padding: 0;
+	font: inherit;
+	color: inherit;
 	display: flex;
 	align-items: center;
 	justify-content: center;
