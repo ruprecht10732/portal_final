@@ -162,6 +162,7 @@ export interface PresignedDownloadResponse {
 // ============================================================================
 
 export interface AutocompleteDocumentResponse {
+  id: string;
   filename: string;
   fileKey: string;
 }

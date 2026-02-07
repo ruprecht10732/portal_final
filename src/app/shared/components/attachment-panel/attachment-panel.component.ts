@@ -20,6 +20,8 @@ export interface AttachmentDraft {
   fileKey: string;
   source: AttachmentSource;
   catalogProductId?: string;
+  /** The original catalog asset ID — used for preview via catalog download endpoint. */
+  catalogAssetId?: string;
   enabled: boolean;
   sortOrder: number;
   /** True while a manual upload is in progress. */

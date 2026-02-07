@@ -701,6 +701,7 @@ export class OffertesCreateComponent implements OnInit {
         fileKey: doc.fileKey,
         source: 'catalog' as const,
         catalogProductId: product.id,
+        catalogAssetId: doc.id,
         enabled: true,
         sortOrder: this.attachmentDrafts().length + i,
       }));
@@ -858,7 +859,7 @@ export class OffertesCreateComponent implements OnInit {
   protected openPreview(att: AttachmentDraft): void {
     const quote = this.existingQuote();
 
-    // For pending (not-yet-uploaded) files, use a local object URL
+    // 1. For pending (not-yet-uploaded) files, use a local object URL
     if (att.pendingFile) {
       this.previewOpen.set(true);
       this.previewAttachment.set(att);
@@ -868,7 +869,30 @@ export class OffertesCreateComponent implements OnInit {
       return;
     }
 
-    // Must have a saved quote to fetch a presigned URL
+    // 2. Catalog attachment with known asset ID → use catalog download endpoint
+    if (att.source === 'catalog' && att.catalogProductId && att.catalogAssetId) {
+      this.previewOpen.set(true);
+      this.previewLoading.set(true);
+      this.previewError.set(null);
+      this.previewUrl.set(null);
+      this.previewAttachment.set(att);
+
+      this.catalogService.getCatalogAssetDownloadUrl(att.catalogProductId, att.catalogAssetId).pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe({
+        next: response => {
+          this.previewUrl.set(response.downloadUrl);
+          this.previewLoading.set(false);
+        },
+        error: () => {
+          this.previewError.set(this.translate.instant('offertes.errors.loadPreview'));
+          this.previewLoading.set(false);
+        },
+      });
+      return;
+    }
+
+    // 3. Saved attachment on a persisted quote → use quote attachment download
     if (!quote) return;
 
     this.previewOpen.set(true);
