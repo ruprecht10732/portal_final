@@ -5,6 +5,9 @@ import { configs as angularConfigs, processInlineTemplates } from "angular-eslin
 
 export default config(
   {
+    ignores: [".angular/**", "report/**", "dist/**"],
+  },
+  {
     files: ["**/*.ts"],
     extends: [
       eslint.configs.recommended,
@@ -23,6 +26,14 @@ export default config(
         },
       ],
       "@angular-eslint/component-selector": "off",
+      "@typescript-eslint/no-unused-vars": [
+        "error",
+        {
+          argsIgnorePattern: "^_",
+          varsIgnorePattern: "^_",
+          destructuredArrayIgnorePattern: "^_",
+        },
+      ],
     },
   },
   {
