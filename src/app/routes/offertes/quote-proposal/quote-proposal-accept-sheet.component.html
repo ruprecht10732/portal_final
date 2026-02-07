@@ -1,0 +1,55 @@
+<app-bottom-sheet
+  [isOpen]="isOpen()"
+  title=""
+  [showCloseButton]="false"
+  (closed)="requestDismiss.emit()"
+>
+  <div class="px-6 pb-8 pt-4 space-y-6">
+    <div class="flex items-center justify-between">
+      <button
+        type="button"
+        class="text-[14px] font-medium text-blue-600"
+        (click)="requestDismiss.emit()"
+      >
+        Annuleer
+      </button>
+      <span class="text-[15px] font-extrabold text-zinc-900">Bevestig en onderteken</span>
+      <span class="w-16" aria-hidden="true"></span>
+    </div>
+
+    <div class="space-y-2">
+      <h3 class="text-xl font-extrabold tracking-tight text-zinc-900">Bevestig uw akkoord</h3>
+      <p class="text-sm text-zinc-500">
+        Door te ondertekenen gaat u akkoord met de voorwaarden van deze offerte.
+      </p>
+    </div>
+
+    <app-quote-proposal-signature-block
+      [name]="signatureName()"
+      [signatureData]="signatureData()"
+      (nameChange)="nameChange.emit($event)"
+      (signatureChange)="signatureChange.emit($event)"
+    />
+  </div>
+
+  <div bottomSheetFooter class="border-t border-zinc-100 bg-white/90 px-6 pb-[calc(3.5rem+env(safe-area-inset-bottom))] pt-6 backdrop-blur">
+    <button
+      type="button"
+      class="h-14 w-full mb-4 rounded-[18px] bg-emerald-500 text-base font-extrabold text-white shadow-lg shadow-emerald-500/20 transition-transform active:scale-[0.98]"
+      (click)="requestConfirm.emit()"
+      [disabled]="!signatureName().trim() || !signatureData() || accepting()"
+    >
+      @if (accepting()) {
+        <span class="flex items-center justify-center gap-2">
+          <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+          Bezig…
+        </span>
+      } @else {
+        <span class="inline-flex items-center justify-center gap-2">
+          <lucide-icon name="signature" class="h-5 w-5" aria-hidden="true"></lucide-icon>
+          Ondertekenen
+        </span>
+      }
+    </button>
+  </div>
+</app-bottom-sheet>

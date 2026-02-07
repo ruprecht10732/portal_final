@@ -15,8 +15,8 @@ export class QuoteAnnotationListComponent {
   readonly deletingId = input<string | null>(null);
   readonly variant = input<'mobile' | 'desktop'>('mobile');
 
-  readonly edit = output<AnnotationResponse>();
-  readonly remove = output<AnnotationResponse>();
+  readonly requestEdit = output<AnnotationResponse>();
+  readonly requestRemove = output<AnnotationResponse>();
 
   protected readonly listClass = computed(() =>
     this.variant() === 'mobile' ? 'flex flex-col gap-3' : 'space-y-2',

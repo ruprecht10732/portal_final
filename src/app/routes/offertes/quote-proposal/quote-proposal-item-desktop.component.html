@@ -1,0 +1,87 @@
+<div
+  class="border-b border-zinc-50 px-6 py-4 transition-colors"
+  [class.opacity-50]="item().isOptional && !item().isSelected"
+  [class.cursor-pointer]="canToggle()"
+  [class.hover:bg-zinc-50]="canToggle()"
+>
+  <div
+    class="sm:grid sm:grid-cols-12 sm:items-center sm:gap-4"
+    (click)="canToggle() ? toggleItem.emit(item()) : null"
+    (keydown.enter)="canToggle() ? toggleItem.emit(item()) : null"
+    [attr.tabindex]="canToggle() ? 0 : null"
+    [attr.role]="item().isOptional ? 'checkbox' : null"
+    [attr.aria-checked]="item().isOptional ? item().isSelected : null"
+  >
+    <div class="col-span-5">
+      <div class="flex items-center gap-2">
+        @if (item().isOptional) {
+          <button
+            type="button"
+            class="flex h-5 w-5 shrink-0 items-center justify-center rounded border transition-colors"
+            [class.bg-blue-600]="item().isSelected"
+            [class.border-blue-600]="item().isSelected"
+            [class.border-zinc-300]="!item().isSelected"
+            [disabled]="isFinalized() || isReadOnly() || togglingId() === item().id"
+          >
+            @if (item().isSelected) {
+              <svg class="h-3 w-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+            }
+          </button>
+        }
+        <div>
+          <span class="text-sm font-medium text-zinc-900">{{ item().description }}</span>
+          @if (item().isOptional) {
+            <span class="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">optie</span>
+          }
+        </div>
+      </div>
+      @if (togglingId() === item().id) {
+        <div class="mt-1 h-1 w-16 animate-pulse rounded-full bg-blue-200"></div>
+      }
+    </div>
+
+    <div class="col-span-2 mt-2 text-sm text-zinc-600 sm:mt-0">
+      {{ item().quantity }}
+    </div>
+
+    <div class="col-span-2 mt-1 text-right text-sm text-zinc-600 sm:mt-0">
+      {{ formatCents(item().unitPriceCents) }}
+    </div>
+
+    <div class="col-span-1 text-right text-sm text-zinc-500">
+      {{ formatTaxRate(item().taxRateBps) }}
+    </div>
+
+    <div class="col-span-2 mt-1 text-right text-sm font-medium text-zinc-900 sm:mt-0">
+      {{ formatCents(item().lineTotalCents) }}
+    </div>
+  </div>
+
+  @if (item().annotations.length) {
+    <div class="mt-3 border-t border-zinc-100 pt-3">
+      <app-quote-annotation-list
+        [annotations]="item().annotations"
+        [variant]="'desktop'"
+        [canEdit]="!isFinalized() && !isReadOnly()"
+        [lockEdits]="hasAgentResponse()"
+        [deletingId]="deletingId()"
+        (requestEdit)="emitEdit($event)"
+        (requestRemove)="emitRemove($event)"
+      />
+    </div>
+  }
+
+  @if (!isFinalized() && !isReadOnly()) {
+    <button
+      type="button"
+      class="mt-2 text-xs font-semibold transition-colors"
+      (click)="emitAsk()"
+      [disabled]="hasAgentResponse()"
+      [class.text-blue-600]="!hasAgentResponse()"
+      [class.text-slate-400]="hasAgentResponse()"
+      [class.cursor-not-allowed]="hasAgentResponse()"
+    >
+      Stel een vraag →
+    </button>
+  }
+</div>

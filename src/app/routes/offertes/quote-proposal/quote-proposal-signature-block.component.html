@@ -1,0 +1,39 @@
+<div class="space-y-2">
+  <label for="signatureName" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">Uw volledige naam</label>
+  <input
+    id="signatureName"
+    type="text"
+    class="mt-2 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20"
+    placeholder="Uw volledige naam"
+    [value]="name()"
+    (input)="nameChange.emit($any($event.target).value)"
+  />
+</div>
+
+<div class="space-y-3">
+  <div class="flex items-center justify-between">
+    <label for="signaturePad" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">Handtekening</label>
+    <button
+      type="button"
+      class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-600 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40"
+      (click)="clearSignature()"
+      [disabled]="!signatureData()"
+    >
+      <lucide-icon name="eraser" class="h-3.5 w-3.5" aria-hidden="true"></lucide-icon>
+      Wissen
+    </button>
+  </div>
+  <div
+    class="signature-frame rounded-3xl border border-zinc-200 bg-white"
+    (touchstart)="$event.stopPropagation()"
+    (touchmove)="$event.stopPropagation()"
+  >
+    <app-signature-pad id="signaturePad" (signatureChange)="signatureChange.emit($event)" />
+  </div>
+</div>
+
+<div class="rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+  <p class="text-xs leading-relaxed text-zinc-500">
+    Deze handtekening is juridisch bindend onder de eIDAS-verordening. Door te ondertekenen gaat u akkoord met de algemene voorwaarden van dit voorstel.
+  </p>
+</div>

@@ -1,0 +1,79 @@
+<div class="border-b border-gray-100 bg-white px-5 py-6">
+  <div class="flex items-start gap-4">
+    <div class="pt-1">
+      @if (item().isOptional) {
+        <input
+          type="checkbox"
+          class="h-6 w-6 rounded-full border-2 border-gray-200 transition-all focus:ring-0"
+          [checked]="item().isSelected"
+          [disabled]="isFinalized() || isReadOnly()"
+          (change)="toggleItem.emit(item())"
+        />
+      } @else {
+        <div class="flex h-6 w-6 items-center justify-center rounded-full bg-blue-100">
+          <svg class="h-3.5 w-3.5 text-blue-600" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3"><path stroke-linecap="round" stroke-linejoin="round" d="M5 13l4 4L19 7"/></svg>
+        </div>
+      }
+    </div>
+    <div class="flex-1">
+      <div class="mb-1 flex items-start justify-between">
+        <div class="flex items-center gap-2">
+          <h4 class="max-w-[70%] text-slate-900 font-medium leading-tight">{{ item().description }}</h4>
+          @if (item().isOptional) {
+            <span class="rounded bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-700">Optie</span>
+          }
+        </div>
+        <div class="text-right">
+          @if (pricingMode() === 'inclusive') {
+            <div class="font-extrabold text-slate-900">{{ formatCents(item().totalBeforeTaxCents + item().totalTaxCents) }}</div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">incl. btw</div>
+          } @else {
+            <div class="font-extrabold text-slate-900">{{ formatCents(item().totalBeforeTaxCents) }}</div>
+            <div class="text-[11px] font-semibold uppercase tracking-wider text-slate-400">excl. btw</div>
+          }
+        </div>
+      </div>
+
+      <p class="mb-3 text-[13px] leading-relaxed text-slate-500">&nbsp;</p>
+
+      <div class="flex items-center justify-between">
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">
+          @if (item().quantity.toLowerCase().includes('x')) {
+            {{ item().quantity }} {{ formatCents(item().unitPriceCents) }}
+          } @else {
+            {{ item().quantity }} x {{ formatCents(item().unitPriceCents) }}
+          }
+        </span>
+        <span class="text-[11px] font-bold uppercase tracking-wider text-slate-400">BTW {{ formatTaxRate(item().taxRateBps) }}</span>
+        @if (!isFinalized() && !isReadOnly()) {
+          <button
+            type="button"
+            class="flex items-center gap-1.5 text-[12px] font-bold transition-colors"
+            (click)="emitAsk()"
+            [disabled]="hasAgentResponse()"
+            [class.text-blue-600]="!hasAgentResponse()"
+            [class.text-slate-400]="hasAgentResponse()"
+            [class.cursor-not-allowed]="hasAgentResponse()"
+          >
+            <lucide-icon name="message-circle" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+            <span>Vraag stellen</span>
+          </button>
+        }
+      </div>
+
+      @if (item().annotations.length) {
+        <div class="mt-3">
+          <app-quote-annotation-list
+            [annotations]="item().annotations"
+            [variant]="'mobile'"
+            [canEdit]="!isFinalized() && !isReadOnly()"
+            [lockEdits]="hasAgentResponse()"
+            [deletingId]="deletingId()"
+            (requestEdit)="emitEdit($event)"
+            (requestRemove)="emitRemove($event)"
+          />
+        </div>
+      }
+    </div>
+  </div>
+</div>

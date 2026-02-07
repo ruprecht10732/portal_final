@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, NgZone, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, NgZone, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -12,22 +12,30 @@ import type {
   VatBreakdown,
 } from '../../../core/services/quotes.types';
 import { centsToEuros, QUOTE_STATUS_COLORS } from '../../../core/services/quotes.types';
-import { SignaturePadComponent } from '../../../shared/components/signature-pad/signature-pad.component';
-import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
-import { LucideAngularModule } from 'lucide-angular';
-import { QuoteAnnotationListComponent } from './quote-annotation-list.component';
 import { QuoteProposalMobileHeaderComponent } from './quote-proposal-mobile-header.component';
+import { QuoteStatusBannerComponent } from './quote-status-banner.component';
+import { QuoteProposalItemMobileComponent } from './quote-proposal-item-mobile.component';
+import { QuoteProposalItemDesktopComponent } from './quote-proposal-item-desktop.component';
+import { QuoteProposalTotalsComponent } from './quote-proposal-totals.component';
+import { QuoteProposalActionFooterComponent } from './quote-proposal-action-footer.component';
+import { QuoteProposalAskSheetComponent } from './quote-proposal-ask-sheet.component';
+import { QuoteProposalAcceptSheetComponent } from './quote-proposal-accept-sheet.component';
+import { QuoteProposalRejectSheetComponent } from './quote-proposal-reject-sheet.component';
 
 @Component({
   selector: 'app-quote-proposal',
   imports: [
     FormsModule,
     DatePipe,
-    SignaturePadComponent,
-    BottomSheetComponent,
-    LucideAngularModule,
-    QuoteAnnotationListComponent,
     QuoteProposalMobileHeaderComponent,
+    QuoteStatusBannerComponent,
+    QuoteProposalItemMobileComponent,
+    QuoteProposalItemDesktopComponent,
+    QuoteProposalTotalsComponent,
+    QuoteProposalActionFooterComponent,
+    QuoteProposalAskSheetComponent,
+    QuoteProposalAcceptSheetComponent,
+    QuoteProposalRejectSheetComponent,
   ],
   templateUrl: './quote-proposal.component.html',
   styleUrl: './quote-proposal.component.css',
@@ -55,7 +63,6 @@ export class QuoteProposalComponent implements OnInit {
   protected readonly showAcceptDialog = signal(false);
   protected readonly showRejectDialog = signal(false);
   protected readonly rejectReason = signal('');
-  private readonly signaturePad = viewChild<SignaturePadComponent>(SignaturePadComponent);
 
   // Annotation form
   protected readonly annotatingItemId = signal<string | null>(null);
@@ -275,14 +282,6 @@ export class QuoteProposalComponent implements OnInit {
 
   protected onSignatureChange(data: string | null): void {
     this.signatureData.set(data);
-  }
-
-  protected clearSignature(): void {
-    const pad = this.signaturePad();
-    if (pad) {
-      pad.clear();
-    }
-    this.signatureData.set(null);
   }
 
   protected closeAcceptDialog(): void {

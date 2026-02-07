@@ -37,7 +37,7 @@
           <button
             type="button"
             class="text-[11px] font-black uppercase text-red-500"
-            (click)="remove.emit(annotation)"
+            (click)="requestRemove.emit(annotation)"
             [disabled]="deletingId() === annotation.id"
           >
             Verwijderen
@@ -45,7 +45,7 @@
           <button
             type="button"
             class="text-[11px] font-black uppercase text-blue-600"
-            (click)="edit.emit(annotation)"
+            (click)="requestEdit.emit(annotation)"
           >
             Wijzig
           </button>
