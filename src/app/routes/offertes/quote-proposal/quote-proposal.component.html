@@ -1,49 +1,30 @@
 <!-- Public Quote Proposal Page -->
-@if (!loading() && !error() && quote(); as q) {
-  @if (shouldShowIntro()) {
-    <section class="quote-intro">
-      <button class="intro-skip" type="button" (click)="continueToQuote()">Overslaan</button>
-
-      <button
-        class="intro-scene"
-        id="intro-trigger"
-        type="button"
-        aria-label="Offerte onthullen"
-        (click)="toggleIntro()"
-      >
-        <div class="intro-envelope" id="intro-envelope">
-          <div class="intro-lid" id="intro-lid"></div>
-          <div class="intro-inner-shadow"></div>
-          <div class="intro-pocket"></div>
-          <div class="intro-bottom-flap"></div>
-          <div class="intro-seal" id="intro-seal">
-            <span>{{ customerInitial() }}</span>
-          </div>
+@if (shouldShowIntro()) {
+  <app-quote-proposal-intro
+    [customerName]="quote()?.customerName ?? null"
+    [organizationName]="quote()?.organizationName ?? null"
+    [customerInitial]="customerInitial()"
+    (continue)="continueToQuote()"
+  />
+} @else {
+  @if (loading()) {
+    <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
+      <div class="text-center">
+        <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600"></div>
+        <p class="mt-4 text-sm text-zinc-500">Offerte laden…</p>
+      </div>
+    </div>
+  } @else if (error(); as err) {
+    <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
+      <div class="rounded-xl bg-white p-8 shadow-lg text-center max-w-md">
+        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+          <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
         </div>
-
-        <div class="intro-letter" id="intro-letter">
-          <div class="intro-letter-shine" id="intro-shine"></div>
-          <div class="intro-letter-eyebrow">Persoonlijk voorstel</div>
-          <h1>Uw Offerte</h1>
-          <div class="intro-letter-divider"></div>
-          <p>
-            Beste {{ q.customerName }},
-            <span>hartelijk dank voor uw vertrouwen.</span>
-            <span>Wij hebben met zorg een offerte voor u samengesteld.</span>
-          </p>
-          <div class="intro-letter-signature">{{ q.organizationName }}</div>
-          <div class="intro-letter-footer">Bekijk uw offerte hieronder</div>
-        </div>
-
-        <div class="intro-ground-shadow" id="intro-shadow"></div>
-      </button>
-
-      <div class="intro-hint" [class.is-visible]="!introOpen()" [class.is-open]="introOpen()">{{ introHint() }}</div>
-      @if (introOpen()) {
-        <button class="intro-continue" type="button" (click)="continueToQuote()">Bekijk offerte</button>
-      }
-    </section>
-  } @else {
+        <h2 class="text-lg font-semibold text-zinc-900">Offerte niet beschikbaar</h2>
+        <p class="mt-2 text-sm text-zinc-500">{{ err }}</p>
+      </div>
+    </div>
+  } @else if (quote(); as q) {
     <div class="min-h-screen bg-linear-to-br from-zinc-50 to-zinc-100">
       <div class="mx-auto max-w-4xl px-0 pb-8 pt-0 sm:px-6 sm:py-8 lg:px-8">
         <!-- Mobile layout (deferred) -->
@@ -272,27 +253,6 @@
       </div>
     </div>
   }
-}
-
-@if (loading()) {
-  <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
-    <div class="text-center">
-      <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600"></div>
-      <p class="mt-4 text-sm text-zinc-500">Offerte laden…</p>
-    </div>
-  </div>
-}
-
-@if (!loading() && error(); as err) {
-  <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
-    <div class="rounded-xl bg-white p-8 shadow-lg text-center max-w-md">
-      <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
-      </div>
-      <h2 class="text-lg font-semibold text-zinc-900">Offerte niet beschikbaar</h2>
-      <p class="mt-2 text-sm text-zinc-500">{{ err }}</p>
-    </div>
-  </div>
 }
 
 <app-quote-proposal-accept-sheet
