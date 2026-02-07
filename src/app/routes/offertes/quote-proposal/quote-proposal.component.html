@@ -26,24 +26,14 @@
   <!-- Quote Content -->
   @if (!loading() && !error() && quote(); as q) {
     <div class="mx-auto max-w-4xl px-0 pb-8 pt-0 sm:px-6 sm:py-8 lg:px-8">
-      <!-- Mobile layout -->
-      <div class="sm:hidden">
-        <div class="relative min-h-screen flex flex-col">
-          <nav class="sticky top-0 z-50 grid grid-cols-[40px_1fr_40px] items-center border-b border-gray-100 bg-white/70 px-4 py-4 backdrop-blur">
-            <span aria-hidden="true"></span>
-            <div class="flex flex-col items-center">
-              <span class="text-[10px] font-bold uppercase tracking-[0.1em] text-slate-400">Offerte</span>
-              <span class="text-sm font-semibold tracking-tight">#{{ q.quoteNumber }}</span>
-            </div>
-            <button
-              type="button"
-              class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100/50 transition-transform active:scale-90"
-              (click)="shareQuote()"
-              aria-label="Deel offerte"
-            >
-              <lucide-icon name="share-2" class="h-4 w-4 text-slate-600" aria-hidden="true"></lucide-icon>
-            </button>
-          </nav>
+      <!-- Mobile layout (deferred) -->
+      @defer (on idle) {
+        <div class="sm:hidden">
+          <div class="relative min-h-screen flex flex-col">
+            <app-quote-proposal-mobile-header
+              [quoteNumber]="q.quoteNumber"
+              (share)="shareQuote()"
+            />
 
           <main class="flex-1 pb-48">
             <div class="border-b border-gray-100 bg-white px-5 pb-6 pt-8">
@@ -196,34 +186,16 @@
                         </div>
 
                         @if (getItemAnnotations(item).length > 0) {
-                          <div class="mt-3 flex flex-col gap-3">
-                            @for (annotation of getItemAnnotations(item); track annotation.id) {
-                              <div class="rounded-2xl border border-blue-100 bg-blue-50/40 p-4">
-                                <div class="flex items-start gap-2">
-                                  <span class="text-sm text-blue-300">❝</span>
-                                  <p class="text-[12px] font-medium italic leading-snug text-slate-700">"{{ annotation.text }}"</p>
-                                </div>
-                                @if (!isFinalized() && !isReadOnly() && annotation.authorType === 'customer' && !hasAgentResponse(item)) {
-                                  <div class="mt-3 flex justify-end gap-3">
-                                    <button
-                                      type="button"
-                                      class="text-[11px] font-black uppercase text-red-500"
-                                      (click)="deleteAnnotation(item.id, annotation.id)"
-                                      [disabled]="deletingAnnotationId() === annotation.id"
-                                    >
-                                      Verwijderen
-                                    </button>
-                                    <button
-                                      type="button"
-                                      class="text-[11px] font-black uppercase text-blue-600"
-                                      (click)="startAnnotation(item.id, annotation)"
-                                    >
-                                      Wijzig
-                                    </button>
-                                  </div>
-                                }
-                              </div>
-                            }
+                          <div class="mt-3">
+                            <app-quote-annotation-list
+                              [annotations]="getItemAnnotations(item)"
+                              [variant]="'mobile'"
+                              [canEdit]="!isFinalized() && !isReadOnly()"
+                              [lockEdits]="hasAgentResponse(item)"
+                              [deletingId]="deletingAnnotationId()"
+                              (edit)="startAnnotation(item.id, $event)"
+                              (remove)="deleteAnnotation(item.id, $event.id)"
+                            />
                           </div>
                         }
 
@@ -263,31 +235,34 @@
             </div>
           </main>
 
-          @if (!isFinalized() && !isReadOnly()) {
-            <div class="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white/80 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-5 backdrop-blur">
-              <div class="mx-auto flex max-w-md flex-col gap-3">
-                <button
-                  type="button"
-                  class="flex h-16 w-full items-center justify-center gap-2 rounded-[20px] bg-blue-600 text-lg font-extrabold text-white shadow-xl shadow-blue-500/25 transition-all active:scale-[0.97] active:bg-blue-700"
-                  (click)="openAcceptDialog()"
-                  [disabled]="accepting()"
-                >
-                  <lucide-icon name="pencil" class="h-5 w-5" aria-hidden="true"></lucide-icon>
-                  <span>Accepteren & Ondertekenen</span>
-                </button>
-                <button
-                  type="button"
-                  class="h-14 w-full rounded-[20px] border-2 border-slate-100 text-base font-bold text-slate-400 transition-all active:scale-[0.97]"
-                  (click)="openRejectDialog()"
-                  [disabled]="rejecting()"
-                >
-                  Afwijzen
-                </button>
+            @if (!isFinalized() && !isReadOnly()) {
+              <div class="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white/80 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-5 backdrop-blur">
+                <div class="mx-auto flex max-w-md flex-col gap-3">
+                  <button
+                    type="button"
+                    class="flex h-16 w-full items-center justify-center gap-2 rounded-[20px] bg-blue-600 text-lg font-extrabold text-white shadow-xl shadow-blue-500/25 transition-all active:scale-[0.97] active:bg-blue-700"
+                    (click)="openAcceptDialog()"
+                    [disabled]="accepting()"
+                  >
+                    <lucide-icon name="pencil" class="h-5 w-5" aria-hidden="true"></lucide-icon>
+                    <span>Accepteren & Ondertekenen</span>
+                  </button>
+                  <button
+                    type="button"
+                    class="h-14 w-full rounded-[20px] border-2 border-slate-100 text-base font-bold text-slate-400 transition-all active:scale-[0.97]"
+                    (click)="openRejectDialog()"
+                    [disabled]="rejecting()"
+                  >
+                    Afwijzen
+                  </button>
+                </div>
               </div>
-            </div>
-          }
+            }
+          </div>
         </div>
-      </div>
+      } @placeholder {
+        <div class="sm:hidden min-h-[60vh]"></div>
+      }
 
       <!-- Desktop layout -->
       <div class="hidden sm:block">
@@ -450,34 +425,16 @@
 
               <!-- Annotations -->
               @if (getItemAnnotations(item).length > 0) {
-                <div class="mt-3 space-y-2 border-t border-zinc-100 pt-3">
-                  @for (annotation of getItemAnnotations(item); track annotation.id) {
-                    <div class="rounded-xl border border-blue-100 bg-blue-50/50 p-4">
-                      <div class="flex items-start gap-2">
-                        <span class="text-sm text-blue-300">❝</span>
-                        <p class="text-sm font-medium italic leading-snug text-zinc-700">"{{ annotation.text }}"</p>
-                      </div>
-                      @if (!isFinalized() && !isReadOnly() && annotation.authorType === 'customer' && !hasAgentResponse(item)) {
-                        <div class="mt-3 flex justify-end gap-3">
-                          <button
-                            type="button"
-                            class="text-[11px] font-black uppercase text-red-500"
-                            (click)="deleteAnnotation(item.id, annotation.id)"
-                            [disabled]="deletingAnnotationId() === annotation.id"
-                          >
-                            Verwijderen
-                          </button>
-                          <button
-                            type="button"
-                            class="text-[11px] font-black uppercase text-blue-600"
-                            (click)="startAnnotation(item.id, annotation)"
-                          >
-                            Wijzig
-                          </button>
-                        </div>
-                      }
-                    </div>
-                  }
+                <div class="mt-3 border-t border-zinc-100 pt-3">
+                  <app-quote-annotation-list
+                    [annotations]="getItemAnnotations(item)"
+                    [variant]="'desktop'"
+                    [canEdit]="!isFinalized() && !isReadOnly()"
+                    [lockEdits]="hasAgentResponse(item)"
+                    [deletingId]="deletingAnnotationId()"
+                    (edit)="startAnnotation(item.id, $event)"
+                    (remove)="deleteAnnotation(item.id, $event.id)"
+                  />
                 </div>
               }
 
@@ -668,7 +625,6 @@
       <div class="flex-1 mb-8">
         <textarea
           id="annotationText"
-          autofocus
           class="w-full h-64 p-5 text-lg font-medium bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400 resize-none transition-all"
           placeholder="Typ hier je vraag voor {{ quote()?.organizationName }}..."
           [value]="annotationText()"

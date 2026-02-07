@@ -1,0 +1,56 @@
+<div [class]="listClass()">
+  @for (annotation of annotations(); track annotation.id) {
+    <div
+      class="border p-4"
+      [class.rounded-2xl]="variant() === 'mobile'"
+      [class.rounded-xl]="variant() === 'desktop'"
+      [class.border-blue-100]="annotation.authorType === 'customer'"
+      [class.border-emerald-100]="annotation.authorType === 'agent'"
+      [class.bg-blue-50/40]="annotation.authorType === 'customer' && variant() === 'mobile'"
+      [class.bg-blue-50/50]="annotation.authorType === 'customer' && variant() === 'desktop'"
+      [class.bg-emerald-50/50]="annotation.authorType === 'agent' && variant() === 'mobile'"
+      [class.bg-emerald-50/60]="annotation.authorType === 'agent' && variant() === 'desktop'"
+    >
+      <div class="flex items-start gap-2">
+        <span
+          class="text-sm"
+          [class.text-blue-300]="annotation.authorType === 'customer'"
+          [class.text-emerald-300]="annotation.authorType === 'agent'"
+        >❝</span>
+        @if (variant() === 'mobile') {
+          <p
+            class="text-[12px] font-medium italic leading-snug"
+            [class.text-slate-700]="annotation.authorType === 'customer'"
+            [class.text-emerald-900]="annotation.authorType === 'agent'"
+          >"{{ annotation.text }}"</p>
+        } @else {
+          <p
+            class="text-sm font-medium italic leading-snug"
+            [class.text-zinc-700]="annotation.authorType === 'customer'"
+            [class.text-emerald-900]="annotation.authorType === 'agent'"
+          >"{{ annotation.text }}"</p>
+        }
+      </div>
+
+      @if (canEdit() && annotation.authorType === 'customer' && !lockEdits()) {
+        <div class="mt-3 flex justify-end gap-3">
+          <button
+            type="button"
+            class="text-[11px] font-black uppercase text-red-500"
+            (click)="remove.emit(annotation)"
+            [disabled]="deletingId() === annotation.id"
+          >
+            Verwijderen
+          </button>
+          <button
+            type="button"
+            class="text-[11px] font-black uppercase text-blue-600"
+            (click)="edit.emit(annotation)"
+          >
+            Wijzig
+          </button>
+        </div>
+      }
+    </div>
+  }
+</div>

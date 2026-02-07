@@ -15,10 +15,20 @@ import { centsToEuros, QUOTE_STATUS_COLORS } from '../../../core/services/quotes
 import { SignaturePadComponent } from '../../../shared/components/signature-pad/signature-pad.component';
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
 import { LucideAngularModule } from 'lucide-angular';
+import { QuoteAnnotationListComponent } from './quote-annotation-list.component';
+import { QuoteProposalMobileHeaderComponent } from './quote-proposal-mobile-header.component';
 
 @Component({
   selector: 'app-quote-proposal',
-  imports: [FormsModule, DatePipe, SignaturePadComponent, BottomSheetComponent, LucideAngularModule],
+  imports: [
+    FormsModule,
+    DatePipe,
+    SignaturePadComponent,
+    BottomSheetComponent,
+    LucideAngularModule,
+    QuoteAnnotationListComponent,
+    QuoteProposalMobileHeaderComponent,
+  ],
   templateUrl: './quote-proposal.component.html',
   styleUrl: './quote-proposal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
