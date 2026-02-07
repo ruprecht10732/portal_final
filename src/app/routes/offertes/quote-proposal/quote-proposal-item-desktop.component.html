@@ -65,6 +65,7 @@
         [canEdit]="!isFinalized() && !isReadOnly()"
         [lockEdits]="hasAgentResponse()"
         [deletingId]="deletingId()"
+        [organizationName]="organizationName()"
         (requestEdit)="emitEdit($event)"
         (requestRemove)="emitRemove($event)"
       />

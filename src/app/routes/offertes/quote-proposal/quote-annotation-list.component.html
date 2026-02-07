@@ -1,42 +1,66 @@
 <div [class]="listClass()">
   @for (annotation of annotations(); track annotation.id) {
     <div
-      class="border p-4"
+      class="border transition-all duration-300"
       [class.rounded-2xl]="variant() === 'mobile'"
       [class.rounded-xl]="variant() === 'desktop'"
       [class.border-blue-100]="annotation.authorType === 'customer'"
       [class.border-emerald-100]="annotation.authorType === 'agent'"
-      [class.bg-blue-50/40]="annotation.authorType === 'customer' && variant() === 'mobile'"
-      [class.bg-blue-50/50]="annotation.authorType === 'customer' && variant() === 'desktop'"
-      [class.bg-emerald-50/50]="annotation.authorType === 'agent' && variant() === 'mobile'"
-      [class.bg-emerald-50/60]="annotation.authorType === 'agent' && variant() === 'desktop'"
+      [class.bg-blue-50/30]="annotation.authorType === 'customer'"
+      [class.bg-emerald-50/40]="annotation.authorType === 'agent'"
+      [class.ml-4]="annotation.authorType === 'agent' && variant() === 'desktop'"
+      [class.ml-2]="annotation.authorType === 'agent' && variant() === 'mobile'"
+      [class.p-3]="variant() === 'mobile'"
+      [class.p-4]="variant() === 'desktop'"
     >
+      <!-- Author & Time -->
+      <div class="mb-2 flex items-center justify-between">
+        <div class="flex items-center gap-1.5">
+          <div
+            class="flex h-5 w-5 items-center justify-center rounded-full text-[10px]"
+            [class.bg-blue-100]="annotation.authorType === 'customer'"
+            [class.text-blue-600]="annotation.authorType === 'customer'"
+            [class.bg-emerald-100]="annotation.authorType === 'agent'"
+            [class.text-emerald-600]="annotation.authorType === 'agent'"
+          >
+            @if (annotation.authorType === 'customer') {
+              <lucide-icon name="user" class="h-3 w-3"></lucide-icon>
+            } @else {
+              <lucide-icon name="shield-check" class="h-3 w-3"></lucide-icon>
+            }
+          </div>
+          <span
+            class="text-[10px] font-black uppercase tracking-widest"
+            [class.text-blue-500]="annotation.authorType === 'customer'"
+            [class.text-emerald-600]="annotation.authorType === 'agent'"
+          >
+            {{ annotation.authorType === 'customer' ? 'Uw Vraag' : (organizationName() || 'Antwoord') }}
+          </span>
+        </div>
+        <span class="text-[9px] font-medium text-slate-400">
+          {{ annotation.createdAt | date:'HH:mm' }}
+        </span>
+      </div>
+
       <div class="flex items-start gap-2">
-        <span
-          class="text-sm"
-          [class.text-blue-300]="annotation.authorType === 'customer'"
-          [class.text-emerald-300]="annotation.authorType === 'agent'"
-        >❝</span>
         @if (variant() === 'mobile') {
           <p
-            class="text-[12px] font-medium italic leading-snug"
-            [class.text-slate-700]="annotation.authorType === 'customer'"
+            class="text-[12px] font-medium leading-snug text-slate-700"
             [class.text-emerald-900]="annotation.authorType === 'agent'"
-          >"{{ annotation.text }}"</p>
+          >{{ annotation.text }}</p>
         } @else {
           <p
-            class="text-sm font-medium italic leading-snug"
-            [class.text-zinc-700]="annotation.authorType === 'customer'"
+            class="text-sm font-medium leading-snug text-zinc-700"
             [class.text-emerald-900]="annotation.authorType === 'agent'"
-          >"{{ annotation.text }}"</p>
+          >{{ annotation.text }}</p>
         }
       </div>
 
       @if (canEdit() && annotation.authorType === 'customer' && !lockEdits()) {
-        <div class="mt-3 flex justify-end gap-3">
+        <div class="mt-3 flex justify-end gap-3 pt-2">
           <button
             type="button"
-            class="text-[11px] font-black uppercase text-red-500"
+            class="text-[10px] font-black uppercase tracking-wider text-red-500 hover:text-red-700 transition-colors"
             (click)="requestRemove.emit(annotation)"
             [disabled]="deletingId() === annotation.id"
           >
@@ -44,7 +68,7 @@
           </button>
           <button
             type="button"
-            class="text-[11px] font-black uppercase text-blue-600"
+            class="text-[10px] font-black uppercase tracking-wider text-blue-600 hover:text-blue-800 transition-colors"
             (click)="requestEdit.emit(annotation)"
           >
             Wijzig

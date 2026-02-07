@@ -19,6 +19,7 @@ export class QuoteProposalItemMobileComponent {
   readonly isReadOnly = input(false);
   readonly hasAgentResponse = input(false);
   readonly deletingId = input<string | null>(null);
+  readonly organizationName = input<string>('');
 
   readonly toggleItem = output<PublicQuoteItemResponse>();
   readonly requestAsk = output<void>();
