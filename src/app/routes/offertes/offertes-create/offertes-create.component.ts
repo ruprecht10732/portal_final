@@ -264,7 +264,7 @@ export class OffertesCreateComponent implements OnInit {
           return this.quotesService.calculate({
             items: validItems.map(i => ({
               description: i.description,
-              quantity: i.quantity,
+              quantity: i.quantity || '1',
               unitPriceCents: eurosToCents(i.unitPrice),
               taxRateBps: taxDisplayToBps(i.taxRate),
               isOptional: i.optional,
@@ -685,6 +685,7 @@ export class OffertesCreateComponent implements OnInit {
         return {
           ...item,
           description: product.description || product.title,
+          quantity: item.quantity || '1 x',
           unitPrice: centsToEuros(product.unitPriceCents || product.priceCents),
           taxRate: taxBpsToDisplay(product.vatRateBps),
           catalogProductId: product.id,
