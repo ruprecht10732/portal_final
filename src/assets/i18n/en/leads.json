@@ -250,6 +250,9 @@
         "copyMessage": "Copy Message",
         "copied": "Copied!",
         "messageCopied": "Contact message copied to clipboard",
+        "draftQuoteTitle": "Draft Quote #{{number}}",
+        "draftQuoteSummary": "{{itemCount}} items — {{catalogItems}} from catalog, {{adHocItems}} ad-hoc",
+        "viewDraftQuote": "View Draft Quote",
         "types": {
           "ai": "AI",
           "user": "User",

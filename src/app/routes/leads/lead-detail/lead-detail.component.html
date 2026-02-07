@@ -289,10 +289,12 @@
                 [getTimelineContactMessage]="getTimelineContactMessage"
                 [getTimelineMissingInformation]="getTimelineMissingInformation"
                 [getTimelineScore]="getTimelineScore"
+                [getTimelineDraftedQuote]="getTimelineDraftedQuote"
                 (openCallLogger)="openCallLogger()"
                 (openWhatsApp)="openWhatsApp($event.phone, $event.message)"
                 (composeEmail)="composeEmail($event.email, $event.message)"
                 (copyContactMessage)="copyContactMessage($event.itemId, $event.message)"
+                (viewDraftQuote)="viewDraftQuote($event)"
               />
             } @else if (activeTab() === 'files') {
               <app-lead-detail-files-tab

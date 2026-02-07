@@ -1046,6 +1046,26 @@ export class LeadDetailComponent implements OnInit {
     return result;
   };
 
+  protected readonly getTimelineDraftedQuote = (item: LeadTimelineItem): { quoteId: string; quoteNumber: string; itemCount: number; catalogItems: number; adHocItems: number } | null => {
+    const metadata = item.metadata;
+    const quoteId = metadata['quoteId'];
+    const quoteNumber = metadata['quoteNumber'];
+    if (typeof quoteId !== 'string' || typeof quoteNumber !== 'string') {
+      return null;
+    }
+    return {
+      quoteId,
+      quoteNumber,
+      itemCount: typeof metadata['itemCount'] === 'number' ? metadata['itemCount'] : 0,
+      catalogItems: typeof metadata['catalogItems'] === 'number' ? metadata['catalogItems'] : 0,
+      adHocItems: typeof metadata['adHocItems'] === 'number' ? metadata['adHocItems'] : 0,
+    };
+  };
+
+  protected viewDraftQuote(quoteId: string): void {
+    this.router.navigate(['/app/offertes', quoteId]);
+  }
+
   private readTimelineText(value: unknown): string | null {
     if (typeof value !== 'string') {
       return null;

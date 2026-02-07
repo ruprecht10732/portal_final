@@ -248,6 +248,9 @@
         "copyMessage": "Bericht kopiëren",
         "copied": "Gekopieerd!",
         "messageCopied": "Contactbericht gekopieerd naar klembord",
+        "draftQuoteTitle": "Concept Offerte #{{number}}",
+        "draftQuoteSummary": "{{itemCount}} items — {{catalogItems}} uit catalogus, {{adHocItems}} handmatig",
+        "viewDraftQuote": "Bekijk Concept Offerte",
         "types": {
           "ai": "AI",
           "user": "Gebruiker",

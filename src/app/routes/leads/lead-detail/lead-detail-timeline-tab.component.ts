@@ -29,11 +29,13 @@ export class LeadDetailTimelineTabComponent {
   getTimelineContactMessage = input<(item: LeadTimelineItem) => { channel: 'WhatsApp' | 'Email'; message: string } | null>(() => null);
   getTimelineMissingInformation = input<(item: LeadTimelineItem) => string[]>(() => []);
   getTimelineScore = input<(item: LeadTimelineItem) => { score: number; preAi?: number; version?: string } | null>(() => null);
+  getTimelineDraftedQuote = input<(item: LeadTimelineItem) => { quoteId: string; quoteNumber: string; itemCount: number; catalogItems: number; adHocItems: number } | null>(() => null);
 
   openCallLogger = output<void>();
   openWhatsApp = output<{ phone: string; message: string }>();
   composeEmail = output<{ email: string | undefined; message: string }>();
   copyContactMessage = output<{ itemId: string; message: string }>();
+  viewDraftQuote = output<string>();
 
   protected formatEstimationNotes(value: string): string {
     const escaped = this.escapeHtml(value);
