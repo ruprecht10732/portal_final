@@ -14,9 +14,12 @@ import { DataGridComponent } from '../../../shared/components/data-grid/data-gri
 import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
 import { DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 
+/** Accepted price value types before normalization. */
+type PriceInput = number | string | null | undefined;
+
 type ProductRow = Product & {
-  priceValue: number | null;
-  isUnitPrice: boolean;
+  fixedPriceValue: number | null;
+  unitPriceValue: number | null;
   thumbnailUrl?: string | null;
 };
 
@@ -134,16 +137,32 @@ export class CatalogListComponent {
         minWidth: '220px',
       },
       {
-        id: 'priceValue',
-        header: this.translate.instant('catalog.products.columns.price'),
-        field: 'priceValue',
+        id: 'fixedPriceValue',
+        header: this.translate.instant('catalog.products.columns.fixedPrice'),
+        field: 'fixedPriceValue',
         cellType: 'number',
         editable: true,
-        validator: value => (value === null || value === '' || Number(value) < 0
-          ? this.translate.instant('catalog.products.validation.priceMin')
-          : null),
+        validator: (value, row) => this.validateFixedPrice(value, row),
         align: 'right',
         width: '160px',
+      },
+      {
+        id: 'unitPriceValue',
+        header: this.translate.instant('catalog.products.columns.unitPrice'),
+        field: 'unitPriceValue',
+        cellType: 'number',
+        editable: true,
+        validator: (value, row) => this.validateUnitPrice(value, row),
+        align: 'right',
+        width: '170px',
+      },
+      {
+        id: 'unitLabel',
+        header: this.translate.instant('catalog.products.columns.unitLabel'),
+        field: 'unitLabel',
+        editable: true,
+        validator: (value, row) => this.validateUnitLabel(value, row),
+        width: '130px',
       },
       {
         id: 'createdAt',
@@ -219,7 +238,10 @@ export class CatalogListComponent {
     const updates = rows
       .filter(row => !!row.id)
       .map(row => {
-        const nextPrice = row.priceValue;
+        const fixedPrice = this.normalizePriceValue(row.fixedPriceValue);
+        const unitPrice = this.normalizePriceValue(row.unitPriceValue);
+        const hasUnitPrice = unitPrice !== null;
+        const hasFixedPrice = fixedPrice !== null;
         const updateRequest: UpdateProductRequest = {
           title: row.title?.trim(),
           reference: row.reference?.trim(),
@@ -227,13 +249,14 @@ export class CatalogListComponent {
           vatRateId: row.vatRateId,
         };
 
-        if (typeof nextPrice === 'number' && Number.isFinite(nextPrice)) {
-          const nextCents = CatalogService.priceToCents(nextPrice);
-          if (row.isUnitPrice) {
-            updateRequest.unitPriceCents = nextCents;
-          } else {
-            updateRequest.priceCents = nextCents;
-          }
+        if (hasUnitPrice) {
+          updateRequest.unitPriceCents = CatalogService.priceToCents(unitPrice);
+          updateRequest.unitLabel = row.unitLabel?.trim() ?? '';
+          updateRequest.priceCents = 0;
+        } else if (hasFixedPrice) {
+          updateRequest.priceCents = CatalogService.priceToCents(fixedPrice);
+          updateRequest.unitPriceCents = 0;
+          updateRequest.unitLabel = '';
         }
 
         return this.catalogService.updateProduct(row.id, updateRequest).pipe(
@@ -371,13 +394,14 @@ export class CatalogListComponent {
   }
 
   private buildProductRow(product: Product): ProductRow {
-    const hasFixedPrice = product.priceCents > 0 || product.unitPriceCents === 0;
-    const priceCents = hasFixedPrice ? product.priceCents : product.unitPriceCents;
-    const priceValue = priceCents > 0 ? CatalogService.centsToPrice(priceCents) : null;
+    const hasUnitPrice = product.unitPriceCents > 0;
+    const fixedPriceValue = hasUnitPrice ? null : CatalogService.centsToPrice(product.priceCents ?? 0);
+    const unitPriceValue = hasUnitPrice ? CatalogService.centsToPrice(product.unitPriceCents) : null;
     return {
       ...product,
-      priceValue,
-      isUnitPrice: !hasFixedPrice,
+      fixedPriceValue,
+      unitPriceValue,
+      unitLabel: product.unitLabel ?? '',
       thumbnailUrl: this.thumbnailCache.get(product.id) ?? null,
     };
   }
@@ -436,8 +460,12 @@ export class CatalogListComponent {
         return 'type';
       case 'vatRateId':
         return 'vatRateId';
-      case 'priceValue':
+      case 'fixedPriceValue':
         return 'priceCents';
+      case 'unitPriceValue':
+        return 'unitPriceCents';
+      case 'unitLabel':
+        return 'unitLabel';
       case 'createdAt':
         return 'createdAt';
       case 'updatedAt':
@@ -445,5 +473,58 @@ export class CatalogListComponent {
       default:
         return 'createdAt';
     }
+  }
+
+  private normalizePriceValue(value: PriceInput): number | null {
+    if (value === null || value === undefined || value === '') return null;
+    if (typeof value === 'number' && Number.isFinite(value)) return value;
+    if (typeof value === 'string') {
+      const parsed = Number(value);
+      return Number.isFinite(parsed) ? parsed : null;
+    }
+    return null;
+  }
+
+  private validateFixedPrice(value: unknown, row: ProductRow): string | null {
+    const fixedPrice = this.normalizePriceValue(value as PriceInput);
+    const unitPrice = this.normalizePriceValue(row.unitPriceValue);
+
+    if (fixedPrice === null) {
+      return unitPrice === null
+        ? this.translate.instant('catalog.products.validation.fixedPriceRequired')
+        : null;
+    }
+
+    if (fixedPrice < 0) {
+      return this.translate.instant('catalog.products.validation.priceMin');
+    }
+
+    return null;
+  }
+
+  private validateUnitPrice(value: unknown, row: ProductRow): string | null {
+    const unitPrice = this.normalizePriceValue(value as PriceInput);
+    const fixedPrice = this.normalizePriceValue(row.fixedPriceValue);
+
+    if (unitPrice === null) {
+      return fixedPrice === null
+        ? this.translate.instant('catalog.products.validation.unitPriceRequired')
+        : null;
+    }
+
+    if (unitPrice < 0) {
+      return this.translate.instant('catalog.products.validation.priceMin');
+    }
+
+    return null;
+  }
+
+  private validateUnitLabel(value: unknown, row: ProductRow): string | null {
+    const unitPrice = this.normalizePriceValue(row.unitPriceValue);
+    if (unitPrice === null) return null;
+    const label = typeof value === 'string' ? value.trim() : '';
+    return label.length > 0
+      ? null
+      : this.translate.instant('catalog.products.validation.unitLabelRequired');
   }
 }

@@ -245,6 +245,9 @@
         "type": "Type",
         "vatRate": "BTW-tarief",
         "price": "Prijs",
+        "fixedPrice": "Vaste prijs",
+        "unitPrice": "Prijs per eenheid",
+        "unitLabel": "Eenheid",
         "actions": "Acties"
       },
       "pagination": {
