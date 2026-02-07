@@ -64,6 +64,9 @@ export class BottomSheetComponent {
   /** Animation state */
   protected readonly isAnimating = signal<boolean>(false);
 
+  /** Whether the sheet has ever been opened (prevents flash on first render) */
+  protected readonly hasBeenOpened = signal<boolean>(false);
+
   // ============ Computed ============
   
   protected readonly transformStyle = computed(() => {
@@ -86,9 +89,10 @@ export class BottomSheetComponent {
   // ============ Lifecycle ============
   
   constructor() {
-    // Lock body scroll when open
+    // Lock body scroll when open, and track first open
     effect(() => {
       if (this.isOpen()) {
+        this.hasBeenOpened.set(true);
         document.body.style.overflow = 'hidden';
       } else {
         document.body.style.overflow = '';

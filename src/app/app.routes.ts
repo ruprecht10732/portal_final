@@ -4,6 +4,7 @@ import { onboardingGuard } from './core/guards/onboarding.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { leadsListResolver } from './routes/leads/leads-list.resolver';
+import { quoteIntroGuard } from './core/guards/quote-intro.guard';
 import { SidebarPanelConfig } from './routes/app-shell/sidebar-panel.config';
 
 export const routes: Routes = [
@@ -43,8 +44,13 @@ export const routes: Routes = [
 		canActivate: [guestGuard],
 	},
 	{
+		path: 'quote/:token/intro',
+		loadComponent: () => import('./routes/offertes/quote-proposal/quote-intro-page.component').then(m => m.QuoteIntroPageComponent),
+	},
+	{
 		path: 'quote/:token',
 		loadComponent: () => import('./routes/offertes/quote-proposal/quote-proposal.component').then(m => m.QuoteProposalComponent),
+		canActivate: [quoteIntroGuard],
 	},
 	{
 		path: 'app',

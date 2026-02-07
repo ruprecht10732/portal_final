@@ -29,14 +29,12 @@ import { QuoteProposalActionFooterComponent } from './quote-proposal-action-foot
 import { QuoteProposalAskSheetComponent } from './quote-proposal-ask-sheet.component';
 import { QuoteProposalAcceptSheetComponent } from './quote-proposal-accept-sheet.component';
 import { QuoteProposalRejectSheetComponent } from './quote-proposal-reject-sheet.component';
-import { QuoteProposalIntroComponent } from './quote-proposal-intro.component';
 
 @Component({
   selector: 'app-quote-proposal',
   imports: [
     FormsModule,
     DatePipe,
-    QuoteProposalIntroComponent,
     QuoteProposalMobileHeaderComponent,
     QuoteStatusBannerComponent,
     QuoteProposalItemMobileComponent,
@@ -66,7 +64,6 @@ export class QuoteProposalComponent implements OnInit {
   protected readonly accepting = signal(false);
   protected readonly rejecting = signal(false);
   protected readonly downloadingPdf = signal(false);
-  protected readonly showIntro = signal(true);
 
   // Accept form
   protected readonly signatureName = signal('');
@@ -89,7 +86,6 @@ export class QuoteProposalComponent implements OnInit {
     return q?.status === 'Accepted' || q?.status === 'Rejected' || q?.status === 'Expired';
   });
   protected readonly isReadOnly = computed(() => !!this.quote()?.isReadOnly);
-  protected readonly shouldShowIntro = computed(() => this.showIntro() && !this.error());
   protected readonly customerInitial = computed(() => {
     const name = this.quote()?.customerName?.trim();
     return name ? name.charAt(0).toUpperCase() : 'G';
@@ -109,6 +105,22 @@ export class QuoteProposalComponent implements OnInit {
     const q = this.quote();
     return q ? (QUOTE_STATUS_COLORS[q.status] ?? '') : '';
   });
+  protected readonly mobileStatusBadge = computed(() => {
+    const q = this.quote();
+    if (!q) return 'bg-blue-500 shadow-blue-500/20 ring-blue-50';
+    switch (q.status) {
+      case 'Accepted':
+        return 'bg-green-500 shadow-green-500/20 ring-green-50';
+      case 'Rejected':
+        return 'bg-red-500 shadow-red-500/20 ring-red-50';
+      case 'Expired':
+        return 'bg-zinc-400 shadow-zinc-400/20 ring-zinc-100';
+      case 'Draft':
+        return 'bg-amber-500 shadow-amber-500/20 ring-amber-50';
+      default:
+        return 'bg-blue-500 shadow-blue-500/20 ring-blue-50';
+    }
+  });
 
   ngOnInit(): void {
     const t = this.route.snapshot.paramMap.get('token');
@@ -118,15 +130,11 @@ export class QuoteProposalComponent implements OnInit {
       return;
     }
     this.token.set(t);
-    this.loadQuote(t);
+    this.loadQuote(t, true);
     this.connectSSE(t);
 
     // Clean up EventSource on destroy
     this.destroyRef.onDestroy(() => this.disconnectSSE());
-  }
-
-  protected continueToQuote(): void {
-    this.showIntro.set(false);
   }
 
   /**
@@ -158,12 +166,21 @@ export class QuoteProposalComponent implements OnInit {
     this.eventSource = null;
   }
 
-  private loadQuote(token: string): void {
-    this.loading.set(true);
+  private loadQuote(token: string, initial = false): void {
+    if (initial) {
+      this.loading.set(true);
+    }
     this.publicQuoteService.getByToken(token).subscribe({
       next: quote => {
         this.quote.set(quote);
         this.loading.set(false);
+
+        // Auto-close dialogs if the quote just became finalized
+        if (quote.status === 'Accepted' || quote.status === 'Rejected' || quote.status === 'Expired') {
+          this.showAcceptDialog.set(false);
+          this.showRejectDialog.set(false);
+          this.annotatingItemId.set(null);
+        }
       },
       error: err => {
         if (err.status === 410) {
@@ -211,7 +228,7 @@ export class QuoteProposalComponent implements OnInit {
   }
 
   protected startAnnotation(itemId: string, annotation?: AnnotationResponse): void {
-    if (this.isReadOnly()) return;
+    if (this.isFinalized() || this.isReadOnly()) return;
     this.annotatingItemId.set(itemId);
     this.annotationText.set(annotation?.text ?? '');
     this.editingAnnotationId.set(annotation?.id ?? null);
@@ -294,7 +311,7 @@ export class QuoteProposalComponent implements OnInit {
   }
 
   protected openAcceptDialog(): void {
-    if (this.isReadOnly()) return;
+    if (this.isFinalized() || this.isReadOnly()) return;
     this.showAcceptDialog.set(true);
     this.signatureName.set('');
     this.signatureData.set(null);
@@ -330,7 +347,7 @@ export class QuoteProposalComponent implements OnInit {
   }
 
   protected openRejectDialog(): void {
-    if (this.isReadOnly()) return;
+    if (this.isFinalized() || this.isReadOnly()) return;
     this.showRejectDialog.set(true);
     this.rejectReason.set('');
   }

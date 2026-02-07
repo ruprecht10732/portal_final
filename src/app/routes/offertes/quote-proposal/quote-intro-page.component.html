@@ -1,0 +1,14 @@
+@if (loading()) {
+  <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
+    <div class="text-center">
+      <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600"></div>
+    </div>
+  </div>
+} @else {
+  <app-quote-proposal-intro
+    [customerName]="customerName()"
+    [organizationName]="organizationName()"
+    [customerInitial]="customerInitial()"
+    (continue)="continueToQuote()"
+  />
+}
