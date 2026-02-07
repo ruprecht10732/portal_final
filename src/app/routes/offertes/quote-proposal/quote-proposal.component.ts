@@ -51,6 +51,8 @@ export class QuoteProposalComponent implements OnInit {
   protected readonly annotatingItemId = signal<string | null>(null);
   protected readonly annotationText = signal('');
   protected readonly submittingAnnotation = signal(false);
+  protected readonly editingAnnotationId = signal<string | null>(null);
+  protected readonly deletingAnnotationId = signal<string | null>(null);
 
   // Derived
   protected readonly token = signal('');
@@ -59,6 +61,12 @@ export class QuoteProposalComponent implements OnInit {
     return q?.status === 'Accepted' || q?.status === 'Rejected' || q?.status === 'Expired';
   });
   protected readonly isReadOnly = computed(() => !!this.quote()?.isReadOnly);
+  protected readonly annotationItem = computed(() => {
+    const q = this.quote();
+    const id = this.annotatingItemId();
+    if (!q || !id) return null;
+    return q.items.find(item => item.id === id) ?? null;
+  });
   protected readonly isExpired = computed(() => {
     const q = this.quote();
     if (!q?.validUntil) return false;
@@ -165,15 +173,17 @@ export class QuoteProposalComponent implements OnInit {
     });
   }
 
-  protected startAnnotation(itemId: string): void {
+  protected startAnnotation(itemId: string, annotation?: AnnotationResponse): void {
     if (this.isReadOnly()) return;
     this.annotatingItemId.set(itemId);
-    this.annotationText.set('');
+    this.annotationText.set(annotation?.text ?? '');
+    this.editingAnnotationId.set(annotation?.id ?? null);
   }
 
   protected cancelAnnotation(): void {
     this.annotatingItemId.set(null);
     this.annotationText.set('');
+    this.editingAnnotationId.set(null);
   }
 
   protected submitAnnotation(itemId: string): void {
@@ -183,24 +193,65 @@ export class QuoteProposalComponent implements OnInit {
 
     this.submittingAnnotation.set(true);
 
-    this.publicQuoteService.annotateItem(this.token(), itemId, text).subscribe({
+    const editingId = this.editingAnnotationId();
+    const request$ = editingId
+      ? this.publicQuoteService.updateAnnotation(this.token(), itemId, editingId, text)
+      : this.publicQuoteService.annotateItem(this.token(), itemId, text);
+
+    request$.subscribe({
       next: annotation => {
-        // Add annotation to the item in local state
         const q = this.quote();
         if (q) {
-          const updatedItems = q.items.map(i =>
-            i.id === itemId
-              ? { ...i, annotations: [...i.annotations, annotation] }
-              : i,
-          );
+          const updatedItems = q.items.map(i => {
+            if (i.id !== itemId) return i;
+            const existingAnnotations = i.annotations ?? [];
+            if (editingId) {
+              return {
+                ...i,
+                annotations: existingAnnotations.map(a => (a.id === annotation.id ? { ...a, text: annotation.text } : a)),
+              };
+            }
+            return { ...i, annotations: [...existingAnnotations, annotation] };
+          });
           this.quote.set({ ...q, items: updatedItems });
         }
         this.annotatingItemId.set(null);
         this.annotationText.set('');
+        this.editingAnnotationId.set(null);
         this.submittingAnnotation.set(false);
       },
       error: () => {
         this.submittingAnnotation.set(false);
+      },
+    });
+  }
+
+  protected hasAgentResponse(item: PublicQuoteItemResponse): boolean {
+    return (item.annotations ?? []).some(a => a.authorType === 'agent');
+  }
+
+  protected deleteAnnotation(itemId: string, annotationId: string): void {
+    if (this.isReadOnly() || this.deletingAnnotationId()) return;
+    this.deletingAnnotationId.set(annotationId);
+
+    this.publicQuoteService.deleteAnnotation(this.token(), itemId, annotationId).subscribe({
+      next: () => {
+        const q = this.quote();
+        if (q) {
+          const updatedItems = q.items.map(i => {
+            if (i.id !== itemId) return i;
+            const remaining = (i.annotations ?? []).filter(a => a.id !== annotationId);
+            return { ...i, annotations: remaining };
+          });
+          this.quote.set({ ...q, items: updatedItems });
+        }
+        if (this.editingAnnotationId() === annotationId) {
+          this.cancelAnnotation();
+        }
+        this.deletingAnnotationId.set(null);
+      },
+      error: () => {
+        this.deletingAnnotationId.set(null);
       },
     });
   }

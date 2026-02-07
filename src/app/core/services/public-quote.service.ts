@@ -40,6 +40,21 @@ export class PublicQuoteService {
     );
   }
 
+  /** Update an annotation (question/comment) on a line item */
+  updateAnnotation(token: string, itemId: string, annotationId: string, text: string): Observable<AnnotationResponse> {
+    return this.http.patch<AnnotationResponse>(
+      `${this.baseUrl}/${token}/items/${itemId}/annotations/${annotationId}`,
+      { text },
+    );
+  }
+
+  /** Delete an annotation (question/comment) from a line item */
+  deleteAnnotation(token: string, itemId: string, annotationId: string): Observable<void> {
+    return this.http.delete<void>(
+      `${this.baseUrl}/${token}/items/${itemId}/annotations/${annotationId}`,
+    );
+  }
+
   /** Accept the quote with digital signature */
   accept(token: string, data: AcceptQuoteRequest): Observable<PublicQuoteResponse> {
     return this.http.post<PublicQuoteResponse>(`${this.baseUrl}/${token}/accept`, data);
