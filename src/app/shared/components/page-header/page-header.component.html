@@ -1,4 +1,30 @@
-<header class="flex items-center gap-4 p-4 sm:px-6">
+<!-- Mobile header -->
+<header class="sm:hidden sticky top-0 z-40 grid grid-cols-[40px_1fr_40px] items-center border-b border-gray-100 bg-white/70 px-4 py-4 backdrop-blur">
+  @if (showBack()) {
+    <button
+      type="button"
+      class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100/60 transition-transform active:scale-95"
+      (click)="back.emit()"
+      [attr.aria-label]="backAriaLabel()"
+    >
+      <lucide-icon name="chevron-left" class="h-5 w-5 text-slate-700" aria-hidden="true"></lucide-icon>
+    </button>
+  } @else {
+    <div></div>
+  }
+
+  <div class="flex flex-col items-center overflow-hidden">
+    @if (subtitle()) {
+      <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ subtitle() }}</span>
+    }
+    <h1 class="text-sm font-extrabold tracking-tight truncate max-w-55">{{ title() }}</h1>
+  </div>
+
+  <div></div>
+</header>
+
+<!-- Desktop header -->
+<header class="hidden sm:flex items-center gap-4 p-4 sm:px-6">
   @if (showBack()) {
     <shared-button
       type="button"

@@ -11,64 +11,59 @@
       </shared-button>
     </div>
   } @else {
-    <div class="border-b border-zinc-200">
-      <shared-page-header
-        [title]="appointment()!.title"
-        [backAriaLabel]="'common.back' | translate"
-        (back)="goBack()"
-      >
-        <div actions class="flex items-center gap-2">
-          @if (!isEditing()) {
-            <shared-button variant="secondary" size="compact" (clicked)="toggleEdit()">
-              <lucide-icon name="pencil" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
-              {{ 'common.edit' | translate }}
-            </shared-button>
-          }
-          <shared-button variant="danger" size="compact" (clicked)="promptDelete()">
-            <lucide-icon name="trash-2" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
-            {{ 'common.delete' | translate }}
-          </shared-button>
+    <!-- Mobile layout -->
+    <div class="sm:hidden flex flex-col pb-16">
+      <nav class="sticky top-0 z-40 grid grid-cols-[40px_1fr_40px] items-center border-b border-gray-100 bg-white/70 px-4 py-4 backdrop-blur">
+        <button
+          type="button"
+          class="flex h-10 w-10 items-center justify-center rounded-full bg-gray-100/60 transition-transform active:scale-95"
+          (click)="goBack()"
+          [attr.aria-label]="'common.back' | translate"
+        >
+          <lucide-icon name="chevron-left" class="h-5 w-5 text-slate-700" aria-hidden="true"></lucide-icon>
+        </button>
+        <div class="flex flex-col items-center">
+          <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ 'appointments.detail.type' | translate }}</span>
+          <span class="text-sm font-semibold tracking-tight truncate max-w-50">{{ appointment()!.title }}</span>
         </div>
-      </shared-page-header>
-    </div>
+        <div></div>
+      </nav>
 
-    @if (error()) {
-      <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
-        <span class="font-bold uppercase text-red-600 shrink-0">{{ 'common.error' | translate }}</span>
-        <span>{{ error() }}</span>
-      </div>
-    }
+      <main>
+        @if (error()) {
+          <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+            <span class="font-bold uppercase text-red-600 shrink-0">{{ 'common.error' | translate }}</span>
+            <span>{{ error() }}</span>
+          </div>
+        }
 
-    <div class="flex-1 overflow-y-auto p-4 sm:p-6">
-      <!-- Status Section -->
-      <div class="mb-6">
-        <div class="flex flex-wrap items-center gap-3">
-          <span 
-            class="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full"
-            [class.bg-blue-100]="appointment()!.status === 'scheduled'"
-            [class.text-blue-800]="appointment()!.status === 'scheduled'"
-            [class.bg-green-100]="appointment()!.status === 'completed'"
-            [class.text-green-800]="appointment()!.status === 'completed'"
-            [class.bg-zinc-100]="appointment()!.status === 'cancelled'"
-            [class.text-zinc-800]="appointment()!.status === 'cancelled'"
-            [class.bg-amber-100]="appointment()!.status === 'no_show'"
-            [class.text-amber-800]="appointment()!.status === 'no_show'"
-          >
-            {{ getStatusLabel(appointment()!.status) }}
-          </span>
-          
-          <div class="flex gap-1">
+        <!-- Status section -->
+        <div class="border-b border-gray-100 bg-white px-5 pb-5 pt-5">
+          <div class="flex items-center gap-2 mb-4">
+            <span
+              class="rounded-full px-4 py-1.5 text-[13px] font-bold shadow-lg ring-4"
+              [class]="
+                appointment()!.status === 'scheduled' ? 'bg-blue-600 text-white ring-blue-200' :
+                appointment()!.status === 'completed' ? 'bg-emerald-600 text-white ring-emerald-200' :
+                appointment()!.status === 'cancelled' ? 'bg-zinc-600 text-white ring-zinc-200' :
+                'bg-amber-500 text-white ring-amber-200'
+              "
+            >
+              {{ getStatusLabel(appointment()!.status) }}
+            </span>
+          </div>
+
+          <div class="flex flex-wrap gap-1.5">
             @for (opt of statusOptions; track opt.value) {
-              <button 
-                type="button" 
-                class="px-2 py-1 text-xs uppercase tracking-wider border rounded transition-colors"
+              <button
+                type="button"
+                class="px-3 py-1.5 text-xs uppercase tracking-wider border rounded-full transition-colors"
                 [class.bg-black]="appointment()!.status === opt.value"
                 [class.text-white]="appointment()!.status === opt.value"
                 [class.border-black]="appointment()!.status === opt.value"
                 [class.bg-white]="appointment()!.status !== opt.value"
                 [class.text-zinc-600]="appointment()!.status !== opt.value"
                 [class.border-zinc-200]="appointment()!.status !== opt.value"
-                [class.hover:border-zinc-400]="appointment()!.status !== opt.value"
                 [disabled]="saving()"
                 (click)="updateStatus(opt.value)"
               >
@@ -77,190 +72,454 @@
             }
           </div>
         </div>
+
+        <!-- Actions -->
+        <div class="border-b border-gray-100 bg-white px-5 py-4">
+          <div class="grid gap-2">
+            @if (!isEditing()) {
+              <shared-button variant="secondary" size="compact" [fullWidth]="true" (clicked)="toggleEdit()">
+                <lucide-icon name="pencil" class="h-4 w-4"></lucide-icon>
+                {{ 'common.edit' | translate }}
+              </shared-button>
+            }
+            <shared-button variant="danger" size="compact" [fullWidth]="true" (clicked)="promptDelete()">
+              <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
+              {{ 'common.delete' | translate }}
+            </shared-button>
+          </div>
+        </div>
+
+        @if (isEditing()) {
+          <!-- Edit form -->
+          <div class="px-5 py-5">
+            <form (ngSubmit)="saveAppointment()" class="space-y-5">
+              <shared-input
+                [label]="'appointments.detail.title' | translate"
+                [value]="editTitle()"
+                (valueChange)="editTitle.set($event)"
+                [required]="true"
+              />
+
+              <shared-textarea
+                [label]="'appointments.detail.description' | translate"
+                [rows]="3"
+                [value]="editDescription()"
+                (valueChange)="editDescription.set($event)"
+              />
+
+              <shared-autocomplete
+                [label]="'appointments.detail.location' | translate"
+                [placeholder]="'appointments.form.locationPlaceholder' | translate"
+                [value]="editLocation()"
+                (valueChange)="onEditLocationChange($event)"
+                [options]="editLocationOptions()"
+                [filterMode]="'manual'"
+              />
+
+              <shared-input
+                [label]="'appointments.detail.meetingLink' | translate"
+                [placeholder]="'appointments.form.meetingLinkPlaceholder' | translate"
+                [value]="editMeetingLink()"
+                (valueChange)="editMeetingLink.set($event)"
+                type="url"
+              />
+
+              <shared-input
+                [label]="'appointments.detail.startTime' | translate"
+                type="datetime-local"
+                [value]="editStartTime()"
+                (valueChange)="editStartTime.set($event)"
+                [required]="true"
+                [clearable]="false"
+              />
+              <shared-input
+                [label]="'appointments.detail.endTime' | translate"
+                type="datetime-local"
+                [value]="editEndTime()"
+                (valueChange)="editEndTime.set($event)"
+                [required]="true"
+                [clearable]="false"
+              />
+
+              <shared-checkbox
+                [label]="'appointments.detail.allDay' | translate"
+                [checked]="editAllDay()"
+                (checkedChange)="editAllDay.set($event)"
+              />
+
+              <div class="grid grid-cols-2 gap-3 pt-4 border-t border-zinc-200">
+                <shared-button variant="secondary" type="button" [fullWidth]="true" (clicked)="toggleEdit()">
+                  {{ 'common.cancel' | translate }}
+                </shared-button>
+                <shared-button variant="primary" type="submit" [fullWidth]="true" [disabled]="!canSaveEdit() || saving()">
+                  {{ 'common.save' | translate }}
+                </shared-button>
+              </div>
+            </form>
+          </div>
+        } @else {
+          <!-- Info display -->
+          <div class="mt-4">
+            <div class="border-y border-gray-100 bg-white">
+              @if (appointment()!.description) {
+                <div class="border-b border-gray-100 px-5 py-4">
+                  <p class="text-sm text-zinc-600">{{ appointment()!.description }}</p>
+                </div>
+              }
+
+              <div class="divide-y divide-gray-100">
+                <div class="flex items-center gap-4 px-5 py-3.5">
+                  <lucide-icon name="tag" class="h-4 w-4 text-zinc-400 shrink-0"></lucide-icon>
+                  <span class="text-xs font-bold uppercase tracking-wider text-zinc-400 w-20 shrink-0">{{ 'appointments.detail.type' | translate }}</span>
+                  <span class="text-sm">{{ appointment()!.type }}</span>
+                </div>
+
+                <div class="flex items-center gap-4 px-5 py-3.5">
+                  <lucide-icon name="clock" class="h-4 w-4 text-zinc-400 shrink-0"></lucide-icon>
+                  <span class="text-xs font-bold uppercase tracking-wider text-zinc-400 w-20 shrink-0">{{ 'appointments.detail.when' | translate }}</span>
+                  <span class="text-sm">{{ appointment()!.startTime | date:'medium' }} - {{ appointment()!.endTime | date:'shortTime' }}</span>
+                </div>
+
+                @if (appointment()!.location) {
+                  <div class="flex items-center gap-4 px-5 py-3.5">
+                    <lucide-icon name="map-pin" class="h-4 w-4 text-zinc-400 shrink-0"></lucide-icon>
+                    <span class="text-xs font-bold uppercase tracking-wider text-zinc-400 w-20 shrink-0">{{ 'appointments.detail.location' | translate }}</span>
+                    <span class="text-sm">{{ appointment()!.location }}</span>
+                  </div>
+                }
+
+                @if (appointment()!.meetingLink) {
+                  <div class="flex items-center gap-4 px-5 py-3.5">
+                    <lucide-icon name="video" class="h-4 w-4 text-zinc-400 shrink-0"></lucide-icon>
+                    <span class="text-xs font-bold uppercase tracking-wider text-zinc-400 w-20 shrink-0">{{ 'appointments.detail.meetingLink' | translate }}</span>
+                    <a class="text-sm text-blue-600 hover:text-blue-800 underline truncate" [href]="appointment()!.meetingLink" target="_blank" rel="noopener noreferrer">
+                      {{ appointment()!.meetingLink }}
+                    </a>
+                  </div>
+                }
+
+                @if (appointment()!.lead) {
+                  <div class="flex items-center gap-4 px-5 py-3.5">
+                    <lucide-icon name="user" class="h-4 w-4 text-zinc-400 shrink-0"></lucide-icon>
+                    <span class="text-xs font-bold uppercase tracking-wider text-zinc-400 w-20 shrink-0">{{ 'appointments.detail.lead' | translate }}</span>
+                    <div class="text-sm">
+                      {{ appointment()!.lead!.firstName }} {{ appointment()!.lead!.lastName }}
+                      <span class="block text-xs text-zinc-400">{{ appointment()!.lead!.phone }}</span>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+
+          <!-- Visit Report Section -->
+          @if (appointment()!.type === 'lead_visit') {
+            <div class="mt-4">
+              <div class="border-y border-gray-100 bg-white">
+                <button
+                  type="button"
+                  class="w-full flex items-center justify-between px-5 py-4 text-left"
+                  (click)="toggleVisitReport()"
+                >
+                  <span class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                    {{ 'appointments.detail.visitReport.title' | translate }}
+                  </span>
+                  <lucide-icon
+                    name="chevron-down"
+                    class="h-4 w-4 text-zinc-400 transition-transform"
+                    [class.rotate-180]="showVisitReport()"
+                  ></lucide-icon>
+                </button>
+
+                @if (showVisitReport()) {
+                  <form (ngSubmit)="saveVisitReport()" class="px-5 pb-5 space-y-4">
+                    <shared-textarea
+                      [label]="'appointments.detail.visitReport.measurements' | translate"
+                      [rows]="2"
+                      [value]="reportMeasurements()"
+                      (valueChange)="reportMeasurements.set($event)"
+                    />
+
+                    <shared-select
+                      [label]="'appointments.detail.visitReport.accessDifficulty' | translate"
+                      [options]="accessDifficultySelectOptions()"
+                      [value]="reportAccessDifficulty()"
+                      (valueChange)="reportAccessDifficulty.set($event ?? '')"
+                      [placeholder]="'common.select' | translate"
+                    />
+
+                    <shared-textarea
+                      [label]="'appointments.detail.visitReport.notes' | translate"
+                      [rows]="3"
+                      [value]="reportNotes()"
+                      (valueChange)="reportNotes.set($event)"
+                    />
+
+                    <shared-button variant="primary" type="submit" [fullWidth]="true" [disabled]="saving()">
+                      {{ 'appointments.detail.visitReport.save' | translate }}
+                    </shared-button>
+                  </form>
+                }
+              </div>
+            </div>
+          }
+        }
+      </main>
+    </div>
+
+    <!-- Desktop layout -->
+    <div class="hidden sm:flex flex-col h-full">
+      <div class="border-b border-zinc-200">
+        <shared-page-header
+          [title]="appointment()!.title"
+          [backAriaLabel]="'common.back' | translate"
+          (back)="goBack()"
+        >
+          <div actions class="flex items-center gap-2">
+            @if (!isEditing()) {
+              <shared-button variant="secondary" size="compact" (clicked)="toggleEdit()">
+                <lucide-icon name="pencil" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
+                {{ 'common.edit' | translate }}
+              </shared-button>
+            }
+            <shared-button variant="danger" size="compact" (clicked)="promptDelete()">
+              <lucide-icon name="trash-2" class="h-4 w-4 mr-1.5" aria-hidden="true"></lucide-icon>
+              {{ 'common.delete' | translate }}
+            </shared-button>
+          </div>
+        </shared-page-header>
       </div>
 
-      <!-- Main Content -->
-      @if (isEditing()) {
-        <form (ngSubmit)="saveAppointment()" class="space-y-5">
-          <shared-input
-            [label]="'appointments.detail.title' | translate"
-            [value]="editTitle()"
-            (valueChange)="editTitle.set($event)"
-            [required]="true"
-          />
-          
-          <shared-textarea
-            [label]="'appointments.detail.description' | translate"
-            [rows]="3"
-            [value]="editDescription()"
-            (valueChange)="editDescription.set($event)"
-          />
-          
-          <shared-autocomplete
-            [label]="'appointments.detail.location' | translate"
-            [placeholder]="'appointments.form.locationPlaceholder' | translate"
-            [value]="editLocation()"
-            (valueChange)="onEditLocationChange($event)"
-            [options]="editLocationOptions()"
-            [filterMode]="'manual'"
-          />
-
-          <shared-input
-            [label]="'appointments.detail.meetingLink' | translate"
-            [placeholder]="'appointments.form.meetingLinkPlaceholder' | translate"
-            [value]="editMeetingLink()"
-            (valueChange)="editMeetingLink.set($event)"
-            type="url"
-          />
-          
-          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <shared-input
-              [label]="'appointments.detail.startTime' | translate"
-              type="datetime-local"
-              [value]="editStartTime()"
-              (valueChange)="editStartTime.set($event)"
-              [required]="true"
-              [clearable]="false"
-            />
-            <shared-input
-              [label]="'appointments.detail.endTime' | translate"
-              type="datetime-local"
-              [value]="editEndTime()"
-              (valueChange)="editEndTime.set($event)"
-              [required]="true"
-              [clearable]="false"
-            />
-          </div>
-          
-          <shared-checkbox
-            [label]="'appointments.detail.allDay' | translate"
-            [checked]="editAllDay()"
-            (checkedChange)="editAllDay.set($event)"
-          />
-          
-          <div class="flex gap-3 pt-4 border-t border-zinc-200">
-            <shared-button variant="secondary" type="button" (clicked)="toggleEdit()">
-              {{ 'common.cancel' | translate }}
-            </shared-button>
-            <shared-button variant="primary" type="submit" [disabled]="!canSaveEdit() || saving()">
-              {{ 'common.save' | translate }}
-            </shared-button>
-          </div>
-        </form>
-      } @else {
-        <shared-card padding="default" className="mb-6">
-          @if (appointment()!.description) {
-            <p class="text-sm text-zinc-600 mb-4">{{ appointment()!.description }}</p>
-          }
-          
-          <dl class="space-y-3">
-            <div class="flex gap-3">
-              <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
-                {{ 'appointments.detail.type' | translate }}
-              </dt>
-              <dd class="text-sm">{{ appointment()!.type }}</dd>
-            </div>
-            
-            <div class="flex gap-3">
-              <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
-                {{ 'appointments.detail.when' | translate }}
-              </dt>
-              <dd class="text-sm">
-                {{ appointment()!.startTime | date:'medium' }} - {{ appointment()!.endTime | date:'shortTime' }}
-              </dd>
-            </div>
-            
-            @if (appointment()!.location) {
-              <div class="flex gap-3">
-                <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
-                  {{ 'appointments.detail.location' | translate }}
-                </dt>
-                <dd class="text-sm">{{ appointment()!.location }}</dd>
-              </div>
-            }
-
-            @if (appointment()!.meetingLink) {
-              <div class="flex gap-3">
-                <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
-                  {{ 'appointments.detail.meetingLink' | translate }}
-                </dt>
-                <dd class="text-sm">
-                  <a
-                    class="text-blue-600 hover:text-blue-800 underline"
-                    [href]="appointment()!.meetingLink"
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {{ appointment()!.meetingLink }}
-                  </a>
-                </dd>
-              </div>
-            }
-            
-            @if (appointment()!.lead) {
-              <div class="flex gap-3">
-                <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
-                  {{ 'appointments.detail.lead' | translate }}
-                </dt>
-                <dd class="text-sm">
-                  {{ appointment()!.lead!.firstName }} {{ appointment()!.lead!.lastName }}
-                  <span class="block text-xs text-zinc-400">{{ appointment()!.lead!.phone }}</span>
-                </dd>
-              </div>
-            }
-          </dl>
-        </shared-card>
-
-        <!-- Visit Report Section (for lead_visit type) -->
-        @if (appointment()!.type === 'lead_visit') {
-          <div class="border border-zinc-200 rounded">
-            <button 
-              type="button" 
-              class="w-full flex items-center justify-between p-4 text-left hover:bg-zinc-50 transition-colors"
-              (click)="toggleVisitReport()"
-            >
-              <span class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-                {{ 'appointments.detail.visitReport.title' | translate }}
-              </span>
-              <lucide-icon 
-                name="chevron-down" 
-                class="h-4 w-4 text-zinc-400 transition-transform"
-                [class.rotate-180]="showVisitReport()"
-              ></lucide-icon>
-            </button>
-
-            @if (showVisitReport()) {
-              <form (ngSubmit)="saveVisitReport()" class="p-4 pt-0 space-y-4">
-                <shared-textarea
-                  [label]="'appointments.detail.visitReport.measurements' | translate"
-                  [rows]="2"
-                  [value]="reportMeasurements()"
-                  (valueChange)="reportMeasurements.set($event)"
-                />
-                
-                <shared-select
-                  [label]="'appointments.detail.visitReport.accessDifficulty' | translate"
-                  [options]="accessDifficultySelectOptions()"
-                  [value]="reportAccessDifficulty()"
-                  (valueChange)="reportAccessDifficulty.set($event ?? '')"
-                  [placeholder]="'common.select' | translate"
-                />
-                
-                <shared-textarea
-                  [label]="'appointments.detail.visitReport.notes' | translate"
-                  [rows]="3"
-                  [value]="reportNotes()"
-                  (valueChange)="reportNotes.set($event)"
-                />
-                
-                <shared-button variant="primary" type="submit" [disabled]="saving()">
-                  {{ 'appointments.detail.visitReport.save' | translate }}
-                </shared-button>
-              </form>
-            }
-          </div>
-        }
+      @if (error()) {
+        <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
+          <span class="font-bold uppercase text-red-600 shrink-0">{{ 'common.error' | translate }}</span>
+          <span>{{ error() }}</span>
+        </div>
       }
+
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6">
+        <!-- Status Section -->
+        <div class="mb-6">
+          <div class="flex flex-wrap items-center gap-3">
+            <span
+              class="px-3 py-1 text-xs font-bold uppercase tracking-wider rounded-full"
+              [class.bg-blue-100]="appointment()!.status === 'scheduled'"
+              [class.text-blue-800]="appointment()!.status === 'scheduled'"
+              [class.bg-green-100]="appointment()!.status === 'completed'"
+              [class.text-green-800]="appointment()!.status === 'completed'"
+              [class.bg-zinc-100]="appointment()!.status === 'cancelled'"
+              [class.text-zinc-800]="appointment()!.status === 'cancelled'"
+              [class.bg-amber-100]="appointment()!.status === 'no_show'"
+              [class.text-amber-800]="appointment()!.status === 'no_show'"
+            >
+              {{ getStatusLabel(appointment()!.status) }}
+            </span>
+
+            <div class="flex gap-1">
+              @for (opt of statusOptions; track opt.value) {
+                <button
+                  type="button"
+                  class="px-2 py-1 text-xs uppercase tracking-wider border rounded transition-colors"
+                  [class.bg-black]="appointment()!.status === opt.value"
+                  [class.text-white]="appointment()!.status === opt.value"
+                  [class.border-black]="appointment()!.status === opt.value"
+                  [class.bg-white]="appointment()!.status !== opt.value"
+                  [class.text-zinc-600]="appointment()!.status !== opt.value"
+                  [class.border-zinc-200]="appointment()!.status !== opt.value"
+                  [class.hover:border-zinc-400]="appointment()!.status !== opt.value"
+                  [disabled]="saving()"
+                  (click)="updateStatus(opt.value)"
+                >
+                  {{ opt.label }}
+                </button>
+              }
+            </div>
+          </div>
+        </div>
+
+        <!-- Main Content -->
+        @if (isEditing()) {
+          <form (ngSubmit)="saveAppointment()" class="space-y-5">
+            <shared-input
+              [label]="'appointments.detail.title' | translate"
+              [value]="editTitle()"
+              (valueChange)="editTitle.set($event)"
+              [required]="true"
+            />
+
+            <shared-textarea
+              [label]="'appointments.detail.description' | translate"
+              [rows]="3"
+              [value]="editDescription()"
+              (valueChange)="editDescription.set($event)"
+            />
+
+            <shared-autocomplete
+              [label]="'appointments.detail.location' | translate"
+              [placeholder]="'appointments.form.locationPlaceholder' | translate"
+              [value]="editLocation()"
+              (valueChange)="onEditLocationChange($event)"
+              [options]="editLocationOptions()"
+              [filterMode]="'manual'"
+            />
+
+            <shared-input
+              [label]="'appointments.detail.meetingLink' | translate"
+              [placeholder]="'appointments.form.meetingLinkPlaceholder' | translate"
+              [value]="editMeetingLink()"
+              (valueChange)="editMeetingLink.set($event)"
+              type="url"
+            />
+
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <shared-input
+                [label]="'appointments.detail.startTime' | translate"
+                type="datetime-local"
+                [value]="editStartTime()"
+                (valueChange)="editStartTime.set($event)"
+                [required]="true"
+                [clearable]="false"
+              />
+              <shared-input
+                [label]="'appointments.detail.endTime' | translate"
+                type="datetime-local"
+                [value]="editEndTime()"
+                (valueChange)="editEndTime.set($event)"
+                [required]="true"
+                [clearable]="false"
+              />
+            </div>
+
+            <shared-checkbox
+              [label]="'appointments.detail.allDay' | translate"
+              [checked]="editAllDay()"
+              (checkedChange)="editAllDay.set($event)"
+            />
+
+            <div class="flex gap-3 pt-4 border-t border-zinc-200">
+              <shared-button variant="secondary" type="button" (clicked)="toggleEdit()">
+                {{ 'common.cancel' | translate }}
+              </shared-button>
+              <shared-button variant="primary" type="submit" [disabled]="!canSaveEdit() || saving()">
+                {{ 'common.save' | translate }}
+              </shared-button>
+            </div>
+          </form>
+        } @else {
+          <shared-card padding="default" className="mb-6">
+            @if (appointment()!.description) {
+              <p class="text-sm text-zinc-600 mb-4">{{ appointment()!.description }}</p>
+            }
+
+            <dl class="space-y-3">
+              <div class="flex gap-3">
+                <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                  {{ 'appointments.detail.type' | translate }}
+                </dt>
+                <dd class="text-sm">{{ appointment()!.type }}</dd>
+              </div>
+
+              <div class="flex gap-3">
+                <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                  {{ 'appointments.detail.when' | translate }}
+                </dt>
+                <dd class="text-sm">
+                  {{ appointment()!.startTime | date:'medium' }} - {{ appointment()!.endTime | date:'shortTime' }}
+                </dd>
+              </div>
+
+              @if (appointment()!.location) {
+                <div class="flex gap-3">
+                  <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                    {{ 'appointments.detail.location' | translate }}
+                  </dt>
+                  <dd class="text-sm">{{ appointment()!.location }}</dd>
+                </div>
+              }
+
+              @if (appointment()!.meetingLink) {
+                <div class="flex gap-3">
+                  <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                    {{ 'appointments.detail.meetingLink' | translate }}
+                  </dt>
+                  <dd class="text-sm">
+                    <a
+                      class="text-blue-600 hover:text-blue-800 underline"
+                      [href]="appointment()!.meetingLink"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                    >
+                      {{ appointment()!.meetingLink }}
+                    </a>
+                  </dd>
+                </div>
+              }
+
+              @if (appointment()!.lead) {
+                <div class="flex gap-3">
+                  <dt class="text-xs font-semibold uppercase tracking-wider text-zinc-500 w-24 shrink-0">
+                    {{ 'appointments.detail.lead' | translate }}
+                  </dt>
+                  <dd class="text-sm">
+                    {{ appointment()!.lead!.firstName }} {{ appointment()!.lead!.lastName }}
+                    <span class="block text-xs text-zinc-400">{{ appointment()!.lead!.phone }}</span>
+                  </dd>
+                </div>
+              }
+            </dl>
+          </shared-card>
+
+          <!-- Visit Report Section (for lead_visit type) -->
+          @if (appointment()!.type === 'lead_visit') {
+            <div class="border border-zinc-200 rounded">
+              <button
+                type="button"
+                class="w-full flex items-center justify-between p-4 text-left hover:bg-zinc-50 transition-colors"
+                (click)="toggleVisitReport()"
+              >
+                <span class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                  {{ 'appointments.detail.visitReport.title' | translate }}
+                </span>
+                <lucide-icon
+                  name="chevron-down"
+                  class="h-4 w-4 text-zinc-400 transition-transform"
+                  [class.rotate-180]="showVisitReport()"
+                ></lucide-icon>
+              </button>
+
+              @if (showVisitReport()) {
+                <form (ngSubmit)="saveVisitReport()" class="p-4 pt-0 space-y-4">
+                  <shared-textarea
+                    [label]="'appointments.detail.visitReport.measurements' | translate"
+                    [rows]="2"
+                    [value]="reportMeasurements()"
+                    (valueChange)="reportMeasurements.set($event)"
+                  />
+
+                  <shared-select
+                    [label]="'appointments.detail.visitReport.accessDifficulty' | translate"
+                    [options]="accessDifficultySelectOptions()"
+                    [value]="reportAccessDifficulty()"
+                    (valueChange)="reportAccessDifficulty.set($event ?? '')"
+                    [placeholder]="'common.select' | translate"
+                  />
+
+                  <shared-textarea
+                    [label]="'appointments.detail.visitReport.notes' | translate"
+                    [rows]="3"
+                    [value]="reportNotes()"
+                    (valueChange)="reportNotes.set($event)"
+                  />
+
+                  <shared-button variant="primary" type="submit" [disabled]="saving()">
+                    {{ 'appointments.detail.visitReport.save' | translate }}
+                  </shared-button>
+                </form>
+              }
+            </div>
+          }
+        }
+      </div>
     </div>
   }
 
