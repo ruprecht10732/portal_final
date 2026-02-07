@@ -1,6 +1,5 @@
 // Quote types — aligned with backend API (cents-based)
 
-import type { Lead } from './leads.types';
 
 // Backend uses PascalCase enum values
 export type QuoteStatus = 'Draft' | 'Sent' | 'Accepted' | 'Rejected' | 'Expired';
@@ -44,6 +43,14 @@ export interface QuoteResponse {
   quoteNumber: string;
   leadId: string;
   leadServiceId?: string;
+  customerFirstName?: string;
+  customerLastName?: string;
+  customerPhone?: string;
+  customerEmail?: string;
+  customerAddressStreet?: string;
+  customerAddressHouseNumber?: string;
+  customerAddressZipCode?: string;
+  customerAddressCity?: string;
   status: QuoteStatus;
   pricingMode: PricingMode;
   discountType: DiscountType;
@@ -132,10 +139,6 @@ export interface QuoteCalculationRequest {
 
 // ── Enriched frontend type (quote + lead info) ────────────────────────────────
 
-export interface QuoteWithLead extends QuoteResponse {
-  lead?: Lead;
-}
-
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
 /**
@@ -166,6 +169,12 @@ export function eurosToCents(euros: number): number {
 /** Convert cents to euros. */
 export function centsToEuros(cents: number): number {
   return cents / 100;
+}
+
+export function formatQuoteCustomerName(quote: QuoteResponse): string {
+  const first = quote.customerFirstName ?? '';
+  const last = quote.customerLastName ?? '';
+  return `${first} ${last}`.trim();
 }
 
 // Status display helpers — keys match backend PascalCase enum

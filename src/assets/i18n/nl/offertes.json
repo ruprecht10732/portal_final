@@ -59,7 +59,8 @@
     "deleteConfirmTitle": "Offerte verwijderen?",
     "deleteConfirmMessage": "Deze actie kan niet ongedaan worden gemaakt.",
     "errors": {
-      "save": "Offerte opslaan mislukt. Probeer het opnieuw."
+      "save": "Offerte opslaan mislukt. Probeer het opnieuw.",
+      "load": "Offertes laden mislukt. Probeer het opnieuw."
     },
     "list": {
       "title": "Offertes",
@@ -69,7 +70,17 @@
       "leadLabel": "Lead",
       "total": "Totaal",
       "status": "Status",
-      "date": "Datum"
+      "date": "Datum",
+      "columns": {
+        "quoteNumber": "Offerte #",
+        "customer": "Klant",
+        "phone": "Telefoon",
+        "address": "Adres",
+        "status": "Status",
+        "total": "Totaal",
+        "validUntil": "Geldig tot",
+        "createdAt": "Datum"
+      }
     },
     "status": {
       "draft": "Concept",

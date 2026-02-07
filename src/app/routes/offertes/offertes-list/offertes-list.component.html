@@ -1,96 +1,28 @@
-<section class="flex flex-col h-full">
-  <div class="border-b border-zinc-200">
-    <shared-page-header
-      [title]="'offertes.overviewTitle' | translate"
-      [subtitle]="'offertes.overviewSubtitle' | translate"
-    >
-      <div actions class="flex items-center gap-3">
-        <shared-select
-          class="w-40"
-          [options]="statusOptions()"
-          [value]="statusFilter()"
-          (valueChange)="setStatusFilter($event)"
-        />
-        <shared-button
-          variant="primary"
-          [fullWidth]="false"
-          (clicked)="createQuote()"
-        >
-          <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
-          {{ 'offertes.create' | translate }}
-        </shared-button>
-      </div>
-    </shared-page-header>
-  </div>
+<shared-page-layout
+  [title]="'offertes.overviewTitle' | translate"
+  [subtitle]="'offertes.overviewSubtitle' | translate"
+  [error]="error()"
+>
+  <shared-button
+    actions
+    variant="primary"
+    [fullWidth]="false"
+    (clicked)="createQuote()"
+  >
+    <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
+    {{ 'offertes.create' | translate }}
+  </shared-button>
 
-  <!-- Content -->
-  <div class="flex-1 p-4 sm:p-6 overflow-y-auto">
-    @if (loading()) {
-      <div class="flex flex-col items-center justify-center py-12 gap-4">
-        <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
-        <p class="text-xs font-mono uppercase text-zinc-400">{{ 'offertes.loading' | translate }}</p>
-      </div>
-    } @else if (filteredQuotes().length === 0) {
-      <!-- Empty state -->
-      <div class="flex flex-col items-center justify-center py-16 text-center">
-        <div class="w-16 h-16 bg-zinc-100 rounded-full flex items-center justify-center mb-4">
-          <lucide-icon name="file-text" class="h-8 w-8 text-zinc-400"></lucide-icon>
-        </div>
-        <h3 class="text-lg font-semibold text-zinc-900 mb-2">{{ 'offertes.emptyTitle' | translate }}</h3>
-        <p class="text-sm text-zinc-500 max-w-md mb-6">{{ 'offertes.emptyState' | translate }}</p>
-        <shared-button
-          variant="primary"
-          [fullWidth]="false"
-          (clicked)="createQuote()"
-        >
-          <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
-          {{ 'offertes.createFirst' | translate }}
-        </shared-button>
-      </div>
-    } @else {
-      <!-- Quote cards -->
-      <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        @for (quote of filteredQuotes(); track quote.id) {
-          <button
-            type="button"
-            (click)="viewQuote(quote.id)"
-            class="text-left bg-white border border-zinc-200 rounded-lg p-4 hover:border-zinc-400 hover:shadow-sm transition-all group"
-          >
-            <!-- Header -->
-            <div class="flex items-start justify-between gap-2 mb-3">
-              <div class="flex flex-col">
-                <span class="font-mono text-xs text-zinc-400">{{ quote.quoteNumber }}</span>
-                <span class="font-semibold text-zinc-900 group-hover:text-black">
-                  @if (quote.lead) {
-                    {{ quote.lead.consumer.firstName }} {{ quote.lead.consumer.lastName }}
-                  } @else {
-                    {{ 'offertes.unknownLead' | translate }}
-                  }
-                </span>
-              </div>
-              <span 
-                class="text-xs font-semibold uppercase px-2 py-1 rounded"
-                [class]="getStatusColor(quote.status)"
-              >
-                {{ getStatusLabel(quote.status) }}
-              </span>
-            </div>
-
-            <!-- Address -->
-            @if (quote.lead) {
-              <p class="text-sm text-zinc-500 mb-3 truncate">
-                {{ quote.lead.address.street }} {{ quote.lead.address.houseNumber }}, {{ quote.lead.address.city }}
-              </p>
-            }
-
-            <!-- Footer -->
-            <div class="flex items-center justify-between pt-3 border-t border-zinc-100">
-              <span class="text-xs text-zinc-400">{{ formatDate(quote.createdAt) }}</span>
-              <span class="text-lg font-bold text-zinc-900">{{ formatCentsCurrency(quote.totalCents) }}</span>
-            </div>
-          </button>
-        }
-      </div>
-    }
-  </div>
-</section>
+  <shared-data-grid
+    [columns]="gridColumns()"
+    [data]="gridData()"
+    [totalItems]="total()"
+    [loading]="loading()"
+    [config]="gridConfigAdapter"
+    [serverSide]="true"
+    [fetchData]="fetchDataAdapter"
+    (dataRequest)="onDataRequest($event)"
+    (rowDoubleClick)="onGridRowDoubleClick($event)"
+    [ariaLabel]="'offertes.list.title' | translate"
+  />
+</shared-page-layout>

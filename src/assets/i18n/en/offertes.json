@@ -59,7 +59,8 @@
     "deleteConfirmTitle": "Delete quote?",
     "deleteConfirmMessage": "This action cannot be undone.",
     "errors": {
-      "save": "Failed to save quote. Please try again."
+      "save": "Failed to save quote. Please try again.",
+      "load": "Failed to load quotes. Please try again."
     },
     "list": {
       "title": "Quotes",
@@ -69,7 +70,17 @@
       "leadLabel": "Lead",
       "total": "Total",
       "status": "Status",
-      "date": "Date"
+      "date": "Date",
+      "columns": {
+        "quoteNumber": "Quote #",
+        "customer": "Customer",
+        "phone": "Phone",
+        "address": "Address",
+        "status": "Status",
+        "total": "Total",
+        "validUntil": "Valid until",
+        "createdAt": "Date"
+      }
     },
     "status": {
       "draft": "Draft",

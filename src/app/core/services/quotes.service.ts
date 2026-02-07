@@ -29,6 +29,12 @@ export class QuotesService {
     leadId?: string;
     status?: string;
     search?: string;
+    createdAtFrom?: string;
+    createdAtTo?: string;
+    validUntilFrom?: string;
+    validUntilTo?: string;
+    totalFrom?: string;
+    totalTo?: string;
     sortBy?: string;
     sortOrder?: string;
     page?: number;
