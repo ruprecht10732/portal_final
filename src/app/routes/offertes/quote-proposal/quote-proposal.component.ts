@@ -1,7 +1,21 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, NgZone, OnInit, signal } from '@angular/core';
+import {
+  afterNextRender,
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  effect,
+  Injector,
+  inject,
+  NgZone,
+  OnInit,
+  runInInjectionContext,
+  signal,
+} from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { gsap } from 'gsap';
 
 import { environment } from '../../../../environments/environment';
 import { PublicQuoteService } from '../../../core/services/public-quote.service';
@@ -46,7 +60,10 @@ export class QuoteProposalComponent implements OnInit {
   private readonly publicQuoteService = inject(PublicQuoteService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly zone = inject(NgZone);
+  private readonly injector = inject(Injector);
   private eventSource: EventSource | null = null;
+  private introTimeline: gsap.core.Timeline | null = null;
+  private introInitialized = false;
 
   // State signals
   protected readonly loading = signal(true);
@@ -56,6 +73,9 @@ export class QuoteProposalComponent implements OnInit {
   protected readonly accepting = signal(false);
   protected readonly rejecting = signal(false);
   protected readonly downloadingPdf = signal(false);
+  protected readonly showIntro = signal(true);
+  protected readonly introOpen = signal(false);
+  protected readonly prefersReducedMotion = signal(false);
 
   // Accept form
   protected readonly signatureName = signal('');
@@ -78,6 +98,14 @@ export class QuoteProposalComponent implements OnInit {
     return q?.status === 'Accepted' || q?.status === 'Rejected' || q?.status === 'Expired';
   });
   protected readonly isReadOnly = computed(() => !!this.quote()?.isReadOnly);
+  protected readonly shouldShowIntro = computed(
+    () => this.showIntro() && !!this.quote(),
+  );
+  protected readonly customerInitial = computed(() => {
+    const name = this.quote()?.customerName?.trim();
+    return name ? name.charAt(0).toUpperCase() : 'G';
+  });
+  protected readonly introHint = computed(() => 'Onthul uw offerte');
   protected readonly annotationItem = computed(() => {
     const q = this.quote();
     const id = this.annotatingItemId();
@@ -95,6 +123,10 @@ export class QuoteProposalComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    if (globalThis.matchMedia) {
+      this.prefersReducedMotion.set(globalThis.matchMedia('(prefers-reduced-motion: reduce)').matches);
+    }
+    this.initIntroEffect();
     const t = this.route.snapshot.paramMap.get('token');
     if (!t) {
       this.error.set('Geen geldig offerte-link gevonden.');
@@ -107,6 +139,163 @@ export class QuoteProposalComponent implements OnInit {
 
     // Clean up EventSource on destroy
     this.destroyRef.onDestroy(() => this.disconnectSSE());
+  }
+
+  private initIntroEffect(): void {
+    runInInjectionContext(this.injector, () => {
+      effect(() => {
+        if (!this.shouldShowIntro() || this.introInitialized) return;
+        this.introInitialized = true;
+        runInInjectionContext(this.injector, () => {
+          afterNextRender(() => this.setupIntroTimeline());
+        });
+      });
+    });
+  }
+
+  protected toggleIntro(): void {
+    if (this.introOpen()) {
+      return;
+    }
+
+    if (this.prefersReducedMotion()) {
+      this.introOpen.set(true);
+      return;
+    }
+
+    if (!this.introTimeline) {
+      this.introOpen.set(true);
+      return;
+    }
+
+    this.introTimeline.play(0);
+  }
+
+  protected continueToQuote(): void {
+    this.showIntro.set(false);
+  }
+
+  private setupIntroTimeline(): void {
+    if (this.prefersReducedMotion()) {
+      this.introOpen.set(true);
+      return;
+    }
+
+    const tl = gsap.timeline({
+      paused: true,
+      defaults: { ease: 'expo.inOut', duration: 1 },
+    });
+
+    // 0. Entrance: scene fades in
+    gsap.to('#intro-trigger', {
+      opacity: 1,
+      y: 0,
+      scale: 1,
+      duration: 1.2,
+      ease: 'power3.out',
+      delay: 0.3,
+    });
+
+    // 1. Seal vanishes
+    tl.to('#intro-seal', {
+      opacity: 0,
+      scale: 0.2,
+      z: 10,
+      duration: 0.6,
+      ease: 'power4.in',
+    })
+    // 2. Lid opens
+      .to(
+        '#intro-lid',
+        {
+          rotationX: 180,
+          z: -1,
+          duration: 0.9,
+          ease: 'power3.inOut',
+        },
+        '-=0.2',
+      )
+    // 3. Envelope tilts gently
+      .to(
+        '#intro-envelope',
+        {
+          rotationX: -12,
+          y: 30,
+          scale: 0.92,
+          duration: 1.0,
+          ease: 'power2.inOut',
+        },
+        '-=0.5',
+      )
+    // 4. Letter rises out (becomes visible)
+      .to(
+        '#intro-letter',
+        {
+          opacity: 1,
+          y: -200,
+          z: 0.5,
+          duration: 0.9,
+          ease: 'power2.out',
+          onStart: () => {
+            gsap.to('#intro-shadow', { scale: 1.3, opacity: 0.15, duration: 1.2 });
+          },
+        },
+        '-=0.8',
+      )
+    // 5. Letter floats to center of viewport
+      .to(
+        '#intro-letter',
+        {
+          z: 80,
+          y: () => {
+            const letterEl = document.getElementById('intro-letter');
+            if (!letterEl) return -250;
+            const rect = letterEl.getBoundingClientRect();
+            const viewportCenter = window.innerHeight / 2;
+            const letterCenter = rect.top + rect.height / 2;
+            return gsap.getProperty('#intro-letter', 'y') as number + (viewportCenter - letterCenter);
+          },
+          scale: 1.15,
+          rotationX: 0,
+          rotationZ: 0,
+          duration: 1.0,
+          ease: 'power2.out',
+          boxShadow: '0 30px 80px -15px rgba(0,0,0,0.5)',
+        },
+        '-=0.2',
+      )
+    // 6. Fade out envelope
+      .to(
+        '#intro-envelope',
+        {
+          opacity: 0,
+          scale: 0.8,
+          duration: 0.6,
+          ease: 'power2.in',
+        },
+        '-=0.8',
+      )
+      .to(
+        '#intro-shadow',
+        {
+          opacity: 0,
+          duration: 0.4,
+        },
+        '-=0.6',
+      )
+    // 6. Shine sweep
+      .to(
+        '#intro-shine',
+        {
+          left: '150%',
+          duration: 1.0,
+          ease: 'power2.inOut',
+        },
+        '-=0.7',
+      );
+
+    tl.eventCallback('onComplete', () => this.introOpen.set(true));
+    this.introTimeline = tl;
   }
 
   /**

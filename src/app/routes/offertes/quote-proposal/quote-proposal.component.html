@@ -1,58 +1,176 @@
 <!-- Public Quote Proposal Page -->
-<div class="min-h-screen bg-linear-to-br from-zinc-50 to-zinc-100">
-  <!-- Loading -->
-  @if (loading()) {
-    <div class="flex h-screen items-center justify-center">
-      <div class="text-center">
-        <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600"></div>
-        <p class="mt-4 text-sm text-zinc-500">Offerte laden…</p>
-      </div>
-    </div>
-  }
+@if (!loading() && !error() && quote(); as q) {
+  @if (shouldShowIntro()) {
+    <section class="quote-intro">
+      <button class="intro-skip" type="button" (click)="continueToQuote()">Overslaan</button>
 
-  <!-- Error -->
-  @if (error(); as err) {
-    <div class="flex h-screen items-center justify-center">
-      <div class="rounded-xl bg-white p-8 shadow-lg text-center max-w-md">
-        <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
-          <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      <div
+        class="intro-scene"
+        id="intro-trigger"
+        role="button"
+        tabindex="0"
+        aria-label="Offerte onthullen"
+        (click)="toggleIntro()"
+        (keydown.enter)="toggleIntro()"
+        (keydown.space)="toggleIntro()"
+      >
+        <div class="intro-envelope" id="intro-envelope">
+          <div class="intro-lid" id="intro-lid"></div>
+          <div class="intro-inner-shadow"></div>
+          <div class="intro-pocket"></div>
+          <div class="intro-bottom-flap"></div>
+          <div class="intro-seal" id="intro-seal">
+            <span>{{ customerInitial() }}</span>
+          </div>
         </div>
-        <h2 class="text-lg font-semibold text-zinc-900">Offerte niet beschikbaar</h2>
-        <p class="mt-2 text-sm text-zinc-500">{{ err }}</p>
+
+        <div class="intro-letter" id="intro-letter">
+          <div class="intro-letter-shine" id="intro-shine"></div>
+          <div class="intro-letter-eyebrow">Persoonlijk voorstel</div>
+          <h1>Uw Offerte</h1>
+          <div class="intro-letter-divider"></div>
+          <p>
+            Beste {{ q.customerName }},
+            <span>hartelijk dank voor uw vertrouwen.</span>
+            <span>Wij hebben met zorg een offerte voor u samengesteld.</span>
+          </p>
+          <div class="intro-letter-signature">{{ q.organizationName }}</div>
+          <div class="intro-letter-footer">Bekijk uw offerte hieronder</div>
+        </div>
+
+        <div class="intro-ground-shadow" id="intro-shadow"></div>
       </div>
-    </div>
-  }
 
-  <!-- Quote Content -->
-  @if (!loading() && !error() && quote(); as q) {
-    <div class="mx-auto max-w-4xl px-0 pb-8 pt-0 sm:px-6 sm:py-8 lg:px-8">
-      <!-- Mobile layout (deferred) -->
-      @defer (on idle) {
-        <div class="sm:hidden">
-          <div class="relative min-h-screen flex flex-col">
-            <app-quote-proposal-mobile-header
-              [quoteNumber]="q.quoteNumber"
-              (share)="shareQuote()"
-            />
+      <div class="intro-hint" [class.is-visible]="!introOpen()" [class.is-open]="introOpen()">{{ introHint() }}</div>
+      @if (introOpen()) {
+        <button class="intro-continue" type="button" (click)="continueToQuote()">Bekijk offerte</button>
+      }
+    </section>
+  } @else {
+    <div class="min-h-screen bg-linear-to-br from-zinc-50 to-zinc-100">
+      <div class="mx-auto max-w-4xl px-0 pb-8 pt-0 sm:px-6 sm:py-8 lg:px-8">
+        <!-- Mobile layout (deferred) -->
+        @defer (on idle) {
+          <div class="sm:hidden">
+            <div class="relative min-h-screen flex flex-col">
+              <app-quote-proposal-mobile-header
+                [quoteNumber]="q.quoteNumber"
+                (share)="shareQuote()"
+              />
 
-          <main class="flex-1 pb-48">
-            <div class="border-b border-gray-100 bg-white px-5 pb-6 pt-8">
-              <div class="mb-6 flex items-start justify-between">
-                <div class="flex items-center gap-4">
-                  <div class="h-16 w-16 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.04),0_2px_8px_-2px_rgba(0,0,0,0.02)]">
-                    <div class="flex h-full w-full items-center justify-center bg-zinc-100 text-xl font-extrabold text-zinc-700">
-                      {{ q.organizationName[0] ?? 'O' }}
+            <main class="flex-1 pb-48">
+              <div class="border-b border-gray-100 bg-white px-5 pb-6 pt-8">
+                <div class="mb-6 flex items-start justify-between">
+                  <div class="flex items-center gap-4">
+                    <div class="h-16 w-16 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.04),0_2px_8px_-2px_rgba(0,0,0,0.02)]">
+                      <div class="flex h-full w-full items-center justify-center bg-zinc-100 text-xl font-extrabold text-zinc-700">
+                        {{ q.organizationName[0] ?? 'O' }}
+                      </div>
+                    </div>
+                    <div>
+                      <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">{{ q.organizationName }}</h1>
+                      <p class="text-sm font-medium text-slate-500">Klant: {{ q.customerName }}</p>
                     </div>
                   </div>
-                  <div>
-                    <h1 class="text-2xl font-extrabold tracking-tight text-slate-900">{{ q.organizationName }}</h1>
-                    <p class="text-sm font-medium text-slate-500">Klant: {{ q.customerName }}</p>
+                </div>
+
+                <div class="flex items-center gap-2">
+                  <div class="rounded-full bg-blue-500 px-4 py-1.5 text-[13px] font-bold text-white shadow-lg shadow-blue-500/20 ring-4 ring-blue-50">
+                    @switch (q.status) {
+                      @case ('Draft') { Concept }
+                      @case ('Sent') { Verzonden }
+                      @case ('Accepted') { Geaccepteerd }
+                      @case ('Rejected') { Afgewezen }
+                      @case ('Expired') { Verlopen }
+                    }
                   </div>
+                  @if (q.validUntil) {
+                    <div class="rounded-full bg-gray-100 px-4 py-1.5 text-[13px] font-semibold text-slate-500">
+                      Geldig t/m {{ q.validUntil | date:'d MMM':'':'nl' }}
+                    </div>
+                  }
                 </div>
               </div>
 
-              <div class="flex items-center gap-2">
-                <div class="rounded-full bg-blue-500 px-4 py-1.5 text-[13px] font-bold text-white shadow-lg shadow-blue-500/20 ring-4 ring-blue-50">
+              @if (isReadOnly()) {
+                <div class="px-5 pt-4">
+                  <div class="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                    Voorbeeldweergave - alleen lezen.
+                  </div>
+                </div>
+              }
+
+              @if (q.status === 'Accepted' || q.status === 'Rejected') {
+                <div class="px-5 pt-4">
+                  <app-quote-status-banner
+                    [status]="q.status"
+                    [acceptedAt]="q.acceptedAt ?? null"
+                    [downloading]="downloadingPdf()"
+                    [variant]="'mobile'"
+                    (download)="downloadPdf()"
+                  />
+                </div>
+              }
+
+              <div class="mt-4">
+                <div class="flex items-center justify-between px-5 py-4">
+                  <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">Onderdelen</h3>
+                  <span class="text-[11px] font-bold text-blue-600">{{ q.items.length }} items</span>
+                </div>
+
+                <div class="flex flex-col">
+                  @for (item of q.items; track item.id) {
+                    <app-quote-proposal-item-mobile
+                      [item]="item"
+                      [pricingMode]="q.pricingMode"
+                      [isFinalized]="isFinalized()"
+                      [isReadOnly]="isReadOnly()"
+                      [hasAgentResponse]="hasAgentResponse(item)"
+                      [deletingId]="deletingAnnotationId()"
+                      (toggleItem)="toggleItem($event)"
+                      (requestAsk)="startAnnotation(item.id)"
+                      (requestEdit)="startAnnotation(item.id, $event)"
+                      (requestRemove)="deleteAnnotation(item.id, $event.id)"
+                    />
+                  }
+                </div>
+              </div>
+
+              <app-quote-proposal-totals
+                [subtotalCents]="q.subtotalCents"
+                [discountAmountCents]="q.discountAmountCents"
+                [vatBreakdown]="getVatBreakdown()"
+                [totalCents]="q.totalCents"
+                [variant]="'mobile'"
+              />
+            </main>
+              <app-quote-proposal-action-footer
+                [variant]="'mobile'"
+                [isFinalized]="isFinalized()"
+                [isReadOnly]="isReadOnly()"
+                [accepting]="accepting()"
+                [rejecting]="rejecting()"
+                (accept)="openAcceptDialog()"
+                (reject)="openRejectDialog()"
+              />
+            </div>
+          </div>
+        } @placeholder {
+          <div class="sm:hidden min-h-[60vh]"></div>
+        }
+
+        <!-- Desktop layout -->
+        <div class="hidden sm:block">
+          <!-- Header -->
+          <div class="mb-8 rounded-xl bg-white p-6 shadow-sm">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div>
+                <h1 class="text-2xl font-bold text-zinc-900">Offerte {{ q.quoteNumber }}</h1>
+                <p class="mt-1 text-sm text-zinc-500">Van {{ q.organizationName }}</p>
+                <p class="mt-0.5 text-sm text-zinc-500">Voor {{ q.customerName }}</p>
+              </div>
+              <div class="text-right">
+                <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium" [class]="statusColor()">
                   @switch (q.status) {
                     @case ('Draft') { Concept }
                     @case ('Sent') { Verzonden }
@@ -60,198 +178,125 @@
                     @case ('Rejected') { Afgewezen }
                     @case ('Expired') { Verlopen }
                   }
-                </div>
+                </span>
                 @if (q.validUntil) {
-                  <div class="rounded-full bg-gray-100 px-4 py-1.5 text-[13px] font-semibold text-slate-500">
-                    Geldig t/m {{ q.validUntil | date:'d MMM':'':'nl' }}
-                  </div>
+                  <p class="mt-2 text-xs text-zinc-500">
+                    Geldig tot {{ q.validUntil | date:'d MMMM yyyy':'':'nl' }}
+                  </p>
                 }
               </div>
             </div>
+          </div>
 
-            @if (isReadOnly()) {
-              <div class="px-5 pt-4">
-                <div class="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
-                  Voorbeeldweergave - alleen lezen.
-                </div>
-              </div>
-            }
+          @if (isReadOnly()) {
+            <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
+              Voorbeeldweergave - alleen lezen.
+            </div>
+          }
 
-            @if (q.status === 'Accepted' || q.status === 'Rejected') {
-              <div class="px-5 pt-4">
-                <app-quote-status-banner
-                  [status]="q.status"
-                  [acceptedAt]="q.acceptedAt ?? null"
-                  [downloading]="downloadingPdf()"
-                  [variant]="'mobile'"
-                  (download)="downloadPdf()"
-                />
-              </div>
-            }
+          <!-- Accepted / Rejected banner -->
+          @if (q.status === 'Accepted' || q.status === 'Rejected') {
+            <div class="mb-6">
+              <app-quote-status-banner
+                [status]="q.status"
+                [acceptedAt]="q.acceptedAt ?? null"
+                [downloading]="downloadingPdf()"
+                [variant]="'desktop'"
+                (download)="downloadPdf()"
+              />
+            </div>
+          }
 
-            <div class="mt-4">
-              <div class="flex items-center justify-between px-5 py-4">
-                <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">Onderdelen</h3>
-                <span class="text-[11px] font-bold text-blue-600">{{ q.items.length }} items</span>
-              </div>
-
-              <div class="flex flex-col">
-                @for (item of q.items; track item.id) {
-                  <app-quote-proposal-item-mobile
-                    [item]="item"
-                    [pricingMode]="q.pricingMode"
-                    [isFinalized]="isFinalized()"
-                    [isReadOnly]="isReadOnly()"
-                    [hasAgentResponse]="hasAgentResponse(item)"
-                    [deletingId]="deletingAnnotationId()"
-                    (toggleItem)="toggleItem($event)"
-                    (requestAsk)="startAnnotation(item.id)"
-                    (requestEdit)="startAnnotation(item.id, $event)"
-                    (requestRemove)="deleteAnnotation(item.id, $event.id)"
-                  />
-                }
-              </div>
+          <!-- Line Items -->
+          <div class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm">
+            <div class="border-b border-zinc-100 px-6 py-4">
+              <h2 class="text-lg font-semibold text-zinc-900">Onderdelen</h2>
+              @if (!isFinalized() && !isReadOnly()) {
+                <p class="mt-1 text-xs text-zinc-400">Klik op optionele items om ze in- of uit te schakelen</p>
+              }
             </div>
 
+            <!-- Table header -->
+            <div class="hidden border-b border-zinc-100 bg-zinc-50 px-6 py-3 sm:grid sm:grid-cols-12 sm:gap-4">
+              <span class="col-span-5 text-xs font-medium uppercase tracking-wider text-zinc-500">Omschrijving</span>
+              <span class="col-span-2 text-xs font-medium uppercase tracking-wider text-zinc-500">Aantal</span>
+              <span class="col-span-2 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Prijs</span>
+              <span class="col-span-1 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">BTW</span>
+              <span class="col-span-2 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Totaal</span>
+            </div>
+
+            <!-- Items -->
+            @for (item of q.items; track item.id) {
+              <app-quote-proposal-item-desktop
+                [item]="item"
+                [isFinalized]="isFinalized()"
+                [isReadOnly]="isReadOnly()"
+                [togglingId]="toggling()"
+                [hasAgentResponse]="hasAgentResponse(item)"
+                [deletingId]="deletingAnnotationId()"
+                (toggleItem)="toggleItem($event)"
+                (requestAsk)="startAnnotation(item.id)"
+                (requestEdit)="startAnnotation(item.id, $event)"
+                (requestRemove)="deleteAnnotation(item.id, $event.id)"
+              />
+            }
+          </div>
+
+          <!-- Totals -->
+          <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
             <app-quote-proposal-totals
               [subtotalCents]="q.subtotalCents"
               [discountAmountCents]="q.discountAmountCents"
               [vatBreakdown]="getVatBreakdown()"
               [totalCents]="q.totalCents"
-              [variant]="'mobile'"
-            />
-          </main>
-            <app-quote-proposal-action-footer
-              [variant]="'mobile'"
-              [isFinalized]="isFinalized()"
-              [isReadOnly]="isReadOnly()"
-              [accepting]="accepting()"
-              [rejecting]="rejecting()"
-              (accept)="openAcceptDialog()"
-              (reject)="openRejectDialog()"
-            />
-          </div>
-        </div>
-      } @placeholder {
-        <div class="sm:hidden min-h-[60vh]"></div>
-      }
-
-      <!-- Desktop layout -->
-      <div class="hidden sm:block">
-        <!-- Header -->
-        <div class="mb-8 rounded-xl bg-white p-6 shadow-sm">
-          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
-            <div>
-              <h1 class="text-2xl font-bold text-zinc-900">Offerte {{ q.quoteNumber }}</h1>
-              <p class="mt-1 text-sm text-zinc-500">Van {{ q.organizationName }}</p>
-              <p class="mt-0.5 text-sm text-zinc-500">Voor {{ q.customerName }}</p>
-            </div>
-            <div class="text-right">
-              <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium" [class]="statusColor()">
-                @switch (q.status) {
-                  @case ('Draft') { Concept }
-                  @case ('Sent') { Verzonden }
-                  @case ('Accepted') { Geaccepteerd }
-                  @case ('Rejected') { Afgewezen }
-                  @case ('Expired') { Verlopen }
-                }
-              </span>
-              @if (q.validUntil) {
-                <p class="mt-2 text-xs text-zinc-500">
-                  Geldig tot {{ q.validUntil | date:'d MMMM yyyy':'':'nl' }}
-                </p>
-              }
-            </div>
-          </div>
-        </div>
-
-        @if (isReadOnly()) {
-          <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm text-blue-800">
-            Voorbeeldweergave - alleen lezen.
-          </div>
-        }
-
-        <!-- Accepted / Rejected banner -->
-        @if (q.status === 'Accepted' || q.status === 'Rejected') {
-          <div class="mb-6">
-            <app-quote-status-banner
-              [status]="q.status"
-              [acceptedAt]="q.acceptedAt ?? null"
-              [downloading]="downloadingPdf()"
               [variant]="'desktop'"
-              (download)="downloadPdf()"
             />
           </div>
-        }
 
-        <!-- Line Items -->
-        <div class="mb-6 overflow-hidden rounded-xl bg-white shadow-sm">
-          <div class="border-b border-zinc-100 px-6 py-4">
-            <h2 class="text-lg font-semibold text-zinc-900">Onderdelen</h2>
-            @if (!isFinalized() && !isReadOnly()) {
-              <p class="mt-1 text-xs text-zinc-400">Klik op optionele items om ze in- of uit te schakelen</p>
-            }
-          </div>
-
-          <!-- Table header -->
-          <div class="hidden border-b border-zinc-100 bg-zinc-50 px-6 py-3 sm:grid sm:grid-cols-12 sm:gap-4">
-            <span class="col-span-5 text-xs font-medium uppercase tracking-wider text-zinc-500">Omschrijving</span>
-            <span class="col-span-2 text-xs font-medium uppercase tracking-wider text-zinc-500">Aantal</span>
-            <span class="col-span-2 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Prijs</span>
-            <span class="col-span-1 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">BTW</span>
-            <span class="col-span-2 text-right text-xs font-medium uppercase tracking-wider text-zinc-500">Totaal</span>
-          </div>
-
-          <!-- Items -->
-          @for (item of q.items; track item.id) {
-            <app-quote-proposal-item-desktop
-              [item]="item"
-              [isFinalized]="isFinalized()"
-              [isReadOnly]="isReadOnly()"
-              [togglingId]="toggling()"
-              [hasAgentResponse]="hasAgentResponse(item)"
-              [deletingId]="deletingAnnotationId()"
-              (toggleItem)="toggleItem($event)"
-              (requestAsk)="startAnnotation(item.id)"
-              (requestEdit)="startAnnotation(item.id, $event)"
-              (requestRemove)="deleteAnnotation(item.id, $event.id)"
-            />
+          <!-- Notes -->
+          @if (q.notes) {
+            <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
+              <h3 class="mb-2 text-sm font-medium text-zinc-500">Opmerkingen</h3>
+              <p class="text-sm text-zinc-700 whitespace-pre-wrap">{{ q.notes }}</p>
+            </div>
           }
-        </div>
 
-        <!-- Totals -->
-        <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
-          <app-quote-proposal-totals
-            [subtotalCents]="q.subtotalCents"
-            [discountAmountCents]="q.discountAmountCents"
-            [vatBreakdown]="getVatBreakdown()"
-            [totalCents]="q.totalCents"
+          <!-- Action buttons -->
+          <app-quote-proposal-action-footer
             [variant]="'desktop'"
+            [isFinalized]="isFinalized()"
+            [isReadOnly]="isReadOnly()"
+            [accepting]="accepting()"
+            [rejecting]="rejecting()"
+            (accept)="openAcceptDialog()"
+            (reject)="openRejectDialog()"
           />
         </div>
-
-        <!-- Notes -->
-        @if (q.notes) {
-          <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
-            <h3 class="mb-2 text-sm font-medium text-zinc-500">Opmerkingen</h3>
-            <p class="text-sm text-zinc-700 whitespace-pre-wrap">{{ q.notes }}</p>
-          </div>
-        }
-
-        <!-- Action buttons -->
-        <app-quote-proposal-action-footer
-          [variant]="'desktop'"
-          [isFinalized]="isFinalized()"
-          [isReadOnly]="isReadOnly()"
-          [accepting]="accepting()"
-          [rejecting]="rejecting()"
-          (accept)="openAcceptDialog()"
-          (reject)="openRejectDialog()"
-        />
       </div>
     </div>
   }
-</div>
+}
+
+@if (loading()) {
+  <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
+    <div class="text-center">
+      <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600"></div>
+      <p class="mt-4 text-sm text-zinc-500">Offerte laden…</p>
+    </div>
+  </div>
+}
+
+@if (!loading() && error(); as err) {
+  <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
+    <div class="rounded-xl bg-white p-8 shadow-lg text-center max-w-md">
+      <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <h2 class="text-lg font-semibold text-zinc-900">Offerte niet beschikbaar</h2>
+      <p class="mt-2 text-sm text-zinc-500">{{ err }}</p>
+    </div>
+  </div>
+}
 
 <app-quote-proposal-accept-sheet
   [isOpen]="showAcceptDialog()"
