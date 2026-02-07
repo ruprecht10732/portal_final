@@ -24,6 +24,7 @@ import type {
 import { TAX_RATE_OPTIONS, DISCOUNT_TYPE_OPTIONS, parseQuantityNumber, eurosToCents, centsToEuros, taxDisplayToBps, taxBpsToDisplay } from '../../../core/services/quotes.types';
 
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
@@ -52,6 +53,7 @@ interface LineItemDraft {
     TranslatePipe,
     LucideAngularModule,
     AutocompleteComponent,
+    ButtonComponent,
     CheckboxComponent,
     InputComponent,
     NumberInputComponent,
