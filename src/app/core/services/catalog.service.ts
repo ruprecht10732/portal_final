@@ -158,6 +158,33 @@ export interface PresignedDownloadResponse {
 }
 
 // ============================================================================
+// Autocomplete Types
+// ============================================================================
+
+export interface AutocompleteDocumentResponse {
+  filename: string;
+  fileKey: string;
+}
+
+export interface AutocompleteURLResponse {
+  label: string;
+  href: string;
+}
+
+export interface AutocompleteItemResponse {
+  id: string;
+  title: string;
+  description: string;
+  priceCents: number;
+  unitPriceCents: number;
+  unitLabel: string;
+  vatRateId: string;
+  vatRateBps: number;
+  documents: AutocompleteDocumentResponse[];
+  urls: AutocompleteURLResponse[];
+}
+
+// ============================================================================
 // Service
 // ============================================================================
 
@@ -224,6 +251,13 @@ export class CatalogService {
   listProducts(params: ListProductsParams = {}): Observable<PaginatedResponse<Product>> {
     return this.http.get<PaginatedResponse<Product>>(`${this.baseUrl}/products`, {
       params: this.buildProductsParams(params),
+    });
+  }
+
+  /** Search for products with autocomplete metadata (documents, urls, vatRateBps). */
+  searchForAutocomplete(query: string, limit = 5): Observable<AutocompleteItemResponse[]> {
+    return this.http.get<AutocompleteItemResponse[]>(`${this.baseUrl}/products/search`, {
+      params: toHttpParams({ q: query, limit }),
     });
   }
 

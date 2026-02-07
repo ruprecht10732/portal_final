@@ -103,6 +103,7 @@ export const routes: Routes = [
 				data: {
 					panelItems: [
 						{ label: 'organization.overview', route: '/app/organization', icon: 'building', exact: true },
+						{ label: 'organization.settings.navLabel', route: '/app/organization/settings', icon: 'settings' },
 						{ label: 'organization.invites', route: '/app/organization/invites', icon: 'mail' },
 						{ label: 'organization.newInvite', route: '/app/organization/invites/new', icon: 'plus' },
 					],
@@ -111,6 +112,10 @@ export const routes: Routes = [
 					{
 						path: '',
 						loadComponent: () => import('./routes/organization/organization-overview/organization-overview.component').then(m => m.OrganizationOverviewComponent),
+					},
+					{
+						path: 'settings',
+						loadComponent: () => import('./routes/organization/organization-settings/organization-settings.component').then(m => m.OrganizationSettingsComponent),
 					},
 					{
 						path: 'invites',

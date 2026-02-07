@@ -58,6 +58,8 @@ export class OrganizationOverviewComponent {
   protected readonly logoError = signal<string | null>(null);
   protected readonly logoDeletingInProgress = signal(false);
 
+
+
   private readonly orgService = inject(OrganizationService);
   private readonly addressService = inject(AddressService);
   private readonly destroyRef = inject(DestroyRef);
@@ -120,6 +122,7 @@ export class OrganizationOverviewComponent {
     !this.kvkError() &&
     this.hasChanges()
   );
+
 
   constructor() {
     this.setupAddressSearch();

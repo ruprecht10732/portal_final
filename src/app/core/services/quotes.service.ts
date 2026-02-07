@@ -14,6 +14,9 @@ import type {
   AnnotationResponse,
   QuoteActivityResponse,
   QuotePreviewLinkResponse,
+  PresignAttachmentUploadRequest,
+  PresignedUploadResponse,
+  PresignedDownloadResponse,
 } from './quotes.types';
 
 /**
@@ -103,5 +106,22 @@ export class QuotesService {
     return this.http.get(`${this.baseUrl}/${quoteId}/pdf`, {
       responseType: 'blob',
     });
+  }
+
+  /** Get a presigned URL for uploading a manual attachment PDF */
+  presignAttachmentUpload(quoteId: string, data: PresignAttachmentUploadRequest): Observable<PresignedUploadResponse> {
+    return this.http.post<PresignedUploadResponse>(`${this.baseUrl}/${quoteId}/attachments/presign`, data);
+  }
+
+  /** Upload a file to a presigned URL (direct to object storage) */
+  uploadToPresignedUrl(uploadUrl: string, file: File): Observable<void> {
+    return this.http.put<void>(uploadUrl, file, {
+      headers: { 'Content-Type': file.type },
+    });
+  }
+
+  /** Get a presigned download URL for an attachment (supports catalog + manual sources) */
+  getAttachmentDownloadUrl(quoteId: string, attachmentId: string): Observable<PresignedDownloadResponse> {
+    return this.http.get<PresignedDownloadResponse>(`${this.baseUrl}/${quoteId}/attachments/${attachmentId}/download`);
   }
 }

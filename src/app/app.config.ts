@@ -3,7 +3,7 @@ import { registerLocaleData } from '@angular/common';
 import localeNl from '@angular/common/locales/nl';
 import { HttpBackend, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
+import { provideAnimations } from '@angular/platform-browser/animations';
 import { ColorPickerModule } from '@iplab/ngx-color-picker';
 import {
   CircleAlert,
@@ -24,8 +24,10 @@ import {
   Droplet,
   Eraser,
   Eye,
+  EyeOff,
   Flame,
   FileText,
+  GripVertical,
   Hammer,
   HardHat,
   Heart,
@@ -62,6 +64,7 @@ import {
   Trash2,
   Trees,
   Truck,
+  Upload,
   User,
   Users,
   Wifi,
@@ -102,7 +105,7 @@ const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLo
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideAnimationsAsync(), // Required by ColorPickerModule until migration to native CSS animations
+    provideAnimations(),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     { provide: LOCALE_ID, useValue: 'nl' },
     provideRouter(routes),
@@ -137,6 +140,8 @@ export const appConfig: ApplicationConfig = {
         Droplet,
         Eraser,
         Eye,
+        EyeOff,
+        GripVertical,
         Hammer,
         HardHat,
         Heart,
@@ -176,6 +181,7 @@ export const appConfig: ApplicationConfig = {
         Users,
         Wifi,
         AppWindow,
+        Upload,
         Wrench,
         X,
         Zap,

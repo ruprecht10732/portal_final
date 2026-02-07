@@ -3,13 +3,24 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Subject, debounceTime, switchMap } from 'rxjs';
+import { Subject, debounceTime, switchMap, map } from 'rxjs';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 
 import { LeadsService } from '../../../core/services/leads.service';
 import { QuotesService } from '../../../core/services/quotes.service';
+import { OrganizationService } from '../../../core/services/organization.service';
+import { CatalogService, type AutocompleteItemResponse } from '../../../core/services/catalog.service';
 import type { Lead } from '../../../core/services/leads.types';
-import type { QuoteResponse, TaxRateDisplay, DiscountType, PricingMode, QuoteItemRequest, QuoteCalculationResponse } from '../../../core/services/quotes.types';
+import type {
+  QuoteResponse,
+  TaxRateDisplay,
+  DiscountType,
+  PricingMode,
+  QuoteItemRequest,
+  QuoteCalculationResponse,
+  QuoteAttachmentRequest,
+  QuoteURLRequest,
+} from '../../../core/services/quotes.types';
 import { TAX_RATE_OPTIONS, DISCOUNT_TYPE_OPTIONS, parseQuantityNumber, eurosToCents, centsToEuros, taxDisplayToBps, taxBpsToDisplay } from '../../../core/services/quotes.types';
 
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
@@ -20,6 +31,9 @@ import { SelectComponent, type SelectOption } from '../../../shared/components/s
 import { SplitActionComponent, type SplitMenuSection } from '../../../shared/components/split-action/split-action.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { GhostTextDirective, type GhostSuggestion } from '../../../shared/components/ghost-text/ghost-text.directive';
+import { AttachmentPanelComponent, type AttachmentDraft } from '../../../shared/components/attachment-panel/attachment-panel.component';
+import { FilePreviewDialogComponent } from '../../../shared/components/file-preview-dialog/file-preview-dialog.component';
 
 interface LineItemDraft {
   id: string;
@@ -28,6 +42,7 @@ interface LineItemDraft {
   unitPrice: number;
   taxRate: TaxRateDisplay;
   optional: boolean;
+  catalogProductId?: string;
 }
 
 @Component({
@@ -44,6 +59,9 @@ interface LineItemDraft {
     SplitActionComponent,
     TextareaComponent,
     PageHeaderComponent,
+    GhostTextDirective,
+    AttachmentPanelComponent,
+    FilePreviewDialogComponent,
   ],
   templateUrl: './offertes-create.component.html',
   styleUrl: './offertes-create.component.css',
@@ -54,6 +72,8 @@ export class OffertesCreateComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly leadsService = inject(LeadsService);
   private readonly quotesService = inject(QuotesService);
+  private readonly orgService = inject(OrganizationService);
+  private readonly catalogService = inject(CatalogService);
   private readonly translate = inject(TranslateService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
@@ -76,6 +96,26 @@ export class OffertesCreateComponent implements OnInit {
 
   // Line items
   protected readonly lineItems = signal<LineItemDraft[]>([]);
+
+  // Document attachments & URLs (collected from catalog autocomplete + manual uploads)
+  protected readonly attachmentDrafts = signal<AttachmentDraft[]>([]);
+  protected readonly urlDrafts = signal<{ uid: string; label: string; href: string; catalogProductId?: string }[]>([]);
+
+  // File preview dialog state
+  protected readonly previewOpen = signal(false);
+  protected readonly previewLoading = signal(false);
+  protected readonly previewError = signal<string | null>(null);
+  protected readonly previewUrl = signal<string | null>(null);
+  protected readonly previewAttachment = signal<AttachmentDraft | null>(null);
+  protected readonly previewTitle = computed(() => this.previewAttachment()?.filename ?? 'File preview');
+  protected readonly previewFileName = computed(() => this.previewAttachment()?.filename ?? '');
+  protected readonly previewContentType = computed(() => {
+    const name = this.previewAttachment()?.filename ?? '';
+    const ext = name.split('.').pop()?.toLowerCase();
+    if (ext === 'pdf') return 'application/pdf';
+    if (['png', 'jpg', 'jpeg', 'gif', 'webp', 'svg'].includes(ext ?? '')) return `image/${ext}`;
+    return null;
+  });
 
   // Remember last VAT choice for new lines
   protected readonly lastUsedTaxRate = signal<TaxRateDisplay>(21);
@@ -259,7 +299,21 @@ export class OffertesCreateComponent implements OnInit {
       this.loadQuote(quoteId);
     } else {
       this.ensureInitialLineItem();
+      this.loadDefaultValidity();
     }
+  }
+
+  /** Load org settings and pre-populate validUntil for new quotes. */
+  private loadDefaultValidity(): void {
+    this.orgService.getSettings().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: settings => {
+        if (!this.summaryForm.controls.validUntil.value && settings.quoteValidDays > 0) {
+          const date = new Date();
+          date.setDate(date.getDate() + settings.quoteValidDays);
+          this.summaryForm.controls.validUntil.setValue(date.toISOString().split('T')[0] ?? '');
+        }
+      },
+    });
   }
 
   protected onLeadSearchChange(value: string): void {
@@ -349,8 +403,36 @@ export class OffertesCreateComponent implements OnInit {
         unitPrice: centsToEuros(item.unitPriceCents),
         taxRate: taxBpsToDisplay(item.taxRateBps),
         optional: item.isOptional,
+        ...(item.catalogProductId == null ? {} : { catalogProductId: item.catalogProductId }),
       }))
     );
+
+    // Restore attachments
+    if (quote.attachments?.length) {
+      this.attachmentDrafts.set(
+        quote.attachments.map(a => ({
+          uid: a.id,
+          filename: a.filename,
+          fileKey: a.fileKey,
+          source: a.source,
+          ...(a.catalogProductId == null ? {} : { catalogProductId: a.catalogProductId }),
+          enabled: a.enabled,
+          sortOrder: a.sortOrder,
+        })),
+      );
+    }
+
+    // Restore URLs
+    if (quote.urls?.length) {
+      this.urlDrafts.set(
+        quote.urls.map(u => ({
+          uid: u.id,
+          label: u.label,
+          href: u.href,
+          ...(u.catalogProductId == null ? {} : { catalogProductId: u.catalogProductId }),
+        })),
+      );
+    }
     const discountDisplayValue = quote.discountType === 'fixed' ? centsToEuros(quote.discountValue) : quote.discountValue;
     const validUntil = quote.validUntil ? (quote.validUntil.split('T')[0] ?? null) : null;
     this.summaryForm.patchValue({
@@ -483,12 +565,33 @@ export class OffertesCreateComponent implements OnInit {
       unitPriceCents: eurosToCents(item.unitPrice),
       taxRateBps: taxDisplayToBps(item.taxRate),
       isOptional: item.optional,
+      ...(item.catalogProductId ? { catalogProductId: item.catalogProductId } : {}),
+    }));
+
+    // Build attachment & URL payloads from drafts
+    const attachments: QuoteAttachmentRequest[] = this.attachmentDrafts()
+      .filter(a => a.fileKey) // exclude still-uploading entries
+      .map((a, i) => ({
+        filename: a.filename,
+        fileKey: a.fileKey,
+        source: a.source,
+        ...(a.catalogProductId ? { catalogProductId: a.catalogProductId } : {}),
+        enabled: a.enabled,
+        sortOrder: i,
+      }));
+
+    const urls: QuoteURLRequest[] = this.urlDrafts().map(u => ({
+      label: u.label,
+      href: u.href,
+      ...(u.catalogProductId ? { catalogProductId: u.catalogProductId } : {}),
     }));
 
     if (this.isEditMode() && this.existingQuote()) {
       this.quotesService
         .update(this.existingQuote()!.id, {
           items,
+          attachments,
+          urls,
           discountType: dType,
           discountValue: dVal,
           pricingMode: this.pricingMode(),
@@ -517,6 +620,8 @@ export class OffertesCreateComponent implements OnInit {
         .create({
           leadId: lead.id,
           items,
+          attachments,
+          urls,
           discountType: dType,
           discountValue: dVal,
           pricingMode: this.pricingMode(),
@@ -525,6 +630,9 @@ export class OffertesCreateComponent implements OnInit {
         })
         .subscribe({
           next: created => {
+            // Upload any pending manual files (deferred from create mode)
+            this.uploadPendingFiles(created.id);
+
             if (status === 'Sent') {
               this.quotesService.updateStatus(created.id, 'Sent').subscribe({
                 next: () => void this.router.navigate(['/app/offertes', created.id]),
@@ -545,6 +653,254 @@ export class OffertesCreateComponent implements OnInit {
 
   protected cancel(): void {
     this.router.navigate(['/app/offertes']);
+  }
+
+  // ── Catalog Ghost-Text Autocomplete ─────────────────────────────────────────
+
+  /**
+   * Search function bound to the ghost-text directive.
+   * Returns catalog product suggestions as GhostSuggestion[].
+   */
+  protected readonly catalogSearchFn = (query: string) =>
+    this.catalogService.searchForAutocomplete(query, 5).pipe(
+      map(items =>
+        items.map(item => ({
+          displayText: item.title,
+          payload: item,
+        } satisfies GhostSuggestion)),
+      ),
+    );
+
+  /**
+   * Called when a ghost-text suggestion is accepted (Tab) for a line item.
+   * Populates the line item with catalog product data and collects its documents/urls.
+   */
+  protected onGhostAccepted(itemId: string, suggestion: GhostSuggestion): void {
+    const product = suggestion.payload as AutocompleteItemResponse;
+
+    // Update the line item with product data
+    this.lineItems.update(items =>
+      items.map(item => {
+        if (item.id !== itemId) return item;
+        return {
+          ...item,
+          description: product.description || product.title,
+          unitPrice: centsToEuros(product.unitPriceCents || product.priceCents),
+          taxRate: taxBpsToDisplay(product.vatRateBps),
+          catalogProductId: product.id,
+        };
+      }),
+    );
+
+    // Collect documents from the catalog product
+    if (product.documents?.length) {
+      const newAttachments: AttachmentDraft[] = product.documents.map((doc, i) => ({
+        uid: crypto.randomUUID(),
+        filename: doc.filename,
+        fileKey: doc.fileKey,
+        source: 'catalog' as const,
+        catalogProductId: product.id,
+        enabled: true,
+        sortOrder: this.attachmentDrafts().length + i,
+      }));
+      this.attachmentDrafts.update(existing => [...existing, ...newAttachments]);
+    }
+
+    // Collect URLs (terms & conditions)
+    if (product.urls?.length) {
+      const newUrls = product.urls.map(url => ({
+        uid: crypto.randomUUID(),
+        label: url.label,
+        href: url.href,
+        catalogProductId: product.id,
+      }));
+      this.urlDrafts.update(existing => [...existing, ...newUrls]);
+    }
+
+    this.requestCalculation();
+  }
+
+  // ── Attachment Panel ────────────────────────────────────────────────────────
+
+  protected onAttachmentsChanged(updated: AttachmentDraft[]): void {
+    this.attachmentDrafts.set(updated);
+  }
+
+  /**
+   * Handles manual file selection for PDF upload.
+   * In edit mode: presigns and uploads immediately.
+   * In create mode: stores the File in the draft; upload is deferred to save().
+   */
+  protected onManualUploadRequested(file: File): void {
+    const quote = this.existingQuote();
+    const tempUid = crypto.randomUUID();
+    const draft: AttachmentDraft = {
+      uid: tempUid,
+      filename: file.name,
+      fileKey: '',
+      source: 'manual',
+      enabled: true,
+      sortOrder: this.attachmentDrafts().length,
+    };
+
+    if (quote) {
+      // Edit mode — upload immediately via presigned URL
+      this.attachmentDrafts.update(existing => [...existing, { ...draft, uploading: true }]);
+      this.quotesService
+        .presignAttachmentUpload(quote.id, {
+          fileName: file.name,
+          contentType: file.type,
+          sizeBytes: file.size,
+        })
+        .pipe(
+          switchMap(presigned =>
+            this.quotesService.uploadToPresignedUrl(presigned.uploadUrl, file).pipe(
+              map(() => presigned.fileKey),
+            ),
+          ),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe({
+          next: fileKey => {
+            this.attachmentDrafts.update(items =>
+              items.map(a => (a.uid === tempUid ? { ...a, fileKey, uploading: false } : a)),
+            );
+          },
+          error: () => {
+            this.attachmentDrafts.update(items => items.filter(a => a.uid !== tempUid));
+          },
+        });
+    } else {
+      // Create mode — defer upload until after save creates the quote
+      this.attachmentDrafts.update(existing => [...existing, { ...draft, pendingFile: file }]);
+    }
+  }
+
+  /**
+   * After a quote is created, upload any pending manual files and re-save attachments.
+   */
+  private uploadPendingFiles(quoteId: string): void {
+    const pending = this.attachmentDrafts().filter(a => a.pendingFile);
+    if (pending.length === 0) return;
+
+    for (const att of pending) {
+      const file = att.pendingFile!;
+      this.quotesService
+        .presignAttachmentUpload(quoteId, {
+          fileName: file.name,
+          contentType: file.type,
+          sizeBytes: file.size,
+        })
+        .pipe(
+          switchMap(presigned =>
+            this.quotesService.uploadToPresignedUrl(presigned.uploadUrl, file).pipe(
+              map(() => presigned.fileKey),
+            ),
+          ),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe({
+          next: fileKey => {
+            this.attachmentDrafts.update(items =>
+              items.map(a => {
+                if (a.uid !== att.uid) return a;
+                const { pendingFile: _, ...rest } = a;
+                return { ...rest, fileKey, uploading: false };
+              }),
+            );
+            // Re-save attachments on the newly created quote
+            this.saveAttachmentsToQuote(quoteId);
+          },
+        });
+    }
+  }
+
+  private saveAttachmentsToQuote(quoteId: string): void {
+    const attachments: QuoteAttachmentRequest[] = this.attachmentDrafts()
+      .filter(a => a.fileKey && !a.pendingFile)
+      .map((a, i) => ({
+        filename: a.filename,
+        fileKey: a.fileKey,
+        source: a.source,
+        ...(a.catalogProductId ? { catalogProductId: a.catalogProductId } : {}),
+        enabled: a.enabled,
+        sortOrder: i,
+      }));
+
+    const urls: QuoteURLRequest[] = this.urlDrafts().map(u => ({
+      label: u.label,
+      href: u.href,
+      ...(u.catalogProductId ? { catalogProductId: u.catalogProductId } : {}),
+    }));
+
+    this.quotesService.update(quoteId, { attachments, urls }).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe();
+  }
+
+  // ── URL Management ──────────────────────────────────────────────────────────
+
+  protected addUrl(label: string, href: string): void {
+    if (!label.trim() || !href.trim()) return;
+    this.urlDrafts.update(existing => [
+      ...existing,
+      { uid: crypto.randomUUID(), label: label.trim(), href: href.trim() },
+    ]);
+  }
+
+  protected removeUrl(uid: string): void {
+    this.urlDrafts.update(existing => existing.filter(u => u.uid !== uid));
+  }
+
+  // ── File Preview ────────────────────────────────────────────────────────────
+
+  protected openPreview(att: AttachmentDraft): void {
+    const quote = this.existingQuote();
+
+    // For pending (not-yet-uploaded) files, use a local object URL
+    if (att.pendingFile) {
+      this.previewOpen.set(true);
+      this.previewAttachment.set(att);
+      this.previewUrl.set(URL.createObjectURL(att.pendingFile));
+      this.previewLoading.set(false);
+      this.previewError.set(null);
+      return;
+    }
+
+    // Must have a saved quote to fetch a presigned URL
+    if (!quote) return;
+
+    this.previewOpen.set(true);
+    this.previewLoading.set(true);
+    this.previewError.set(null);
+    this.previewUrl.set(null);
+    this.previewAttachment.set(att);
+
+    this.quotesService.getAttachmentDownloadUrl(quote.id, att.uid).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: response => {
+        this.previewUrl.set(response.downloadUrl);
+        this.previewLoading.set(false);
+      },
+      error: () => {
+        this.previewError.set(this.translate.instant('offertes.errors.loadPreview'));
+        this.previewLoading.set(false);
+      },
+    });
+  }
+
+  protected closePreview(): void {
+    // Revoke object URL if it was a local preview
+    const url = this.previewUrl();
+    if (url?.startsWith('blob:')) {
+      URL.revokeObjectURL(url);
+    }
+    this.previewOpen.set(false);
+    this.previewLoading.set(false);
+    this.previewError.set(null);
+    this.previewUrl.set(null);
+    this.previewAttachment.set(null);
   }
 
   /** Triggers a debounced server-side calculation. */

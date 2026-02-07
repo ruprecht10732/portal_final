@@ -55,6 +55,18 @@
       "nameRequired": "Organisatienaam is verplicht",
       "generic": "Er is iets misgegaan."
     },
+    "settings": {
+      "title": "Offerte-instellingen",
+      "navLabel": "Instellingen",
+      "subtitle": "Stel standaardwaarden in voor offertes.",
+      "quoteDefaults": "Standaardwaarden",
+      "quotePaymentDays": "Betalingstermijn (dagen)",
+      "quoteValidDays": "Geldigheid offerte (dagen)",
+      "save": "Instellingen opslaan",
+      "saved": "Instellingen bijgewerkt.",
+      "loadFailed": "Instellingen laden mislukt.",
+      "saveFailed": "Instellingen opslaan mislukt."
+    },
     "logo": {
       "title": "Organisatielogo",
       "subtitle": "Upload een logo dat uw organisatie vertegenwoordigt.",

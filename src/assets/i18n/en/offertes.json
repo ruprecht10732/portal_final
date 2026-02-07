@@ -61,7 +61,8 @@
     "deleteConfirmMessage": "This action cannot be undone.",
     "errors": {
       "save": "Failed to save quote. Please try again.",
-      "load": "Failed to load quotes. Please try again."
+      "load": "Failed to load quotes. Please try again.",
+      "loadPreview": "Failed to load file preview."
     },
     "list": {
       "title": "Quotes",
@@ -154,6 +155,21 @@
       "meter": "m",
       "sqm": "m²",
       "day": "day"
-    }
+    },
+    "attachments": "Documents",
+    "uploadPdf": "Upload PDF",
+    "noAttachments": "No documents attached. Catalog documents are added automatically when using product autocomplete.",
+    "documents": "Documents & Links",
+    "urls": "Links & Terms",
+    "addUrl": "Add",
+    "open": "Open",
+    "remove": "Remove",
+    "disable": "Disable",
+    "enable": "Enable",
+    "sourceCatalog": "Catalog",
+    "sourceUpload": "Upload",
+    "urlLabel": "Label",
+    "urlPlaceholder": "Terms & conditions",
+    "urlHref": "URL"
   }
 }

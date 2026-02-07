@@ -55,6 +55,18 @@
       "nameRequired": "Organization name is required",
       "generic": "Something went wrong."
     },
+    "settings": {
+      "title": "Quote settings",
+      "navLabel": "Settings",
+      "subtitle": "Set default values for quotes.",
+      "quoteDefaults": "Defaults",
+      "quotePaymentDays": "Payment term (days)",
+      "quoteValidDays": "Quote validity (days)",
+      "save": "Save settings",
+      "saved": "Settings updated.",
+      "loadFailed": "Failed to load settings.",
+      "saveFailed": "Failed to save settings."
+    },
     "logo": {
       "title": "Organization logo",
       "subtitle": "Upload a logo that represents your organization.",

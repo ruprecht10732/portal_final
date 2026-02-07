@@ -169,12 +169,18 @@
                       />
                     </td>
                     <td class="py-2 px-2">
-                      <shared-textarea
-                        [value]="item.description"
-                        (valueChange)="updateLineItem(item.id, 'description', $event)"
-                        [rows]="1"
-                        class="w-full"
-                      />
+                      <div class="relative">
+                        <textarea
+                          appGhostText
+                          [ghostSearchFn]="catalogSearchFn"
+                          (ghostAccepted)="onGhostAccepted(item.id, $event)"
+                          [value]="item.description"
+                          (input)="updateLineItem(item.id, 'description', $any($event.target).value)"
+                          rows="1"
+                          class="w-full px-4 py-3 text-sm bg-white border border-zinc-200 rounded transition-all duration-200 focus:outline-none focus:border-black placeholder:text-zinc-400 resize-y min-h-12"
+                          placeholder="Type to search catalog..."
+                        ></textarea>
+                      </div>
                     </td>
                     <td class="py-2 px-2">
                       <shared-number-input
@@ -238,6 +244,89 @@
           }
         </section>
 
+        <!-- Section 3: Documents & Links -->
+        <section class="p-4 sm:p-6 border-b border-zinc-200">
+          <div class="flex items-center gap-3 mb-4">
+            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">03</span>
+            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+              {{ 'offertes.documents' | translate }}
+            </h2>
+          </div>
+
+          <app-attachment-panel
+            [attachments]="attachmentDrafts()"
+            (attachmentsChanged)="onAttachmentsChanged($event)"
+            (manualUploadRequested)="onManualUploadRequested($event)"
+            (previewRequested)="openPreview($event)"
+          />
+
+          <!-- URL links -->
+          <div class="mt-4">
+            <h3 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-2">
+              {{ 'offertes.urls' | translate }}
+            </h3>
+
+            @if (urlDrafts().length > 0) {
+              <div class="space-y-1 mb-3">
+                @for (url of urlDrafts(); track url.uid) {
+                  <div class="flex items-center gap-2 px-3 py-2 bg-white border border-zinc-200 rounded-lg group">
+                    <lucide-icon name="link-2" class="h-4 w-4 text-zinc-400 shrink-0"></lucide-icon>
+                    <span class="text-sm text-zinc-700 truncate flex-1">{{ url.label }}</span>
+                    <a
+                      [href]="url.href"
+                      target="_blank"
+                      rel="noopener"
+                      class="text-xs text-blue-600 hover:underline shrink-0"
+                    >
+                      {{ 'offertes.open' | translate }}
+                    </a>
+                    <button
+                      type="button"
+                      (click)="removeUrl(url.uid)"
+                      class="p-1 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+                      [attr.aria-label]="'offertes.remove' | translate"
+                    >
+                      <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
+                    </button>
+                  </div>
+                }
+              </div>
+            }
+
+            <!-- Add URL form -->
+            <div class="flex items-end gap-2">
+              <div class="flex-1 min-w-0">
+                <label for="urlLabelInput" class="block text-[10px] font-medium text-zinc-500 mb-0.5">{{ 'offertes.urlLabel' | translate }}</label>
+                <input
+                  #urlLabel
+                  id="urlLabelInput"
+                  type="text"
+                  [placeholder]="'offertes.urlPlaceholder' | translate"
+                  class="w-full rounded-md border border-zinc-300 px-2.5 py-1.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+                />
+              </div>
+              <div class="flex-1 min-w-0">
+                <label for="urlHrefInput" class="block text-[10px] font-medium text-zinc-500 mb-0.5">{{ 'offertes.urlHref' | translate }}</label>
+                <input
+                  #urlHref
+                  id="urlHrefInput"
+                  type="url"
+                  placeholder="https://..."
+                  class="w-full rounded-md border border-zinc-300 px-2.5 py-1.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
+                />
+              </div>
+              <button
+                type="button"
+                (click)="addUrl(urlLabel.value, urlHref.value); urlLabel.value = ''; urlHref.value = ''"
+                class="inline-flex items-center gap-1.5 rounded-md bg-zinc-100 px-3 py-1.5 text-xs font-semibold text-zinc-700 hover:bg-zinc-200 transition-colors shrink-0"
+              >
+                <lucide-icon name="plus" class="h-3.5 w-3.5"></lucide-icon>
+                {{ 'offertes.addUrl' | translate }}
+              </button>
+            </div>
+          </div>
+        </section>
+
         
       </div>
 
@@ -245,7 +334,7 @@
       <aside class="lg:w-80 xl:w-96 bg-zinc-50 border-l border-zinc-200 flex flex-col">
         <div class="p-4 sm:p-6 flex-1">
           <div class="flex items-center gap-3 mb-6">
-            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">03</span>
+            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">04</span>
             <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
               {{ 'offertes.summary' | translate }}
             </h2>
@@ -317,4 +406,15 @@
       </aside>
     </div>
   }
+
+  <shared-file-preview-dialog
+    [isOpen]="previewOpen()"
+    [title]="previewTitle()"
+    [fileUrl]="previewUrl()"
+    [fileName]="previewFileName()"
+    [contentType]="previewContentType()"
+    [isLoading]="previewLoading()"
+    [error]="previewError()"
+    (closed)="closePreview()"
+  />
 </div>

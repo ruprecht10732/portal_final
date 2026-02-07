@@ -61,7 +61,8 @@
     "deleteConfirmMessage": "Deze actie kan niet ongedaan worden gemaakt.",
     "errors": {
       "save": "Offerte opslaan mislukt. Probeer het opnieuw.",
-      "load": "Offertes laden mislukt. Probeer het opnieuw."
+      "load": "Offertes laden mislukt. Probeer het opnieuw.",
+      "loadPreview": "Bestandsvoorbeeld laden mislukt."
     },
     "list": {
       "title": "Offertes",
@@ -154,6 +155,21 @@
       "meter": "m",
       "sqm": "m²",
       "day": "dag"
-    }
+    },
+    "attachments": "Documenten",
+    "uploadPdf": "PDF uploaden",
+    "noAttachments": "Geen documenten bijgevoegd. Catalogusdocumenten worden automatisch toegevoegd bij gebruik van product autocomplete.",
+    "documents": "Documenten & Links",
+    "urls": "Links & Voorwaarden",
+    "addUrl": "Toevoegen",
+    "open": "Openen",
+    "remove": "Verwijderen",
+    "disable": "Uitschakelen",
+    "enable": "Inschakelen",
+    "sourceCatalog": "Catalogus",
+    "sourceUpload": "Upload",
+    "urlLabel": "Label",
+    "urlPlaceholder": "Algemene voorwaarden",
+    "urlHref": "URL"
   }
 }

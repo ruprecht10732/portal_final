@@ -1,0 +1,100 @@
+<div class="space-y-2">
+  <!-- Header -->
+  <div class="flex items-center justify-between">
+    <h3 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
+      {{ 'offertes.attachments' | translate }}
+    </h3>
+    <label
+      class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 cursor-pointer"
+    >
+      <lucide-icon name="upload" class="h-3.5 w-3.5"></lucide-icon>
+      {{ 'offertes.uploadPdf' | translate }}
+      <input
+        type="file"
+        accept="application/pdf"
+        class="sr-only"
+        (change)="onFileSelected($event)"
+      />
+    </label>
+  </div>
+
+  <!-- Attachment list with drag-drop -->
+  @if (attachments().length > 0) {
+    <div cdkDropList (cdkDropListDropped)="onDrop($event)" class="space-y-1">
+      @for (att of attachments(); track att.uid) {
+        <div
+          cdkDrag
+          [cdkDragDisabled]="dragDisabled()"
+          class="flex items-center gap-2 px-3 py-2 bg-white border border-zinc-200 rounded-lg group transition-colors"
+          [class.opacity-50]="!att.enabled"
+          [class.border-dashed]="att.uploading"
+        >
+          <!-- Drag handle -->
+          <span
+            cdkDragHandle
+            class="text-zinc-300 group-hover:text-zinc-500 cursor-grab shrink-0"
+            [class.cursor-not-allowed]="dragDisabled()"
+          >
+            <lucide-icon name="grip-vertical" class="h-4 w-4"></lucide-icon>
+          </span>
+
+          <!-- File icon -->
+          <lucide-icon name="file-text" class="h-4 w-4 text-zinc-400 shrink-0"></lucide-icon>
+
+          <!-- Filename -->
+          <button
+            type="button"
+            (click)="previewRequested.emit(att)"
+            class="text-sm text-zinc-700 hover:text-black hover:underline truncate flex-1 text-left cursor-pointer"
+            [title]="att.filename"
+          >
+            {{ att.filename }}
+          </button>
+
+          <!-- Source badge -->
+          <span class="text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded"
+            [class.bg-blue-50]="att.source === 'catalog'"
+            [class.text-blue-600]="att.source === 'catalog'"
+            [class.bg-zinc-100]="att.source === 'manual'"
+            [class.text-zinc-500]="att.source === 'manual'"
+          >
+            {{ sourceLabel(att.source) }}
+          </span>
+
+          <!-- Uploading spinner -->
+          @if (att.uploading) {
+            <div class="animate-spin h-4 w-4 border-2 border-zinc-200 border-t-black rounded-full shrink-0"></div>
+          }
+
+          <!-- Toggle enabled -->
+          <button
+            type="button"
+            (click)="toggle(att.uid)"
+            class="p-1 text-zinc-400 hover:text-zinc-600 transition-colors"
+            [attr.aria-label]="att.enabled ? ('offertes.disable' | translate) : ('offertes.enable' | translate)"
+          >
+            @if (att.enabled) {
+              <lucide-icon name="eye" class="h-4 w-4"></lucide-icon>
+            } @else {
+              <lucide-icon name="eye-off" class="h-4 w-4"></lucide-icon>
+            }
+          </button>
+
+          <!-- Remove -->
+          <button
+            type="button"
+            (click)="remove(att.uid)"
+            class="p-1 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+            [attr.aria-label]="'offertes.remove' | translate"
+          >
+            <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
+      }
+    </div>
+  } @else {
+    <p class="text-xs text-zinc-400 italic py-2">
+      {{ 'offertes.noAttachments' | translate }}
+    </p>
+  }
+</div>

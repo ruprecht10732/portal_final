@@ -1,0 +1,64 @@
+<shared-page-layout
+  [title]="'organization.settings.title' | translate"
+  [subtitle]="'organization.settings.subtitle' | translate"
+  [error]="errorMessage()"
+>
+  @if (isLoading()) {
+    <div class="mx-auto w-full max-w-4xl flex flex-col gap-6 py-6">
+      <shared-skeleton height="12rem" width="100%" />
+    </div>
+  } @else {
+    <div class="mx-auto w-full max-w-4xl flex flex-col gap-6 py-6">
+
+      <shared-card>
+        <h4 class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6">
+          {{ 'organization.settings.quoteDefaults' | translate }}
+        </h4>
+
+        <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
+          <shared-number-input
+            [label]="'organization.settings.quotePaymentDays' | translate"
+            [(value)]="quotePaymentDays"
+            [min]="1"
+            [max]="365"
+            [step]="1"
+            suffix="dagen"
+          />
+          <shared-number-input
+            [label]="'organization.settings.quoteValidDays' | translate"
+            [(value)]="quoteValidDays"
+            [min]="1"
+            [max]="365"
+            [step]="1"
+            suffix="dagen"
+          />
+        </div>
+      </shared-card>
+
+      <!-- Footer -->
+      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+        <div>
+          @if (successMessage()) {
+            <p class="text-sm font-bold text-emerald-600 flex items-center gap-2">
+              <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+              </svg>
+              {{ successMessage() }}
+            </p>
+          }
+        </div>
+
+        <shared-button
+          variant="primary"
+          [disabled]="!canSave() || isSaving()"
+          [loading]="isSaving()"
+          [fullWidth]="false"
+          (clicked)="save()"
+        >
+          {{ 'organization.settings.save' | translate }}
+        </shared-button>
+      </div>
+
+    </div>
+  }
+</shared-page-layout>

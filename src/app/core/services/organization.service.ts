@@ -58,6 +58,16 @@ export interface OrgLogoDownloadResponse {
   expiresAt: number;
 }
 
+export interface OrganizationSettings {
+  quotePaymentDays: number;
+  quoteValidDays: number;
+}
+
+export interface UpdateOrganizationSettingsRequest {
+  quotePaymentDays?: number;
+  quoteValidDays?: number;
+}
+
 export interface InviteRequest {
   email: string;
 }
@@ -134,5 +144,13 @@ export class OrganizationService {
 
   deleteLogo(): Observable<Organization> {
     return this.http.delete<Organization>(`${this.baseUrl}/me/logo`);
+  }
+
+  getSettings(): Observable<OrganizationSettings> {
+    return this.http.get<OrganizationSettings>(`${this.baseUrl}/me/settings`);
+  }
+
+  updateSettings(payload: UpdateOrganizationSettingsRequest): Observable<OrganizationSettings> {
+    return this.http.patch<OrganizationSettings>(`${this.baseUrl}/me/settings`, payload);
   }
 }

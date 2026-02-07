@@ -30,12 +30,69 @@ export interface QuoteItemResponse {
   totalBeforeTaxCents: number;
   totalTaxCents: number;
   lineTotalCents: number;
+  catalogProductId?: string;
   annotations: AnnotationResponse[];
 }
 
 export interface VatBreakdown {
   rateBps: number;
   amountCents: number;
+}
+
+// ── Attachment & URL types ────────────────────────────────────────────────────
+
+export type AttachmentSource = 'catalog' | 'manual';
+
+export interface QuoteAttachmentResponse {
+  id: string;
+  filename: string;
+  fileKey: string;
+  source: AttachmentSource;
+  catalogProductId?: string;
+  enabled: boolean;
+  sortOrder: number;
+  createdAt: string;
+}
+
+export interface QuoteURLResponse {
+  id: string;
+  label: string;
+  href: string;
+  accepted: boolean;
+  catalogProductId?: string;
+  createdAt: string;
+}
+
+export interface QuoteAttachmentRequest {
+  filename: string;
+  fileKey: string;
+  source: AttachmentSource;
+  catalogProductId?: string;
+  enabled: boolean;
+  sortOrder: number;
+}
+
+export interface QuoteURLRequest {
+  label: string;
+  href: string;
+  catalogProductId?: string;
+}
+
+export interface PresignAttachmentUploadRequest {
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface PresignedUploadResponse {
+  uploadUrl: string;
+  fileKey: string;
+  expiresAt: number;
+}
+
+export interface PresignedDownloadResponse {
+  downloadUrl: string;
+  expiresAt: number;
 }
 
 export interface QuoteResponse {
@@ -66,6 +123,8 @@ export interface QuoteResponse {
   validUntil?: string;
   notes?: string;
   items: QuoteItemResponse[];
+  attachments: QuoteAttachmentResponse[];
+  urls: QuoteURLResponse[];
   pdfFileKey?: string;
   createdAt: string;
   updatedAt: string;
@@ -112,6 +171,7 @@ export interface QuoteItemRequest {
   unitPriceCents: number;
   taxRateBps: number;
   isOptional: boolean;
+  catalogProductId?: string;
 }
 
 export interface CreateQuoteRequest {
@@ -123,6 +183,8 @@ export interface CreateQuoteRequest {
   validUntil?: string;
   notes?: string;
   items: QuoteItemRequest[];
+  attachments?: QuoteAttachmentRequest[];
+  urls?: QuoteURLRequest[];
 }
 
 export interface UpdateQuoteRequest {
@@ -132,6 +194,8 @@ export interface UpdateQuoteRequest {
   validUntil?: string;
   notes?: string;
   items?: QuoteItemRequest[];
+  attachments?: QuoteAttachmentRequest[];
+  urls?: QuoteURLRequest[];
 }
 
 export interface QuoteCalculationRequest {
@@ -262,6 +326,8 @@ export interface PublicQuoteResponse {
   rejectedAt?: string;
   isReadOnly?: boolean;
   items: PublicQuoteItemResponse[];
+  attachments: QuoteAttachmentResponse[];
+  urls: QuoteURLResponse[];
   vatBreakdown: VatBreakdown[];
 }
 
