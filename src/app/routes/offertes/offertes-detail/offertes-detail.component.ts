@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal, computed } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -14,10 +14,11 @@ import type { Lead } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/components/menu/menu.component';
 
 @Component({
   selector: 'app-offertes-detail',
-  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, PageHeaderComponent],
+  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, PageHeaderComponent, MenuComponent],
   templateUrl: './offertes-detail.component.html',
   styleUrl: './offertes-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -48,6 +49,21 @@ export class OffertesDetailComponent implements OnInit {
 
   // SSE activity feed — starts with persisted history, live events prepend
   protected readonly realtimeEvents = signal<{ type: string; message: string; time: Date }[]>([]);
+
+  protected readonly mobileMenuSections = computed<readonly MenuSection[]>(() => {
+    const q = this.quote();
+    const previewAvailable = !!this.previewUrl();
+    const pdfAvailable = !!q?.pdfFileKey;
+    return [
+      {
+        items: [
+          { label: 'Voorbeeld bekijken', disabled: !previewAvailable },
+          { label: 'PDF downloaden', disabled: !pdfAvailable },
+          { label: 'Verwijderen' },
+        ],
+      },
+    ];
+  });
 
   ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
@@ -181,6 +197,22 @@ export class OffertesDetailComponent implements OnInit {
         this.replyingItemId.set(null);
       },
     });
+  }
+
+  protected handleMobileMenuSelection(item: MenuItem): void {
+    switch (item.label) {
+      case 'Voorbeeld bekijken':
+        this.openPreview();
+        break;
+      case 'PDF downloaden':
+        this.downloadPdf();
+        break;
+      case 'Verwijderen':
+        this.confirmDelete();
+        break;
+      default:
+        break;
+    }
   }
 
   protected editQuote(): void {

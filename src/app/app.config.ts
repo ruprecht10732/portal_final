@@ -3,7 +3,7 @@ import { registerLocaleData } from '@angular/common';
 import localeNl from '@angular/common/locales/nl';
 import { HttpBackend, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideAnimations } from '@angular/platform-browser/animations';
+import { provideAnimationsAsync } from '@angular/platform-browser/animations/async';
 import { ColorPickerModule } from '@iplab/ngx-color-picker';
 import {
   CircleAlert,
@@ -18,6 +18,7 @@ import {
   Car,
   Check,
   ChevronDown,
+  ChevronLeft,
   Clock,
   Download,
   Droplet,
@@ -39,6 +40,7 @@ import {
   Mail,
   Map,
   MessageCircle,
+  EllipsisVertical,
   PaintBucket,
   Pencil,
   Phone,
@@ -100,7 +102,7 @@ const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLo
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideAnimations(), // Required by ColorPickerModule until migration to native CSS animations
+    provideAnimationsAsync(), // Required by ColorPickerModule until migration to native CSS animations
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     { provide: LOCALE_ID, useValue: 'nl' },
     provideRouter(routes),
@@ -129,6 +131,7 @@ export const appConfig: ApplicationConfig = {
         Car,
         Check,
         ChevronDown,
+        ChevronLeft,
         Clock,
         Download,
         Droplet,
@@ -147,6 +150,7 @@ export const appConfig: ApplicationConfig = {
         Mail,
         Map,
         MessageCircle,
+        EllipsisVertical,
         PaintBucket,
         Pencil,
         Phone,
