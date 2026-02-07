@@ -1,3 +1,4 @@
+import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
@@ -8,7 +9,7 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 
 @Component({
   selector: 'app-appointments-calendar',
-  imports: [CalendarGridComponent, ButtonComponent, TranslatePipe],
+  imports: [CalendarGridComponent, ButtonComponent, TranslatePipe, DatePipe],
   templateUrl: './appointments-calendar.component.html',
   styleUrl: './appointments-calendar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

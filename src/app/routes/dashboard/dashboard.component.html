@@ -1,4 +1,39 @@
-<section class="flex flex-col gap-6 px-4">
+<!-- Mobile layout -->
+<div class="sm:hidden flex flex-col pb-16">
+	<nav class="sticky top-0 z-40 flex items-center justify-between border-b border-gray-100 bg-white/70 px-4 py-4 backdrop-blur">
+		<h1 class="text-lg font-extrabold tracking-tight text-slate-900">Dashboard</h1>
+	</nav>
+
+	<main class="flex flex-col">
+		<!-- KPI row: horizontal scroll on mobile -->
+		<div class="border-b border-gray-100 bg-white px-4 py-4">
+			<app-dashboard-kpi-row />
+		</div>
+
+		<!-- Action items -->
+		<div class="mt-4">
+			<app-dashboard-action-items />
+		</div>
+
+		<!-- Upcoming schedule -->
+		<div class="mt-4">
+			<app-dashboard-upcoming-schedule />
+		</div>
+
+		<!-- Activity feed -->
+		<div class="mt-4">
+			<app-dashboard-activity-feed />
+		</div>
+
+		<!-- Heatmap: full width, scrollable -->
+		<div class="mt-4">
+			<app-dashboard-lead-heatmap />
+		</div>
+	</main>
+</div>
+
+<!-- Desktop layout -->
+<section class="hidden sm:flex flex-col gap-6 px-4">
 	<app-dashboard-kpi-row />
 
 	<div class="grid gap-4 grid-cols-1 lg:grid-cols-3 items-stretch">

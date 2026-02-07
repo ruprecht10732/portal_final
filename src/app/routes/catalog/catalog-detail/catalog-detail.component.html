@@ -1,4 +1,4 @@
-<div class="flex flex-col w-full">
+<div class="flex flex-col w-full pb-16 sm:pb-0">
   <div class="border-b border-zinc-200">
     <shared-page-header
       [title]="product()?.title || ('catalog.products.loading' | translate)"
@@ -32,6 +32,22 @@
       }
     </shared-page-header>
   </div>
+
+  <!-- Mobile actions -->
+  @if (product()) {
+    <div class="sm:hidden border-b border-gray-100 bg-white px-5 py-3">
+      <div class="grid grid-cols-2 gap-2">
+        <shared-button variant="secondary" size="compact" [fullWidth]="true" (clicked)="edit()">
+          <lucide-icon name="pencil" class="h-4 w-4"></lucide-icon>
+          {{ 'catalog.products.edit' | translate }}
+        </shared-button>
+        <shared-button variant="danger" size="compact" [fullWidth]="true" (clicked)="openDeleteDialog()">
+          <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
+          {{ 'catalog.products.delete' | translate }}
+        </shared-button>
+      </div>
+    </div>
+  }
 
   <!-- Error Alert -->
   @if (error()) {

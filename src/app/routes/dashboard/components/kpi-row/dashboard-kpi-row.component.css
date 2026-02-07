@@ -1,6 +1,36 @@
 .kpi-row {
-  display: grid;
+  display: flex;
   gap: 1rem;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  align-items: stretch;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: none;
+  padding-bottom: 0.25rem;
+}
+
+.kpi-row::-webkit-scrollbar {
+  display: none;
+}
+
+.kpi-row > * {
+  scroll-snap-align: start;
+  min-width: 11rem;
+  flex: 1 0 auto;
+}
+
+@media (min-width: 640px) {
+  .kpi-row {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+    align-items: stretch;
+    overflow-x: visible;
+    scroll-snap-type: none;
+    padding-bottom: 0;
+  }
+
+  .kpi-row > * {
+    min-width: unset;
+    flex: unset;
+  }
 }
