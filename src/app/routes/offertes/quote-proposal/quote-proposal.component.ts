@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, NgZone, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, NgZone, OnInit, signal, viewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
@@ -13,10 +13,12 @@ import type {
 } from '../../../core/services/quotes.types';
 import { centsToEuros, QUOTE_STATUS_COLORS } from '../../../core/services/quotes.types';
 import { SignaturePadComponent } from '../../../shared/components/signature-pad/signature-pad.component';
+import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-quote-proposal',
-  imports: [FormsModule, DatePipe, SignaturePadComponent],
+  imports: [FormsModule, DatePipe, SignaturePadComponent, BottomSheetComponent, LucideAngularModule],
   templateUrl: './quote-proposal.component.html',
   styleUrl: './quote-proposal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,6 +45,7 @@ export class QuoteProposalComponent implements OnInit {
   protected readonly showAcceptDialog = signal(false);
   protected readonly showRejectDialog = signal(false);
   protected readonly rejectReason = signal('');
+  private readonly signaturePad = viewChild<SignaturePadComponent>(SignaturePadComponent);
 
   // Annotation form
   protected readonly annotatingItemId = signal<string | null>(null);
@@ -213,6 +216,14 @@ export class QuoteProposalComponent implements OnInit {
     this.signatureData.set(data);
   }
 
+  protected clearSignature(): void {
+    const pad = this.signaturePad();
+    if (pad) {
+      pad.clear();
+    }
+    this.signatureData.set(null);
+  }
+
   protected closeAcceptDialog(): void {
     this.showAcceptDialog.set(false);
   }
@@ -303,6 +314,29 @@ export class QuoteProposalComponent implements OnInit {
         this.downloadingPdf.set(false);
       },
     });
+  }
+
+  protected async shareQuote(): Promise<void> {
+    const q = this.quote();
+    const url = globalThis.location?.href ?? '';
+    if (!url) return;
+
+    try {
+      const nav = globalThis.navigator;
+      if (nav?.share) {
+        const shareData: ShareData = q
+          ? { title: `Offerte ${q.quoteNumber}`, text: `Offerte van ${q.organizationName}`, url }
+          : { title: 'Offerte', url };
+        await nav.share(shareData);
+        return;
+      }
+
+      if (nav?.clipboard?.writeText) {
+        await nav.clipboard.writeText(url);
+      }
+    } catch {
+      // Ignore share failures to avoid blocking the user flow.
+    }
   }
 
   protected trackById(_: number, item: { id: string }): string {

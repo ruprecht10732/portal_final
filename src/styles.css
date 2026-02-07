@@ -1,5 +1,6 @@
 /* You can add global styles to this file, and also import other style files */
 
+@import url("https://fonts.googleapis.com/css2?family=Manrope:wght@400;500;600;700;800&display=swap");
 @import "tailwindcss";
 @import "@angular/cdk/overlay-prebuilt.css";
 @import "leaflet/dist/leaflet.css";
@@ -7,4 +8,8 @@
 /* Reset for custom select overlays */
 .cdk-overlay-container {
   z-index: 1000;
+}
+
+body {
+  font-family: "Manrope", sans-serif;
 }

@@ -31,7 +31,7 @@ import {
       ></canvas>
 
       @if (!hasStrokes()) {
-        <p class="signature-placeholder">Teken uw handtekening hierboven</p>
+        <p class="signature-placeholder">Teken hier</p>
       }
 
       <button

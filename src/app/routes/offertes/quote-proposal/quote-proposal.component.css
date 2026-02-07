@@ -1,1 +1,20 @@
 /* Quote Proposal - public page styles */
+
+:host ::ng-deep .signature-frame .signature-pad-wrapper {
+	position: relative;
+	align-items: stretch;
+	gap: 0;
+	padding: 0;
+}
+
+:host ::ng-deep .signature-frame .signature-canvas {
+	display: block;
+	border: 1px solid #e4e4e7;
+	border-radius: 1rem;
+	background: #ffffff;
+	height: 180px;
+}
+
+:host ::ng-deep .signature-frame .clear-btn {
+	display: none;
+}

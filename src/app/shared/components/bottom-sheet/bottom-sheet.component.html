@@ -15,7 +15,7 @@
   #sheet
   [attr.open]="isOpen() ? '' : null"
   [attr.aria-label]="title()"
-  class="p-0 m-0 border-0 w-full max-w-full fixed inset-x-0 bottom-0 z-70 flex flex-col bg-white border-t border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 transition-transform"
+  class="p-0 m-0 border-0 w-full max-w-full fixed inset-x-0 bottom-0 z-70 flex flex-col bg-white border-t border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 transition-transform rounded-t-3xl"
   [class.duration-300]="isAnimating() || !isDragging()"
   [class.ease-out]="isAnimating() || !isDragging()"
   [style.transform]="transformStyle()"
