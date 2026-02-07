@@ -162,6 +162,8 @@
     "documents": "Documenten & Links",
     "urls": "Links & Voorwaarden",
     "addUrl": "Toevoegen",
+    "includeInPdf": "Opnemen in PDF",
+    "preview": "Voorbeeld",
     "open": "Openen",
     "remove": "Verwijderen",
     "disable": "Uitschakelen",

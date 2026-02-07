@@ -162,6 +162,8 @@
     "documents": "Documents & Links",
     "urls": "Links & Terms",
     "addUrl": "Add",
+    "includeInPdf": "Include in PDF",
+    "preview": "Preview",
     "open": "Open",
     "remove": "Remove",
     "disable": "Disable",

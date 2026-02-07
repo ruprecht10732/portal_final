@@ -42,14 +42,9 @@
           <lucide-icon name="file-text" class="h-4 w-4 text-zinc-400 shrink-0"></lucide-icon>
 
           <!-- Filename -->
-          <button
-            type="button"
-            (click)="previewRequested.emit(att)"
-            class="text-sm text-zinc-700 hover:text-black hover:underline truncate flex-1 text-left cursor-pointer"
-            [title]="att.filename"
-          >
+          <span class="text-sm text-zinc-700 truncate flex-1" [title]="att.filename">
             {{ att.filename }}
-          </button>
+          </span>
 
           <!-- Source badge -->
           <span class="text-[10px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded"
@@ -66,18 +61,26 @@
             <div class="animate-spin h-4 w-4 border-2 border-zinc-200 border-t-black rounded-full shrink-0"></div>
           }
 
-          <!-- Toggle enabled -->
+          <!-- Include in PDF checkbox -->
+          <label class="flex items-center gap-1 shrink-0 cursor-pointer" [title]="'offertes.includeInPdf' | translate">
+            <input
+              type="checkbox"
+              [checked]="att.enabled"
+              (change)="toggle(att.uid)"
+              class="h-3.5 w-3.5 rounded border-zinc-300 text-black focus:ring-black cursor-pointer accent-black"
+            />
+            <span class="text-[10px] text-zinc-400">PDF</span>
+          </label>
+
+          <!-- Preview -->
           <button
             type="button"
-            (click)="toggle(att.uid)"
-            class="p-1 text-zinc-400 hover:text-zinc-600 transition-colors"
-            [attr.aria-label]="att.enabled ? ('offertes.disable' | translate) : ('offertes.enable' | translate)"
+            (click)="previewRequested.emit(att)"
+            class="p-1 text-zinc-400 hover:text-black transition-colors"
+            [attr.aria-label]="'offertes.preview' | translate"
+            [title]="'offertes.preview' | translate"
           >
-            @if (att.enabled) {
-              <lucide-icon name="eye" class="h-4 w-4"></lucide-icon>
-            } @else {
-              <lucide-icon name="eye-off" class="h-4 w-4"></lucide-icon>
-            }
+            <lucide-icon name="eye" class="h-4 w-4"></lucide-icon>
           </button>
 
           <!-- Remove -->
