@@ -1,0 +1,84 @@
+<shared-card className="flex h-full flex-col rounded-none">
+  <!-- Header -->
+  <header class="flex flex-col gap-3 border-b-2 border-black p-4">
+    <div class="flex items-center justify-between">
+      <h2 class="text-lg font-semibold leading-tight text-black">
+        {{ 'dashboard.activityFeed.title' | translate }}
+      </h2>
+      <span class="flex items-center justify-center border border-black bg-white px-2 py-0.5 font-mono text-xs font-bold text-black">
+        {{ activityService.filteredEvents().length }}
+      </span>
+    </div>
+
+    <!-- Filter toggles -->
+    <div class="flex flex-wrap gap-1.5">
+      @for (cat of categories; track cat.key) {
+        <button
+          type="button"
+          class="inline-flex items-center gap-1 border px-2 py-1 text-[11px] font-semibold transition-colors"
+          [class]="isFilterActive(cat.key)
+            ? 'border-black bg-black text-white'
+            : 'border-zinc-300 bg-white text-zinc-500 hover:border-black hover:text-black'"
+          (click)="toggleFilter(cat.key)"
+        >
+          <span>{{ cat.icon }}</span>
+          {{ cat.label }}
+        </button>
+      }
+    </div>
+  </header>
+
+  <!-- Body -->
+  <div class="flex-1 overflow-y-auto" style="max-height: 420px;">
+    @if (!activityService.filteredEvents().length) {
+      <div class="flex h-40 items-center justify-center p-6">
+        <div class="text-center">
+          <p class="text-sm text-zinc-500">{{ 'dashboard.activityFeed.empty' | translate }}</p>
+          <p class="mt-1 text-xs text-zinc-400">{{ 'dashboard.activityFeed.emptyHint' | translate }}</p>
+        </div>
+      </div>
+    } @else {
+      <ul class="flex flex-col">
+        @for (event of activityService.filteredEvents(); track event.id; let i = $index) {
+          <li
+            class="group border-b border-zinc-200 last:border-b-0 transition-colors duration-150"
+            [class.bg-emerald-50]="i === 0"
+            [class.hover:bg-zinc-50]="i !== 0"
+          >
+            <div class="flex items-start gap-3 p-3.5">
+              <!-- Category dot -->
+              <span
+                class="mt-1.5 h-2.5 w-2.5 shrink-0 rounded-full"
+                [class]="categoryColor(event)"
+                [class.animate-pulse]="i === 0"
+              ></span>
+
+              <div class="flex-1 min-w-0">
+                @if (event.link) {
+                  <a
+                    [routerLink]="event.link"
+                    class="text-sm leading-snug underline decoration-1 underline-offset-2 hover:decoration-2 focus:outline-none"
+                    [class]="i === 0 ? 'font-semibold text-zinc-900' : 'text-zinc-700'"
+                  >
+                    {{ event.title }}
+                  </a>
+                } @else {
+                  <p class="text-sm leading-snug" [class]="i === 0 ? 'font-semibold text-zinc-900' : 'text-zinc-700'">
+                    {{ event.title }}
+                  </p>
+                }
+                @if (event.description) {
+                  <p class="text-xs text-zinc-400 mt-0.5 truncate">{{ event.description }}</p>
+                }
+                <div class="mt-1 flex items-center gap-2">
+                  <span class="text-[10px]">{{ categoryIcon(event) }}</span>
+                  <time class="font-mono text-[10px] text-zinc-400">{{ relativeTime(event.timestamp) }}</time>
+                </div>
+              </div>
+            </div>
+          </li>
+        }
+      </ul>
+    }
+  </div>
+</shared-card>

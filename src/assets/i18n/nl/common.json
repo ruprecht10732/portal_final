@@ -54,6 +54,16 @@
       "urgent": "Urgent",
       "new": "Nieuwe lead",
       "newLead": "Nieuwe lead (laatste 7 dagen)"
+    },
+    "activityFeed": {
+      "title": "Activiteit",
+      "empty": "Nog geen activiteit",
+      "emptyHint": "Nieuwe events verschijnen hier in real-time."
+    },
+    "schedule": {
+      "title": "Agenda",
+      "viewAll": "Alles bekijken",
+      "noAppointments": "Geen afspraken"
     }
   }
 }

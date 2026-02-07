@@ -15,7 +15,10 @@ export type SSEEventType =
   | 'quote_item_toggled'
   | 'quote_annotated'
   | 'quote_accepted'
-  | 'quote_rejected';
+  | 'quote_rejected'
+  | 'appointment_created'
+  | 'appointment_updated'
+  | 'appointment_status_changed';
 
 // Base SSE event structure from the backend
 export interface SSEEvent {
@@ -73,11 +76,13 @@ export class SSEService {
   // Event subjects for different event types
   private readonly photoAnalysisComplete$ = new Subject<SSEEvent & { data: PhotoAnalysisEventData }>();
   private readonly leadUpdated$ = new Subject<SSEEvent>();
+  private readonly appointmentEvent$ = new Subject<SSEEvent>();
   private readonly allEvents$ = new Subject<SSEEvent>();
 
   readonly state = this.connectionState.asReadonly();
   readonly photoAnalysisComplete = this.photoAnalysisComplete$.asObservable();
   readonly leadUpdated = this.leadUpdated$.asObservable();
+  readonly appointmentEvent = this.appointmentEvent$.asObservable();
   readonly events = this.allEvents$.asObservable();
 
   constructor() {
@@ -152,6 +157,15 @@ export class SSEService {
           });
         }
 
+        // Appointment events
+        for (const evtType of ['appointment_created', 'appointment_updated', 'appointment_status_changed'] as const) {
+          this.eventSource.addEventListener(evtType, (event) => {
+            this.zone.run(() => {
+              this.handleEventMessage(event, evtType);
+            });
+          });
+        }
+
         this.eventSource.onerror = () => {
           this.zone.run(() => {
             this.handleConnectionError();
@@ -214,6 +228,9 @@ export class SSEService {
     }
     if (event.type === 'lead_updated') {
       this.leadUpdated$.next(event);
+    }
+    if (event.type === 'appointment_created' || event.type === 'appointment_updated' || event.type === 'appointment_status_changed') {
+      this.appointmentEvent$.next(event);
     }
 
     // Quote events — show global toasts so agents are notified from any page

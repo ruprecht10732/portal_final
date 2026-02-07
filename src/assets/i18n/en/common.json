@@ -54,6 +54,16 @@
       "urgent": "Urgent",
       "new": "New lead",
       "newLead": "New lead (last 7 days)"
+    },
+    "activityFeed": {
+      "title": "Activity",
+      "empty": "No activity yet",
+      "emptyHint": "New events will appear here in real-time."
+    },
+    "schedule": {
+      "title": "Schedule",
+      "viewAll": "View all",
+      "noAppointments": "No appointments"
     }
   }
 }

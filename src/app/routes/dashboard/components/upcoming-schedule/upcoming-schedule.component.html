@@ -1,0 +1,98 @@
+<shared-card className="flex h-full flex-col rounded-none">
+  <!-- Header -->
+  <header class="flex items-center justify-between border-b-2 border-black p-4">
+    <h2 class="text-lg font-semibold leading-tight text-black">
+      {{ 'dashboard.schedule.title' | translate }}
+    </h2>
+    <a
+      routerLink="/app/appointments"
+      class="text-xs font-semibold text-zinc-500 underline decoration-1 underline-offset-4 hover:text-black hover:decoration-2"
+    >
+      {{ 'dashboard.schedule.viewAll' | translate }}
+    </a>
+  </header>
+
+  <!-- Body -->
+  <div class="flex-1 overflow-y-auto" style="max-height: 420px;">
+    @if (scheduleService.loading()) {
+      <div class="flex h-40 flex-col items-center justify-center gap-3 text-black">
+        <div class="h-5 w-5 animate-spin border-2 border-zinc-300 border-t-black rounded-none"></div>
+        <span class="font-mono text-xs font-medium text-zinc-700">Laden...</span>
+      </div>
+    } @else if (scheduleService.error()) {
+      <div class="flex h-full items-center justify-center p-6">
+        <div class="w-full border border-red-600 bg-red-50 p-4">
+          <p class="text-sm font-bold text-red-800">{{ scheduleService.error() }}</p>
+        </div>
+      </div>
+    } @else {
+      @for (group of scheduleService.schedule(); track group.date) {
+        <!-- Day header -->
+        <div class="sticky top-0 z-10 border-b border-black bg-zinc-50 px-4 py-2">
+          <span class="text-xs font-bold uppercase tracking-widest text-black">{{ group.label }}</span>
+          <span class="ml-2 font-mono text-[10px] text-zinc-500">{{ group.appointments.length }} afspraken</span>
+        </div>
+
+        @if (!group.appointments.length) {
+          <div class="px-4 py-6 text-center">
+            <p class="text-xs text-zinc-400">{{ 'dashboard.schedule.noAppointments' | translate }}</p>
+          </div>
+        } @else {
+          @for (appt of group.appointments; track appt.id) {
+            <div class="group border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50 transition-colors duration-150">
+              <div class="flex items-start gap-3 p-3.5">
+                <!-- Time block -->
+                <div class="shrink-0 w-18 text-right">
+                  <span class="font-mono text-xs font-bold text-black">{{ formatTime(appt.startTime) }}</span>
+                  <span class="block font-mono text-[10px] text-zinc-400">{{ formatTime(appt.endTime) }}</span>
+                </div>
+
+                <!-- Vertical divider -->
+                <div class="flex flex-col items-center pt-0.5">
+                  <span
+                    class="h-2.5 w-2.5 rounded-full border-2"
+                    [class]="statusColor(appt.status)"
+                  ></span>
+                  <span class="w-px flex-1 bg-zinc-200 mt-1"></span>
+                </div>
+
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                  <div class="flex items-center gap-2">
+                    <span class="text-xs">{{ typeIcon(appt.type) }}</span>
+                    @if (appt.leadId) {
+                      <a
+                        [routerLink]="['/app/leads', appt.leadId]"
+                        class="text-sm font-bold text-black underline decoration-1 underline-offset-4 hover:decoration-2 truncate"
+                      >
+                        {{ customerLabel(appt) }}
+                      </a>
+                    } @else {
+                      <span class="text-sm font-bold text-black truncate">
+                        {{ customerLabel(appt) }}
+                      </span>
+                    }
+                  </div>
+
+                  @if (addressLabel(appt); as address) {
+                    <p class="text-xs text-zinc-500 mt-0.5 truncate">{{ address }}</p>
+                  }
+
+                  <div class="mt-1.5 flex items-center gap-2">
+                    <span
+                      class="inline-block border px-1.5 py-0.5 text-[10px] font-semibold"
+                      [class]="statusColor(appt.status)"
+                    >
+                      {{ statusLabel(appt.status) }}
+                    </span>
+                    <span class="text-[10px] text-zinc-400">{{ typeLabel(appt.type) }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          }
+        }
+      }
+    }
+  </div>
+</shared-card>
