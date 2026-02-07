@@ -255,33 +255,35 @@
   }
 }
 
-<app-quote-proposal-accept-sheet
-  [isOpen]="showAcceptDialog()"
-  [signatureName]="signatureName()"
-  [signatureData]="signatureData()"
-  [accepting]="accepting()"
-  (requestDismiss)="closeAcceptDialog()"
-  (requestConfirm)="acceptQuote()"
-  (nameChange)="signatureName.set($event)"
-  (signatureChange)="onSignatureChange($event)"
-/>
+@if (!shouldShowIntro()) {
+  <app-quote-proposal-accept-sheet
+    [isOpen]="showAcceptDialog()"
+    [signatureName]="signatureName()"
+    [signatureData]="signatureData()"
+    [accepting]="accepting()"
+    (requestDismiss)="closeAcceptDialog()"
+    (requestConfirm)="acceptQuote()"
+    (nameChange)="signatureName.set($event)"
+    (signatureChange)="onSignatureChange($event)"
+  />
 
-<app-quote-proposal-ask-sheet
-  [isOpen]="annotatingItemId() !== null"
-  [itemDescription]="annotationItem()?.description ?? null"
-  [organizationName]="quote()?.organizationName ?? ''"
-  [text]="annotationText()"
-  [submitting]="submittingAnnotation()"
-  (requestDismiss)="cancelAnnotation()"
-  (requestSend)="annotationItem() ? submitAnnotation(annotationItem()!.id) : null"
-  (textChange)="annotationText.set($event)"
-/>
+  <app-quote-proposal-ask-sheet
+    [isOpen]="annotatingItemId() !== null"
+    [itemDescription]="annotationItem()?.description ?? null"
+    [organizationName]="quote()?.organizationName ?? ''"
+    [text]="annotationText()"
+    [submitting]="submittingAnnotation()"
+    (requestDismiss)="cancelAnnotation()"
+    (requestSend)="annotationItem() ? submitAnnotation(annotationItem()!.id) : null"
+    (textChange)="annotationText.set($event)"
+  />
 
-<app-quote-proposal-reject-sheet
-  [isOpen]="showRejectDialog()"
-  [reason]="rejectReason()"
-  [rejecting]="rejecting()"
-  (requestDismiss)="closeRejectDialog()"
-  (requestConfirm)="rejectQuote()"
-  (reasonChange)="rejectReason.set($event)"
-/>
+  <app-quote-proposal-reject-sheet
+    [isOpen]="showRejectDialog()"
+    [reason]="rejectReason()"
+    [rejecting]="rejecting()"
+    (requestDismiss)="closeRejectDialog()"
+    (requestConfirm)="rejectQuote()"
+    (reasonChange)="rejectReason.set($event)"
+  />
+}
