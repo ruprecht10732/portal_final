@@ -42,9 +42,7 @@ export class App {
         )
         .subscribe(profile => {
           const lang = profile.preferredLanguage === 'en' ? 'en' : 'nl';
-          if (lang !== this.translate.currentLang) {
-            this.translate.use(lang);
-          }
+          this.translate.use(lang);
         });
       return;
     }

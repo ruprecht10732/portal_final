@@ -18,7 +18,7 @@ import { DataGridComponent } from '../../../shared/components/data-grid/data-gri
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import type { GridColumn, GridConfig, DataRequest, DataResponse } from '../../../shared/components/data-grid/data-grid.types';
-import { DEFAULT_PHONE_REGION, MIN_LENGTH, DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
+import { DEFAULT_PHONE_REGION, MIN_LENGTH, DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT, ROLES } from '../../../core/config';
 import type { LeadsListResolved } from '../leads-list.resolver';
 import type { UserSummary } from '../../../core/services/user.types';
 
@@ -55,6 +55,7 @@ export class LeadListComponent implements OnInit {
   protected readonly deleteInProgress = signal(false);
   protected readonly pendingDeleteRows = signal<LeadRow[]>([]);
   protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
+  protected readonly isAdmin = signal(false);
   private readonly lastRequest = signal<DataRequest | null>(null);
   private ignoreNextRequest = true;
   private readonly phoneRegion = DEFAULT_PHONE_REGION;
@@ -304,9 +305,9 @@ export class LeadListComponent implements OnInit {
     });
   });
 
-  protected readonly gridConfig: Partial<GridConfig<LeadRow>> = {
+  protected readonly gridConfig = computed<Partial<GridConfig<LeadRow>>>(() => ({
     rowIdField: 'id',
-    selectable: true,
+    selectable: this.isAdmin(),
     cardViewEnabled: true,
     mobileBreakpoint: MOBILE_BREAKPOINT,
     cardTitleField: 'fullName',
@@ -316,12 +317,13 @@ export class LeadListComponent implements OnInit {
     cardPreviewFieldCount: 4,
     mobileAddRowEnabled: false,
     rowViewActionEnabled: true,
-    rowDeleteActionEnabled: true,
-  };
+    rowDeleteActionEnabled: this.isAdmin(),
+  }));
 
   protected readonly fetchDataFn = this.fetchData.bind(this);
 
   ngOnInit(): void {
+    this.loadCurrentUser();
     this.sse.leadUpdated
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.refreshFromSse());
@@ -387,6 +389,17 @@ export class LeadListComponent implements OnInit {
         });
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  private loadCurrentUser(): void {
+    this.userService.getProfile().subscribe({
+      next: (profile) => {
+        this.isAdmin.set(profile.roles?.includes(ROLES.admin) ?? false);
+      },
+      error: () => {
+        this.isAdmin.set(false);
       },
     });
   }
@@ -605,6 +618,7 @@ export class LeadListComponent implements OnInit {
   }
 
   protected onDeleteLeads(rows: LeadRow[]): void {
+    if (!this.isAdmin()) return;
     if (rows.length === 0) return;
     this.pendingDeleteRows.set(rows);
     this.isDeleteDialogOpen.set(true);

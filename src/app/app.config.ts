@@ -68,6 +68,7 @@ import {
   Zap,
   AppWindow,
   Toolbox,
+  Activity,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -177,6 +178,7 @@ export const appConfig: ApplicationConfig = {
         Flame,
         FileText,
         Toolbox,
+        Activity,
       }),
     ),
   ]

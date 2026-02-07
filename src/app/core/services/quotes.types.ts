@@ -43,6 +43,10 @@ export interface QuoteResponse {
   quoteNumber: string;
   leadId: string;
   leadServiceId?: string;
+  createdById?: string;
+  createdByFirstName?: string;
+  createdByLastName?: string;
+  createdByEmail?: string;
   customerFirstName?: string;
   customerLastName?: string;
   customerPhone?: string;
@@ -175,6 +179,14 @@ export function formatQuoteCustomerName(quote: QuoteResponse): string {
   const first = quote.customerFirstName ?? '';
   const last = quote.customerLastName ?? '';
   return `${first} ${last}`.trim();
+}
+
+export function formatQuoteCreatedBy(quote: QuoteResponse): string {
+  const first = quote.createdByFirstName ?? '';
+  const last = quote.createdByLastName ?? '';
+  const fullName = `${first} ${last}`.trim();
+  if (fullName) return fullName;
+  return quote.createdByEmail ?? '';
 }
 
 // Status display helpers — keys match backend PascalCase enum

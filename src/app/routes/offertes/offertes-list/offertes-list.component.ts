@@ -6,7 +6,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { map, type Observable } from 'rxjs';
 
 import { QuotesService } from '../../../core/services/quotes.service';
-import { QUOTE_STATUS_LABELS, centsToEuros, formatQuoteCustomerName, type QuoteResponse, type QuoteStatus } from '../../../core/services/quotes.types';
+import { QUOTE_STATUS_LABELS, centsToEuros, formatQuoteCreatedBy, formatQuoteCustomerName, type QuoteResponse, type QuoteStatus } from '../../../core/services/quotes.types';
 import { DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -19,6 +19,7 @@ interface QuoteRow extends QuoteResponse, Record<string, unknown> {
   customerName: string;
   customerPhone: string;
   customerAddress: string;
+  createdByName: string;
   totalDisplay: string;
 }
 
@@ -113,6 +114,14 @@ export class OffertesListComponent implements OnInit {
         sortable: true,
         filterable: true,
         width: '220px',
+      },
+      {
+        id: 'createdBy',
+        header: this.translate.instant('offertes.list.columns.createdBy'),
+        field: 'createdByName',
+        sortable: true,
+        filterable: true,
+        width: '180px',
       },
       {
         id: 'status',
@@ -253,6 +262,7 @@ export class OffertesListComponent implements OnInit {
       customerName: 'customerName',
       customerPhone: 'customerPhone',
       customerAddress: 'customerAddress',
+      createdBy: 'createdBy',
       status: 'status',
       total: 'total',
       validUntil: 'validUntil',
@@ -289,6 +299,7 @@ export class OffertesListComponent implements OnInit {
       case 'customerName':
       case 'customerPhone':
       case 'customerAddress':
+      case 'createdBy':
         params.search = value;
         break;
       case 'total': {
@@ -317,6 +328,7 @@ export class OffertesListComponent implements OnInit {
   private normalizeQuote(quote: QuoteResponse): QuoteRow {
     const customerName = formatQuoteCustomerName(quote) || this.translate.instant('offertes.unknownLead');
     const customerPhone = quote.customerPhone ?? '';
+    const createdByName = formatQuoteCreatedBy(quote) || this.translate.instant('offertes.unknownUser');
     const addressParts = [
       quote.customerAddressStreet,
       quote.customerAddressHouseNumber,
@@ -329,6 +341,7 @@ export class OffertesListComponent implements OnInit {
       customerName,
       customerPhone,
       customerAddress: addressParts.join(' '),
+      createdByName,
       totalDisplay: this.formatCurrency(centsToEuros(quote.totalCents)),
     };
   }
