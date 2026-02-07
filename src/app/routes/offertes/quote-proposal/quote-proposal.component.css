@@ -186,7 +186,7 @@
 	position: absolute;
 	top: 50%;
 	left: 50%;
-	transform: translate3d(-50%, -50%, 1px);
+	/* Centering handled by GSAP xPercent/yPercent so transforms don't conflict */
 	width: min(70vw, 320px);
 	aspect-ratio: 210 / 297;
 	height: auto;
@@ -202,7 +202,10 @@
 	overflow: hidden;
 	transform-style: preserve-3d;
 	opacity: 0;
-	clip-path: inset(0 0 0 0);
+	/* Start behind envelope body (z=0) so it can't clip through */
+	transform: translate(-50%, -50%) translateZ(-1px);
+	/* Fully hidden — revealed by GSAP clip-path animation */
+	clip-path: inset(0 0 100% 0);
 }
 
 .intro-letter-shine {

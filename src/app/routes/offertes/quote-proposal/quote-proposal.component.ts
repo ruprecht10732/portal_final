@@ -146,9 +146,7 @@ export class QuoteProposalComponent implements OnInit {
       effect(() => {
         if (!this.shouldShowIntro() || this.introInitialized) return;
         this.introInitialized = true;
-        runInInjectionContext(this.injector, () => {
-          afterNextRender(() => this.setupIntroTimeline());
-        });
+        afterNextRender(() => this.setupIntroTimeline(), { injector: this.injector });
       });
     });
   }
@@ -185,6 +183,9 @@ export class QuoteProposalComponent implements OnInit {
       paused: true,
       defaults: { ease: 'expo.inOut', duration: 1 },
     });
+
+    // Initialise GSAP-managed centering so y/z animations stack on top
+    gsap.set('#intro-letter', { xPercent: -50, yPercent: -50, z: -1 });
 
     // 0. Entrance: scene fades in
     gsap.to('#intro-trigger', {
@@ -227,13 +228,14 @@ export class QuoteProposalComponent implements OnInit {
         },
         '-=0.5',
       )
-    // 4. Letter rises out (becomes visible)
+    // 4. Letter rises out of envelope (stays behind body at z < 0, clip reveals from top)
       .to(
         '#intro-letter',
         {
           opacity: 1,
           y: -200,
-          z: 0.5,
+          z: -0.5,
+          clipPath: 'inset(0% 0% 10% 0%)',
           duration: 0.9,
           ease: 'power2.out',
           onStart: () => {
@@ -242,7 +244,7 @@ export class QuoteProposalComponent implements OnInit {
         },
         '-=0.8',
       )
-    // 5. Letter floats to center of viewport
+    // 5. Letter floats to center of viewport (now in front of everything)
       .to(
         '#intro-letter',
         {
@@ -256,6 +258,7 @@ export class QuoteProposalComponent implements OnInit {
             return gsap.getProperty('#intro-letter', 'y') as number + (viewportCenter - letterCenter);
           },
           scale: 1.15,
+          clipPath: 'inset(0% 0% 0% 0%)',
           rotationX: 0,
           rotationZ: 0,
           duration: 1.0,
