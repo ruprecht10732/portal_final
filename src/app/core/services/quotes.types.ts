@@ -68,6 +68,11 @@ export interface QuoteListResponse {
   totalPages: number;
 }
 
+export interface QuotePreviewLinkResponse {
+  token: string;
+  expiresAt?: string;
+}
+
 export interface CalculatedLineItem {
   description: string;
   quantity: string;
@@ -234,6 +239,7 @@ export interface PublicQuoteResponse {
   viewedAt?: string;
   acceptedAt?: string;
   rejectedAt?: string;
+  isReadOnly?: boolean;
   items: PublicQuoteItemResponse[];
   vatBreakdown: VatBreakdown[];
 }

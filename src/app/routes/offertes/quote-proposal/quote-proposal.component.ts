@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, NgZone, OnInit, signal } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
-import { DatePipe, NgClass } from '@angular/common';
+import { DatePipe } from '@angular/common';
 
 import { environment } from '../../../../environments/environment';
 import { PublicQuoteService } from '../../../core/services/public-quote.service';
@@ -16,7 +16,7 @@ import { SignaturePadComponent } from '../../../shared/components/signature-pad/
 
 @Component({
   selector: 'app-quote-proposal',
-  imports: [FormsModule, DatePipe, NgClass, SignaturePadComponent],
+  imports: [FormsModule, DatePipe, SignaturePadComponent],
   templateUrl: './quote-proposal.component.html',
   styleUrl: './quote-proposal.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -55,6 +55,7 @@ export class QuoteProposalComponent implements OnInit {
     const q = this.quote();
     return q?.status === 'Accepted' || q?.status === 'Rejected' || q?.status === 'Expired';
   });
+  protected readonly isReadOnly = computed(() => !!this.quote()?.isReadOnly);
   protected readonly isExpired = computed(() => {
     const q = this.quote();
     if (!q?.validUntil) return false;
@@ -130,7 +131,7 @@ export class QuoteProposalComponent implements OnInit {
   }
 
   protected toggleItem(item: PublicQuoteItemResponse): void {
-    if (this.isFinalized() || !item.isOptional) return;
+    if (this.isFinalized() || this.isReadOnly() || !item.isOptional) return;
 
     const t = this.token();
     this.toggling.set(item.id);
@@ -162,6 +163,7 @@ export class QuoteProposalComponent implements OnInit {
   }
 
   protected startAnnotation(itemId: string): void {
+    if (this.isReadOnly()) return;
     this.annotatingItemId.set(itemId);
     this.annotationText.set('');
   }
@@ -172,6 +174,7 @@ export class QuoteProposalComponent implements OnInit {
   }
 
   protected submitAnnotation(itemId: string): void {
+    if (this.isReadOnly()) return;
     const text = this.annotationText().trim();
     if (!text) return;
 
@@ -200,6 +203,7 @@ export class QuoteProposalComponent implements OnInit {
   }
 
   protected openAcceptDialog(): void {
+    if (this.isReadOnly()) return;
     this.showAcceptDialog.set(true);
     this.signatureName.set('');
     this.signatureData.set(null);
@@ -235,6 +239,7 @@ export class QuoteProposalComponent implements OnInit {
   }
 
   protected openRejectDialog(): void {
+    if (this.isReadOnly()) return;
     this.showRejectDialog.set(true);
     this.rejectReason.set('');
   }

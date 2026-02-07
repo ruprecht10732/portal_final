@@ -13,6 +13,7 @@ import type {
   QuoteCalculationResponse,
   AnnotationResponse,
   QuoteActivityResponse,
+  QuotePreviewLinkResponse,
 } from './quotes.types';
 
 /**
@@ -71,6 +72,11 @@ export class QuotesService {
   /** Send a quote proposal to the lead via magic link */
   send(id: string): Observable<QuoteResponse> {
     return this.http.post<QuoteResponse>(`${this.baseUrl}/${id}/send`, {});
+  }
+
+  /** Get (or create) a read-only preview link token for a quote */
+  getPreviewLink(id: string): Observable<QuotePreviewLinkResponse> {
+    return this.http.get<QuotePreviewLinkResponse>(`${this.baseUrl}/${id}/preview-link`);
   }
 
   /** Add an agent annotation to a quote item */

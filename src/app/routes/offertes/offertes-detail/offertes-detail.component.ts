@@ -39,6 +39,8 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly updating = signal(false);
   protected readonly sending = signal(false);
   protected readonly downloadingPdf = signal(false);
+  protected readonly previewUrl = signal<string | null>(null);
+  protected readonly loadingPreview = signal(false);
 
   // Reply text per item (keyed by item ID)
   protected readonly replyTexts = signal<Record<string, string>>({});
@@ -127,6 +129,7 @@ export class OffertesDetailComponent implements OnInit {
       next: quote => {
         if (quote) {
           this.quote.set(quote);
+          this.loadPreviewLink(quote);
           this.loadLead(quote.leadId);
         } else {
           this.error.set(this.translate.instant('offertes.errors.notFound'));
@@ -194,7 +197,10 @@ export class OffertesDetailComponent implements OnInit {
     this.updating.set(true);
     this.quotesService.updateStatus(q.id, status).subscribe({
       next: updated => {
-        if (updated) this.quote.set(updated);
+        if (updated) {
+          this.quote.set(updated);
+          this.loadPreviewLink(updated);
+        }
         this.updating.set(false);
       },
       error: () => {
@@ -254,13 +260,47 @@ export class OffertesDetailComponent implements OnInit {
     this.sending.set(true);
     this.quotesService.send(q.id).subscribe({
       next: updated => {
-        if (updated) this.quote.set(updated);
+        if (updated) {
+          this.quote.set(updated);
+          this.loadPreviewLink(updated);
+        }
         this.sending.set(false);
       },
       error: () => {
         this.sending.set(false);
       },
     });
+  }
+
+  private loadPreviewLink(q: QuoteResponse): void {
+    if (q.status === 'Draft') {
+      this.previewUrl.set(null);
+      this.loadingPreview.set(false);
+      return;
+    }
+
+    this.loadingPreview.set(true);
+    this.quotesService.getPreviewLink(q.id).subscribe({
+      next: response => {
+        this.previewUrl.set(this.buildPreviewUrl(response.token));
+        this.loadingPreview.set(false);
+      },
+      error: () => {
+        this.previewUrl.set(null);
+        this.loadingPreview.set(false);
+      },
+    });
+  }
+
+  protected openPreview(): void {
+    const url = this.previewUrl();
+    if (!url) return;
+    globalThis.open(url, '_blank', 'noopener');
+  }
+
+  private buildPreviewUrl(token: string): string {
+    const origin = globalThis.location?.origin ?? '';
+    return origin ? `${origin}/quote/${token}` : `/quote/${token}`;
   }
 
   protected getStatusLabel(status: QuoteStatus): string {

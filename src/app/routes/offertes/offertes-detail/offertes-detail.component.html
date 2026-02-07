@@ -85,6 +85,19 @@
               <lucide-icon name="printer" class="h-4 w-4"></lucide-icon>
             </shared-button>
 
+            @if (previewUrl()) {
+              <shared-button
+                variant="secondary"
+                size="compact"
+                [fullWidth]="false"
+                [loading]="loadingPreview()"
+                (clicked)="openPreview()"
+              >
+                <lucide-icon name="eye" class="h-4 w-4"></lucide-icon>
+                Voorbeeld bekijken
+              </shared-button>
+            }
+
             @if (q.pdfFileKey) {
               <shared-button
                 variant="secondary"
