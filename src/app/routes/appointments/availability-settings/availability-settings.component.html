@@ -1,6 +1,6 @@
-<div class="flex flex-col gap-6 p-4 sm:p-6 max-w-3xl mx-auto">
+<div class="flex flex-col gap-6 p-4 sm:p-6 max-w-3xl mx-auto pb-16 sm:pb-6">
   <header>
-    <h1 class="text-xl font-bold uppercase tracking-tight text-black">{{ 'appointments.availability.title' | translate }}</h1>
+    <h1 class="text-base sm:text-xl font-bold uppercase tracking-tight text-black">{{ 'appointments.availability.title' | translate }}</h1>
     <p class="text-sm text-zinc-500 mt-1">{{ 'appointments.availability.description' | translate }}</p>
   </header>
 
@@ -155,14 +155,12 @@
 
   <!-- Rule Form Modal -->
   @if (showRuleForm()) {
-    <div 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      tabindex="0" 
-      role="button"
+    <button 
+      type="button"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 cursor-default"
       [attr.aria-label]="'common.close' | translate"
       (click)="closeRuleForm()" 
       (keydown.escape)="closeRuleForm()"
-      (keydown.enter)="closeRuleForm()"
     >
       <dialog 
         class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
@@ -212,19 +210,17 @@
           </div>
         </form>
       </dialog>
-    </div>
+    </button>
   }
 
   <!-- Override Form Modal -->
   @if (showOverrideForm()) {
-    <div 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      tabindex="0" 
-      role="button"
+    <button 
+      type="button"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 cursor-default"
       [attr.aria-label]="'common.close' | translate"
       (click)="closeOverrideForm()" 
       (keydown.escape)="closeOverrideForm()"
-      (keydown.enter)="closeOverrideForm()"
     >
       <dialog 
         class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
@@ -281,19 +277,17 @@
           </div>
         </form>
       </dialog>
-    </div>
+    </button>
   }
 
   <!-- Quick Setup Modal -->
   @if (showQuickSetup()) {
-    <div 
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4"
-      tabindex="0" 
-      role="button"
+    <button 
+      type="button"
+      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 cursor-default"
       [attr.aria-label]="'common.close' | translate"
       (click)="closeQuickSetup()" 
       (keydown.escape)="closeQuickSetup()"
-      (keydown.enter)="closeQuickSetup()"
     >
       <dialog 
         class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
@@ -386,7 +380,7 @@
           </div>
         </div>
       </dialog>
-    </div>
+    </button>
   }
 
   <!-- Delete Confirmation Dialog -->
