@@ -228,10 +228,6 @@ export class OffertesDetailComponent implements OnInit {
     });
   }
 
-  protected print(): void {
-    globalThis.print();
-  }
-
   protected downloadPdf(): void {
     const q = this.quote();
     if (!q?.pdfFileKey) return;

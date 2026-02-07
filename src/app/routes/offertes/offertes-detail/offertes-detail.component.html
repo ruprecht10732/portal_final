@@ -1,5 +1,6 @@
 <div class="flex flex-col h-full">
-  <div class="border-b border-zinc-200 print:hidden">
+  <!-- Header -->
+  <div class="border-b border-zinc-200">
     <shared-page-header
       [title]="quote()?.quoteNumber ?? ''"
       [backAriaLabel]="'offertes.goBack' | translate"
@@ -14,7 +15,8 @@
       </ng-container>
       <ng-container actions>
         @if (quote(); as q) {
-          <div class="flex items-center gap-2">
+          <div class="flex items-center gap-1.5">
+            <!-- Primary actions -->
             @switch (q.status) {
               @case ('Draft') {
                 <shared-button
@@ -74,43 +76,41 @@
               </shared-button>
             }
 
-            <shared-button
-              variant="ghost"
-              size="compact"
-              [iconOnly]="true"
-              [fullWidth]="false"
-              (clicked)="print()"
-              [attr.aria-label]="'offertes.print' | translate"
-            >
-              <lucide-icon name="printer" class="h-4 w-4"></lucide-icon>
-            </shared-button>
+            <!-- Secondary actions -->
+            @if (previewUrl() || q.pdfFileKey) {
+              <span class="w-px h-5 bg-zinc-200 mx-1"></span>
+            }
 
             @if (previewUrl()) {
               <shared-button
-                variant="secondary"
+                variant="ghost"
                 size="compact"
+                [iconOnly]="true"
                 [fullWidth]="false"
                 [loading]="loadingPreview()"
                 (clicked)="openPreview()"
+                [attr.aria-label]="'Voorbeeld bekijken'"
               >
                 <lucide-icon name="eye" class="h-4 w-4"></lucide-icon>
-                Voorbeeld bekijken
               </shared-button>
             }
 
             @if (q.pdfFileKey) {
               <shared-button
-                variant="secondary"
+                variant="ghost"
                 size="compact"
+                [iconOnly]="true"
                 [fullWidth]="false"
                 [loading]="downloadingPdf()"
                 (clicked)="downloadPdf()"
+                [attr.aria-label]="'PDF downloaden'"
               >
                 <lucide-icon name="download" class="h-4 w-4"></lucide-icon>
-                PDF downloaden
               </shared-button>
             }
 
+            <!-- Destructive -->
+            <span class="w-px h-5 bg-zinc-200 mx-1"></span>
             <shared-button
               variant="ghost"
               size="compact"
@@ -129,123 +129,133 @@
 
   <!-- Error state -->
   @if (error()) {
-    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
-      <lucide-icon name="circle-alert" class="h-12 w-12 text-red-400"></lucide-icon>
-      <p class="text-sm text-zinc-600">{{ error() }}</p>
+    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-5">
+      <div class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
+        <lucide-icon name="circle-alert" class="h-8 w-8 text-red-500"></lucide-icon>
+      </div>
+      <div class="text-center space-y-1">
+        <p class="text-sm font-medium text-zinc-900">Er ging iets mis</p>
+        <p class="text-sm text-zinc-500">{{ error() }}</p>
+      </div>
       <shared-button variant="secondary" [fullWidth]="false" (clicked)="goBack()">
         {{ 'offertes.goBack' | translate }}
       </shared-button>
     </div>
   } @else if (loading()) {
     <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
-      <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
-      <p class="text-xs font-mono uppercase text-zinc-400">{{ 'offertes.loading' | translate }}</p>
+      <div class="h-10 w-10 rounded-full border-[3px] border-indigo-100 border-t-indigo-600 animate-spin"></div>
+      <p class="text-xs font-mono uppercase tracking-wider text-zinc-400">{{ 'offertes.loading' | translate }}</p>
     </div>
   } @else if (quote(); as q) {
-    <!-- Quote content (print-friendly) -->
-    <div class="flex-1 overflow-y-auto">
-      <div class="max-w-3xl mx-auto p-6 sm:p-8 print:p-0 print:max-w-none">
-        <!-- Print header -->
-        <div class="hidden print:block mb-8">
-          <div class="flex items-start justify-between gap-6">
-            <div class="flex flex-col gap-2">
-              <h2 class="text-lg font-bold">{{ q.quoteNumber }}</h2>
-              <span class="text-xs font-semibold uppercase px-2 py-0.5 rounded w-fit" [class]="getStatusColor(q.status)">
-                {{ getStatusLabel(q.status) }}
-              </span>
+    <!-- Quote content -->
+    <div class="flex-1 overflow-y-auto bg-zinc-50/50">
+      <div class="max-w-3xl mx-auto px-4 sm:px-6 py-6 sm:py-8 space-y-5">
+
+        <!-- Summary hero card -->
+        <div class="rounded-xl border border-zinc-200 bg-white p-5 sm:p-6">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <div class="flex flex-col gap-3">
+              @if (q.validUntil) {
+                <div class="inline-flex items-center gap-1.5 text-xs font-medium text-amber-600 bg-amber-50 rounded-full px-2.5 py-1 w-fit">
+                  <lucide-icon name="calendar" class="h-3.5 w-3.5"></lucide-icon>
+                  {{ 'offertes.validUntilLabel' | translate }}: {{ formatDate(q.validUntil) }}
+                </div>
+              }
+              @if (lead(); as l) {
+                <div class="flex items-center gap-2.5">
+                  <div class="h-9 w-9 rounded-full bg-indigo-50 flex items-center justify-center shrink-0">
+                    <lucide-icon name="user" class="h-4 w-4 text-indigo-500"></lucide-icon>
+                  </div>
+                  <div class="min-w-0">
+                    <p class="text-sm font-semibold text-zinc-900 truncate">{{ l.consumer.firstName }} {{ l.consumer.lastName }}</p>
+                    <p class="text-xs text-zinc-400 truncate">{{ l.address.street }} {{ l.address.houseNumber }}, {{ l.address.zipCode }} {{ l.address.city }}</p>
+                  </div>
+                </div>
+              }
             </div>
-            <div class="text-right">
-              <span class="text-xs uppercase tracking-widest text-zinc-500">{{ 'offertes.totalAmount' | translate }}</span>
-              <div class="text-xl font-bold">{{ formatCentsCurrency(q.totalCents) }}</div>
+            <div class="sm:text-right shrink-0 bg-zinc-50 rounded-lg px-4 py-3">
+              <span class="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">{{ 'offertes.totalAmount' | translate }}</span>
+              <div class="text-2xl sm:text-3xl font-bold tracking-tight text-zinc-900">{{ formatCentsCurrency(q.totalCents) }}</div>
             </div>
           </div>
         </div>
 
-        <!-- Valid until -->
-        @if (q.validUntil) {
-          <div class="text-sm text-zinc-500 mb-4">
-            {{ 'offertes.validUntilLabel' | translate }}: {{ formatDate(q.validUntil) }}
-          </div>
-        }
-
-        <!-- Lead info -->
-        @if (lead(); as l) {
-          <div class="mb-6">
-            <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
-              {{ 'offertes.customer' | translate }}
-            </h3>
-            <div class="text-sm text-zinc-700">
-              <p class="font-semibold">{{ l.consumer.firstName }} {{ l.consumer.lastName }}</p>
-              <p>{{ l.address.street }} {{ l.address.houseNumber }}, {{ l.address.zipCode }} {{ l.address.city }}</p>
-              @if (l.consumer.phone) {
-                <p class="text-zinc-400">{{ l.consumer.phone }}</p>
-              }
-            </div>
-          </div>
-        }
-
-        <!-- Line items table -->
+        <!-- Line items card -->
         @if (q.items.length > 0) {
-          <div class="mb-6">
-            <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">
-              {{ 'offertes.lineItems' | translate }}
-            </h3>
+          <div class="rounded-xl border border-zinc-200 bg-white overflow-hidden">
+            <div class="px-5 py-4 border-b border-zinc-100 flex items-center gap-2">
+              <div class="h-5 w-5 rounded bg-blue-50 flex items-center justify-center">
+                <lucide-icon name="list" class="h-3 w-3 text-blue-500"></lucide-icon>
+              </div>
+              <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                {{ 'offertes.lineItems' | translate }}
+              </h3>
+            </div>
             <div class="overflow-x-auto">
-              <table class="w-full text-sm">
+              <table class="w-full">
                 <thead>
-                  <tr class="border-b border-zinc-200">
-                    <th class="text-left py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-8"></th>
-                    <th class="text-left py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500">{{ 'offertes.description' | translate }}</th>
-                    <th class="text-left py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-24">{{ 'offertes.qty' | translate }}</th>
-                    <th class="text-right py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-28">{{ 'offertes.price' | translate }}</th>
-                    <th class="text-right py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-24">{{ 'offertes.tax' | translate }}</th>
-                    <th class="text-right py-2 px-2 text-xs font-bold uppercase tracking-wide text-zinc-500 w-28">{{ 'offertes.total' | translate }}</th>
+                  <tr class="border-b border-zinc-100 bg-zinc-50/60">
+                    <th class="text-left py-3 px-5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 w-16">{{ 'offertes.qty' | translate }}</th>
+                    <th class="text-left py-3 px-5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500">{{ 'offertes.description' | translate }}</th>
+                    <th class="text-right py-3 px-5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 w-28">{{ 'offertes.price' | translate }}</th>
+                    <th class="text-right py-3 px-5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 w-16">{{ 'offertes.tax' | translate }}</th>
+                    <th class="text-right py-3 px-5 text-[11px] font-semibold uppercase tracking-wider text-zinc-500 w-28">{{ 'offertes.total' | translate }}</th>
                   </tr>
                 </thead>
-                <tbody>
+                <tbody class="divide-y divide-zinc-100">
                   @for (item of q.items; track item.id) {
-                    <tr class="border-b border-zinc-100" [class.opacity-40]="item.isOptional && !item.isSelected">
-                      <td class="py-2 px-2 text-center">
-                        @if (item.isOptional) {
-                          @if (item.isSelected) {
-                            <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-green-100 text-green-600">
-                              <lucide-icon name="check" class="h-3 w-3"></lucide-icon>
-                            </span>
-                          } @else {
-                            <span class="inline-flex h-4 w-4 items-center justify-center rounded-full bg-zinc-100 text-zinc-400">
-                              <lucide-icon name="x" class="h-3 w-3"></lucide-icon>
-                            </span>
+                    <tr class="group transition-colors hover:bg-zinc-50/80" [class.opacity-40]="item.isOptional && !item.isSelected">
+                      <td class="py-4 px-5">
+                        <span class="text-sm tabular-nums font-medium text-zinc-600">{{ item.quantity }}×</span>
+                      </td>
+                      <td class="py-4 px-5">
+                        <div class="flex items-start gap-2.5">
+                          @if (item.isOptional) {
+                            @if (item.isSelected) {
+                              <span class="inline-flex h-5 w-5 mt-0.5 items-center justify-center rounded-full bg-emerald-100 text-emerald-600 shrink-0">
+                                <lucide-icon name="check" class="h-3 w-3"></lucide-icon>
+                              </span>
+                            } @else {
+                              <span class="inline-flex h-5 w-5 mt-0.5 items-center justify-center rounded-full bg-zinc-100 text-zinc-400 shrink-0">
+                                <lucide-icon name="minus" class="h-3 w-3"></lucide-icon>
+                              </span>
+                            }
                           }
-                        }
+                          <div class="flex-1 min-w-0">
+                            <div class="text-sm font-medium text-zinc-900 leading-snug">{{ item.description }}</div>
+                            @if (item.isOptional) {
+                              <span class="inline-flex items-center mt-1.5 text-[10px] font-semibold uppercase px-2 py-0.5 rounded-full gap-1"
+                                [class]="item.isSelected ? 'text-emerald-700 bg-emerald-50' : 'text-amber-600 bg-amber-50'">
+                                {{ item.isSelected ? 'Geselecteerd' : ('offertes.optional' | translate) }}
+                              </span>
+                            }
+                          </div>
+                        </div>
                       </td>
-                      <td class="py-2 px-2">
-                        <span class="text-zinc-900">{{ item.description }}</span>
-                        @if (item.isOptional) {
-                          <span class="ml-2 text-[10px] font-bold uppercase px-1.5 py-0.5 rounded"
-                            [class]="item.isSelected ? 'text-green-600 bg-green-50' : 'text-orange-500 bg-orange-50'">
-                            {{ item.isSelected ? 'Geselecteerd' : ('offertes.optional' | translate) }}
-                          </span>
-                        }
+                      <td class="py-4 px-5 text-right">
+                        <span class="text-sm tabular-nums text-zinc-500">{{ formatCentsCurrency(item.unitPriceCents) }}</span>
                       </td>
-                      <td class="py-2 px-2 text-zinc-600">{{ item.quantity }}</td>
-                      <td class="py-2 px-2 text-right text-zinc-600">{{ formatCentsCurrency(item.unitPriceCents) }}</td>
-                      <td class="py-2 px-2 text-right text-zinc-400">{{ item.taxRateBps / 100 }}%</td>
-                      <td class="py-2 px-2 text-right font-medium text-zinc-900">{{ formatCentsCurrency(item.lineTotalCents) }}</td>
+                      <td class="py-4 px-5 text-right">
+                        <span class="text-xs tabular-nums text-zinc-400">{{ item.taxRateBps / 100 }}%</span>
+                      </td>
+                      <td class="py-4 px-5 text-right">
+                        <span class="text-sm tabular-nums font-semibold text-zinc-900">{{ formatCentsCurrency(item.lineTotalCents) }}</span>
+                      </td>
                     </tr>
                     <!-- Annotations for this item -->
                     @if (item.annotations.length > 0 || q.status === 'Sent') {
-                      <tr class="border-b border-zinc-100">
-                        <td colspan="6" class="px-2 py-2">
+                      <tr>
+                        <td colspan="5" class="px-5 py-3 bg-zinc-50/50">
                           @if (item.annotations.length > 0) {
-                            <div class="space-y-1.5 mb-2">
+                            <div class="space-y-2 mb-3">
                               @for (ann of item.annotations; track ann.id) {
-                                <div class="flex items-start gap-2 text-xs">
-                                  <span class="shrink-0 font-semibold px-1.5 py-0.5 rounded"
-                                    [class]="ann.authorType === 'agent' ? 'bg-blue-100 text-blue-700' : 'bg-zinc-100 text-zinc-600'">
+                                <div class="flex items-start gap-2.5 text-xs bg-white rounded-lg p-3 border border-zinc-100">
+                                  <span class="shrink-0 font-semibold px-2 py-1 rounded-md text-[10px]"
+                                    [class]="ann.authorType === 'agent' ? 'bg-indigo-50 text-indigo-600' : 'bg-orange-50 text-orange-600'">
                                     {{ ann.authorType === 'agent' ? 'Agent' : 'Klant' }}
                                   </span>
-                                  <span class="text-zinc-700 flex-1">{{ ann.text }}</span>
-                                  <span class="text-zinc-400 shrink-0">{{ formatAnnotationDate(ann.createdAt) }}</span>
+                                  <span class="text-zinc-700 flex-1 leading-relaxed">{{ ann.text }}</span>
+                                  <span class="text-zinc-400 shrink-0 text-[10px]">{{ formatAnnotationDate(ann.createdAt) }}</span>
                                 </div>
                               }
                             </div>
@@ -254,7 +264,7 @@
                             <div class="flex items-center gap-2">
                               <input
                                 type="text"
-                                class="flex-1 text-xs border border-zinc-200 rounded-md px-2 py-1.5 focus:outline-none focus:ring-1 focus:ring-black"
+                                class="flex-1 text-xs bg-white border border-zinc-200 rounded-lg px-3 py-2.5 placeholder:text-zinc-300 focus:outline-none focus:ring-2 focus:ring-zinc-900/10 focus:border-zinc-300 transition"
                                 placeholder="Antwoord typen..."
                                 [value]="replyTexts()[item.id] ?? ''"
                                 (input)="updateReplyText(item.id, $any($event.target).value)"
@@ -268,7 +278,7 @@
                                 [disabled]="!(replyTexts()[item.id] ?? '').trim()"
                                 (clicked)="submitReply(item.id)"
                               >
-                                <lucide-icon name="send" class="h-3 w-3"></lucide-icon>
+                                <lucide-icon name="send" class="h-3.5 w-3.5"></lucide-icon>
                               </shared-button>
                             </div>
                           }
@@ -279,58 +289,72 @@
                 </tbody>
               </table>
             </div>
-          </div>
-        }
 
-        <!-- Financial summary -->
-        <div class="border-t border-zinc-200 pt-4 space-y-2">
-          <div class="flex justify-between text-sm">
-            <span class="text-zinc-500">{{ 'offertes.subtotal' | translate }}</span>
-            <span class="font-medium">{{ formatCentsCurrency(q.subtotalCents) }}</span>
-          </div>
-          @if (q.discountAmountCents > 0) {
-            <div class="flex justify-between text-sm text-green-600">
-              <span>{{ 'offertes.discount' | translate }}</span>
-              <span>-{{ formatCentsCurrency(q.discountAmountCents) }}</span>
+            <!-- Financial summary inside the card -->
+            <div class="border-t border-zinc-200 bg-zinc-50/60 px-5 py-5 space-y-2.5">
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-zinc-500">{{ 'offertes.subtotal' | translate }}</span>
+                <span class="text-sm tabular-nums font-medium text-zinc-700">{{ formatCentsCurrency(q.subtotalCents) }}</span>
+              </div>
+              @if (q.discountAmountCents > 0) {
+                <div class="flex justify-between items-center">
+                  <span class="text-sm text-emerald-600">{{ 'offertes.discount' | translate }}</span>
+                  <span class="text-sm tabular-nums font-medium text-emerald-600">-{{ formatCentsCurrency(q.discountAmountCents) }}</span>
+                </div>
+              }
+              <div class="flex justify-between items-center">
+                <span class="text-sm text-zinc-500">{{ 'offertes.tax' | translate }}</span>
+                <span class="text-sm tabular-nums font-medium text-zinc-700">{{ formatCentsCurrency(q.taxTotalCents) }}</span>
+              </div>
+              <div class="flex justify-between items-center pt-3 border-t border-zinc-200">
+                <span class="text-sm font-bold uppercase tracking-wide text-zinc-900">{{ 'offertes.totalAmount' | translate }}</span>
+                <span class="text-xl tabular-nums font-bold text-indigo-600">{{ formatCentsCurrency(q.totalCents) }}</span>
+              </div>
             </div>
-          }
-          <div class="flex justify-between text-sm">
-            <span class="text-zinc-500">{{ 'offertes.tax' | translate }}</span>
-            <span>{{ formatCentsCurrency(q.taxTotalCents) }}</span>
-          </div>
-          <div class="flex justify-between pt-3 border-t-2 border-zinc-300">
-            <span class="text-lg font-bold uppercase">{{ 'offertes.totalAmount' | translate }}</span>
-            <span class="text-2xl font-bold">{{ formatCentsCurrency(q.totalCents) }}</span>
-          </div>
-        </div>
-
-        <!-- Notes -->
-        @if (q.notes) {
-          <div class="mt-6 bg-zinc-50 rounded-lg p-4 print:bg-transparent print:border print:border-zinc-200">
-            <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-2">
-              {{ 'offertes.notes' | translate }}
-            </h3>
-            <p class="text-sm text-zinc-700 whitespace-pre-wrap">{{ q.notes }}</p>
           </div>
         }
 
-        <!-- Activity feed (persisted history + live SSE) -->
+        <!-- Notes card -->
+        @if (q.notes) {
+          <div class="rounded-xl border border-zinc-200 bg-white overflow-hidden">
+            <div class="px-5 py-4 border-b border-zinc-100 flex items-center gap-2">
+              <div class="h-5 w-5 rounded bg-violet-50 flex items-center justify-center">
+                <lucide-icon name="file-text" class="h-3 w-3 text-violet-500"></lucide-icon>
+              </div>
+              <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
+                {{ 'offertes.notes' | translate }}
+              </h3>
+            </div>
+            <div class="px-5 py-4">
+              <p class="text-sm text-zinc-700 whitespace-pre-wrap leading-relaxed">{{ q.notes }}</p>
+            </div>
+          </div>
+        }
+
+        <!-- Activity feed -->
         @if (realtimeEvents().length > 0) {
-          <div class="mt-6 print:hidden">
-            <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500 mb-3">Activiteit</h3>
-            <div class="space-y-2">
+          <div class="rounded-xl border border-zinc-200 bg-white overflow-hidden">
+            <div class="px-5 py-4 border-b border-zinc-100 flex items-center gap-2">
+              <div class="h-5 w-5 rounded bg-teal-50 flex items-center justify-center">
+                <lucide-icon name="activity" class="h-3 w-3 text-teal-500"></lucide-icon>
+              </div>
+              <h3 class="text-xs font-bold uppercase tracking-widest text-zinc-500">Activiteit</h3>
+            </div>
+            <div class="divide-y divide-zinc-100">
               @for (evt of realtimeEvents(); track $index) {
-                <div class="flex items-start gap-3 rounded-lg bg-blue-50 p-3 text-sm">
-                  <span class="mt-0.5 h-2 w-2 shrink-0 rounded-full bg-blue-500" [class.animate-pulse]="$index === 0"></span>
-                  <div class="flex-1">
-                    <p class="text-zinc-800">{{ evt.message }}</p>
-                    <p class="text-[10px] text-zinc-400">{{ evt.time.toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }}</p>
+                <div class="flex items-start gap-3 px-5 py-3.5" [class]="$index === 0 ? 'bg-teal-50/40' : ''">
+                  <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full"
+                    [class]="$index === 0 ? 'bg-teal-500 animate-pulse' : 'bg-zinc-200'"></span>
+                  <div class="flex-1 min-w-0">
+                    <p class="text-sm" [class]="$index === 0 ? 'text-teal-800 font-medium' : 'text-zinc-600'">{{ evt.message }}</p>
+                    <p class="text-[10px] text-zinc-400 mt-0.5">{{ evt.time.toLocaleString('nl-NL', { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' }) }}</p>
                   </div>
                 </div>
               }
             </div>
           </div>
         }
+
       </div>
     </div>
   }
