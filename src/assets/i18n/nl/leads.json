@@ -251,6 +251,7 @@
         "draftQuoteTitle": "Concept Offerte #{{number}}",
         "draftQuoteSummary": "{{itemCount}} items — {{catalogItems}} uit catalogus, {{adHocItems}} handmatig",
         "viewDraftQuote": "Bekijk Concept Offerte",
+        "stageUpdated": "Fase bijgewerkt",
         "types": {
           "ai": "AI",
           "user": "Gebruiker",

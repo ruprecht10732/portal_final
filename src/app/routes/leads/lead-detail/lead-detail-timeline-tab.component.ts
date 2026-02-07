@@ -1,6 +1,7 @@
 import { ChangeDetectionStrategy, Component, input, output, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import type { LeadTimelineItem } from '../../../core/services/leads.types';
+import type { LeadTimelineItem, PipelineStage } from '../../../core/services/leads.types';
+import { PIPELINE_STAGE_I18N_KEYS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 @Component({
@@ -36,6 +37,21 @@ export class LeadDetailTimelineTabComponent {
   composeEmail = output<{ email: string | undefined; message: string }>();
   copyContactMessage = output<{ itemId: string; message: string }>();
   viewDraftQuote = output<string>();
+
+  protected getStageTitle(item: LeadTimelineItem): string {
+    const oldStage = item.metadata['oldStage'] as PipelineStage | undefined;
+    const newStage = item.metadata['newStage'] as PipelineStage | undefined;
+    if (oldStage && newStage) {
+      const oldLabel = PIPELINE_STAGE_I18N_KEYS[oldStage]
+        ? this.translate.instant(PIPELINE_STAGE_I18N_KEYS[oldStage])
+        : oldStage;
+      const newLabel = PIPELINE_STAGE_I18N_KEYS[newStage]
+        ? this.translate.instant(PIPELINE_STAGE_I18N_KEYS[newStage])
+        : newStage;
+      return `${oldLabel} → ${newLabel}`;
+    }
+    return this.t('leads.detail.timeline.stageUpdated');
+  }
 
   protected formatEstimationNotes(value: string): string {
     const escaped = this.escapeHtml(value);

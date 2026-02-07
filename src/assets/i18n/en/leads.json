@@ -253,6 +253,7 @@
         "draftQuoteTitle": "Draft Quote #{{number}}",
         "draftQuoteSummary": "{{itemCount}} items — {{catalogItems}} from catalog, {{adHocItems}} ad-hoc",
         "viewDraftQuote": "View Draft Quote",
+        "stageUpdated": "Stage updated",
         "types": {
           "ai": "AI",
           "user": "User",

@@ -39,25 +39,23 @@
                 {{ formatHumanDateTime()(item.timestamp) }}
               </span>
               <span class="text-sm font-bold text-slate-900">
-                {{ item.title }}
+                {{ item.type === 'stage' ? getStageTitle(item) : item.title }}
               </span>
               
-              <span 
-                class="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset"
-                [class.bg-indigo-50]="item.type === 'ai'"
-                [class.text-indigo-700]="item.type === 'ai'"
-                [class.ring-indigo-200]="item.type === 'ai'"
+              @if (item.type !== 'stage') {
+                <span 
+                  class="inline-flex items-center rounded-md px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide ring-1 ring-inset"
+                  [class.bg-indigo-50]="item.type === 'ai'"
+                  [class.text-indigo-700]="item.type === 'ai'"
+                  [class.ring-indigo-200]="item.type === 'ai'"
 
-                [class.bg-emerald-50]="item.type === 'stage'"
-                [class.text-emerald-700]="item.type === 'stage'"
-                [class.ring-emerald-200]="item.type === 'stage'"
-
-                [class.bg-slate-50]="item.type === 'user'"
-                [class.text-slate-600]="item.type === 'user'"
-                [class.ring-slate-200]="item.type === 'user'"
-              >
-                {{ getTimelineTypeLabel()(item.type) }}
-              </span>
+                  [class.bg-slate-50]="item.type === 'user'"
+                  [class.text-slate-600]="item.type === 'user'"
+                  [class.ring-slate-200]="item.type === 'user'"
+                >
+                  {{ getTimelineTypeLabel()(item.type) }}
+                </span>
+              }
             </div>
 
             <p class="text-sm text-slate-600 leading-relaxed max-w-3xl">
