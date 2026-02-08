@@ -31,6 +31,19 @@ export class LeadDetailTimelineTabComponent {
   getTimelineMissingInformation = input<(item: LeadTimelineItem) => string[]>(() => []);
   getTimelineScore = input<(item: LeadTimelineItem) => { score: number; preAi?: number; version?: string } | null>(() => null);
   getTimelineDraftedQuote = input<(item: LeadTimelineItem) => { quoteId: string; quoteNumber: string; itemCount: number; catalogItems: number; adHocItems: number } | null>(() => null);
+  getTimelinePhotoAnalysis = input<(item: LeadTimelineItem) => {
+    photoCount: number;
+    confidenceLevel: string;
+    observations: string[];
+    scopeAssessment: string;
+    costIndicators: string;
+    safetyConcerns: string[];
+    measurements: { description: string; value: number; unit: string; type: string; confidence: string }[];
+    needsOnsiteMeasurement: string[];
+    discrepancies: string[];
+    extractedText: string[];
+    suggestedSearchTerms: string[];
+  } | null>(() => null);
 
   openCallLogger = output<void>();
   openWhatsApp = output<{ phone: string; message: string }>();

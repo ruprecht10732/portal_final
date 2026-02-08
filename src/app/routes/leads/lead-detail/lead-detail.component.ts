@@ -1074,6 +1074,38 @@ export class LeadDetailComponent implements OnInit {
     };
   };
 
+  protected readonly getTimelinePhotoAnalysis = (item: LeadTimelineItem): {
+    photoCount: number;
+    confidenceLevel: string;
+    observations: string[];
+    scopeAssessment: string;
+    costIndicators: string;
+    safetyConcerns: string[];
+    measurements: { description: string; value: number; unit: string; type: string; confidence: string }[];
+    needsOnsiteMeasurement: string[];
+    discrepancies: string[];
+    extractedText: string[];
+    suggestedSearchTerms: string[];
+  } | null => {
+    const m = item.metadata;
+    if (m['photoCount'] === undefined || !Array.isArray(m['observations'])) {
+      return null;
+    }
+    return {
+      photoCount: typeof m['photoCount'] === 'number' ? m['photoCount'] : 0,
+      confidenceLevel: typeof m['confidenceLevel'] === 'string' ? m['confidenceLevel'] : '',
+      observations: Array.isArray(m['observations']) ? (m['observations'] as string[]) : [],
+      scopeAssessment: typeof m['scopeAssessment'] === 'string' ? m['scopeAssessment'] : '',
+      costIndicators: typeof m['costIndicators'] === 'string' ? m['costIndicators'] : '',
+      safetyConcerns: Array.isArray(m['safetyConcerns']) ? (m['safetyConcerns'] as string[]) : [],
+      measurements: Array.isArray(m['measurements']) ? (m['measurements'] as { description: string; value: number; unit: string; type: string; confidence: string }[]) : [],
+      needsOnsiteMeasurement: Array.isArray(m['needsOnsiteMeasurement']) ? (m['needsOnsiteMeasurement'] as string[]) : [],
+      discrepancies: Array.isArray(m['discrepancies']) ? (m['discrepancies'] as string[]) : [],
+      extractedText: Array.isArray(m['extractedText']) ? (m['extractedText'] as string[]) : [],
+      suggestedSearchTerms: Array.isArray(m['suggestedSearchTerms']) ? (m['suggestedSearchTerms'] as string[]) : [],
+    };
+  };
+
   protected viewDraftQuote(quoteId: string): void {
     this.router.navigate(['/app/offertes', quoteId]);
   }
@@ -1535,6 +1567,21 @@ export class LeadDetailComponent implements OnInit {
     this.serviceAttachmentError.set(null);
     this.serviceAttachments.update(items => [attachment, ...items]);
     this.announce(this.translate.instant('leads.detail.files.uploaded'));
+
+    // Auto-trigger photo analysis when an image is uploaded
+    if (attachment.contentType?.startsWith('image/')) {
+      const lead = this.lead();
+      const service = this.selectedService();
+      if (lead && service) {
+        this.leadsService.triggerPhotoAnalysis(lead.id, service.id).subscribe({
+          next: () => {
+            // Reload photo analysis after a short delay to let the agent finish
+            setTimeout(() => this.loadPhotoAnalysis(lead.id, service.id), 8000);
+          },
+          error: () => { /* photo analysis is best-effort */ },
+        });
+      }
+    }
   }
 
   protected readonly presignServiceAttachment = async (file: File): Promise<PresignedUpload> => {

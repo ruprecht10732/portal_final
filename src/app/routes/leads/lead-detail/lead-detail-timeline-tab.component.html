@@ -130,6 +130,161 @@
               </div>
             }
 
+            @if (getTimelinePhotoAnalysis()(item); as pa) {
+              <div class="mt-3 rounded-xl border border-purple-200 bg-purple-50/60 p-4 space-y-3">
+                <div class="flex items-center gap-2.5">
+                  <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-white text-purple-600 shadow-sm ring-1 ring-inset ring-purple-200">
+                    <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M6.827 6.175A2.31 2.31 0 015.186 7.23c-.38.054-.757.112-1.134.175C2.999 7.58 2.25 8.507 2.25 9.574V18a2.25 2.25 0 002.25 2.25h15A2.25 2.25 0 0021.75 18V9.574c0-1.067-.75-1.994-1.802-2.169a47.865 47.865 0 00-1.134-.175 2.31 2.31 0 01-1.64-1.055l-.822-1.316a2.192 2.192 0 00-1.736-1.039 48.774 48.774 0 00-5.232 0 2.192 2.192 0 00-1.736 1.039l-.821 1.316z" />
+                      <path stroke-linecap="round" stroke-linejoin="round" d="M16.5 12.75a4.5 4.5 0 11-9 0 4.5 4.5 0 019 0zM18.75 10.5h.008v.008h-.008V10.5z" />
+                    </svg>
+                  </div>
+                  <div>
+                    <h4 class="text-sm font-bold text-purple-950">{{ t('leads.detail.timeline.photoTitle') }}</h4>
+                    <p class="text-xs text-purple-700">{{ pa.photoCount }} {{ pa.photoCount === 1 ? t('leads.detail.timeline.photoSingular') : t('leads.detail.timeline.photoPlural') }} · {{ pa.confidenceLevel }} {{ t('leads.detail.timeline.photoConfidence') }}</p>
+                  </div>
+                </div>
+
+                <!-- Observations -->
+                @if (pa.observations.length > 0) {
+                  <div>
+                    <h5 class="text-[10px] uppercase font-bold text-purple-600 mb-1">{{ t('leads.detail.timeline.photoObservations') }}</h5>
+                    <ul class="space-y-0.5">
+                      @for (obs of pa.observations; track obs) {
+                        <li class="text-xs text-purple-900 flex items-start gap-1.5">
+                          <span class="text-purple-400 mt-px">•</span>
+                          <span>{{ obs }}</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+
+                <!-- Scope + Cost row -->
+                @if (pa.scopeAssessment || pa.costIndicators) {
+                  <div class="grid grid-cols-2 gap-3">
+                    @if (pa.scopeAssessment) {
+                      <div>
+                        <h5 class="text-[10px] uppercase font-bold text-purple-600 mb-0.5">{{ t('leads.detail.timeline.photoScope') }}</h5>
+                        <p class="text-xs text-purple-900 leading-relaxed">{{ pa.scopeAssessment }}</p>
+                      </div>
+                    }
+                    @if (pa.costIndicators) {
+                      <div>
+                        <h5 class="text-[10px] uppercase font-bold text-purple-600 mb-0.5">{{ t('leads.detail.timeline.photoCost') }}</h5>
+                        <p class="text-xs text-purple-900 leading-relaxed">{{ pa.costIndicators }}</p>
+                      </div>
+                    }
+                  </div>
+                }
+
+                <!-- Measurements -->
+                @if (pa.measurements.length > 0) {
+                  <div>
+                    <h5 class="text-[10px] uppercase font-bold text-purple-600 mb-1">{{ t('leads.detail.timeline.photoMeasurements') }}</h5>
+                    <div class="overflow-x-auto">
+                      <table class="w-full text-xs">
+                        <thead>
+                          <tr class="text-[10px] text-purple-500 border-b border-purple-100">
+                            <th class="py-1 pr-2 text-left font-semibold">{{ t('leads.detail.timeline.photoMeasDesc') }}</th>
+                            <th class="py-1 pr-2 text-right font-semibold">{{ t('leads.detail.timeline.photoMeasValue') }}</th>
+                            <th class="py-1 pr-2 text-left font-semibold">{{ t('leads.detail.timeline.photoMeasType') }}</th>
+                            <th class="py-1 text-left font-semibold">{{ t('leads.detail.timeline.photoMeasConf') }}</th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          @for (m of pa.measurements; track m.description) {
+                            <tr class="border-b border-purple-50">
+                              <td class="py-1 pr-2 text-purple-900">{{ m.description }}</td>
+                              <td class="py-1 pr-2 text-right font-mono text-purple-950">{{ m.value }} {{ m.unit }}</td>
+                              <td class="py-1 pr-2">
+                                <span class="inline-flex items-center px-1 py-px rounded text-[10px] font-bold bg-purple-100 text-purple-700">{{ m.type }}</span>
+                              </td>
+                              <td class="py-1">
+                                <span class="text-[10px] font-medium" [class.text-green-600]="m.confidence === 'High'" [class.text-amber-600]="m.confidence === 'Medium'" [class.text-red-500]="m.confidence === 'Low'">{{ m.confidence }}</span>
+                              </td>
+                            </tr>
+                          }
+                        </tbody>
+                      </table>
+                    </div>
+                  </div>
+                }
+
+                <!-- Safety Concerns -->
+                @if (pa.safetyConcerns.length > 0) {
+                  <div class="rounded-lg bg-amber-50 border border-amber-200 p-2.5">
+                    <h5 class="text-[10px] uppercase font-bold text-amber-700 mb-1 flex items-center gap-1">
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                      {{ t('leads.detail.timeline.photoSafety') }}
+                    </h5>
+                    <ul class="space-y-0.5">
+                      @for (c of pa.safetyConcerns; track c) {
+                        <li class="text-xs text-amber-800 flex items-start gap-1.5"><span class="text-amber-500 mt-px">⚠</span> {{ c }}</li>
+                      }
+                    </ul>
+                  </div>
+                }
+
+                <!-- Discrepancies -->
+                @if (pa.discrepancies.length > 0) {
+                  <div class="rounded-lg bg-red-50 border border-red-200 p-2.5">
+                    <h5 class="text-[10px] uppercase font-bold text-red-700 mb-1 flex items-center gap-1">
+                      <svg class="h-3 w-3" fill="currentColor" viewBox="0 0 20 20"><path fill-rule="evenodd" d="M8.485 2.495c.673-1.167 2.357-1.167 3.03 0l6.28 10.875c.673 1.167-.17 2.625-1.516 2.625H3.72c-1.347 0-2.189-1.458-1.515-2.625L8.485 2.495zM10 5a.75.75 0 01.75.75v3.5a.75.75 0 01-1.5 0v-3.5A.75.75 0 0110 5zm0 9a1 1 0 100-2 1 1 0 000 2z" clip-rule="evenodd" /></svg>
+                      {{ t('leads.detail.timeline.photoDiscrepancies') }}
+                    </h5>
+                    <ul class="space-y-0.5">
+                      @for (d of pa.discrepancies; track d) {
+                        <li class="text-xs text-red-800 flex items-start gap-1.5"><span class="text-red-500 mt-px">⚠</span> {{ d }}</li>
+                      }
+                    </ul>
+                  </div>
+                }
+
+                <!-- Needs On-site Measurement -->
+                @if (pa.needsOnsiteMeasurement.length > 0) {
+                  <div class="rounded-lg bg-blue-50 border border-blue-200 p-2.5">
+                    <h5 class="text-[10px] uppercase font-bold text-blue-700 mb-1 flex items-center gap-1">
+                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" /></svg>
+                      {{ t('leads.detail.timeline.photoNeedsOnsite') }}
+                    </h5>
+                    <ul class="space-y-0.5">
+                      @for (r of pa.needsOnsiteMeasurement; track r) {
+                        <li class="text-xs text-blue-800 flex items-start gap-1.5"><span class="text-blue-400 mt-px">📏</span> {{ r }}</li>
+                      }
+                    </ul>
+                  </div>
+                }
+
+                <!-- Extracted Text -->
+                @if (pa.extractedText.length > 0) {
+                  <div>
+                    <h5 class="text-[10px] uppercase font-bold text-purple-600 mb-1">{{ t('leads.detail.timeline.photoExtractedText') }}</h5>
+                    <ul class="space-y-0.5">
+                      @for (text of pa.extractedText; track text) {
+                        <li class="text-xs text-purple-900 flex items-start gap-1.5">
+                          <span class="text-purple-400 font-mono mt-px">"</span>
+                          <span class="italic">{{ text }}</span>
+                        </li>
+                      }
+                    </ul>
+                  </div>
+                }
+
+                <!-- Suggested Search Terms -->
+                @if (pa.suggestedSearchTerms.length > 0) {
+                  <div>
+                    <h5 class="text-[10px] uppercase font-bold text-purple-600 mb-1">{{ t('leads.detail.timeline.photoSearchTerms') }}</h5>
+                    <div class="flex flex-wrap gap-1">
+                      @for (term of pa.suggestedSearchTerms; track term) {
+                        <span class="inline-flex items-center px-1.5 py-0.5 rounded-full text-[10px] font-bold bg-purple-100 text-purple-800">{{ term }}</span>
+                      }
+                    </div>
+                  </div>
+                }
+              </div>
+            }
+
             @if (getTimelineRecommendedAction()(item); as action) {
               @if (action === 'CallImmediately') {
                 <div class="mt-3 flex flex-col gap-3 rounded-xl border border-rose-200 bg-rose-50/60 p-4">
