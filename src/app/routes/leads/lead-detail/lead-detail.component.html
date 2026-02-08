@@ -122,6 +122,38 @@
           </details>
         </shared-card>
 
+        <shared-card padding="none">
+          <details>
+            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.timeline' | translate }}</summary>
+            <div class="px-4 pb-4">
+              <app-lead-detail-timeline-tab
+                [timelineItems]="timelineItems()"
+                [timelineLoading]="timelineLoading()"
+                [timelineError]="timelineError()"
+                [copiedContactMessage]="copiedContactMessage()"
+                [leadPhone]="lead()!.consumer.phone"
+                [leadEmail]="lead()!.consumer.email ?? null"
+                [formatHumanDateTime]="formatHumanDateTime"
+                [getTimelineTypeLabel]="getTimelineTypeLabel"
+                [getTimelineTypeBadgeClass]="getTimelineTypeBadgeClass"
+                [getTimelinePartnerSummary]="getTimelinePartnerSummary"
+                [getTimelineEstimation]="getTimelineEstimation"
+                [getTimelineRecommendedAction]="getTimelineRecommendedAction"
+                [getTimelineContactMessage]="getTimelineContactMessage"
+                [getTimelineMissingInformation]="getTimelineMissingInformation"
+                [getTimelineScore]="getTimelineScore"
+                [getTimelineDraftedQuote]="getTimelineDraftedQuote"
+                [getTimelinePhotoAnalysis]="getTimelinePhotoAnalysis"
+                (openCallLogger)="openCallLogger()"
+                (openWhatsApp)="openWhatsApp($event.phone, $event.message)"
+                (composeEmail)="composeEmail($event.email, $event.message)"
+                (copyContactMessage)="copyContactMessage($event.itemId, $event.message)"
+                (viewDraftQuote)="viewDraftQuote($event)"
+              />
+            </div>
+          </details>
+        </shared-card>
+
         <app-lead-detail-services-panel
           [services]="l.services"
           [selectedServiceId]="selectedServiceId()"
