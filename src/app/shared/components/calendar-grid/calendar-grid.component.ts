@@ -170,9 +170,7 @@ export class CalendarGridComponent {
 
     for (let i = 0; i < daysInMonth; i++) {
       const rowIndex = Math.floor((i + offset) / 7);
-      if (!weeks[rowIndex]) {
-        weeks[rowIndex] = [];
-      }
+      weeks[rowIndex] ??= [];
       const date = new Date(year, month, i + 1);
       weeks[rowIndex].push({
         displayName: String(i + 1),

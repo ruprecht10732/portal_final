@@ -53,6 +53,10 @@ export const routes: Routes = [
 		canActivate: [quoteIntroGuard],
 	},
 	{
+		path: 'partner-offer/:token',
+		loadComponent: () => import('./routes/partners/partner-offer/partner-offer.component').then(m => m.PartnerOfferComponent),
+	},
+	{
 		path: 'app',
 		loadComponent: () => import('./routes/app-shell/authenticated-layout.component').then(m => m.AuthenticatedLayoutComponent),
 		canActivate: [authGuard],
@@ -185,6 +189,11 @@ export const routes: Routes = [
 					{
 						path: ':id/edit',
 						loadComponent: () => import('./routes/partners/partners-edit/partners-edit.component').then(m => m.PartnersEditComponent),
+					},
+					{
+						path: 'offers/:offerId/preview',
+						loadComponent: () => import('./routes/partners/partner-offer/partner-offer.component').then(m => m.PartnerOfferComponent),
+						data: { preview: true },
 					},
 				],
 			},

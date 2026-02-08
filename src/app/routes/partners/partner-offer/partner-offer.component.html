@@ -1,0 +1,160 @@
+<div class="offer-page">
+  @if (loading()) {
+    <div class="loading-container">
+      <div class="spinner"></div>
+      <p>Aanbod laden...</p>
+    </div>
+  } @else if (error() && !offer()) {
+    <div class="error-container">
+      <div class="error-icon">&#9888;</div>
+      <p>{{ error() }}</p>
+    </div>
+  } @else if (offer(); as o) {
+    <header class="offer-header">
+      @if (isPreview()) {
+        <div class="status-banner" style="background: #dbeafe; color: #1e40af; margin-bottom: 16px;">
+          Voorbeeld — dit is wat de vakman ziet
+        </div>
+      }
+      <h1>Werkaanbod</h1>
+      <p class="org-name">{{ o.organizationName }}</p>
+    </header>
+
+    <!-- Status banner -->
+    @if (!isActionable() || done()) {
+      <div class="status-banner" [class.accepted]="done() === 'accepted' || o.status === 'accepted'"
+           [class.rejected]="done() === 'rejected' || o.status === 'rejected'"
+           [class.expired]="isExpired()">
+        {{ statusLabel() }}
+      </div>
+    }
+
+    <!-- Offer details card -->
+    <div class="offer-card">
+      <div class="detail-row">
+        <span class="label">Opdracht</span>
+        <span class="value">{{ o.jobSummary }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Locatie</span>
+        <span class="value">{{ o.city }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Uw vergoeding</span>
+        <span class="value price">{{ priceDisplay() }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Bron</span>
+        <span class="value">{{ o.pricingSource === 'quote' ? 'Offerte' : 'Schatting' }}</span>
+      </div>
+      <div class="detail-row">
+        <span class="label">Geldig tot</span>
+        <span class="value">{{ o.expiresAt | date:'d MMMM yyyy, HH:mm':'':'nl-NL' }}</span>
+      </div>
+    </div>
+
+    <!-- Error after action attempt -->
+    @if (error()) {
+      <div class="inline-error">{{ error() }}</div>
+    }
+
+    <!-- Action buttons -->
+    @if (isActionable() && !done() && !showAcceptForm() && !showRejectForm()) {
+      <div class="action-buttons">
+        <button class="btn btn-primary" (click)="openAcceptForm()">Accepteren</button>
+        <button class="btn btn-secondary" (click)="openRejectForm()">Afwijzen</button>
+      </div>
+    }
+
+    <!-- Accept form -->
+    @if (showAcceptForm()) {
+      <div class="form-section">
+        <h2>Beschikbaarheid voor inspectie</h2>
+        <p class="form-hint">Geef minimaal één tijdslot op wanneer u beschikbaar bent voor een inspectiebezoek.</p>
+
+        @for (slot of inspectionSlots(); track $index) {
+          <div class="slot-row">
+            <label>
+              Van
+              <input type="datetime-local" [ngModel]="slot.start"
+                     (ngModelChange)="updateInspectionSlotStart($index, $event)" />
+            </label>
+            <label>
+              Tot
+              <input type="datetime-local" [ngModel]="slot.end"
+                     (ngModelChange)="updateInspectionSlotEnd($index, $event)" />
+            </label>
+            @if (inspectionSlots().length > 1) {
+              <button class="btn-icon" type="button" (click)="removeInspectionSlot($index)" aria-label="Verwijder tijdslot">&times;</button>
+            }
+          </div>
+        }
+        <button class="btn btn-link" type="button" (click)="addInspectionSlot()">+ Nog een tijdslot</button>
+
+        <h3>Beschikbaarheid voor uitvoering <span class="optional">(optioneel)</span></h3>
+        @for (slot of jobSlots(); track $index) {
+          <div class="slot-row">
+            <label>
+              Van
+              <input type="datetime-local" [ngModel]="slot.start"
+                     (ngModelChange)="updateJobSlotStart($index, $event)" />
+            </label>
+            <label>
+              Tot
+              <input type="datetime-local" [ngModel]="slot.end"
+                     (ngModelChange)="updateJobSlotEnd($index, $event)" />
+            </label>
+            <button class="btn-icon" type="button" (click)="removeJobSlot($index)" aria-label="Verwijder tijdslot">&times;</button>
+          </div>
+        }
+        <button class="btn btn-link" type="button" (click)="addJobSlot()">+ Uitvoerings-tijdslot toevoegen</button>
+
+        <div class="form-actions">
+          <button class="btn btn-primary" (click)="submitAccept()" [disabled]="accepting()">
+            @if (accepting()) {
+              Bezig...
+            } @else {
+              Bevestig acceptatie
+            }
+          </button>
+          <button class="btn btn-secondary" (click)="cancelForm()" [disabled]="accepting()">Annuleren</button>
+        </div>
+      </div>
+    }
+
+    <!-- Reject form -->
+    @if (showRejectForm()) {
+      <div class="form-section">
+        <h2>Aanbod afwijzen</h2>
+        <label class="reject-label">
+          Reden (optioneel)
+          <textarea rows="3" maxlength="500" [ngModel]="rejectReason()"
+                    (ngModelChange)="rejectReason.set($event)"
+                    placeholder="Waarom wilt u dit aanbod afwijzen?"></textarea>
+        </label>
+        <div class="form-actions">
+          <button class="btn btn-danger" (click)="submitReject()" [disabled]="rejecting()">
+            @if (rejecting()) {
+              Bezig...
+            } @else {
+              Bevestig afwijzing
+            }
+          </button>
+          <button class="btn btn-secondary" (click)="cancelForm()" [disabled]="rejecting()">Annuleren</button>
+        </div>
+      </div>
+    }
+
+    <!-- Success messages -->
+    @if (done() === 'accepted') {
+      <div class="success-message">
+        <p><strong>Bedankt!</strong> U heeft het aanbod geaccepteerd. De opdrachtgever neemt contact met u op om een inspectieafspraak in te plannen.</p>
+      </div>
+    }
+    @if (done() === 'rejected') {
+      <div class="success-message rejected">
+        <p>U heeft het aanbod afgewezen. Bedankt voor uw reactie.</p>
+      </div>
+    }
+  }
+</div>

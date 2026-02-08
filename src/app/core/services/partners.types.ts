@@ -98,3 +98,42 @@ export interface ListPartnersParams {
   page?: number;
   pageSize?: number;
 }
+
+// ── Partner Offers (authenticated / dispatcher) ─────────────────────────
+
+export interface CreateOfferRequest {
+  partnerId: string;
+  leadServiceId: string;
+  pricingSource: 'quote' | 'estimate';
+  customerPriceCents: number;
+  expiresInHours: number;
+}
+
+export interface CreateOfferResponse {
+  id: string;
+  publicToken: string;
+  vakmanPriceCents: number;
+  expiresAt: string;
+}
+
+export interface OfferResponse {
+  id: string;
+  partnerId: string;
+  partnerName: string;
+  leadServiceId: string;
+  pricingSource: string;
+  customerPriceCents: number;
+  vakmanPriceCents: number;
+  status: string;
+  publicToken: string;
+  expiresAt: string;
+  acceptedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  createdAt: string;
+}
+
+export interface ListOffersResponse {
+  items: OfferResponse[];
+}
+

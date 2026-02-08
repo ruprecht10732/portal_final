@@ -14,7 +14,11 @@ import type {
   PartnerLogoPresignResponse,
   SetPartnerLogoRequest,
   PartnerLogoDownloadResponse,
+  CreateOfferRequest,
+  CreateOfferResponse,
+  ListOffersResponse,
 } from './partners.types';
+import type { PublicPartnerOfferResponse } from './partner-offer.types';
 
 @Injectable({ providedIn: 'root' })
 export class PartnersService extends BaseCrudService<
@@ -70,5 +74,54 @@ export class PartnersService extends BaseCrudService<
 
   deleteLogo(id: string): Observable<Partner> {
     return this.http.delete<Partner>(`${this.baseUrl}/${id}/logo`);
+  }
+
+  // ── Offers ──────────────────────────────────────────────────────────────
+
+  createOffer(data: CreateOfferRequest): Observable<CreateOfferResponse> {
+    return this.http.post<CreateOfferResponse>(`${this.baseUrl}/offers`, data);
+  }
+
+  listServiceOffers(serviceId: string): Observable<ListOffersResponse> {
+    return this.http.get<ListOffersResponse>(`${this.baseUrl}/services/${serviceId}/offers`);
+  }
+
+  /** Fetch what the vakman sees (authenticated preview for admin users). */
+  previewOffer(offerId: string): Observable<PublicPartnerOfferResponse> {
+    return this.http.get<PublicPartnerOfferResponse>(`${this.baseUrl}/offers/${offerId}/preview`);
+  }
+
+  /**
+   * Build the public acceptance URL for a given offer token.
+   * This URL is the page the vakman visits to accept/reject the offer.
+   */
+  buildOfferAcceptanceUrl(publicToken: string): string {
+    return `${globalThis.location.origin}/partner-offer/${publicToken}`;
+  }
+
+  /**
+   * Compose a WhatsApp `wa.me` URL pre-filled with an offer message
+   * that includes the acceptance link.
+   */
+  buildOfferWhatsAppUrl(phone: string, partnerName: string, publicToken: string, priceCents: number): string {
+    const cleanPhone = phone.replaceAll(/\D/g, '');
+    const acceptanceUrl = this.buildOfferAcceptanceUrl(publicToken);
+    const priceFormatted = (priceCents / 100).toLocaleString('nl-NL', {
+      style: 'currency',
+      currency: 'EUR',
+      minimumFractionDigits: 2,
+    });
+    const message = [
+      `Hallo ${partnerName},`,
+      '',
+      `Er is een nieuw werkaanbod voor u beschikbaar ter waarde van ${priceFormatted}.`,
+      '',
+      'Bekijk het aanbod en geef uw beschikbaarheid door via onderstaande link:',
+      acceptanceUrl,
+      '',
+      'Met vriendelijke groet',
+    ].join('\n');
+
+    return `https://wa.me/${cleanPhone}?text=${encodeURIComponent(message)}`;
   }
 }
