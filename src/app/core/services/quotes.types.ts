@@ -368,6 +368,7 @@ export interface GenerateQuoteRequest {
   leadId: string;
   leadServiceId: string;
   prompt: string;
+  quoteId?: string;
 }
 
 export interface GenerateQuoteResponse {

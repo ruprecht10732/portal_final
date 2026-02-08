@@ -20,6 +20,7 @@ import type {
   QuoteCalculationResponse,
   QuoteAttachmentRequest,
   QuoteURLRequest,
+  GenerateQuoteRequest,
 } from '../../../core/services/quotes.types';
 import { TAX_RATE_OPTIONS, DISCOUNT_TYPE_OPTIONS, parseQuantityNumber, eurosToCents, centsToEuros, taxDisplayToBps, taxBpsToDisplay } from '../../../core/services/quotes.types';
 
@@ -698,12 +699,23 @@ export class OffertesCreateComponent implements OnInit {
     this.generating.set(true);
     this.generateError.set(null);
 
-    this.quotesService.generate({ leadId: lead.id, leadServiceId: serviceId, prompt }).pipe(
+    const existingQuote = this.existingQuote();
+    const request: GenerateQuoteRequest = { leadId: lead.id, leadServiceId: serviceId, prompt };
+    if (this.isEditMode() && existingQuote) {
+      request.quoteId = existingQuote.id;
+    }
+
+    this.quotesService.generate(request).pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: result => {
         this.generating.set(false);
-        void this.router.navigate(['/app/offertes', result.quoteId]);
+        if (this.isEditMode() && existingQuote) {
+          // Reload the updated quote in-place
+          this.loadQuote(result.quoteId);
+        } else {
+          void this.router.navigate(['/app/offertes', result.quoteId]);
+        }
       },
       error: () => {
         this.generating.set(false);
