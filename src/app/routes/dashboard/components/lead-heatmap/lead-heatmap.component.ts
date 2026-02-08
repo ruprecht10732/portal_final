@@ -123,11 +123,20 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
   private async updateHeatLayerAsync(): Promise<void> {
     if (this.map === null) return;
 
+    const container = this.mapContainer()?.nativeElement;
+    if (!container || container.clientWidth === 0 || container.clientHeight === 0) {
+      // Container not yet laid out — retry after a short delay
+      setTimeout(() => this.updateHeatLayer(), 100);
+      return;
+    }
+
     if (!this.heatPluginLoaded) {
       (globalThis as { L?: typeof L }).L = L;
       await import('leaflet.heat');
       this.heatPluginLoaded = true;
     }
+
+    this.map.invalidateSize();
 
     const points = this.points();
     const heatData: [number, number, number][] = points.map(point => [point.latitude, point.longitude, 0.7]);
