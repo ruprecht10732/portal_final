@@ -5,6 +5,7 @@ import { ButtonComponent } from '../../shared/components/button/button.component
 import { ToastContainerComponent } from '../../shared/components/toast-container/toast-container.component';
 import { AuthenticatedMobileNavComponent } from './authenticated-mobile-nav.component';
 import { AuthenticatedSidebarComponent } from './authenticated-sidebar.component';
+import { MobileSectionTabsComponent } from './mobile-section-tabs.component';
 
 @Component({
   selector: 'app-authenticated-layout',
@@ -15,6 +16,7 @@ import { AuthenticatedSidebarComponent } from './authenticated-sidebar.component
     ToastContainerComponent,
     AuthenticatedMobileNavComponent,
     AuthenticatedSidebarComponent,
+    MobileSectionTabsComponent,
   ],
   templateUrl: './authenticated-layout.component.html',
   styleUrl: './authenticated-layout.component.css',
