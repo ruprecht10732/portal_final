@@ -10,11 +10,13 @@ import {
   Output,
   signal,
 } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { gsap } from 'gsap';
 
 @Component({
   selector: 'app-quote-proposal-intro',
   standalone: true,
+  imports: [TranslatePipe],
   templateUrl: './quote-proposal-intro.component.html',
   styleUrl: './quote-proposal-intro.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -43,10 +45,6 @@ export class QuoteProposalIntroComponent implements OnDestroy {
   ngOnDestroy(): void {
     this.introTimeline?.kill();
     this.introTimeline = null;
-  }
-
-  protected introHint(): string {
-    return 'Onthul uw offerte';
   }
 
   protected toggleIntro(): void {

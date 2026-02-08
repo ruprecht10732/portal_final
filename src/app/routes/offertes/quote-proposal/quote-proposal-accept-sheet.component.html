@@ -11,16 +11,16 @@
         class="text-[14px] font-medium text-blue-600"
         (click)="requestDismiss.emit()"
       >
-        Annuleer
+        {{ 'common.cancel' | translate }}
       </button>
-      <span class="text-[15px] font-extrabold text-zinc-900">Bevestig en onderteken</span>
+      <span class="text-[15px] font-extrabold text-zinc-900">{{ 'offertes.proposal.acceptSheetTitle' | translate }}</span>
       <span class="w-16" aria-hidden="true"></span>
     </div>
 
     <div class="space-y-2">
-      <h3 class="text-xl font-extrabold tracking-tight text-zinc-900">Bevestig uw akkoord</h3>
+      <h3 class="text-xl font-extrabold tracking-tight text-zinc-900">{{ 'offertes.proposal.acceptSheetHeading' | translate }}</h3>
       <p class="text-sm text-zinc-500">
-        Door te ondertekenen gaat u akkoord met de voorwaarden van deze offerte.
+        {{ 'offertes.proposal.acceptSheetBody' | translate }}
       </p>
     </div>
 
@@ -42,12 +42,12 @@
       @if (accepting()) {
         <span class="flex items-center justify-center gap-2">
           <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-          Bezig…
+          {{ 'offertes.proposal.acceptSheetWorking' | translate }}
         </span>
       } @else {
         <span class="inline-flex items-center justify-center gap-2">
           <lucide-icon name="signature" class="h-5 w-5" aria-hidden="true"></lucide-icon>
-          Ondertekenen
+          {{ 'offertes.proposal.acceptSheetSubmit' | translate }}
         </span>
       }
     </button>

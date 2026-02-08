@@ -4,6 +4,7 @@
     "listView": "Lijstweergave",
     "availabilityNav": "Beschikbaarheid",
     "createNew": "Nieuwe Afspraak",
+    "calendarEmpty": "Geen afspraken gevonden",
     "type": {
       "leadVisit": "Lead Bezoek",
       "standalone": "Zelfstandig",
@@ -14,6 +15,11 @@
       "completed": "Afgerond",
       "cancelled": "Geannuleerd",
       "noShow": "Niet Verschenen"
+    },
+    "accessDifficulty": {
+      "low": "Laag",
+      "medium": "Gemiddeld",
+      "high": "Hoog"
     },
     "list": {
       "ariaLabel": "Afspraken data grid",

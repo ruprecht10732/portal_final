@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, input, output, viewChild } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { SignaturePadComponent } from '../../../shared/components/signature-pad/signature-pad.component';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-quote-proposal-signature-block',
-  imports: [SignaturePadComponent, LucideAngularModule],
+  imports: [SignaturePadComponent, LucideAngularModule, TranslatePipe],
   templateUrl: './quote-proposal-signature-block.component.html',
   styleUrl: './quote-proposal-signature-block.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

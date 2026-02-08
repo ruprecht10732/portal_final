@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, input } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import type { VatBreakdown } from '../../../core/services/quotes.types';
 import { centsToEuros } from '../../../core/services/quotes.types';
 
 @Component({
   selector: 'app-quote-proposal-totals',
+  imports: [TranslatePipe],
   templateUrl: './quote-proposal-totals.component.html',
   styleUrl: './quote-proposal-totals.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

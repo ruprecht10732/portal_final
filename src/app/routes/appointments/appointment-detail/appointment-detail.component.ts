@@ -4,7 +4,7 @@ import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { catchError, debounceTime, distinctUntilChanged, filter, forkJoin, map, of, switchMap } from 'rxjs';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
@@ -44,6 +44,9 @@ export class AppointmentDetailComponent implements OnInit {
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'nl', translations: {} },
+  });
 
   protected readonly appointment = signal<AppointmentResponse | null>(null);
   protected readonly visitReport = signal<AppointmentVisitReportResponse | null>(null);
@@ -72,16 +75,28 @@ export class AppointmentDetailComponent implements OnInit {
   protected readonly reportAccessDifficulty = signal<AccessDifficulty | ''>('');
   protected readonly reportNotes = signal('');
 
-  protected readonly statusOptions: SelectOption<AppointmentStatus>[] = [
-    { value: 'scheduled', label: 'Scheduled' },
-    { value: 'completed', label: 'Completed' },
-    { value: 'cancelled', label: 'Cancelled' },
-    { value: 'no_show', label: 'No Show' },
-  ];
+  protected readonly statusOptions = computed<SelectOption<AppointmentStatus>[]>(() => {
+    this.lang();
+    return [
+      { value: 'scheduled', label: this.translate.instant('appointments.status.scheduled') },
+      { value: 'completed', label: this.translate.instant('appointments.status.completed') },
+      { value: 'cancelled', label: this.translate.instant('appointments.status.cancelled') },
+      { value: 'no_show', label: this.translate.instant('appointments.status.noShow') },
+    ];
+  });
 
-  protected readonly accessDifficultySelectOptions = computed<SelectOption<AccessDifficulty>[]>(() => 
-    ACCESS_DIFFICULTY_OPTIONS.map(opt => ({ value: opt.value, label: opt.label }))
-  );
+  protected readonly accessDifficultySelectOptions = computed<SelectOption<AccessDifficulty>[]>(() => {
+    this.lang();
+    const labels: Record<AccessDifficulty, string> = {
+      Low: this.translate.instant('appointments.accessDifficulty.low'),
+      Medium: this.translate.instant('appointments.accessDifficulty.medium'),
+      High: this.translate.instant('appointments.accessDifficulty.high'),
+    };
+    return ACCESS_DIFFICULTY_OPTIONS.map(opt => ({
+      value: opt.value,
+      label: labels[opt.value] ?? opt.label,
+    }));
+  });
 
   protected readonly canSaveEdit = computed(() => {
     return this.editTitle().trim() !== '' && this.editStartTime() !== '' && this.editEndTime() !== '';
@@ -348,7 +363,7 @@ export class AppointmentDetailComponent implements OnInit {
   }
 
   protected getStatusLabel(status: AppointmentStatus): string {
-    return this.statusOptions.find(o => o.value === status)?.label ?? status;
+    return this.statusOptions().find((o) => o.value === status)?.label ?? status;
   }
 
   protected getStatusClass(status: AppointmentStatus): string {

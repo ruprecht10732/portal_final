@@ -57,9 +57,9 @@ export class OffertesDetailComponent implements OnInit {
     return [
       {
         items: [
-          { label: 'Voorbeeld bekijken', disabled: !previewAvailable },
-          { label: 'PDF downloaden', disabled: !pdfAvailable },
-          { label: 'Verwijderen' },
+          { label: 'offertes.preview', disabled: !previewAvailable },
+          { label: 'offertes.downloadPdf', disabled: !pdfAvailable },
+          { label: 'common.delete' },
         ],
       },
     ];
@@ -201,13 +201,13 @@ export class OffertesDetailComponent implements OnInit {
 
   protected handleMobileMenuSelection(item: MenuItem): void {
     switch (item.label) {
-      case 'Voorbeeld bekijken':
+      case 'offertes.preview':
         this.openPreview();
         break;
-      case 'PDF downloaden':
+      case 'offertes.downloadPdf':
         this.downloadPdf();
         break;
-      case 'Verwijderen':
+      case 'common.delete':
         this.confirmDelete();
         break;
       default:
@@ -332,7 +332,9 @@ export class OffertesDetailComponent implements OnInit {
   }
 
   protected getStatusLabel(status: QuoteStatus): string {
-    return QUOTE_STATUS_LABELS[status];
+    const key = `offertes.status.${status.toLowerCase()}`;
+    const translated = this.translate.instant(key);
+    return translated || QUOTE_STATUS_LABELS[status];
   }
 
   protected getStatusColor(status: QuoteStatus): string {

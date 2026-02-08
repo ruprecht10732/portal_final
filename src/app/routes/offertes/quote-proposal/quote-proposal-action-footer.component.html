@@ -9,7 +9,7 @@
           [disabled]="accepting()"
         >
           <lucide-icon name="pencil" class="h-5 w-5" aria-hidden="true"></lucide-icon>
-          <span>Accepteren & Ondertekenen</span>
+          <span>{{ 'offertes.proposal.acceptAndSign' | translate }}</span>
         </button>
         <button
           type="button"
@@ -17,7 +17,7 @@
           (click)="reject.emit()"
           [disabled]="rejecting()"
         >
-          Afwijzen
+          {{ 'offertes.proposal.reject' | translate }}
         </button>
       </div>
     </div>
@@ -29,7 +29,7 @@
         (click)="reject.emit()"
         [disabled]="rejecting()"
       >
-        Afwijzen
+        {{ 'offertes.proposal.reject' | translate }}
       </button>
       <button
         type="button"
@@ -37,7 +37,7 @@
         (click)="accept.emit()"
         [disabled]="accepting()"
       >
-        Accepteren & Ondertekenen
+        {{ 'offertes.proposal.acceptAndSign' | translate }}
       </button>
     </div>
   }

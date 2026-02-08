@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import type { AnnotationResponse, PublicQuoteItemResponse, PricingMode } from '../../../core/services/quotes.types';
 import { centsToEuros } from '../../../core/services/quotes.types';
@@ -7,7 +8,7 @@ import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-quote-proposal-item-mobile',
-  imports: [QuoteAnnotationListComponent, LucideAngularModule],
+  imports: [QuoteAnnotationListComponent, LucideAngularModule, TranslatePipe],
   templateUrl: './quote-proposal-item-mobile.component.html',
   styleUrl: './quote-proposal-item-mobile.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

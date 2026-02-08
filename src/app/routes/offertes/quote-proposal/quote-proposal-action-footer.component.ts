@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-quote-proposal-action-footer',
-  imports: [LucideAngularModule],
+  imports: [LucideAngularModule, TranslatePipe],
   templateUrl: './quote-proposal-action-footer.component.html',
   styleUrl: './quote-proposal-action-footer.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

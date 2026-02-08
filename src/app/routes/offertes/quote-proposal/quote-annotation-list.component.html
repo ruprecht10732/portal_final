@@ -34,7 +34,10 @@
             [class.text-blue-500]="annotation.authorType === 'customer'"
             [class.text-emerald-600]="annotation.authorType === 'agent'"
           >
-            {{ annotation.authorType === 'customer' ? 'Uw Vraag' : (organizationName() || 'Antwoord') }}
+            {{ annotation.authorType === 'customer'
+              ? ('offertes.proposal.annotation.customer' | translate)
+              : (organizationName() || ('offertes.proposal.annotation.agent' | translate))
+            }}
           </span>
         </div>
         <span class="text-[9px] font-medium text-slate-400">
@@ -64,14 +67,14 @@
             (click)="requestRemove.emit(annotation)"
             [disabled]="deletingId() === annotation.id"
           >
-            Verwijderen
+            {{ 'common.delete' | translate }}
           </button>
           <button
             type="button"
             class="text-[10px] font-black uppercase tracking-wider text-blue-600 hover:text-blue-800 transition-colors"
             (click)="requestEdit.emit(annotation)"
           >
-            Wijzig
+            {{ 'common.edit' | translate }}
           </button>
         </div>
       }

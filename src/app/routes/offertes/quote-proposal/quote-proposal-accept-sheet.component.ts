@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
 import { LucideAngularModule } from 'lucide-angular';
@@ -6,7 +7,7 @@ import { QuoteProposalSignatureBlockComponent } from './quote-proposal-signature
 
 @Component({
   selector: 'app-quote-proposal-accept-sheet',
-  imports: [BottomSheetComponent, LucideAngularModule, QuoteProposalSignatureBlockComponent],
+  imports: [BottomSheetComponent, LucideAngularModule, QuoteProposalSignatureBlockComponent, TranslatePipe],
   templateUrl: './quote-proposal-accept-sheet.component.html',
   styleUrl: './quote-proposal-accept-sheet.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

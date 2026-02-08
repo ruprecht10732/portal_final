@@ -31,7 +31,9 @@
         <div>
           <span class="text-sm font-medium text-zinc-900">{{ item().description }}</span>
           @if (item().isOptional) {
-            <span class="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">optie</span>
+            <span class="ml-1.5 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-medium text-amber-700">
+              {{ 'offertes.optional' | translate }}
+            </span>
           }
         </div>
       </div>
@@ -82,7 +84,7 @@
       [class.text-slate-400]="hasAgentResponse()"
       [class.cursor-not-allowed]="hasAgentResponse()"
     >
-      Stel een vraag →
+      {{ 'offertes.proposal.askQuestionShort' | translate }}
     </button>
   }
 </div>

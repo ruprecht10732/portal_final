@@ -1,19 +1,19 @@
 <app-bottom-sheet
   [isOpen]="isOpen()"
-  title="Offerte afwijzen"
+  [title]="'offertes.proposal.rejectSheetTitle' | translate"
   (closed)="requestDismiss.emit()"
 >
   <div class="px-6 pb-6 pt-4">
     <p class="text-sm text-zinc-500">
-      Weet u zeker dat u deze offerte wilt afwijzen? U kunt optioneel een reden opgeven.
+      {{ 'offertes.proposal.rejectSheetBody' | translate }}
     </p>
     <div class="mt-4">
-      <label for="rejectReason" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">Reden (optioneel)</label>
+      <label for="rejectReason" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">{{ 'offertes.proposal.rejectSheetReasonLabel' | translate }}</label>
       <textarea
         id="rejectReason"
         rows="3"
         class="mt-2 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 placeholder:text-zinc-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
-        placeholder="Geef een reden op waarom u afwijst…"
+        [placeholder]="'offertes.proposal.rejectSheetPlaceholder' | translate"
         [value]="reason()"
         (input)="reasonChange.emit($any($event.target).value)"
       ></textarea>
@@ -31,10 +31,10 @@
         @if (rejecting()) {
           <span class="flex items-center justify-center gap-2">
             <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-            Bezig…
+            {{ 'offertes.proposal.rejectSheetWorking' | translate }}
           </span>
         } @else {
-          Afwijzen
+          {{ 'offertes.proposal.reject' | translate }}
         }
       </button>
       <button
@@ -42,7 +42,7 @@
         class="h-12 w-full rounded-[18px] border border-zinc-200 text-sm font-semibold text-zinc-500"
         (click)="requestDismiss.emit()"
       >
-        Annuleer
+        {{ 'common.cancel' | translate }}
       </button>
     </div>
   </div>

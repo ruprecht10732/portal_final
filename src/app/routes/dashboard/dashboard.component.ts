@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ActionItemsComponent } from './components/action-items/action-items.component';
 import { ActivityFeedComponent } from './components/activity-feed/activity-feed.component';
 import { LeadHeatmapComponent } from './components/lead-heatmap/lead-heatmap.component';
@@ -7,7 +8,7 @@ import { UpcomingScheduleComponent } from './components/upcoming-schedule/upcomi
 
 @Component({
   selector: 'app-dashboard',
-  imports: [DashboardKpiRowComponent, LeadHeatmapComponent, ActionItemsComponent, ActivityFeedComponent, UpcomingScheduleComponent],
+  imports: [DashboardKpiRowComponent, LeadHeatmapComponent, ActionItemsComponent, ActivityFeedComponent, UpcomingScheduleComponent, TranslatePipe],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

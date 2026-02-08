@@ -261,12 +261,18 @@ export class LeadDetailComponent implements OnInit {
     return 'danger';
   });
 
-  protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => (
-    ACCESS_DIFFICULTY_OPTIONS.map(option => ({
+  protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => {
+    this.lang();
+    const labels: Record<AccessDifficulty, string> = {
+      Low: this.translate.instant('appointments.accessDifficulty.low'),
+      Medium: this.translate.instant('appointments.accessDifficulty.medium'),
+      High: this.translate.instant('appointments.accessDifficulty.high'),
+    };
+    return ACCESS_DIFFICULTY_OPTIONS.map(option => ({
       value: option.value,
-      label: option.label,
-    }))
-  ));
+      label: labels[option.value] ?? option.label,
+    }));
+  });
 
   protected readonly serviceTypeLabels = computed<Record<string, string>>(() =>
     this.serviceTypes().reduce((acc, item) => {

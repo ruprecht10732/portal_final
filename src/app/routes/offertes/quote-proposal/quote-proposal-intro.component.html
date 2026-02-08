@@ -1,11 +1,11 @@
 <section class="quote-intro">
-  <button class="intro-skip" type="button" (click)="requestContinue()">Overslaan</button>
+  <button class="intro-skip" type="button" (click)="requestContinue()">{{ 'offertes.proposal.intro.skip' | translate }}</button>
 
   <button
     class="intro-scene"
     id="intro-trigger"
     type="button"
-    aria-label="Offerte onthullen"
+    [attr.aria-label]="'offertes.proposal.intro.revealAriaLabel' | translate"
     (click)="toggleIntro()"
   >
     <div class="intro-envelope" id="intro-envelope">
@@ -20,23 +20,29 @@
 
     <div class="intro-letter" id="intro-letter">
       <div class="intro-letter-shine" id="intro-shine"></div>
-      <div class="intro-letter-eyebrow">Persoonlijk voorstel</div>
-      <h1>Uw Offerte</h1>
+      <div class="intro-letter-eyebrow">{{ 'offertes.proposal.intro.eyebrow' | translate }}</div>
+      <h1>{{ 'offertes.proposal.intro.title' | translate }}</h1>
       <div class="intro-letter-divider"></div>
       <p>
-        Beste @if (customerName) { {{ customerName }} },
-        <span>hartelijk dank voor uw vertrouwen.</span>
-        <span>Wij hebben met zorg een offerte voor u samengesteld.</span>
+        @if (customerName) {
+          {{ 'offertes.proposal.intro.greetingWithName' | translate:{name: customerName} }}
+        } @else {
+          {{ 'offertes.proposal.intro.greeting' | translate }}
+        }
+        <span>{{ 'offertes.proposal.intro.thanks' | translate }}</span>
+        <span>{{ 'offertes.proposal.intro.prepared' | translate }}</span>
       </p>
       <div class="intro-letter-signature">{{ organizationName ?? '' }}</div>
-      <div class="intro-letter-footer">Bekijk uw offerte hieronder</div>
+      <div class="intro-letter-footer">{{ 'offertes.proposal.intro.footer' | translate }}</div>
     </div>
 
     <div class="intro-ground-shadow" id="intro-shadow"></div>
   </button>
 
-  <div class="intro-hint" [class.is-visible]="!introOpen()" [class.is-open]="introOpen()">{{ introHint() }}</div>
+  <div class="intro-hint" [class.is-visible]="!introOpen()" [class.is-open]="introOpen()">
+    {{ 'offertes.proposal.intro.hint' | translate }}
+  </div>
   @if (introOpen()) {
-    <button class="intro-continue" type="button" (click)="requestContinue()">Bekijk offerte</button>
+    <button class="intro-continue" type="button" (click)="requestContinue()">{{ 'offertes.proposal.intro.continue' | translate }}</button>
   }
 </section>

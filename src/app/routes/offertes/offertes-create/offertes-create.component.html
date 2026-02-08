@@ -226,7 +226,7 @@
                     (input)="updateLineItem(item.id, 'description', $any($event.target).value)"
                     rows="2"
                     class="flex-1 px-3 py-2 text-sm bg-white border border-zinc-200 rounded transition-all focus:outline-none focus:border-black placeholder:text-zinc-400 resize-none"
-                    placeholder="Type to search catalog..."
+                    [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
                   ></textarea>
                   <button
                     type="button"
@@ -243,7 +243,7 @@
                     [label]="'offertes.qty' | translate"
                     [value]="item.quantity"
                     (valueChange)="updateLineItem(item.id, 'quantity', $event)"
-                    placeholder="1 x"
+                    [placeholder]="'offertes.qtyPlaceholder' | translate"
                   />
                   <shared-number-input
                     [label]="'offertes.price' | translate"
@@ -310,7 +310,7 @@
                       <shared-input
                         [value]="item.quantity"
                         (valueChange)="updateLineItem(item.id, 'quantity', $event)"
-                        placeholder="1 x"
+                        [placeholder]="'offertes.qtyPlaceholder' | translate"
                         class="w-20"
                       />
                     </td>
@@ -324,7 +324,7 @@
                           (input)="updateLineItem(item.id, 'description', $any($event.target).value)"
                           rows="1"
                           class="w-full px-4 py-3 text-sm bg-white border border-zinc-200 rounded transition-all duration-200 focus:outline-none focus:border-black placeholder:text-zinc-400 resize-y min-h-12"
-                          placeholder="Type to search catalog..."
+                          [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
                         ></textarea>
                       </div>
                     </td>
@@ -457,7 +457,7 @@
                   #urlHref
                   id="urlHrefInput"
                   type="url"
-                  placeholder="https://..."
+                  [placeholder]="'offertes.urlHrefPlaceholder' | translate"
                   class="w-full rounded-md border border-zinc-300 px-2.5 py-1.5 text-sm text-zinc-800 placeholder:text-zinc-400 focus:border-zinc-500 focus:ring-1 focus:ring-zinc-500 focus:outline-none"
                 />
               </div>
@@ -532,7 +532,7 @@
               <div class="space-y-1">
                 @for (entry of taxBreakdown(); track entry.rate) {
                   <div class="flex justify-between text-xs text-zinc-400">
-                    <span>BTW {{ entry.rate }}%</span>
+                    <span>{{ 'offertes.tax' | translate }} {{ entry.rate }}%</span>
                     <span>{{ formatCurrency(entry.amount) }}</span>
                   </div>
                 }

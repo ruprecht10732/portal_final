@@ -11,6 +11,7 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { environment } from '../../../../environments/environment';
 import { PublicQuoteService } from '../../../core/services/public-quote.service';
 import type {
@@ -18,6 +19,7 @@ import type {
   PublicQuoteItemResponse,
   AnnotationResponse,
   VatBreakdown,
+  QuoteStatus,
 } from '../../../core/services/quotes.types';
 import { centsToEuros, QUOTE_STATUS_COLORS } from '../../../core/services/quotes.types';
 import { QuoteProposalMobileHeaderComponent } from './quote-proposal-mobile-header.component';
@@ -35,6 +37,7 @@ import { QuoteProposalRejectSheetComponent } from './quote-proposal-reject-sheet
   imports: [
     FormsModule,
     DatePipe,
+    TranslatePipe,
     QuoteProposalMobileHeaderComponent,
     QuoteStatusBannerComponent,
     QuoteProposalItemMobileComponent,
@@ -52,6 +55,7 @@ import { QuoteProposalRejectSheetComponent } from './quote-proposal-reject-sheet
 export class QuoteProposalComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly publicQuoteService = inject(PublicQuoteService);
+  private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly zone = inject(NgZone);
   private eventSource: EventSource | null = null;
@@ -125,7 +129,7 @@ export class QuoteProposalComponent implements OnInit {
   ngOnInit(): void {
     const t = this.route.snapshot.paramMap.get('token');
     if (!t) {
-      this.error.set('Geen geldig offerte-link gevonden.');
+      this.error.set(this.translate.instant('offertes.proposal.invalidLink'));
       this.loading.set(false);
       return;
     }
@@ -184,16 +188,20 @@ export class QuoteProposalComponent implements OnInit {
       },
       error: err => {
         if (err.status === 410) {
-          this.error.set('Deze offerte-link is verlopen.');
+          this.error.set(this.translate.instant('offertes.proposal.expiredLink'));
         } else if (err.status === 404) {
-          this.error.set('Offerte niet gevonden.');
+          this.error.set(this.translate.instant('offertes.proposal.notFound'));
         } else {
-          this.error.set('Er ging iets mis bij het laden van de offerte.');
+          this.error.set(this.translate.instant('offertes.proposal.loadError'));
         }
         this.loading.set(false);
       },
     });
   }
+  protected statusLabel(status: QuoteStatus): string {
+    return this.translate.instant(`offertes.status.${status.toLowerCase()}`);
+  }
+
 
   protected toggleItem(item: PublicQuoteItemResponse): void {
     if (this.isFinalized() || this.isReadOnly() || !item.isOptional) return;
@@ -422,8 +430,12 @@ export class QuoteProposalComponent implements OnInit {
       const nav = globalThis.navigator;
       if (nav?.share) {
         const shareData: ShareData = q
-          ? { title: `Offerte ${q.quoteNumber}`, text: `Offerte van ${q.organizationName}`, url }
-          : { title: 'Offerte', url };
+          ? {
+              title: this.translate.instant('offertes.proposal.shareTitle', { number: q.quoteNumber }),
+              text: this.translate.instant('offertes.proposal.shareText', { organization: q.organizationName }),
+              url,
+            }
+          : { title: this.translate.instant('offertes.proposal.shareFallbackTitle'), url };
         await nav.share(shareData);
         return;
       }

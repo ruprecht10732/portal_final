@@ -4,6 +4,7 @@
     "listView": "List View",
     "availabilityNav": "Availability",
     "createNew": "New Appointment",
+    "calendarEmpty": "No appointments found",
     "type": {
       "leadVisit": "Lead Visit",
       "standalone": "Standalone",
@@ -14,6 +15,11 @@
       "completed": "Completed",
       "cancelled": "Cancelled",
       "noShow": "No Show"
+    },
+    "accessDifficulty": {
+      "low": "Low",
+      "medium": "Medium",
+      "high": "High"
     },
     "list": {
       "title": "Appointments",

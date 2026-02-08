@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { DatePipe } from '@angular/common';
 import { LucideAngularModule } from 'lucide-angular';
 
@@ -7,7 +8,7 @@ import type { AnnotationResponse } from '../../../core/services/quotes.types';
 @Component({
   selector: 'app-quote-annotation-list',
   standalone: true,
-  imports: [DatePipe, LucideAngularModule],
+  imports: [DatePipe, LucideAngularModule, TranslatePipe],
   templateUrl: './quote-annotation-list.component.html',
   styleUrl: './quote-annotation-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
