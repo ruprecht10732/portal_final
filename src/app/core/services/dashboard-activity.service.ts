@@ -1,7 +1,24 @@
 import { DestroyRef, inject, Injectable, signal, computed } from '@angular/core';
+import { HttpClient } from '@angular/common/http';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { SSEService, type SSEEvent } from './sse.service';
 import type { ActivityCategory, ActivityEvent } from './dashboard-activity.types';
+import { environment } from '../../../environments/environment';
+
+/** API response shape from GET /leads/activity-feed */
+interface ActivityFeedItemDTO {
+  id: string;
+  type: string;
+  category: ActivityCategory;
+  title: string;
+  description?: string;
+  timestamp: string;
+  link?: string[];
+}
+
+interface ActivityFeedResponse {
+  items: ActivityFeedItemDTO[];
+}
 
 /** Maximum number of events kept in the feed (newest first). */
 const MAX_EVENTS = 100;
@@ -9,10 +26,14 @@ const MAX_EVENTS = 100;
 /**
  * Service that aggregates SSE events into a unified activity feed
  * for the dashboard widget.
+ *
+ * On construction it loads recent historical activity from the backend
+ * so the card is never empty on first render.
  */
 @Injectable({ providedIn: 'root' })
 export class DashboardActivityService {
   private readonly sse = inject(SSEService);
+  private readonly http = inject(HttpClient);
   private readonly destroyRef = inject(DestroyRef);
 
   /** Internal mutable list — newest first. */
@@ -20,6 +41,9 @@ export class DashboardActivityService {
 
   /** Active filter categories (empty = show all). */
   private readonly _filters = signal<Set<ActivityCategory>>(new Set());
+
+  /** Track IDs we already have to prevent SSE duplicates after initial load. */
+  private readonly seenKeys = new Set<string>();
 
   /** All collected events. */
   readonly events = this._events.asReadonly();
@@ -36,6 +60,7 @@ export class DashboardActivityService {
   });
 
   constructor() {
+    this.loadInitialEvents();
     this.subscribeToSSE();
   }
 
@@ -58,6 +83,52 @@ export class DashboardActivityService {
   }
 
   // ---------------------------------------------------------------------------
+  // Initial HTTP load
+  // ---------------------------------------------------------------------------
+
+  private loadInitialEvents(): void {
+    this.http
+      .get<ActivityFeedResponse>(`${environment.apiBaseUrl}/leads/activity-feed`)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (res) => {
+          const mapped = (res.items ?? [])
+            .map((item): ActivityEvent => ({
+              id: item.id,
+              type: item.type,
+              category: item.category,
+              title: item.title,
+              description: item.description,
+              timestamp: item.timestamp,
+              link: item.link,
+            }));
+
+          // Register as seen
+          for (const e of mapped) {
+            this.seenKeys.add(this.eventKey(e));
+          }
+
+          // Merge: keep any SSE events that arrived before the HTTP response,
+          // then append historical events that aren't duplicates.
+          this._events.update(prev => {
+            const combined = [...prev];
+            for (const e of mapped) {
+              if (!prev.some(p => p.id === e.id)) {
+                combined.push(e);
+              }
+            }
+            // Re-sort newest first and cap
+            combined.sort((a, b) => new Date(b.timestamp).getTime() - new Date(a.timestamp).getTime());
+            return combined.length > MAX_EVENTS ? combined.slice(0, MAX_EVENTS) : combined;
+          });
+        },
+        error: () => {
+          // Silently ignore — the feed will still work with SSE-only events
+        },
+      });
+  }
+
+  // ---------------------------------------------------------------------------
   // SSE subscription
   // ---------------------------------------------------------------------------
 
@@ -68,11 +139,21 @@ export class DashboardActivityService {
         const mapped = this.mapEvent(event);
         if (!mapped) return;
 
+        // Dedup: skip if we already loaded this event from history
+        const key = this.eventKey(mapped);
+        if (this.seenKeys.has(key)) return;
+        this.seenKeys.add(key);
+
         this._events.update(prev => {
           const next = [mapped, ...prev];
           return next.length > MAX_EVENTS ? next.slice(0, MAX_EVENTS) : next;
         });
       });
+  }
+
+  /** Build a dedup key from category + type + timestamp (coarse enough). */
+  private eventKey(e: ActivityEvent): string {
+    return `${e.category}:${e.type}:${e.timestamp}`;
   }
 
   // ---------------------------------------------------------------------------
