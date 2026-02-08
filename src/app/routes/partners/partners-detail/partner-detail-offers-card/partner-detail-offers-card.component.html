@@ -1,7 +1,7 @@
 <section class="rounded-xl border border-zinc-200 bg-white p-5">
   <div class="flex items-center justify-between gap-3 mb-3">
     <h3 class="text-sm font-semibold text-black uppercase tracking-wide">
-      Werkaanbiedingen
+      {{ 'partners.offersCard.title' | translate }}
     </h3>
     <div class="flex items-center gap-2">
       <span class="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-semibold text-zinc-600">
@@ -14,8 +14,8 @@
         [iconOnly]="true"
         [fullWidth]="false"
         [disabled]="loading()"
-        ariaLabel="Vernieuwen"
-        tooltip="Vernieuwen"
+        [ariaLabel]="'partners.offersCard.refresh' | translate"
+        [tooltip]="'partners.offersCard.refresh' | translate"
         (clicked)="refresh.emit()"
       >
         <lucide-icon name="refresh-cw" class="h-4 w-4" aria-hidden="true"></lucide-icon>
@@ -26,9 +26,9 @@
   @if (error()) {
     <div class="text-sm text-red-600">{{ error() }}</div>
   } @else if (loading()) {
-    <div class="text-sm text-zinc-500">Werkaanbiedingen laden…</div>
+    <div class="text-sm text-zinc-500">{{ 'partners.offersCard.loading' | translate }}</div>
   } @else if (sortedOffers().length === 0) {
-    <p class="text-sm text-zinc-500">Geen werkaanbiedingen verstuurd naar deze vakman.</p>
+    <p class="text-sm text-zinc-500">{{ 'partners.offersCard.empty' | translate }}</p>
   } @else {
     <ul class="space-y-3">
       @for (offer of sortedOffers(); track offer.id) {
@@ -37,29 +37,36 @@
             <div class="flex-1 min-w-0">
               <div class="flex items-center gap-2 mb-1">
                 <span class="status-badge {{ statusClass(offer.status) }}">
-                  {{ statusLabel(offer.status) }}
+                  {{ statusLabel(offer.status) | translate }}
                 </span>
                 <span class="text-xs font-medium text-zinc-600 uppercase">
-                  {{ offer.pricingSource === 'quote' ? 'Offerte' : 'Schatting' }}
+                  {{ offer.pricingSource === 'quote'
+                    ? ('partners.offersCard.pricingSource.quote' | translate)
+                    : ('partners.offersCard.pricingSource.estimate' | translate) }}
                 </span>
               </div>
               <div class="text-sm font-semibold text-zinc-900">
                 {{ centsToEuros(offer.vakmanPriceCents) }}
-                <span class="text-xs font-normal text-zinc-400 ml-1">vakman</span>
+                <span class="text-xs font-normal text-zinc-400 ml-1">
+                  {{ 'partners.offersCard.price.partnerLabel' | translate }}
+                </span>
                 <span class="text-zinc-300 mx-1">·</span>
                 {{ centsToEuros(offer.customerPriceCents) }}
-                <span class="text-xs font-normal text-zinc-400 ml-1">klant</span>
+                <span class="text-xs font-normal text-zinc-400 ml-1">
+                  {{ 'partners.offersCard.price.customerLabel' | translate }}
+                </span>
               </div>
               <div class="text-xs text-zinc-500 mt-1">
-                Aangemaakt op {{ formatDate(offer.createdAt) }}
+                {{ 'partners.offersCard.createdAt' | translate:{ date: formatDate(offer.createdAt) } }}
                 @if (offer.expiresAt) {
                   <span class="text-zinc-300 mx-1">·</span>
-                  Verloopt {{ formatDate(offer.expiresAt) }}
+                  {{ 'partners.offersCard.expiresAt' | translate:{ date: formatDate(offer.expiresAt) } }}
                 }
               </div>
               @if (offer.status === 'rejected' && offer.rejectionReason) {
                 <div class="mt-1 text-xs text-red-600">
-                  <span class="font-medium">Reden:</span> {{ offer.rejectionReason }}
+                  <span class="font-medium">{{ 'partners.offersCard.rejectionReason' | translate }}</span>
+                  {{ offer.rejectionReason }}
                 </div>
               }
             </div>
@@ -72,8 +79,8 @@
                   size="compact"
                   [iconOnly]="true"
                   [fullWidth]="false"
-                  ariaLabel="WhatsApp bericht sturen"
-                  tooltip="WhatsApp"
+                  [ariaLabel]="'partners.offersCard.whatsapp' | translate"
+                  [tooltip]="'partners.offersCard.whatsappTooltip' | translate"
                   (clicked)="openWhatsApp(offer)"
                 >
                   <lucide-icon name="message-circle" class="h-4 w-4 text-green-600" aria-hidden="true"></lucide-icon>
@@ -85,8 +92,8 @@
                 size="compact"
                 [iconOnly]="true"
                 [fullWidth]="false"
-                ariaLabel="Voorbeeld bekijken"
-                tooltip="Voorbeeld"
+                [ariaLabel]="'partners.offersCard.preview' | translate"
+                [tooltip]="'partners.offersCard.previewTooltip' | translate"
                 (clicked)="previewOffer(offer)"
               >
                 <lucide-icon name="eye" class="h-4 w-4" aria-hidden="true"></lucide-icon>

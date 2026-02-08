@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, input, output } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { PartnersService } from '../../../../core/services/partners.service';
@@ -10,7 +11,7 @@ import type { OfferResponse } from '../../../../core/services/partners.types';
   templateUrl: './partner-detail-offers-card.component.html',
   styleUrl: './partner-detail-offers-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LucideAngularModule, ButtonComponent],
+  imports: [TranslatePipe, LucideAngularModule, ButtonComponent],
 })
 export class PartnerDetailOffersCardComponent {
   private readonly router = inject(Router);
@@ -32,11 +33,11 @@ export class PartnerDetailOffersCardComponent {
 
   protected statusLabel(status: string): string {
     const labels: Record<string, string> = {
-      pending: 'In afwachting',
-      sent: 'Verstuurd',
-      accepted: 'Geaccepteerd',
-      rejected: 'Afgewezen',
-      expired: 'Verlopen',
+      pending: 'partners.offer.status.pending',
+      sent: 'partners.offer.status.sent',
+      accepted: 'partners.offer.status.accepted',
+      rejected: 'partners.offer.status.rejected',
+      expired: 'partners.offer.status.expired',
     };
     return labels[status] ?? status;
   }

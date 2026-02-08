@@ -130,6 +130,86 @@
         "loadLogo": "Logo laden mislukt"
       }
     },
+    "offer": {
+      "loading": "Aanbod laden...",
+      "previewBanner": "Voorbeeld - dit is wat de vakman ziet",
+      "title": "Werkaanbod",
+      "details": {
+        "job": "Opdracht",
+        "location": "Locatie",
+        "fee": "Uw vergoeding",
+        "source": "Bron",
+        "validUntil": "Geldig tot"
+      },
+      "pricingSource": {
+        "quote": "Offerte",
+        "estimate": "Schatting"
+      },
+      "status": {
+        "pending": "In afwachting",
+        "sent": "Verstuurd",
+        "accepted": "Geaccepteerd",
+        "rejected": "Afgewezen",
+        "expired": "Verlopen",
+        "open": "Open"
+      },
+      "actions": {
+        "accept": "Accepteren",
+        "reject": "Afwijzen",
+        "confirmAccept": "Bevestig acceptatie",
+        "confirmReject": "Bevestig afwijzing",
+        "cancel": "Annuleren",
+        "busy": "Bezig..."
+      },
+      "accept": {
+        "title": "Beschikbaarheid voor inspectie",
+        "hint": "Geef minimaal een tijdslot op wanneer u beschikbaar bent voor een inspectiebezoek.",
+        "from": "Van",
+        "to": "Tot",
+        "removeSlotAria": "Verwijder tijdslot",
+        "addInspectionSlot": "+ Nog een tijdslot",
+        "jobTitle": "Beschikbaarheid voor uitvoering",
+        "optional": "(optioneel)",
+        "addJobSlot": "+ Uitvoerings-tijdslot toevoegen"
+      },
+      "reject": {
+        "title": "Aanbod afwijzen",
+        "reasonLabel": "Reden (optioneel)",
+        "placeholder": "Waarom wilt u dit aanbod afwijzen?"
+      },
+      "success": {
+        "thanks": "Bedankt!",
+        "accepted": "U heeft het aanbod geaccepteerd. De opdrachtgever neemt contact met u op om een inspectieafspraak in te plannen.",
+        "rejected": "U heeft het aanbod afgewezen. Bedankt voor uw reactie."
+      },
+      "errors": {
+        "invalidLink": "Geen geldige link.",
+        "loadFailed": "Kon het aanbod niet laden. Controleer de link en probeer het opnieuw.",
+        "acceptFailed": "Kon het aanbod niet accepteren. Probeer het later opnieuw.",
+        "rejectFailed": "Kon het aanbod niet afwijzen. Probeer het later opnieuw."
+      }
+    },
+    "offersCard": {
+      "title": "Werkaanbiedingen",
+      "refresh": "Vernieuwen",
+      "loading": "Werkaanbiedingen laden...",
+      "empty": "Geen werkaanbiedingen verstuurd naar deze vakman.",
+      "pricingSource": {
+        "quote": "Offerte",
+        "estimate": "Schatting"
+      },
+      "price": {
+        "partnerLabel": "vakman",
+        "customerLabel": "klant"
+      },
+      "createdAt": "Aangemaakt op {{date}}",
+      "expiresAt": "Verloopt {{date}}",
+      "rejectionReason": "Reden:",
+      "whatsapp": "WhatsApp bericht sturen",
+      "whatsappTooltip": "WhatsApp",
+      "preview": "Voorbeeld bekijken",
+      "previewTooltip": "Voorbeeld"
+    },
     "errors": {
       "loadFailed": "Kon partners niet laden",
       "saveFailed": "Kon partners niet opslaan",

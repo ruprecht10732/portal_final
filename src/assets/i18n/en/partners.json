@@ -130,6 +130,86 @@
         "loadLogo": "Failed to load logo"
       }
     },
+    "offer": {
+      "loading": "Loading offer...",
+      "previewBanner": "Preview - this is what the partner sees",
+      "title": "Work offer",
+      "details": {
+        "job": "Job",
+        "location": "Location",
+        "fee": "Your compensation",
+        "source": "Source",
+        "validUntil": "Valid until"
+      },
+      "pricingSource": {
+        "quote": "Quote",
+        "estimate": "Estimate"
+      },
+      "status": {
+        "pending": "Pending",
+        "sent": "Sent",
+        "accepted": "Accepted",
+        "rejected": "Rejected",
+        "expired": "Expired",
+        "open": "Open"
+      },
+      "actions": {
+        "accept": "Accept",
+        "reject": "Reject",
+        "confirmAccept": "Confirm acceptance",
+        "confirmReject": "Confirm rejection",
+        "cancel": "Cancel",
+        "busy": "Working..."
+      },
+      "accept": {
+        "title": "Availability for inspection",
+        "hint": "Provide at least one time slot when you are available for an inspection visit.",
+        "from": "From",
+        "to": "To",
+        "removeSlotAria": "Remove time slot",
+        "addInspectionSlot": "+ Add another time slot",
+        "jobTitle": "Availability for execution",
+        "optional": "(optional)",
+        "addJobSlot": "+ Add execution slot"
+      },
+      "reject": {
+        "title": "Reject offer",
+        "reasonLabel": "Reason (optional)",
+        "placeholder": "Why do you want to reject this offer?"
+      },
+      "success": {
+        "thanks": "Thank you!",
+        "accepted": "You accepted the offer. The client will contact you to schedule an inspection.",
+        "rejected": "You rejected the offer. Thank you for your response."
+      },
+      "errors": {
+        "invalidLink": "Invalid link.",
+        "loadFailed": "Could not load the offer. Check the link and try again.",
+        "acceptFailed": "Could not accept the offer. Please try again later.",
+        "rejectFailed": "Could not reject the offer. Please try again later."
+      }
+    },
+    "offersCard": {
+      "title": "Work offers",
+      "refresh": "Refresh",
+      "loading": "Loading work offers...",
+      "empty": "No work offers sent to this partner.",
+      "pricingSource": {
+        "quote": "Quote",
+        "estimate": "Estimate"
+      },
+      "price": {
+        "partnerLabel": "partner",
+        "customerLabel": "customer"
+      },
+      "createdAt": "Created on {{date}}",
+      "expiresAt": "Expires {{date}}",
+      "rejectionReason": "Reason:",
+      "whatsapp": "Send WhatsApp message",
+      "whatsappTooltip": "WhatsApp",
+      "preview": "Preview offer",
+      "previewTooltip": "Preview"
+    },
     "errors": {
       "loadFailed": "Failed to load partners",
       "saveFailed": "Failed to save partners",
