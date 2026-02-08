@@ -392,6 +392,16 @@ export interface AnalyzeLeadResponse {
 
 // Photo Analysis types
 export type PhotoAnalysisConfidence = 'High' | 'Medium' | 'Low';
+export type PhotoMeasurementType = 'dimension' | 'area' | 'count' | 'volume';
+
+export interface PhotoMeasurement {
+  description: string;
+  value: number;
+  unit: string;
+  type: PhotoMeasurementType;
+  confidence: PhotoAnalysisConfidence;
+  photoRef: string;
+}
 
 export interface PhotoAnalysis {
   id: string;
@@ -405,6 +415,11 @@ export interface PhotoAnalysis {
   additionalInfo: string[];
   confidenceLevel: PhotoAnalysisConfidence;
   photoCount: number;
+  measurements: PhotoMeasurement[];
+  needsOnsiteMeasurement: string[];
+  discrepancies: string[];
+  extractedText: string[];
+  suggestedSearchTerms: string[];
   createdAt: string;
 }
 

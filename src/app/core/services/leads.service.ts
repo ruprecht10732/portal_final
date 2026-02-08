@@ -160,6 +160,13 @@ export class LeadsService extends BaseCrudService<
     return this.http.get<PhotoAnalysisResponse>(`${this.baseUrl}/${leadId}/services/${serviceId}/photo-analysis`);
   }
 
+  triggerPhotoAnalysis(leadId: string, serviceId: string, context?: string): Observable<{ status: string; message: string; photoCount: number }> {
+    return this.http.post<{ status: string; message: string; photoCount: number }>(
+      `${this.baseUrl}/${leadId}/services/${serviceId}/analyze-photos`,
+      { context: context ?? '' },
+    );
+  }
+
   // Call Logger - processes post-call summaries into structured actions
   logCall(leadId: string, serviceId: string, data: LogCallRequest): Observable<LogCallResponse> {
     return this.http.post<LogCallResponse>(`${this.baseUrl}/${leadId}/services/${serviceId}/log-call`, data);
