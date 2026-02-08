@@ -3,7 +3,10 @@ export interface PublicPartnerOfferResponse {
   offerId: string;
   organizationName: string;
   jobSummary: string;
+  jobSummaryShort?: string | null;
   city: string;
+  postcode4?: string | null;
+  buurtcode?: string | null;
   vakmanPriceCents: number;
   pricingSource: 'quote' | 'estimate';
   status: PartnerOfferStatus;
@@ -22,12 +25,12 @@ export interface TimeSlot {
 /** Payload the vakman sends when accepting an offer. */
 export interface AcceptOfferRequest {
   inspectionSlots: TimeSlot[];
-  jobSlots?: TimeSlot[] | undefined;
+  jobSlots?: TimeSlot[];
 }
 
 /** Payload the vakman sends when rejecting an offer. */
 export interface RejectOfferRequest {
-  reason?: string | undefined;
+  reason?: string;
 }
 
 /** Helper: convert cents to euros display string. */

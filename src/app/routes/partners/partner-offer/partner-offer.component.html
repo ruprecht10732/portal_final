@@ -1,184 +1,609 @@
-<div class="offer-page">
-  @if (loading()) {
-    <div class="loading-container">
-      <div class="spinner"></div>
-      <p>{{ 'partners.offer.loading' | translate }}</p>
+<!-- Loading State -->
+@if (loading()) {
+  <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
+    <div class="text-center">
+      <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600"></div>
+      <p class="mt-4 text-sm text-zinc-500">{{ 'partners.offer.loading' | translate }}</p>
     </div>
-  } @else if (errorKey() && !offer()) {
-    <div class="error-container">
-      <div class="error-icon">&#9888;</div>
-      <p>{{ errorKey() | translate }}</p>
+  </div>
+} @else if (errorKey() && !offer()) {
+  <!-- Error State -->
+  <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
+    <div class="rounded-xl bg-white p-8 shadow-lg text-center max-w-md">
+      <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100">
+        <svg class="h-6 w-6 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+      </div>
+      <h2 class="text-lg font-semibold text-zinc-900">{{ 'partners.offer.errors.loadFailed' | translate }}</h2>
+      <p class="mt-2 text-sm text-zinc-500">{{ errorKey() | translate }}</p>
     </div>
-  } @else if (offer(); as o) {
-    <header class="offer-header">
-      @if (isPreview()) {
-        <div class="status-banner" style="background: #dbeafe; color: #1e40af; margin-bottom: 16px;">
-          {{ 'partners.offer.previewBanner' | translate }}
+  </div>
+} @else if (offer(); as o) {
+  <div class="min-h-screen bg-linear-to-br from-zinc-50 to-zinc-100">
+    <div class="mx-auto max-w-4xl px-0 pb-8 pt-0 sm:px-6 sm:py-8 lg:px-8">
+
+      <!-- ============ MOBILE LAYOUT ============ -->
+      <div class="sm:hidden">
+        <div class="relative min-h-screen flex flex-col">
+          <!-- Mobile sticky header -->
+          <nav class="sticky top-0 z-50 grid grid-cols-[40px_1fr_40px] items-center border-b border-gray-100 bg-white/70 px-4 py-4 backdrop-blur">
+            <span aria-hidden="true"></span>
+            <div class="flex flex-col items-center">
+              <span class="text-[10px] font-bold uppercase tracking-widest text-slate-400">{{ 'partners.offer.title' | translate }}</span>
+            </div>
+            <span aria-hidden="true"></span>
+          </nav>
+
+          <main class="flex-1" [class.pb-52]="isActionable() && !done()" [class.pb-8]="!isActionable() || done()">
+            @if (isPreview()) {
+              <div class="px-5 pt-4">
+                <div class="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                  {{ 'partners.offer.previewBanner' | translate }}
+                </div>
+              </div>
+            }
+
+            <!-- Mobile hero card -->
+            <div class="border-b border-gray-100 bg-white px-5 pb-6 pt-6">
+              <div class="mb-6 flex items-start justify-between">
+                <div class="flex items-center gap-4">
+                  <div class="h-16 w-16 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.04),0_2px_8px_-2px_rgba(0,0,0,0.02)]">
+                    <div class="flex h-full w-full items-center justify-center bg-zinc-100 text-xl font-extrabold text-zinc-700">
+                      {{ o.organizationName[0] ?? 'O' }}
+                    </div>
+                  </div>
+                  <div>
+                    <h1 class="text-xl font-extrabold tracking-tight text-slate-900 line-clamp-2">{{ o.organizationName }}</h1>
+                    <p class="mt-0.5 text-sm font-medium text-slate-500 line-clamp-2">{{ summaryDisplay() }}</p>
+                  </div>
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-2">
+                <div class="rounded-full px-4 py-1.5 text-[13px] font-bold text-white shadow-lg ring-4" [class]="mobileStatusBadge()">
+                  {{ statusLabelKey() | translate }}
+                </div>
+                <div class="rounded-full bg-gray-100 px-4 py-1.5 text-[13px] font-semibold text-slate-500">
+                  {{ 'partners.offer.details.validUntil' | translate }} {{ o.expiresAt | date:'d MMM':'':'nl' }}
+                </div>
+              </div>
+            </div>
+
+            <!-- Mobile status banner -->
+            @if (done() === 'accepted') {
+              <div class="px-5 pt-4">
+                <div class="rounded-2xl border border-green-200 bg-green-50 px-4 py-3">
+                  <p class="text-sm font-semibold text-green-800">{{ 'partners.offer.success.thanks' | translate }}</p>
+                  <p class="mt-1 text-xs text-green-600">{{ 'partners.offer.success.accepted' | translate }}</p>
+                </div>
+              </div>
+            }
+            @if (done() === 'rejected') {
+              <div class="px-5 pt-4">
+                <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3">
+                  <p class="text-sm font-semibold text-red-800">{{ 'partners.offer.success.rejected' | translate }}</p>
+                </div>
+              </div>
+            }
+            @if (!isActionable() && !done()) {
+              <div class="px-5 pt-4">
+                <div class="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+                  <p class="text-sm font-semibold text-zinc-700">{{ statusLabelKey() | translate }}</p>
+                </div>
+              </div>
+            }
+
+            <!-- Mobile fee highlight -->
+            <div class="mx-5 mt-4 flex items-center justify-between rounded-2xl bg-white p-5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+              <span class="text-sm font-medium text-zinc-500">{{ 'partners.offer.details.fee' | translate }}</span>
+              <span class="text-2xl font-extrabold text-emerald-600">{{ priceDisplay() }}</span>
+            </div>
+
+            <!-- Mobile sections -->
+            <div class="mt-4">
+              <!-- Summary -->
+              <div class="flex items-center justify-between px-5 py-4">
+                <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'partners.offer.summaryTitle' | translate }}</h3>
+              </div>
+              <div class="mx-5 rounded-2xl bg-white p-5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+                <p class="text-sm leading-relaxed text-zinc-700">{{ summaryDisplay() }}</p>
+              </div>
+
+              <!-- Location -->
+              <div class="flex items-center justify-between px-5 py-4 mt-2">
+                <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'partners.offer.locationTitle' | translate }}</h3>
+                <span class="text-xs font-semibold text-zinc-500">{{ locationLabel() }}</span>
+              </div>
+              <div class="mx-5 rounded-2xl bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] overflow-hidden">
+                <shared-map-preview [address]="mapQuery()" [height]="180"></shared-map-preview>
+                <p class="px-4 py-3 text-[11px] text-zinc-400">{{ 'partners.offer.locationHint' | translate }}</p>
+              </div>
+
+              <!-- Details -->
+              <div class="flex items-center justify-between px-5 py-4 mt-2">
+                <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'partners.offer.detailsTitle' | translate }}</h3>
+              </div>
+              <div class="mx-5 rounded-2xl bg-white p-5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+                <div class="space-y-3 text-sm">
+                  <div class="flex items-center justify-between">
+                    <span class="text-zinc-500">{{ 'partners.offer.details.job' | translate }}</span>
+                    <span class="font-semibold text-zinc-900 text-right max-w-[60%]">{{ o.jobSummary }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-zinc-500">{{ 'partners.offer.details.location' | translate }}</span>
+                    <span class="font-semibold text-zinc-900">{{ locationLabel() }}</span>
+                  </div>
+                  <div class="flex items-center justify-between">
+                    <span class="text-zinc-500">{{ 'partners.offer.details.source' | translate }}</span>
+                    <span class="font-semibold text-zinc-900">
+                      {{ o.pricingSource === 'quote'
+                        ? ('partners.offer.pricingSource.quote' | translate)
+                        : ('partners.offer.pricingSource.estimate' | translate) }}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            @if (errorKey()) {
+              <div class="mx-5 mt-4 rounded-2xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+                {{ errorKey() | translate }}
+              </div>
+            }
+          </main>
+
+          <!-- Mobile fixed action footer -->
+          @if (isActionable() && !done() && !showRejectForm()) {
+            <div class="fixed bottom-0 left-0 right-0 z-50 border-t border-gray-100 bg-white/80 px-5 pb-[calc(1.25rem+env(safe-area-inset-bottom))] pt-5 backdrop-blur">
+              <div class="mx-auto flex max-w-md flex-col gap-3">
+                <button type="button" class="flex h-16 w-full items-center justify-center gap-2 rounded-[20px] bg-teal-600 text-lg font-extrabold text-white shadow-xl shadow-teal-500/25 transition-all active:scale-[0.97] active:bg-teal-700" (click)="openAcceptSheet()">
+                  <span>{{ 'partners.offer.actions.accept' | translate }}</span>
+                </button>
+                <button type="button" class="h-14 w-full rounded-[20px] border-2 border-slate-100 text-base font-bold text-slate-400 transition-all active:scale-[0.97]" (click)="openRejectForm()">
+                  {{ 'partners.offer.actions.reject' | translate }}
+                </button>
+              </div>
+            </div>
+          }
         </div>
+      </div>
+
+      <!-- ============ DESKTOP LAYOUT ============ -->
+      <div class="hidden sm:block">
+        @if (isPreview()) {
+          <div class="mb-6 rounded-xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+            {{ 'partners.offer.previewBanner' | translate }}
+          </div>
+        }
+
+        <!-- Desktop header card -->
+        <div class="mb-8 rounded-xl bg-white p-6 shadow-sm">
+          <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div>
+              <h1 class="text-2xl font-bold text-zinc-900">{{ 'partners.offer.title' | translate }}</h1>
+              <p class="mt-1 text-sm text-zinc-500">{{ 'partners.offer.fromOrg' | translate }} {{ o.organizationName }}</p>
+              <p class="mt-1 text-sm font-medium text-zinc-700">{{ summaryDisplay() }}</p>
+            </div>
+            <div class="text-right">
+              <span class="inline-flex items-center rounded-full px-3 py-1 text-sm font-medium" [class]="statusBadgeClass()">
+                {{ statusLabelKey() | translate }}
+              </span>
+              <p class="mt-2 text-xs text-zinc-500">
+                {{ 'partners.offer.details.validUntil' | translate }} {{ o.expiresAt | date:'d MMMM yyyy, HH:mm':'':'nl-NL' }}
+              </p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Desktop status banners -->
+        @if (done() === 'accepted') {
+          <div class="mb-6 rounded-xl border border-green-200 bg-green-50 p-4">
+            <div class="flex items-center gap-3">
+              <svg class="h-5 w-5 text-green-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+              <div>
+                <p class="font-medium text-green-800">{{ 'partners.offer.success.thanks' | translate }}</p>
+                <p class="text-sm text-green-600">{{ 'partners.offer.success.accepted' | translate }}</p>
+              </div>
+            </div>
+          </div>
+        }
+        @if (done() === 'rejected') {
+          <div class="mb-6 rounded-xl border border-red-200 bg-red-50 p-4">
+            <div class="flex items-center gap-3">
+              <svg class="h-5 w-5 text-red-600" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              <p class="font-medium text-red-800">{{ 'partners.offer.success.rejected' | translate }}</p>
+            </div>
+          </div>
+        }
+        @if (!isActionable() && !done()) {
+          <div class="mb-6 rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+            <div class="flex items-center gap-3">
+              <svg class="h-5 w-5 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+              <p class="font-medium text-zinc-700">{{ statusLabelKey() | translate }}</p>
+            </div>
+          </div>
+        }
+
+        <!-- Desktop content grid -->
+        <div class="grid gap-6 lg:grid-cols-2">
+          <div class="space-y-6">
+            <!-- Summary card -->
+            <div class="rounded-xl bg-white p-6 shadow-sm">
+              <div class="border-b border-zinc-100 pb-4">
+                <h2 class="text-lg font-semibold text-zinc-900">{{ 'partners.offer.summaryTitle' | translate }}</h2>
+              </div>
+              <p class="mt-4 text-sm leading-relaxed text-zinc-700">{{ summaryDisplay() }}</p>
+            </div>
+
+            <!-- Location card -->
+            <div class="overflow-hidden rounded-xl bg-white shadow-sm">
+              <div class="border-b border-zinc-100 px-6 py-4">
+                <div class="flex items-center justify-between">
+                  <h2 class="text-lg font-semibold text-zinc-900">{{ 'partners.offer.locationTitle' | translate }}</h2>
+                  <span class="text-xs font-semibold text-zinc-500">{{ locationLabel() }}</span>
+                </div>
+              </div>
+              <shared-map-preview [address]="mapQuery()" [height]="200"></shared-map-preview>
+              <p class="px-6 py-3 text-xs text-zinc-400">{{ 'partners.offer.locationHint' | translate }}</p>
+            </div>
+          </div>
+
+          <div class="space-y-6">
+            <!-- Details card -->
+            <div class="rounded-xl bg-white p-6 shadow-sm">
+              <div class="border-b border-zinc-100 pb-4">
+                <h2 class="text-lg font-semibold text-zinc-900">{{ 'partners.offer.detailsTitle' | translate }}</h2>
+              </div>
+              <div class="mt-4 space-y-4 text-sm text-zinc-700">
+                <div class="flex items-center justify-between">
+                  <span class="text-zinc-500">{{ 'partners.offer.details.job' | translate }}</span>
+                  <span class="font-semibold text-zinc-900 text-right max-w-[60%]">{{ o.jobSummary }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-zinc-500">{{ 'partners.offer.details.location' | translate }}</span>
+                  <span class="font-semibold text-zinc-900">{{ locationLabel() }}</span>
+                </div>
+                <div class="flex items-center justify-between border-t border-zinc-100 pt-4">
+                  <span class="text-zinc-500">{{ 'partners.offer.details.fee' | translate }}</span>
+                  <span class="text-xl font-bold text-emerald-600">{{ priceDisplay() }}</span>
+                </div>
+                <div class="flex items-center justify-between">
+                  <span class="text-zinc-500">{{ 'partners.offer.details.source' | translate }}</span>
+                  <span class="font-semibold text-zinc-900">
+                    {{ o.pricingSource === 'quote'
+                      ? ('partners.offer.pricingSource.quote' | translate)
+                      : ('partners.offer.pricingSource.estimate' | translate) }}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            <!-- Desktop action buttons -->
+            @if (isActionable() && !done() && !showRejectForm()) {
+              <div class="flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button type="button" class="rounded-xl border border-red-200 bg-white px-6 py-3 text-sm font-medium text-red-600 transition-colors hover:bg-red-50" (click)="openRejectForm()">
+                  {{ 'partners.offer.actions.reject' | translate }}
+                </button>
+                <button type="button" class="rounded-xl bg-teal-600 px-8 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-teal-700" (click)="openAcceptSheet()">
+                  {{ 'partners.offer.actions.accept' | translate }}
+                </button>
+              </div>
+            }
+          </div>
+        </div>
+
+        @if (errorKey()) {
+          <div class="mt-6 rounded-xl border border-red-200 bg-red-50 p-4 text-sm text-red-700">
+            {{ errorKey() | translate }}
+          </div>
+        }
+
+        <!-- Desktop reject form -->
+        @if (showRejectForm()) {
+          <div class="mt-6 overflow-hidden rounded-xl bg-white shadow-sm">
+            <div class="border-b border-zinc-100 px-6 py-4">
+              <h2 class="text-lg font-semibold text-zinc-900">{{ 'partners.offer.reject.title' | translate }}</h2>
+            </div>
+            <div class="p-6">
+              <label for="reject-reason-desktop" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">{{ 'partners.offer.reject.reasonLabel' | translate }}</label>
+              <textarea id="reject-reason-desktop" rows="3" maxlength="500"
+                class="mt-2 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 placeholder:text-zinc-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+                [ngModel]="rejectReason()" (ngModelChange)="rejectReason.set($event)"
+                [placeholder]="'partners.offer.reject.placeholder' | translate"></textarea>
+              <div class="mt-4 flex flex-col gap-3 sm:flex-row sm:justify-end">
+                <button type="button" class="rounded-xl border border-zinc-200 bg-white px-6 py-3 text-sm font-medium text-zinc-600 transition-colors hover:bg-zinc-50" (click)="cancelForm()" [disabled]="rejecting()">
+                  {{ 'partners.offer.actions.cancel' | translate }}
+                </button>
+                <button type="button" class="rounded-xl bg-red-600 px-8 py-3 text-sm font-medium text-white shadow-sm transition-colors hover:bg-red-700" (click)="submitReject()" [disabled]="rejecting()">
+                  @if (rejecting()) { {{ 'partners.offer.actions.busy' | translate }} } @else { {{ 'partners.offer.actions.confirmReject' | translate }} }
+                </button>
+              </div>
+            </div>
+          </div>
+        }
+      </div>
+    </div>
+  </div>
+}
+
+<!-- ============ ACCEPT WIZARD BOTTOM SHEET ============ -->
+<app-bottom-sheet
+  [isOpen]="showAcceptSheet()"
+  title=""
+  [showCloseButton]="false"
+  (closed)="closeAcceptSheet()"
+>
+  <div class="px-6 pb-6 pt-4">
+    <!-- Header with back/cancel + step indicator -->
+    <div class="flex items-center justify-between mb-6">
+      @if (acceptStep() > 1) {
+        <button type="button" class="text-sm font-medium text-blue-600" (click)="prevAcceptStep()">
+          {{ 'partners.offer.wizard.back' | translate }}
+        </button>
+      } @else {
+        <button type="button" class="text-sm font-medium text-blue-600" (click)="closeAcceptSheet()">
+          {{ 'partners.offer.actions.cancel' | translate }}
+        </button>
       }
-      <h1>{{ 'partners.offer.title' | translate }}</h1>
-      <p class="org-name">{{ o.organizationName }}</p>
-    </header>
-
-    <!-- Status banner -->
-    @if (!isActionable() || done()) {
-      <div class="status-banner" [class.accepted]="done() === 'accepted' || o.status === 'accepted'"
-           [class.rejected]="done() === 'rejected' || o.status === 'rejected'"
-           [class.expired]="isExpired()">
-        {{ statusLabelKey() | translate }}
-      </div>
-    }
-
-    <!-- Offer details card -->
-    <div class="offer-card">
-      <div class="detail-row">
-        <span class="label">{{ 'partners.offer.details.job' | translate }}</span>
-        <span class="value">{{ o.jobSummary }}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">{{ 'partners.offer.details.location' | translate }}</span>
-        <span class="value">{{ o.city }}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">{{ 'partners.offer.details.fee' | translate }}</span>
-        <span class="value price">{{ priceDisplay() }}</span>
-      </div>
-      <div class="detail-row">
-        <span class="label">{{ 'partners.offer.details.source' | translate }}</span>
-        <span class="value">
-          {{ o.pricingSource === 'quote'
-            ? ('partners.offer.pricingSource.quote' | translate)
-            : ('partners.offer.pricingSource.estimate' | translate) }}
-        </span>
-      </div>
-      <div class="detail-row">
-        <span class="label">{{ 'partners.offer.details.validUntil' | translate }}</span>
-        <span class="value">{{ o.expiresAt | date:'d MMMM yyyy, HH:mm':'':'nl-NL' }}</span>
-      </div>
+      <span class="text-[15px] font-extrabold text-zinc-900">{{ 'partners.offer.wizard.title' | translate }}</span>
+      <span class="w-16 text-right text-xs font-semibold text-zinc-400">{{ acceptStep() }} / 4</span>
     </div>
 
-    <!-- Error after action attempt -->
-    @if (errorKey()) {
-      <div class="inline-error">{{ errorKey() | translate }}</div>
-    }
+    <!-- Step progress bar -->
+    <div class="flex gap-2 mb-8">
+      <div class="h-1 flex-1 rounded-full" [class]="acceptStep() >= 1 ? 'bg-teal-500' : 'bg-zinc-200'"></div>
+      <div class="h-1 flex-1 rounded-full" [class]="acceptStep() >= 2 ? 'bg-teal-500' : 'bg-zinc-200'"></div>
+      <div class="h-1 flex-1 rounded-full" [class]="acceptStep() >= 3 ? 'bg-teal-500' : 'bg-zinc-200'"></div>
+      <div class="h-1 flex-1 rounded-full" [class]="acceptStep() >= 4 ? 'bg-teal-500' : 'bg-zinc-200'"></div>
+    </div>
 
-    <!-- Action buttons -->
-    @if (isActionable() && !done() && !showAcceptForm() && !showRejectForm()) {
-      <div class="action-buttons">
-        <button class="btn btn-primary" (click)="openAcceptForm()">
-          {{ 'partners.offer.actions.accept' | translate }}
-        </button>
-        <button class="btn btn-secondary" (click)="openRejectForm()">
-          {{ 'partners.offer.actions.reject' | translate }}
-        </button>
-      </div>
-    }
+    <!-- STEP 1: Algemene voorwaarden -->
+    @if (acceptStep() === 1) {
+      <div class="typeform-step">
+        <div class="typeform-step-number">1</div>
+        <h3 class="text-xl font-extrabold tracking-tight text-zinc-900">{{ 'partners.offer.wizard.termsHeading' | translate }}</h3>
+        <p class="mt-2 text-sm text-zinc-500 leading-relaxed">{{ 'partners.offer.wizard.termsBody' | translate }}</p>
 
-    <!-- Accept form -->
-    @if (showAcceptForm()) {
-      <div class="form-section">
-        <h2>{{ 'partners.offer.accept.title' | translate }}</h2>
-        <p class="form-hint">{{ 'partners.offer.accept.hint' | translate }}</p>
-
-        @for (slot of inspectionSlots(); track $index) {
-          <div class="slot-row">
-            <label>
-              {{ 'partners.offer.accept.from' | translate }}
-              <input type="datetime-local" [ngModel]="slot.start"
-                     (ngModelChange)="updateInspectionSlotStart($index, $event)" />
-            </label>
-            <label>
-              {{ 'partners.offer.accept.to' | translate }}
-              <input type="datetime-local" [ngModel]="slot.end"
-                     (ngModelChange)="updateInspectionSlotEnd($index, $event)" />
-            </label>
-            @if (inspectionSlots().length > 1) {
-              <button class="btn-icon" type="button" (click)="removeInspectionSlot($index)"
-                      [attr.aria-label]="'partners.offer.accept.removeSlotAria' | translate">&times;</button>
-            }
-          </div>
-        }
-        <button class="btn btn-link" type="button" (click)="addInspectionSlot()">
-          {{ 'partners.offer.accept.addInspectionSlot' | translate }}
-        </button>
-
-        <h3>
-          {{ 'partners.offer.accept.jobTitle' | translate }}
-          <span class="optional">{{ 'partners.offer.accept.optional' | translate }}</span>
-        </h3>
-        @for (slot of jobSlots(); track $index) {
-          <div class="slot-row">
-            <label>
-              {{ 'partners.offer.accept.from' | translate }}
-              <input type="datetime-local" [ngModel]="slot.start"
-                     (ngModelChange)="updateJobSlotStart($index, $event)" />
-            </label>
-            <label>
-              {{ 'partners.offer.accept.to' | translate }}
-              <input type="datetime-local" [ngModel]="slot.end"
-                     (ngModelChange)="updateJobSlotEnd($index, $event)" />
-            </label>
-            <button class="btn-icon" type="button" (click)="removeJobSlot($index)"
-                    [attr.aria-label]="'partners.offer.accept.removeSlotAria' | translate">&times;</button>
-          </div>
-        }
-        <button class="btn btn-link" type="button" (click)="addJobSlot()">
-          {{ 'partners.offer.accept.addJobSlot' | translate }}
-        </button>
-
-        <div class="form-actions">
-          <button class="btn btn-primary" (click)="submitAccept()" [disabled]="accepting()">
-            @if (accepting()) {
-              {{ 'partners.offer.actions.busy' | translate }}
-            } @else {
-              {{ 'partners.offer.actions.confirmAccept' | translate }}
-            }
-          </button>
-          <button class="btn btn-secondary" (click)="cancelForm()" [disabled]="accepting()">
-            {{ 'partners.offer.actions.cancel' | translate }}
-          </button>
+        <div class="mt-6 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+          <p class="text-xs leading-relaxed text-zinc-500">{{ 'partners.offer.wizard.termsLegal' | translate }}</p>
         </div>
-      </div>
-    }
 
-    <!-- Reject form -->
-    @if (showRejectForm()) {
-      <div class="form-section">
-        <h2>{{ 'partners.offer.reject.title' | translate }}</h2>
-        <label class="reject-label">
-          {{ 'partners.offer.reject.reasonLabel' | translate }}
-          <textarea rows="3" maxlength="500" [ngModel]="rejectReason()"
-                    (ngModelChange)="rejectReason.set($event)"
-                    [placeholder]="'partners.offer.reject.placeholder' | translate"></textarea>
+        <label class="mt-6 flex items-start gap-3 cursor-pointer">
+          <input type="checkbox" class="mt-0.5 h-5 w-5 rounded border-zinc-300 text-teal-600 focus:ring-teal-500" [checked]="termsAccepted()" (change)="termsAccepted.set($any($event.target).checked)" />
+          <span class="text-sm font-medium text-zinc-700">{{ 'partners.offer.wizard.termsCheckbox' | translate }}</span>
         </label>
-        <div class="form-actions">
-          <button class="btn btn-danger" (click)="submitReject()" [disabled]="rejecting()">
-            @if (rejecting()) {
-              {{ 'partners.offer.actions.busy' | translate }}
-            } @else {
-              {{ 'partners.offer.actions.confirmReject' | translate }}
+      </div>
+    }
+
+    <!-- STEP 2: Legal details -->
+    @if (acceptStep() === 2) {
+      <div class="typeform-step">
+        <div class="typeform-step-number">2</div>
+        <h3 class="text-xl font-extrabold tracking-tight text-zinc-900">{{ 'partners.offer.wizard.detailsHeading' | translate }}</h3>
+        <p class="mt-2 text-sm text-zinc-500">{{ 'partners.offer.wizard.detailsBody' | translate }}</p>
+
+        <div class="mt-6 space-y-4">
+          <div>
+            <label for="accept-full-name" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">{{ 'partners.offer.wizard.fullName' | translate }}</label>
+            <input id="accept-full-name" type="text" class="mt-2 w-full rounded-2xl border bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2" [class.border-red-400]="step2Attempted() && !signerFullName().trim()" [class.focus:ring-red-500/20]="step2Attempted() && !signerFullName().trim()" [class.focus:border-red-500]="step2Attempted() && !signerFullName().trim()" [class.border-zinc-200]="!step2Attempted() || signerFullName().trim()" [class.focus:ring-teal-500/20]="!step2Attempted() || signerFullName().trim()" [class.focus:border-teal-500]="!step2Attempted() || signerFullName().trim()" [placeholder]="'partners.offer.wizard.fullNamePlaceholder' | translate" [ngModel]="signerFullName()" (ngModelChange)="signerFullName.set($event)" />
+            @if (step2Attempted() && !signerFullName().trim()) {
+              <p class="mt-1 text-xs text-rose-600">{{ 'partners.offer.wizard.fieldRequired' | translate }}</p>
             }
-          </button>
-          <button class="btn btn-secondary" (click)="cancelForm()" [disabled]="rejecting()">
-            {{ 'partners.offer.actions.cancel' | translate }}
-          </button>
+          </div>
+          <div>
+            <label for="accept-business-name" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">{{ 'partners.offer.wizard.businessName' | translate }}</label>
+            <input id="accept-business-name" type="text" class="mt-2 w-full rounded-2xl border bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2" [class.border-red-400]="step2Attempted() && !signerBusinessName().trim()" [class.focus:ring-red-500/20]="step2Attempted() && !signerBusinessName().trim()" [class.focus:border-red-500]="step2Attempted() && !signerBusinessName().trim()" [class.border-zinc-200]="!step2Attempted() || signerBusinessName().trim()" [class.focus:ring-teal-500/20]="!step2Attempted() || signerBusinessName().trim()" [class.focus:border-teal-500]="!step2Attempted() || signerBusinessName().trim()" [placeholder]="'partners.offer.wizard.businessNamePlaceholder' | translate" [ngModel]="signerBusinessName()" (ngModelChange)="signerBusinessName.set($event)" />
+            @if (step2Attempted() && !signerBusinessName().trim()) {
+              <p class="mt-1 text-xs text-rose-600">{{ 'partners.offer.wizard.fieldRequired' | translate }}</p>
+            }
+          </div>
+          <div>
+            <label for="accept-address" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">{{ 'partners.offer.wizard.address' | translate }}</label>
+            <input id="accept-address" type="text" class="mt-2 w-full rounded-2xl border bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-900 placeholder:text-zinc-400 focus:outline-none focus:ring-2" [class.border-red-400]="step2Attempted() && !signerAddress().trim()" [class.focus:ring-red-500/20]="step2Attempted() && !signerAddress().trim()" [class.focus:border-red-500]="step2Attempted() && !signerAddress().trim()" [class.border-zinc-200]="!step2Attempted() || signerAddress().trim()" [class.focus:ring-teal-500/20]="!step2Attempted() || signerAddress().trim()" [class.focus:border-teal-500]="!step2Attempted() || signerAddress().trim()" [placeholder]="'partners.offer.wizard.addressPlaceholder' | translate" [ngModel]="signerAddress()" (ngModelChange)="signerAddress.set($event)" />
+            @if (step2Attempted() && !signerAddress().trim()) {
+              <p class="mt-1 text-xs text-rose-600">{{ 'partners.offer.wizard.fieldRequired' | translate }}</p>
+            }
+          </div>
         </div>
       </div>
     }
 
-    <!-- Success messages -->
-    @if (done() === 'accepted') {
-      <div class="success-message">
-        <p>
-          <strong>{{ 'partners.offer.success.thanks' | translate }}</strong>
-          {{ 'partners.offer.success.accepted' | translate }}
-        </p>
+    <!-- STEP 3: Signature -->
+    @if (acceptStep() === 3) {
+      <div class="typeform-step">
+        <div class="typeform-step-number">3</div>
+        <h3 class="text-xl font-extrabold tracking-tight text-zinc-900">{{ 'partners.offer.wizard.signatureHeading' | translate }}</h3>
+        <p class="mt-2 text-sm text-zinc-500">{{ 'partners.offer.wizard.signatureBody' | translate }}</p>
+
+        <div class="mt-6">
+          <div class="flex items-center justify-between mb-2">
+            <span class="block text-xs font-bold uppercase tracking-widest text-zinc-400">{{ 'partners.offer.wizard.signatureLabel' | translate }}</span>
+            <button type="button" class="inline-flex items-center gap-1.5 rounded-full bg-blue-50 px-3 py-1 text-[11px] font-bold uppercase tracking-wider text-blue-600 transition-colors hover:bg-blue-100 disabled:cursor-not-allowed disabled:opacity-40" (click)="clearSignature()" [disabled]="!signatureData()">
+              {{ 'partners.offer.wizard.signatureClear' | translate }}
+            </button>
+          </div>
+          <div class="signature-frame rounded-3xl border border-zinc-200 bg-white" (touchstart)="$event.stopPropagation()" (touchmove)="$event.stopPropagation()">
+            <app-signature-pad (signatureChange)="onSignatureChange($event)" />
+          </div>
+        </div>
+
+        <div class="mt-4 rounded-2xl border border-zinc-100 bg-zinc-50 p-4">
+          <p class="text-xs leading-relaxed text-zinc-500">{{ 'partners.offer.wizard.signatureLegal' | translate }}</p>
+        </div>
       </div>
     }
-    @if (done() === 'rejected') {
-      <div class="success-message rejected">
-        <p>{{ 'partners.offer.success.rejected' | translate }}</p>
+
+    <!-- STEP 4: Day & time slots -->
+    @if (acceptStep() === 4) {
+      <div class="typeform-step">
+        <div class="typeform-step-number">4</div>
+        <h3 class="text-xl font-extrabold tracking-tight text-zinc-900">{{ 'partners.offer.wizard.slotsHeading' | translate }}</h3>
+        <p class="mt-2 text-sm text-zinc-500">{{ 'partners.offer.wizard.slotsBody' | translate }}</p>
+
+        <!-- ── Inspection availability ── -->
+        <div class="mt-6">
+          <h4 class="text-sm font-bold text-zinc-900 mb-3">
+            {{ 'partners.offer.accept.title' | translate }}
+            @if (inspectionSlots().length > 0) {
+              <span class="ml-2 inline-flex items-center rounded-full bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-700">{{ inspectionSlots().length }}</span>
+            }
+          </h4>
+
+          <div class="calendar-card">
+            <div class="calendar-header">
+              <button type="button" class="calendar-nav" (click)="changeInspectionMonth(-1)">&lsaquo;</button>
+              <span>{{ inspectionMonth() | date:'MMMM yyyy':'':'nl-NL' }}</span>
+              <button type="button" class="calendar-nav" (click)="changeInspectionMonth(1)">&rsaquo;</button>
+            </div>
+            <div class="calendar-grid">
+              <span class="calendar-weekday">Ma</span><span class="calendar-weekday">Di</span><span class="calendar-weekday">Wo</span><span class="calendar-weekday">Do</span><span class="calendar-weekday">Vr</span><span class="calendar-weekday">Za</span><span class="calendar-weekday">Zo</span>
+              @for (day of inspectionCalendarDays(); track day.key) {
+                <button type="button" class="calendar-day" [class.is-outside]="!day.isCurrentMonth" [class.is-today]="day.isToday" [class.is-selected]="selectedInspectionDate() === day.date" [class.is-disabled]="isPastDate(day.date)" [class.has-slots]="dateHasInspectionSlots(day.date)" [disabled]="isPastDate(day.date)" (click)="selectInspectionDate(day.date)">{{ day.label }}</button>
+              }
+            </div>
+          </div>
+
+          @if (selectedInspectionDate()) {
+            <div class="time-panel mt-4">
+              <p class="text-xs font-semibold text-zinc-500 mb-3">{{ 'partners.offer.accept.selectSlotHint' | translate }}</p>
+              <div class="slot-grid">
+                @for (slot of slotOptions; track slot.start) {
+                  <button type="button" class="slot-button" [class.is-selected]="isInspectionSlotActive(slot.start)" [class.is-disabled]="isPastSlot(selectedInspectionDate(), slot.start)" [disabled]="isPastSlot(selectedInspectionDate(), slot.start)" (click)="toggleInspectionSlot(slot.start)">
+                    {{ slot.label }}
+                  </button>
+                }
+              </div>
+            </div>
+          } @else {
+            <p class="mt-3 text-xs font-medium text-zinc-500">{{ 'partners.offer.accept.selectDateHint' | translate }}</p>
+          }
+
+          @if (inspectionSlots().length > 0) {
+            <div class="slot-list mt-4">
+              @for (slot of inspectionSlots(); track $index) {
+                <div class="slot-chip"><span>{{ formatSlotLabel(slot) }}</span><button type="button" (click)="removeInspectionSlot($index)" aria-label="remove">&times;</button></div>
+              }
+            </div>
+          }
+
+          @if (inspectionErrors().length > 0) {
+            <div class="validation-list">@for (err of inspectionErrors(); track err) { <p>{{ err | translate }}</p> }</div>
+          }
+        </div>
+
+        <!-- ── Job availability (optional) ── -->
+        <div class="mt-6 border-t border-zinc-100 pt-5">
+          <h4 class="text-sm font-bold text-zinc-900 mb-3">
+            {{ 'partners.offer.accept.jobTitle' | translate }}
+            <span class="text-xs font-normal text-zinc-400">{{ 'partners.offer.accept.optional' | translate }}</span>
+            @if (jobSlots().length > 0) {
+              <span class="ml-2 inline-flex items-center rounded-full bg-teal-100 px-2 py-0.5 text-xs font-semibold text-teal-700">{{ jobSlots().length }}</span>
+            }
+          </h4>
+
+          <div class="calendar-card">
+            <div class="calendar-header">
+              <button type="button" class="calendar-nav" (click)="changeJobMonth(-1)">&lsaquo;</button>
+              <span>{{ jobMonth() | date:'MMMM yyyy':'':'nl-NL' }}</span>
+              <button type="button" class="calendar-nav" (click)="changeJobMonth(1)">&rsaquo;</button>
+            </div>
+            <div class="calendar-grid">
+              <span class="calendar-weekday">Ma</span><span class="calendar-weekday">Di</span><span class="calendar-weekday">Wo</span><span class="calendar-weekday">Do</span><span class="calendar-weekday">Vr</span><span class="calendar-weekday">Za</span><span class="calendar-weekday">Zo</span>
+              @for (day of jobCalendarDays(); track day.key) {
+                <button type="button" class="calendar-day" [class.is-outside]="!day.isCurrentMonth" [class.is-today]="day.isToday" [class.is-selected]="selectedJobDate() === day.date" [class.is-disabled]="isPastDate(day.date)" [class.has-slots]="dateHasJobSlots(day.date)" [disabled]="isPastDate(day.date)" (click)="selectJobDate(day.date)">{{ day.label }}</button>
+              }
+            </div>
+          </div>
+
+          @if (selectedJobDate()) {
+            <div class="time-panel mt-4">
+              <p class="text-xs font-semibold text-zinc-500 mb-3">{{ 'partners.offer.accept.selectSlotHint' | translate }}</p>
+              <div class="slot-grid">
+                @for (slot of slotOptions; track slot.start) {
+                  <button type="button" class="slot-button" [class.is-selected]="isJobSlotActive(slot.start)" [class.is-disabled]="isPastSlot(selectedJobDate(), slot.start)" [disabled]="isPastSlot(selectedJobDate(), slot.start)" (click)="toggleJobSlot(slot.start)">
+                    {{ slot.label }}
+                  </button>
+                }
+              </div>
+            </div>
+          } @else {
+            <p class="mt-3 text-xs font-medium text-zinc-500">{{ 'partners.offer.accept.selectDateHint' | translate }}</p>
+          }
+
+          @if (jobSlots().length > 0) {
+            <div class="slot-list mt-4">
+              @for (slot of jobSlots(); track $index) {
+                <div class="slot-chip"><span>{{ formatSlotLabel(slot) }}</span><button type="button" (click)="removeJobSlot($index)" aria-label="remove">&times;</button></div>
+              }
+            </div>
+          }
+
+          @if (jobErrors().length > 0) {
+            <div class="validation-list">@for (err of jobErrors(); track err) { <p>{{ err | translate }}</p> }</div>
+          }
+        </div>
       </div>
     }
-  }
-</div>
+  </div>
+
+  <div bottomSheetFooter class="border-t border-zinc-100 bg-white/90 px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4 backdrop-blur">
+    @if (acceptStep() === 1) {
+      <button type="button" class="h-14 w-full rounded-[18px] bg-teal-600 text-base font-extrabold text-white shadow-lg shadow-teal-500/20 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="!canProceedStep1()" (click)="nextAcceptStep()">
+        {{ 'partners.offer.wizard.next' | translate }}
+      </button>
+    } @else if (acceptStep() === 2) {
+      <button type="button" class="h-14 w-full rounded-[18px] bg-teal-600 text-base font-extrabold text-white shadow-lg shadow-teal-500/20 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="!canProceedStep2()" (click)="nextAcceptStep()">
+        {{ 'partners.offer.wizard.next' | translate }}
+      </button>
+    } @else if (acceptStep() === 3) {
+      <button type="button" class="h-14 w-full rounded-[18px] bg-teal-600 text-base font-extrabold text-white shadow-lg shadow-teal-500/20 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="!canProceedStep3()" (click)="nextAcceptStep()">
+        {{ 'partners.offer.wizard.next' | translate }}
+      </button>
+    } @else {
+      <button type="button" class="h-14 w-full rounded-[18px] bg-emerald-500 text-base font-extrabold text-white shadow-lg shadow-emerald-500/20 transition-transform active:scale-[0.98] disabled:opacity-50 disabled:cursor-not-allowed" [disabled]="!canSubmitStep4() || accepting()" (click)="submitAccept()">
+        @if (accepting()) {
+          <span class="flex items-center justify-center gap-2">
+            <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            {{ 'partners.offer.actions.busy' | translate }}
+          </span>
+        } @else {
+          {{ 'partners.offer.wizard.submit' | translate }}
+        }
+      </button>
+    }
+  </div>
+</app-bottom-sheet>
+
+<!-- ============ REJECT BOTTOM SHEET ============ -->
+<app-bottom-sheet
+  [isOpen]="showRejectForm() && isMobile()"
+  [title]="'partners.offer.reject.title' | translate"
+  (closed)="cancelForm()"
+>
+  <div class="px-6 pb-6 pt-4">
+    <p class="text-sm text-zinc-500">{{ 'partners.offer.reject.placeholder' | translate }}</p>
+    <div class="mt-4">
+      <label for="reject-reason-mobile" class="block text-xs font-bold uppercase tracking-widest text-zinc-400">{{ 'partners.offer.reject.reasonLabel' | translate }}</label>
+      <textarea id="reject-reason-mobile" rows="3" maxlength="500"
+        class="mt-2 w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-700 placeholder:text-zinc-400 focus:border-red-500 focus:outline-none focus:ring-2 focus:ring-red-500/20"
+        [value]="rejectReason()" (input)="rejectReason.set($any($event.target).value)"></textarea>
+    </div>
+  </div>
+
+  <div bottomSheetFooter class="border-t border-zinc-100 bg-white/90 px-6 pb-6 pt-4 backdrop-blur">
+    <div class="flex flex-col gap-3">
+      <button type="button" class="h-14 w-full rounded-[18px] bg-red-600 text-base font-extrabold text-white shadow-lg shadow-red-500/20 transition-transform active:scale-[0.98]" (click)="submitReject()" [disabled]="rejecting()">
+        @if (rejecting()) {
+          <span class="flex items-center justify-center gap-2">
+            <div class="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+            {{ 'partners.offer.actions.busy' | translate }}
+          </span>
+        } @else {
+          {{ 'partners.offer.actions.confirmReject' | translate }}
+        }
+      </button>
+      <button type="button" class="h-12 w-full rounded-[18px] border border-zinc-200 text-sm font-semibold text-zinc-500" (click)="cancelForm()">
+        {{ 'partners.offer.actions.cancel' | translate }}
+      </button>
+    </div>
+  </div>
+</app-bottom-sheet>
