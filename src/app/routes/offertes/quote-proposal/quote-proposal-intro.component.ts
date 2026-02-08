@@ -2,13 +2,13 @@ import {
   afterNextRender,
   ChangeDetectionStrategy,
   Component,
-  EventEmitter,
   inject,
   Injector,
   Input,
   OnDestroy,
-  Output,
   signal,
+  input,
+  output
 } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import { gsap } from 'gsap';
@@ -26,10 +26,10 @@ export class QuoteProposalIntroComponent implements OnDestroy {
   private introTimeline: gsap.core.Timeline | null = null;
 
   @Input() customerName: string | null = null;
-  @Input() organizationName: string | null = null;
-  @Input({ required: true }) customerInitial = 'G';
+  readonly organizationName = input<string | null>(null);
+  readonly customerInitial = input.required<string>();
 
-  @Output() readonly continue = new EventEmitter<void>();
+  readonly continue = output<void>();
 
   protected readonly introOpen = signal(false);
   protected readonly prefersReducedMotion = signal<boolean>(false);
@@ -64,7 +64,7 @@ export class QuoteProposalIntroComponent implements OnDestroy {
   }
 
   protected requestContinue(): void {
-    this.continue.emit();
+    this.continue.emit(void 0);
   }
 
   private setupIntroTimeline(): void {

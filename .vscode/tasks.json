@@ -37,6 +37,12 @@
           }
         }
       }
+    },
+    {
+      "type": "npm",
+      "script": "build",
+      "isBackground": false,
+      "problemMatcher": "$tsc"
     }
   ]
 }

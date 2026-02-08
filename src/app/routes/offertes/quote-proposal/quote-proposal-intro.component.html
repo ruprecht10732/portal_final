@@ -14,7 +14,7 @@
       <div class="intro-pocket"></div>
       <div class="intro-bottom-flap"></div>
       <div class="intro-seal" id="intro-seal">
-        <span>{{ customerInitial }}</span>
+        <span>{{ customerInitial() }}</span>
       </div>
     </div>
 
@@ -32,7 +32,7 @@
         <span>{{ 'offertes.proposal.intro.thanks' | translate }}</span>
         <span>{{ 'offertes.proposal.intro.prepared' | translate }}</span>
       </p>
-      <div class="intro-letter-signature">{{ organizationName ?? '' }}</div>
+      <div class="intro-letter-signature">{{ organizationName() ?? '' }}</div>
       <div class="intro-letter-footer">{{ 'offertes.proposal.intro.footer' | translate }}</div>
     </div>
 
