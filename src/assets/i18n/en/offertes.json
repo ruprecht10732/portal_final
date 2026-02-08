@@ -35,6 +35,8 @@
     "noItemsYet": "No items yet. Add your first line item above.",
     "notes": "Notes",
     "notesPlaceholder": "Add internal notes about this quote...",
+    "financingDisclaimer": "Subject to financing approval",
+    "financingDisclaimerText": "This quote is subject to financing approval. The agreement becomes final only after the financing application is approved.",
     "validityNotes": "Validity & Notes",
     "summary": "Summary",
     "subtotal": "Subtotal",
@@ -63,6 +65,16 @@
       "save": "Failed to save quote. Please try again.",
       "load": "Failed to load quotes. Please try again.",
       "loadPreview": "Failed to load file preview."
+    },
+    "generate": {
+      "title": "Generate with AI",
+      "description": "Describe what you need and AI will automatically create a quote using products from your catalog.",
+      "service": "Service",
+      "promptLabel": "Description",
+      "promptPlaceholder": "e.g. Solar panel installation for a detached house, 10 panels on pitched roof...",
+      "submit": "Generate quote",
+      "generating": "Generating...",
+      "error": "Failed to generate quote. Check your prompt and try again."
     },
     "list": {
       "title": "Quotes",
@@ -173,5 +185,8 @@
     "urlLabel": "Label",
     "urlPlaceholder": "Terms & conditions",
     "urlHref": "URL"
+  },
+  "proposal": {
+    "financingDisclaimer": "This quote is subject to financing approval. The agreement becomes final only after the financing application is approved."
   }
 }

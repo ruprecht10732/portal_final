@@ -35,6 +35,8 @@
     "noItemsYet": "Nog geen regels. Voeg je eerste regel hierboven toe.",
     "notes": "Notities",
     "notesPlaceholder": "Interne notities over deze offerte...",
+    "financingDisclaimer": "Onder voorbehoud van financiering",
+    "financingDisclaimerText": "Deze offerte is onder voorbehoud van financiering. De overeenkomst wordt pas definitief na goedkeuring van de financieringsaanvraag.",
     "validityNotes": "Geldig tot & Notities",
     "summary": "Samenvatting",
     "subtotal": "Subtotaal",
@@ -63,6 +65,16 @@
       "save": "Offerte opslaan mislukt. Probeer het opnieuw.",
       "load": "Offertes laden mislukt. Probeer het opnieuw.",
       "loadPreview": "Bestandsvoorbeeld laden mislukt."
+    },
+    "generate": {
+      "title": "Genereer met AI",
+      "description": "Beschrijf wat je nodig hebt en de AI maakt automatisch een offerte aan met producten uit je catalogus.",
+      "service": "Service",
+      "promptLabel": "Beschrijving",
+      "promptPlaceholder": "bijv. Zonnepanelen installatie voor een vrijstaand huis, 10 panelen op schuin dak...",
+      "submit": "Genereer offerte",
+      "generating": "Bezig met genereren...",
+      "error": "Offerte genereren mislukt. Controleer je prompt en probeer het opnieuw."
     },
     "list": {
       "title": "Offertes",
@@ -173,5 +185,8 @@
     "urlLabel": "Label",
     "urlPlaceholder": "Algemene voorwaarden",
     "urlHref": "URL"
+  },
+  "proposal": {
+    "financingDisclaimer": "Deze offerte is onder voorbehoud van financiering. De overeenkomst wordt pas definitief na goedkeuring van de financieringsaanvraag."
   }
 }
