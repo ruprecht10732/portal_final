@@ -76,6 +76,7 @@ import {
   AppWindow,
   Toolbox,
   Activity,
+  RefreshCcw,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -184,6 +185,7 @@ export const appConfig: ApplicationConfig = {
         User,
         Users,
         Wifi,
+        RefreshCcw,
         AppWindow,
         Upload,
         Wrench,
