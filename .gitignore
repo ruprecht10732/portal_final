@@ -51,3 +51,6 @@ report/
 
 #Ignore insiders AI rules
 .github\instructions\codacy.instructions.md
+
+# Generated documentation
+/documentation/
