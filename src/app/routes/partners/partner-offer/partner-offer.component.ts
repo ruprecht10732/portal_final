@@ -9,13 +9,14 @@ import {
 import { ActivatedRoute } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
+import { TranslatePipe } from '@ngx-translate/core';
 import { PublicPartnerOfferService } from '../../../core/services/public-partner-offer.service';
 import { PartnersService } from '../../../core/services/partners.service';
 import { type PublicPartnerOfferResponse, type TimeSlot, centsToEuros } from '../../../core/services/partner-offer.types';
 
 @Component({
   selector: 'app-partner-offer',
-  imports: [DatePipe, FormsModule],
+  imports: [DatePipe, FormsModule, TranslatePipe],
   templateUrl: './partner-offer.component.html',
   styleUrl: './partner-offer.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -31,7 +32,7 @@ export class PartnerOfferComponent implements OnInit {
   // State
   protected readonly loading = signal(true);
   protected readonly offer = signal<PublicPartnerOfferResponse | null>(null);
-  protected readonly error = signal<string | null>(null);
+  protected readonly errorKey = signal<string | null>(null);
   protected readonly accepting = signal(false);
   protected readonly rejecting = signal(false);
   protected readonly done = signal<'accepted' | 'rejected' | null>(null);
@@ -64,21 +65,21 @@ export class PartnerOfferComponent implements OnInit {
     return o.status === 'expired' || (o.status !== 'accepted' && o.status !== 'rejected' && new Date(o.expiresAt) <= new Date());
   });
 
-  protected readonly statusLabel = computed(() => {
-    if (this.done() === 'accepted') return 'Geaccepteerd';
-    if (this.done() === 'rejected') return 'Afgewezen';
+  protected readonly statusLabelKey = computed(() => {
+    if (this.done() === 'accepted') return 'partners.offer.status.accepted';
+    if (this.done() === 'rejected') return 'partners.offer.status.rejected';
     const o = this.offer();
     if (!o) return '';
-    if (this.isExpired()) return 'Verlopen';
+    if (this.isExpired()) return 'partners.offer.status.expired';
     switch (o.status) {
       case 'accepted':
-        return 'Geaccepteerd';
+        return 'partners.offer.status.accepted';
       case 'rejected':
-        return 'Afgewezen';
+        return 'partners.offer.status.rejected';
       case 'expired':
-        return 'Verlopen';
+        return 'partners.offer.status.expired';
       default:
-        return 'Open';
+        return 'partners.offer.status.open';
     }
   });
 
@@ -90,7 +91,7 @@ export class PartnerOfferComponent implements OnInit {
     const offerId = this.route.snapshot.paramMap.get('offerId') ?? '';
 
     if (!token && !offerId) {
-      this.error.set('Geen geldige link.');
+      this.errorKey.set('partners.offer.errors.invalidLink');
       this.loading.set(false);
       return;
     }
@@ -105,7 +106,7 @@ export class PartnerOfferComponent implements OnInit {
         this.loading.set(false);
       },
       error: () => {
-        this.error.set('Kon het aanbod niet laden. Controleer de link en probeer het opnieuw.');
+        this.errorKey.set('partners.offer.errors.loadFailed');
         this.loading.set(false);
       },
     });
@@ -179,7 +180,7 @@ export class PartnerOfferComponent implements OnInit {
         },
         error: () => {
           this.accepting.set(false);
-          this.error.set('Kon het aanbod niet accepteren. Probeer het later opnieuw.');
+          this.errorKey.set('partners.offer.errors.acceptFailed');
         },
       });
   }
@@ -198,7 +199,7 @@ export class PartnerOfferComponent implements OnInit {
         },
         error: () => {
           this.rejecting.set(false);
-          this.error.set('Kon het aanbod niet afwijzen. Probeer het later opnieuw.');
+          this.errorKey.set('partners.offer.errors.rejectFailed');
         },
       });
   }

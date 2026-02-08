@@ -141,6 +141,15 @@
               (removeServiceType)="removeServiceType($event)"
               (selectionChange)="serviceTypeSelection.set($event)"
             />
+
+            <app-partner-detail-offers-card
+              [offers]="partnerOffers()"
+              [loading]="offersLoading()"
+              [error]="offersError()"
+              [partnerPhone]="p.contactPhone"
+              [partnerName]="p.businessName"
+              (refresh)="refreshOffers()"
+            />
           </div>
         </div>
       </div>

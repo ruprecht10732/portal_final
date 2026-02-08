@@ -18,6 +18,7 @@ import { PartnerDetailCompanyCardComponent } from './partner-detail-company-card
 import { PartnerDetailContactCardComponent } from './partner-detail-contact-card/partner-detail-contact-card.component';
 import { PartnerDetailHeroCardComponent } from './partner-detail-hero-card/partner-detail-hero-card.component';
 import { PartnerDetailServicesCardComponent } from './partner-detail-services-card/partner-detail-services-card.component';
+import { PartnerDetailOffersCardComponent } from './partner-detail-offers-card/partner-detail-offers-card.component';
 import { AddressSuggestion } from '../../../core/services/address.service';
 
 @Component({
@@ -36,6 +37,7 @@ import { AddressSuggestion } from '../../../core/services/address.service';
     PartnerDetailContactCardComponent,
     PartnerDetailAddressCardComponent,
     PartnerDetailServicesCardComponent,
+    PartnerDetailOffersCardComponent,
   ],
 })
 export class PartnersDetailComponent implements OnInit {
@@ -61,6 +63,9 @@ export class PartnersDetailComponent implements OnInit {
   protected readonly serviceTypesEditing = signal(false);
   protected readonly serviceTypesSaving = signal(false);
   protected readonly serviceTypeSelection = signal<string[]>([]);
+  protected readonly partnerOffers = signal<import('../../../core/services/partners.types').OfferResponse[]>([]);
+  protected readonly offersLoading = signal(false);
+  protected readonly offersError = signal<string | null>(null);
   protected readonly editingField = signal<EditablePartnerField | null>(null);
   protected readonly savingField = signal<EditablePartnerField | null>(null);
   protected readonly editValue = signal('');
@@ -444,6 +449,7 @@ export class PartnersDetailComponent implements OnInit {
         this.loading.set(false);
         this.loadServiceTypes();
         this.loadLogo(partner);
+        this.loadOffers(partner.id);
       },
       error: err => {
         const message = extractErrorMessage(err, this.translate.instant('partners.errors.loadFailed'));
@@ -498,6 +504,30 @@ export class PartnersDetailComponent implements OnInit {
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
     });
+  }
+
+  private loadOffers(partnerId: string): void {
+    this.offersLoading.set(true);
+    this.offersError.set(null);
+    this.partnersService.listPartnerOffers(partnerId).subscribe({
+      next: response => {
+        this.partnerOffers.set(response.items ?? []);
+        this.offersLoading.set(false);
+      },
+      error: err => {
+        const message = extractErrorMessage(err, 'Kon werkaanbiedingen niet laden');
+        this.offersError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.offersLoading.set(false);
+      },
+    });
+  }
+
+  protected refreshOffers(): void {
+    const partner = this.partner();
+    if (partner) {
+      this.loadOffers(partner.id);
+    }
   }
 
   private getFieldValue(key: EditablePartnerField): string {
