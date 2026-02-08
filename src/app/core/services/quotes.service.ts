@@ -17,6 +17,8 @@ import type {
   PresignAttachmentUploadRequest,
   PresignedUploadResponse,
   PresignedDownloadResponse,
+  GenerateQuoteRequest,
+  GenerateQuoteResponse,
 } from './quotes.types';
 
 /**
@@ -123,5 +125,10 @@ export class QuotesService {
   /** Get a presigned download URL for an attachment (supports catalog + manual sources) */
   getAttachmentDownloadUrl(quoteId: string, attachmentId: string): Observable<PresignedDownloadResponse> {
     return this.http.get<PresignedDownloadResponse>(`${this.baseUrl}/${quoteId}/attachments/${attachmentId}/download`);
+  }
+
+  /** Generate a draft quote from a user prompt using the AI agent pipeline */
+  generate(data: GenerateQuoteRequest): Observable<GenerateQuoteResponse> {
+    return this.http.post<GenerateQuoteResponse>(`${this.baseUrl}/generate`, data);
   }
 }

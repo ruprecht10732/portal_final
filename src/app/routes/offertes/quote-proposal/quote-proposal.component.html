@@ -115,6 +115,11 @@
                 [variant]="'mobile'"
               />
             </main>
+              @if (q.financingDisclaimer) {
+                <div class="mx-4 mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
+                  <p class="text-xs text-amber-800">Deze offerte is onder voorbehoud van financiering. De overeenkomst wordt pas definitief na goedkeuring van de financieringsaanvraag.</p>
+                </div>
+              }
               <app-quote-proposal-action-footer
                 [variant]="'mobile'"
                 [isFinalized]="isFinalized()"
@@ -232,6 +237,12 @@
             <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
               <h3 class="mb-2 text-sm font-medium text-zinc-500">Opmerkingen</h3>
               <p class="text-sm text-zinc-700 whitespace-pre-wrap">{{ q.notes }}</p>
+            </div>
+          }
+
+          @if (q.financingDisclaimer) {
+            <div class="mb-6 rounded-xl border border-amber-200 bg-amber-50 p-6 shadow-sm">
+              <p class="text-sm text-amber-800">Deze offerte is onder voorbehoud van financiering. De overeenkomst wordt pas definitief na goedkeuring van de financieringsaanvraag.</p>
             </div>
           }
 

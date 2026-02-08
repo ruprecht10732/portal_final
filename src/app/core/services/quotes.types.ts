@@ -126,6 +126,7 @@ export interface QuoteResponse {
   attachments: QuoteAttachmentResponse[];
   urls: QuoteURLResponse[];
   pdfFileKey?: string;
+  financingDisclaimer: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -185,6 +186,7 @@ export interface CreateQuoteRequest {
   items: QuoteItemRequest[];
   attachments?: QuoteAttachmentRequest[];
   urls?: QuoteURLRequest[];
+  financingDisclaimer?: boolean;
 }
 
 export interface UpdateQuoteRequest {
@@ -196,6 +198,7 @@ export interface UpdateQuoteRequest {
   items?: QuoteItemRequest[];
   attachments?: QuoteAttachmentRequest[];
   urls?: QuoteURLRequest[];
+  financingDisclaimer?: boolean;
 }
 
 export interface QuoteCalculationRequest {
@@ -324,6 +327,7 @@ export interface PublicQuoteResponse {
   viewedAt?: string;
   acceptedAt?: string;
   rejectedAt?: string;
+  financingDisclaimer: boolean;
   isReadOnly?: boolean;
   items: PublicQuoteItemResponse[];
   attachments: QuoteAttachmentResponse[];
@@ -356,4 +360,18 @@ export interface QuoteActivityResponse {
   message: string;
   metadata?: Record<string, unknown>;
   createdAt: string;
+}
+
+// ── AI Generate types ─────────────────────────────────────────────────────────
+
+export interface GenerateQuoteRequest {
+  leadId: string;
+  leadServiceId: string;
+  prompt: string;
+}
+
+export interface GenerateQuoteResponse {
+  quoteId: string;
+  quoteNumber: string;
+  itemCount: number;
 }

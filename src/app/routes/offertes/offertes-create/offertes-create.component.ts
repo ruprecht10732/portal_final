@@ -90,6 +90,20 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly isEditMode = signal(false);
   protected readonly existingQuote = signal<QuoteResponse | null>(null);
 
+  // AI Generate state
+  protected readonly generatePrompt = signal('');
+  protected readonly generating = signal(false);
+  protected readonly generateError = signal<string | null>(null);
+  protected readonly showGeneratePanel = signal(true);
+  protected readonly financingDisclaimer = signal(false);
+
+  // Lead's services (for service selection in generate)
+  protected readonly selectedServiceId = signal<string | null>(null);
+  protected readonly leadServices = computed(() => this.selectedLead()?.services ?? []);
+  protected readonly leadServiceOptions = computed<SelectOption<string>[]>(() =>
+    this.leadServices().map(s => ({ label: s.serviceType, value: s.id }))
+  );
+
   // Lead selection
   protected readonly selectedLead = signal<Lead | null>(null);
   protected readonly leadSearchQuery = signal('');
@@ -351,6 +365,7 @@ export class OffertesCreateComponent implements OnInit {
 
     if (lead) {
       this.selectedLead.set(lead);
+      this.selectedServiceId.set(lead.services?.[0]?.id ?? null);
       this.leadSearchQuery.set(
         `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`
       );
@@ -359,16 +374,22 @@ export class OffertesCreateComponent implements OnInit {
 
   protected clearLead(): void {
     this.selectedLead.set(null);
+    this.selectedServiceId.set(null);
     this.leadSearchQuery.set('');
     this.leadOptions.set([]);
     this.leadSuggestions.set([]);
   }
 
-  private loadLead(id: string): void {
+  private loadLead(id: string, preferredServiceId?: string): void {
     this.loading.set(true);
     this.leadsService.getById(id).subscribe({
       next: lead => {
         this.selectedLead.set(lead);
+        this.selectedServiceId.set(
+          preferredServiceId && lead.services?.some(s => s.id === preferredServiceId)
+            ? preferredServiceId
+            : (lead.services?.[0]?.id ?? null),
+        );
         this.leadSearchQuery.set(
           `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`
         );
@@ -446,11 +467,12 @@ export class OffertesCreateComponent implements OnInit {
     this.discountType.set(quote.discountType);
     this.discountValue.set(discountDisplayValue);
     this.pricingMode.set(quote.pricingMode ?? 'exclusive');
+    this.financingDisclaimer.set(quote.financingDisclaimer ?? false);
     this.lastUsedTaxRate.set(quote.items.at(0) ? taxBpsToDisplay(quote.items.at(0)!.taxRateBps) : 21);
     this.ensureInitialLineItem();
     this.requestCalculation();
     if (quote.leadId) {
-      this.loadLead(quote.leadId);
+      this.loadLead(quote.leadId, quote.leadServiceId);
     }
   }
 
@@ -597,6 +619,7 @@ export class OffertesCreateComponent implements OnInit {
           discountType: dType,
           discountValue: dVal,
           pricingMode: this.pricingMode(),
+          financingDisclaimer: this.financingDisclaimer(),
           ...(values.validUntil ? { validUntil: values.validUntil + 'T00:00:00Z' } : {}),
           ...(values.notes ? { notes: values.notes } : {}),
         })
@@ -627,6 +650,7 @@ export class OffertesCreateComponent implements OnInit {
           discountType: dType,
           discountValue: dVal,
           pricingMode: this.pricingMode(),
+          financingDisclaimer: this.financingDisclaimer(),
           ...(values.validUntil ? { validUntil: values.validUntil + 'T00:00:00Z' } : {}),
           ...(values.notes ? { notes: values.notes } : {}),
         })
@@ -655,6 +679,37 @@ export class OffertesCreateComponent implements OnInit {
 
   protected cancel(): void {
     this.router.navigate(['/app/offertes']);
+  }
+
+  // ── AI Generate ─────────────────────────────────────────────────────────────
+
+  protected toggleGeneratePanel(): void {
+    this.showGeneratePanel.update(v => !v);
+    this.generateError.set(null);
+  }
+
+  protected generateQuote(): void {
+    const lead = this.selectedLead();
+    const serviceId = this.selectedServiceId();
+    const prompt = this.generatePrompt().trim();
+
+    if (!lead || !serviceId || !prompt) return;
+
+    this.generating.set(true);
+    this.generateError.set(null);
+
+    this.quotesService.generate({ leadId: lead.id, leadServiceId: serviceId, prompt }).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: result => {
+        this.generating.set(false);
+        void this.router.navigate(['/app/offertes', result.quoteId]);
+      },
+      error: () => {
+        this.generating.set(false);
+        this.generateError.set(this.translate.instant('offertes.generate.error'));
+      },
+    });
   }
 
   // ── Catalog Ghost-Text Autocomplete ─────────────────────────────────────────

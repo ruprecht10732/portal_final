@@ -292,6 +292,14 @@
             </div>
           }
 
+          @if (q.financingDisclaimer) {
+            <div class="mt-4">
+              <div class="rounded-none border border-amber-200 border-x-0 bg-amber-50 p-5">
+                <p class="text-xs text-amber-800">{{ 'offertes.financingDisclaimerText' | translate }}</p>
+              </div>
+            </div>
+          }
+
           @if (realtimeEvents().length > 0) {
             <div class="mt-6 pb-10">
               <div class="rounded-none border border-gray-100 border-x-0 bg-white overflow-hidden">
@@ -625,6 +633,14 @@
               </div>
               <div class="px-5 py-4">
                 <p class="text-sm text-zinc-700 whitespace-pre-wrap leading-relaxed">{{ q.notes }}</p>
+              </div>
+            </div>
+          }
+
+          @if (q.financingDisclaimer) {
+            <div class="rounded-xl border border-amber-200 bg-amber-50 overflow-hidden">
+              <div class="px-5 py-4">
+                <p class="text-sm text-amber-800">{{ 'offertes.financingDisclaimerText' | translate }}</p>
               </div>
             </div>
           }

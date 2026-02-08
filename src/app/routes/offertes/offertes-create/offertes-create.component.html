@@ -113,9 +113,83 @@
                 [value]="summaryForm.controls.notes.value ?? ''"
                 (valueChange)="summaryForm.controls.notes.setValue($event)"
               />
+              <shared-checkbox
+                [label]="'offertes.financingDisclaimer' | translate"
+                [checked]="financingDisclaimer()"
+                (checkedChange)="financingDisclaimer.set($event)"
+              />
             </div>
           </div>
         </section>
+
+        <!-- AI Generate Panel -->
+        @if (selectedLead()) {
+          <section class="p-4 sm:p-6 border-b border-zinc-200 bg-linear-to-r from-zinc-50 to-white">
+            <button
+              type="button"
+              (click)="toggleGeneratePanel()"
+              class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 transition-colors w-full"
+            >
+              <lucide-icon name="sparkles" class="h-4 w-4"></lucide-icon>
+              {{ 'offertes.generate.title' | translate }}
+              <lucide-icon
+                [name]="showGeneratePanel() ? 'chevron-up' : 'chevron-down'"
+                class="h-4 w-4 ml-auto"
+              ></lucide-icon>
+            </button>
+
+            @if (showGeneratePanel()) {
+              <div class="mt-4 space-y-4">
+                <p class="text-sm text-zinc-500">
+                  {{ 'offertes.generate.description' | translate }}
+                </p>
+
+                <!-- Service selector -->
+                @if (leadServices().length > 1) {
+                  <div>
+                    <label for="generate-service-select" class="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
+                      {{ 'offertes.generate.service' | translate }}
+                    </label>
+                    <shared-select
+                      id="generate-service-select"
+                      [options]="leadServiceOptions()"
+                      [value]="selectedServiceId()"
+                      (valueChange)="selectedServiceId.set($event)"
+                    />
+                  </div>
+                }
+
+                <!-- Prompt textarea -->
+                <shared-textarea
+                  [label]="'offertes.generate.promptLabel' | translate"
+                  [rows]="3"
+                  [placeholder]="'offertes.generate.promptPlaceholder' | translate"
+                  [value]="generatePrompt()"
+                  (valueChange)="generatePrompt.set($event)"
+                />
+
+                @if (generateError()) {
+                  <div class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded">
+                    {{ generateError() }}
+                  </div>
+                }
+
+                <div>
+                  <shared-button
+                    variant="secondary"
+                    size="compact"
+                    [disabled]="!generatePrompt().trim() || !selectedServiceId() || generating()"
+                    [loading]="generating()"
+                    (clicked)="generateQuote()"
+                  >
+                    <lucide-icon name="sparkles" class="h-4 w-4"></lucide-icon>
+                    {{ generating() ? ('offertes.generate.generating' | translate) : ('offertes.generate.submit' | translate) }}
+                  </shared-button>
+                </div>
+              </div>
+            }
+          </section>
+        }
 
         <!-- Section 2: Line Items -->
         <section class="p-4 sm:p-6 border-b border-zinc-200 flex-1">
