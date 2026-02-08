@@ -11,6 +11,7 @@ import type { ServiceTypeItem } from '../../../core/services/service-types.types
 import { UserService } from '../../../core/services/user.service';
 import { SSEService } from '../../../core/services/sse.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { formatFullAddress } from '../../../core/utils/address.util';
 import type { Lead, LeadStatus, PipelineStage, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { buildLeadStatusLabels, buildPipelineStageLabels, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
@@ -431,10 +432,17 @@ export class LeadListComponent implements OnInit {
   }
 
   private normalizeLead(row: Lead): LeadRow {
+    const address = row.address ?? { street: '', houseNumber: '', zipCode: '', city: '' };
     return {
       ...row,
       assignedAgentId: row.assignedAgentId ?? '',
       fullName: `${row.consumer?.firstName ?? ''} ${row.consumer?.lastName ?? ''}`.trim(),
+      fullAddress: formatFullAddress({
+        street: address.street,
+        houseNumber: address.houseNumber,
+        zipCode: address.zipCode,
+        city: address.city,
+      }),
       // Map currentService fields to top level for grid display
       serviceType: row.currentService?.serviceType ?? this.getDefaultServiceType(),
       status: row.currentService?.status ?? 'New',

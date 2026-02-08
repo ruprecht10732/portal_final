@@ -63,7 +63,8 @@
     "schedule": {
       "title": "Schedule",
       "viewAll": "View all",
-      "noAppointments": "No appointments"
+      "noAppointments": "No appointments",
+      "appointmentsCount": "{{count}} appointments"
     }
   }
 }

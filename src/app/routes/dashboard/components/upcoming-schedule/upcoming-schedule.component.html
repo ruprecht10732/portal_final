@@ -17,7 +17,7 @@
     @if (scheduleService.loading()) {
       <div class="flex h-40 flex-col items-center justify-center gap-3 text-black">
         <div class="h-5 w-5 animate-spin border-2 border-zinc-300 border-t-black rounded-none"></div>
-        <span class="font-mono text-xs font-medium text-zinc-700">Laden...</span>
+        <span class="font-mono text-xs font-medium text-zinc-700">{{ 'common.loading' | translate }}</span>
       </div>
     } @else if (scheduleService.error()) {
       <div class="flex h-full items-center justify-center p-6">
@@ -30,7 +30,9 @@
         <!-- Day header -->
         <div class="sticky top-0 z-10 border-b border-black bg-zinc-50 px-4 py-2">
           <span class="text-xs font-bold uppercase tracking-widest text-black">{{ group.label }}</span>
-          <span class="ml-2 font-mono text-[10px] text-zinc-500">{{ group.appointments.length }} afspraken</span>
+          <span class="ml-2 font-mono text-[10px] text-zinc-500">
+            {{ 'dashboard.schedule.appointmentsCount' | translate:{ count: group.appointments.length } }}
+          </span>
         </div>
 
         @if (!group.appointments.length) {
@@ -79,12 +81,12 @@
                   }
 
                   <div class="mt-1.5 flex items-center gap-2">
-                    <span
-                      class="inline-block border px-1.5 py-0.5 text-[10px] font-semibold"
-                      [class]="statusColor(appt.status)"
-                    >
-                      {{ statusLabel(appt.status) }}
-                    </span>
+                    <shared-status-badge
+                      [status]="appt.status"
+                      type="appointment"
+                      size="sm"
+                      [emptyLabel]="statusLabel(appt.status)"
+                    ></shared-status-badge>
                     <span class="text-[10px] text-zinc-400">{{ typeLabel(appt.type) }}</span>
                   </div>
                 </div>

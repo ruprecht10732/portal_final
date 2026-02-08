@@ -338,6 +338,10 @@
         }
       }
     },
+    "timeline": {
+      "loading": "Loading timeline...",
+      "empty": "No timeline events yet."
+    },
     "pipeline": {
       "triage": "Triage",
       "nurturing": "Nurturing",

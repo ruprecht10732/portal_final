@@ -63,7 +63,8 @@
     "schedule": {
       "title": "Agenda",
       "viewAll": "Alles bekijken",
-      "noAppointments": "Geen afspraken"
+      "noAppointments": "Geen afspraken",
+      "appointmentsCount": "{{count}} afspraken"
     }
   }
 }

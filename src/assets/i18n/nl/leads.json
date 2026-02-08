@@ -336,6 +336,10 @@
         }
       }
     },
+    "timeline": {
+      "loading": "Tijdlijn laden...",
+      "empty": "Nog geen tijdlijnitems."
+    },
     "pipeline": {
       "triage": "Triage",
       "nurturing": "Opvolging",

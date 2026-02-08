@@ -10,12 +10,11 @@
   @if (timelineLoading()) {
     <div class="flex items-center justify-center py-8 gap-2 text-sm text-slate-500">
       <div class="animate-spin h-4 w-4 border-2 border-indigo-200 border-t-indigo-600 rounded-full"></div>
-      {{ t('leads.detail.timeline.loading') }}
+      {{ t('leads.timeline.loading') }}
     </div>
   } @else if (timelineItems().length === 0) {
     <div class="flex flex-col items-center justify-center py-12 text-center border border-dashed border-slate-200 rounded-xl bg-slate-50/50">
-      <p class="text-sm font-medium text-slate-900">{{ t('leads.detail.timeline.empty') }}</p>
-      <p class="text-xs text-slate-500">No events recorded yet.</p>
+      <p class="text-sm font-medium text-slate-900">{{ t('leads.timeline.empty') }}</p>
     </div>
   } @else {
     <div class="relative pl-4">

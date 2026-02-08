@@ -6,7 +6,7 @@
         <lucide-icon name="circle-alert" class="h-8 w-8 text-red-500"></lucide-icon>
       </div>
       <div class="text-center space-y-1">
-        <p class="text-sm font-medium text-zinc-900">Er ging iets mis</p>
+        <p class="text-sm font-medium text-zinc-900">{{ 'common.error' | translate }}</p>
         <p class="text-sm text-zinc-500">{{ error() }}</p>
       </div>
       <shared-button variant="secondary" [fullWidth]="false" (clicked)="goBack()">

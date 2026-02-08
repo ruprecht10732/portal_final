@@ -157,6 +157,31 @@ export const ACCESS_DIFFICULTY_OPTIONS: { label: string; value: AccessDifficulty
   { label: 'High', value: 'High' },
 ];
 
+export const APPOINTMENT_STATUS_COLORS: Record<AppointmentStatus, string> = {
+  scheduled: 'border-blue-500 bg-blue-50 text-blue-700',
+  completed: 'border-emerald-500 bg-emerald-50 text-emerald-700',
+  cancelled: 'border-zinc-400 bg-zinc-50 text-zinc-500',
+  no_show: 'border-red-500 bg-red-50 text-red-700',
+};
+
+export const APPOINTMENT_STATUS_I18N_KEYS: Record<AppointmentStatus, string> = {
+  scheduled: 'appointments.status.scheduled',
+  completed: 'appointments.status.completed',
+  cancelled: 'appointments.status.cancelled',
+  no_show: 'appointments.status.noShow',
+};
+
+export const buildAppointmentStatusLabels = (
+  translate: (key: string) => string,
+): Record<AppointmentStatus, string> => {
+  const labels = {} as Record<AppointmentStatus, string>;
+  (Object.keys(APPOINTMENT_STATUS_I18N_KEYS) as AppointmentStatus[]).forEach((status) => {
+    const key = APPOINTMENT_STATUS_I18N_KEYS[status];
+    labels[status] = translate(key) || status;
+  });
+  return labels;
+};
+
 // Availability slots types
 export interface TimeSlot {
   startTime: string;

@@ -31,7 +31,10 @@
     </div>
   }
 
-  <div class="flex-1 overflow-hidden flex flex-col px-4 sm:px-6 pb-4 min-w-0">
+  <div
+    class="flex-1 overflow-hidden flex flex-col pb-4 min-w-0 sm:px-6"
+    [class.px-4]="!removeMobilePadding()"
+  >
     <ng-content></ng-content>
   </div>
 </div>

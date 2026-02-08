@@ -9,6 +9,8 @@ import type { ServiceTypeItem } from '../../../core/services/service-types.types
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { formatFullAddress } from '../../../core/utils/address.util';
+import type { AddressParts } from '../../../core/utils/address.util';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { type MultiSelectOption } from '../../../shared/components/multiselect/multiselect.component';
@@ -94,25 +96,21 @@ export class PartnersDetailComponent implements OnInit {
   protected readonly mapAddress = computed(() => {
     const partner = this.partner();
     if (!partner) return '';
-    const addressLine1 = partner.addressLine1 ?? '';
-    const hasHouseNumber = !!partner.houseNumber?.trim();
-    const containsPostal = partner.postalCode ? addressLine1.includes(partner.postalCode) : false;
-    const containsCity = partner.city ? addressLine1.includes(partner.city) : false;
+    const address: AddressParts = {
+      addressLine1: partner.addressLine1,
+      postalCode: partner.postalCode,
+      city: partner.city,
+      country: partner.country,
+    };
 
-    if (!hasHouseNumber && (containsPostal || containsCity)) {
-      const legacyParts = [addressLine1, partner.country].filter(Boolean);
-      return legacyParts.join(', ');
+    if (partner.houseNumber != null) {
+      address.houseNumber = partner.houseNumber;
+    }
+    if (partner.addressLine2 != null) {
+      address.addressLine2 = partner.addressLine2;
     }
 
-    const parts = [
-      addressLine1,
-      partner.houseNumber,
-      partner.addressLine2,
-      partner.postalCode,
-      partner.city,
-      partner.country,
-    ].filter(Boolean);
-    return parts.join(', ');
+    return formatFullAddress(address);
   });
 
   protected readonly mapLatitude = computed(() => this.partner()?.latitude ?? null);

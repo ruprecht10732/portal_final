@@ -5,6 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { firstValueFrom } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { formatFullAddress } from '../../../core/utils/address.util';
 import { LeadsService } from '../../../core/services/leads.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
@@ -519,7 +520,12 @@ export class LeadDetailComponent implements OnInit {
   protected getFullAddress(): string {
     const lead = this.lead();
     if (!lead) return '';
-    return `${lead.address.street} ${lead.address.houseNumber}, ${lead.address.zipCode} ${lead.address.city}`;
+    return formatFullAddress({
+      street: lead.address.street,
+      houseNumber: lead.address.houseNumber,
+      zipCode: lead.address.zipCode,
+      city: lead.address.city,
+    });
   }
 
   protected formatHumanDateTime = (dateStr: string | undefined): string => {

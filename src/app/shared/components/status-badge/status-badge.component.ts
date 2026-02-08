@@ -3,9 +3,21 @@ import { ChangeDetectionStrategy, Component, computed, inject, input } from '@an
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslateService } from '@ngx-translate/core';
 import { merge } from 'rxjs';
-import { buildLeadStatusLabels, buildPipelineStageLabels, PIPELINE_STAGE_COLORS, STATUS_COLORS, type LeadStatus, type PipelineStage } from '../../../core/services/leads.types';
+import {
+  buildLeadStatusLabels,
+  buildPipelineStageLabels,
+  PIPELINE_STAGE_COLORS,
+  STATUS_COLORS,
+  type LeadStatus,
+  type PipelineStage,
+} from '../../../core/services/leads.types';
+import {
+  APPOINTMENT_STATUS_COLORS,
+  buildAppointmentStatusLabels,
+  type AppointmentStatus,
+} from '../../../core/services/appointments.types';
 
-type StatusBadgeType = 'lead' | 'pipeline';
+type StatusBadgeType = 'lead' | 'pipeline' | 'appointment';
 
 type StatusBadgeSize = 'sm' | 'md';
 
@@ -42,6 +54,14 @@ export class StatusBadgeComponent {
     return buildPipelineStageLabels((key) => this.translate.instant(key));
   });
 
+  protected readonly appointmentLabels = computed<Record<AppointmentStatus, string>>(() => {
+    this.lang();
+    if (this.type() !== 'appointment') {
+      return {} as Record<AppointmentStatus, string>;
+    }
+    return buildAppointmentStatusLabels((key) => this.translate.instant(key));
+  });
+
   protected readonly label = computed(() => {
     const status = this.status();
     if (status === null || status === undefined || status === '') {
@@ -49,6 +69,9 @@ export class StatusBadgeComponent {
     }
     if (this.type() === 'lead' && this.isLeadStatus(status)) {
       return this.statusLabels()[status] ?? String(status);
+    }
+    if (this.type() === 'appointment' && this.isAppointmentStatus(status)) {
+      return this.appointmentLabels()[status] ?? String(status);
     }
     if (this.isPipelineStage(status)) {
       return this.pipelineLabels()[status] ?? String(status);
@@ -65,6 +88,10 @@ export class StatusBadgeComponent {
       return `${baseClass} ${STATUS_COLORS[status] ?? 'bg-zinc-100 text-zinc-600'}`;
     }
 
+    if (this.type() === 'appointment' && this.isAppointmentStatus(status)) {
+      return `${baseClass} ${APPOINTMENT_STATUS_COLORS[status] ?? 'bg-zinc-100 text-zinc-600'}`;
+    }
+
     if (this.isPipelineStage(status)) {
       return `${baseClass} ${PIPELINE_STAGE_COLORS[status] ?? 'bg-zinc-100 text-zinc-600'}`;
     }
@@ -78,6 +105,10 @@ export class StatusBadgeComponent {
 
   private isPipelineStage(status: unknown): status is PipelineStage {
     return typeof status === 'string' && status in PIPELINE_STAGE_COLORS;
+  }
+
+  private isAppointmentStatus(status: unknown): status is AppointmentStatus {
+    return typeof status === 'string' && status in APPOINTMENT_STATUS_COLORS;
   }
 
   private formatStatusValue(status: unknown): string {
