@@ -47,12 +47,12 @@ import { LeadDetailTimelineTabComponent } from './lead-detail-timeline-tab.compo
 import { TIMEOUT_MS } from '../../../core/config';
 
 type WhatsAppMessageStatus = 'sent' | 'draft' | 'failed';
-type TimelineContactMessage = {
+interface TimelineContactMessage {
   channel: 'WhatsApp' | 'Email';
   message: string;
   status?: WhatsAppMessageStatus;
   phone?: string;
-};
+}
 
 @Component({
   selector: 'app-lead-detail',
