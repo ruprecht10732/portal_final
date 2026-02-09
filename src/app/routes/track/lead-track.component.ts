@@ -141,6 +141,11 @@ export class LeadTrackComponent implements OnInit {
     return attachments.filter(att => att.contentType?.startsWith('image/') && !!att.downloadUrl);
   });
 
+  protected readonly documentAttachments = computed<AttachmentSummary[]>(() => {
+    const attachments = this.data()?.attachments ?? [];
+    return attachments.filter(att => !att.contentType?.startsWith('image/') && !!att.downloadUrl);
+  });
+
   protected readonly appointmentList = computed<AppointmentSummary[]>(() => {
     const current = this.data();
     if (!current) return [];
