@@ -135,7 +135,7 @@
           }
 
           <!-- Tile: Inspectie -->
-          @if (d.appointment || d.appointmentRequest) {
+          @if (primaryAppointment(); as appt) {
             <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openPreferenceSheet('availability')">
               <div class="flex justify-between items-start mb-3 w-full">
                 <div class="size-10 rounded-lg bg-white flex items-center justify-center text-[#137fec] ios-shadow">
@@ -144,15 +144,15 @@
                 <span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
               </div>
               <p class="text-[#111418] text-sm font-bold">Inspectie</p>
-              @if (d.appointment) {
+              @if (appt.status === 'scheduled') {
                 <p class="text-[#617589] text-[11px] leading-tight mt-1">Afspraak bevestigd</p>
               } @else {
                 <p class="text-[#617589] text-[11px] leading-tight mt-1">Aanvraag verstuurd</p>
               }
               <p class="text-[#617589] text-[11px] leading-tight mt-1">
-                {{ (d.appointment ?? d.appointmentRequest)?.startTime | date:'EEE d MMM':'':'nl' }} ·
-                {{ (d.appointment ?? d.appointmentRequest)?.startTime | date:'HH:mm' }} -
-                {{ (d.appointment ?? d.appointmentRequest)?.endTime | date:'HH:mm' }}
+                {{ appt.startTime | date:'EEE d MMM':'':'nl' }} ·
+                {{ appt.startTime | date:'HH:mm' }} -
+                {{ appt.endTime | date:'HH:mm' }}
               </p>
               <div class="mt-3 flex items-center text-[#617589] text-[11px] font-bold uppercase tracking-wider">
                 <span>Wijzigen</span>
@@ -256,30 +256,37 @@
                 </div>
                 <div>
                   <p class="text-[#111418] text-sm font-bold">Afspraak</p>
-                  @if (d.appointment) {
-                    <p class="text-[#617589] text-[11px] leading-tight mt-0.5">{{ d.appointment.title }}</p>
-                  } @else if (d.appointmentRequest) {
-                    <p class="text-[#617589] text-[11px] leading-tight mt-0.5">Aanvraag verstuurd</p>
+                  @if (appointmentList().length > 0) {
+                    <p class="text-[#617589] text-[11px] leading-tight mt-0.5">{{ appointmentList().length }} afspraak(pen)</p>
                   } @else {
                     <p class="text-[#617589] text-[11px] leading-tight mt-0.5">Nog niet gepland</p>
                   }
                 </div>
               </div>
-              @if (d.appointment) {
+              @if (hasScheduledAppointment()) {
                 <span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
-              } @else if (d.appointmentRequest) {
+              } @else if (hasRequestedAppointment()) {
                 <span class="material-symbols-outlined text-amber-500 text-lg">schedule</span>
               } @else {
                 <span class="material-symbols-outlined text-[#617589] text-lg">schedule</span>
               }
             </div>
-            @if (d.appointment || d.appointmentRequest) {
-              <div class="flex items-center gap-1 text-sm text-[#617589] ml-13">
-                <span class="material-symbols-outlined text-sm">calendar_today</span>
-                <span>
-                  {{ (d.appointment ?? d.appointmentRequest)?.startTime | date:'d MMMM yyyy':'':'nl' }} ·
-                  {{ (d.appointment ?? d.appointmentRequest)?.startTime | date:'HH:mm' }} - {{ (d.appointment ?? d.appointmentRequest)?.endTime | date:'HH:mm' }}
-                </span>
+            @if (appointmentList().length > 0) {
+              <div class="flex flex-col gap-2 ml-13">
+                @for (appt of appointmentList(); track appt.id) {
+                  <div class="flex items-start gap-2 text-sm text-[#617589]">
+                    <span class="material-symbols-outlined text-sm">calendar_today</span>
+                    <div class="flex flex-col">
+                      <span class="text-[11px] font-semibold uppercase tracking-wider text-[#617589]">
+                        {{ appt.status === 'scheduled' ? 'Bevestigd' : 'Aanvraag' }}
+                      </span>
+                      <span>
+                        {{ appt.startTime | date:'d MMMM yyyy':'':'nl' }} ·
+                        {{ appt.startTime | date:'HH:mm' }} - {{ appt.endTime | date:'HH:mm' }}
+                      </span>
+                    </div>
+                  </div>
+                }
               </div>
             }
           </div>

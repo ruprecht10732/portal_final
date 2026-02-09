@@ -13,6 +13,7 @@ import { ActivatedRoute } from '@angular/router';
 import { PublicLeadTrackingService } from '../../core/services/public-lead-tracking.service';
 import type {
   AttachmentSummary,
+  AppointmentSummary,
   AvailableDaySlots,
   AvailableTimeSlot,
   LeadPreferences,
@@ -125,6 +126,47 @@ export class LeadTrackComponent implements OnInit {
     const attachments = this.data()?.attachments ?? [];
     return attachments.filter(att => att.contentType?.startsWith('image/') && !!att.downloadUrl);
   });
+
+  protected readonly appointmentList = computed<AppointmentSummary[]>(() => {
+    const current = this.data();
+    if (!current) return [];
+
+    const items: AppointmentSummary[] = [];
+    if (current.appointments?.length) {
+      items.push(...current.appointments);
+    } else {
+      if (current.appointment) {
+        items.push({ ...current.appointment, status: current.appointment.status || 'scheduled' });
+      }
+      if (current.appointmentRequest) {
+        items.push({ ...current.appointmentRequest, status: current.appointmentRequest.status || 'requested' });
+      }
+    }
+
+    const unique = new Map<string, AppointmentSummary>();
+    for (const item of items) {
+      unique.set(item.id, item);
+    }
+
+    return Array.from(unique.values()).sort(
+      (a, b) => new Date(a.startTime).getTime() - new Date(b.startTime).getTime(),
+    );
+  });
+
+  protected readonly primaryAppointment = computed<AppointmentSummary | null>(() => {
+    const items = this.appointmentList();
+    if (items.length === 0) return null;
+    const scheduled = items.find(item => item.status === 'scheduled');
+    return scheduled ?? items[0] ?? null;
+  });
+
+  protected readonly hasScheduledAppointment = computed(() =>
+    this.appointmentList().some(item => item.status === 'scheduled'),
+  );
+
+  protected readonly hasRequestedAppointment = computed(() =>
+    this.appointmentList().some(item => item.status === 'requested'),
+  );
 
   ngOnInit(): void {
     const token = this.route.snapshot.paramMap.get('token');
@@ -455,7 +497,16 @@ export class LeadTrackComponent implements OnInit {
       next: response => {
         this.requestingAppointment.set(false);
         this.slotRequestSuccess.set(true);
-        this.data.update(current => (current ? { ...current, appointmentRequest: response.appointment } : current));
+        this.data.update(current => {
+          if (!current) return current;
+          const appointment = {
+            ...response.appointment,
+            status: response.appointment.status || 'requested',
+          };
+          const existing = current.appointments ?? [];
+          const deduped = [appointment, ...existing.filter(item => item.id !== appointment.id)];
+          return { ...current, appointmentRequest: appointment, appointments: deduped };
+        });
       },
       error: () => {
         this.requestingAppointment.set(false);

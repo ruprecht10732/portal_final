@@ -7,6 +7,7 @@ export interface PublicLeadTrackingResponse {
   status: LeadStatus;
   appointment: AppointmentSummary | null;
   appointmentRequest: AppointmentSummary | null;
+  appointments: AppointmentSummary[];
   slotsAvailable: boolean;
   quote: QuoteSummary;
   attachments: AttachmentSummary[];
@@ -30,6 +31,7 @@ export interface AppointmentSummary {
   startTime: string;
   endTime: string;
   title: string;
+  status: string;
 }
 
 export interface AvailableTimeSlot {
