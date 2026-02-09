@@ -40,6 +40,7 @@ export class LeadTrackComponent implements OnInit {
   protected readonly preferencesSuccess = signal(false);
   protected readonly token = signal('');
   protected readonly showUploadSheet = signal(false);
+  protected readonly activePreferenceSheet = signal<'budget' | 'timeframe' | 'availability' | 'extraNotes' | null>(null);
 
   protected openUploadSheet(): void {
     this.showUploadSheet.set(true);
@@ -47,6 +48,21 @@ export class LeadTrackComponent implements OnInit {
 
   protected closeUploadSheet(): void {
     this.showUploadSheet.set(false);
+  }
+
+  protected openPreferenceSheet(which: 'budget' | 'timeframe' | 'availability' | 'extraNotes'): void {
+    this.preferencesSuccess.set(false);
+    this.activePreferenceSheet.set(which);
+  }
+
+  protected closePreferenceSheet(): void {
+    this.activePreferenceSheet.set(null);
+  }
+
+  protected submitPreferenceAndClose(): void {
+    this.submitPreferences();
+    // Close sheet after a short delay to show the success state
+    setTimeout(() => this.activePreferenceSheet.set(null), 600);
   }
 
   protected scrollToTop(): void {
@@ -58,7 +74,8 @@ export class LeadTrackComponent implements OnInit {
   }
 
   protected readonly preferencesForm = this.fb.nonNullable.group({
-    budget: [''],
+    budgetMin: [''],
+    budgetMax: [''],
     timeframe: [''],
     availability: [''],
     extraNotes: [''],
@@ -103,7 +120,9 @@ export class LeadTrackComponent implements OnInit {
     this.preferencesSuccess.set(false);
     this.savingPreferences.set(true);
 
-    const payload = this.preferencesForm.getRawValue();
+    const raw = this.preferencesForm.getRawValue();
+    const budget = this.formatBudget(raw.budgetMin, raw.budgetMax);
+    const payload = { budget, timeframe: raw.timeframe, availability: raw.availability, extraNotes: raw.extraNotes };
     this.service.updatePreferences(token, payload).subscribe({
       next: () => {
         this.savingPreferences.set(false);
@@ -207,12 +226,39 @@ export class LeadTrackComponent implements OnInit {
   }
 
   private patchPreferences(preferences: LeadPreferences): void {
+    const { min, max } = this.parseBudget(preferences?.budget);
     this.preferencesForm.patchValue({
-      budget: preferences?.budget ?? '',
+      budgetMin: min,
+      budgetMax: max,
       timeframe: preferences?.timeframe ?? '',
       availability: preferences?.availability ?? '',
       extraNotes: preferences?.extraNotes ?? '',
     });
+  }
+
+  private parseBudget(budget?: string): { min: string; max: string } {
+    if (!budget) return { min: '', max: '' };
+    const nums = budget.match(/[\d.]+/g)?.map(n => n.replaceAll('.', '')) ?? [];
+    if (budget.includes('–') || budget.includes('-')) {
+      return { min: nums[0] ?? '', max: nums[1] ?? '' };
+    }
+    if (budget.toLowerCase().startsWith('vanaf')) {
+      return { min: nums[0] ?? '', max: '' };
+    }
+    if (budget.toLowerCase().startsWith('tot')) {
+      return { min: '', max: nums[0] ?? '' };
+    }
+    return { min: nums[0] ?? '', max: '' };
+  }
+
+  private formatBudget(min: string, max: string): string {
+    const fmt = (n: string) => Number(n).toLocaleString('nl-NL');
+    const hasMin = !!min && Number(min) > 0;
+    const hasMax = !!max && Number(max) > 0;
+    if (hasMin && hasMax) return `€ ${fmt(min)} – € ${fmt(max)}`;
+    if (hasMin) return `vanaf € ${fmt(min)}`;
+    if (hasMax) return `tot € ${fmt(max)}`;
+    return '';
   }
 
   private refreshData(token: string): void {

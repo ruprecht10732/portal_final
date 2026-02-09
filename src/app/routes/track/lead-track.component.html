@@ -96,48 +96,140 @@
         </div>
       </div>
 
-      <!-- Preferences Section -->
+      <!-- Preferences Tile Grid -->
       <div class="px-4 pt-4">
         <h3 class="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em] mb-1">Jouw voorkeuren</h3>
-        <p class="text-[#617589] text-sm mb-4">Laat ons weten wat voor jou belangrijk is.</p>
+        <p class="text-[#617589] text-sm mb-4">Vul je profiel aan zodat we beter kunnen matchen.</p>
 
-        <form class="grid gap-4" [formGroup]="preferencesForm" (ngSubmit)="submitPreferences()">
-          <label class="flex flex-col gap-2">
-            <span class="text-sm font-bold text-[#111418]">Budget</span>
-            <input class="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
-              formControlName="budget" placeholder="Bijv. 5.000 - 7.500" />
-          </label>
-          <label class="flex flex-col gap-2">
-            <span class="text-sm font-bold text-[#111418]">Tijdspad</span>
-            <input class="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
-              formControlName="timeframe" placeholder="Bijv. binnen 3 maanden" />
-          </label>
-          <label class="flex flex-col gap-2">
-            <span class="text-sm font-bold text-[#111418]">Beschikbaarheid</span>
-            <textarea class="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
-              formControlName="availability" rows="3" placeholder="Wanneer kunnen we langskomen?"
-            ></textarea>
-          </label>
-          <label class="flex flex-col gap-2">
-            <span class="text-sm font-bold text-[#111418]">Extra opmerkingen</span>
-            <textarea class="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
-              formControlName="extraNotes" rows="3" placeholder="Alles wat we moeten weten"></textarea>
-          </label>
-
-          <div class="flex items-center gap-3">
-            <button type="submit"
-              class="bg-[#137fec] px-5 py-2.5 text-sm font-bold text-white rounded-lg transition hover:bg-[#137fec]/90"
-              [disabled]="savingPreferences()">
-              @if (savingPreferences()) { Opslaan... } @else { Voorkeuren opslaan }
+        <div class="grid grid-cols-2 gap-3">
+          <!-- Tile: Budget -->
+          @if (d.preferences?.budget) {
+            <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openPreferenceSheet('budget')">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-white flex items-center justify-center text-[#137fec] ios-shadow">
+                  <span class="material-symbols-outlined">payments</span>
+                </div>
+                <span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Budget</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">{{ d.preferences.budget }}</p>
+              <div class="mt-3 flex items-center text-[#617589] text-[11px] font-bold uppercase tracking-wider">
+                <span>Wijzigen</span>
+              </div>
             </button>
-            @if (preferencesSuccess()) {
-              <span class="flex items-center gap-1 text-xs text-green-500">
-                <span class="material-symbols-outlined text-sm">check_circle</span>
-                Opgeslagen
-              </span>
-            }
-          </div>
-        </form>
+          } @else {
+            <button type="button" class="group flex flex-col p-4 bg-white border-2 border-dashed border-[#137fec]/30 rounded-xl hover:border-[#137fec] transition-all cursor-pointer text-left" (click)="openPreferenceSheet('budget')">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-[#137fec]/10 flex items-center justify-center text-[#137fec]">
+                  <span class="material-symbols-outlined">payments</span>
+                </div>
+                <span class="material-symbols-outlined text-amber-500 text-lg">error</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Budget</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">Stel je prijsklasse in.</p>
+              <div class="mt-3 flex items-center text-[#137fec] text-[11px] font-bold uppercase tracking-wider">
+                <span>Invullen</span>
+                <span class="material-symbols-outlined text-sm ml-1 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
+            </button>
+          }
+
+          <!-- Tile: Beschikbaarheid -->
+          @if (d.preferences?.availability) {
+            <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openPreferenceSheet('availability')">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-white flex items-center justify-center text-[#137fec] ios-shadow">
+                  <span class="material-symbols-outlined">event_available</span>
+                </div>
+                <span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Beschikbaarheid</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1 line-clamp-2">{{ d.preferences.availability }}</p>
+              <div class="mt-3 flex items-center text-[#617589] text-[11px] font-bold uppercase tracking-wider">
+                <span>Wijzigen</span>
+              </div>
+            </button>
+          } @else {
+            <button type="button" class="group flex flex-col p-4 bg-white border-2 border-dashed border-[#137fec]/30 rounded-xl hover:border-[#137fec] transition-all cursor-pointer text-left" (click)="openPreferenceSheet('availability')">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-[#137fec]/10 flex items-center justify-center text-[#137fec]">
+                  <span class="material-symbols-outlined">event_available</span>
+                </div>
+                <span class="material-symbols-outlined text-amber-500 text-lg">error</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Beschikbaarheid</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">Wanneer kunnen we langskomen?</p>
+              <div class="mt-3 flex items-center text-[#137fec] text-[11px] font-bold uppercase tracking-wider">
+                <span>Invullen</span>
+                <span class="material-symbols-outlined text-sm ml-1 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
+            </button>
+          }
+
+          <!-- Tile: Tijdspad -->
+          @if (d.preferences?.timeframe) {
+            <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openPreferenceSheet('timeframe')">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-white flex items-center justify-center text-[#137fec] ios-shadow">
+                  <span class="material-symbols-outlined">schedule</span>
+                </div>
+                <span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Tijdspad</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">{{ d.preferences.timeframe }}</p>
+              <div class="mt-3 flex items-center text-[#617589] text-[11px] font-bold uppercase tracking-wider">
+                <span>Wijzigen</span>
+              </div>
+            </button>
+          } @else {
+            <button type="button" class="group flex flex-col p-4 bg-white border-2 border-dashed border-[#137fec]/30 rounded-xl hover:border-[#137fec] transition-all cursor-pointer text-left" (click)="openPreferenceSheet('timeframe')">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-[#137fec]/10 flex items-center justify-center text-[#137fec]">
+                  <span class="material-symbols-outlined">schedule</span>
+                </div>
+                <span class="material-symbols-outlined text-amber-500 text-lg">error</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Tijdspad</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">Wanneer wil je starten?</p>
+              <div class="mt-3 flex items-center text-[#137fec] text-[11px] font-bold uppercase tracking-wider">
+                <span>Invullen</span>
+                <span class="material-symbols-outlined text-sm ml-1 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
+            </button>
+          }
+
+          <!-- Tile: Foto's -->
+          @if (imageAttachments().length > 0) {
+            <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openUploadSheet()">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-white flex items-center justify-center text-[#137fec] ios-shadow">
+                  <span class="material-symbols-outlined">photo_camera</span>
+                </div>
+                <span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Foto's</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">{{ imageAttachments().length }} foto{{ imageAttachments().length === 1 ? '' : '\'s' }} geüpload</p>
+              <div class="mt-3 flex items-center text-[#617589] text-[11px] font-bold uppercase tracking-wider">
+                <span>Meer toevoegen</span>
+              </div>
+            </button>
+          } @else {
+            <button type="button" class="group flex flex-col p-4 bg-white border-2 border-dashed border-[#137fec]/30 rounded-xl hover:border-[#137fec] transition-all cursor-pointer text-left" (click)="openUploadSheet()">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-[#137fec]/10 flex items-center justify-center text-[#137fec]">
+                  <span class="material-symbols-outlined">photo_camera</span>
+                </div>
+                <span class="material-symbols-outlined text-amber-500 text-lg">error</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Foto's</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">Upload foto's van je project.</p>
+              <div class="mt-3 flex items-center text-[#137fec] text-[11px] font-bold uppercase tracking-wider">
+                <span>Toevoegen</span>
+                <span class="material-symbols-outlined text-sm ml-1 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
+            </button>
+          }
+        </div>
       </div>
 
       <!-- Appointment & Quote Section -->
@@ -300,6 +392,19 @@
         }
       </div>
 
+      <!-- Help Section -->
+      <div class="mt-4 px-4 pb-6">
+        <div class="flex items-center gap-4 p-4 bg-gray-50 rounded-xl border border-gray-100">
+          <div class="flex-1">
+            <p class="text-[#111418] text-sm font-bold">Hulp nodig bij je aanvraag?</p>
+            <p class="text-[#617589] text-xs">Ons team staat klaar om je te helpen.</p>
+          </div>
+          <button type="button" class="shrink-0 bg-[#137fec] text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#137fec]/90 transition-colors" (click)="scrollToSection('section-bericht')">
+            Stuur bericht
+          </button>
+        </div>
+      </div>
+
       <!-- Bottom spacer for fixed nav -->
       <div class="h-20"></div>
 
@@ -332,6 +437,97 @@
       </button>
     </div>
   </nav>
+
+  <!-- Preference Bottom Sheet -->
+  @if (activePreferenceSheet(); as sheetType) {
+    <div class="fixed inset-0 z-50 flex items-end justify-center">
+      <button
+        type="button"
+        class="absolute inset-0 w-full bg-black/40 sheet-backdrop cursor-default"
+        (click)="closePreferenceSheet()"
+        aria-label="Sluiten"
+      ></button>
+
+      <div class="relative z-10 w-full max-w-2xl rounded-t-2xl bg-white pb-safe sheet-enter">
+        <div class="flex justify-center pt-3 pb-1">
+          <div class="h-1 w-10 rounded-full bg-gray-300"></div>
+        </div>
+
+        <div class="flex items-center justify-between border-b border-gray-100 px-6 pb-4 pt-2">
+          <div>
+            @if (sheetType === 'budget') {
+              <h3 class="text-[#111418] text-lg font-bold">Budget instellen</h3>
+              <p class="text-[#617589] text-sm">Wat is je prijsklasse voor dit project?</p>
+            } @else if (sheetType === 'availability') {
+              <h3 class="text-[#111418] text-lg font-bold">Beschikbaarheid</h3>
+              <p class="text-[#617589] text-sm">Wanneer kunnen we langskomen?</p>
+            } @else if (sheetType === 'timeframe') {
+              <h3 class="text-[#111418] text-lg font-bold">Tijdspad</h3>
+              <p class="text-[#617589] text-sm">Wanneer wil je het project laten uitvoeren?</p>
+            } @else if (sheetType === 'extraNotes') {
+              <h3 class="text-[#111418] text-lg font-bold">Extra opmerkingen</h3>
+              <p class="text-[#617589] text-sm">Alles wat we moeten weten.</p>
+            }
+          </div>
+          <button
+            type="button"
+            class="flex size-9 items-center justify-center rounded-full bg-gray-100 text-[#617589] transition hover:bg-gray-200"
+            (click)="closePreferenceSheet()"
+            aria-label="Sluiten"
+          >
+            <span class="material-symbols-outlined text-xl">close</span>
+          </button>
+        </div>
+
+        <form class="flex flex-col gap-4 p-6" [formGroup]="preferencesForm" (ngSubmit)="submitPreferenceAndClose()">
+          @if (sheetType === 'budget') {
+            <div class="flex items-center gap-2">
+              <div class="relative flex-1">
+                <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#617589]">€</span>
+                <input type="number" inputmode="numeric" min="0" step="100"
+                  class="w-full rounded-xl border border-gray-200 py-3.5 pl-9 pr-4 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  formControlName="budgetMin" placeholder="Min" />
+              </div>
+              <span class="text-[#617589] text-sm font-medium">–</span>
+              <div class="relative flex-1">
+                <span class="pointer-events-none absolute left-4 top-1/2 -translate-y-1/2 text-sm font-semibold text-[#617589]">€</span>
+                <input type="number" inputmode="numeric" min="0" step="100"
+                  class="w-full rounded-xl border border-gray-200 py-3.5 pl-9 pr-4 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20 [appearance:textfield] [&::-webkit-inner-spin-button]:appearance-none [&::-webkit-outer-spin-button]:appearance-none"
+                  formControlName="budgetMax" placeholder="Max" />
+              </div>
+            </div>
+          } @else if (sheetType === 'availability') {
+            <textarea class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
+              formControlName="availability" rows="3" placeholder="Bijv. ma, wo, vr middags"></textarea>
+          } @else if (sheetType === 'timeframe') {
+            <input class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
+              formControlName="timeframe" placeholder="Bijv. binnen 3 maanden" />
+          } @else if (sheetType === 'extraNotes') {
+            <textarea class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
+              formControlName="extraNotes" rows="3" placeholder="Alles wat we moeten weten"></textarea>
+          }
+
+          <button type="submit"
+            class="w-full bg-[#137fec] py-3.5 text-sm font-bold text-white rounded-xl transition hover:bg-[#137fec]/90"
+            [disabled]="savingPreferences()">
+            @if (savingPreferences()) {
+              <span class="flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                Opslaan...
+              </span>
+            } @else if (preferencesSuccess()) {
+              <span class="flex items-center justify-center gap-2">
+                <span class="material-symbols-outlined text-lg">check_circle</span>
+                Opgeslagen!
+              </span>
+            } @else {
+              Opslaan
+            }
+          </button>
+        </form>
+      </div>
+    </div>
+  }
 
   <!-- Bottom Sheet Overlay -->
   @if (showUploadSheet()) {
