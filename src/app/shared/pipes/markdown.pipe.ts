@@ -16,37 +16,83 @@ export class MarkdownPipe implements PipeTransform {
 }
 
 function renderMarkdown(input: string): string {
-  const lines = input.replace(/\r\n/g, '\n').split('\n');
-  let html = '';
-  let inParagraph = false;
-  let inOrderedList = false;
-  let inUnorderedList = false;
-  let inListItem = false;
+  const lines = input.replaceAll('\r\n', '\n').split('\n');
+  const state = {
+    html: '',
+    inParagraph: false,
+    inOrderedList: false,
+    inUnorderedList: false,
+    inListItem: false,
+  };
+
+  const orderedRegex = /^(\d+)\.\s+(.*)$/;
+  const unorderedRegex = /^-\s+(.*)$/;
 
   const closeParagraph = () => {
-    if (!inParagraph) return;
-    html += '</p>';
-    inParagraph = false;
+    if (!state.inParagraph) return;
+    state.html += '</p>';
+    state.inParagraph = false;
   };
 
   const closeUnorderedList = () => {
-    if (!inUnorderedList) return;
-    html += '</ul>';
-    inUnorderedList = false;
+    if (!state.inUnorderedList) return;
+    state.html += '</ul>';
+    state.inUnorderedList = false;
   };
 
   const closeListItem = () => {
-    if (!inListItem) return;
+    if (!state.inListItem) return;
     closeUnorderedList();
-    html += '</li>';
-    inListItem = false;
+    state.html += '</li>';
+    state.inListItem = false;
   };
 
   const closeOrderedList = () => {
-    if (!inOrderedList) return;
+    if (!state.inOrderedList) return;
     closeListItem();
-    html += '</ol>';
-    inOrderedList = false;
+    state.html += '</ol>';
+    state.inOrderedList = false;
+  };
+
+  const openParagraphOrBreak = () => {
+    if (state.inParagraph) {
+      state.html += '<br>';
+      return;
+    }
+    state.html += '<p>';
+    state.inParagraph = true;
+  };
+
+  const handleOrderedLine = (line: string): boolean => {
+    const match = orderedRegex.exec(line);
+    if (!match) return false;
+    closeParagraph();
+    if (!state.inOrderedList) {
+      state.html += '<ol>';
+      state.inOrderedList = true;
+    }
+    closeListItem();
+    state.html += `<li>${applyInlineMarkdown(match[2] ?? '')}`;
+    state.inListItem = true;
+    return true;
+  };
+
+  const handleUnorderedLine = (line: string): boolean => {
+    const match = unorderedRegex.exec(line);
+    if (!match) return false;
+    closeParagraph();
+    if (!state.inUnorderedList) {
+      state.html += '<ul>';
+      state.inUnorderedList = true;
+    }
+    state.html += `<li>${applyInlineMarkdown(match[1] ?? '')}</li>`;
+    return true;
+  };
+
+  const handleOrderedContinuation = (line: string): boolean => {
+    if (!state.inOrderedList || !state.inListItem) return false;
+    state.html += `<br>${applyInlineMarkdown(line)}`;
+    return true;
   };
 
   for (const rawLine of lines) {
@@ -56,61 +102,31 @@ function renderMarkdown(input: string): string {
       continue;
     }
 
-    const orderedMatch = line.match(/^(\d+)\.\s+(.*)$/);
-    if (orderedMatch) {
-      closeParagraph();
-      if (!inOrderedList) {
-        html += '<ol>';
-        inOrderedList = true;
-      }
-      closeListItem();
-      html += `<li>${applyInlineMarkdown(orderedMatch[2] ?? '')}`;
-      inListItem = true;
-      continue;
-    }
+    if (handleOrderedLine(line)) continue;
+    if (handleUnorderedLine(line)) continue;
+    if (handleOrderedContinuation(line)) continue;
 
-    const unorderedMatch = line.match(/^-\s+(.*)$/);
-    if (unorderedMatch) {
-      closeParagraph();
-      if (!inUnorderedList) {
-        html += '<ul>';
-        inUnorderedList = true;
-      }
-      html += `<li>${applyInlineMarkdown(unorderedMatch[1] ?? '')}</li>`;
-      continue;
-    }
-
-    if (inOrderedList && inListItem) {
-      html += `<br>${applyInlineMarkdown(line)}`;
-      continue;
-    }
-
-    if (!inParagraph) {
-      html += '<p>';
-      inParagraph = true;
-    } else {
-      html += '<br>';
-    }
-    html += applyInlineMarkdown(line);
+    openParagraphOrBreak();
+    state.html += applyInlineMarkdown(line);
   }
 
   closeParagraph();
   closeOrderedList();
   closeUnorderedList();
 
-  return html;
+  return state.html;
 }
 
 function applyInlineMarkdown(value: string): string {
   const escaped = escapeHtml(value);
-  return escaped.replace(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
+  return escaped.replaceAll(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
 }
 
 function escapeHtml(value: string): string {
   return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
+    .replaceAll('&', '&amp;')
+    .replaceAll('<', '&lt;')
+    .replaceAll('>', '&gt;')
+    .replaceAll('"', '&quot;')
+    .replaceAll("'", '&#39;');
 }

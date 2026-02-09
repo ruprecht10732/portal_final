@@ -113,10 +113,10 @@ export class PartnerOfferComponent implements OnInit {
   protected readonly summaryPlainDisplay = computed(() => {
     const summary = this.summaryDisplay();
     return summary
-      .replace(/\*\*/g, '')
-      .replace(/^\d+\.\s+/gm, '')
-      .replace(/^\s*-\s+/gm, '')
-      .replace(/\n+/g, ' ')
+      .replaceAll('**', '')
+      .replaceAll(/^\d+\.\s+/gm, '')
+      .replaceAll(/^\s*-\s+/gm, '')
+      .replaceAll(/\n+/g, ' ')
       .trim();
   });
 
