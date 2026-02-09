@@ -77,7 +77,7 @@
         </a>
       </div>
 
-      <div class="lg:hidden flex flex-col gap-4">
+      <div class="lg:hidden flex flex-col gap-4 pb-24">
         <app-lead-detail-info-cards
           [energyLabel]="energyLabel()"
           [leadEnrichment]="leadEnrichment()"
@@ -102,7 +102,16 @@
 
         <shared-card padding="none">
           <details>
-            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.notesActivity' | translate }}</summary>
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.inquiry.title' | translate }}</summary>
+            <div class="px-4 pb-4">
+              <app-lead-inquiry-card [lead]="l" [selectedService]="selectedService()"></app-lead-inquiry-card>
+            </div>
+          </details>
+        </shared-card>
+
+        <shared-card padding="none">
+          <details>
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.notesActivity' | translate }}</summary>
             <div class="px-4 pb-4">
               <app-lead-detail-notes-panel
                 #notePanelMobile
@@ -124,7 +133,7 @@
 
         <shared-card padding="none">
           <details>
-            <summary class="cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.timeline' | translate }}</summary>
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.timeline' | translate }}</summary>
             <div class="px-4 pb-4">
               <app-lead-detail-timeline-tab
                 [timelineItems]="timelineItems()"
@@ -149,6 +158,89 @@
                 (composeEmail)="composeEmail($event.email, $event.message)"
                 (copyContactMessage)="copyContactMessage($event.itemId, $event.message)"
                 (viewDraftQuote)="viewDraftQuote($event)"
+              />
+            </div>
+          </details>
+        </shared-card>
+
+        <shared-card padding="none">
+          <details>
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.appointments' | translate }}</summary>
+            <div class="px-4 pb-4">
+              <app-lead-detail-appointments-tab
+                [appointments]="appointments()"
+                [appointmentsLoading]="appointmentsLoading()"
+                [appointmentsError]="appointmentsError()"
+                [showAppointmentForm]="showAppointmentForm()"
+                [appointmentSaving]="appointmentSaving()"
+                [appointmentDate]="appointmentDate()"
+                [appointmentTime]="appointmentTime()"
+                [appointmentDurationMinutes]="appointmentDurationMinutes()"
+                [appointmentTitle]="appointmentTitle()"
+                [appointmentLocation]="appointmentLocation()"
+                [appointmentNotes]="appointmentNotes()"
+                [selectedAppointmentId]="selectedAppointmentId()"
+                [selectedAppointment]="selectedAppointment()"
+                [minDate]="minDate()"
+                [canSaveAppointment]="canSaveAppointment()"
+                [canEditReport]="canEditReport()"
+                [reportSaving]="reportSaving()"
+                [reportMeasurements]="reportMeasurements()"
+                [reportAccessDifficulty]="reportAccessDifficulty()"
+                [reportNotes]="reportNotes()"
+                [accessDifficultyOptions]="accessDifficultyOptions()"
+                [attachmentsLoading]="attachmentsLoading()"
+                [attachments]="attachments()"
+                [attachmentFileKey]="attachmentFileKey()"
+                [attachmentFileName]="attachmentFileName()"
+                [attachmentContentType]="attachmentContentType()"
+                [attachmentSizeBytes]="attachmentSizeBytes()"
+                [attachmentSaving]="attachmentSaving()"
+                [canAddAttachment]="canAddAttachment()"
+                [formatHumanDateTime]="formatHumanDateTime"
+                (toggleAppointmentForm)="toggleAppointmentForm()"
+                (setAppointmentDate)="setAppointmentDate($event)"
+                (setAppointmentTime)="setAppointmentTime($event)"
+                (setAppointmentDurationMinutes)="setAppointmentDurationMinutes($event)"
+                (setAppointmentTitle)="setAppointmentTitle($event)"
+                (setAppointmentLocation)="setAppointmentLocation($event)"
+                (setAppointmentNotes)="setAppointmentNotes($event)"
+                (createAppointment)="createAppointment()"
+                (selectAppointment)="selectAppointment($event)"
+                (setReportMeasurements)="setReportMeasurements($event)"
+                (setAccessDifficulty)="setAccessDifficulty($event)"
+                (setReportNotes)="setReportNotes($event)"
+                (saveVisitReport)="saveVisitReport()"
+                (setAttachmentFileKey)="setAttachmentFileKey($event)"
+                (setAttachmentFileName)="setAttachmentFileName($event)"
+                (setAttachmentContentType)="setAttachmentContentType($event)"
+                (setAttachmentSizeBytes)="setAttachmentSizeBytes($event)"
+                (addAttachment)="addAttachment()"
+              />
+            </div>
+          </details>
+        </shared-card>
+
+        <shared-card padding="none">
+          <details>
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.files' | translate }}</summary>
+            <div class="px-4 pb-4">
+              <app-lead-detail-files-tab
+                [hasSelectedService]="!!selectedService()"
+                [serviceAttachmentError]="serviceAttachmentError()"
+                [serviceAttachmentUploading]="serviceAttachmentUploading()"
+                [serviceAttachmentsLoading]="serviceAttachmentsLoading()"
+                [serviceAttachments]="serviceAttachments()"
+                [serviceAttachmentDeleting]="serviceAttachmentDeleting()"
+                [maxServiceAttachmentSizeBytes]="maxServiceAttachmentSizeBytes()"
+                [formatFileSize]="formatFileSize"
+                [presign]="presignServiceAttachment"
+                [finalize]="finalizeServiceAttachment"
+                (uploaded)="handleServiceAttachmentUploaded($any($event))"
+                (uploadError)="handleServiceAttachmentError($event)"
+                (uploadingChange)="serviceAttachmentUploading.set($event)"
+                (downloadAttachment)="downloadServiceAttachment($event)"
+                (deleteAttachment)="deleteServiceAttachment($event)"
               />
             </div>
           </details>
