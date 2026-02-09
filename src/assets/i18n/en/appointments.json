@@ -51,6 +51,7 @@
       "description": "Description",
       "location": "Location",
       "meetingLink": "Meeting link",
+      "approve": "Approve",
       "type": "Type",
       "when": "When",
       "lead": "Lead",

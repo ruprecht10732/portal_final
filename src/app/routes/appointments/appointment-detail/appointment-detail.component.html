@@ -72,6 +72,19 @@
               </button>
             }
           </div>
+
+          @if (appointment()!.status === 'requested') {
+            <div class="mt-3">
+              <button
+                type="button"
+                class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-4 py-2 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-emerald-700 active:scale-95"
+                [disabled]="saving()"
+                (click)="updateStatus('scheduled')"
+              >
+                {{ 'appointments.detail.approve' | translate }}
+              </button>
+            </div>
+          }
         </div>
 
         <!-- Actions -->
@@ -335,6 +348,17 @@
                 </button>
               }
             </div>
+
+            @if (appointment()!.status === 'requested') {
+              <button
+                type="button"
+                class="ml-auto inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold uppercase tracking-wide text-white shadow-sm transition-colors hover:bg-emerald-700 active:scale-95"
+                [disabled]="saving()"
+                (click)="updateStatus('scheduled')"
+              >
+                {{ 'appointments.detail.approve' | translate }}
+              </button>
+            }
           </div>
         </div>
 

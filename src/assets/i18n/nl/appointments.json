@@ -51,6 +51,7 @@
       "description": "Beschrijving",
       "location": "Locatie",
       "meetingLink": "Vergaderlink",
+      "approve": "Goedkeuren",
       "type": "Type",
       "when": "Wanneer",
       "lead": "Lead",
