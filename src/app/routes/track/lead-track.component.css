@@ -12,3 +12,54 @@ input:focus,
 textarea:focus {
   box-shadow: 0 0 0 3px rgba(19, 127, 236, 0.2);
 }
+
+/* Bottom sheet animations */
+.sheet-backdrop {
+  animation: fadeIn 0.2s ease-out;
+}
+
+.sheet-enter {
+  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+/* Safe area padding for mobile notch */
+.pb-safe {
+  padding-bottom: max(1.5rem, env(safe-area-inset-bottom));
+}
+
+.pb-safe-nav {
+  padding-bottom: max(0.5rem, env(safe-area-inset-bottom));
+}
+
+/* Bottom navigation bar */
+.bottom-nav-glass {
+  background: rgba(255, 255, 255, 0.92);
+  backdrop-filter: saturate(180%) blur(20px);
+  -webkit-backdrop-filter: saturate(180%) blur(20px);
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+.bottom-nav-item {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  padding: 6px 16px;
+  color: #617589;
+  border-radius: 12px;
+  transition: color 0.15s;
+}
+
+.bottom-nav-item:active {
+  color: #137fec;
+}

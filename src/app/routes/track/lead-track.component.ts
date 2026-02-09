@@ -39,6 +39,23 @@ export class LeadTrackComponent implements OnInit {
   protected readonly infoSuccess = signal(false);
   protected readonly preferencesSuccess = signal(false);
   protected readonly token = signal('');
+  protected readonly showUploadSheet = signal(false);
+
+  protected openUploadSheet(): void {
+    this.showUploadSheet.set(true);
+  }
+
+  protected closeUploadSheet(): void {
+    this.showUploadSheet.set(false);
+  }
+
+  protected scrollToTop(): void {
+    globalThis.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+
+  protected scrollToSection(id: string): void {
+    document.getElementById(id)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
 
   protected readonly preferencesForm = this.fb.nonNullable.group({
     budget: [''],
