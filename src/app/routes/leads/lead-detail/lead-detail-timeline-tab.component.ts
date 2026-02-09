@@ -20,6 +20,7 @@ export class LeadDetailTimelineTabComponent {
   copiedContactMessage = input<string | null>(null);
   leadPhone = input<string>('');
   leadEmail = input<string | null>(null);
+  approvingAppointmentId = input<string | null>(null);
 
   formatHumanDateTime = input<(value: string | undefined) => string>((value) => value ?? '-');
   getTimelineTypeLabel = input<(type: LeadTimelineItem['type']) => string>(String);
@@ -31,6 +32,7 @@ export class LeadDetailTimelineTabComponent {
   getTimelineMissingInformation = input<(item: LeadTimelineItem) => string[]>(() => []);
   getTimelineScore = input<(item: LeadTimelineItem) => { score: number; preAi?: number; version?: string } | null>(() => null);
   getTimelineDraftedQuote = input<(item: LeadTimelineItem) => { quoteId: string; quoteNumber: string; itemCount: number; catalogItems: number; adHocItems: number } | null>(() => null);
+  getTimelineAppointmentApproval = input<(item: LeadTimelineItem) => { appointmentId: string } | null>(() => null);
   getTimelinePhotoAnalysis = input<(item: LeadTimelineItem) => {
     photoCount: number;
     confidenceLevel: string;
@@ -50,6 +52,7 @@ export class LeadDetailTimelineTabComponent {
   composeEmail = output<{ email: string | undefined; message: string }>();
   copyContactMessage = output<{ itemId: string; message: string }>();
   viewDraftQuote = output<string>();
+  approveAppointment = output<string>();
 
   protected getStageTitle(item: LeadTimelineItem): string {
     const oldStage = item.metadata['oldStage'] as PipelineStage | undefined;

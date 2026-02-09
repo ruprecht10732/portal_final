@@ -1075,6 +1075,50 @@ export class LeadDetailComponent implements OnInit {
     };
   };
 
+  protected readonly getTimelineAppointmentApproval = (item: LeadTimelineItem): { appointmentId: string } | null => {
+    const metadata = item.metadata ?? {};
+    const appointmentId = this.readTimelineText(
+      metadata['appointmentId'] ??
+      metadata['appointmentID'] ??
+      metadata['appointment_id'] ??
+      metadata['AppointmentId'] ??
+      metadata['AppointmentID'],
+    );
+    const statusValue = this.readTimelineText(
+      metadata['appointmentStatus'] ??
+      metadata['appointment_status'] ??
+      metadata['AppointmentStatus'] ??
+      metadata['status'] ??
+      metadata['Status'],
+    );
+    const status = statusValue?.toLowerCase() ?? null;
+    const isRequested = status ? status === 'requested' : this.isTimelineAppointmentRequested(item);
+    if (!isRequested) {
+      return null;
+    }
+    if (appointmentId) {
+      return { appointmentId };
+    }
+    const startTime = this.readTimelineText(
+      metadata['startTime'] ??
+      metadata['StartTime'] ??
+      metadata['appointmentStartTime'] ??
+      metadata['AppointmentStartTime'],
+    );
+    const matched = this.findRequestedAppointmentByStart(startTime);
+    if (matched) {
+      return { appointmentId: matched.id };
+    }
+    const requested = this.appointments().filter(apt => apt.status === 'requested');
+    if (requested.length === 1) {
+      const only = requested.at(0);
+      if (only) {
+        return { appointmentId: only.id };
+      }
+    }
+    return null;
+  };
+
   protected readonly getTimelinePhotoAnalysis = (item: LeadTimelineItem): {
     photoCount: number;
     confidenceLevel: string;
@@ -1109,6 +1153,24 @@ export class LeadDetailComponent implements OnInit {
 
   protected viewDraftQuote(quoteId: string): void {
     this.router.navigate(['/app/offertes', quoteId]);
+  }
+
+  private isTimelineAppointmentRequested(item: LeadTimelineItem): boolean {
+    const title = item.title?.toLowerCase() ?? '';
+    const summary = item.summary?.toLowerCase() ?? '';
+    return title.includes('aangevraagd') || summary.includes('aangevraagd') || title.includes('requested') || summary.includes('requested');
+  }
+
+  private findRequestedAppointmentByStart(startTime: string | null): AppointmentResponse | null {
+    if (!startTime) return null;
+    const target = new Date(startTime);
+    if (Number.isNaN(target.valueOf())) return null;
+    const requested = this.appointments().filter(apt => apt.status === 'requested');
+    return requested.find(apt => {
+      const aptTime = new Date(apt.startTime);
+      if (Number.isNaN(aptTime.valueOf())) return false;
+      return Math.abs(aptTime.getTime() - target.getTime()) < 60000;
+    }) ?? null;
   }
 
   private readTimelineText(value: unknown): string | null {

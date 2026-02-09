@@ -142,6 +142,7 @@
                 [copiedContactMessage]="copiedContactMessage()"
                 [leadPhone]="lead()!.consumer.phone"
                 [leadEmail]="lead()!.consumer.email ?? null"
+                [approvingAppointmentId]="approvingAppointmentId()"
                 [formatHumanDateTime]="formatHumanDateTime"
                 [getTimelineTypeLabel]="getTimelineTypeLabel"
                 [getTimelineTypeBadgeClass]="getTimelineTypeBadgeClass"
@@ -153,11 +154,13 @@
                 [getTimelineScore]="getTimelineScore"
                 [getTimelineDraftedQuote]="getTimelineDraftedQuote"
                 [getTimelinePhotoAnalysis]="getTimelinePhotoAnalysis"
+                [getTimelineAppointmentApproval]="getTimelineAppointmentApproval"
                 (openCallLogger)="openCallLogger()"
                 (openWhatsApp)="openWhatsApp($event.phone, $event.message)"
                 (composeEmail)="composeEmail($event.email, $event.message)"
                 (copyContactMessage)="copyContactMessage($event.itemId, $event.message)"
                 (viewDraftQuote)="viewDraftQuote($event)"
+                (approveAppointment)="approveAppointment($event)"
               />
             </div>
           </details>
