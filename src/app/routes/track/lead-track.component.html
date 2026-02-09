@@ -32,9 +32,9 @@
         </div>
         <!-- Visual Progress Bar -->
         <div class="relative pb-2 pt-4">
-          <div class="absolute left-0 top-[22px] h-1 w-full bg-gray-100 rounded-full"></div>
+          <div class="absolute left-0 top-5.5 h-1 w-full bg-gray-100 rounded-full"></div>
           <div
-            class="absolute left-0 top-[22px] h-1 bg-[#137fec] rounded-full transition-all duration-500"
+            class="absolute left-0 top-5.5 h-1 bg-[#137fec] rounded-full transition-all duration-500"
             [style.width.%]="(d.status.step / 4) * 100"
           ></div>
           <div class="relative flex w-full justify-between">
@@ -103,7 +103,7 @@
 
         <div class="grid grid-cols-2 gap-3">
           <!-- Tile: Budget -->
-          @if (d.preferences?.budget) {
+          @if (d.preferences.budget) {
             <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openPreferenceSheet('budget')">
               <div class="flex justify-between items-start mb-3 w-full">
                 <div class="size-10 rounded-lg bg-white flex items-center justify-center text-[#137fec] ios-shadow">
@@ -134,8 +134,8 @@
             </button>
           }
 
-          <!-- Tile: Beschikbaarheid -->
-          @if (d.preferences?.availability) {
+          <!-- Tile: Inspectie -->
+          @if (d.appointment || d.appointmentRequest) {
             <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openPreferenceSheet('availability')">
               <div class="flex justify-between items-start mb-3 w-full">
                 <div class="size-10 rounded-lg bg-white flex items-center justify-center text-[#137fec] ios-shadow">
@@ -143,8 +143,17 @@
                 </div>
                 <span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
               </div>
-              <p class="text-[#111418] text-sm font-bold">Beschikbaarheid</p>
-              <p class="text-[#617589] text-[11px] leading-tight mt-1 line-clamp-2">{{ d.preferences.availability }}</p>
+              <p class="text-[#111418] text-sm font-bold">Inspectie</p>
+              @if (d.appointment) {
+                <p class="text-[#617589] text-[11px] leading-tight mt-1">Afspraak bevestigd</p>
+              } @else {
+                <p class="text-[#617589] text-[11px] leading-tight mt-1">Aanvraag verstuurd</p>
+              }
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">
+                {{ (d.appointment ?? d.appointmentRequest)?.startTime | date:'EEE d MMM':'':'nl' }} ·
+                {{ (d.appointment ?? d.appointmentRequest)?.startTime | date:'HH:mm' }} -
+                {{ (d.appointment ?? d.appointmentRequest)?.endTime | date:'HH:mm' }}
+              </p>
               <div class="mt-3 flex items-center text-[#617589] text-[11px] font-bold uppercase tracking-wider">
                 <span>Wijzigen</span>
               </div>
@@ -157,17 +166,17 @@
                 </div>
                 <span class="material-symbols-outlined text-amber-500 text-lg">error</span>
               </div>
-              <p class="text-[#111418] text-sm font-bold">Beschikbaarheid</p>
-              <p class="text-[#617589] text-[11px] leading-tight mt-1">Wanneer kunnen we langskomen?</p>
+              <p class="text-[#111418] text-sm font-bold">Inspectie</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">Plan je offerte inspectie afspraak.</p>
               <div class="mt-3 flex items-center text-[#137fec] text-[11px] font-bold uppercase tracking-wider">
-                <span>Invullen</span>
+                <span>Inplannen</span>
                 <span class="material-symbols-outlined text-sm ml-1 group-hover:translate-x-1 transition-transform">arrow_forward</span>
               </div>
             </button>
           }
 
           <!-- Tile: Tijdspad -->
-          @if (d.preferences?.timeframe) {
+          @if (d.preferences.timeframe) {
             <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openPreferenceSheet('timeframe')">
               <div class="flex justify-between items-start mb-3 w-full">
                 <div class="size-10 rounded-lg bg-white flex items-center justify-center text-[#137fec] ios-shadow">
@@ -249,6 +258,8 @@
                   <p class="text-[#111418] text-sm font-bold">Afspraak</p>
                   @if (d.appointment) {
                     <p class="text-[#617589] text-[11px] leading-tight mt-0.5">{{ d.appointment.title }}</p>
+                  } @else if (d.appointmentRequest) {
+                    <p class="text-[#617589] text-[11px] leading-tight mt-0.5">Aanvraag verstuurd</p>
                   } @else {
                     <p class="text-[#617589] text-[11px] leading-tight mt-0.5">Nog niet gepland</p>
                   }
@@ -256,16 +267,18 @@
               </div>
               @if (d.appointment) {
                 <span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
+              } @else if (d.appointmentRequest) {
+                <span class="material-symbols-outlined text-amber-500 text-lg">schedule</span>
               } @else {
                 <span class="material-symbols-outlined text-[#617589] text-lg">schedule</span>
               }
             </div>
-            @if (d.appointment) {
-              <div class="flex items-center gap-1 text-sm text-[#617589] ml-[52px]">
+            @if (d.appointment || d.appointmentRequest) {
+              <div class="flex items-center gap-1 text-sm text-[#617589] ml-13">
                 <span class="material-symbols-outlined text-sm">calendar_today</span>
                 <span>
-                  {{ d.appointment.startTime | date:'d MMMM yyyy':'':'nl' }} ·
-                  {{ d.appointment.startTime | date:'HH:mm' }} - {{ d.appointment.endTime | date:'HH:mm' }}
+                  {{ (d.appointment ?? d.appointmentRequest)?.startTime | date:'d MMMM yyyy':'':'nl' }} ·
+                  {{ (d.appointment ?? d.appointmentRequest)?.startTime | date:'HH:mm' }} - {{ (d.appointment ?? d.appointmentRequest)?.endTime | date:'HH:mm' }}
                 </span>
               </div>
             }
@@ -294,7 +307,7 @@
               }
             </div>
             @if (d.quote.available) {
-              <div class="flex items-center gap-3 ml-[52px]">
+              <div class="flex items-center gap-3 ml-13">
                 @if (d.quote.link) {
                   <a class="bg-[#137fec] px-4 py-2 text-center text-xs font-bold text-white rounded-lg hover:bg-[#137fec]/90 transition-colors" [href]="d.quote.link">Bekijk offerte</a>
                 }
@@ -353,7 +366,6 @@
                   class="absolute right-1.5 top-1.5 flex size-7 items-center justify-center rounded-full bg-black/50 text-white opacity-0 group-hover:opacity-100 transition-opacity"
                   [disabled]="deleteBusyId() === att.id"
                   (click)="deleteAttachment(att)"
-                  aria-label="Verwijder"
                 >
                   @if (deleteBusyId() === att.id) {
                     <span class="material-symbols-outlined text-[14px] animate-spin">progress_activity</span>
@@ -361,7 +373,7 @@
                     <span class="material-symbols-outlined text-[14px]">close</span>
                   }
                 </button>
-                <div class="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/40 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity">
+                <div class="absolute inset-x-0 bottom-0 bg-linear-to-t from-black/40 to-transparent p-2 pt-6 opacity-0 group-hover:opacity-100 transition-opacity">
                   <p class="text-[10px] text-white truncate">{{ att.fileName }}</p>
                 </div>
               </div>
@@ -459,8 +471,8 @@
               <h3 class="text-[#111418] text-lg font-bold">Budget instellen</h3>
               <p class="text-[#617589] text-sm">Wat is je prijsklasse voor dit project?</p>
             } @else if (sheetType === 'availability') {
-              <h3 class="text-[#111418] text-lg font-bold">Beschikbaarheid</h3>
-              <p class="text-[#617589] text-sm">Wanneer kunnen we langskomen?</p>
+              <h3 class="text-[#111418] text-lg font-bold">Inspectie afspraak</h3>
+              <p class="text-[#617589] text-sm">Kies een moment voor de offerte inspectie afspraak.</p>
             } @else if (sheetType === 'timeframe') {
               <h3 class="text-[#111418] text-lg font-bold">Tijdspad</h3>
               <p class="text-[#617589] text-sm">Wanneer wil je het project laten uitvoeren?</p>
@@ -497,8 +509,68 @@
               </div>
             </div>
           } @else if (sheetType === 'availability') {
-            <textarea class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
-              formControlName="availability" rows="3" placeholder="Bijv. ma, wo, vr middags"></textarea>
+            @if (loadingSlots() || slotDates().length > 0 || data()?.slotsAvailable) {
+              <div class="flex flex-col gap-4">
+                <div>
+                  <p class="text-[11px] font-bold uppercase tracking-wider text-[#617589] mb-2">Selecteer datum</p>
+                  <div class="-mx-1 flex gap-2 overflow-x-auto pb-2 px-1">
+                    @for (date of slotDates(); track date) {
+                      <button
+                        type="button"
+                        class="flex min-w-18 flex-col items-center gap-0.5 rounded-xl border px-3 py-2 text-center transition"
+                        [class.border-[#137fec]]="isSlotDateSelected(date)"
+                        [class.bg-[#137fec]]="isSlotDateSelected(date)"
+                        [class.text-white]="isSlotDateSelected(date)"
+                        [class.border-gray-200]="!isSlotDateSelected(date)"
+                        [class.text-[#111418]]="!isSlotDateSelected(date)"
+                        [class.opacity-40]="!dayHasSlots(date)"
+                        [disabled]="!dayHasSlots(date)"
+                        (click)="selectSlotDate(date)"
+                      >
+                        <span class="text-[10px] uppercase tracking-wider">{{ slotDisplayWeekday(date) }}</span>
+                        <span class="text-base font-bold">{{ slotDisplayDay(date) }}</span>
+                        <span class="text-[10px] uppercase tracking-wider">{{ slotDisplayMonth(date) }}</span>
+                      </button>
+                    }
+                  </div>
+                </div>
+
+                @if (loadingSlots()) {
+                  <div class="flex items-center gap-2 rounded-xl bg-[#137fec]/5 px-4 py-3">
+                    <span class="material-symbols-outlined text-[#137fec] text-lg animate-spin">progress_activity</span>
+                    <span class="text-sm font-medium text-[#137fec]">Tijden laden...</span>
+                  </div>
+                } @else if (selectedDaySlots().length > 0) {
+                  <div class="grid grid-cols-2 gap-2">
+                    @for (slot of selectedDaySlots(); track slot.startTime) {
+                      <button
+                        type="button"
+                        class="rounded-xl border px-3 py-2 text-sm font-semibold transition"
+                        [class.border-[#137fec]]="selectedSlot()?.startTime === slot.startTime"
+                        [class.bg-[#137fec]/10]="selectedSlot()?.startTime === slot.startTime"
+                        [class.text-[#137fec]]="selectedSlot()?.startTime === slot.startTime"
+                        [class.border-gray-200]="selectedSlot()?.startTime !== slot.startTime"
+                        [class.text-[#111418]]="selectedSlot()?.startTime !== slot.startTime"
+                        (click)="selectSlot(slot)"
+                      >
+                        {{ slot.startTime | date:'HH:mm' }} - {{ slot.endTime | date:'HH:mm' }}
+                      </button>
+                    }
+                  </div>
+                } @else {
+                  <div class="rounded-xl border border-dashed border-gray-200 bg-gray-50/60 p-4 text-sm text-[#617589]">
+                    Geen beschikbare tijden voor deze dag.
+                  </div>
+                }
+
+                @if (slotError(); as errText) {
+                  <p class="text-xs text-red-600">{{ errText }}</p>
+                }
+              </div>
+            } @else {
+              <textarea class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
+                formControlName="availability" rows="3" placeholder="Bijv. ma, wo, vr tussen 09:00 en 17:00"></textarea>
+            }
           } @else if (sheetType === 'timeframe') {
             <input class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
               formControlName="timeframe" placeholder="Bijv. binnen 3 maanden" />
@@ -507,23 +579,44 @@
               formControlName="extraNotes" rows="3" placeholder="Alles wat we moeten weten"></textarea>
           }
 
-          <button type="submit"
-            class="w-full bg-[#137fec] py-3.5 text-sm font-bold text-white rounded-xl transition hover:bg-[#137fec]/90"
-            [disabled]="savingPreferences()">
-            @if (savingPreferences()) {
-              <span class="flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-lg animate-spin">progress_activity</span>
-                Opslaan...
-              </span>
-            } @else if (preferencesSuccess()) {
-              <span class="flex items-center justify-center gap-2">
-                <span class="material-symbols-outlined text-lg">check_circle</span>
-                Opgeslagen!
-              </span>
-            } @else {
-              Opslaan
-            }
-          </button>
+          @if (sheetType === 'availability' && data()?.slotsAvailable) {
+            <button type="button"
+              class="w-full bg-[#137fec] py-3.5 text-sm font-bold text-white rounded-xl transition hover:bg-[#137fec]/90 disabled:opacity-60"
+              [disabled]="requestingAppointment() || !selectedSlot()"
+              (click)="requestAppointmentAndClose()">
+              @if (requestingAppointment()) {
+                <span class="flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                  Aanvragen...
+                </span>
+              } @else if (slotRequestSuccess()) {
+                <span class="flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-lg">check_circle</span>
+                  Aangevraagd!
+                </span>
+              } @else {
+                Afspraak aanvragen
+              }
+            </button>
+          } @else {
+            <button type="submit"
+              class="w-full bg-[#137fec] py-3.5 text-sm font-bold text-white rounded-xl transition hover:bg-[#137fec]/90"
+              [disabled]="savingPreferences()">
+              @if (savingPreferences()) {
+                <span class="flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-lg animate-spin">progress_activity</span>
+                  Opslaan...
+                </span>
+              } @else if (preferencesSuccess()) {
+                <span class="flex items-center justify-center gap-2">
+                  <span class="material-symbols-outlined text-lg">check_circle</span>
+                  Opgeslagen!
+                </span>
+              } @else {
+                Opslaan
+              }
+            </button>
+          }
         </form>
       </div>
     </div>

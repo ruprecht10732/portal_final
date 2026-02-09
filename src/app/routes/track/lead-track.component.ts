@@ -11,13 +11,20 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { PublicLeadTrackingService } from '../../core/services/public-lead-tracking.service';
-import type { AttachmentSummary, LeadPreferences, PublicLeadTrackingResponse } from '../../core/services/public-lead-tracking.types';
+import type {
+  AttachmentSummary,
+  AvailableDaySlots,
+  AvailableTimeSlot,
+  LeadPreferences,
+  PublicLeadTrackingResponse,
+} from '../../core/services/public-lead-tracking.types';
 
 @Component({
   selector: 'app-lead-track',
   imports: [ReactiveFormsModule, DatePipe],
   templateUrl: './lead-track.component.html',
   styleUrl: './lead-track.component.css',
+  providers: [DatePipe],
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class LeadTrackComponent implements OnInit {
@@ -25,6 +32,7 @@ export class LeadTrackComponent implements OnInit {
   private readonly service = inject(PublicLeadTrackingService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly datePipe = inject(DatePipe);
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -38,9 +46,17 @@ export class LeadTrackComponent implements OnInit {
   protected readonly deleteError = signal<string | null>(null);
   protected readonly infoSuccess = signal(false);
   protected readonly preferencesSuccess = signal(false);
+  protected readonly slotRequestSuccess = signal(false);
   protected readonly token = signal('');
   protected readonly showUploadSheet = signal(false);
   protected readonly activePreferenceSheet = signal<'budget' | 'timeframe' | 'availability' | 'extraNotes' | null>(null);
+  protected readonly availableSlots = signal<AvailableDaySlots[]>([]);
+  protected readonly slotDates = signal<string[]>([]);
+  protected readonly selectedSlotDate = signal<string | null>(null);
+  protected readonly selectedSlot = signal<AvailableTimeSlot | null>(null);
+  protected readonly loadingSlots = signal(false);
+  protected readonly slotError = signal<string | null>(null);
+  protected readonly requestingAppointment = signal(false);
 
   protected openUploadSheet(): void {
     this.showUploadSheet.set(true);
@@ -52,7 +68,12 @@ export class LeadTrackComponent implements OnInit {
 
   protected openPreferenceSheet(which: 'budget' | 'timeframe' | 'availability' | 'extraNotes'): void {
     this.preferencesSuccess.set(false);
+    this.slotRequestSuccess.set(false);
     this.activePreferenceSheet.set(which);
+
+    if (which === 'availability') {
+      this.loadAvailableSlots();
+    }
   }
 
   protected closePreferenceSheet(): void {
@@ -63,6 +84,16 @@ export class LeadTrackComponent implements OnInit {
     this.submitPreferences();
     // Close sheet after a short delay to show the success state
     setTimeout(() => this.activePreferenceSheet.set(null), 600);
+  }
+
+  protected requestAppointmentAndClose(): void {
+    this.requestAppointment();
+    // Close sheet after a short delay to show the success state
+    setTimeout(() => {
+      if (this.slotRequestSuccess()) {
+        this.activePreferenceSheet.set(null);
+      }
+    }, 800);
   }
 
   protected scrollToTop(): void {
@@ -177,7 +208,7 @@ export class LeadTrackComponent implements OnInit {
     const token = this.token();
     if (!token) return;
 
-    if (!window.confirm('Weet je zeker dat je deze afbeelding wilt verwijderen?')) {
+    if (!globalThis.confirm('Weet je zeker dat je deze afbeelding wilt verwijderen?')) {
       return;
     }
 
@@ -329,4 +360,118 @@ export class LeadTrackComponent implements OnInit {
       throw new Error('Upload failed');
     }
   }
+
+  protected slotDisplayWeekday(date: string): string {
+    return this.datePipe.transform(date, 'EEE', '', 'nl') ?? date;
+  }
+
+  protected slotDisplayDay(date: string): string {
+    return this.datePipe.transform(date, 'd', '', 'nl') ?? date;
+  }
+
+  protected slotDisplayMonth(date: string): string {
+    return this.datePipe.transform(date, 'MMM', '', 'nl') ?? '';
+  }
+
+  protected isSlotDateSelected(date: string): boolean {
+    return this.selectedSlotDate() === date;
+  }
+
+  protected dayHasSlots(date: string): boolean {
+    const slots = this.availableSlots() ?? [];
+    return slots.some(day => day.date === date && day.slots.length > 0);
+  }
+
+  protected selectSlotDate(date: string): void {
+    if (!this.dayHasSlots(date)) return;
+    this.selectedSlotDate.set(date);
+    this.selectedSlot.set(null);
+  }
+
+  protected selectSlot(slot: AvailableTimeSlot): void {
+    this.selectedSlot.set(slot);
+  }
+
+  protected readonly selectedDaySlots = computed(() => {
+    const date = this.selectedSlotDate();
+    if (!date) return [] as AvailableTimeSlot[];
+    const slots = this.availableSlots() ?? [];
+    return slots.find(day => day.date === date)?.slots ?? [];
+  });
+
+  private loadAvailableSlots(): void {
+    if (this.loadingSlots()) return;
+    const token = this.token();
+    if (!token) return;
+
+    this.slotError.set(null);
+    this.loadingSlots.set(true);
+    this.availableSlots.set([]);
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dates = Array.from({ length: 14 }, (_, idx) => this.formatIsoDate(this.addDays(today, idx)));
+    const startDate = dates.at(0);
+    const endDate = dates.at(-1);
+    if (!startDate || !endDate) {
+      this.loadingSlots.set(false);
+      return;
+    }
+    this.slotDates.set(dates);
+    this.selectedSlotDate.set(startDate ?? null);
+
+    this.service.getAvailableSlots(token, startDate, endDate).subscribe({
+      next: response => {
+        const days = response?.days ?? [];
+        this.availableSlots.set(days);
+        if (!this.dayHasSlots(this.selectedSlotDate() ?? '')) {
+          const firstWithSlots = days.find(day => day.slots.length > 0)?.date;
+          this.selectedSlotDate.set(firstWithSlots ?? null);
+        }
+        this.loadingSlots.set(false);
+      },
+      error: () => {
+        this.loadingSlots.set(false);
+        this.slotError.set('We konden geen tijden laden. Probeer het opnieuw.');
+      },
+    });
+  }
+
+  private requestAppointment(): void {
+    if (this.requestingAppointment()) return;
+    const token = this.token();
+    if (!token) return;
+    const slot = this.selectedSlot();
+    if (!slot) {
+      this.slotError.set('Kies een tijdvak om je afspraak aan te vragen.');
+      return;
+    }
+
+    this.slotError.set(null);
+    this.slotRequestSuccess.set(false);
+    this.requestingAppointment.set(true);
+
+    this.service.requestAppointment(token, { userId: slot.userId, startTime: slot.startTime, endTime: slot.endTime }).subscribe({
+      next: response => {
+        this.requestingAppointment.set(false);
+        this.slotRequestSuccess.set(true);
+        this.data.update(current => (current ? { ...current, appointmentRequest: response.appointment } : current));
+      },
+      error: () => {
+        this.requestingAppointment.set(false);
+        this.slotError.set('Afspraak aanvragen mislukt. Probeer het opnieuw.');
+      },
+    });
+  }
+
+  private addDays(date: Date, days: number): Date {
+    const next = new Date(date);
+    next.setDate(next.getDate() + days);
+    return next;
+  }
+
+  private formatIsoDate(date: Date): string {
+    return date.toISOString().slice(0, 10);
+  }
+
 }

@@ -15,10 +15,10 @@ button {
 
 /* Active indicator animation */
 button span.absolute {
-  animation: fadeIn 150ms ease-out;
+  animation: fade-in 150ms ease-out;
 }
 
-@keyframes fadeIn {
+@keyframes fade-in {
   from {
     opacity: 0;
     transform: scale(0.95);

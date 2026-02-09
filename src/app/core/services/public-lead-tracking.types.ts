@@ -6,6 +6,8 @@ export interface PublicLeadTrackingResponse {
   preferences: LeadPreferences;
   status: LeadStatus;
   appointment: AppointmentSummary | null;
+  appointmentRequest: AppointmentSummary | null;
+  slotsAvailable: boolean;
   quote: QuoteSummary;
   attachments: AttachmentSummary[];
 }
@@ -28,6 +30,21 @@ export interface AppointmentSummary {
   startTime: string;
   endTime: string;
   title: string;
+}
+
+export interface AvailableTimeSlot {
+  userId: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface AvailableDaySlots {
+  date: string;
+  slots: AvailableTimeSlot[];
+}
+
+export interface AvailableSlotsResponse {
+  days: AvailableDaySlots[];
 }
 
 export interface QuoteSummary {
@@ -75,4 +92,15 @@ export interface ConfirmUploadRequest {
   fileName: string;
   contentType: string;
   sizeBytes: number;
+}
+
+export interface RequestAppointmentRequest {
+  userId: string;
+  startTime: string;
+  endTime: string;
+}
+
+export interface RequestAppointmentResponse {
+  status: string;
+  appointment: AppointmentSummary;
 }

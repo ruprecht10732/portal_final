@@ -79,6 +79,7 @@ export class AppointmentDetailComponent implements OnInit {
     this.lang();
     return [
       { value: 'scheduled', label: this.translate.instant('appointments.status.scheduled') },
+      { value: 'requested', label: this.translate.instant('appointments.status.requested') },
       { value: 'completed', label: this.translate.instant('appointments.status.completed') },
       { value: 'cancelled', label: this.translate.instant('appointments.status.cancelled') },
       { value: 'no_show', label: this.translate.instant('appointments.status.noShow') },
@@ -369,6 +370,7 @@ export class AppointmentDetailComponent implements OnInit {
   protected getStatusClass(status: AppointmentStatus): string {
     const map: Record<AppointmentStatus, string> = {
       scheduled: 'status-scheduled',
+      requested: 'status-requested',
       completed: 'status-completed',
       cancelled: 'status-cancelled',
       no_show: 'status-no-show',

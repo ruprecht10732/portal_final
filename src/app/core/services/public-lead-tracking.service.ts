@@ -1,13 +1,16 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpParams } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import type { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type {
   AddInfoRequest,
+  AvailableSlotsResponse,
   ConfirmUploadRequest,
   PresignUploadRequest,
   PresignUploadResponse,
   PublicLeadTrackingResponse,
+  RequestAppointmentRequest,
+  RequestAppointmentResponse,
   UpdatePreferencesRequest,
 } from './public-lead-tracking.types';
 
@@ -58,6 +61,26 @@ export class PublicLeadTrackingService {
   deleteAttachment(token: string, attachmentId: string): Observable<{ status: string }> {
     return this.http.delete<{ status: string }>(
       `${this.baseUrl}/${encodeURIComponent(token)}/attachments/${encodeURIComponent(attachmentId)}`,
+    );
+  }
+
+  /** Fetch available inspection slots */
+  getAvailableSlots(token: string, startDate: string, endDate: string, slotDuration = 60): Observable<AvailableSlotsResponse> {
+    const params = new HttpParams()
+      .set('startDate', startDate)
+      .set('endDate', endDate)
+      .set('slotDuration', String(slotDuration));
+    return this.http.get<AvailableSlotsResponse>(
+      `${this.baseUrl}/${encodeURIComponent(token)}/availability/slots`,
+      { params },
+    );
+  }
+
+  /** Request an inspection appointment */
+  requestAppointment(token: string, data: RequestAppointmentRequest): Observable<RequestAppointmentResponse> {
+    return this.http.post<RequestAppointmentResponse>(
+      `${this.baseUrl}/${encodeURIComponent(token)}/appointments/request`,
+      data,
     );
   }
 }

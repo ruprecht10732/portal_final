@@ -44,9 +44,10 @@
               class="rounded-full px-4 py-1.5 text-[13px] font-bold shadow-lg ring-4"
               [class]="
                 appointment()!.status === 'scheduled' ? 'bg-blue-600 text-white ring-blue-200' :
+                appointment()!.status === 'requested' ? 'bg-amber-500 text-white ring-amber-200' :
                 appointment()!.status === 'completed' ? 'bg-emerald-600 text-white ring-emerald-200' :
                 appointment()!.status === 'cancelled' ? 'bg-zinc-600 text-white ring-zinc-200' :
-                'bg-amber-500 text-white ring-amber-200'
+                'bg-red-500 text-white ring-red-200'
               "
             >
               {{ getStatusLabel(appointment()!.status) }}

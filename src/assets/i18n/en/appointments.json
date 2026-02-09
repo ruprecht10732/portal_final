@@ -12,6 +12,7 @@
     },
     "status": {
       "scheduled": "Scheduled",
+      "requested": "Requested",
       "completed": "Completed",
       "cancelled": "Cancelled",
       "noShow": "No Show"

@@ -55,6 +55,7 @@ export class AppointmentsListComponent implements OnInit {
     this.lang();
     return {
       scheduled: this.translate.instant('appointments.status.scheduled'),
+      requested: this.translate.instant('appointments.status.requested'),
       completed: this.translate.instant('appointments.status.completed'),
       cancelled: this.translate.instant('appointments.status.cancelled'),
       no_show: this.translate.instant('appointments.status.noShow'),
@@ -69,6 +70,7 @@ export class AppointmentsListComponent implements OnInit {
 
   protected readonly statusOptions = computed(() => [
     { label: this.statusLabels()['scheduled'], value: 'scheduled' },
+    { label: this.statusLabels()['requested'], value: 'requested' },
     { label: this.statusLabels()['completed'], value: 'completed' },
     { label: this.statusLabels()['cancelled'], value: 'cancelled' },
     { label: this.statusLabels()['no_show'], value: 'no_show' },

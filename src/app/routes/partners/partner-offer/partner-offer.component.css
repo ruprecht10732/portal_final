@@ -139,7 +139,7 @@
   transition: all 0.15s;
 }
 
-.slot-button:hover:not(.is-disabled):not(:disabled) {
+.slot-button:hover:not(:is(.is-disabled, :disabled)) {
   background: #eff6ff;
   border-color: #bfdbfe;
 }
@@ -211,7 +211,7 @@
 /* ─── Typeform wizard ─── */
 
 .typeform-step {
-  animation: typeformFadeIn 0.35s ease-out;
+  animation: typeform-fade-in 0.35s ease-out;
 }
 
 .typeform-step-number {
@@ -228,7 +228,7 @@
   margin-bottom: 12px;
 }
 
-@keyframes typeformFadeIn {
+@keyframes typeform-fade-in {
   from {
     opacity: 0;
     transform: translateY(12px);

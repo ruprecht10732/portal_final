@@ -64,6 +64,7 @@ export class UpcomingScheduleComponent {
   protected statusLabel(status: AppointmentStatus): string {
     const keyMap: Record<AppointmentStatus, string> = {
       scheduled: 'appointments.status.scheduled',
+      requested: 'appointments.status.requested',
       completed: 'appointments.status.completed',
       cancelled: 'appointments.status.cancelled',
       no_show: 'appointments.status.noShow',

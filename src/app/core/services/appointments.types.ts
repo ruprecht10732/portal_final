@@ -1,5 +1,5 @@
 export type AppointmentType = 'lead_visit' | 'standalone' | 'blocked';
-export type AppointmentStatus = 'scheduled' | 'completed' | 'cancelled' | 'no_show';
+export type AppointmentStatus = 'scheduled' | 'requested' | 'completed' | 'cancelled' | 'no_show';
 export type AccessDifficulty = 'Low' | 'Medium' | 'High';
 
 export interface AppointmentLeadInfo {
@@ -159,6 +159,7 @@ export const ACCESS_DIFFICULTY_OPTIONS: { label: string; value: AccessDifficulty
 
 export const APPOINTMENT_STATUS_COLORS: Record<AppointmentStatus, string> = {
   scheduled: 'border-blue-500 bg-blue-50 text-blue-700',
+  requested: 'border-amber-500 bg-amber-50 text-amber-700',
   completed: 'border-emerald-500 bg-emerald-50 text-emerald-700',
   cancelled: 'border-zinc-400 bg-zinc-50 text-zinc-500',
   no_show: 'border-red-500 bg-red-50 text-red-700',
@@ -166,6 +167,7 @@ export const APPOINTMENT_STATUS_COLORS: Record<AppointmentStatus, string> = {
 
 export const APPOINTMENT_STATUS_I18N_KEYS: Record<AppointmentStatus, string> = {
   scheduled: 'appointments.status.scheduled',
+  requested: 'appointments.status.requested',
   completed: 'appointments.status.completed',
   cancelled: 'appointments.status.cancelled',
   no_show: 'appointments.status.noShow',

@@ -12,6 +12,7 @@
     },
     "status": {
       "scheduled": "Gepland",
+      "requested": "Aangevraagd",
       "completed": "Afgerond",
       "cancelled": "Geannuleerd",
       "noShow": "Niet Verschenen"

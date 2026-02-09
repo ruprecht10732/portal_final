@@ -15,19 +15,19 @@ textarea:focus {
 
 /* Bottom sheet animations */
 .sheet-backdrop {
-  animation: fadeIn 0.2s ease-out;
+  animation: fade-in 0.2s ease-out;
 }
 
 .sheet-enter {
-  animation: slideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  animation: slide-up 0.3s cubic-bezier(0.32, 0.72, 0, 1);
 }
 
-@keyframes fadeIn {
+@keyframes fade-in {
   from { opacity: 0; }
   to { opacity: 1; }
 }
 
-@keyframes slideUp {
+@keyframes slide-up {
   from { transform: translateY(100%); }
   to { transform: translateY(0); }
 }
@@ -45,7 +45,6 @@ textarea:focus {
 .bottom-nav-glass {
   background: rgba(255, 255, 255, 0.92);
   backdrop-filter: saturate(180%) blur(20px);
-  -webkit-backdrop-filter: saturate(180%) blur(20px);
   border-top: 1px solid rgba(0, 0, 0, 0.06);
 }
 
