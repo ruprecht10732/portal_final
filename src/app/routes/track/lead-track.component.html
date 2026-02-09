@@ -579,8 +579,41 @@
                 formControlName="availability" rows="3" placeholder="Bijv. ma, wo, vr tussen 09:00 en 17:00"></textarea>
             }
           } @else if (sheetType === 'timeframe') {
-            <input class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
-              formControlName="timeframe" placeholder="Bijv. binnen 3 maanden" />
+            <div class="flex flex-col gap-3">
+              <p class="text-[11px] font-bold uppercase tracking-wider text-[#617589]">Kies een optie</p>
+              <div class="grid grid-cols-1 gap-2">
+                @for (option of timeframeOptions; track option) {
+                  <button
+                    type="button"
+                    class="flex w-full items-center justify-between rounded-xl border px-4 py-3 text-left text-sm font-semibold transition"
+                    [class.border-[#137fec]]="timeframeSelection() === option"
+                    [class.bg-[#137fec]/10]="timeframeSelection() === option"
+                    [class.text-[#137fec]]="timeframeSelection() === option"
+                    [class.border-gray-200]="timeframeSelection() !== option"
+                    [class.text-[#111418]]="timeframeSelection() !== option"
+                    (click)="selectTimeframe(option)"
+                  >
+                    <span>{{ option }}</span>
+                    @if (timeframeSelection() === option) {
+                      <span class="material-symbols-outlined text-lg">check_circle</span>
+                    }
+                  </button>
+                }
+              </div>
+
+              @if (timeframeSelection() === 'Anders') {
+                <div class="mt-1">
+                  <p class="text-[11px] font-bold uppercase tracking-wider text-[#617589] mb-2">Vertel het ons kort</p>
+                  <textarea
+                    class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
+                    formControlName="timeframe"
+                    rows="3"
+                    placeholder="Bijv. na de zomer of zodra vergunning rond is"
+                    (input)="onCustomTimeframeInput($event)"
+                  ></textarea>
+                </div>
+              }
+            </div>
           } @else if (sheetType === 'extraNotes') {
             <textarea class="w-full rounded-xl border border-gray-200 px-4 py-3.5 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
               formControlName="extraNotes" rows="3" placeholder="Alles wat we moeten weten"></textarea>

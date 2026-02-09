@@ -58,6 +58,16 @@ export class LeadTrackComponent implements OnInit {
   protected readonly loadingSlots = signal(false);
   protected readonly slotError = signal<string | null>(null);
   protected readonly requestingAppointment = signal(false);
+  protected readonly timeframeSelection = signal('');
+  protected readonly customTimeframe = signal('');
+  protected readonly timeframeOptions = [
+    'Zo snel mogelijk',
+    'Binnen 14 dagen',
+    'Binnen een maand',
+    'Over 1 tot 3 maanden',
+    'Ik ben me nog aan het orienteren',
+    'Anders',
+  ];
 
   protected openUploadSheet(): void {
     this.showUploadSheet.set(true);
@@ -75,6 +85,10 @@ export class LeadTrackComponent implements OnInit {
     if (which === 'availability') {
       this.loadAvailableSlots();
     }
+
+	if (which === 'timeframe') {
+		this.initTimeframeSelection();
+	}
   }
 
   protected closePreferenceSheet(): void {
@@ -167,6 +181,24 @@ export class LeadTrackComponent implements OnInit {
   protected readonly hasRequestedAppointment = computed(() =>
     this.appointmentList().some(item => item.status === 'requested'),
   );
+
+  protected selectTimeframe(option: string): void {
+    this.timeframeSelection.set(option);
+    if (option === 'Anders') {
+      const value = this.customTimeframe().trim();
+      this.preferencesForm.controls.timeframe.setValue(value);
+      return;
+    }
+
+    this.customTimeframe.set('');
+    this.preferencesForm.controls.timeframe.setValue(option);
+  }
+
+  protected onCustomTimeframeInput(event: Event): void {
+    const value = (event.target as HTMLTextAreaElement).value;
+    this.customTimeframe.set(value);
+    this.preferencesForm.controls.timeframe.setValue(value);
+  }
 
   ngOnInit(): void {
     const token = this.route.snapshot.paramMap.get('token');
@@ -307,6 +339,27 @@ export class LeadTrackComponent implements OnInit {
       availability: preferences?.availability ?? '',
       extraNotes: preferences?.extraNotes ?? '',
     });
+  }
+
+  private initTimeframeSelection(): void {
+    const current = (this.preferencesForm.controls.timeframe.value ?? '').trim();
+    if (!current) {
+      this.timeframeSelection.set('');
+      this.customTimeframe.set('');
+      return;
+    }
+
+    const match = this.timeframeOptions.find(option => option.toLowerCase() === current.toLowerCase());
+    if (match) {
+      this.timeframeSelection.set(match);
+      this.customTimeframe.set('');
+      this.preferencesForm.controls.timeframe.setValue(match);
+      return;
+    }
+
+    this.timeframeSelection.set('Anders');
+    this.customTimeframe.set(current);
+    this.preferencesForm.controls.timeframe.setValue(current);
   }
 
   private parseBudget(budget?: string): { min: string; max: string } {
