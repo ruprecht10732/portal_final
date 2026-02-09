@@ -65,7 +65,34 @@
       "save": "Save settings",
       "saved": "Settings updated.",
       "loadFailed": "Failed to load settings.",
-      "saveFailed": "Failed to save settings."
+      "saveFailed": "Failed to save settings.",
+      "whatsapp": {
+        "title": "WhatsApp",
+        "statusLabel": "Connection status",
+        "statusHint": "Connect a device to start sending WhatsApp updates.",
+        "connect": "Connect WhatsApp",
+        "reconnect": "Reconnect",
+        "disconnect": "Disconnect",
+        "connected": "Device registered.",
+        "disconnected": "Device disconnected.",
+        "reconnectStarted": "Reconnection started.",
+        "loadFailed": "Failed to load WhatsApp status.",
+        "connectFailed": "Failed to connect WhatsApp.",
+        "reconnectFailed": "Failed to reconnect WhatsApp.",
+        "disconnectFailed": "Failed to disconnect WhatsApp.",
+        "qrTitle": "Scan QR code",
+        "qrHint": "Open WhatsApp on your phone and scan the QR code to link the device.",
+        "qrFailed": "Failed to load QR code.",
+        "refreshQr": "Refresh QR",
+        "qrAlt": "WhatsApp QR code",
+        "states": {
+          "connected": "Connected",
+          "disconnected": "Needs scan",
+          "unregistered": "Not connected",
+          "error": "Needs attention",
+          "unknown": "Checking"
+        }
+      }
     },
     "logo": {
       "title": "Organization logo",

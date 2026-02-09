@@ -61,11 +61,32 @@ export interface OrgLogoDownloadResponse {
 export interface OrganizationSettings {
   quotePaymentDays: number;
   quoteValidDays: number;
+  whatsAppDeviceId?: string | null;
 }
 
 export interface UpdateOrganizationSettingsRequest {
   quotePaymentDays?: number;
   quoteValidDays?: number;
+}
+
+export interface WhatsAppStatus {
+  state: string;
+  message: string;
+  canSend: boolean;
+  needsReauth: boolean;
+}
+
+export interface RegisterWhatsAppResponse {
+  deviceId: string;
+  status: string;
+}
+
+export interface DisconnectWhatsAppResponse {
+  status: string;
+}
+
+export interface ReconnectWhatsAppResponse {
+  message: string;
 }
 
 export interface InviteRequest {
@@ -152,5 +173,25 @@ export class OrganizationService {
 
   updateSettings(payload: UpdateOrganizationSettingsRequest): Observable<OrganizationSettings> {
     return this.http.patch<OrganizationSettings>(`${this.baseUrl}/me/settings`, payload);
+  }
+
+  registerWhatsAppDevice(): Observable<RegisterWhatsAppResponse> {
+    return this.http.post<RegisterWhatsAppResponse>(`${this.baseUrl}/me/whatsapp/register`, {});
+  }
+
+  getWhatsAppStatus(): Observable<WhatsAppStatus> {
+    return this.http.get<WhatsAppStatus>(`${this.baseUrl}/me/whatsapp/status`);
+  }
+
+  reconnectWhatsApp(): Observable<ReconnectWhatsAppResponse> {
+    return this.http.post<ReconnectWhatsAppResponse>(`${this.baseUrl}/me/whatsapp/reconnect`, {});
+  }
+
+  disconnectWhatsApp(): Observable<DisconnectWhatsAppResponse> {
+    return this.http.delete<DisconnectWhatsAppResponse>(`${this.baseUrl}/me/whatsapp`);
+  }
+
+  getWhatsAppQr(): Observable<Blob> {
+    return this.http.get(`${this.baseUrl}/me/whatsapp/qr`, { responseType: 'blob' });
   }
 }

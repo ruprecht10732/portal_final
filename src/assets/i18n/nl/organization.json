@@ -65,7 +65,34 @@
       "save": "Instellingen opslaan",
       "saved": "Instellingen bijgewerkt.",
       "loadFailed": "Instellingen laden mislukt.",
-      "saveFailed": "Instellingen opslaan mislukt."
+      "saveFailed": "Instellingen opslaan mislukt.",
+      "whatsapp": {
+        "title": "WhatsApp",
+        "statusLabel": "Verbindingsstatus",
+        "statusHint": "Koppel een apparaat om WhatsApp updates te versturen.",
+        "connect": "WhatsApp koppelen",
+        "reconnect": "Opnieuw verbinden",
+        "disconnect": "Ontkoppelen",
+        "connected": "Apparaat gekoppeld.",
+        "disconnected": "Apparaat ontkoppeld.",
+        "reconnectStarted": "Opnieuw verbinden gestart.",
+        "loadFailed": "WhatsApp status laden mislukt.",
+        "connectFailed": "WhatsApp koppelen mislukt.",
+        "reconnectFailed": "Opnieuw verbinden mislukt.",
+        "disconnectFailed": "WhatsApp ontkoppelen mislukt.",
+        "qrTitle": "Scan QR-code",
+        "qrHint": "Open WhatsApp op uw telefoon en scan de QR-code om te koppelen.",
+        "qrFailed": "QR-code laden mislukt.",
+        "refreshQr": "QR vernieuwen",
+        "qrAlt": "WhatsApp QR-code",
+        "states": {
+          "connected": "Verbonden",
+          "disconnected": "Scan nodig",
+          "unregistered": "Niet verbonden",
+          "error": "Actie vereist",
+          "unknown": "Controleren"
+        }
+      }
     },
     "logo": {
       "title": "Organisatielogo",

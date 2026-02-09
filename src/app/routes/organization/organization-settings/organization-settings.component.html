@@ -35,6 +35,127 @@
         </div>
       </shared-card>
 
+      <shared-card>
+        <h4 class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6">
+          {{ 'organization.settings.whatsapp.title' | translate }}
+        </h4>
+
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex flex-col gap-1">
+              <p class="text-sm font-semibold text-zinc-900">
+                {{ 'organization.settings.whatsapp.statusLabel' | translate }}
+              </p>
+              <p class="text-xs text-zinc-500">
+                {{ whatsAppStatus()?.message || ('organization.settings.whatsapp.statusHint' | translate) }}
+              </p>
+            </div>
+
+            <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                 [class.bg-emerald-100]="isWhatsAppConnected()"
+                 [class.text-emerald-700]="isWhatsAppConnected()"
+                 [class.bg-amber-100]="!isWhatsAppConnected() && !isWhatsAppUnregistered()"
+                 [class.text-amber-700]="!isWhatsAppConnected() && !isWhatsAppUnregistered()"
+                 [class.bg-zinc-100]="isWhatsAppUnregistered()"
+                 [class.text-zinc-600]="isWhatsAppUnregistered()">
+              @switch (whatsAppStatus()?.state) {
+                @case ('CONNECTED') {
+                  {{ 'organization.settings.whatsapp.states.connected' | translate }}
+                }
+                @case ('DISCONNECTED') {
+                  {{ 'organization.settings.whatsapp.states.disconnected' | translate }}
+                }
+                @case ('UNREGISTERED') {
+                  {{ 'organization.settings.whatsapp.states.unregistered' | translate }}
+                }
+                @case ('ERROR') {
+                  {{ 'organization.settings.whatsapp.states.error' | translate }}
+                }
+                @default {
+                  {{ 'organization.settings.whatsapp.states.unknown' | translate }}
+                }
+              }
+            </div>
+          </div>
+
+          <div class="flex flex-wrap items-center gap-3">
+            @if (isWhatsAppUnregistered()) {
+              <shared-button
+                variant="primary"
+                [disabled]="isWhatsAppAction()"
+                [loading]="isWhatsAppAction()"
+                [fullWidth]="false"
+                (clicked)="connectWhatsApp()"
+              >
+                {{ 'organization.settings.whatsapp.connect' | translate }}
+              </shared-button>
+            } @else {
+              <shared-button
+                variant="secondary"
+                [disabled]="isWhatsAppAction()"
+                [loading]="isWhatsAppAction()"
+                [fullWidth]="false"
+                (clicked)="reconnectWhatsApp()"
+              >
+                {{ 'organization.settings.whatsapp.reconnect' | translate }}
+              </shared-button>
+              <shared-button
+                variant="danger"
+                [disabled]="isWhatsAppAction()"
+                [loading]="isWhatsAppAction()"
+                [fullWidth]="false"
+                (clicked)="disconnectWhatsApp()"
+              >
+                {{ 'organization.settings.whatsapp.disconnect' | translate }}
+              </shared-button>
+            }
+          </div>
+
+          @if (whatsAppSuccessMessage()) {
+            <p class="text-sm font-semibold text-emerald-600">
+              {{ whatsAppSuccessMessage() }}
+            </p>
+          }
+
+          @if (whatsAppErrorMessage()) {
+            <p class="text-sm font-semibold text-rose-600">
+              {{ whatsAppErrorMessage() }}
+            </p>
+          }
+
+          @if (!isWhatsAppUnregistered()) {
+            <div class="mt-2 grid gap-4 sm:grid-cols-[minmax(0,1fr)_220px] items-start">
+              <div class="flex flex-col gap-2">
+                <p class="text-sm font-semibold text-zinc-900">
+                  {{ 'organization.settings.whatsapp.qrTitle' | translate }}
+                </p>
+                <p class="text-xs text-zinc-500">
+                  {{ 'organization.settings.whatsapp.qrHint' | translate }}
+                </p>
+                <shared-button
+                  variant="ghost"
+                  [disabled]="isWhatsAppAction()"
+                  [fullWidth]="false"
+                  (clicked)="refreshQr()"
+                >
+                  {{ 'organization.settings.whatsapp.refreshQr' | translate }}
+                </shared-button>
+              </div>
+
+              @if (qrUrl()) {
+                <div class="whatsapp-qr">
+                  <img
+                    [src]="qrUrl()"
+                    [alt]="'organization.settings.whatsapp.qrAlt' | translate"
+                    class="whatsapp-qr__image"
+                  />
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </shared-card>
+
       <!-- Footer -->
       <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
         <div>
