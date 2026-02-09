@@ -9,7 +9,7 @@ export function normalizePhoneE164(input: string, region: CountryCode = DEFAULT_
   }
 
   const parsed = parsePhoneNumberFromString(trimmed, region);
-  if (!parsed || !parsed.isValid()) {
+  if (!parsed?.isValid()) {
     return trimmed;
   }
 
@@ -23,7 +23,7 @@ export function formatPhoneDisplay(input: string, region: CountryCode = DEFAULT_
   }
 
   const parsed = parsePhoneNumberFromString(trimmed, region);
-  if (!parsed || !parsed.isValid()) {
+  if (!parsed?.isValid()) {
     return trimmed;
   }
 
