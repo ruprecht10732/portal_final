@@ -4,9 +4,13 @@ export interface PublicPartnerOfferResponse {
   organizationName: string;
   jobSummary: string;
   jobSummaryShort?: string | null;
+  builderSummary?: string | null;
   city: string;
   postcode4?: string | null;
   buurtcode?: string | null;
+  constructionYear?: number | null;
+  scopeAssessment?: string | null;
+  urgencyLevel?: string | null;
   vakmanPriceCents: number;
   pricingSource: 'quote' | 'estimate';
   status: PartnerOfferStatus;

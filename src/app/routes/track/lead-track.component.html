@@ -359,7 +359,7 @@
                 @if (d.quote.link) {
                   <a class="bg-[#137fec] px-4 py-2 text-center text-xs font-bold text-white rounded-lg hover:bg-[#137fec]/90 transition-colors" [href]="d.quote.link">Bekijk offerte</a>
                 }
-                @if (d.quote.downloadLink) {
+                @if (d.quote.downloadLink && d.quote.status === 'Accepted') {
                   <a class="text-xs font-bold text-[#137fec]" [href]="d.quote.downloadLink">Download PDF</a>
                 }
               </div>

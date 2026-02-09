@@ -139,6 +139,21 @@
       "detailsTitle": "Offer details",
       "locationTitle": "Location",
       "locationHint": "This map shows the area (wijk) only. The exact address is shared after acceptance.",
+      "meta": {
+        "constructionYear": "Construction year",
+        "scope": "Scope",
+        "urgency": "Urgency"
+      },
+      "scope": {
+        "small": "Small",
+        "medium": "Medium",
+        "large": "Large"
+      },
+      "urgency": {
+        "low": "Low",
+        "medium": "Medium",
+        "high": "High"
+      },
       "details": {
         "job": "Job",
         "location": "Location",

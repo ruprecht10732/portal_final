@@ -17,10 +17,11 @@ import { type PublicPartnerOfferResponse, type TimeSlot, centsToEuros } from '..
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
 import { SignaturePadComponent } from '../../../shared/components/signature-pad/signature-pad.component';
+import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
 
 @Component({
   selector: 'app-partner-offer',
-  imports: [DatePipe, FormsModule, TranslatePipe, MapPreviewComponent, BottomSheetComponent, SignaturePadComponent],
+  imports: [DatePipe, FormsModule, TranslatePipe, MapPreviewComponent, BottomSheetComponent, SignaturePadComponent, MarkdownPipe],
   templateUrl: './partner-offer.component.html',
   styleUrl: './partner-offer.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -103,8 +104,58 @@ export class PartnerOfferComponent implements OnInit {
   protected readonly summaryDisplay = computed(() => {
     const o = this.offer();
     if (!o) return '';
+    const builderSummary = (o.builderSummary || '').trim();
+    if (builderSummary) return builderSummary;
     const summary = (o.jobSummaryShort || '').trim();
     return summary || o.jobSummary;
+  });
+
+  protected readonly summaryPlainDisplay = computed(() => {
+    const summary = this.summaryDisplay();
+    return summary
+      .replace(/\*\*/g, '')
+      .replace(/^\d+\.\s+/gm, '')
+      .replace(/^\s*-\s+/gm, '')
+      .replace(/\n+/g, ' ')
+      .trim();
+  });
+
+  protected readonly constructionYearDisplay = computed(() => {
+    const o = this.offer();
+    if (!o?.constructionYear) return '';
+    return String(o.constructionYear);
+  });
+
+  protected readonly scopeDisplayKey = computed(() => {
+    const o = this.offer();
+    const scope = (o?.scopeAssessment || '').toLowerCase();
+    if (!scope) return '';
+    switch (scope) {
+      case 'small':
+        return 'partners.offer.scope.small';
+      case 'medium':
+        return 'partners.offer.scope.medium';
+      case 'large':
+        return 'partners.offer.scope.large';
+      default:
+        return '';
+    }
+  });
+
+  protected readonly urgencyDisplayKey = computed(() => {
+    const o = this.offer();
+    const urgency = (o?.urgencyLevel || '').toLowerCase();
+    if (!urgency) return '';
+    switch (urgency) {
+      case 'high':
+        return 'partners.offer.urgency.high';
+      case 'medium':
+        return 'partners.offer.urgency.medium';
+      case 'low':
+        return 'partners.offer.urgency.low';
+      default:
+        return '';
+    }
   });
 
   protected readonly locationLabel = computed(() => {

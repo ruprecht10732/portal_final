@@ -139,6 +139,21 @@
       "detailsTitle": "Aanboddetails",
       "locationTitle": "Locatie",
       "locationHint": "Deze kaart toont alleen de wijk. Het exacte adres delen we na acceptatie.",
+      "meta": {
+        "constructionYear": "Bouwjaar",
+        "scope": "Omvang",
+        "urgency": "Urgentie"
+      },
+      "scope": {
+        "small": "Klein",
+        "medium": "Middel",
+        "large": "Groot"
+      },
+      "urgency": {
+        "low": "Laag",
+        "medium": "Gemiddeld",
+        "high": "Hoog"
+      },
       "details": {
         "job": "Opdracht",
         "location": "Locatie",
