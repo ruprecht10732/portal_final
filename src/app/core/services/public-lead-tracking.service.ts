@@ -53,4 +53,11 @@ export class PublicLeadTrackingService {
       data,
     );
   }
+
+  /** Delete an uploaded attachment */
+  deleteAttachment(token: string, attachmentId: string): Observable<{ status: string }> {
+    return this.http.delete<{ status: string }>(
+      `${this.baseUrl}/${encodeURIComponent(token)}/attachments/${encodeURIComponent(attachmentId)}`,
+    );
+  }
 }

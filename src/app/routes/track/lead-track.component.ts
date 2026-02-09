@@ -34,6 +34,8 @@ export class LeadTrackComponent implements OnInit {
   protected readonly uploadBusy = signal(false);
   protected readonly uploadError = signal<string | null>(null);
   protected readonly uploadSuccess = signal(false);
+  protected readonly deleteBusyId = signal<string | null>(null);
+  protected readonly deleteError = signal<string | null>(null);
   protected readonly infoSuccess = signal(false);
   protected readonly preferencesSuccess = signal(false);
   protected readonly token = signal('');
@@ -133,6 +135,31 @@ export class LeadTrackComponent implements OnInit {
     }
 
     this.uploadFile(file);
+  }
+
+  protected deleteAttachment(att: AttachmentSummary): void {
+    const token = this.token();
+    if (!token) return;
+
+    if (!window.confirm('Weet je zeker dat je deze afbeelding wilt verwijderen?')) {
+      return;
+    }
+
+    this.deleteError.set(null);
+    this.deleteBusyId.set(att.id);
+
+    this.service.deleteAttachment(token, att.id).subscribe({
+      next: () => {
+        this.deleteBusyId.set(null);
+        this.data.update(current =>
+          current ? { ...current, attachments: current.attachments.filter(item => item.id !== att.id) } : current,
+        );
+      },
+      error: () => {
+        this.deleteBusyId.set(null);
+        this.deleteError.set('Verwijderen is mislukt. Probeer het opnieuw.');
+      },
+    });
   }
 
   protected stepClasses(active: boolean): string {
