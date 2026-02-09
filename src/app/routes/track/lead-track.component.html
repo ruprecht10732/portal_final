@@ -1,0 +1,166 @@
+@if (loading()) {
+  <div class="flex min-h-screen items-center justify-center bg-linear-to-br from-emerald-50 via-white to-sky-50">
+    <div class="rounded-2xl bg-white/80 p-8 shadow-lg">
+      <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-emerald-200 border-t-emerald-600"></div>
+      <p class="mt-4 text-sm text-zinc-500">Laden...</p>
+    </div>
+  </div>
+} @else if (error(); as err) {
+  <div class="flex min-h-screen items-center justify-center bg-linear-to-br from-emerald-50 via-white to-sky-50">
+    <div class="max-w-md rounded-2xl bg-white p-8 text-center shadow-xl">
+      <div class="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-full bg-red-100 text-red-600">
+        <span class="text-xl font-semibold">!</span>
+      </div>
+      <h1 class="text-lg font-semibold text-zinc-900">Link niet beschikbaar</h1>
+      <p class="mt-2 text-sm text-zinc-500">{{ err }}</p>
+    </div>
+  </div>
+} @else if (data(); as d) {
+  <div class="min-h-screen bg-linear-to-br from-emerald-50 via-white to-sky-50">
+    <div class="mx-auto flex max-w-5xl flex-col gap-6 px-4 pb-12 pt-10 sm:px-6 lg:px-8">
+      <header class="rounded-3xl bg-white p-6 shadow-xl shadow-emerald-100/40">
+        <div class="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+          <div>
+            <p class="text-xs font-semibold uppercase tracking-[0.2em] text-emerald-500">Persoonlijke portal</p>
+            <h1 class="mt-2 text-2xl font-semibold text-zinc-900">Volg je aanvraag</h1>
+            <p class="mt-1 text-sm text-zinc-500">{{ d.consumerName }} • {{ d.city }}</p>
+            <p class="text-sm text-zinc-500">{{ d.serviceType }}</p>
+          </div>
+          <div class="rounded-2xl bg-emerald-50 px-5 py-4 text-sm text-emerald-700">
+            <p class="font-semibold">{{ d.status.label }}</p>
+            <p class="mt-1 text-xs text-emerald-700/80">{{ d.status.description }}</p>
+          </div>
+        </div>
+        <div class="mt-6 flex flex-wrap items-center gap-3">
+          @for (step of steps(); track step.step) {
+            <div class="flex items-center gap-2">
+              <span class="flex h-8 w-8 items-center justify-center rounded-full text-xs font-semibold ring-2"
+                [class]="stepClasses(step.active)">
+                {{ step.step }}
+              </span>
+              @if (step.step < 4) {
+                <span class="h-0.5 w-8 rounded-full"
+                  [class.bg-emerald-400]="step.active"
+                  [class.bg-zinc-200]="!step.active"></span>
+              }
+            </div>
+          }
+          <span class="text-xs text-zinc-500">Aangemaakt op {{ d.createdAt | date:'d MMMM yyyy':'':'nl' }}</span>
+        </div>
+      </header>
+
+      <section class="grid gap-6 lg:grid-cols-[1.2fr_0.8fr]">
+        <div class="rounded-3xl bg-white p-6 shadow-lg">
+          <h2 class="text-lg font-semibold text-zinc-900">Jouw voorkeuren</h2>
+          <p class="mt-1 text-sm text-zinc-500">Laat ons weten wat voor jou belangrijk is.</p>
+
+          <form class="mt-6 grid gap-4" [formGroup]="preferencesForm" (ngSubmit)="submitPreferences()">
+            <label class="text-sm font-medium text-zinc-700">
+              Budget
+              <input class="mt-2 w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:border-emerald-400 focus:outline-none"
+                formControlName="budget" placeholder="Bijv. 5.000 - 7.500" />
+            </label>
+            <label class="text-sm font-medium text-zinc-700">
+              Tijdspad
+              <input class="mt-2 w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:border-emerald-400 focus:outline-none"
+                formControlName="timeframe" placeholder="Bijv. binnen 3 maanden" />
+            </label>
+            <label class="text-sm font-medium text-zinc-700">
+              Beschikbaarheid
+              <textarea class="mt-2 w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:border-emerald-400 focus:outline-none"
+                formControlName="availability" rows="3" placeholder="Wanneer kunnen we langskomen?"
+              ></textarea>
+            </label>
+            <label class="text-sm font-medium text-zinc-700">
+              Extra opmerkingen
+              <textarea class="mt-2 w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:border-emerald-400 focus:outline-none"
+                formControlName="extraNotes" rows="3" placeholder="Alles wat we moeten weten"></textarea>
+            </label>
+
+            <div class="flex items-center gap-3">
+              <button type="submit"
+                class="rounded-full bg-emerald-600 px-5 py-2 text-sm font-semibold text-white transition hover:bg-emerald-700"
+                [disabled]="savingPreferences()">
+                @if (savingPreferences()) { Opslaan... } @else { Voorkeuren opslaan }
+              </button>
+              @if (preferencesSuccess()) {
+                <span class="text-xs text-emerald-600">Opgeslagen</span>
+              }
+            </div>
+          </form>
+        </div>
+
+        <div class="flex flex-col gap-6">
+          <div class="rounded-3xl bg-white p-6 shadow-lg">
+            <h2 class="text-lg font-semibold text-zinc-900">Volgende stap</h2>
+            @if (d.appointment) {
+              <div class="mt-4 rounded-2xl bg-emerald-50 p-4 text-sm text-emerald-800">
+                <p class="font-semibold">{{ d.appointment.title }}</p>
+                <p class="mt-1 text-xs text-emerald-700">
+                  {{ d.appointment.startTime | date:'d MMMM yyyy':'':'nl' }} ·
+                  {{ d.appointment.startTime | date:'HH:mm' }} - {{ d.appointment.endTime | date:'HH:mm' }}
+                </p>
+              </div>
+            } @else {
+              <p class="mt-3 text-sm text-zinc-500">Er staat nog geen afspraak gepland.</p>
+            }
+
+            <div class="mt-6">
+              <h3 class="text-sm font-semibold text-zinc-900">Offerte</h3>
+              @if (d.quote.available) {
+                <div class="mt-3 flex flex-col gap-2 text-sm">
+                  <span class="text-zinc-600">Status: {{ d.quote.status }}</span>
+                  @if (d.quote.link) {
+                    <a class="rounded-full bg-sky-600 px-4 py-2 text-center text-sm font-semibold text-white" [href]="d.quote.link">Bekijk offerte</a>
+                  }
+                  @if (d.quote.downloadLink) {
+                    <a class="text-sm font-semibold text-sky-700" [href]="d.quote.downloadLink">Download PDF</a>
+                  }
+                </div>
+              } @else {
+                <p class="mt-2 text-sm text-zinc-500">Nog geen offerte beschikbaar.</p>
+              }
+            </div>
+          </div>
+
+          <div class="rounded-3xl bg-white p-6 shadow-lg">
+            <h2 class="text-lg font-semibold text-zinc-900">Extra informatie</h2>
+            <p class="mt-1 text-sm text-zinc-500">Deel extra details of vragen met ons team.</p>
+
+            <form class="mt-4 grid gap-3" [formGroup]="infoForm" (ngSubmit)="submitInfo()">
+              <textarea class="w-full rounded-xl border border-zinc-200 px-4 py-3 text-sm focus:border-emerald-400 focus:outline-none"
+                formControlName="text" rows="3" placeholder="Typ je bericht..."></textarea>
+              <div class="flex items-center gap-3">
+                <button type="submit"
+                  class="rounded-full bg-zinc-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-zinc-800"
+                  [disabled]="savingInfo()">
+                  @if (savingInfo()) { Verzenden... } @else { Verstuur bericht }
+                </button>
+                @if (infoSuccess()) {
+                  <span class="text-xs text-emerald-600">Verzonden</span>
+                }
+              </div>
+            </form>
+          </div>
+
+          <div class="rounded-3xl bg-white p-6 shadow-lg">
+            <h2 class="text-lg font-semibold text-zinc-900">Bestanden uploaden</h2>
+            <p class="mt-1 text-sm text-zinc-500">Upload relevante documenten of foto’s.</p>
+
+            <div class="mt-4 flex flex-col gap-3">
+              <input type="file" class="rounded-xl border border-dashed border-zinc-300 px-4 py-3 text-sm"
+                (change)="onFileSelected($event)" />
+              @if (uploadBusy()) {
+                <p class="text-xs text-zinc-500">Uploaden...</p>
+              } @else if (uploadSuccess()) {
+                <p class="text-xs text-emerald-600">Upload voltooid.</p>
+              } @else if (uploadError(); as errText) {
+                <p class="text-xs text-red-600">{{ errText }}</p>
+              }
+            </div>
+          </div>
+        </div>
+      </section>
+    </div>
+  </div>
+}
