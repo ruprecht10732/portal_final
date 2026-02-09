@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
 import { DatePipe } from '@angular/common';
+import { TranslatePipe } from '@ngx-translate/core';
 import type { LeadService, LeadStatus } from '../../../../core/services/leads.types';
 import type { SelectOption } from '../../select/select.component';
 import { CardComponent } from '../../card/card.component';
@@ -13,7 +14,7 @@ import { TextareaComponent } from '../../textarea/textarea.component';
   templateUrl: './lead-services-card.component.html',
   styleUrl: './lead-services-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, CheckboxComponent, DatePipe, InputComponent, SelectComponent, TextareaComponent],
+  imports: [CardComponent, CheckboxComponent, DatePipe, InputComponent, SelectComponent, TextareaComponent, TranslatePipe],
 })
 export class LeadServicesCardComponent {
   services = input<LeadService[]>([]);

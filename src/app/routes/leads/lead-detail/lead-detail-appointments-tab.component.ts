@@ -2,13 +2,14 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import type { AccessDifficulty, AppointmentAttachmentResponse, AppointmentResponse } from '../../../core/services/appointments.types';
 import type { SelectOption } from '../../../shared/components/select/select.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { TranslatePipe } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-lead-detail-appointments-tab',
   templateUrl: './lead-detail-appointments-tab.component.html',
   styleUrl: './lead-detail-appointments-tab.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent],
+  imports: [ButtonComponent, TranslatePipe],
 })
 export class LeadDetailAppointmentsTabComponent {
   appointments = input<AppointmentResponse[]>([]);

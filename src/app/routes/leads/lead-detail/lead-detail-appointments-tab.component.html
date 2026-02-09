@@ -1,8 +1,8 @@
 <div class="flex flex-col gap-6">
   <div class="flex items-center justify-between">
     <div>
-      <h3 class="text-lg font-semibold">Appointments</h3>
-      <p class="text-sm text-zinc-500">Schedule lead visits and manage visit reports.</p>
+      <h3 class="text-lg font-semibold">{{ 'leads.detail.appointments.sectionTitle' | translate }}</h3>
+      <p class="text-sm text-zinc-500">{{ 'leads.detail.appointments.sectionSubtitle' | translate }}</p>
     </div>
     <shared-button
       variant="primary"
@@ -11,7 +11,7 @@
       [fullWidth]="false"
       (clicked)="toggleAppointmentForm.emit()"
     >
-      {{ showAppointmentForm() ? 'Hide form' : 'New appointment' }}
+      {{ showAppointmentForm() ? ('leads.detail.appointments.hideForm' | translate) : ('leads.detail.appointments.newAppointment' | translate) }}
     </shared-button>
   </div>
 
@@ -25,7 +25,7 @@
     <div class="grid gap-4 rounded-xl border border-zinc-200 p-4">
       <div class="grid gap-4 md:grid-cols-3">
         <label class="flex flex-col gap-2 text-sm font-medium">
-          Date
+          {{ 'leads.detail.appointments.date' | translate }}
           <input
             type="date"
             class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
@@ -35,7 +35,7 @@
           />
         </label>
         <label class="flex flex-col gap-2 text-sm font-medium">
-          Time
+          {{ 'leads.detail.appointments.time' | translate }}
           <input
             type="time"
             class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
@@ -44,7 +44,7 @@
           />
         </label>
         <label class="flex flex-col gap-2 text-sm font-medium">
-          Duration (minutes)
+          {{ 'leads.detail.appointments.duration' | translate }}
           <input
             type="number"
             min="15"
@@ -57,32 +57,32 @@
       </div>
       <div class="grid gap-4 md:grid-cols-2">
         <label class="flex flex-col gap-2 text-sm font-medium">
-          Title
+          {{ 'leads.detail.appointments.titleField' | translate }}
           <input
             type="text"
             class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-            placeholder="Lead visit"
+            [placeholder]="'leads.detail.appointments.titlePlaceholder' | translate"
             [value]="appointmentTitle()"
             (input)="setAppointmentTitle.emit($any($event.target).value)"
           />
         </label>
         <label class="flex flex-col gap-2 text-sm font-medium">
-          Location
+          {{ 'leads.detail.appointments.location' | translate }}
           <input
             type="text"
             class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-            placeholder="Address or reference"
+            [placeholder]="'leads.detail.appointments.locationPlaceholder' | translate"
             [value]="appointmentLocation()"
             (input)="setAppointmentLocation.emit($any($event.target).value)"
           />
         </label>
       </div>
       <label class="flex flex-col gap-2 text-sm font-medium">
-        Notes
+        {{ 'leads.detail.appointments.notes' | translate }}
         <textarea
           rows="3"
           class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-          placeholder="Optional notes"
+          [placeholder]="'leads.detail.appointments.notesPlaceholder' | translate"
           [value]="appointmentNotes()"
           (input)="setAppointmentNotes.emit($any($event.target).value)"
         ></textarea>
@@ -96,7 +96,7 @@
           [disabled]="!canSaveAppointment()"
           (clicked)="createAppointment.emit()"
         >
-          {{ appointmentSaving() ? 'Saving...' : 'Create appointment' }}
+          {{ appointmentSaving() ? ('leads.detail.appointments.saving' | translate) : ('leads.detail.appointments.createAppointment' | translate) }}
         </shared-button>
       </div>
     </div>
@@ -104,14 +104,14 @@
 
   <div class="grid gap-4 lg:grid-cols-[1fr_1.2fr]">
     <div class="flex flex-col gap-3">
-      <h4 class="text-sm font-semibold text-zinc-700">Scheduled visits</h4>
+      <h4 class="text-sm font-semibold text-zinc-700">{{ 'leads.detail.appointments.scheduledVisits' | translate }}</h4>
       @if (appointmentsLoading()) {
         <div class="flex items-center gap-2 text-sm text-zinc-500">
           <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-black" aria-hidden="true"></div>
-          Loading appointments...
+          {{ 'leads.detail.appointments.loadingAppointments' | translate }}
         </div>
       } @else if (appointments().length === 0) {
-        <p class="text-sm text-zinc-500">No appointments yet.</p>
+        <p class="text-sm text-zinc-500">{{ 'leads.detail.appointments.noAppointments' | translate }}</p>
       } @else {
         <div class="flex flex-col gap-2">
           @for (appointment of appointments(); track appointment.id) {
@@ -138,9 +138,9 @@
     </div>
 
     <div class="flex flex-col gap-4">
-      <h4 class="text-sm font-semibold text-zinc-700">Visit report</h4>
+      <h4 class="text-sm font-semibold text-zinc-700">{{ 'leads.detail.appointments.visitReport' | translate }}</h4>
       @if (!selectedAppointment()) {
-        <p class="text-sm text-zinc-500">Select an appointment to view details.</p>
+        <p class="text-sm text-zinc-500">{{ 'leads.detail.appointments.selectAppointment' | translate }}</p>
       } @else {
         <div class="rounded-xl border border-zinc-200 p-4">
           <div class="flex items-center justify-between">
@@ -153,13 +153,13 @@
 
           @if (selectedAppointment()?.status !== 'completed') {
             <p class="mt-3 text-xs text-zinc-500">
-              You can prepare your visit report in advance.
+              {{ 'leads.detail.appointments.prepareReport' | translate }}
             </p>
           }
 
           <div class="mt-4 grid gap-3">
             <label class="flex flex-col gap-2 text-sm font-medium">
-              Measurements
+              {{ 'leads.detail.appointments.measurements' | translate }}
               <textarea
                 rows="3"
                 class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
@@ -169,21 +169,21 @@
               ></textarea>
             </label>
             <label class="flex flex-col gap-2 text-sm font-medium">
-              Access difficulty
+              {{ 'leads.detail.appointments.accessDifficulty' | translate }}
               <select
                 class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
                 [value]="reportAccessDifficulty() ?? ''"
                 [disabled]="!canEditReport()"
                 (change)="setAccessDifficulty.emit($any($event.target).value)"
               >
-                <option value="">Select</option>
+                <option value="">{{ 'leads.detail.appointments.selectOption' | translate }}</option>
                 @for (option of accessDifficultyOptions(); track option.value) {
                   <option [value]="option.value">{{ option.label }}</option>
                 }
               </select>
             </label>
             <label class="flex flex-col gap-2 text-sm font-medium">
-              Notes
+              {{ 'leads.detail.appointments.notes' | translate }}
               <textarea
                 rows="3"
                 class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
@@ -201,7 +201,7 @@
                 [disabled]="!canEditReport()"
                 (clicked)="saveVisitReport.emit()"
               >
-                {{ reportSaving() ? 'Saving...' : 'Save report' }}
+                {{ reportSaving() ? ('leads.detail.appointments.saving' | translate) : ('leads.detail.appointments.saveReport' | translate) }}
               </shared-button>
             </div>
           </div>
@@ -210,15 +210,15 @@
         <div class="rounded-xl border border-zinc-200 p-4">
           <div class="flex items-center justify-between">
             <div>
-              <h5 class="text-sm font-semibold">Attachments</h5>
-              <p class="text-xs text-zinc-500">Store metadata after uploading the file to MinIO.</p>
+              <h5 class="text-sm font-semibold">{{ 'leads.detail.appointments.attachments' | translate }}</h5>
+              <p class="text-xs text-zinc-500">{{ 'leads.detail.appointments.attachmentsDescription' | translate }}</p>
             </div>
           </div>
 
           @if (attachmentsLoading()) {
-            <p class="mt-3 text-sm text-zinc-500">Loading attachments...</p>
+            <p class="mt-3 text-sm text-zinc-500">{{ 'leads.detail.appointments.loadingAttachments' | translate }}</p>
           } @else if (attachments().length === 0) {
-            <p class="mt-3 text-sm text-zinc-500">No attachments yet.</p>
+            <p class="mt-3 text-sm text-zinc-500">{{ 'leads.detail.appointments.noAttachments' | translate }}</p>
           } @else {
             <div class="mt-3 flex flex-col gap-2">
               @for (attachment of attachments(); track attachment.id) {
@@ -238,7 +238,7 @@
           <div class="mt-4 grid gap-3">
             <div class="grid gap-3 md:grid-cols-2">
               <label class="flex flex-col gap-2 text-sm font-medium">
-                File key
+                {{ 'leads.detail.appointments.fileKey' | translate }}
                 <input
                   type="text"
                   class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
@@ -247,7 +247,7 @@
                 />
               </label>
               <label class="flex flex-col gap-2 text-sm font-medium">
-                File name
+                {{ 'leads.detail.appointments.fileName' | translate }}
                 <input
                   type="text"
                   class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
@@ -258,17 +258,17 @@
             </div>
             <div class="grid gap-3 md:grid-cols-2">
               <label class="flex flex-col gap-2 text-sm font-medium">
-                Content type
+                {{ 'leads.detail.appointments.contentType' | translate }}
                 <input
                   type="text"
                   class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                  placeholder="image/jpeg"
+                  [placeholder]="'leads.detail.appointments.contentTypePlaceholder' | translate"
                   [value]="attachmentContentType()"
                   (input)="setAttachmentContentType.emit($any($event.target).value)"
                 />
               </label>
               <label class="flex flex-col gap-2 text-sm font-medium">
-                Size (bytes)
+                {{ 'leads.detail.appointments.sizeBytes' | translate }}
                 <input
                   type="number"
                   min="0"
@@ -287,7 +287,7 @@
                 [disabled]="!canAddAttachment()"
                 (clicked)="addAttachment.emit()"
               >
-                {{ attachmentSaving() ? 'Saving...' : 'Add attachment' }}
+                {{ attachmentSaving() ? ('leads.detail.appointments.saving' | translate) : ('leads.detail.appointments.addAttachment' | translate) }}
               </shared-button>
             </div>
           </div>

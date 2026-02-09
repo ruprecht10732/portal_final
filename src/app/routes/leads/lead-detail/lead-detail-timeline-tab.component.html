@@ -73,19 +73,19 @@
                 <div class="grid gap-1.5 text-amber-900">
                   @if (estimation.priceRange) {
                     <div class="flex gap-2">
-                      <span class="font-bold w-14 shrink-0">Price:</span>
+                      <span class="font-bold w-14 shrink-0">{{ t('leads.detail.timeline.estimationPriceLabel') }}</span>
                       <span>{{ t('leads.detail.timeline.priceRange', { value: estimation.priceRange }) }}</span>
                     </div>
                   }
                   @if (estimation.scope) {
                     <div class="flex gap-2">
-                      <span class="font-bold w-14 shrink-0">Scope:</span>
+                      <span class="font-bold w-14 shrink-0">{{ t('leads.detail.timeline.estimationScopeLabel') }}</span>
                       <span>{{ t('leads.detail.timeline.scope', { value: estimation.scope }) }}</span>
                     </div>
                   }
                   @if (estimation.notes) {
                     <div class="flex gap-2">
-                      <span class="font-bold w-14 shrink-0">Notes:</span>
+                      <span class="font-bold w-14 shrink-0">{{ t('leads.detail.timeline.estimationNotesLabel') }}</span>
                       <span class="text-amber-800 leading-relaxed" [innerHTML]="formatEstimationNotes(t('leads.detail.timeline.estimationNotes', { value: estimation.notes }))"></span>
                     </div>
                   }
@@ -351,9 +351,9 @@
                     (clicked)="copyContactMessage.emit({ itemId: item.id, message: contact.message })"
                   >
                     @if (copiedContactMessage() === item.id) {
-                       <span class="text-[10px] font-bold text-green-600">Copied</span>
+                       <span class="text-[10px] font-bold text-green-600">{{ t('leads.detail.timeline.copiedLabel') }}</span>
                     } @else {
-                       <span class="text-[10px] font-medium text-slate-400 group-hover:text-slate-600">Copy</span>
+                       <span class="text-[10px] font-medium text-slate-400 group-hover:text-slate-600">{{ t('leads.detail.timeline.copyLabel') }}</span>
                     }
                   </button>
                 </div>
@@ -367,7 +367,7 @@
                         class="text-xs font-bold text-emerald-600 hover:text-emerald-700 hover:underline inline-flex items-center gap-1"
                         (click)="openWhatsApp.emit({ phone: leadPhone(), message: contact.message })"
                       >
-                        Reply via WhatsApp
+                        {{ t('leads.detail.timeline.replyWhatsApp') }}
                         <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
                       </button>
                     } @else {
@@ -375,7 +375,7 @@
                         class="text-xs font-bold text-indigo-600 hover:text-indigo-700 hover:underline inline-flex items-center gap-1"
                         (click)="composeEmail.emit({ email: leadEmail() ?? undefined, message: contact.message })"
                       >
-                        Reply via Email
+                        {{ t('leads.detail.timeline.replyEmail') }}
                          <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" /></svg>
                       </button>
                     }
