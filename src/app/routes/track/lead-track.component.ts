@@ -11,7 +11,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { PublicLeadTrackingService } from '../../core/services/public-lead-tracking.service';
-import type { LeadPreferences, PublicLeadTrackingResponse } from '../../core/services/public-lead-tracking.types';
+import type { AttachmentSummary, LeadPreferences, PublicLeadTrackingResponse } from '../../core/services/public-lead-tracking.types';
 
 @Component({
   selector: 'app-lead-track',
@@ -52,6 +52,11 @@ export class LeadTrackComponent implements OnInit {
   protected readonly steps = computed(() => {
     const current = this.data()?.status.step ?? 1;
     return [1, 2, 3, 4].map(step => ({ step, active: step <= current }));
+  });
+
+  protected readonly imageAttachments = computed<AttachmentSummary[]>(() => {
+    const attachments = this.data()?.attachments ?? [];
+    return attachments.filter(att => att.contentType?.startsWith('image/') && !!att.downloadUrl);
   });
 
   ngOnInit(): void {
@@ -166,6 +171,15 @@ export class LeadTrackComponent implements OnInit {
     });
   }
 
+  private refreshData(token: string): void {
+    this.service.getByToken(token).subscribe({
+      next: data => {
+        this.data.set(data);
+        this.patchPreferences(data.preferences);
+      },
+    });
+  }
+
   private uploadFile(file: File): void {
     const token = this.token();
     if (!token) return;
@@ -181,7 +195,7 @@ export class LeadTrackComponent implements OnInit {
       sizeBytes: file.size,
     }).subscribe({
       next: presigned => {
-        this.uploadToPresignedUrl(presigned.uploadURL, file, contentType)
+        this.uploadToPresignedUrl(presigned.uploadUrl, file, contentType)
           .then(() => {
             this.service.confirmUpload(token, {
               fileKey: presigned.fileKey,
@@ -192,6 +206,7 @@ export class LeadTrackComponent implements OnInit {
               next: () => {
                 this.uploadBusy.set(false);
                 this.uploadSuccess.set(true);
+                this.refreshData(token);
               },
               error: () => {
                 this.uploadBusy.set(false);

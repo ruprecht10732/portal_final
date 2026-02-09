@@ -7,6 +7,7 @@ export interface PublicLeadTrackingResponse {
   status: LeadStatus;
   appointment: AppointmentSummary | null;
   quote: QuoteSummary;
+  attachments: AttachmentSummary[];
 }
 
 export interface LeadPreferences {
@@ -36,6 +37,16 @@ export interface QuoteSummary {
   downloadLink?: string;
 }
 
+export interface AttachmentSummary {
+  id: string;
+  fileKey: string;
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+  createdAt: string;
+  downloadUrl?: string;
+}
+
 export interface UpdatePreferencesRequest {
   budget?: string;
   timeframe?: string;
@@ -54,7 +65,7 @@ export interface PresignUploadRequest {
 }
 
 export interface PresignUploadResponse {
-  uploadURL: string;
+  uploadUrl: string;
   fileKey: string;
   expiresAt: number;
 }
