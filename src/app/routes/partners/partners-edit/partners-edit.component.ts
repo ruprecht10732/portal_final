@@ -418,7 +418,7 @@ export class PartnersEditComponent implements OnInit {
   private loadServiceTypes(): void {
     this.serviceTypesLoading.set(true);
     this.serviceTypesError.set(null);
-    this.serviceTypesService.listAdmin({ page: 1, pageSize: 100, sortBy: 'displayOrder', sortOrder: 'asc' }).subscribe({
+    this.serviceTypesService.listAdmin({ page: 1, pageSize: 100, sortBy: 'name', sortOrder: 'asc' }).subscribe({
       next: response => {
         this.serviceTypes.set(response.items ?? []);
         this.serviceTypesLoading.set(false);

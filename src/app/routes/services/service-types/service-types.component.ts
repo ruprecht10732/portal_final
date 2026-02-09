@@ -124,22 +124,6 @@ export class ServiceTypesComponent implements OnInit {
         },
       },
       {
-        id: 'displayOrder',
-        header: this.translate.instant('services.list.columns.order'),
-        field: 'displayOrder',
-        sortable: true,
-        filterable: false,
-        editable: true,
-        width: '90px',
-        cellType: 'number',
-        validator: value => {
-          const num = Number(value);
-          return Number.isFinite(num) && num >= 0
-            ? null
-            : this.translate.instant('services.validation.invalid');
-        },
-      },
-      {
         id: 'isActive',
         header: this.translate.instant('services.list.columns.active'),
         field: 'isActive',
@@ -208,7 +192,7 @@ export class ServiceTypesComponent implements OnInit {
   }
 
   private loadInitialData(): void {
-    this.loadServiceTypes({ page: 1, pageSize: DEFAULT_PAGE_SIZE, sortBy: 'displayOrder', sortOrder: 'asc' });
+    this.loadServiceTypes({ page: 1, pageSize: DEFAULT_PAGE_SIZE, sortBy: 'name', sortOrder: 'asc' });
   }
 
   protected onSaveServiceTypes(rows: ServiceTypeRow[]): void {
@@ -338,11 +322,6 @@ export class ServiceTypesComponent implements OnInit {
       request.color = null;
     }
 
-    const displayOrder = this.parseDisplayOrder(row.displayOrder);
-    if (displayOrder !== undefined && displayOrder !== existing.displayOrder) {
-      request.displayOrder = displayOrder;
-    }
-
     return request;
   }
 
@@ -353,7 +332,6 @@ export class ServiceTypesComponent implements OnInit {
     const rawIcon = normalizeIconName(this.normalizeOptional(row.icon));
     // Filter out null - only include if it's a valid string
     const icon = rawIcon === null ? undefined : rawIcon;
-    const displayOrder = this.parseDisplayOrder(row.displayOrder);
     const description = this.normalizeOptional(row.description);
     const intakeGuidelines = this.normalizeOptional(row.intakeGuidelines);
     const color = this.normalizeOptional(row.color);
@@ -364,7 +342,6 @@ export class ServiceTypesComponent implements OnInit {
       ...(intakeGuidelines !== undefined && { intakeGuidelines }),
       ...(icon !== undefined && { icon }),
       ...(color !== undefined && { color }),
-      ...(displayOrder !== undefined && { displayOrder }),
     };
   }
 
@@ -402,13 +379,6 @@ export class ServiceTypesComponent implements OnInit {
       return undefined;
     }
     return undefined;
-  }
-
-  private parseDisplayOrder(value: unknown): number | undefined {
-    if (value === null || value === undefined || value === '') return undefined;
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed < 0) return undefined;
-    return parsed;
   }
 
   protected fetchData(request: DataRequest): Observable<DataResponse<ServiceTypeRow>> {

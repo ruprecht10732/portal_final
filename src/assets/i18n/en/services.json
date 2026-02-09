@@ -13,7 +13,6 @@
       "appearance": "Appearance",
       "colorLabel": "Color",
       "colorPlaceholder": "#3B82F6",
-      "orderLabel": "Display Order",
       "descriptionLabel": "Description",
       "creating": "Creating...",
       "submit": "Create Service Type",
@@ -35,7 +34,6 @@
         "intakeGuidelines": "Intake guidelines",
         "icon": "Icon",
         "color": "Color",
-        "order": "Order",
         "active": "Active",
         "updated": "Updated"
       }
@@ -72,7 +70,6 @@
         "intakeGuidelines": "Intake guidelines",
         "icon": "Icon",
         "color": "Color",
-        "displayOrder": "Display order",
         "status": "Status",
         "createdAt": "Created",
         "updatedAt": "Updated"

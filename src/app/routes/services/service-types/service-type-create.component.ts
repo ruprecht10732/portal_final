@@ -39,7 +39,6 @@ export class ServiceTypeCreateComponent {
   protected readonly intakeGuidelines = signal('');
   protected readonly icon = signal('');
   protected readonly color = signal('');
-  protected readonly displayOrder = signal('0');
 
   protected readonly creating = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -52,7 +51,6 @@ export class ServiceTypeCreateComponent {
     this.creating.set(true);
     this.error.set(null);
 
-    const displayOrderValue = this.parseDisplayOrder(this.displayOrder());
     const normalizedIcon = normalizeIconName(this.normalizeOptional(this.icon()));
     const description = this.normalizeOptional(this.description());
     const intakeGuidelines = this.normalizeOptional(this.intakeGuidelines());
@@ -64,7 +62,6 @@ export class ServiceTypeCreateComponent {
       ...(intakeGuidelines !== undefined && { intakeGuidelines }),
       ...(icon !== undefined && { icon }),
       ...(color !== undefined && { color }),
-      ...(displayOrderValue !== undefined && { displayOrder: displayOrderValue }),
     };
 
     this.serviceTypesService.create(request).subscribe({
@@ -87,7 +84,6 @@ export class ServiceTypeCreateComponent {
     this.intakeGuidelines.set('');
     this.icon.set('');
     this.color.set('');
-    this.displayOrder.set('0');
     this.creating.set(false);
   }
 
@@ -101,13 +97,6 @@ export class ServiceTypeCreateComponent {
       return String(value);
     }
     return undefined;
-  }
-
-  private parseDisplayOrder(value: unknown): number | undefined {
-    if (value === null || value === undefined || value === '') return undefined;
-    const parsed = Number(value);
-    if (!Number.isFinite(parsed) || parsed < 0) return undefined;
-    return parsed;
   }
 
 }

@@ -13,7 +13,6 @@
       "appearance": "Weergave",
       "colorLabel": "Kleur",
       "colorPlaceholder": "#3B82F6",
-      "orderLabel": "Weergavevolgorde",
       "descriptionLabel": "Beschrijving",
       "creating": "Aanmaken...",
       "submit": "Diensttype aanmaken",
@@ -35,7 +34,6 @@
         "intakeGuidelines": "Intake richtlijnen",
         "icon": "Pictogram",
         "color": "Kleur",
-        "order": "Volgorde",
         "active": "Actief",
         "updated": "Bijgewerkt"
       }
@@ -72,7 +70,6 @@
         "intakeGuidelines": "Intake richtlijnen",
         "icon": "Pictogram",
         "color": "Kleur",
-        "displayOrder": "Weergavevolgorde",
         "status": "Status",
         "createdAt": "Aangemaakt",
         "updatedAt": "Bijgewerkt"

@@ -7,7 +7,6 @@ export interface ServiceTypeItem {
   icon?: string;
   color?: string;
   isActive: boolean;
-  displayOrder: number;
   createdAt: string;
   updatedAt: string;
 }
@@ -18,7 +17,6 @@ export interface CreateServiceTypeRequest {
   intakeGuidelines?: string;
   icon?: string;
   color?: string;
-  displayOrder?: number;
 }
 
 export interface UpdateServiceTypeRequest {
@@ -27,11 +25,6 @@ export interface UpdateServiceTypeRequest {
   intakeGuidelines?: string | null;
   icon?: string | null;
   color?: string | null;
-  displayOrder?: number | null;
-}
-
-export interface ReorderServiceTypesRequest {
-  items: { id: string; displayOrder: number }[];
 }
 
 export interface ServiceTypeListResponse {
@@ -51,6 +44,6 @@ export interface ListServiceTypesParams {
   isActive?: boolean;
   page?: number;
   pageSize?: number;
-  sortBy?: 'name' | 'slug' | 'displayOrder' | 'isActive' | 'createdAt' | 'updatedAt';
+  sortBy?: 'name' | 'slug' | 'isActive' | 'createdAt' | 'updatedAt';
   sortOrder?: 'asc' | 'desc';
 }

@@ -2,7 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import type { CreateServiceTypeRequest, DeleteServiceTypeResponse, ListServiceTypesParams, ReorderServiceTypesRequest, ServiceTypeItem, ServiceTypeListResponse, UpdateServiceTypeRequest } from './service-types.types';
+import type { CreateServiceTypeRequest, DeleteServiceTypeResponse, ListServiceTypesParams, ServiceTypeItem, ServiceTypeListResponse, UpdateServiceTypeRequest } from './service-types.types';
 import { normalizeIconName } from './icon-utils';
 import { toHttpParams } from '../utils/http-utils';
 
@@ -58,10 +58,6 @@ export class ServiceTypesService {
     return this.http.patch<ServiceTypeItem>(`${this.adminBaseUrl}/${id}/toggle-active`, {}).pipe(
       map(item => this.normalizeItem(item)),
     );
-  }
-
-  reorder(request: ReorderServiceTypesRequest): Observable<void> {
-    return this.http.put<void>(`${this.adminBaseUrl}/reorder`, request);
   }
 
   private normalizeItem(item: ServiceTypeItem): ServiceTypeItem {
