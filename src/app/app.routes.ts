@@ -57,6 +57,10 @@ export const routes: Routes = [
 		loadComponent: () => import('./routes/partners/partner-offer/partner-offer.component').then(m => m.PartnerOfferComponent),
 	},
 	{
+		path: 'track/:token',
+		loadComponent: () => import('./routes/track/lead-track.component').then(m => m.LeadTrackComponent),
+	},
+	{
 		path: 'app',
 		loadComponent: () => import('./routes/app-shell/authenticated-layout.component').then(m => m.AuthenticatedLayoutComponent),
 		canActivate: [authGuard],
