@@ -133,6 +133,17 @@
 
         <shared-card padding="none">
           <details>
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.preferences' | translate }}</summary>
+            <div class="px-4 pb-4">
+              <app-lead-detail-preferences-tab
+                [preferences]="selectedService()?.preferences ?? null"
+              />
+            </div>
+          </details>
+        </shared-card>
+
+        <shared-card padding="none">
+          <details>
             <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.timeline' | translate }}</summary>
             <div class="px-4 pb-4">
               <app-lead-detail-timeline-tab
@@ -402,6 +413,10 @@
                 (setAttachmentContentType)="setAttachmentContentType($event)"
                 (setAttachmentSizeBytes)="setAttachmentSizeBytes($event)"
                 (addAttachment)="addAttachment()"
+              />
+            } @else if (activeTab() === 'preferences') {
+              <app-lead-detail-preferences-tab
+                [preferences]="selectedService()?.preferences ?? null"
               />
             } @else if (activeTab() === 'timeline') {
               <app-lead-detail-timeline-tab

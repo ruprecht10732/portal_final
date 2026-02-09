@@ -1,0 +1,46 @@
+.preferences-grid {
+  display: grid;
+  gap: 12px;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+}
+
+.preference-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  padding: 12px 14px;
+  background: #ffffff;
+}
+
+.preference-label {
+  font-size: 11px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6b7280;
+  font-weight: 600;
+  margin: 0;
+}
+
+.preference-value {
+  margin: 8px 0 0;
+  font-size: 14px;
+  color: #111827;
+  white-space: pre-wrap;
+}
+
+.empty-state {
+  border: 1px dashed #e5e7eb;
+  border-radius: 12px;
+  padding: 16px;
+  background: #f9fafb;
+  color: #6b7280;
+}
+
+.empty-title {
+  margin: 0 0 4px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.empty-subtitle {
+  margin: 0;
+}

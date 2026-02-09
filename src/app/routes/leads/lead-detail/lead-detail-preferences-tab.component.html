@@ -1,0 +1,17 @@
+@if (hasPreferences()) {
+  <div class="preferences-grid">
+    @for (item of preferenceItems(); track item.id) {
+      <div class="preference-card">
+        <p class="preference-label">{{ item.labelKey | translate }}</p>
+        <p class="preference-value">
+          {{ item.value || ('leads.detail.preferences.notProvided' | translate) }}
+        </p>
+      </div>
+    }
+  </div>
+} @else {
+  <div class="empty-state">
+    <p class="empty-title">{{ 'leads.detail.preferences.emptyTitle' | translate }}</p>
+    <p class="empty-subtitle">{{ 'leads.detail.preferences.emptySubtitle' | translate }}</p>
+  </div>
+}

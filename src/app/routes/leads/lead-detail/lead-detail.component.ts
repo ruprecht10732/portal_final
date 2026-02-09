@@ -38,6 +38,7 @@ import { LeadDetailInfoCardsComponent } from './lead-detail-info-cards.component
 import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
 import { LeadDetailMobileConsumerCardComponent } from './lead-detail-mobile-consumer-card.component';
 import { LeadDetailNotesPanelComponent } from './lead-detail-notes-panel.component';
+import { LeadDetailPreferencesTabComponent } from './lead-detail-preferences-tab.component';
 import { LeadDetailServicesPanelComponent } from './lead-detail-services-panel.component';
 import { LeadDetailSidebarInfoComponent } from './lead-detail-sidebar-info.component';
 import { LeadDetailTabsShellComponent } from './lead-detail-tabs-shell.component';
@@ -50,7 +51,7 @@ import { TIMEOUT_MS } from '../../../core/config';
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -78,12 +79,13 @@ export class LeadDetailComponent implements OnInit {
   protected readonly newStatus = signal<LeadStatus | null>(null);
 
   protected readonly statusMenuOpen = signal(false);
-  protected readonly activeTab = signal<'activity' | 'appointments' | 'timeline' | 'files'>('activity');
+  protected readonly activeTab = signal<'activity' | 'appointments' | 'timeline' | 'files' | 'preferences'>('activity');
   protected readonly tabs = computed<TabItem[]>(() => {
     // Read lang to trigger recomputation on language change
     this.lang();
     return [
       { id: 'activity', label: this.translate.instant('leads.detail.tabs.activity') },
+      { id: 'preferences', label: this.translate.instant('leads.detail.tabs.preferences') },
       { id: 'appointments', label: this.translate.instant('leads.detail.tabs.appointments') },
       { id: 'timeline', label: this.translate.instant('leads.detail.tabs.timeline') },
       { id: 'files', label: this.translate.instant('leads.detail.tabs.files') },
@@ -676,9 +678,9 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected onTabChange(tabId: string): void {
-    const validTabs = ['activity', 'appointments', 'timeline', 'files'] as const;
+    const validTabs = ['activity', 'appointments', 'timeline', 'files', 'preferences'] as const;
     if (validTabs.includes(tabId as typeof validTabs[number])) {
-      this.activeTab.set(tabId as 'activity' | 'appointments' | 'timeline' | 'files');
+      this.activeTab.set(tabId as 'activity' | 'appointments' | 'timeline' | 'files' | 'preferences');
     }
   }
 

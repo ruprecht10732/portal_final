@@ -50,10 +50,18 @@ export interface LeadService {
   serviceType: string;
   status: LeadStatus;
   pipelineStage: PipelineStage;
+  preferences?: LeadPreferences | null;
   consumerNote?: string;
   source?: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface LeadPreferences {
+  budget?: string | null;
+  timeframe?: string | null;
+  availability?: string | null;
+  extraNotes?: string | null;
 }
 
 export interface EnergyLabel {

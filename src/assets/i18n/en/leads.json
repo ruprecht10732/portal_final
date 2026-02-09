@@ -89,9 +89,19 @@
       "tabs": {
         "visit": "The Visit",
         "activity": "Activity / Notes",
+        "preferences": "Preferences",
         "appointments": "Appointments",
         "timeline": "Timeline",
         "files": "Files"
+      },
+      "preferences": {
+        "budget": "Budget",
+        "timeframe": "Timeframe",
+        "availability": "Availability",
+        "extraNotes": "Extra notes",
+        "notProvided": "Not provided",
+        "emptyTitle": "No preferences yet",
+        "emptySubtitle": "The customer has not shared any preferences."
       },
       "quickActions": {
         "call": "Call",

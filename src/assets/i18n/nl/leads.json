@@ -89,9 +89,19 @@
       "tabs": {
         "visit": "Het bezoek",
         "activity": "Activiteit / notities",
+        "preferences": "Voorkeuren",
         "appointments": "Afspraken",
         "timeline": "Tijdlijn",
         "files": "Bestanden"
+      },
+      "preferences": {
+        "budget": "Budget",
+        "timeframe": "Tijdspad",
+        "availability": "Beschikbaarheid",
+        "extraNotes": "Extra informatie",
+        "notProvided": "Niet opgegeven",
+        "emptyTitle": "Nog geen voorkeuren",
+        "emptySubtitle": "De klant heeft nog geen voorkeuren gedeeld."
       },
       "quickActions": {
         "call": "Bellen",
