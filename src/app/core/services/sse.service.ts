@@ -10,6 +10,12 @@ export type SSEEventType =
   | 'analysis_complete'
   | 'photo_analysis_complete'
   | 'lead_updated'
+  | 'lead_preferences_updated'
+  | 'lead_attachment_uploaded'
+  | 'lead_attachment_deleted'
+  | 'lead_info_added'
+  | 'lead_appointment_requested'
+  | 'lead_status_changed'
   | 'quote_sent'
   | 'quote_viewed'
   | 'quote_item_toggled'
@@ -157,6 +163,15 @@ export class SSEService {
           });
         }
 
+        // Lead/customer activity events
+        for (const evtType of ['lead_preferences_updated', 'lead_attachment_uploaded', 'lead_attachment_deleted', 'lead_info_added', 'lead_appointment_requested', 'lead_status_changed'] as const) {
+          this.eventSource.addEventListener(evtType, (event) => {
+            this.zone.run(() => {
+              this.handleEventMessage(event, evtType);
+            });
+          });
+        }
+
         // Appointment events
         for (const evtType of ['appointment_created', 'appointment_updated', 'appointment_status_changed'] as const) {
           this.eventSource.addEventListener(evtType, (event) => {
@@ -235,6 +250,9 @@ export class SSEService {
 
     // Quote events — show global toasts so agents are notified from any page
     this.handleQuoteEventToast(event);
+
+    // Lead/customer activity toasts
+    this.handleLeadActivityToast(event);
   }
 
   private handleQuoteEventToast(event: SSEEvent): void {
@@ -310,6 +328,55 @@ export class SSEService {
         dismissible: true,
       });
     }
+  }
+
+  private handleLeadActivityToast(event: SSEEvent): void {
+    const leadId = event.leadId;
+    if (!leadId) return;
+
+    let message = '';
+    let title = 'Lead update';
+
+    switch (event.type) {
+      case 'lead_preferences_updated':
+        message = 'Klant heeft voorkeuren bijgewerkt';
+        title = 'Voorkeuren';
+        break;
+      case 'lead_attachment_uploaded':
+        message = 'Klant heeft nieuwe bestanden geupload';
+        title = 'Bijlagen';
+        break;
+      case 'lead_attachment_deleted':
+        message = 'Klant heeft een bestand verwijderd';
+        title = 'Bijlagen';
+        break;
+      case 'lead_info_added':
+        message = 'Klant heeft extra info toegevoegd';
+        title = 'Klant update';
+        break;
+      case 'lead_appointment_requested':
+        message = 'Klant heeft een inspectie aangevraagd';
+        title = 'Inspectie';
+        break;
+      case 'lead_status_changed':
+        message = 'Lead status is bijgewerkt';
+        title = 'Status';
+        break;
+      default:
+        return;
+    }
+
+    this.toast.show({
+      message,
+      title,
+      variant: 'info',
+      dismissible: true,
+      durationMs: 8000,
+      link: {
+        label: 'Bekijk lead →',
+        url: ['/app/leads', leadId],
+      },
+    });
   }
 
   private handleConnectionError(): void {

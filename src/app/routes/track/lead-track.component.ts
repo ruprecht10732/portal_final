@@ -11,6 +11,7 @@ import {
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
 import { PublicLeadTrackingService } from '../../core/services/public-lead-tracking.service';
+import { environment } from '../../../environments/environment';
 import type {
   AttachmentSummary,
   AppointmentSummary,
@@ -34,6 +35,11 @@ export class LeadTrackComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly datePipe = inject(DatePipe);
+
+  private eventSource: EventSource | null = null;
+  private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
+  private reconnectAttempts = 0;
+  private readonly maxReconnectAttempts = 5;
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -223,8 +229,10 @@ export class LeadTrackComponent implements OnInit {
 
     this.token.set(token);
     this.load(token);
+    this.connectLeadSse(token);
 
     this.destroyRef.onDestroy(() => {
+      this.disconnectLeadSse();
       this.preferencesForm.reset();
       this.infoForm.reset();
     });
@@ -407,6 +415,69 @@ export class LeadTrackComponent implements OnInit {
         this.patchPreferences(data.preferences);
       },
     });
+  }
+
+  private connectLeadSse(token: string): void {
+    if (this.eventSource) return;
+
+    const url = `${environment.apiBaseUrl}/public/leads/${encodeURIComponent(token)}/events`;
+
+    try {
+      this.eventSource = new EventSource(url);
+
+      this.eventSource.onopen = () => {
+        this.reconnectAttempts = 0;
+      };
+
+      const refresh = () => this.refreshData(token);
+      const events = [
+        'lead_updated',
+        'lead_status_changed',
+        'quote_sent',
+        'quote_accepted',
+        'quote_rejected',
+        'appointment_created',
+        'appointment_updated',
+        'appointment_status_changed',
+      ];
+
+      for (const evtType of events) {
+        this.eventSource.addEventListener(evtType, refresh);
+      }
+
+      this.eventSource.onerror = () => {
+        this.scheduleLeadSseReconnect(token);
+      };
+    } catch {
+      this.scheduleLeadSseReconnect(token);
+    }
+  }
+
+  private scheduleLeadSseReconnect(token: string): void {
+    if (this.reconnectAttempts >= this.maxReconnectAttempts) return;
+    if (this.reconnectTimer) return;
+
+    this.disconnectLeadSse();
+
+    const delay = 1000 * Math.pow(2, this.reconnectAttempts);
+    this.reconnectAttempts += 1;
+
+    this.reconnectTimer = setTimeout(() => {
+      this.reconnectTimer = null;
+      this.connectLeadSse(token);
+    }, delay);
+  }
+
+  private disconnectLeadSse(): void {
+    if (this.reconnectTimer) {
+      clearTimeout(this.reconnectTimer);
+      this.reconnectTimer = null;
+    }
+
+    if (this.eventSource) {
+      this.eventSource.close();
+      this.eventSource = null;
+    }
   }
 
   private uploadFile(file: File): void {
