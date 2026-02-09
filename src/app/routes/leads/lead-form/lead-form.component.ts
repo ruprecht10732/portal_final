@@ -13,12 +13,14 @@ import type { ServiceTypeItem } from '../../../core/services/service-types.types
 import type { Lead, ConsumerRole, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { normalizePhoneE164 } from '../../../core/utils/phone.util';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
+import { phoneValidator } from '../../../shared/validators/phone.validator';
 import { DEBOUNCE_MS, MIN_LENGTH, MAX_LENGTH } from '../../../core/config';
 
 @Component({
@@ -50,7 +52,7 @@ export class LeadFormComponent implements OnInit {
   protected readonly form = this.fb.group({
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
-    phone: ['', Validators.required],
+    phone: ['', [Validators.required, phoneValidator()]],
     email: [''],
     consumerRole: this.fb.control<ConsumerRole>('Owner', { nonNullable: true }),
     source: [''],
@@ -80,6 +82,7 @@ export class LeadFormComponent implements OnInit {
   protected readonly consumerRoleOptions = computed<SelectOption<ConsumerRole>[]>(() => CONSUMER_ROLE_OPTIONS);
 
   protected readonly requiredError = computed(() => this.translate.instant('leads.form.validation.required'));
+  protected readonly invalidPhoneError = computed(() => this.translate.instant('leads.form.validation.invalidPhone'));
 
   protected setConsumerRole(value: ConsumerRole | null): void {
     if (value) this.form.controls.consumerRole.setValue(value);
@@ -242,13 +245,26 @@ export class LeadFormComponent implements OnInit {
     this.form.controls.consumerNote.setValue(this.clampValue(value, this.consumerNoteMaxLength));
   }
 
+  protected onPhoneBlur(): void {
+    const rawValue = this.form.controls.phone.value ?? '';
+    const normalized = normalizePhoneE164(rawValue);
+    if (normalized !== rawValue) {
+      this.form.controls.phone.setValue(normalized);
+    }
+
+    this.checkDuplicate();
+  }
+
   private clampValue(value: string, maxLength: number): string {
     if (value.length <= maxLength) return value;
     return value.slice(0, maxLength);
   }
 
   protected checkDuplicate(): void {
-    const phoneValue = (this.form.controls.phone.value ?? '').trim();
+    const phoneValue = normalizePhoneE164(this.form.controls.phone.value ?? '').trim();
+    if (phoneValue && phoneValue !== this.form.controls.phone.value) {
+      this.form.controls.phone.setValue(phoneValue);
+    }
 
     this.leadsService.checkDuplicate(phoneValue).subscribe({
       next: (result) => {
@@ -282,7 +298,7 @@ export class LeadFormComponent implements OnInit {
       const request: CreateLeadRequest = {
         firstName: (values.firstName ?? '').trim(),
         lastName: (values.lastName ?? '').trim(),
-        phone: (values.phone ?? '').trim(),
+        phone: normalizePhoneE164(values.phone ?? ''),
         consumerRole: values.consumerRole,
         street: (values.street ?? '').trim(),
         houseNumber: (values.houseNumber ?? '').trim(),
@@ -316,7 +332,7 @@ export class LeadFormComponent implements OnInit {
       const request: UpdateLeadRequest = {
         firstName: (values.firstName ?? '').trim(),
         lastName: (values.lastName ?? '').trim(),
-        phone: (values.phone ?? '').trim(),
+        phone: normalizePhoneE164(values.phone ?? ''),
         consumerRole: values.consumerRole,
         street: (values.street ?? '').trim(),
         houseNumber: (values.houseNumber ?? '').trim(),
@@ -359,5 +375,13 @@ export class LeadFormComponent implements OnInit {
     if (!this.submitAttempted()) return '';
     if (!control?.hasError('required')) return '';
     return this.requiredError();
+  }
+
+  protected phoneControlError(): string {
+    if (!this.submitAttempted()) return '';
+    const control = this.form.controls.phone;
+    if (control.hasError('required')) return this.requiredError();
+    if (control.hasError('invalidPhone')) return this.invalidPhoneError();
+    return '';
   }
 }

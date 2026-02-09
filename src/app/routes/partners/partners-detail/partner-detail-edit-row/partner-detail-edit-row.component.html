@@ -29,7 +29,11 @@
       </div>
     } @else {
       <span class="truncate text-sm font-semibold text-zinc-900">
-        {{ value() || '—' }}
+        @if (formatAsPhone()) {
+          {{ value() | phoneFormat }}
+        } @else {
+          {{ value() || '—' }}
+        }
       </span>
       @if (editable()) {
         <button

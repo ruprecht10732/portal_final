@@ -50,6 +50,7 @@
       <app-partner-detail-edit-row
         [labelKey]="row.labelKey"
         [value]="row.value"
+        [formatAsPhone]="row.formatAsPhone ?? false"
         [editable]="true"
         [isEditing]="editingKey() === row.key"
         [editValue]="editValue()"

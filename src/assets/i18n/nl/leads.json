@@ -46,7 +46,8 @@
         "updateLead": "Lead bijwerken mislukt"
       },
       "validation": {
-        "required": "Vul alle verplichte velden in"
+        "required": "Vul alle verplichte velden in",
+        "invalidPhone": "Vul een geldig telefoonnummer in"
       }
     },
     "detail": {
@@ -302,6 +303,9 @@
         "copiedLabel": "Gekopieerd",
         "replyWhatsApp": "Beantwoorden via WhatsApp",
         "replyEmail": "Beantwoorden via e-mail",
+        "whatsappStatusSent": "Verstuurd",
+        "whatsappStatusDraft": "Concept",
+        "whatsappStatusFailed": "Mislukt",
         "estimationPriceLabel": "Prijs:",
         "estimationScopeLabel": "Omvang:",
         "estimationNotesLabel": "Notities:",

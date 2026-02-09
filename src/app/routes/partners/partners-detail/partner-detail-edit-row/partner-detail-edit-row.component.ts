@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import { TranslatePipe } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { DataGridAddressCellComponent } from '../../../../shared/components/data-grid/data-grid-address-cell.component';
+import { PhoneFormatPipe } from '../../../../shared/pipes/phone-format.pipe';
 import { AddressSuggestion } from '../../../../core/services/address.service';
 
 @Component({
@@ -9,7 +10,7 @@ import { AddressSuggestion } from '../../../../core/services/address.service';
   templateUrl: './partner-detail-edit-row.component.html',
   styleUrl: './partner-detail-edit-row.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, LucideAngularModule, DataGridAddressCellComponent],
+  imports: [TranslatePipe, LucideAngularModule, DataGridAddressCellComponent, PhoneFormatPipe],
 })
 export class PartnerDetailEditRowComponent {
   readonly labelKey = input.required<string>();
@@ -18,6 +19,7 @@ export class PartnerDetailEditRowComponent {
   readonly isEditing = input(false);
   readonly editValue = input('');
   readonly useAddressAutocomplete = input(false);
+  readonly formatAsPhone = input(false);
 
   readonly startEdit = output<void>();
   readonly cancelEdit = output<void>();

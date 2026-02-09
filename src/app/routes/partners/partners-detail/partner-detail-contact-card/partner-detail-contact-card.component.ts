@@ -8,6 +8,7 @@ interface DetailRow {
   key: string;
   labelKey: string;
   value: string;
+  formatAsPhone?: boolean;
 }
 
 @Component({

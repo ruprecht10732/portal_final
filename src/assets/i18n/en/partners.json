@@ -48,6 +48,7 @@
         "invalidEmail": "Invalid email",
         "invalidKvk": "KVK number must be 8 digits",
         "invalidVat": "VAT number must be in NL123456789B01 format",
+        "invalidPhone": "Enter a valid phone number",
         "maxLength": "Must be {{max}} characters or less"
       },
       "errors": {

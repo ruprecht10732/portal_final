@@ -46,7 +46,8 @@
         "updateLead": "Failed to update lead"
       },
       "validation": {
-        "required": "Please fill all required fields"
+        "required": "Please fill all required fields",
+        "invalidPhone": "Enter a valid phone number"
       }
     },
     "detail": {
@@ -302,6 +303,9 @@
         "copiedLabel": "Copied",
         "replyWhatsApp": "Reply via WhatsApp",
         "replyEmail": "Reply via Email",
+        "whatsappStatusSent": "Sent",
+        "whatsappStatusDraft": "Draft",
+        "whatsappStatusFailed": "Failed",
         "estimationPriceLabel": "Price:",
         "estimationScopeLabel": "Scope:",
         "estimationNotesLabel": "Notes:",

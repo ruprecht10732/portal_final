@@ -9,6 +9,7 @@ import { PartnersService } from '../../../core/services/partners.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { normalizePhoneE164 } from '../../../core/utils/phone.util';
 import { KVK_REGEX, VAT_REGEX } from '../../../core/utils/partner-validation.util';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import type { CreatePartnerRequest, Partner } from '../../../core/services/partners.types';
@@ -19,6 +20,7 @@ import { MultiSelectComponent, type MultiSelectOption } from '../../../shared/co
 import { FileUploaderComponent, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
+import { phoneValidator } from '../../../shared/validators/phone.validator';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
 
 const MAX_LENGTHS = {
@@ -89,7 +91,7 @@ export class PartnersCreateComponent implements OnInit {
     ]],
     contactName: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.contactName)]],
     contactEmail: ['', [Validators.required, Validators.email]],
-    contactPhone: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.contactPhone)]],
+    contactPhone: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.contactPhone), phoneValidator()]],
     addressLine1: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.addressLine1)]],
     houseNumber: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.houseNumber)]],
     addressLine2: ['', [Validators.maxLength(MAX_LENGTHS.addressLine2)]],
@@ -105,6 +107,7 @@ export class PartnersCreateComponent implements OnInit {
   protected readonly emailError = computed(() => this.translate.instant('partners.form.validation.invalidEmail'));
   protected readonly invalidKvkError = computed(() => this.translate.instant('partners.form.validation.invalidKvk'));
   protected readonly invalidVatError = computed(() => this.translate.instant('partners.form.validation.invalidVat'));
+  protected readonly invalidPhoneError = computed(() => this.translate.instant('partners.form.validation.invalidPhone'));
   protected readonly serviceTypeOptions = computed<MultiSelectOption<string>[]>(() => (
     this.serviceTypes().map(item => ({ label: item.name, value: item.id }))
   ));
@@ -142,7 +145,7 @@ export class PartnersCreateComponent implements OnInit {
       vatNumber: (values.vatNumber ?? '').trim().toUpperCase(),
       contactName: (values.contactName ?? '').trim(),
       contactEmail: (values.contactEmail ?? '').trim(),
-      contactPhone: (values.contactPhone ?? '').trim(),
+      contactPhone: normalizePhoneE164(values.contactPhone ?? ''),
       addressLine1: (values.addressLine1 ?? '').trim(),
       houseNumber: (values.houseNumber ?? '').trim(),
       ...(values.addressLine2?.trim() ? { addressLine2: values.addressLine2.trim() } : {}),
@@ -253,6 +256,14 @@ export class PartnersCreateComponent implements OnInit {
     this.clearCoordinates();
   }
 
+  protected onContactPhoneBlur(): void {
+    const rawValue = this.form.controls.contactPhone.value ?? '';
+    const normalized = normalizePhoneE164(rawValue);
+    if (normalized !== rawValue) {
+      this.form.controls.contactPhone.setValue(normalized);
+    }
+  }
+
   private loadServiceTypes(): void {
     this.serviceTypesLoading.set(true);
     this.serviceTypesError.set(null);
@@ -353,6 +364,7 @@ export class PartnersCreateComponent implements OnInit {
     const control = this.form.controls[controlName];
     if (!control) return '';
     if (control.hasError('required')) return this.requiredError();
+    if (control.hasError('invalidPhone')) return this.invalidPhoneError();
     if (control.hasError('maxlength') && options.maxLength) {
       return this.translate.instant('partners.form.validation.maxLength', { max: options.maxLength });
     }

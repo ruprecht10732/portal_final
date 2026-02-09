@@ -952,13 +952,47 @@ export class LeadDetailComponent implements OnInit {
     return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim() !== '');
   };
 
-  protected readonly getTimelineContactMessage = (item: LeadTimelineItem): { channel: 'WhatsApp' | 'Email'; message: string } | null => {
+  protected readonly getTimelineContactMessage = (item: LeadTimelineItem): { channel: 'WhatsApp' | 'Email'; message: string; status?: 'sent' | 'draft' | 'failed'; phone?: string } | null => {
     const metadata = item.metadata;
+    const messageContent = metadata['messageContent'];
+    if (typeof messageContent === 'string' && messageContent.trim() !== '') {
+      const statusValue = typeof metadata['status'] === 'string' ? metadata['status'] : 'sent';
+      const phoneValue = typeof metadata['phoneNumber'] === 'string' ? metadata['phoneNumber'] : undefined;
+      return {
+        channel: 'WhatsApp',
+        message: messageContent.trim(),
+        status: statusValue as 'sent' | 'draft' | 'failed',
+        ...(phoneValue ? { phone: phoneValue } : {}),
+      };
+    }
+
+    const drafts = metadata['drafts'];
+    if (drafts && typeof drafts === 'object') {
+      const draftMessage = (drafts as Record<string, unknown>)['whatsappMessage'];
+      if (typeof draftMessage === 'string' && draftMessage.trim() !== '') {
+        const statusValue = (drafts as Record<string, unknown>)['status'];
+        const status = typeof statusValue === 'string' ? statusValue : 'draft';
+        const phone = this.extractPhoneFromWhatsAppUrl(metadata['whatsappUrl']);
+        return {
+          channel: 'WhatsApp',
+          message: draftMessage.trim(),
+          status: status as 'sent' | 'draft' | 'failed',
+          ...(phone ? { phone } : {}),
+        };
+      }
+    }
+
     const channel = metadata['preferredContactChannel'];
     const message = metadata['suggestedContactMessage'];
-    
     if ((channel === 'WhatsApp' || channel === 'Email') && typeof message === 'string' && message.trim() !== '') {
-      return { channel, message: message.trim() };
+      const status = channel === 'WhatsApp' ? 'draft' : undefined;
+      const phone = channel === 'WhatsApp' && typeof metadata['phoneNumber'] === 'string' ? metadata['phoneNumber'] : undefined;
+      return {
+        channel,
+        message: message.trim(),
+        ...(status ? { status } : {}),
+        ...(phone ? { phone } : {}),
+      };
     }
     return null;
   };
@@ -1031,6 +1065,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected openWhatsApp(phone: string, message: string): void {
+    if (!phone) return;
     const encodedMessage = encodeURIComponent(message);
     const cleanPhone = phone.replaceAll(/[^0-9+]/g, '');
     globalThis.open?.(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
@@ -1155,6 +1190,21 @@ export class LeadDetailComponent implements OnInit {
 
   protected viewDraftQuote(quoteId: string): void {
     this.router.navigate(['/app/offertes', quoteId]);
+  }
+
+  private extractPhoneFromWhatsAppUrl(value: unknown): string | undefined {
+    if (typeof value !== 'string') {
+      return undefined;
+    }
+    const marker = 'wa.me/';
+    const markerIndex = value.indexOf(marker);
+    if (markerIndex === -1) {
+      return undefined;
+    }
+    const afterMarker = value.slice(markerIndex + marker.length);
+    const phonePart = afterMarker.split('?')[0] ?? '';
+    const cleaned = phonePart.replace(/[^0-9+]/g, '');
+    return cleaned || undefined;
   }
 
   private isTimelineAppointmentRequested(item: LeadTimelineItem): boolean {

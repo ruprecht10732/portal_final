@@ -3,13 +3,14 @@ import { TranslateService } from '@ngx-translate/core';
 import type { LeadTimelineItem, PipelineStage } from '../../../core/services/leads.types';
 import { PIPELINE_STAGE_I18N_KEYS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { PhoneFormatPipe } from '../../../shared/pipes/phone-format.pipe';
 
 @Component({
   selector: 'app-lead-detail-timeline-tab',
   templateUrl: './lead-detail-timeline-tab.component.html',
   styleUrl: './lead-detail-timeline-tab.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent],
+  imports: [ButtonComponent, PhoneFormatPipe],
 })
 export class LeadDetailTimelineTabComponent {
   private readonly translate = inject(TranslateService);
@@ -28,7 +29,7 @@ export class LeadDetailTimelineTabComponent {
   getTimelinePartnerSummary = input<(item: LeadTimelineItem) => string | null>(() => null);
   getTimelineEstimation = input<(item: LeadTimelineItem) => { priceRange?: string; scope?: string; notes?: string } | null>(() => null);
   getTimelineRecommendedAction = input<(item: LeadTimelineItem) => string | null>(() => null);
-  getTimelineContactMessage = input<(item: LeadTimelineItem) => { channel: 'WhatsApp' | 'Email'; message: string } | null>(() => null);
+  getTimelineContactMessage = input<(item: LeadTimelineItem) => { channel: 'WhatsApp' | 'Email'; message: string; status?: 'sent' | 'draft' | 'failed'; phone?: string } | null>(() => null);
   getTimelineMissingInformation = input<(item: LeadTimelineItem) => string[]>(() => []);
   getTimelineScore = input<(item: LeadTimelineItem) => { score: number; preAi?: number; version?: string } | null>(() => null);
   getTimelineDraftedQuote = input<(item: LeadTimelineItem) => { quoteId: string; quoteNumber: string; itemCount: number; catalogItems: number; adHocItems: number } | null>(() => null);

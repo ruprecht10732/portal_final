@@ -133,8 +133,36 @@ export interface LeadTimelineItem {
   summary: string;
   timestamp: string;
   actor: string;
-  metadata: Record<string, unknown>;
+  metadata: LeadTimelineMetadata;
 }
+
+export type WhatsAppMessageStatus = 'sent' | 'draft' | 'failed';
+
+export interface WhatsAppTimelineDrafts {
+  whatsappMessage?: string;
+  status?: WhatsAppMessageStatus;
+  messageLanguage?: string;
+  messageAudience?: string;
+  messageCategory?: string;
+  emailSubject?: string;
+  emailBody?: string;
+}
+
+export interface WhatsAppTimelineMetadata {
+  status?: WhatsAppMessageStatus;
+  messageCategory?: string;
+  messageAudience?: string;
+  messageLanguage?: string;
+  phoneNumber?: string;
+  messageContent?: string;
+  sentAt?: string;
+  drafts?: WhatsAppTimelineDrafts;
+  whatsappUrl?: string;
+  preferredContactChannel?: 'WhatsApp' | 'Email';
+  suggestedContactMessage?: string;
+}
+
+export type LeadTimelineMetadata = Record<string, unknown> & WhatsAppTimelineMetadata;
 
 export interface LeadTimelineResponse {
   items: LeadTimelineItem[];

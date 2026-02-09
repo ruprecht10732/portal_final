@@ -79,6 +79,7 @@
           type="tel"
           [value]="form.controls.contactPhone.value ?? ''"
           (valueChange)="form.controls.contactPhone.setValue($event)"
+          (blur)="onContactPhoneBlur()"
           [required]="true"
           [error]="controlError('contactPhone', { maxLength: 50 })"
         />

@@ -180,6 +180,7 @@ export class PartnersDetailComponent implements OnInit {
         key: 'contactPhone',
         labelKey: 'partners.form.contactPhone',
         value: partner?.contactPhone ?? '',
+        formatAsPhone: true,
       },
     ];
   });

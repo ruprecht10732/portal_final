@@ -48,6 +48,7 @@
         "invalidEmail": "Ongeldig e-mailadres",
         "invalidKvk": "KVK-nummer moet 8 cijfers bevatten",
         "invalidVat": "BTW-nummer moet NL123456789B01 zijn",
+        "invalidPhone": "Vul een geldig telefoonnummer in",
         "maxLength": "Maximaal {{max}} tekens"
       },
       "errors": {

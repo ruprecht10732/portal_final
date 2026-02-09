@@ -90,9 +90,9 @@
               type="tel"
               [value]="form.controls.phone.value ?? ''"
               (valueChange)="form.controls.phone.setValue($event)"
-              (blur)="checkDuplicate()"
+              (blur)="onPhoneBlur()"
               [required]="true"
-              [error]="requiredControlError(form.controls.phone)"
+              [error]="phoneControlError()"
             />
             
             <shared-input
