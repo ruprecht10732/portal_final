@@ -335,7 +335,7 @@ export class SSEService {
     if (!leadId) return;
 
     let message = '';
-    let title = 'Lead update';
+    let title: string | null = null;
 
     switch (event.type) {
       case 'lead_preferences_updated':
@@ -365,6 +365,8 @@ export class SSEService {
       default:
         return;
     }
+
+    if (!title) return;
 
     this.toast.show({
       message,

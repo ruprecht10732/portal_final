@@ -28,6 +28,7 @@ export class FileUploaderComponent {
   dropLabel = input('Drop a file here or click to browse');
   helpText = input('');
   accept = input('');
+  multiple = input(false);
   maxSizeBytes = input<number | null>(null);
   maxSizeError = input('File size exceeds maximum allowed');
   disabled = input(false);
@@ -43,7 +44,8 @@ export class FileUploaderComponent {
   uploadingChange = output<boolean>();
 
   protected readonly fileInput = viewChild<ElementRef<HTMLInputElement>>('fileInput');
-  protected readonly selectedFile = signal<File | null>(null);
+  protected readonly selectedFiles = signal<File[]>([]);
+  protected readonly selectedFirst = computed<File | null>(() => this.selectedFiles()[0] ?? null);
   protected readonly uploadProgress = signal<number | null>(null);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isDragging = signal(false);
@@ -62,8 +64,8 @@ export class FileUploaderComponent {
 
   protected onFileInputChange(event: Event): void {
     const input = event.target as HTMLInputElement | null;
-    const file = input?.files?.[0] ?? null;
-    this.setSelectedFile(file);
+    const files = Array.from(input?.files ?? []);
+    this.setSelectedFiles(this.multiple() ? files : files.slice(0, 1));
   }
 
   protected onDragOver(event: DragEvent): void {
@@ -80,9 +82,9 @@ export class FileUploaderComponent {
   protected onDrop(event: DragEvent): void {
     event.preventDefault();
     if (this.disabled()) return;
-    const file = event.dataTransfer?.files?.[0] ?? null;
+    const files = Array.from(event.dataTransfer?.files ?? []);
     this.isDragging.set(false);
-    this.setSelectedFile(file);
+    this.setSelectedFiles(this.multiple() ? files : files.slice(0, 1));
   }
 
   protected onDropzoneKeydown(event: KeyboardEvent): void {
@@ -100,29 +102,30 @@ export class FileUploaderComponent {
   }
 
   protected clearSelection(): void {
-    this.selectedFile.set(null);
+    this.selectedFiles.set([]);
     const input = this.fileInput()?.nativeElement;
     if (input) input.value = '';
+  }
+
+  protected removeFile(index: number): void {
+    if (this.uploading()) return;
+    const files = this.selectedFiles();
+    if (index < 0 || index >= files.length) return;
+    const next = files.slice(0, index).concat(files.slice(index + 1));
+    this.selectedFiles.set(next);
   }
 
   protected async upload(): Promise<void> {
     if (this.uploading() || this.disabled()) return;
 
-    const file = this.selectedFile();
-    if (!file) return;
+    const files = this.selectedFiles();
+    if (files.length === 0) return;
 
     const presign = this.presign();
     const finalize = this.finalize();
 
     if (!presign || !finalize) {
       this.handleError(new Error('Missing upload handlers'));
-      return;
-    }
-
-    const maxSize = this.maxSizeBytes();
-    if (maxSize && file.size > maxSize) {
-      const message = `${this.maxSizeError()} (${this.formatFileSize(maxSize)})`;
-      this.handleError(new Error(message), message);
       return;
     }
 
@@ -133,10 +136,7 @@ export class FileUploaderComponent {
     this.uploadProgress.set(0);
 
     try {
-      const presigned = await presign(file);
-      await this.uploadFileToUrl(presigned.uploadUrl, file);
-      const result = await finalize(file, presigned);
-      this.uploaded.emit(result);
+      await this.uploadFiles(files, presign, finalize);
       this.clearSelection();
     } catch (error) {
       this.handleError(error);
@@ -155,22 +155,84 @@ export class FileUploaderComponent {
     this.uploadError.emit({ message, error });
   }
 
-  private setSelectedFile(file: File | null): void {
-    this.selectedFile.set(file);
+  private setSelectedFiles(files: File[]): void {
+    this.selectedFiles.set(files);
     this.errorMessage.set(null);
     this.uploadError.emit(null);
   }
 
-  private uploadFileToUrl(url: string, file: File): Promise<void> {
+  private async uploadFiles(
+    files: File[],
+    presign: (file: File) => Promise<PresignedUpload>,
+    finalize: (file: File, presigned: PresignedUpload) => Promise<unknown>,
+  ): Promise<void> {
+    const maxSize = this.maxSizeBytes();
+    if (maxSize) {
+      const tooLarge = files.find(file => file.size > maxSize);
+      if (tooLarge) {
+        const message = `${this.maxSizeError()} (${this.formatFileSize(maxSize)})`;
+        throw new Error(message);
+      }
+    }
+
+    if (!this.multiple()) {
+      const first = files[0];
+      if (!first) return;
+      await this.uploadSingleFile(first, presign, finalize, true);
+      return;
+    }
+
+    let completed = 0;
+    const total = files.length;
+
+    const tasks = files.map(file =>
+      this.uploadSingleFile(file, presign, finalize, false).then(
+        () => {
+          completed += 1;
+          this.uploadProgress.set(Math.round((completed / total) * 100));
+        },
+        error => {
+          completed += 1;
+          this.uploadProgress.set(Math.round((completed / total) * 100));
+          throw error;
+        },
+      ),
+    );
+
+    const results = await Promise.allSettled(tasks);
+    const failures = results.filter(result => result.status === 'rejected');
+    if (failures.length > 0) {
+      const message = failures.length === total
+        ? this.errorFallback()
+        : 'Sommige bestanden konden niet worden geupload.';
+      throw new Error(message);
+    }
+  }
+
+  private async uploadSingleFile(
+    file: File,
+    presign: (file: File) => Promise<PresignedUpload>,
+    finalize: (file: File, presigned: PresignedUpload) => Promise<unknown>,
+    trackProgress: boolean,
+  ): Promise<void> {
+    const presigned = await presign(file);
+    await this.uploadFileToUrl(presigned.uploadUrl, file, trackProgress);
+    const result = await finalize(file, presigned);
+    this.uploaded.emit(result);
+  }
+
+  private uploadFileToUrl(url: string, file: File, trackProgress: boolean): Promise<void> {
     return new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
 
-      xhr.upload.addEventListener('progress', (event) => {
-        if (event.lengthComputable) {
-          const progress = Math.round((event.loaded / event.total) * 100);
-          this.uploadProgress.set(progress);
-        }
-      });
+      if (trackProgress) {
+        xhr.upload.addEventListener('progress', (event) => {
+          if (event.lengthComputable) {
+            const progress = Math.round((event.loaded / event.total) * 100);
+            this.uploadProgress.set(progress);
+          }
+        });
+      }
 
       xhr.addEventListener('load', () => {
         if (xhr.status >= 200 && xhr.status < 300) {

@@ -681,7 +681,7 @@
               <span class="text-sm font-bold text-[#111418]">Klik om een bestand te selecteren</span>
               <p class="mt-1 text-xs text-[#617589]">JPG, PNG, PDF of andere bestanden</p>
             </div>
-            <input type="file" class="hidden" (change)="onFileSelected($event)" />
+            <input type="file" class="hidden" multiple (change)="onFileSelected($event)" />
           </label>
 
           @if (uploadBusy()) {

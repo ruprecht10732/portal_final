@@ -10,6 +10,7 @@ import {
 } from '@angular/core';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { ActivatedRoute } from '@angular/router';
+import { firstValueFrom } from 'rxjs';
 import { PublicLeadTrackingService } from '../../core/services/public-lead-tracking.service';
 import { environment } from '../../../environments/environment';
 import type {
@@ -289,14 +290,14 @@ export class LeadTrackComponent implements OnInit {
 
   protected onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement | null;
-    const file = input?.files?.[0];
-    if (!file) return;
+    const files = Array.from(input?.files ?? []);
+    if (files.length === 0) return;
 
     if (input) {
       input.value = '';
     }
 
-    this.uploadFile(file);
+    this.uploadFiles(files);
   }
 
   protected deleteAttachment(att: AttachmentSummary): void {
@@ -480,7 +481,7 @@ export class LeadTrackComponent implements OnInit {
     }
   }
 
-  private uploadFile(file: File): void {
+  private async uploadFiles(files: File[]): Promise<void> {
     const token = this.token();
     if (!token) return;
 
@@ -488,42 +489,46 @@ export class LeadTrackComponent implements OnInit {
     this.uploadError.set(null);
     this.uploadSuccess.set(false);
 
+    try {
+      const results = await Promise.allSettled(files.map(file => this.uploadSingleFile(token, file)));
+      const succeeded = results.filter(result => result.status === 'fulfilled').length;
+      const failed = results.length - succeeded;
+
+      if (succeeded > 0) {
+        this.refreshData(token);
+      }
+
+      if (failed > 0) {
+        this.uploadError.set(
+          files.length === 1
+            ? 'Uploaden is mislukt. Probeer het opnieuw.'
+            : 'Sommige bestanden konden niet worden geupload.',
+        );
+        return;
+      }
+
+      this.uploadSuccess.set(true);
+    } finally {
+      this.uploadBusy.set(false);
+    }
+  }
+
+  private async uploadSingleFile(token: string, file: File): Promise<void> {
     const contentType = file.type || 'application/octet-stream';
-    this.service.presignUpload(token, {
+    const presigned = await firstValueFrom(this.service.presignUpload(token, {
       fileName: file.name,
       contentType,
       sizeBytes: file.size,
-    }).subscribe({
-      next: presigned => {
-        this.uploadToPresignedUrl(presigned.uploadUrl, file, contentType)
-          .then(() => {
-            this.service.confirmUpload(token, {
-              fileKey: presigned.fileKey,
-              fileName: file.name,
-              contentType,
-              sizeBytes: file.size,
-            }).subscribe({
-              next: () => {
-                this.uploadBusy.set(false);
-                this.uploadSuccess.set(true);
-                this.refreshData(token);
-              },
-              error: () => {
-                this.uploadBusy.set(false);
-                this.uploadError.set('Uploaden is mislukt. Probeer het opnieuw.');
-              },
-            });
-          })
-          .catch(() => {
-            this.uploadBusy.set(false);
-            this.uploadError.set('Uploaden is mislukt. Probeer het opnieuw.');
-          });
-      },
-      error: () => {
-        this.uploadBusy.set(false);
-        this.uploadError.set('Uploaden is mislukt. Probeer het opnieuw.');
-      },
-    });
+    }));
+
+    await this.uploadToPresignedUrl(presigned.uploadUrl, file, contentType);
+
+    await firstValueFrom(this.service.confirmUpload(token, {
+      fileKey: presigned.fileKey,
+      fileName: file.name,
+      contentType,
+      sizeBytes: file.size,
+    }));
   }
 
   private async uploadToPresignedUrl(url: string, file: File, contentType: string): Promise<void> {
@@ -690,7 +695,10 @@ export class LeadTrackComponent implements OnInit {
   private toIcsDate(value: string): string {
     const date = new Date(value);
     if (Number.isNaN(date.getTime())) return '';
-    return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
+    return date
+      .toISOString()
+      .replaceAll(/[-:]/g, '')
+      .replaceAll(/\.\d{3}Z$/g, 'Z');
   }
 
 }

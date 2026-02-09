@@ -79,9 +79,11 @@ export class AttachmentPanelComponent {
 
   protected onFileSelected(event: Event): void {
     const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    if (file?.type === 'application/pdf') {
-      this.manualUploadRequested.emit(file);
+    const files = Array.from(input.files ?? []);
+    for (const file of files) {
+      if (file.type === 'application/pdf') {
+        this.manualUploadRequested.emit(file);
+      }
     }
     // Reset the input so re-selecting the same file triggers change
     input.value = '';
