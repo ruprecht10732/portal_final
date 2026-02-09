@@ -182,6 +182,14 @@ export class LeadTrackComponent implements OnInit {
     this.appointmentList().some(item => item.status === 'requested'),
   );
 
+  protected readonly whatsappUrl = computed(() => {
+    const phone = this.data()?.organizationPhone?.trim();
+    if (!phone) return '';
+    const digits = phone.replaceAll(/\D/g, '');
+    const normalized = digits.startsWith('00') ? digits.slice(2) : digits;
+    return normalized ? `https://wa.me/${normalized}` : '';
+  });
+
   protected selectTimeframe(option: string): void {
     this.timeframeSelection.set(option);
     if (option === 'Anders') {

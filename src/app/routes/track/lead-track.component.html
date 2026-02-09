@@ -426,9 +426,20 @@
             <p class="text-[#111418] text-sm font-bold">Hulp nodig bij je aanvraag?</p>
             <p class="text-[#617589] text-xs">Ons team staat klaar om je te helpen.</p>
           </div>
-          <button type="button" class="shrink-0 bg-[#137fec] text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#137fec]/90 transition-colors" (click)="scrollToSection('section-bericht')">
-            Stuur bericht
-          </button>
+          @if (whatsappUrl()) {
+            <a
+              class="shrink-0 bg-[#25d366] text-white text-xs font-bold px-4 py-2 rounded-lg hover:bg-[#1ebe5d] transition-colors"
+              [href]="whatsappUrl()"
+              target="_blank"
+              rel="noopener"
+            >
+              WhatsApp
+            </a>
+          } @else {
+            <button type="button" class="shrink-0 bg-gray-200 text-xs font-bold px-4 py-2 rounded-lg text-[#617589]" disabled>
+              WhatsApp
+            </button>
+          }
         </div>
       </div>
 

@@ -8,6 +8,7 @@ export interface PublicLeadTrackingResponse {
   appointment: AppointmentSummary | null;
   appointmentRequest: AppointmentSummary | null;
   appointments: AppointmentSummary[];
+  organizationPhone: string;
   slotsAvailable: boolean;
   quote: QuoteSummary;
   attachments: AttachmentSummary[];
