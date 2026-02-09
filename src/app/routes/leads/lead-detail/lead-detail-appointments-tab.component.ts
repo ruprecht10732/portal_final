@@ -41,8 +41,10 @@ export class LeadDetailAppointmentsTabComponent {
   attachmentSizeBytes = input<string>('');
   attachmentSaving = input<boolean>(false);
   canAddAttachment = input<boolean>(false);
+  approvingAppointmentId = input<string | null>(null);
   formatHumanDateTime = input<(value: string | undefined) => string>((value) => value ?? '-');
 
+  approveAppointment = output<string>();
   toggleAppointmentForm = output<void>();
   setAppointmentDate = output<string>();
   setAppointmentTime = output<string>();

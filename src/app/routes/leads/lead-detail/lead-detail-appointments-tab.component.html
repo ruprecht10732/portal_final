@@ -126,11 +126,36 @@
             >
               <div class="flex items-center justify-between">
                 <span class="text-sm font-semibold">{{ appointment.title }}</span>
-                <span class="text-xs uppercase tracking-wide">{{ appointment.status }}</span>
+                <span
+                  class="text-xs uppercase tracking-wide px-2 py-0.5 rounded-full"
+                  [class.bg-amber-100]="appointment.status === 'requested'"
+                  [class.text-amber-800]="appointment.status === 'requested'"
+                  [class.bg-blue-100]="appointment.status === 'scheduled'"
+                  [class.text-blue-800]="appointment.status === 'scheduled'"
+                  [class.bg-green-100]="appointment.status === 'completed'"
+                  [class.text-green-800]="appointment.status === 'completed'"
+                  [class.bg-zinc-100]="appointment.status === 'cancelled' || appointment.status === 'no_show'"
+                  [class.text-zinc-600]="appointment.status === 'cancelled' || appointment.status === 'no_show'"
+                >{{ appointment.status }}</span>
               </div>
               <div class="mt-1 text-xs opacity-80">
                 {{ formatHumanDateTime()(appointment.startTime) }}
               </div>
+              @if (appointment.status === 'requested') {
+                <div class="mt-2 flex justify-end">
+                  <button
+                    type="button"
+                    class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+                    [disabled]="approvingAppointmentId() === appointment.id"
+                    (click)="$event.stopPropagation(); approveAppointment.emit(appointment.id)"
+                  >
+                    @if (approvingAppointmentId() === appointment.id) {
+                      <div class="animate-spin h-3 w-3 border-2 border-white border-t-transparent rounded-full" aria-hidden="true"></div>
+                    }
+                    {{ 'leads.detail.appointments.approve' | translate }}
+                  </button>
+                </div>
+              }
             </button>
           }
         </div>

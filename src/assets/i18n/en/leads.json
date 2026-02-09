@@ -146,7 +146,10 @@
         "contentType": "Content type",
         "contentTypePlaceholder": "image/jpeg",
         "sizeBytes": "Size (bytes)",
-        "addAttachment": "Add attachment"
+        "addAttachment": "Add attachment",
+        "approve": "Approve",
+        "approved": "Appointment approved",
+        "approveError": "Failed to approve appointment"
       },
       "files": {
         "title": "Service Files",

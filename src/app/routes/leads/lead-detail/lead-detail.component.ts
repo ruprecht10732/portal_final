@@ -102,6 +102,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly appointmentLocation = signal('');
   protected readonly appointmentNotes = signal('');
   protected readonly selectedAppointmentId = signal<string | null>(null);
+  protected readonly approvingAppointmentId = signal<string | null>(null);
 
   protected readonly visitReport = signal<AppointmentVisitReportResponse | null>(null);
   protected readonly reportMeasurements = signal('');
@@ -1361,6 +1362,29 @@ export class LeadDetailComponent implements OnInit {
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.attachmentSaving.set(false);
+      },
+    });
+  }
+
+  protected approveAppointment(appointmentId: string): void {
+    if (this.approvingAppointmentId()) return;
+
+    this.approvingAppointmentId.set(appointmentId);
+    this.appointmentsError.set(null);
+
+    this.appointmentsService.updateStatus(appointmentId, { status: 'scheduled' }).subscribe({
+      next: (updated) => {
+        this.appointments.update(items =>
+          items.map(item => item.id === appointmentId ? updated : item),
+        );
+        this.approvingAppointmentId.set(null);
+        this.announce(this.translate.instant('leads.detail.appointments.approved'));
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.approveError'));
+        this.appointmentsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.approvingAppointmentId.set(null);
       },
     });
   }
