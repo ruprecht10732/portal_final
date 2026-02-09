@@ -207,6 +207,38 @@
             </button>
           }
 
+          <!-- Tile: Extra informatie -->
+          @if (d.preferences.extraNotes) {
+            <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openPreferenceSheet('extraNotes')">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-white flex items-center justify-center text-[#137fec] ios-shadow">
+                  <span class="material-symbols-outlined">notes</span>
+                </div>
+                <span class="material-symbols-outlined text-green-500 text-lg">check_circle</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Extra informatie</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">{{ d.preferences.extraNotes }}</p>
+              <div class="mt-3 flex items-center text-[#617589] text-[11px] font-bold uppercase tracking-wider">
+                <span>Wijzigen</span>
+              </div>
+            </button>
+          } @else {
+            <button type="button" class="group flex flex-col p-4 bg-white border-2 border-dashed border-[#137fec]/30 rounded-xl hover:border-[#137fec] transition-all cursor-pointer text-left" (click)="openPreferenceSheet('extraNotes')">
+              <div class="flex justify-between items-start mb-3 w-full">
+                <div class="size-10 rounded-lg bg-[#137fec]/10 flex items-center justify-center text-[#137fec]">
+                  <span class="material-symbols-outlined">notes</span>
+                </div>
+                <span class="material-symbols-outlined text-amber-500 text-lg">error</span>
+              </div>
+              <p class="text-[#111418] text-sm font-bold">Extra informatie</p>
+              <p class="text-[#617589] text-[11px] leading-tight mt-1">Deel extra details of vragen.</p>
+              <div class="mt-3 flex items-center text-[#137fec] text-[11px] font-bold uppercase tracking-wider">
+                <span>Invullen</span>
+                <span class="material-symbols-outlined text-sm ml-1 group-hover:translate-x-1 transition-transform">arrow_forward</span>
+              </div>
+            </button>
+          }
+
           <!-- Tile: Foto's -->
           @if (imageAttachments().length > 0) {
             <button type="button" class="flex flex-col p-4 bg-[#137fec]/5 border border-[#137fec]/10 rounded-xl cursor-pointer text-left" (click)="openUploadSheet()">
@@ -325,30 +357,6 @@
             }
           </div>
         </div>
-      </div>
-
-      <!-- Extra Info Section -->
-      <div class="px-4 pt-8" id="section-bericht">
-        <h3 class="text-[#111418] text-lg font-bold leading-tight tracking-[-0.015em] mb-1">Extra informatie</h3>
-        <p class="text-[#617589] text-sm mb-4">Deel extra details of vragen met ons team.</p>
-
-        <form class="grid gap-3" [formGroup]="infoForm" (ngSubmit)="submitInfo()">
-          <textarea class="w-full rounded-lg border border-gray-200 px-4 py-3 text-sm text-[#111418] placeholder:text-[#617589] focus:border-[#137fec] focus:outline-none focus:ring-2 focus:ring-[#137fec]/20"
-            formControlName="text" rows="3" placeholder="Typ je bericht..."></textarea>
-          <div class="flex items-center gap-3">
-            <button type="submit"
-              class="bg-[#111418] px-5 py-2.5 text-sm font-bold text-white rounded-lg transition hover:bg-[#111418]/90"
-              [disabled]="savingInfo()">
-              @if (savingInfo()) { Verzenden... } @else { Verstuur bericht }
-            </button>
-            @if (infoSuccess()) {
-              <span class="flex items-center gap-1 text-xs text-green-500">
-                <span class="material-symbols-outlined text-sm">check_circle</span>
-                Verzonden
-              </span>
-            }
-          </div>
-        </form>
       </div>
 
       <!-- Foto's & Bestanden Section -->
