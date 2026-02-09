@@ -507,6 +507,31 @@ export class LeadTrackComponent implements OnInit {
     return slots.find(day => day.date === date)?.slots ?? [];
   });
 
+  protected calendarIcsHref(appt: AppointmentSummary): string {
+    const start = this.toIcsDate(appt.startTime);
+    const end = this.toIcsDate(appt.endTime);
+    const stamp = this.toIcsDate(new Date().toISOString());
+    const title = (appt.title || 'Afspraak').replaceAll('\n', ' ').trim();
+    const uid = `${appt.id}@lead-tracking`;
+
+    const ics = [
+      'BEGIN:VCALENDAR',
+      'VERSION:2.0',
+      'PRODID:-//Lead Track//Appointment//NL',
+      'CALSCALE:GREGORIAN',
+      'BEGIN:VEVENT',
+      `UID:${uid}`,
+      `DTSTAMP:${stamp}`,
+      `DTSTART:${start}`,
+      `DTEND:${end}`,
+      `SUMMARY:${title}`,
+      'END:VEVENT',
+      'END:VCALENDAR',
+    ].join('\r\n');
+
+    return `data:text/calendar;charset=utf-8,${encodeURIComponent(ics)}`;
+  }
+
   private loadAvailableSlots(): void {
     if (this.loadingSlots()) return;
     const token = this.token();
@@ -589,6 +614,12 @@ export class LeadTrackComponent implements OnInit {
 
   private formatIsoDate(date: Date): string {
     return date.toISOString().slice(0, 10);
+  }
+
+  private toIcsDate(value: string): string {
+    const date = new Date(value);
+    if (Number.isNaN(date.getTime())) return '';
+    return date.toISOString().replace(/[-:]/g, '').replace(/\.\d{3}Z$/, 'Z');
   }
 
 }

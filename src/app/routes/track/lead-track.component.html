@@ -316,6 +316,15 @@
                         {{ appt.startTime | date:'d MMMM yyyy':'':'nl' }} ·
                         {{ appt.startTime | date:'HH:mm' }} - {{ appt.endTime | date:'HH:mm' }}
                       </span>
+                      @if (appt.status === 'scheduled') {
+                        <a
+                          class="mt-1 text-[11px] font-bold uppercase tracking-wider text-[#137fec]"
+                          [href]="calendarIcsHref(appt)"
+                          download="afspraak.ics"
+                        >
+                          Voeg toe aan kalender
+                        </a>
+                      }
                     </div>
                   </div>
                 }
