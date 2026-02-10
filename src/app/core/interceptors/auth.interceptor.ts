@@ -29,7 +29,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
 
   return next(authReq).pipe(
     catchError(error => {
-      if (!isApiRequest || isRefreshRequest || !(error instanceof HttpErrorResponse) || error.status !== 401) {
+      if (!isApiRequest || isRefreshRequest || isAuthRequest || !(error instanceof HttpErrorResponse) || error.status !== 401) {
         return throwError(() => error);
       }
 

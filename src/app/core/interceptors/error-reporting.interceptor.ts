@@ -10,6 +10,7 @@ export const errorReportingInterceptor: HttpInterceptorFn = (req, next) => {
   const router = inject(Router);
   const apiBaseUrl = environment.apiBaseUrl;
   const isApiRequest = req.url.startsWith(apiBaseUrl);
+  const isAuthRequest = req.url.startsWith(`${apiBaseUrl}/auth/`);
   const isRefreshRequest = req.url.startsWith(`${apiBaseUrl}/auth/refresh`);
 
   return next(req).pipe(
@@ -21,7 +22,10 @@ export const errorReportingInterceptor: HttpInterceptorFn = (req, next) => {
         const errorPayload = error.error as { error?: string } | string | null;
         const errorMessage = typeof errorPayload === 'string' ? errorPayload : errorPayload?.error;
         const isOrgRequired = error.status === 403 && errorMessage === 'organization required';
-        const isSilent = (isRefreshRequest && error.status === 401) || (isOnboardingRoute && isOrgRequired);
+        const isSilent =
+          isAuthRequest ||
+          (isRefreshRequest && error.status === 401) ||
+          (isOnboardingRoute && isOrgRequired);
 
         if (!is404) {
           reporter.report(error, {
