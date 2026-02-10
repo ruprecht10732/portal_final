@@ -400,6 +400,7 @@ export type PreferredContactChannel = 'WhatsApp' | 'Email';
 export interface LeadAIAnalysis {
   id: string;
   leadId: string;
+  organizationId: string;
   leadServiceId: string;
   urgencyLevel: UrgencyLevel;
   urgencyReason?: string | null;
