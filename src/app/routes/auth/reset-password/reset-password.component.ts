@@ -1,14 +1,13 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { map } from 'rxjs';
+import { EMPTY, catchError, finalize, map } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
-import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { MIN_LENGTH } from '../../../core/config';
-import { handleSubmitState } from '../../../core/utils/rx-operators';
-import { getErrorMessage } from '../../../core/utils/error-utils';
+import { getAuthErrorMessage } from '../../../core/utils/auth-error-mapper';
 import {
   buildPasswordRules,
   getConfirmPasswordError,
@@ -28,13 +27,12 @@ export class ResetPasswordComponent {
   protected readonly password = signal('');
   protected readonly confirmPassword = signal('');
   protected readonly isSubmitting = signal(false);
-  protected readonly globalError = signal('');
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
-  private readonly reporter = inject(ErrorReportingService);
+  private readonly toast = inject(ToastService);
 
   protected readonly token = toSignal(
     this.route.queryParamMap.pipe(map(params => params.get('token'))),
@@ -66,17 +64,15 @@ export class ResetPasswordComponent {
     const tokenValue = this.token();
     if (!tokenValue) return;
 
-    this.globalError.set('');
     this.isSubmitting.set(true);
 
     this.authService.resetPassword({ token: tokenValue, newPassword: this.password() })
       .pipe(
-        handleSubmitState({
-          loading: this.isSubmitting,
-          error: this.globalError,
-          reporter: this.reporter,
-          getMessage: (error) => getErrorMessage(error),
+        catchError(error => {
+          this.toast.error(getAuthErrorMessage(error));
+          return EMPTY;
         }),
+        finalize(() => this.isSubmitting.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {

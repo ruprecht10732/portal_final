@@ -4,10 +4,10 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
-import { ErrorReportingService } from '../../../core/services/error-reporting.service';
-import { handleSubmitState } from '../../../core/utils/rx-operators';
-import { getErrorMessage } from '../../../core/utils/error-utils';
+import { ToastService } from '../../../core/services/toast.service';
+import { getAuthErrorMessage } from '../../../core/utils/auth-error-mapper';
 import { getEmailError } from '../../../core/utils/auth-form.utils';
+import { catchError, finalize, EMPTY } from 'rxjs';
 
 @Component({
   selector: 'auth-forgot-password',
@@ -19,12 +19,11 @@ import { getEmailError } from '../../../core/utils/auth-form.utils';
 export class ForgotPasswordComponent {
   protected readonly email = signal('');
   protected readonly isSubmitting = signal(false);
-  protected readonly globalError = signal('');
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
   private readonly authService = inject(AuthService);
-  private readonly reporter = inject(ErrorReportingService);
+  private readonly toast = inject(ToastService);
 
   protected readonly emailError = computed(() => getEmailError(this.email()));
 
@@ -38,17 +37,15 @@ export class ForgotPasswordComponent {
     event.preventDefault();
     if (!this.canSubmit()) return;
 
-    this.globalError.set('');
     this.isSubmitting.set(true);
 
     this.authService.forgotPassword({ email: this.email() })
       .pipe(
-        handleSubmitState({
-          loading: this.isSubmitting,
-          error: this.globalError,
-          reporter: this.reporter,
-          getMessage: (error) => getErrorMessage(error),
+        catchError(error => {
+          this.toast.error(getAuthErrorMessage(error));
+          return EMPTY;
         }),
+        finalize(() => this.isSubmitting.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {

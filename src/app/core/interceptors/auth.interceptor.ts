@@ -5,11 +5,14 @@ import { catchError, switchMap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AuthService } from '../services/auth.service';
 import { TokenStorageService } from '../services/token-storage.service';
+import { ToastService } from '../services/toast.service';
+import { getAuthErrorMessage } from '../utils/auth-error-mapper';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const tokens = inject(TokenStorageService);
   const authService = inject(AuthService);
   const router = inject(Router);
+  const toast = inject(ToastService);
   const accessToken = tokens.accessTokenValue;
   const apiBaseUrl = environment.apiBaseUrl;
   const isApiRequest = req.url.startsWith(apiBaseUrl);
@@ -42,6 +45,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         ),
         catchError(refreshError => {
           tokens.clear();
+          toast.error(getAuthErrorMessage(refreshError));
           void router.navigate(['/sign-in']);
           return throwError(() => refreshError);
         })

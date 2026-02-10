@@ -1,16 +1,15 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, map, of, switchMap } from 'rxjs';
+import { EMPTY, catchError, finalize, map, of, switchMap } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
-import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { MIN_LENGTH } from '../../../core/config';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { UserService } from '../../../core/services/user.service';
-import { handleSubmitState } from '../../../core/utils/rx-operators';
-import { getErrorMessage } from '../../../core/utils/error-utils';
+import { getAuthErrorMessage } from '../../../core/utils/auth-error-mapper';
 import { getEmailError, getPasswordMinLengthError } from '../../../core/utils/auth-form.utils';
 
 @Component({
@@ -24,14 +23,13 @@ export class SignInComponent {
   protected readonly email = signal('');
   protected readonly password = signal('');
   protected readonly isSubmitting = signal(false);
-  protected readonly globalError = signal('');
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
   private readonly orgService = inject(OrganizationService);
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
-  private readonly reporter = inject(ErrorReportingService);
+  private readonly toast = inject(ToastService);
 
   protected readonly emailError = computed(() => getEmailError(this.email()));
 
@@ -47,17 +45,15 @@ export class SignInComponent {
     event.preventDefault();
     if (!this.canSubmit()) return;
 
-    this.globalError.set('');
     this.isSubmitting.set(true);
 
     this.authService.signIn({ email: this.email(), password: this.password() })
       .pipe(
-        handleSubmitState({
-          loading: this.isSubmitting,
-          error: this.globalError,
-          reporter: this.reporter,
-          getMessage: (error) => getErrorMessage(error),
+        catchError(error => {
+          this.toast.error(getAuthErrorMessage(error));
+          return EMPTY;
         }),
+        finalize(() => this.isSubmitting.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {

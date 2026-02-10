@@ -1,14 +1,13 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, inject, signal, OnInit } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, finalize, EMPTY } from 'rxjs';
+import { EMPTY, catchError, finalize } from 'rxjs';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
-import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { MIN_LENGTH } from '../../../core/config';
-import { handleSubmitState } from '../../../core/utils/rx-operators';
-import { getErrorMessage } from '../../../core/utils/error-utils';
+import { getAuthErrorMessage } from '../../../core/utils/auth-error-mapper';
 import {
   buildPasswordRules,
   getEmailError,
@@ -28,7 +27,6 @@ export class SignUpComponent implements OnInit {
   protected readonly email = signal('');
   protected readonly password = signal('');
   protected readonly isSubmitting = signal(false);
-  protected readonly globalError = signal('');
   protected readonly inviteToken = signal<string | null>(null);
   protected readonly organizationName = signal<string | null>(null);
   protected readonly isLoadingInvite = signal(false);
@@ -38,7 +36,7 @@ export class SignUpComponent implements OnInit {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
-  private readonly reporter = inject(ErrorReportingService);
+  private readonly toast = inject(ToastService);
 
   protected readonly emailError = computed(() => getEmailError(this.email()));
 
@@ -82,8 +80,7 @@ export class SignUpComponent implements OnInit {
     this.authService.resolveInvite(token)
       .pipe(
         catchError(error => {
-          const message = getErrorMessage(error);
-          this.globalError.set(message);
+          this.toast.error(getAuthErrorMessage(error));
           this.inviteToken.set(null);
           return EMPTY;
         }),
@@ -101,7 +98,6 @@ export class SignUpComponent implements OnInit {
     event.preventDefault();
     if (!this.canSubmit()) return;
 
-    this.globalError.set('');
     this.isSubmitting.set(true);
 
     const payload: { email: string; password: string; inviteToken?: string } = {
@@ -116,12 +112,11 @@ export class SignUpComponent implements OnInit {
 
     this.authService.signUp(payload)
       .pipe(
-        handleSubmitState({
-          loading: this.isSubmitting,
-          error: this.globalError,
-          reporter: this.reporter,
-          getMessage: (error) => getErrorMessage(error),
+        catchError(error => {
+          this.toast.error(getAuthErrorMessage(error));
+          return EMPTY;
         }),
+        finalize(() => this.isSubmitting.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
       .subscribe(() => {
