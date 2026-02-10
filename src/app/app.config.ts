@@ -78,6 +78,10 @@ import {
   Toolbox,
   Activity,
   RefreshCcw,
+  KeyRound,
+  Copy,
+  AlertTriangle,
+  Webhook,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -104,6 +108,7 @@ const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLo
   { prefix: '/assets/i18n/', suffix: '/partners.json' },
   { prefix: '/assets/i18n/', suffix: '/organization.json' },
   { prefix: '/assets/i18n/', suffix: '/appointments.json' },
+  { prefix: '/assets/i18n/', suffix: '/webhook.json' },
 ]);
 
 export const appConfig: ApplicationConfig = {
@@ -197,6 +202,10 @@ export const appConfig: ApplicationConfig = {
         FileText,
         Toolbox,
         Activity,
+        KeyRound,
+        Copy,
+        AlertTriangle,
+        Webhook,
       }),
     ),
   ]

@@ -1,0 +1,51 @@
+{
+  "webhook": {
+    "title": "Webhook API Keys",
+    "navLabel": "Webhooks",
+    "subtitle": "Beheer API-sleutels voor het automatisch vastleggen van formulieren op externe websites.",
+    "createKey": "Nieuwe sleutel",
+    "cancel": "Annuleren",
+    "newKey": "Nieuwe API-sleutel aanmaken",
+    "generate": "Sleutel genereren",
+    "revoke": "Intrekken",
+    "revoked": "API-sleutel is ingetrokken.",
+    "dismiss": "Sluiten",
+    "empty": "Nog geen API-sleutels aangemaakt.",
+    "emptyHint": "Maak een API-sleutel aan om formulieren van externe websites automatisch als leads vast te leggen.",
+    "revokedKeys": "Ingetrokken sleutels",
+    "statusRevoked": "Ingetrokken",
+    "keyCreated": "API-sleutel aangemaakt!",
+    "keyCreatedWarning": "Kopieer de sleutel nu — deze wordt slechts één keer getoond en kan daarna niet meer worden opgehaald.",
+    "copyKey": "Sleutel kopiëren",
+    "copySnippet": "Code kopiëren",
+    "fields": {
+      "name": "Naam",
+      "namePlaceholder": "bijv. Hoofdwebsite, Landingspagina...",
+      "domains": "Toegestane domeinen",
+      "domainsPlaceholder": "bijv. mijnsite.nl, *.mijnsite.nl",
+      "domainsHint": "Kommagescheiden. Laat leeg om alle domeinen toe te staan.",
+      "apiKey": "API-sleutel",
+      "snippet": "Integratiecode"
+    },
+    "instructions": {
+      "title": "Integratie-instructies",
+      "step1": "Kopieer de code hierboven.",
+      "step2": "Plak deze vlak voor de afsluitende </body> tag op uw website.",
+      "step3": "Alle formulieren op die pagina worden automatisch vastgelegd als leads.",
+      "optionsTitle": "Optionele attributen:",
+      "optionSelector": "Alleen formulieren vastleggen die voldoen aan een CSS-selector (bijv. \"#contact-form\").",
+      "optionSuccess": "Aangepast succesbericht na verzending.",
+      "optionIgnore": "Voeg dit toe aan een formulier om het over te slaan."
+    },
+    "revokeConfirm": {
+      "title": "API-sleutel intrekken",
+      "message": "Weet u zeker dat u deze sleutel wilt intrekken? Formulieren die deze sleutel gebruiken worden niet meer vastgelegd.",
+      "confirm": "Intrekken",
+      "cancel": "Annuleren"
+    },
+    "errors": {
+      "nameRequired": "Naam is verplicht.",
+      "generic": "Er is iets misgegaan."
+    }
+  }
+}

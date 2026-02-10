@@ -1,0 +1,51 @@
+{
+  "webhook": {
+    "title": "Webhook API Keys",
+    "navLabel": "Webhooks",
+    "subtitle": "Manage API keys to automatically capture form submissions from external websites.",
+    "createKey": "New key",
+    "cancel": "Cancel",
+    "newKey": "Create new API key",
+    "generate": "Generate key",
+    "revoke": "Revoke",
+    "revoked": "API key has been revoked.",
+    "dismiss": "Close",
+    "empty": "No API keys created yet.",
+    "emptyHint": "Create an API key to automatically capture forms from external websites as leads.",
+    "revokedKeys": "Revoked keys",
+    "statusRevoked": "Revoked",
+    "keyCreated": "API key created!",
+    "keyCreatedWarning": "Copy the key now — it is only shown once and cannot be retrieved later.",
+    "copyKey": "Copy key",
+    "copySnippet": "Copy snippet",
+    "fields": {
+      "name": "Name",
+      "namePlaceholder": "e.g. Main website, Landing page...",
+      "domains": "Allowed domains",
+      "domainsPlaceholder": "e.g. mysite.com, *.mysite.com",
+      "domainsHint": "Comma separated. Leave empty to allow all domains.",
+      "apiKey": "API key",
+      "snippet": "Integration snippet"
+    },
+    "instructions": {
+      "title": "Integration instructions",
+      "step1": "Copy the snippet above.",
+      "step2": "Paste it just before the closing </body> tag on your website.",
+      "step3": "All forms on that page will be automatically captured as leads.",
+      "optionsTitle": "Optional attributes:",
+      "optionSelector": "Only capture forms matching a CSS selector (e.g. \"#contact-form\").",
+      "optionSuccess": "Custom success message shown after submission.",
+      "optionIgnore": "Add this to a form element to skip it."
+    },
+    "revokeConfirm": {
+      "title": "Revoke API key",
+      "message": "Are you sure you want to revoke this key? Forms using this key will no longer be captured.",
+      "confirm": "Revoke",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "nameRequired": "Name is required.",
+      "generic": "Something went wrong."
+    }
+  }
+}

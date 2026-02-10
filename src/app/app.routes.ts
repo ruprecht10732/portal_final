@@ -116,6 +116,7 @@ export const routes: Routes = [
 						{ label: 'organization.settings.navLabel', route: '/app/organization/settings', icon: 'settings' },
 						{ label: 'organization.invites', route: '/app/organization/invites', icon: 'mail' },
 						{ label: 'organization.newInvite', route: '/app/organization/invites/new', icon: 'plus' },
+						{ label: 'webhook.navLabel', route: '/app/organization/webhooks', icon: 'webhook' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
@@ -138,6 +139,10 @@ export const routes: Routes = [
 					{
 						path: 'invites/:inviteId/edit',
 						loadComponent: () => import('./routes/organization/organization-invite-edit/organization-invite-edit.component').then(m => m.OrganizationInviteEditComponent),
+					},
+					{
+						path: 'webhooks',
+						loadComponent: () => import('./routes/organization/webhook-keys/webhook-keys.component').then(m => m.WebhookKeysComponent),
 					},
 				],
 			},
