@@ -79,7 +79,7 @@
 
       <!-- API Key -->
       <div class="space-y-2">
-        <label class="block text-xs font-medium text-zinc-700">{{ 'webhook.fields.apiKey' | translate }}</label>
+        <p class="block text-xs font-medium text-zinc-700">{{ 'webhook.fields.apiKey' | translate }}</p>
         <div class="flex items-center gap-2">
           <code class="flex-1 rounded bg-white border border-zinc-200 px-3 py-2 text-sm font-mono text-zinc-900 break-all select-all">
             {{ created.key }}
@@ -104,7 +104,7 @@
 
       <!-- SDK Snippet -->
       <div class="space-y-2">
-        <label class="block text-xs font-medium text-zinc-700">{{ 'webhook.fields.snippet' | translate }}</label>
+        <p class="block text-xs font-medium text-zinc-700">{{ 'webhook.fields.snippet' | translate }}</p>
         <div class="flex items-start gap-2">
           <pre class="flex-1 rounded bg-zinc-900 text-emerald-400 px-4 py-3 text-xs font-mono overflow-x-auto whitespace-pre-wrap break-all select-all"><code>{{ sdkSnippet() }}</code></pre>
           <shared-button
