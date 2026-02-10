@@ -459,7 +459,7 @@ export class LeadDetailComponent implements OnInit {
         this.loading.set(false);
         this.loadNotes(lead.id);
         this.loadAppointments(lead.id);
-        this.loadTimeline(lead.id);
+        this.loadTimeline(lead.id, this.selectedService()?.id);
         // AI Analysis is loaded automatically by effect when selectedService changes
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
@@ -729,7 +729,7 @@ export class LeadDetailComponent implements OnInit {
         this.callLoggerProcessing.set(false);
         // Reload data to reflect changes
         this.loadLead(lead.id);
-        this.loadTimeline(lead.id);
+        this.loadTimeline(lead.id, this.selectedService()?.id);
         this.announce(this.translate.instant('leads.callLogger.announcements.processed'));
       },
       error: (err) => {
@@ -805,7 +805,7 @@ export class LeadDetailComponent implements OnInit {
         this.noteText.set('');
         this.noteType.set('note');
         this.noteSaving.set(false);
-        this.loadTimeline(lead.id);
+        this.loadTimeline(lead.id, this.selectedService()?.id);
         this.focusNoteBox();
         this.announce(this.translate.instant('leads.detail.announcements.noteAdded'));
       },
@@ -831,10 +831,10 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
-  private loadTimeline(id: string): void {
+  private loadTimeline(id: string, serviceId?: string): void {
     this.timelineLoading.set(true);
     this.timelineError.set(null);
-    this.leadsService.getTimeline(id).subscribe({
+    this.leadsService.getTimeline(id, serviceId).subscribe({
       next: (response) => {
         this.timelineItems.set(response.items ?? []);
         this.timelineLoading.set(false);
@@ -1379,6 +1379,10 @@ export class LeadDetailComponent implements OnInit {
       this.selectedAppointmentId.set(null);
       this.visitReport.set(null);
       this.attachments.set([]);
+      const lead = this.lead();
+      if (lead) {
+        this.loadTimeline(lead.id, service.id);
+      }
     }
   }
 

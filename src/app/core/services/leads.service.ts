@@ -80,8 +80,12 @@ export class LeadsService extends BaseCrudService<
     return this.http.get<Lead>(`${this.baseUrl}/${id}`);
   }
 
-  getTimeline(id: string): Observable<LeadTimelineResponse> {
-    return this.http.get<LeadTimelineResponse>(`${this.baseUrl}/${id}/timeline`);
+  getTimeline(id: string, serviceId?: string): Observable<LeadTimelineResponse> {
+    const params: Record<string, string> = {};
+    if (serviceId) {
+      params['serviceId'] = serviceId;
+    }
+    return this.http.get<LeadTimelineResponse>(`${this.baseUrl}/${id}/timeline`, { params });
   }
 
   create(data: CreateLeadRequest): Observable<Lead> {
