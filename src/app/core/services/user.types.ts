@@ -35,4 +35,13 @@ export interface CompleteOnboardingRequest {
   firstName: string;
   lastName: string;
   organizationName?: string;
+  organizationEmail?: string;
+  organizationPhone?: string;
+  vatNumber?: string;
+  kvkNumber?: string;
+  addressLine1?: string;
+  addressLine2?: string;
+  postalCode?: string;
+  city?: string;
+  country?: string;
 }

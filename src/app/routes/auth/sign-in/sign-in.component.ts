@@ -80,7 +80,7 @@ export class SignInComponent {
           )
           .subscribe(({ profile, org }) => {
             const needsOnboarding = !profile?.firstName || !profile?.lastName || (profile?.roles.includes('admin') && !org?.name);
-            void this.router.navigate([needsOnboarding ? '/app/onboarding' : '/app']);
+            void this.router.navigate([needsOnboarding ? '/onboarding' : '/app']);
           });
       });
   }

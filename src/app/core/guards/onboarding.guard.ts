@@ -7,7 +7,7 @@ export const onboardingGuard: CanActivateChildFn = (_route, state) => {
   const router = inject(Router);
   const userService = inject(UserService);
 
-  if (state.url.startsWith('/app/onboarding')) {
+  if (state.url.startsWith('/onboarding')) {
     return true;
   }
 
@@ -16,7 +16,7 @@ export const onboardingGuard: CanActivateChildFn = (_route, state) => {
       const needsProfile = !profile.firstName || !profile.lastName;
       const needsOrganization = !profile.hasOrganization;
       const needsOnboarding = needsProfile || needsOrganization;
-      return needsOnboarding ? router.createUrlTree(['/app/onboarding']) : true;
+      return needsOnboarding ? router.createUrlTree(['/onboarding']) : true;
     }),
     catchError(() => of(router.createUrlTree(['/sign-in'])))
   );

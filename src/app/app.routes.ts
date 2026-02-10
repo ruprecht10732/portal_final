@@ -44,6 +44,11 @@ export const routes: Routes = [
 		canActivate: [guestGuard],
 	},
 	{
+		path: 'onboarding',
+		loadComponent: () => import('./routes/onboarding/onboarding.component').then(m => m.OnboardingComponent),
+		canActivate: [authGuard],
+	},
+	{
 		path: 'quote/:token/intro',
 		loadComponent: () => import('./routes/offertes/quote-proposal/quote-intro-page.component').then(m => m.QuoteIntroPageComponent),
 	},
@@ -74,10 +79,6 @@ export const routes: Routes = [
 			{
 				path: 'dashboard',
 				loadComponent: () => import('./routes/dashboard/dashboard.component').then(m => m.DashboardComponent),
-			},
-			{
-				path: 'onboarding',
-				loadComponent: () => import('./routes/onboarding/onboarding.component').then(m => m.OnboardingComponent),
 			},
 			{
 				path: 'profile',

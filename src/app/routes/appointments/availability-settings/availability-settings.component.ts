@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { DatePipe, SlicePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -42,7 +43,7 @@ const COMMON_TIMEZONES = [
   templateUrl: './availability-settings.component.html',
   styleUrl: './availability-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, InputComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, LucideAngularModule, TranslatePipe, DatePipe, SlicePipe],
+  imports: [FormsModule, ButtonComponent, InputComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, LucideAngularModule, TranslatePipe, DatePipe, SlicePipe],
 })
 export class AvailabilitySettingsComponent implements OnInit {
   private readonly appointmentsService = inject(AppointmentsService);

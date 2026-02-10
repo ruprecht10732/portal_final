@@ -1,11 +1,13 @@
 import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
 import { inject } from '@angular/core';
+import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ErrorReportingService } from '../services/error-reporting.service';
 
 export const errorReportingInterceptor: HttpInterceptorFn = (req, next) => {
   const reporter = inject(ErrorReportingService);
+  const router = inject(Router);
   const apiBaseUrl = environment.apiBaseUrl;
   const isApiRequest = req.url.startsWith(apiBaseUrl);
   const isRefreshRequest = req.url.startsWith(`${apiBaseUrl}/auth/refresh`);
@@ -15,7 +17,11 @@ export const errorReportingInterceptor: HttpInterceptorFn = (req, next) => {
       if (isApiRequest && error instanceof HttpErrorResponse) {
         // Skip reporting 404s - they're often expected (e.g., checking if a resource exists)
         const is404 = error.status === 404;
-        const isSilent = isRefreshRequest && error.status === 401;
+        const isOnboardingRoute = router.url.includes('onboarding');
+        const errorPayload = error.error as { error?: string } | string | null;
+        const errorMessage = typeof errorPayload === 'string' ? errorPayload : errorPayload?.error;
+        const isOrgRequired = error.status === 403 && errorMessage === 'organization required';
+        const isSilent = (isRefreshRequest && error.status === 401) || (isOnboardingRoute && isOrgRequired);
 
         if (!is404) {
           reporter.report(error, {

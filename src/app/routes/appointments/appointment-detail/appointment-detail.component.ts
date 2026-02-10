@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -34,7 +35,7 @@ import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
   templateUrl: './appointment-detail.component.html',
   styleUrl: './appointment-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, AutocompleteComponent, PageHeaderComponent, LucideAngularModule, TranslatePipe, DatePipe],
+  imports: [FormsModule, ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, AutocompleteComponent, PageHeaderComponent, LucideAngularModule, TranslatePipe, DatePipe],
 })
 export class AppointmentDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

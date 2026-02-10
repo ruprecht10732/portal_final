@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { FormsModule } from '@angular/forms';
 import { Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -19,6 +20,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
   styleUrl: './service-type-create.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    FormsModule,
     InputComponent,
     TextareaComponent,
     ButtonComponent,
