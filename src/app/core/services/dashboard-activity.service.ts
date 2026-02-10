@@ -100,7 +100,7 @@ export class DashboardActivityService {
               title: item.title,
               description: item.description,
               timestamp: item.timestamp,
-              link: item.link,
+              link: this.prefixLink(item.link),
             }));
 
           // Register as seen
@@ -175,7 +175,7 @@ export class DashboardActivityService {
           ...base,
           category: 'leads',
           title: raw.message || 'Lead bijgewerkt',
-          link: raw.leadId ? ['/app/leads', raw.leadId] : undefined,
+          link: raw.leadId ? this.prefixLink(['leads', raw.leadId]) : undefined,
         };
 
       // --- AI events ---
@@ -184,14 +184,14 @@ export class DashboardActivityService {
           ...base,
           category: 'ai',
           title: raw.message || 'Gatekeeper analyse voltooid',
-          link: raw.leadId ? ['/app/leads', raw.leadId] : undefined,
+          link: raw.leadId ? this.prefixLink(['leads', raw.leadId]) : undefined,
         };
       case 'photo_analysis_complete':
         return {
           ...base,
           category: 'ai',
           title: raw.message || 'Foto-analyse voltooid',
-          link: raw.leadId ? ['/app/leads', raw.leadId] : undefined,
+          link: raw.leadId ? this.prefixLink(['leads', raw.leadId]) : undefined,
         };
 
       // --- Quote events ---
@@ -246,7 +246,7 @@ export class DashboardActivityService {
           category: 'appointments',
           title: `Nieuwe afspraak: ${title}`,
           description: this.appointmentLeadLabel(d),
-          link: ['/app/appointments'],
+          link: this.prefixLink(['appointments']),
         };
       }
       case 'appointment_updated': {
@@ -257,7 +257,7 @@ export class DashboardActivityService {
           category: 'appointments',
           title: `Afspraak bijgewerkt: ${title}`,
           description: this.appointmentLeadLabel(d),
-          link: ['/app/appointments'],
+          link: this.prefixLink(['appointments']),
         };
       }
       case 'appointment_status_changed': {
@@ -269,7 +269,7 @@ export class DashboardActivityService {
           category: 'appointments',
           title: `${title}: ${this.translateStatus(status)}`,
           description: this.appointmentLeadLabel(d),
-          link: ['/app/appointments'],
+          link: this.prefixLink(['appointments']),
         };
       }
 
@@ -284,7 +284,21 @@ export class DashboardActivityService {
 
   private quoteLink(raw: SSEEvent): string[] | undefined {
     const quoteId = raw.data?.['quoteId'] as string | undefined;
-    return quoteId ? ['/app/offertes', quoteId] : undefined;
+    return quoteId ? this.prefixLink(['offertes', quoteId]) : undefined;
+  }
+
+  private prefixLink(link: string[] | undefined): string[] | undefined {
+    if (!link || link.length === 0) {
+      return link;
+    }
+    const [first] = link;
+    if (!first) {
+      return link;
+    }
+    if (first.startsWith('/')) {
+      return link;
+    }
+    return ['/app', ...link];
   }
 
   private appointmentLeadLabel(data: Record<string, unknown> | undefined): string | undefined {
