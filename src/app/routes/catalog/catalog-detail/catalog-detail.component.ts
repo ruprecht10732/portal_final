@@ -14,6 +14,7 @@ import {
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import type { CatalogDetailResolved } from './catalog-detail.resolver';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -190,46 +191,15 @@ export class CatalogDetailComponent implements OnInit {
   );
 
   ngOnInit(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.loadProduct(id);
+    const resolved = this.route.snapshot.data['resolved'] as CatalogDetailResolved;
+    this.product.set(resolved.product);
+    this.vatRates.set(resolved.vatRates);
+    this.vatRate.set(resolved.vatRate);
+
+    this.loadAssets(resolved.product.id);
+    if (resolved.product.type === 'service' || resolved.product.type === 'digital_service') {
+      this.loadMaterials(resolved.product.id);
     }
-  }
-
-  private loadProduct(id: string): void {
-    this.loading.set(true);
-    this.catalogService.getProduct(id).subscribe({
-      next: (product) => {
-        this.product.set(product);
-        this.loading.set(false);
-        this.loadVatRate(product.vatRateId);
-        this.loadAssets(product.id);
-        if (product.type === 'service' || product.type === 'digital_service') {
-          this.loadMaterials(id);
-        }
-      },
-      error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadProduct'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.loading.set(false);
-      },
-    });
-  }
-
-  private loadVatRate(vatRateId: string): void {
-    this.catalogService.listVatRates({ pageSize: 100 }).subscribe({
-      next: (response) => {
-        this.vatRates.set(response.items ?? []);
-        const vr = response.items.find(v => v.id === vatRateId);
-        if (vr) {
-          this.vatRate.set(vr);
-        }
-      },
-      error: () => {
-        // Silent fail for VAT rate
-      },
-    });
   }
 
   private loadMaterials(productId: string): void {

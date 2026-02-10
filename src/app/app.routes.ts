@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { onboardingGuard } from './core/guards/onboarding.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { catalogDetailResolver } from './routes/catalog/catalog-detail/catalog-detail.resolver';
 import { leadsListResolver } from './routes/leads/leads-list.resolver';
 import { quoteIntroGuard } from './core/guards/quote-intro.guard';
 import { SidebarPanelConfig } from './routes/app-shell/sidebar-panel.config';
@@ -256,6 +257,7 @@ export const routes: Routes = [
 					{
 						path: ':id',
 						loadComponent: () => import('./routes/catalog/catalog-detail/catalog-detail.component').then(m => m.CatalogDetailComponent),
+						resolve: { resolved: catalogDetailResolver },
 					},
 					{
 						path: ':id/edit',
