@@ -4,14 +4,16 @@
       <header class="space-y-4 text-left">
         <div class="flex flex-wrap items-start justify-between gap-4">
           <div class="space-y-2">
-            <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Onboarding</p>
+            <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">
+              {{ 'onboarding.title' | translate }}
+            </p>
             <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">{{ stepTitle() }}</h1>
             <p class="text-sm text-zinc-500">{{ stepSubtitle() }}</p>
           </div>
 
           @if (totalSteps() > 1) {
             <div class="shrink-0 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-[11px] uppercase tracking-[0.3em] text-zinc-500">
-              Step {{ currentStep() }} / {{ totalSteps() }}
+              {{ 'onboarding.stepLabel' | translate:{ current: currentStep(), total: totalSteps() } }}
             </div>
           }
         </div>
@@ -41,15 +43,15 @@
           <div class="grid gap-4 sm:grid-cols-2">
             <shared-input
               [(value)]="firstName"
-              label="First name"
-              placeholder="First"
+              [label]="'onboarding.fields.firstName.label' | translate"
+              [placeholder]="'onboarding.fields.firstName.placeholder' | translate"
               [required]="true"
               [error]="firstNameError()"
             />
             <shared-input
               [(value)]="lastName"
-              label="Last name"
-              placeholder="Last"
+              [label]="'onboarding.fields.lastName.label' | translate"
+              [placeholder]="'onboarding.fields.lastName.placeholder' | translate"
               [required]="true"
               [error]="lastNameError()"
             />
@@ -60,24 +62,24 @@
           <div class="space-y-4">
             <shared-input
               [(value)]="organizationName"
-              label="Organization name"
-              placeholder="Your company or organization"
+              [label]="'onboarding.fields.organizationName.label' | translate"
+              [placeholder]="'onboarding.fields.organizationName.placeholder' | translate"
               [required]="true"
               [error]="organizationNameError()"
             />
             <div class="grid gap-4 sm:grid-cols-2">
               <shared-input
                 [(value)]="organizationEmail"
-                label="Organization email"
-                placeholder="company@email.com"
+                [label]="'onboarding.fields.organizationEmail.label' | translate"
+                [placeholder]="'onboarding.fields.organizationEmail.placeholder' | translate"
                 [type]="'email'"
                 [required]="true"
                 [error]="organizationEmailError()"
               />
               <shared-input
                 [(value)]="organizationPhone"
-                label="Organization phone"
-                placeholder="+31 6 12345678"
+                [label]="'onboarding.fields.organizationPhone.label' | translate"
+                [placeholder]="'onboarding.fields.organizationPhone.placeholder' | translate"
                 [type]="'tel'"
                 [required]="true"
                 [error]="organizationPhoneError()"
@@ -91,52 +93,318 @@
             <div class="grid gap-4 sm:grid-cols-2">
               <shared-input
                 [(value)]="vatNumber"
-                label="VAT number"
-                placeholder="NL123456789B01"
-                [hint]="'Optional'"
+                [label]="'onboarding.fields.vatNumber.label' | translate"
+                [placeholder]="'onboarding.fields.vatNumber.placeholder' | translate"
+                [hint]="'common.optional' | translate"
                 [error]="vatNumberError()"
               />
               <shared-input
                 [(value)]="kvkNumber"
-                label="KvK number"
-                placeholder="12345678"
-                [hint]="'Optional'"
+                [label]="'onboarding.fields.kvkNumber.label' | translate"
+                [placeholder]="'onboarding.fields.kvkNumber.placeholder' | translate"
+                [hint]="'common.optional' | translate"
                 [error]="kvkNumberError()"
               />
             </div>
             <shared-input
               [(value)]="addressLine1"
-              label="Address line 1"
-              placeholder="Street and number"
-              [hint]="'Optional'"
+              [label]="'onboarding.fields.addressLine1.label' | translate"
+              [placeholder]="'onboarding.fields.addressLine1.placeholder' | translate"
+              [hint]="'common.optional' | translate"
             />
             <shared-input
               [(value)]="addressLine2"
-              label="Address line 2"
-              placeholder="Apartment, suite, etc."
-              [hint]="'Optional'"
+              [label]="'onboarding.fields.addressLine2.label' | translate"
+              [placeholder]="'onboarding.fields.addressLine2.placeholder' | translate"
+              [hint]="'common.optional' | translate"
             />
             <div class="grid gap-4 sm:grid-cols-2">
               <shared-input
                 [(value)]="postalCode"
-                label="Postal code"
-                placeholder="1234 AB"
-                [hint]="'Optional'"
+                [label]="'onboarding.fields.postalCode.label' | translate"
+                [placeholder]="'onboarding.fields.postalCode.placeholder' | translate"
+                [hint]="'common.optional' | translate"
                 [error]="postalCodeError()"
               />
               <shared-input
                 [(value)]="city"
-                label="City"
-                placeholder="Amsterdam"
-                [hint]="'Optional'"
+                [label]="'onboarding.fields.city.label' | translate"
+                [placeholder]="'onboarding.fields.city.placeholder' | translate"
+                [hint]="'common.optional' | translate"
               />
             </div>
             <shared-input
               [(value)]="country"
-              label="Country"
-              placeholder="Netherlands"
-              [hint]="'Optional'"
+              [label]="'onboarding.fields.country.label' | translate"
+              [placeholder]="'onboarding.fields.country.placeholder' | translate"
+              [hint]="'common.optional' | translate"
             />
+          </div>
+        }
+
+        @if (currentStep() === whatsAppStep()) {
+          <div class="space-y-6">
+            <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-600">
+              <p class="font-semibold uppercase tracking-widest text-zinc-500">
+                {{ 'onboarding.whatsapp.optionalTitle' | translate }}
+              </p>
+              <p class="mt-2">{{ 'onboarding.whatsapp.optionalBody' | translate }}</p>
+            </div>
+
+            @if (whatsAppSuccessMessage()) {
+              <div class="border border-emerald-200 bg-emerald-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-emerald-700">
+                {{ whatsAppSuccessMessage() }}
+              </div>
+            }
+
+            @if (whatsAppErrorMessage()) {
+              <div class="border border-red-200 bg-red-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-red-600">
+                {{ whatsAppErrorMessage() }}
+              </div>
+            }
+
+            <div class="flex flex-col gap-3">
+              <div class="flex flex-wrap items-center justify-between gap-3">
+                <div>
+                  <p class="text-sm font-semibold text-zinc-900">{{ 'onboarding.whatsapp.statusLabel' | translate }}</p>
+                  <p class="text-xs text-zinc-500">
+                    {{ whatsAppStatus()?.message || ('onboarding.whatsapp.statusHint' | translate) }}
+                  </p>
+                </div>
+                <div
+                  class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                  [class.bg-emerald-100]="isWhatsAppConnected()"
+                  [class.text-emerald-700]="isWhatsAppConnected()"
+                  [class.bg-amber-100]="!isWhatsAppConnected() && !isWhatsAppUnregistered()"
+                  [class.text-amber-700]="!isWhatsAppConnected() && !isWhatsAppUnregistered()"
+                  [class.bg-zinc-100]="isWhatsAppUnregistered()"
+                  [class.text-zinc-600]="isWhatsAppUnregistered()"
+                >
+                  {{ whatsAppStateLabel() }}
+                </div>
+              </div>
+
+              <div class="flex flex-wrap items-center gap-3">
+                @if (isWhatsAppUnregistered()) {
+                  <shared-button
+                    variant="primary"
+                    [disabled]="isWhatsAppAction()"
+                    [loading]="isWhatsAppAction()"
+                    [fullWidth]="false"
+                    (clicked)="connectWhatsApp()"
+                  >
+                    {{ 'onboarding.whatsapp.connect' | translate }}
+                  </shared-button>
+                } @else {
+                  <shared-button
+                    variant="secondary"
+                    [disabled]="isWhatsAppAction()"
+                    [loading]="isWhatsAppAction()"
+                    [fullWidth]="false"
+                    (clicked)="reconnectWhatsApp()"
+                  >
+                    {{ 'onboarding.whatsapp.reconnect' | translate }}
+                  </shared-button>
+                }
+              </div>
+
+              @if (!isWhatsAppUnregistered()) {
+                <div class="mt-2 grid gap-4 sm:grid-cols-[minmax(0,1fr)_220px] items-start">
+                  <div class="flex flex-col gap-2">
+                    <p class="text-sm font-semibold text-zinc-900">{{ 'onboarding.whatsapp.qrTitle' | translate }}</p>
+                    <p class="text-xs text-zinc-500">{{ 'onboarding.whatsapp.qrHint' | translate }}</p>
+                    <shared-button
+                      variant="ghost"
+                      [disabled]="isWhatsAppAction()"
+                      [fullWidth]="false"
+                      (clicked)="refreshQr()"
+                    >
+                      {{ 'onboarding.whatsapp.refreshQr' | translate }}
+                    </shared-button>
+                  </div>
+
+                  @if (qrUrl()) {
+                    <div class="whatsapp-qr">
+                      <img
+                        [src]="qrUrl()"
+                        [alt]="'onboarding.whatsapp.qrAlt' | translate"
+                        class="whatsapp-qr__image"
+                      />
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          </div>
+        }
+
+        @if (currentStep() === serviceTypeStep()) {
+          <div class="space-y-6">
+            <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-600">
+              <p class="font-semibold uppercase tracking-widest text-zinc-500">
+                {{ 'onboarding.service.whyTitle' | translate }}
+              </p>
+              <p class="mt-2">{{ 'onboarding.service.whyBody' | translate }}</p>
+            </div>
+
+            @if (serviceTypeError()) {
+              <div
+                role="alert"
+                aria-live="polite"
+                class="border border-red-200 bg-red-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-red-600"
+              >
+                {{ serviceTypeError() }}
+              </div>
+            }
+
+            <div class="space-y-4">
+              <shared-input
+                [(value)]="serviceTypeName"
+                [label]="'onboarding.service.nameLabel' | translate"
+                [placeholder]="'onboarding.service.namePlaceholder' | translate"
+                [required]="true"
+                [error]="serviceTypeNameError()"
+              />
+
+              <shared-textarea
+                [(value)]="serviceTypeDescription"
+                [label]="'onboarding.service.descriptionLabel' | translate"
+                [placeholder]="'onboarding.service.descriptionPlaceholder' | translate"
+                [rows]="3"
+                [hint]="'common.optional' | translate"
+              />
+            </div>
+
+            <div class="space-y-3">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-sm font-semibold text-zinc-900">{{ 'onboarding.service.intakeLabel' | translate }}</p>
+                  <p class="text-xs text-zinc-500">
+                    {{ 'onboarding.service.intakeHint' | translate }}
+                  </p>
+                </div>
+                <shared-button
+                  [type]="'button'"
+                  [variant]="'secondary'"
+                  [fullWidth]="false"
+                  (clicked)="showIntakeExamples.set(!showIntakeExamples())"
+                >
+                  {{ showIntakeExamples() ? ('onboarding.service.hideExamples' | translate) : ('onboarding.service.showExamples' | translate) }}
+                </shared-button>
+              </div>
+
+              <shared-textarea
+                [(value)]="intakeGuidelines"
+                label=""
+                [placeholder]="'onboarding.service.intakePlaceholder' | translate"
+                [rows]="10"
+                [required]="true"
+                [error]="intakeGuidelinesError()"
+              />
+
+              <p class="text-[11px] text-zinc-400">
+                {{ intakeGuidelines().length }} / 10000
+              </p>
+            </div>
+
+            @if (showIntakeExamples()) {
+              <div class="space-y-4 rounded-lg border border-zinc-200 bg-white p-4">
+                <p class="text-xs font-semibold uppercase tracking-widest text-zinc-500">{{ 'onboarding.service.examplesTitle' | translate }}</p>
+                <div class="space-y-4">
+                  @for (example of intakeExamples(); track example.title) {
+                    <div class="rounded-md border border-zinc-200 bg-zinc-50 p-3">
+                      <p class="text-xs font-semibold text-zinc-700">{{ example.title }}</p>
+                      <pre class="mt-2 whitespace-pre-wrap text-xs text-zinc-600 font-mono">{{ example.content }}</pre>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <shared-icon-picker
+                [(value)]="serviceTypeIcon"
+                [label]="'onboarding.service.iconLabel' | translate"
+                [placeholder]="'onboarding.service.iconPlaceholder' | translate"
+                [hint]="'common.optional' | translate"
+              />
+              <shared-color-picker
+                [(value)]="serviceTypeColor"
+                [label]="'onboarding.service.colorLabel' | translate"
+                placeholder="#3B82F6"
+                [hint]="'common.optional' | translate"
+              />
+            </div>
+          </div>
+        }
+
+        @if (currentStep() === productStep()) {
+          <div class="space-y-6">
+            <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-xs text-zinc-600">
+              <p class="font-semibold uppercase tracking-widest text-zinc-500">{{ 'onboarding.product.infoTitle' | translate }}</p>
+              <p class="mt-2">{{ 'onboarding.product.infoBody' | translate }}</p>
+            </div>
+
+            @if (productError()) {
+              <div
+                role="alert"
+                aria-live="polite"
+                class="border border-red-200 bg-red-50 px-4 py-3 text-xs uppercase tracking-widest font-semibold text-red-600"
+              >
+                {{ productError() }}
+              </div>
+            }
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <shared-input
+                [(value)]="productTitle"
+                [label]="'onboarding.product.titleLabel' | translate"
+                [placeholder]="'onboarding.product.titlePlaceholder' | translate"
+                [required]="true"
+                [error]="productTitleError()"
+              />
+              <shared-input
+                [(value)]="productReference"
+                [label]="'onboarding.product.referenceLabel' | translate"
+                [placeholder]="'onboarding.product.referencePlaceholder' | translate"
+                [required]="true"
+                [error]="productReferenceError()"
+              />
+            </div>
+
+            <div class="grid gap-4 sm:grid-cols-2">
+              <shared-number-input
+                [(value)]="productPrice"
+                [label]="'onboarding.product.priceLabel' | translate"
+                [placeholder]="'onboarding.product.pricePlaceholder' | translate"
+                [prefix]="'€'"
+                [required]="true"
+                [min]="0"
+                [step]="0.01"
+                [error]="productPriceError()"
+              />
+              <shared-select
+                [(value)]="productVatRateId"
+                [options]="vatRateOptions()"
+                [label]="'onboarding.product.vatLabel' | translate"
+                [placeholder]="'onboarding.product.vatPlaceholder' | translate"
+                [required]="true"
+                [error]="productVatRateError()"
+              />
+            </div>
+
+            <shared-select
+              [(value)]="productType"
+              [options]="productTypeOptions()"
+              [label]="'onboarding.product.typeLabel' | translate"
+              [placeholder]="'onboarding.product.typePlaceholder' | translate"
+              [required]="true"
+              [error]="productTypeError()"
+            />
+
+            @if (vatRatesLoading()) {
+              <p class="text-xs text-zinc-400">{{ 'onboarding.product.vatLoading' | translate }}</p>
+            }
           </div>
         }
 
@@ -148,14 +416,44 @@
               [fullWidth]="false"
               (clicked)="goBack()"
             >
-              Back
+              {{ 'onboarding.actions.back' | translate }}
+            </shared-button>
+          }
+          @if (currentStep() === whatsAppStep()) {
+            <shared-button
+              [type]="'button'"
+              [variant]="'secondary'"
+              [fullWidth]="false"
+              (clicked)="handleWhatsAppSkip()"
+            >
+              {{ 'onboarding.actions.skip' | translate }}
+            </shared-button>
+          }
+          @if (currentStep() === serviceTypeStep()) {
+            <shared-button
+              [type]="'button'"
+              [variant]="'secondary'"
+              [fullWidth]="false"
+              (clicked)="handleServiceTypeSkip()"
+            >
+              {{ 'onboarding.actions.skip' | translate }}
+            </shared-button>
+          }
+          @if (currentStep() === productStep()) {
+            <shared-button
+              [type]="'button'"
+              [variant]="'secondary'"
+              [fullWidth]="false"
+              (clicked)="handleProductSkip()"
+            >
+              {{ 'onboarding.actions.skip' | translate }}
             </shared-button>
           }
           <shared-button
             [type]="'submit'"
-            [loading]="isSaving()"
+            [loading]="isSaving() || serviceTypeCreating() || productCreating()"
             [fullWidth]="false"
-            ariaLabel="Save onboarding"
+            [ariaLabel]="'onboarding.actions.finish' | translate"
           >
             {{ primaryLabel() }}
           </shared-button>

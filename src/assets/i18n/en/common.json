@@ -13,11 +13,163 @@
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No",
+    "optional": "Optional",
     "upload": {
       "dropHint": "Drop a file here or click to browse",
       "maxSize": "Max size: {{size}}",
       "sizeError": "File size exceeds maximum allowed",
       "clear": "Clear"
+    }
+  },
+  "onboarding": {
+    "title": "Onboarding",
+    "stepLabel": "Step {{current}} / {{total}}",
+    "actions": {
+      "back": "Back",
+      "continue": "Continue",
+      "finish": "Complete onboarding",
+      "skip": "Skip"
+    },
+    "steps": {
+      "profile": {
+        "title": "Set up your profile",
+        "subtitle": "Add your personal details to get started."
+      },
+      "company": {
+        "title": "Company essentials",
+        "subtitle": "Tell us how clients can reach your company."
+      },
+      "business": {
+        "title": "Business details",
+        "subtitle": "Optional details that help with invoicing and quoting."
+      },
+      "whatsapp": {
+        "title": "Connect WhatsApp",
+        "subtitle": "Optional: connect WhatsApp to send customer updates and notifications."
+      },
+      "service": {
+        "title": "Service intake requirements",
+        "subtitle": "Define the minimum intake requirements to qualify leads and prepare global estimates."
+      },
+      "product": {
+        "title": "First product or service",
+        "subtitle": "Add your first product or service with a VAT rate."
+      }
+    },
+    "fields": {
+      "firstName": { "label": "First name", "placeholder": "First name" },
+      "lastName": { "label": "Last name", "placeholder": "Last name" },
+      "organizationName": { "label": "Organization name", "placeholder": "Your company name" },
+      "organizationEmail": { "label": "Organization email", "placeholder": "company@email.com" },
+      "organizationPhone": { "label": "Organization phone", "placeholder": "+31 6 12345678" },
+      "vatNumber": { "label": "VAT number", "placeholder": "NL123456789B01" },
+      "kvkNumber": { "label": "KvK number", "placeholder": "12345678" },
+      "addressLine1": { "label": "Address line 1", "placeholder": "Street and number" },
+      "addressLine2": { "label": "Address line 2", "placeholder": "Apartment, suite, etc." },
+      "postalCode": { "label": "Postal code", "placeholder": "1234 AB" },
+      "city": { "label": "City", "placeholder": "Amsterdam" },
+      "country": { "label": "Country", "placeholder": "Netherlands" }
+    },
+    "whatsapp": {
+      "optionalTitle": "Optional setup",
+      "optionalBody": "Connect WhatsApp to send updates and notifications to customers.",
+      "statusLabel": "Status",
+      "statusHint": "Scan the QR code to connect your device.",
+      "connect": "Connect WhatsApp",
+      "reconnect": "Refresh connection",
+      "qrTitle": "QR code",
+      "qrHint": "Open WhatsApp on your phone and scan the code.",
+      "refreshQr": "Refresh QR",
+      "qrAlt": "WhatsApp QR code",
+      "registered": "WhatsApp registered. Scan the QR code.",
+      "reconnectStarted": "WhatsApp reconnect started.",
+      "states": {
+        "connected": "Connected",
+        "disconnected": "Disconnected",
+        "unregistered": "Unregistered",
+        "error": "Error"
+      }
+    },
+    "service": {
+      "whyTitle": "Why this matters",
+      "whyBody": "Intake requirements set the minimum information you need to qualify a lead and prepare a global estimate.",
+      "nameLabel": "Service type name",
+      "namePlaceholder": "Example: Windows and doors",
+      "descriptionLabel": "Description",
+      "descriptionPlaceholder": "Short description of the service",
+      "intakeLabel": "Intake requirements (Markdown)",
+      "intakeHint": "Use headings and bullet points to capture measurements, current situation, planning, and budget.",
+      "intakePlaceholder": "## Required information\n\n### Measurements\n- ...",
+      "showExamples": "Show examples",
+      "hideExamples": "Hide examples",
+      "examplesTitle": "Examples",
+      "iconLabel": "Icon",
+      "iconPlaceholder": "Select an icon",
+      "colorLabel": "Color"
+    },
+    "product": {
+      "infoTitle": "Final step",
+      "infoBody": "Add your first product or service for quotes.",
+      "titleLabel": "Product name",
+      "titlePlaceholder": "Example: HR++ window",
+      "referenceLabel": "Reference",
+      "referencePlaceholder": "SKU or internal code",
+      "priceLabel": "Price (incl. VAT)",
+      "pricePlaceholder": "0.00",
+      "vatLabel": "VAT rate",
+      "vatPlaceholder": "Select VAT",
+      "typeLabel": "Type",
+      "typePlaceholder": "Select type",
+      "vatLoading": "Loading VAT rates...",
+      "type": {
+        "service": "Service",
+        "digital": "Digital",
+        "product": "Product",
+        "material": "Material"
+      }
+    },
+    "intakeExamples": {
+      "windows": {
+        "title": "Windows and doors",
+        "content": "## Required information\n\n### Measurements\n- Number of windows and/or doors\n- Dimensions per frame (height x width)\n\n### Current situation\n- Frame material (wood, uPVC, aluminum)\n- Glass type (single, double, HR++)\n\n### Preferences and planning\n- Preferred glass type (HR++, triple)\n- Desired installation date\n\n### Budget indication\n- Budget range"
+      },
+      "insulation": {
+        "title": "Insulation",
+        "content": "## Required information\n\n### Insulation type\n- Roof, floor, cavity wall, or facade\n- Available surface area (m2)\n\n### Current situation\n- Year of construction\n- Access to roof/floor/cavity\n\n### Preferences and planning\n- Preferred material (glass wool, PIR, EPS)\n- Desired installation date\n\n### Budget indication\n- Budget range"
+      },
+      "electrical": {
+        "title": "Electrical",
+        "content": "## Required information\n\n### Work scope\n- Type of work (panel, lighting, outlets)\n- Number of points or circuits\n\n### Current situation\n- Existing panel (number of circuits)\n- Accessibility of wiring\n\n### Preferences and planning\n- Desired installation date\n\n### Budget indication\n- Budget range"
+      }
+    },
+    "errors": {
+      "firstNameRequired": "First name is required.",
+      "lastNameRequired": "Last name is required.",
+      "organizationNameRequired": "Organization name is required.",
+      "organizationEmailRequired": "Organization email is required.",
+      "organizationEmailInvalid": "Enter a valid email.",
+      "organizationPhoneRequired": "Organization phone is required.",
+      "organizationPhoneInvalid": "Enter a valid phone number.",
+      "vatInvalid": "Enter a valid VAT number (NL123456789B01).",
+      "kvkInvalid": "Enter a valid KvK number (8 digits).",
+      "postalInvalid": "Enter a valid postal code (1234 AB).",
+      "serviceTypeNameRequired": "Service type name is required.",
+      "intakeRequired": "Intake requirements are required to qualify leads.",
+      "serviceCreateFailed": "Failed to create service type.",
+      "productTitleRequired": "Product name is required.",
+      "productReferenceRequired": "Reference is required.",
+      "productPriceRequired": "Price is required.",
+      "productVatRequired": "VAT rate is required.",
+      "productTypeRequired": "Type is required.",
+      "productFieldsRequired": "Fill in all required fields.",
+      "productCreateFailed": "Failed to create product.",
+      "saveFailed": "Failed to save onboarding details.",
+      "whatsappSettingsFailed": "Failed to load WhatsApp settings.",
+      "whatsappStatusFailed": "Failed to load WhatsApp status.",
+      "whatsappRegisterFailed": "Failed to start WhatsApp registration.",
+      "whatsappReconnectFailed": "Failed to reconnect WhatsApp.",
+      "whatsappQrFailed": "Failed to load WhatsApp QR code.",
+      "vatRatesLoadFailed": "Failed to load VAT rates."
     }
   },
   "dashboard": {

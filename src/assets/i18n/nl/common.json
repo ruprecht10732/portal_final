@@ -13,11 +13,163 @@
     "confirm": "Bevestigen",
     "yes": "Ja",
     "no": "Nee",
+    "optional": "Optioneel",
     "upload": {
       "dropHint": "Zet een bestand hier neer of klik om te bladeren",
       "maxSize": "Maximale grootte: {{size}}",
       "sizeError": "Bestand is groter dan toegestaan",
       "clear": "Wissen"
+    }
+  },
+  "onboarding": {
+    "title": "Onboarding",
+    "stepLabel": "Stap {{current}} / {{total}}",
+    "actions": {
+      "back": "Terug",
+      "continue": "Doorgaan",
+      "finish": "Onboarding afronden",
+      "skip": "Overslaan"
+    },
+    "steps": {
+      "profile": {
+        "title": "Profiel instellen",
+        "subtitle": "Vul je persoonlijke gegevens in om te starten."
+      },
+      "company": {
+        "title": "Bedrijfsgegevens",
+        "subtitle": "Vertel ons hoe klanten je bedrijf kunnen bereiken."
+      },
+      "business": {
+        "title": "Bedrijfsdetails",
+        "subtitle": "Optionele details voor facturatie en offertes."
+      },
+      "whatsapp": {
+        "title": "WhatsApp koppelen",
+        "subtitle": "Optioneel: koppel WhatsApp voor klantupdates en notificaties."
+      },
+      "service": {
+        "title": "Intake eisen voor diensten",
+        "subtitle": "Definieer minimale intake eisen om leads te kwalificeren en een globale schatting te maken."
+      },
+      "product": {
+        "title": "Eerste product of dienst",
+        "subtitle": "Voeg je eerste product of dienst toe met BTW tarief."
+      }
+    },
+    "fields": {
+      "firstName": { "label": "Voornaam", "placeholder": "Voornaam" },
+      "lastName": { "label": "Achternaam", "placeholder": "Achternaam" },
+      "organizationName": { "label": "Bedrijfsnaam", "placeholder": "Naam van je bedrijf" },
+      "organizationEmail": { "label": "Bedrijfs e-mail", "placeholder": "bedrijf@email.nl" },
+      "organizationPhone": { "label": "Telefoonnummer", "placeholder": "+31 6 12345678" },
+      "vatNumber": { "label": "BTW-nummer", "placeholder": "NL123456789B01" },
+      "kvkNumber": { "label": "KvK-nummer", "placeholder": "12345678" },
+      "addressLine1": { "label": "Adresregel 1", "placeholder": "Straat en huisnummer" },
+      "addressLine2": { "label": "Adresregel 2", "placeholder": "Toevoeging, etage, etc." },
+      "postalCode": { "label": "Postcode", "placeholder": "1234 AB" },
+      "city": { "label": "Plaats", "placeholder": "Amsterdam" },
+      "country": { "label": "Land", "placeholder": "Nederland" }
+    },
+    "whatsapp": {
+      "optionalTitle": "Optionele instelling",
+      "optionalBody": "Koppel WhatsApp om updates en notificaties naar klanten te sturen.",
+      "statusLabel": "Status",
+      "statusHint": "Scan de QR-code om je apparaat te koppelen.",
+      "connect": "WhatsApp koppelen",
+      "reconnect": "Verbinding vernieuwen",
+      "qrTitle": "QR-code",
+      "qrHint": "Open WhatsApp op je telefoon en scan de code.",
+      "refreshQr": "QR verversen",
+      "qrAlt": "WhatsApp QR-code",
+      "registered": "WhatsApp geregistreerd. Scan de QR-code.",
+      "reconnectStarted": "WhatsApp opnieuw verbinden gestart.",
+      "states": {
+        "connected": "Verbonden",
+        "disconnected": "Verbinding verbroken",
+        "unregistered": "Niet gekoppeld",
+        "error": "Fout"
+      }
+    },
+    "service": {
+      "whyTitle": "Waarom dit belangrijk is",
+      "whyBody": "Intake eisen bepalen de minimale informatie om een lead te kwalificeren en een globale schatting te maken.",
+      "nameLabel": "Naam diensttype",
+      "namePlaceholder": "Bijvoorbeeld: Ramen en deuren",
+      "descriptionLabel": "Omschrijving",
+      "descriptionPlaceholder": "Korte omschrijving van de dienst",
+      "intakeLabel": "Intake eisen (Markdown)",
+      "intakeHint": "Gebruik kopjes en bullet points voor metingen, huidige situatie, planning en budget.",
+      "intakePlaceholder": "## Benodigde informatie\n\n### Metingen\n- ...",
+      "showExamples": "Voorbeelden tonen",
+      "hideExamples": "Voorbeelden verbergen",
+      "examplesTitle": "Voorbeelden",
+      "iconLabel": "Icoon",
+      "iconPlaceholder": "Kies een icoon",
+      "colorLabel": "Kleur"
+    },
+    "product": {
+      "infoTitle": "Laatste stap",
+      "infoBody": "Voeg een eerste product of dienst toe voor offertes.",
+      "titleLabel": "Productnaam",
+      "titlePlaceholder": "Bijvoorbeeld: HR++ raam",
+      "referenceLabel": "Referentie",
+      "referencePlaceholder": "SKU of interne code",
+      "priceLabel": "Prijs (incl. BTW)",
+      "pricePlaceholder": "0.00",
+      "vatLabel": "BTW-tarief",
+      "vatPlaceholder": "Selecteer BTW",
+      "typeLabel": "Type",
+      "typePlaceholder": "Selecteer type",
+      "vatLoading": "BTW-tarieven laden...",
+      "type": {
+        "service": "Dienst",
+        "digital": "Digitaal",
+        "product": "Product",
+        "material": "Materiaal"
+      }
+    },
+    "intakeExamples": {
+      "windows": {
+        "title": "Ramen en deuren",
+        "content": "## Benodigde informatie\n\n### Metingen\n- Aantal ramen en/of deuren\n- Afmetingen per kozijn (hoogte x breedte)\n\n### Huidige situatie\n- Materiaal kozijn (hout, kunststof, aluminium)\n- Type glas (enkel, dubbel, HR++)\n\n### Wensen en planning\n- Gewenst glastype (HR++, triple)\n- Gewenste uitvoerdatum\n\n### Budget indicatie\n- Richtbudget of bandbreedte"
+      },
+      "insulation": {
+        "title": "Isolatie",
+        "content": "## Benodigde informatie\n\n### Type isolatie\n- Dak, vloer, spouwmuur of gevel\n- Beschikbaar oppervlak (m2)\n\n### Huidige situatie\n- Bouwjaar woning\n- Toegang tot dak/vloer/spouw\n\n### Wensen en planning\n- Voorkeur materiaal (glaswol, PIR, EPS)\n- Gewenste uitvoerdatum\n\n### Budget indicatie\n- Richtbudget of bandbreedte"
+      },
+      "electrical": {
+        "title": "Elektra",
+        "content": "## Benodigde informatie\n\n### Werkzaamheden\n- Type klus (groepenkast, verlichting, stopcontacten)\n- Aantal punten of groepen\n\n### Huidige situatie\n- Huidige groepenkast (aantal groepen)\n- Bereikbaarheid van leidingwerk\n\n### Wensen en planning\n- Gewenste uitvoerdatum\n\n### Budget indicatie\n- Richtbudget of bandbreedte"
+      }
+    },
+    "errors": {
+      "firstNameRequired": "Voornaam is verplicht.",
+      "lastNameRequired": "Achternaam is verplicht.",
+      "organizationNameRequired": "Bedrijfsnaam is verplicht.",
+      "organizationEmailRequired": "Bedrijfs e-mailadres is verplicht.",
+      "organizationEmailInvalid": "Voer een geldig e-mailadres in.",
+      "organizationPhoneRequired": "Telefoonnummer is verplicht.",
+      "organizationPhoneInvalid": "Voer een geldig telefoonnummer in.",
+      "vatInvalid": "Voer een geldig BTW-nummer in (NL123456789B01).",
+      "kvkInvalid": "Voer een geldig KvK-nummer in (8 cijfers).",
+      "postalInvalid": "Voer een geldige postcode in (1234 AB).",
+      "serviceTypeNameRequired": "Naam van het diensttype is verplicht.",
+      "intakeRequired": "Intake eisen zijn verplicht om leads te kwalificeren.",
+      "serviceCreateFailed": "Diensttype aanmaken mislukt.",
+      "productTitleRequired": "Productnaam is verplicht.",
+      "productReferenceRequired": "Referentie is verplicht.",
+      "productPriceRequired": "Prijs is verplicht.",
+      "productVatRequired": "BTW-tarief is verplicht.",
+      "productTypeRequired": "Type is verplicht.",
+      "productFieldsRequired": "Vul alle verplichte velden in.",
+      "productCreateFailed": "Product aanmaken mislukt.",
+      "saveFailed": "Onboarding opslaan mislukt.",
+      "whatsappSettingsFailed": "WhatsApp-instellingen laden mislukt.",
+      "whatsappStatusFailed": "WhatsApp-status laden mislukt.",
+      "whatsappRegisterFailed": "WhatsApp registratie starten mislukt.",
+      "whatsappReconnectFailed": "WhatsApp opnieuw verbinden mislukt.",
+      "whatsappQrFailed": "WhatsApp QR-code laden mislukt.",
+      "vatRatesLoadFailed": "BTW-tarieven laden mislukt."
     }
   },
   "dashboard": {
