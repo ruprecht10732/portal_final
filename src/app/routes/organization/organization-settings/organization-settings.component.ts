@@ -24,6 +24,10 @@ export class OrganizationSettingsComponent {
   protected readonly quoteValidDays = signal<number | null>(14);
   private readonly initialQuoteValidDays = signal<number>(14);
 
+
+  protected readonly whatsAppWelcomeDelayMinutes = signal<number | null>(2);
+  private readonly initialWhatsAppWelcomeDelayMinutes = signal<number>(2);
+
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
   protected readonly successMessage = signal('');
@@ -72,14 +76,17 @@ export class OrganizationSettingsComponent {
 
   protected readonly hasChanges = computed(() =>
     (this.quotePaymentDays() ?? this.initialQuotePaymentDays()) !== this.initialQuotePaymentDays() ||
-    (this.quoteValidDays() ?? this.initialQuoteValidDays()) !== this.initialQuoteValidDays()
+    (this.quoteValidDays() ?? this.initialQuoteValidDays()) !== this.initialQuoteValidDays() ||
+    (this.whatsAppWelcomeDelayMinutes() ?? this.initialWhatsAppWelcomeDelayMinutes()) !== this.initialWhatsAppWelcomeDelayMinutes()
   );
 
   protected readonly canSave = computed(() =>
     !this.isSaving() &&
     this.hasChanges() &&
     (this.quotePaymentDays() ?? 0) >= 1 &&
-    (this.quoteValidDays() ?? 0) >= 1
+    (this.quoteValidDays() ?? 0) >= 1 &&
+    (this.whatsAppWelcomeDelayMinutes() ?? 0) >= 0 &&
+    (this.whatsAppWelcomeDelayMinutes() ?? 0) <= 1440
   );
 
   protected readonly isWhatsAppConnected = computed(() => this.whatsAppStatus()?.state === 'CONNECTED');
@@ -179,6 +186,8 @@ export class OrganizationSettingsComponent {
         this.quoteValidDays.set(settings.quoteValidDays);
         this.initialQuoteValidDays.set(settings.quoteValidDays);
         this.whatsAppDeviceId.set(settings.whatsAppDeviceId ?? null);
+				this.whatsAppWelcomeDelayMinutes.set(settings.whatsAppWelcomeDelayMinutes ?? 2);
+				this.initialWhatsAppWelcomeDelayMinutes.set(settings.whatsAppWelcomeDelayMinutes ?? 2);
         this.startStatusPolling();
         this.loadSmtpStatus();
       });
@@ -369,6 +378,7 @@ export class OrganizationSettingsComponent {
       .updateSettings({
         ...(this.quotePaymentDays() == null ? {} : { quotePaymentDays: this.quotePaymentDays()! }),
         ...(this.quoteValidDays() == null ? {} : { quoteValidDays: this.quoteValidDays()! }),
+			...(this.whatsAppWelcomeDelayMinutes() == null ? {} : { whatsAppWelcomeDelayMinutes: this.whatsAppWelcomeDelayMinutes()! }),
       })
       .pipe(
         catchError(() => {
@@ -383,6 +393,8 @@ export class OrganizationSettingsComponent {
         this.initialQuotePaymentDays.set(settings.quotePaymentDays);
         this.quoteValidDays.set(settings.quoteValidDays);
         this.initialQuoteValidDays.set(settings.quoteValidDays);
+			this.whatsAppWelcomeDelayMinutes.set(settings.whatsAppWelcomeDelayMinutes ?? 2);
+			this.initialWhatsAppWelcomeDelayMinutes.set(settings.whatsAppWelcomeDelayMinutes ?? 2);
         this.successMessage.set(this.translate.instant('organization.settings.saved'));
       });
   }
