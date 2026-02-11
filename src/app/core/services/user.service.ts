@@ -21,6 +21,10 @@ export class UserService {
     return this.http.post<{ message: string }>(`${this.baseUrl}/me/onboarding`, data);
   }
 
+  markOnboardingComplete(): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/me/onboarding/complete`, {});
+  }
+
   changePassword(data: ChangePasswordRequest): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.baseUrl}/me/password`, data);
   }

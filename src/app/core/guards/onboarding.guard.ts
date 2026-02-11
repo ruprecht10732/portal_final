@@ -13,9 +13,7 @@ export const onboardingGuard: CanActivateChildFn = (_route, state) => {
 
   return userService.getProfile().pipe(
     map((profile) => {
-      const needsProfile = !profile.firstName || !profile.lastName;
-      const needsOrganization = !profile.hasOrganization;
-      const needsOnboarding = needsProfile || needsOrganization;
+      const needsOnboarding = !profile.onboardingCompleted;
       return needsOnboarding ? router.createUrlTree(['/onboarding']) : true;
     }),
     catchError(() => of(router.createUrlTree(['/sign-in'])))

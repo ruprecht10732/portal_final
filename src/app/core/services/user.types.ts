@@ -7,6 +7,7 @@ export interface UserProfile {
   preferredLanguage: string;
   roles: string[];
   hasOrganization: boolean;
+  onboardingCompleted: boolean;
   createdAt: string;
   updatedAt: string;
 }

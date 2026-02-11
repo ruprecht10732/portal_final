@@ -47,6 +47,10 @@
         "title": "WhatsApp koppelen",
         "subtitle": "Optioneel: koppel WhatsApp voor klantupdates en notificaties."
       },
+      "smtp": {
+        "title": "E-mail (SMTP)",
+        "subtitle": "Optioneel: configureer een eigen SMTP-server voor uitgaande e-mails."
+      },
       "service": {
         "title": "Intake eisen voor diensten",
         "subtitle": "Definieer minimale intake eisen om leads te kwalificeren en een globale schatting te maken."
@@ -89,6 +93,31 @@
         "unregistered": "Niet gekoppeld",
         "error": "Fout"
       }
+    },
+    "smtp": {
+      "optionalTitle": "Optionele instelling",
+      "optionalBody": "Configureer een eigen SMTP-server om e-mails te versturen vanuit uw organisatie.",
+      "host": "SMTP-server",
+      "hostPlaceholder": "smtp.voorbeeld.nl",
+      "detectedProvider": "Gedetecteerd: {{ provider }}",
+      "detecting": "Instellingen detecteren…",
+      "detectingTitle": "Serverinstellingen detecteren",
+      "detectingBody": "We zoeken automatisch de juiste SMTP-server voor uw e-mailadres.",
+      "detectedTitle": "Instellingen gevonden",
+      "detectedBody": "SMTP-server {{ host }}:{{ port }} automatisch geconfigureerd.",
+      "detectFailedTitle": "Automatische detectie mislukt",
+      "detectFailedBody": "Vul de servergegevens handmatig in bij 'Geavanceerd'.",
+      "port": "Poort",
+      "username": "Gebruikersnaam",
+      "usernamePlaceholder": "gebruiker@uw-domein.nl",
+      "password": "Wachtwoord",
+      "passwordPlaceholder": "SMTP-wachtwoord",
+      "fromEmail": "Afzender e-mail",
+      "fromEmailPlaceholder": "noreply@uw-domein.nl",
+      "fromName": "Afzender naam",
+      "fromNamePlaceholder": "Uw Bedrijfsnaam",
+      "advanced": "Geavanceerd",
+      "saved": "SMTP-configuratie opgeslagen."
     },
     "service": {
       "whyTitle": "Waarom dit belangrijk is",
@@ -169,6 +198,7 @@
       "whatsappRegisterFailed": "WhatsApp registratie starten mislukt.",
       "whatsappReconnectFailed": "WhatsApp opnieuw verbinden mislukt.",
       "whatsappQrFailed": "WhatsApp QR-code laden mislukt.",
+      "smtpSaveFailed": "SMTP-configuratie opslaan mislukt.",
       "vatRatesLoadFailed": "BTW-tarieven laden mislukt."
     }
   },

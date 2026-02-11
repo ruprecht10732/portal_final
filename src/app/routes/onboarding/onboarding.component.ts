@@ -1,7 +1,7 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, finalize, firstValueFrom, of, Subscription, timer } from 'rxjs';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
+import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, finalize, firstValueFrom, of, Subscription, switchMap, timer } from 'rxjs';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { InputComponent } from '../../shared/components/input/input.component';
 import { TextareaComponent } from '../../shared/components/textarea/textarea.component';
@@ -74,6 +74,24 @@ export class OnboardingComponent {
   protected readonly productCreating = signal(false);
   protected readonly productError = signal('');
 
+  // ── SMTP ──
+  protected readonly smtpHost = signal('');
+  protected readonly smtpPort = signal<number | null>(587);
+  protected readonly smtpUsername = signal('');
+  protected readonly smtpPassword = signal('');
+  protected readonly smtpFromEmail = signal('');
+  protected readonly smtpFromName = signal('');
+  protected readonly smtpSkipped = signal(false);
+  protected readonly isSmtpSaving = signal(false);
+  protected readonly smtpErrorMessage = signal('');
+  protected readonly smtpSuccessMessage = signal('');
+  protected readonly smtpDetectedProvider = signal('');
+  protected readonly isSmtpDetecting = signal(false);
+  protected readonly smtpDetectionFailed = signal(false);
+  protected readonly smtpDetectedHost = signal('');
+  protected readonly smtpDetectedPort = signal<number | null>(null);
+  protected readonly showSmtpAdvanced = signal(false);
+
   protected readonly whatsAppSkipped = signal(false);
   protected readonly whatsAppDeviceId = signal<string | null>(null);
   protected readonly whatsAppStatus = signal<WhatsAppStatus | null>(null);
@@ -88,16 +106,28 @@ export class OnboardingComponent {
   private qrLoadInFlight = false;
   protected readonly onboardingPersisted = signal(false);
 
-  protected readonly whatsAppStep = computed(() => (this.needsOrganization() ? 4 : 2));
-  protected readonly serviceTypeStep = computed(() => (this.needsOrganization() ? 5 : 3));
-  protected readonly productStep = computed(() => (this.needsOrganization() ? 6 : 4));
-  protected readonly totalSteps = computed(() => (this.needsOrganization() ? 6 : 4));
+  protected readonly smtpStep = computed(() => (this.needsOrganization() ? 4 : -1));
+  protected readonly whatsAppStep = computed(() => (this.needsOrganization() ? 5 : 2));
+  protected readonly serviceTypeStep = computed(() => (this.needsOrganization() ? 6 : 3));
+  protected readonly productStep = computed(() => (this.needsOrganization() ? 7 : 4));
+  protected readonly totalSteps = computed(() => (this.needsOrganization() ? 7 : 4));
+
+  protected readonly canSaveSMTP = computed(() =>
+    !this.isSmtpSaving() &&
+    this.smtpHost().trim().length > 0 &&
+    (this.smtpPort() ?? 0) >= 1 &&
+    this.smtpUsername().trim().length > 0 &&
+    this.smtpPassword().trim().length > 0 &&
+    this.smtpFromEmail().trim().length > 0 &&
+    this.smtpFromName().trim().length > 0
+  );
 
   protected readonly stepTitle = computed(() => {
     this.lang();
     if (this.currentStep() === 1) return this.t('onboarding.steps.profile.title');
     if (this.needsOrganization() && this.currentStep() === 2) return this.t('onboarding.steps.company.title');
     if (this.needsOrganization() && this.currentStep() === 3) return this.t('onboarding.steps.business.title');
+    if (this.currentStep() === this.smtpStep()) return this.t('onboarding.steps.smtp.title');
     if (this.currentStep() === this.whatsAppStep()) return this.t('onboarding.steps.whatsapp.title');
     if (this.currentStep() === this.serviceTypeStep()) return this.t('onboarding.steps.service.title');
     if (this.currentStep() === this.productStep()) return this.t('onboarding.steps.product.title');
@@ -109,6 +139,7 @@ export class OnboardingComponent {
     if (this.currentStep() === 1) return this.t('onboarding.steps.profile.subtitle');
     if (this.needsOrganization() && this.currentStep() === 2) return this.t('onboarding.steps.company.subtitle');
     if (this.needsOrganization() && this.currentStep() === 3) return this.t('onboarding.steps.business.subtitle');
+    if (this.currentStep() === this.smtpStep()) return this.t('onboarding.steps.smtp.subtitle');
     if (this.currentStep() === this.whatsAppStep()) return this.t('onboarding.steps.whatsapp.subtitle');
     if (this.currentStep() === this.serviceTypeStep()) return this.t('onboarding.steps.service.subtitle');
     if (this.currentStep() === this.productStep()) return this.t('onboarding.steps.product.subtitle');
@@ -150,6 +181,9 @@ export class OnboardingComponent {
     }
     if (this.currentStep() === 3) {
       return this.hasValidBusinessDetails();
+    }
+    if (this.currentStep() === this.smtpStep()) {
+      return true;
     }
     if (this.currentStep() === this.whatsAppStep()) {
       return true;
@@ -293,6 +327,56 @@ export class OnboardingComponent {
       this.stopQrRefreshCycle();
     });
     this.loadDefaults();
+    this.setupSmtpAutoDetect();
+  }
+
+  private setupSmtpAutoDetect(): void {
+    toObservable(this.smtpFromEmail)
+      .pipe(
+        debounceTime(600),
+        distinctUntilChanged(),
+        filter(email => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email.trim())),
+        switchMap(email => {
+          this.isSmtpDetecting.set(true);
+          this.smtpDetectedProvider.set('');
+          this.smtpDetectionFailed.set(false);
+          this.smtpDetectedHost.set('');
+          this.smtpDetectedPort.set(null);
+          // Pre-fill username with the email address.
+          if (!this.smtpUsername().trim()) {
+            this.smtpUsername.set(email.trim());
+          }
+          return this.orgService.detectSMTP(email.trim()).pipe(
+            catchError(() => {
+              this.smtpDetectedProvider.set('');
+              this.smtpDetectionFailed.set(true);
+              this.showSmtpAdvanced.set(true);
+              return EMPTY;
+            }),
+            finalize(() => this.isSmtpDetecting.set(false))
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(result => {
+        if (!result.detected || !result.host) {
+          this.smtpDetectionFailed.set(true);
+          this.showSmtpAdvanced.set(true);
+          return;
+        }
+        this.smtpDetectionFailed.set(false);
+        if (result.provider) this.smtpDetectedProvider.set(result.provider);
+        if (result.host) {
+          this.smtpHost.set(result.host);
+          this.smtpDetectedHost.set(result.host);
+        }
+        if (result.port) {
+          this.smtpPort.set(result.port);
+          this.smtpDetectedPort.set(result.port);
+        }
+        if (result.username) this.smtpUsername.set(result.username);
+        this.showSmtpAdvanced.set(false);
+      });
   }
 
   private loadDefaults(): void {
@@ -323,15 +407,27 @@ export class OnboardingComponent {
       this.country.set('Nederland');
     }
 
-    // Only redirect if all onboarding is complete
-    if (profile.firstName && profile.lastName && profile.hasOrganization) {
+    // Only redirect if onboarding has been fully completed
+    if (profile.onboardingCompleted) {
       await this.router.navigate(['/app']);
+      return;
+    }
+
+    // If org already exists (e.g. page refresh mid-onboarding), skip org steps
+    if (profile.firstName && profile.lastName && profile.hasOrganization) {
+      this.onboardingPersisted.set(true);
+      this.currentStep.set(this.smtpStep() === -1 ? this.whatsAppStep() : this.smtpStep());
     }
   }
 
   protected handleSubmit(): void {
     this.globalError.set('');
     this.stepAttempted.set(true);
+
+    if (this.currentStep() === this.smtpStep()) {
+      void this.submitSmtpStep();
+      return;
+    }
 
     if (this.currentStep() === this.whatsAppStep()) {
       this.advanceStep();
@@ -364,6 +460,13 @@ export class OnboardingComponent {
     void this.finishOnboarding();
   }
 
+  protected handleSmtpSkip(): void {
+    if (this.isSmtpSaving()) return;
+    this.smtpSkipped.set(true);
+    this.smtpErrorMessage.set('');
+    this.advanceStep();
+  }
+
   protected handleWhatsAppSkip(): void {
     if (this.isWhatsAppAction()) return;
     this.whatsAppSkipped.set(true);
@@ -375,7 +478,7 @@ export class OnboardingComponent {
     this.serviceTypeSkipped.set(true);
     this.serviceTypeError.set('');
     this.stepAttempted.set(false);
-    void this.finishOnboarding();
+    this.advanceStep();
   }
 
   protected handleProductSkip(): void {
@@ -396,7 +499,7 @@ export class OnboardingComponent {
   private async submitServiceTypeStep(): Promise<void> {
     if (!this.canProceed()) return;
     if (this.serviceTypeSkipped()) {
-      void this.finishOnboarding();
+      this.advanceStep();
       return;
     }
     if (this.serviceTypeCreating()) return;
@@ -426,7 +529,7 @@ export class OnboardingComponent {
       }
 
       await firstValueFrom(this.serviceTypesService.create(request));
-      void this.finishOnboarding();
+      this.advanceStep();
     } catch {
       this.serviceTypeError.set(this.t('onboarding.errors.serviceCreateFailed'));
     } finally {
@@ -473,6 +576,12 @@ export class OnboardingComponent {
 
   private async finishOnboarding(): Promise<void> {
     if (this.onboardingPersisted()) {
+      try {
+        await firstValueFrom(this.userService.markOnboardingComplete());
+      } catch {
+        this.globalError.set(this.t('onboarding.errors.saveFailed'));
+        return;
+      }
       await this.router.navigate(['/app']);
       return;
     }
@@ -517,6 +626,7 @@ export class OnboardingComponent {
       await firstValueFrom(this.authService.refresh());
       this.onboardingPersisted.set(true);
       if (shouldNavigate) {
+        await firstValueFrom(this.userService.markOnboardingComplete());
         await this.router.navigate(['/app']);
       }
       return true;
@@ -639,6 +749,9 @@ export class OnboardingComponent {
     this.currentStep.update(step => step + 1);
     this.stepAttempted.set(false);
     this.globalError.set('');
+    if (this.currentStep() === this.smtpStep()) {
+      this.enterSmtpStep();
+    }
     if (this.currentStep() === this.whatsAppStep()) {
       this.enterWhatsAppStep();
     }
@@ -835,5 +948,47 @@ export class OnboardingComponent {
     if (!current) return;
     URL.revokeObjectURL(current);
     this.qrBlobUrl.set(null);
+  }
+
+  // ── SMTP onboarding methods ──
+
+  private enterSmtpStep(): void {
+    this.smtpErrorMessage.set('');
+    this.smtpSuccessMessage.set('');
+  }
+
+  private async submitSmtpStep(): Promise<void> {
+    if (this.smtpSkipped()) {
+      this.advanceStep();
+      return;
+    }
+
+    if (!this.canSaveSMTP()) {
+      this.advanceStep();
+      return;
+    }
+
+    this.isSmtpSaving.set(true);
+    this.smtpErrorMessage.set('');
+    this.smtpSuccessMessage.set('');
+
+    try {
+      await firstValueFrom(
+        this.orgService.setSMTP({
+          host: this.smtpHost().trim(),
+          port: this.smtpPort() ?? 587,
+          username: this.smtpUsername().trim(),
+          password: this.smtpPassword().trim(),
+          fromEmail: this.smtpFromEmail().trim(),
+          fromName: this.smtpFromName().trim(),
+        })
+      );
+      this.smtpSuccessMessage.set(this.t('onboarding.smtp.saved'));
+      this.advanceStep();
+    } catch {
+      this.smtpErrorMessage.set(this.t('onboarding.errors.smtpSaveFailed'));
+    } finally {
+      this.isSmtpSaving.set(false);
+    }
   }
 }

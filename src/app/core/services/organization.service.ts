@@ -89,6 +89,41 @@ export interface ReconnectWhatsAppResponse {
   message: string;
 }
 
+export interface SetSMTPRequest {
+  host: string;
+  port: number;
+  username: string;
+  password: string;
+  fromEmail: string;
+  fromName: string;
+}
+
+export interface SMTPStatusResponse {
+  configured: boolean;
+  host?: string;
+  port?: number;
+  username?: string;
+  fromEmail?: string;
+  fromName?: string;
+}
+
+export interface TestSMTPRequest {
+  toEmail: string;
+}
+
+export interface SMTPActionResponse {
+  status: string;
+}
+
+export interface DetectSMTPResponse {
+  detected: boolean;
+  provider?: string;
+  host?: string;
+  port?: number;
+  username?: string;
+  security?: string;
+}
+
 export interface InviteRequest {
   email: string;
 }
@@ -193,5 +228,25 @@ export class OrganizationService {
 
   getWhatsAppQr(): Observable<Blob> {
     return this.http.get(`${this.baseUrl}/me/whatsapp/qr`, { responseType: 'blob' });
+  }
+
+  getSMTPStatus(): Observable<SMTPStatusResponse> {
+    return this.http.get<SMTPStatusResponse>(`${this.baseUrl}/me/smtp/status`);
+  }
+
+  setSMTP(payload: SetSMTPRequest): Observable<SMTPActionResponse> {
+    return this.http.put<SMTPActionResponse>(`${this.baseUrl}/me/smtp`, payload);
+  }
+
+  clearSMTP(): Observable<SMTPActionResponse> {
+    return this.http.delete<SMTPActionResponse>(`${this.baseUrl}/me/smtp`);
+  }
+
+  testSMTP(payload: TestSMTPRequest): Observable<SMTPActionResponse> {
+    return this.http.post<SMTPActionResponse>(`${this.baseUrl}/me/smtp/test`, payload);
+  }
+
+  detectSMTP(email: string): Observable<DetectSMTPResponse> {
+    return this.http.post<DetectSMTPResponse>(`${this.baseUrl}/me/smtp/detect`, { email });
   }
 }

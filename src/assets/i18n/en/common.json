@@ -47,6 +47,10 @@
         "title": "Connect WhatsApp",
         "subtitle": "Optional: connect WhatsApp to send customer updates and notifications."
       },
+      "smtp": {
+        "title": "Email (SMTP)",
+        "subtitle": "Optional: configure a custom SMTP server for outgoing emails."
+      },
       "service": {
         "title": "Service intake requirements",
         "subtitle": "Define the minimum intake requirements to qualify leads and prepare global estimates."
@@ -89,6 +93,31 @@
         "unregistered": "Unregistered",
         "error": "Error"
       }
+    },
+    "smtp": {
+      "optionalTitle": "Optional setup",
+      "optionalBody": "Configure a custom SMTP server to send emails from your organization.",
+      "host": "SMTP server",
+      "hostPlaceholder": "smtp.example.com",
+      "detectedProvider": "Detected: {{ provider }}",
+      "detecting": "Detecting settings…",
+      "detectingTitle": "Detecting server settings",
+      "detectingBody": "We're automatically finding the right SMTP server for your email address.",
+      "detectedTitle": "Settings found",
+      "detectedBody": "SMTP server {{ host }}:{{ port }} automatically configured.",
+      "detectFailedTitle": "Auto-detection failed",
+      "detectFailedBody": "Please enter the server details manually under 'Advanced'.",
+      "port": "Port",
+      "username": "Username",
+      "usernamePlaceholder": "user@your-domain.com",
+      "password": "Password",
+      "passwordPlaceholder": "SMTP password",
+      "fromEmail": "From email",
+      "fromEmailPlaceholder": "noreply@your-domain.com",
+      "fromName": "From name",
+      "fromNamePlaceholder": "Your Company Name",
+      "advanced": "Advanced",
+      "saved": "SMTP configuration saved."
     },
     "service": {
       "whyTitle": "Why this matters",
@@ -169,6 +198,7 @@
       "whatsappRegisterFailed": "Failed to start WhatsApp registration.",
       "whatsappReconnectFailed": "Failed to reconnect WhatsApp.",
       "whatsappQrFailed": "Failed to load WhatsApp QR code.",
+      "smtpSaveFailed": "Failed to save SMTP configuration.",
       "vatRatesLoadFailed": "Failed to load VAT rates."
     }
   },
