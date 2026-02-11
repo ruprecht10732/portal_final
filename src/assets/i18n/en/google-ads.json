@@ -1,0 +1,48 @@
+{
+  "googleAds": {
+    "title": "Google Ads export",
+    "subtitle": "Create a secure feed for offline conversion imports.",
+    "navLabel": "Google Ads export",
+    "createKey": "Create API key",
+    "cancel": "Cancel",
+    "newKey": "New API key",
+    "generate": "Generate key",
+    "keyCreated": "API key created",
+    "keyCreatedWarning": "Copy this key now. It will not be shown again.",
+    "dismiss": "Dismiss",
+    "revoked": "API key revoked",
+    "revoke": "Revoke",
+    "revokedKeys": "Revoked keys",
+    "statusRevoked": "Revoked",
+    "empty": "No export keys yet",
+    "emptyHint": "Create a key to enable Google Ads scheduled imports.",
+    "export": {
+      "button": "Google Ads export"
+    },
+    "fields": {
+      "name": "Key name",
+      "namePlaceholder": "Google Ads scheduled import",
+      "apiKey": "API key",
+      "url": "CSV URL"
+    },
+    "copyKey": "Copy API key",
+    "copyUrl": "Copy URL",
+    "instructions": {
+      "title": "How to connect",
+      "step1": "Create conversion actions in Google Ads that match the names you want to import.",
+      "step2": "Set up a scheduled HTTPS import and use the CSV URL shown above.",
+      "step3": "Add a custom header with your API key so Google Ads can access the feed.",
+      "headersTitle": "Header example"
+    },
+    "revokeConfirm": {
+      "title": "Revoke API key",
+      "message": "This key will stop working immediately. You can create a new one at any time.",
+      "confirm": "Revoke",
+      "cancel": "Cancel"
+    },
+    "errors": {
+      "nameRequired": "Please provide a name for the key.",
+      "generic": "Something went wrong. Please try again."
+    }
+  }
+}

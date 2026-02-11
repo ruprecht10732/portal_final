@@ -117,6 +117,7 @@ export const routes: Routes = [
 						{ label: 'organization.invites', route: '/app/organization/invites', icon: 'mail' },
 						{ label: 'organization.newInvite', route: '/app/organization/invites/new', icon: 'plus' },
 						{ label: 'webhook.navLabel', route: '/app/organization/webhooks', icon: 'webhook' },
+						{ label: 'googleAds.navLabel', route: '/app/organization/google-ads-export', icon: 'download' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
@@ -143,6 +144,10 @@ export const routes: Routes = [
 					{
 						path: 'webhooks',
 						loadComponent: () => import('./routes/organization/webhook-keys/webhook-keys.component').then(m => m.WebhookKeysComponent),
+					},
+					{
+						path: 'google-ads-export',
+						loadComponent: () => import('./routes/organization/google-ads-export/google-ads-export.component').then(m => m.GoogleAdsExportComponent),
 					},
 				],
 			},

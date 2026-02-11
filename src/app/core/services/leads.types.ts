@@ -185,6 +185,14 @@ export interface CreateLeadRequest {
   assigneeId?: string | null;
   consumerNote?: string;
   source?: string;
+  gclid?: string;
+  utmSource?: string;
+  utmMedium?: string;
+  utmCampaign?: string;
+  utmContent?: string;
+  utmTerm?: string;
+  adLandingPage?: string;
+  referrerUrl?: string;
 }
 
 export interface UpdateLeadRequest {

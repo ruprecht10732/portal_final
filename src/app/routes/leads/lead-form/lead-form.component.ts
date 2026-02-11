@@ -41,6 +41,9 @@ export class LeadFormComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly fb = inject(FormBuilder);
 
+  private readonly trackingData = signal<Partial<CreateLeadRequest>>({});
+  private readonly trackingStorageKey = 'lead_tracking';
+
   protected readonly lead = signal<Lead | null>(null);
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
@@ -102,7 +105,72 @@ export class LeadFormComponent implements OnInit {
     if (id && id !== 'new') {
       this.isNew.set(false);
       this.loadLead(id);
+    } else {
+      this.captureTrackingData();
     }
+  }
+
+  private captureTrackingData(): void {
+    const params = this.route.snapshot.queryParamMap;
+    const gclid = params.get('gclid') ?? '';
+    const utmSource = params.get('utm_source') ?? '';
+    const utmMedium = params.get('utm_medium') ?? '';
+    const utmCampaign = params.get('utm_campaign') ?? '';
+    const utmContent = params.get('utm_content') ?? '';
+    const utmTerm = params.get('utm_term') ?? '';
+    const adLandingPage = globalThis.location.href;
+    const referrerUrl = globalThis.document.referrer;
+
+    let resolved = this.loadTrackingFromStorage();
+    const fresh: Partial<CreateLeadRequest> = {};
+
+    if (gclid) fresh.gclid = gclid;
+    if (utmSource) fresh.utmSource = utmSource;
+    if (utmMedium) fresh.utmMedium = utmMedium;
+    if (utmCampaign) fresh.utmCampaign = utmCampaign;
+    if (utmContent) fresh.utmContent = utmContent;
+    if (utmTerm) fresh.utmTerm = utmTerm;
+
+    const hasNewTracking = Object.keys(fresh).length > 0;
+
+    if (hasNewTracking) {
+      fresh.adLandingPage = adLandingPage;
+      if (referrerUrl) fresh.referrerUrl = referrerUrl;
+      resolved = fresh;
+      this.storeTrackingData(resolved);
+    } else if (resolved) {
+      resolved = {
+        ...resolved,
+        adLandingPage,
+        ...(referrerUrl ? { referrerUrl } : {}),
+      };
+    }
+
+    if (resolved) {
+      this.trackingData.set(resolved);
+    }
+  }
+
+  private loadTrackingFromStorage(): Partial<CreateLeadRequest> | null {
+    const raw = localStorage.getItem(this.trackingStorageKey);
+    if (!raw) return null;
+    try {
+      const parsed = JSON.parse(raw) as { expiresAt: number } & Partial<CreateLeadRequest>;
+      if (!parsed.expiresAt || Date.now() > parsed.expiresAt) {
+        localStorage.removeItem(this.trackingStorageKey);
+        return null;
+      }
+      const { expiresAt: _expiresAt, ...data } = parsed;
+      return data;
+    } catch {
+      localStorage.removeItem(this.trackingStorageKey);
+      return null;
+    }
+  }
+
+  private storeTrackingData(data: Partial<CreateLeadRequest>): void {
+    const expiresAt = Date.now() + 90 * 24 * 60 * 60 * 1000;
+    localStorage.setItem(this.trackingStorageKey, JSON.stringify({ ...data, expiresAt }));
   }
 
   private loadServiceTypes(): void {
@@ -305,6 +373,7 @@ export class LeadFormComponent implements OnInit {
         zipCode: (values.zipCode ?? '').trim(),
         city: (values.city ?? '').trim(),
         serviceType: (values.serviceType ?? '').trim(),
+        ...this.trackingData(),
         ...(emailValue && { email: emailValue }),
         ...(values.latitude !== null && { latitude: values.latitude }),
         ...(values.longitude !== null && { longitude: values.longitude }),

@@ -1,0 +1,48 @@
+{
+  "googleAds": {
+    "title": "Google Ads-export",
+    "subtitle": "Maak een beveiligde feed voor offline conversie-imports.",
+    "navLabel": "Google Ads-export",
+    "createKey": "API-sleutel maken",
+    "cancel": "Annuleren",
+    "newKey": "Nieuwe API-sleutel",
+    "generate": "Sleutel genereren",
+    "keyCreated": "API-sleutel aangemaakt",
+    "keyCreatedWarning": "Kopieer deze sleutel nu. Hij wordt niet opnieuw getoond.",
+    "dismiss": "Sluiten",
+    "revoked": "API-sleutel ingetrokken",
+    "revoke": "Intrekken",
+    "revokedKeys": "Ingetrokken sleutels",
+    "statusRevoked": "Ingetrokken",
+    "empty": "Nog geen exportsleutels",
+    "emptyHint": "Maak een sleutel om geplande Google Ads-imports te activeren.",
+    "export": {
+      "button": "Google Ads-export"
+    },
+    "fields": {
+      "name": "Sleutelnaam",
+      "namePlaceholder": "Google Ads geplande import",
+      "apiKey": "API-sleutel",
+      "url": "CSV-URL"
+    },
+    "copyKey": "Sleutel kopieren",
+    "copyUrl": "URL kopieren",
+    "instructions": {
+      "title": "Zo koppel je het",
+      "step1": "Maak conversieacties in Google Ads met exact dezelfde namen.",
+      "step2": "Stel een geplande HTTPS-import in en gebruik de CSV-URL hierboven.",
+      "step3": "Voeg een custom header toe met je API-sleutel zodat Google Ads toegang heeft.",
+      "headersTitle": "Header-voorbeeld"
+    },
+    "revokeConfirm": {
+      "title": "API-sleutel intrekken",
+      "message": "Deze sleutel werkt direct niet meer. Je kunt altijd een nieuwe maken.",
+      "confirm": "Intrekken",
+      "cancel": "Annuleren"
+    },
+    "errors": {
+      "nameRequired": "Geef een naam op voor de sleutel.",
+      "generic": "Er ging iets mis. Probeer het opnieuw."
+    }
+  }
+}
