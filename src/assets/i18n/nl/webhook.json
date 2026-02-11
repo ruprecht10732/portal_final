@@ -46,6 +46,63 @@
     "errors": {
       "nameRequired": "Naam is verplicht.",
       "generic": "Er is iets misgegaan."
+    },
+    "googleLeads": {
+      "title": "Google Lead Form Webhooks",
+      "navLabel": "Google leads",
+      "subtitle": "Koppel Google Ads Lead Forms en koppel campagnes aan diensttypes.",
+      "createConfig": "Nieuwe configuratie",
+      "cancel": "Annuleren",
+      "newConfig": "Google webhook configuratie aanmaken",
+      "generate": "Sleutel genereren",
+      "delete": "Verwijderen",
+      "deleted": "Configuratie verwijderd.",
+      "dismiss": "Sluiten",
+      "empty": "Nog geen Google webhook configuraties.",
+      "emptyHint": "Maak een configuratie aan om Google Lead Forms te ontvangen.",
+      "keyCreated": "Google sleutel aangemaakt!",
+      "keyCreatedWarning": "Kopieer de sleutel nu — deze wordt slechts één keer getoond en kan daarna niet meer worden opgehaald.",
+      "copyKey": "Sleutel kopiëren",
+      "copyUrl": "Webhook URL kopiëren",
+      "deleteMapping": "Koppeling verwijderen",
+      "mappingSaved": "Campagnekoppeling opgeslagen.",
+      "mappingDeleted": "Campagnekoppeling verwijderd.",
+      "mappingsTitle": "Campagnekoppelingen",
+      "mappingsEmpty": "Nog geen campagnekoppelingen.",
+      "addMapping": "Koppeling toevoegen",
+      "fields": {
+        "name": "Naam",
+        "namePlaceholder": "bijv. Productiecampagnes",
+        "googleKey": "Google sleutel",
+        "webhookUrl": "Webhook URL",
+        "campaignId": "Campagne-ID",
+        "campaignIdPlaceholder": "bijv. 1234567890",
+        "serviceType": "Diensttype",
+        "serviceTypePlaceholder": "bijv. kozijnen"
+      },
+      "instructions": {
+        "title": "Integratie-instructies",
+        "step1": "Kopieer de webhook URL en Google sleutel hierboven.",
+        "step2": "Open uw Google Ads leadformulier en plak de webhook URL en sleutel.",
+        "step3": "Stuur een testlead om de levering te bevestigen."
+      },
+      "deleteConfirm": {
+        "title": "Configuratie verwijderen",
+        "message": "Weet u zeker dat u deze configuratie wilt verwijderen? Google levert dan geen leads meer met deze sleutel.",
+        "confirm": "Verwijderen",
+        "cancel": "Annuleren"
+      },
+      "deleteMappingConfirm": {
+        "title": "Campagnekoppeling verwijderen",
+        "message": "Weet u zeker dat u deze campagnekoppeling wilt verwijderen?",
+        "confirm": "Verwijderen",
+        "cancel": "Annuleren"
+      },
+      "errors": {
+        "nameRequired": "Naam is verplicht.",
+        "mappingRequired": "Campagne-ID en diensttype zijn verplicht.",
+        "generic": "Er is iets misgegaan."
+      }
     }
   }
 }

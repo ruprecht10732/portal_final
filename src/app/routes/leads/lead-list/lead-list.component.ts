@@ -743,6 +743,7 @@ export class LeadListComponent implements OnInit {
           city: address.city ?? '',
           serviceType: (row['serviceType'] as string | undefined) ?? row.currentService?.serviceType ?? this.getDefaultServiceType(),
           assigneeId: normalizedAssigneeId,
+          whatsappOptedIn: true,
           ...(emailValue && { email: emailValue }),
         };
 

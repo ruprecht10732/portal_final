@@ -46,6 +46,63 @@
     "errors": {
       "nameRequired": "Name is required.",
       "generic": "Something went wrong."
+    },
+    "googleLeads": {
+      "title": "Google Lead Form Webhooks",
+      "navLabel": "Google Leads",
+      "subtitle": "Connect Google Ads Lead Forms and map campaigns to service types.",
+      "createConfig": "New config",
+      "cancel": "Cancel",
+      "newConfig": "Create Google webhook config",
+      "generate": "Generate key",
+      "delete": "Delete",
+      "deleted": "Config deleted.",
+      "dismiss": "Close",
+      "empty": "No Google webhook configs yet.",
+      "emptyHint": "Create a config to start receiving Google Lead Form submissions.",
+      "keyCreated": "Google key created!",
+      "keyCreatedWarning": "Copy the key now — it is only shown once and cannot be retrieved later.",
+      "copyKey": "Copy key",
+      "copyUrl": "Copy webhook URL",
+      "deleteMapping": "Delete mapping",
+      "mappingSaved": "Campaign mapping saved.",
+      "mappingDeleted": "Campaign mapping deleted.",
+      "mappingsTitle": "Campaign mappings",
+      "mappingsEmpty": "No campaign mappings yet.",
+      "addMapping": "Add mapping",
+      "fields": {
+        "name": "Name",
+        "namePlaceholder": "e.g. Production campaigns",
+        "googleKey": "Google key",
+        "webhookUrl": "Webhook URL",
+        "campaignId": "Campaign ID",
+        "campaignIdPlaceholder": "e.g. 1234567890",
+        "serviceType": "Service type",
+        "serviceTypePlaceholder": "e.g. windows"
+      },
+      "instructions": {
+        "title": "Integration instructions",
+        "step1": "Copy the webhook URL and Google key above.",
+        "step2": "Open your Google Ads lead form and paste the webhook URL and key.",
+        "step3": "Send a test lead to confirm delivery."
+      },
+      "deleteConfirm": {
+        "title": "Delete config",
+        "message": "Are you sure you want to delete this config? Google will stop delivering leads with this key.",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "deleteMappingConfirm": {
+        "title": "Delete campaign mapping",
+        "message": "Are you sure you want to delete this campaign mapping?",
+        "confirm": "Delete",
+        "cancel": "Cancel"
+      },
+      "errors": {
+        "nameRequired": "Name is required.",
+        "mappingRequired": "Campaign ID and service type are required.",
+        "generic": "Something went wrong."
+      }
     }
   }
 }

@@ -11,6 +11,7 @@ import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { normalizePhoneE164 } from '../../../core/utils/phone.util';
 import { KVK_REGEX, VAT_REGEX } from '../../../core/utils/partner-validation.util';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
+import { OrganizationService, type WhatsAppStatus } from '../../../core/services/organization.service';
 import type { Partner, UpdatePartnerRequest } from '../../../core/services/partners.types';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { InputComponent } from '../../../shared/components/input/input.component';
@@ -21,6 +22,7 @@ import { FileUploaderComponent, type PresignedUpload } from '../../../shared/com
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { phoneValidator } from '../../../shared/validators/phone.validator';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
+import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 
 const MAX_LENGTHS = {
   businessName: 200,
@@ -49,6 +51,7 @@ const MAX_LENGTHS = {
     AutocompleteComponent,
     MultiSelectComponent,
     FileUploaderComponent,
+    CheckboxComponent,
     TranslatePipe,
   ],
 })
@@ -62,6 +65,7 @@ export class PartnersEditComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly addressService = inject(AddressService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly orgService = inject(OrganizationService);
 
   protected readonly partner = signal<Partner | null>(null);
   protected readonly loading = signal(true);
@@ -79,6 +83,8 @@ export class PartnersEditComponent implements OnInit {
   protected readonly logoLoading = signal(false);
   protected readonly logoError = signal<string | null>(null);
   protected readonly logoImageError = signal(false);
+  protected readonly whatsAppStatus = signal<WhatsAppStatus | null>(null);
+  protected readonly isWhatsAppConfigured = computed(() => this.whatsAppStatus()?.canSend ?? false);
 
   protected readonly form = this.fb.group({
     businessName: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.businessName)]],
@@ -95,6 +101,7 @@ export class PartnersEditComponent implements OnInit {
     contactName: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.contactName)]],
     contactEmail: ['', [Validators.required, Validators.email]],
     contactPhone: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.contactPhone), phoneValidator()]],
+    whatsappOptedIn: this.fb.control(true),
     addressLine1: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.addressLine1)]],
     houseNumber: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.houseNumber)]],
     addressLine2: ['', [Validators.maxLength(MAX_LENGTHS.addressLine2)]],
@@ -136,6 +143,7 @@ export class PartnersEditComponent implements OnInit {
     this.loadServiceTypes();
     this.loadPartner(id);
     this.setupAddressSearch();
+    this.loadWhatsAppStatus();
   }
 
   protected save(): void {
@@ -159,6 +167,7 @@ export class PartnersEditComponent implements OnInit {
       contactName: (values.contactName ?? '').trim(),
       contactEmail: (values.contactEmail ?? '').trim(),
       contactPhone: normalizePhoneE164(values.contactPhone ?? ''),
+      whatsappOptedIn: values.whatsappOptedIn ?? true,
       addressLine1: (values.addressLine1 ?? '').trim(),
       houseNumber: (values.houseNumber ?? '').trim(),
       addressLine2: values.addressLine2?.trim() || null,
@@ -342,6 +351,7 @@ export class PartnersEditComponent implements OnInit {
           contactName: partner.contactName,
           contactEmail: partner.contactEmail,
           contactPhone: partner.contactPhone,
+          whatsappOptedIn: partner.whatsappOptedIn,
           addressLine1: partner.addressLine1,
           houseNumber: partner.houseNumber ?? '',
           addressLine2: partner.addressLine2 ?? '',
@@ -440,6 +450,25 @@ export class PartnersEditComponent implements OnInit {
     });
   }
 
+  private loadWhatsAppStatus(): void {
+    const fallbackStatus: WhatsAppStatus = {
+      state: 'ERROR',
+      message: '',
+      canSend: false,
+      needsReauth: false,
+    };
+
+    this.orgService.getWhatsAppStatus().pipe(
+      catchError((err) => {
+        this.reporter.report(err, { source: 'http', silent: true });
+        return of(fallbackStatus);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(status => {
+      this.whatsAppStatus.set(status);
+    });
+  }
+
   private async loadLogoDownloadUrl(partner: Partner): Promise<void> {
     if (!partner.logoFileKey) {
       this.logoDownloadUrl.set(null);
@@ -462,5 +491,9 @@ export class PartnersEditComponent implements OnInit {
           this.logoLoading.set(false);
       },
     });
+  }
+
+  protected goToSettings(): void {
+    this.router.navigate(['/app/organization/settings']);
   }
 }

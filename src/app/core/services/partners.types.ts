@@ -14,6 +14,7 @@ export interface Partner {
   contactName: string;
   contactEmail: string;
   contactPhone: string;
+  whatsappOptedIn: boolean;
   logoFileKey?: string | null;
   logoFileName?: string | null;
   logoContentType?: string | null;
@@ -46,6 +47,7 @@ export interface CreatePartnerRequest {
   contactName: string;
   contactEmail: string;
   contactPhone: string;
+  whatsappOptedIn?: boolean;
   serviceTypeIds?: string[];
 }
 
@@ -64,6 +66,7 @@ export interface UpdatePartnerRequest {
   contactName?: string;
   contactEmail?: string;
   contactPhone?: string;
+  whatsappOptedIn?: boolean;
   serviceTypeIds?: string[];
 }
 

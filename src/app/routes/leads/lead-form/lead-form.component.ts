@@ -8,9 +8,11 @@ import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
+import { OrganizationService, type WhatsAppStatus } from '../../../core/services/organization.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import type { Lead, ConsumerRole, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
+import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { normalizePhoneE164 } from '../../../core/utils/phone.util';
@@ -28,7 +30,7 @@ import { DEBOUNCE_MS, MIN_LENGTH, MAX_LENGTH } from '../../../core/config';
   templateUrl: './lead-form.component.html',
   styleUrl: './lead-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, PageHeaderComponent, TranslatePipe, LucideAngularModule, ReactiveFormsModule],
+  imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, PageHeaderComponent, TranslatePipe, LucideAngularModule, ReactiveFormsModule, CheckboxComponent],
 })
 export class LeadFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -40,6 +42,7 @@ export class LeadFormComponent implements OnInit {
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
   private readonly fb = inject(FormBuilder);
+  private readonly orgService = inject(OrganizationService);
 
   private readonly trackingData = signal<Partial<CreateLeadRequest>>({});
   private readonly trackingStorageKey = 'lead_tracking';
@@ -51,6 +54,8 @@ export class LeadFormComponent implements OnInit {
   protected readonly isNew = signal(true);
   protected readonly duplicateWarning = signal<Lead | null>(null);
   protected readonly submitAttempted = signal(false);
+  protected readonly whatsAppStatus = signal<WhatsAppStatus | null>(null);
+  protected readonly isWhatsAppConfigured = computed(() => this.whatsAppStatus()?.canSend ?? false);
 
   protected readonly form = this.fb.group({
     firstName: ['', Validators.required],
@@ -58,6 +63,7 @@ export class LeadFormComponent implements OnInit {
     phone: ['', [Validators.required, phoneValidator()]],
     email: [''],
     consumerRole: this.fb.control<ConsumerRole>('Owner', { nonNullable: true }),
+    whatsappOptedIn: this.fb.control(true),
     source: [''],
     consumerNote: [''],
     street: ['', Validators.required],
@@ -101,6 +107,7 @@ export class LeadFormComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadServiceTypes();
+    this.loadWhatsAppStatus();
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isNew.set(false);
@@ -208,6 +215,25 @@ export class LeadFormComponent implements OnInit {
     });
   }
 
+  private loadWhatsAppStatus(): void {
+    const fallbackStatus: WhatsAppStatus = {
+      state: 'ERROR',
+      message: '',
+      canSend: false,
+      needsReauth: false,
+    };
+
+    this.orgService.getWhatsAppStatus().pipe(
+      catchError((err) => {
+        this.reporter.report(err, { source: 'http', silent: true });
+        return of(fallbackStatus);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(status => {
+      this.whatsAppStatus.set(status);
+    });
+  }
+
   private populateForm(lead: Lead): void {
     const fallbackServiceType = this.form.controls.serviceType.value || this.serviceTypes()[0]?.name || '';
     this.form.patchValue({
@@ -216,6 +242,7 @@ export class LeadFormComponent implements OnInit {
       phone: lead.consumer.phone,
       email: lead.consumer.email ?? '',
       consumerRole: lead.consumer.role,
+      whatsappOptedIn: lead.whatsappOptedIn,
       source: this.clampValue(lead.source ?? '', this.sourceMaxLength),
       consumerNote: this.clampValue(lead.currentService?.consumerNote ?? '', this.consumerNoteMaxLength),
       street: lead.address.street,
@@ -373,6 +400,7 @@ export class LeadFormComponent implements OnInit {
         zipCode: (values.zipCode ?? '').trim(),
         city: (values.city ?? '').trim(),
         serviceType: (values.serviceType ?? '').trim(),
+        whatsappOptedIn: values.whatsappOptedIn ?? true,
         ...this.trackingData(),
         ...(emailValue && { email: emailValue }),
         ...(values.latitude !== null && { latitude: values.latitude }),
@@ -407,6 +435,7 @@ export class LeadFormComponent implements OnInit {
         houseNumber: (values.houseNumber ?? '').trim(),
         zipCode: (values.zipCode ?? '').trim(),
         city: (values.city ?? '').trim(),
+        whatsappOptedIn: values.whatsappOptedIn ?? true,
         ...(emailValue && { email: emailValue }),
         ...(values.latitude !== null && { latitude: values.latitude }),
         ...(values.longitude !== null && { longitude: values.longitude }),
@@ -438,6 +467,10 @@ export class LeadFormComponent implements OnInit {
         this.router.navigate(['/app/leads']);
       }
     }
+  }
+
+  protected goToSettings(): void {
+    this.router.navigate(['/app/organization/settings']);
   }
 
   protected requiredControlError(control: AbstractControl | null): string {

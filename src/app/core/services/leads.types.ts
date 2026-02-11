@@ -114,6 +114,7 @@ export interface Lead {
   energyLabel?: EnergyLabel | null;
   leadEnrichment?: LeadEnrichment | null;
   leadScore?: LeadScore | null;
+  whatsappOptedIn: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -193,6 +194,7 @@ export interface CreateLeadRequest {
   utmTerm?: string;
   adLandingPage?: string;
   referrerUrl?: string;
+  whatsappOptedIn?: boolean;
 }
 
 export interface UpdateLeadRequest {
@@ -208,6 +210,7 @@ export interface UpdateLeadRequest {
   latitude?: number;
   longitude?: number;
   assigneeId?: string | null;
+  whatsappOptedIn?: boolean;
 }
 
 export interface AddServiceRequest {
