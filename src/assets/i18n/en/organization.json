@@ -70,6 +70,8 @@
         "title": "WhatsApp",
         "statusLabel": "Connection status",
         "statusHint": "Connect a device to start sending WhatsApp updates.",
+        "welcomeDelayLabel": "Welcome message delay",
+        "welcomeDelayHint": "Minutes to wait before sending the automated welcome message (0 = send immediately).",
         "connect": "Connect WhatsApp",
         "reconnect": "Reconnect",
         "disconnect": "Disconnect",
