@@ -111,6 +111,8 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly leadOptions = signal<AutocompleteOption[]>([]);
   private readonly leadSuggestions = signal<Lead[]>([]);
 
+  private static readonly CREATE_LEAD_OPTION_VALUE = '__create_new_lead__';
+
   // Line items
   protected readonly lineItems = signal<LineItemDraft[]>([]);
 
@@ -336,33 +338,47 @@ export class OffertesCreateComponent implements OnInit {
   protected onLeadSearchChange(value: string): void {
     this.leadSearchQuery.set(value);
 
-    if (value.length < 2) {
-      this.leadOptions.set([]);
+    // When a suggestion is clicked, the shared autocomplete emits the option label.
+    // Avoid triggering a new search when the clicked value is one of our current options.
+    const selectedOption = this.leadOptions().find(o => o.label === value);
+    if (selectedOption?.value === OffertesCreateComponent.CREATE_LEAD_OPTION_VALUE) {
+      return;
+    }
+
+    const query = value.trim();
+    if (query.length < 2) {
       this.leadSuggestions.set([]);
+      this.leadOptions.set(query ? [this.buildCreateLeadOption(query)] : []);
       return;
     }
 
     this.leadsService.list({ search: value, pageSize: 10 }).subscribe({
       next: response => {
         this.leadSuggestions.set(response.items);
-        this.leadOptions.set(
-          response.items.map(lead => ({
-            label: `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
-            value: lead.id,
-          }))
-        );
+				const options = response.items.map(lead => ({
+					label: `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
+					value: lead.id,
+				}));
+				options.push(this.buildCreateLeadOption(query));
+				this.leadOptions.set(options);
       },
       error: () => {
-        this.leadOptions.set([]);
+				this.leadSuggestions.set([]);
+				this.leadOptions.set(query ? [this.buildCreateLeadOption(query)] : []);
       },
     });
   }
 
   protected onLeadSelected(value: string): void {
-    const lead = this.leadSuggestions().find(l => {
-      const label = `${l.consumer.firstName} ${l.consumer.lastName} — ${l.address.street} ${l.address.houseNumber}, ${l.address.city}`;
-      return label === value || l.id === value;
-    });
+    const selectedOption = this.leadOptions().find(o => o.label === value);
+    if (selectedOption?.value === OffertesCreateComponent.CREATE_LEAD_OPTION_VALUE) {
+      const returnTo = this.router.url.split('?')[0] ?? '/app/offertes/new';
+      this.router.navigate(['/app/leads/new'], { queryParams: { returnTo, source: 'quote_flow' } });
+      return;
+    }
+
+    const leadId = selectedOption?.value;
+    const lead = leadId ? this.leadSuggestions().find(l => l.id === leadId) : null;
 
     if (lead) {
       this.selectedLead.set(lead);
@@ -371,6 +387,11 @@ export class OffertesCreateComponent implements OnInit {
         `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`
       );
     }
+  }
+
+  private buildCreateLeadOption(query: string): AutocompleteOption {
+    const label = this.translate.instant('offertes.leadAutocomplete.createNewWithQuery', { query });
+    return { label, value: OffertesCreateComponent.CREATE_LEAD_OPTION_VALUE };
   }
 
   protected clearLead(): void {

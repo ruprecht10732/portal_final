@@ -57,6 +57,8 @@ export class LeadFormComponent implements OnInit {
   protected readonly whatsAppStatus = signal<WhatsAppStatus | null>(null);
   protected readonly isWhatsAppConfigured = computed(() => this.whatsAppStatus()?.canSend ?? false);
 
+  private readonly returnTo = signal<string | null>(null);
+
   protected readonly form = this.fb.group({
     firstName: ['', Validators.required],
     lastName: ['', Validators.required],
@@ -114,6 +116,15 @@ export class LeadFormComponent implements OnInit {
       this.loadLead(id);
     } else {
       this.captureTrackingData();
+
+      const params = this.route.snapshot.queryParamMap;
+      const returnTo = (params.get('returnTo') ?? '').trim();
+      this.returnTo.set(returnTo || null);
+
+      const sourcePrefill = (params.get('source') ?? '').trim();
+      if (sourcePrefill && !this.form.controls.source.value) {
+        this.form.controls.source.setValue(this.clampValue(sourcePrefill, this.sourceMaxLength));
+      }
     }
   }
 
@@ -411,7 +422,14 @@ export class LeadFormComponent implements OnInit {
 
       this.leadsService.create(request).subscribe({
         next: (created) => {
-          this.router.navigate(['/app/leads', created.id]);
+				const returnTo = this.returnTo();
+				if (returnTo && this.isSafeInternalReturnTo(returnTo)) {
+					const tree = this.router.parseUrl(returnTo);
+					tree.queryParams = { ...tree.queryParams, leadId: created.id };
+					this.router.navigateByUrl(tree);
+					return;
+				}
+				this.router.navigate(['/app/leads', created.id]);
         },
         error: (err) => {
           const message = extractErrorMessage(err, this.translate.instant('leads.form.errors.createLead'));
@@ -453,6 +471,13 @@ export class LeadFormComponent implements OnInit {
         },
       });
     }
+  }
+
+  private isSafeInternalReturnTo(value: string): boolean {
+    // Prevent open-redirects and accidental loops.
+    if (!value.startsWith('/app/')) return false;
+    if (value.startsWith('/app/leads')) return false;
+    return true;
   }
 
 

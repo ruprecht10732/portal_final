@@ -21,6 +21,9 @@
     "selectLead": "Select Lead",
     "changeLead": "Change",
     "searchLeadPlaceholder": "Search for a lead...",
+    "leadAutocomplete": {
+      "createNewWithQuery": "Create new lead \"{{query}}\""
+    },
     "catalogSearchPlaceholder": "Type to search catalog...",
     "qtyPlaceholder": "1 x",
     "lineItems": "Line Items",

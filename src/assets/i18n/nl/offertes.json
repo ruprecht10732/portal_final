@@ -21,6 +21,9 @@
     "selectLead": "Selecteer Lead",
     "changeLead": "Wijzig",
     "searchLeadPlaceholder": "Zoek een lead...",
+    "leadAutocomplete": {
+      "createNewWithQuery": "Nieuwe lead aanmaken \"{{query}}\""
+    },
     "catalogSearchPlaceholder": "Typ om de catalogus te zoeken...",
     "qtyPlaceholder": "1 x",
     "lineItems": "Regels",
