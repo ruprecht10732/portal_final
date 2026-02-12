@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, effect, HostListener, inj
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { firstValueFrom } from 'rxjs';
+import { catchError, finalize, firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { formatFullAddress } from '../../../core/utils/address.util';
 import { LeadsService } from '../../../core/services/leads.service';
+import { OrganizationService, type WorkflowEngineWorkflow } from '../../../core/services/organization.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
@@ -25,7 +26,9 @@ import { ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/appointments.t
 import { UserService } from '../../../core/services/user.service';
 import type { UserProfile } from '../../../core/services/user.types';
 import { CardComponent } from '../../../shared/components/card/card.component';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { SelectComponent } from '../../../shared/components/select/select.component';
 import { type SelectOption } from '../../../shared/components/select/select.component';
 import type { ChipVariant } from '../../../shared/components/chip/chip.component';
 import { type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
@@ -59,12 +62,13 @@ interface TimelineContactMessage {
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [ButtonComponent, CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, SelectComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly leadsService = inject(LeadsService);
+  private readonly orgService = inject(OrganizationService);
   private readonly appointmentsService = inject(AppointmentsService);
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly userService = inject(UserService);
@@ -88,6 +92,18 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly statusMenuOpen = signal(false);
   protected readonly activeTab = signal<'activity' | 'appointments' | 'timeline' | 'files' | 'preferences'>('activity');
+
+  protected readonly workflowProfiles = signal<WorkflowEngineWorkflow[]>([]);
+  protected readonly selectedLeadWorkflowId = signal<string | null>(null);
+  protected readonly leadWorkflowOverrideMode = signal<'manual' | 'manual_lock' | 'clear' | null>(null);
+  protected readonly leadWorkflowResolutionSource = signal<'manual_override' | 'auto_rule' | 'organization_default' | null>(null);
+  protected readonly workflowSaving = signal(false);
+  protected readonly workflowError = signal<string | null>(null);
+
+  protected readonly workflowOptions = computed<SelectOption<string | null>[]>(() => [
+    { value: null, label: this.translate.instant('leads.detail.workflow.defaultOption') },
+    ...this.workflowProfiles().map(workflow => ({ value: workflow.id, label: workflow.name })),
+  ]);
   protected readonly tabs = computed<TabItem[]>(() => {
     // Read lang to trigger recomputation on language change
     this.lang();
@@ -460,6 +476,7 @@ export class LeadDetailComponent implements OnInit {
         this.loadNotes(lead.id);
         this.loadAppointments(lead.id);
         this.loadTimeline(lead.id, this.selectedService()?.id);
+        this.loadLeadWorkflowData(lead.id);
         // AI Analysis is loaded automatically by effect when selectedService changes
         // Mark as viewed
         this.leadsService.markViewed(id).subscribe();
@@ -1390,6 +1407,97 @@ export class LeadDetailComponent implements OnInit {
     return status === 'Closed' || status === 'Bad_Lead' || status === 'Surveyed';
   }
 
+  protected onWorkflowSelectionChange(value: string | null): void {
+    this.selectedLeadWorkflowId.set(value ?? null);
+  }
+
+  protected saveLeadWorkflowOverride(): void {
+    const lead = this.lead();
+    if (!lead) return;
+
+    const workflowId = this.selectedLeadWorkflowId();
+    if (!workflowId) {
+      this.clearLeadWorkflowOverride();
+      return;
+    }
+
+    this.workflowSaving.set(true);
+    this.workflowError.set(null);
+    this.orgService.upsertLeadWorkflowOverride(lead.id, {
+      leadId: lead.id,
+      workflowId,
+      overrideMode: 'manual',
+    }).pipe(
+      switchMap(() => this.reloadLeadWorkflowResolution(lead.id)),
+      finalize(() => this.workflowSaving.set(false)),
+    ).subscribe({
+      next: () => {
+        this.announce(this.translate.instant('leads.detail.workflow.saved'));
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.workflow.saveFailed'));
+        this.workflowError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  protected clearLeadWorkflowOverride(): void {
+    const lead = this.lead();
+    if (!lead) return;
+
+    this.workflowSaving.set(true);
+    this.workflowError.set(null);
+    this.orgService.deleteLeadWorkflowOverride(lead.id).pipe(
+      switchMap(() => this.reloadLeadWorkflowResolution(lead.id)),
+      finalize(() => this.workflowSaving.set(false)),
+    ).subscribe({
+      next: () => {
+        this.selectedLeadWorkflowId.set(null);
+        this.leadWorkflowOverrideMode.set(null);
+        this.announce(this.translate.instant('leads.detail.workflow.cleared'));
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.workflow.clearFailed'));
+        this.workflowError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  private loadLeadWorkflowData(leadID: string): void {
+    this.workflowError.set(null);
+    forkJoin({
+      workflows: this.orgService.getWorkflowEngineWorkflows(),
+      override: this.orgService.getLeadWorkflowOverride(leadID).pipe(catchError(() => of(null))),
+      resolved: this.orgService.resolveLeadWorkflow(leadID),
+    }).subscribe({
+      next: ({ workflows, override, resolved }) => {
+        this.workflowProfiles.set(workflows);
+        this.selectedLeadWorkflowId.set(override?.workflowId ?? resolved.workflow?.id ?? null);
+        this.leadWorkflowOverrideMode.set(override?.overrideMode ?? null);
+        this.leadWorkflowResolutionSource.set(resolved.resolutionSource ?? null);
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.workflow.loadFailed'));
+        this.workflowError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  private reloadLeadWorkflowResolution(leadID: string) {
+    return forkJoin({
+      override: this.orgService.getLeadWorkflowOverride(leadID).pipe(catchError(() => of(null))),
+      resolved: this.orgService.resolveLeadWorkflow(leadID),
+    }).pipe(switchMap(({ override, resolved }) => {
+      this.selectedLeadWorkflowId.set(override?.workflowId ?? resolved.workflow?.id ?? null);
+      this.leadWorkflowOverrideMode.set(override?.overrideMode ?? null);
+      this.leadWorkflowResolutionSource.set(resolved.resolutionSource ?? null);
+      return of(void 0);
+    }));
+  }
+
 
   // Announce messages for screen readers
   private announce(message: string): void {
@@ -1744,21 +1852,6 @@ export class LeadDetailComponent implements OnInit {
     this.serviceAttachmentError.set(null);
     this.serviceAttachments.update(items => [attachment, ...items]);
     this.announce(this.translate.instant('leads.detail.files.uploaded'));
-
-    // Auto-trigger photo analysis when an image is uploaded
-    if (attachment.contentType?.startsWith('image/')) {
-      const lead = this.lead();
-      const service = this.selectedService();
-      if (lead && service) {
-        this.leadsService.triggerPhotoAnalysis(lead.id, service.id).subscribe({
-          next: () => {
-            // Reload photo analysis after a short delay to let the agent finish
-            setTimeout(() => this.loadPhotoAnalysis(lead.id, service.id), 8000);
-          },
-          error: () => { /* photo analysis is best-effort */ },
-        });
-      }
-    }
   }
 
   protected readonly presignServiceAttachment = async (file: File): Promise<PresignedUpload> => {
