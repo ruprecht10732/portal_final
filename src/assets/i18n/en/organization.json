@@ -67,6 +67,47 @@
       "navLabel": "Settings",
       "subtitle": "Set default values for quotes.",
       "quoteDefaults": "Defaults",
+      "workflows": {
+        "title": "Workflows",
+        "subtitle": "Configure automated messages with templates and variables.",
+        "enabled": "Enabled",
+        "delayLabel": "Delay",
+        "leadSourceLabel": "Lead source filter (optional)",
+        "leadSourceHint": "Only run when lead source matches exactly (leave empty for all).",
+        "leadSourcePlaceholder": "e.g. google_ads",
+        "templateLabel": "Template",
+        "templatePlaceholder": "Type your message… Use variables like {{lead.name}}",
+        "loadFailed": "Failed to load workflows.",
+        "saveFailed": "Failed to save workflows.",
+        "saved": "Workflows updated.",
+        "cards": {
+          "leadWelcome": {
+            "title": "Lead welcome (WhatsApp)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{lead.phone}}, {{lead.source}}, {{links.track}}"
+          },
+          "quoteSent": {
+            "title": "Quote sent (WhatsApp)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{quote.number}}, {{quote.previewUrl}}, {{org.name}}"
+          },
+          "appointmentCreated": {
+            "title": "Appointment confirmed (WhatsApp)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}"
+          },
+          "appointmentReminder": {
+            "title": "Appointment reminder (WhatsApp)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}"
+          },
+          "partnerOfferCreated": {
+            "title": "Partner offer created (WhatsApp)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{partner.name}}, {{offer.id}}, {{links.accept}}"
+          }
+        }
+      },
       "quotePaymentDays": "Payment term (days)",
       "quoteValidDays": "Quote validity (days)",
       "save": "Save settings",

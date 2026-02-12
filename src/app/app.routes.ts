@@ -135,6 +135,7 @@ export const routes: Routes = [
 								{ label: 'organization.settings.quoteDefaults', route: '/app/organization/settings/quote-defaults', icon: 'settings', exact: true },
 								{ label: 'organization.settings.whatsapp.title', route: '/app/organization/settings/whatsapp', icon: 'globe' },
 								{ label: 'organization.settings.smtp.title', route: '/app/organization/settings/smtp', icon: 'mail' },
+								{ label: 'organization.settings.workflows.title', route: '/app/organization/settings/workflows', icon: 'settings' },
 							],
 						} satisfies SidebarPanelConfig,
 						children: [
@@ -162,6 +163,13 @@ export const routes: Routes = [
 								loadComponent: () =>
 									import('./routes/organization/organization-settings/smtp/organization-smtp-settings.component').then(
 										m => m.OrganizationSmtpSettingsComponent,
+									),
+							},
+							{
+								path: 'workflows',
+								loadComponent: () =>
+									import('./routes/organization/organization-settings/workflows/organization-workflows-settings.component').then(
+										m => m.OrganizationWorkflowsSettingsComponent,
 									),
 							},
 						],
