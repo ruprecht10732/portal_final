@@ -3,54 +3,61 @@
     class="fixed bottom-0 z-50 flex h-16 w-full flex-row items-center justify-between border-t border-zinc-200 bg-zinc-100 px-2 shadow-lg md:relative md:h-full md:w-20 md:flex-col md:justify-start md:border-r md:border-t-0 md:px-2 md:py-6 md:shadow-none"
   >
     <nav
-      class="no-scrollbar flex flex-1 flex-row items-center justify-around gap-1 overflow-x-auto px-2 md:flex-col md:justify-start md:gap-4 md:overflow-y-auto md:px-0"
+      class="no-scrollbar flex flex-1 flex-row items-center justify-around gap-1 overflow-x-auto px-2 md:flex-col md:justify-start md:gap-4 md:overflow-visible md:px-0"
       [attr.aria-label]="'sidebar.primary' | translate"
     >
       @for (item of items(); track item.route) {
-        <shared-button
-          class="sidebar-item touch-manipulation"
-          [routerLink]="item.route"
-          routerLinkActive
-          #activeLink="routerLinkActive"
-          [variant]="activeLink.isActive ? 'primary' : 'ghost'"
-          size="compact"
-          [iconOnly]="true"
-          shape="square"
-          [fullWidth]="false"
-          [ariaLabel]="item.label | translate"
-          [attr.title]="item.label | translate"
-          [tooltip]="item.label | translate"
-        >
-          @switch (item.icon) {
-            @case ('dashboard') {
-              <lucide-icon name="layout-dashboard" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+        <div class="group relative flex items-center">
+          <shared-button
+            class="sidebar-item touch-manipulation"
+            [routerLink]="item.route"
+            routerLinkActive
+            #activeLink="routerLinkActive"
+            [variant]="activeLink.isActive ? 'primary' : 'ghost'"
+            size="compact"
+            [iconOnly]="true"
+            shape="square"
+            [fullWidth]="false"
+            [ariaLabel]="item.label | translate"
+          >
+            @switch (item.icon) {
+              @case ('dashboard') {
+                <lucide-icon name="layout-dashboard" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
+              @case ('leads') {
+                <lucide-icon name="users" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
+              @case ('partners') {
+                <lucide-icon name="briefcase" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
+              @case ('appointments') {
+                <lucide-icon name="calendar-check" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
+              @case ('services') {
+                <lucide-icon name="wrench" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
+              @case ('offertes') {
+                <lucide-icon name="file-text" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
+              @case ('catalog') {
+                <lucide-icon name="book-open" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
+              @case ('organization') {
+                <lucide-icon name="building" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
+              @case ('profile') {
+                <lucide-icon name="user" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
             }
-            @case ('leads') {
-              <lucide-icon name="users" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-            }
-            @case ('partners') {
-              <lucide-icon name="briefcase" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-            }
-            @case ('appointments') {
-              <lucide-icon name="calendar-check" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-            }
-            @case ('services') {
-              <lucide-icon name="wrench" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-            }
-            @case ('offertes') {
-              <lucide-icon name="file-text" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-            }
-            @case ('catalog') {
-              <lucide-icon name="book-open" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-            }
-            @case ('organization') {
-              <lucide-icon name="building" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-            }
-            @case ('profile') {
-              <lucide-icon name="user" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-            }
-          }
-        </shared-button>
+          </shared-button>
+
+          <div
+            class="pointer-events-none absolute left-full top-1/2 z-50 ml-3 hidden -translate-x-1 -translate-y-1/2 whitespace-nowrap rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 opacity-0 shadow-lg transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:translate-x-0 group-focus-within:opacity-100 md:block"
+            role="tooltip"
+          >
+            {{ item.label | translate }}
+          </div>
+        </div>
       }
     </nav>
 
