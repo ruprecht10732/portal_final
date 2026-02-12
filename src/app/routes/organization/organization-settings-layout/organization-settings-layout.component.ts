@@ -1,0 +1,11 @@
+import { ChangeDetectionStrategy, Component } from '@angular/core';
+import { RouterOutlet } from '@angular/router';
+
+@Component({
+  selector: 'app-organization-settings-layout',
+  imports: [RouterOutlet],
+  templateUrl: './organization-settings-layout.component.html',
+  styleUrl: './organization-settings-layout.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class OrganizationSettingsLayoutComponent {}

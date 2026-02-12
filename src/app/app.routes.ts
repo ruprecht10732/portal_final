@@ -114,11 +114,8 @@ export const routes: Routes = [
 					panelItems: [
 						{ label: 'organization.overview', route: '/app/organization', icon: 'building', exact: true },
 						{ label: 'organization.settings.navLabel', route: '/app/organization/settings', icon: 'settings' },
-						{ label: 'organization.invites', route: '/app/organization/invites', icon: 'mail' },
-						{ label: 'organization.newInvite', route: '/app/organization/invites/new', icon: 'plus' },
-						{ label: 'webhook.navLabel', route: '/app/organization/webhooks', icon: 'webhook' },
-						{ label: 'webhook.googleLeads.navLabel', route: '/app/organization/google-leads', icon: 'globe' },
-						{ label: 'googleAds.navLabel', route: '/app/organization/google-ads-export', icon: 'download' },
+						{ label: 'organization.team.navLabel', route: '/app/organization/team', icon: 'mail' },
+						{ label: 'organization.integrations.navLabel', route: '/app/organization/integrations', icon: 'webhook' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
@@ -128,34 +125,113 @@ export const routes: Routes = [
 					},
 					{
 						path: 'settings',
-						loadComponent: () => import('./routes/organization/organization-settings/organization-settings.component').then(m => m.OrganizationSettingsComponent),
-					},
-					{
-						path: 'invites',
-						loadComponent: () => import('./routes/organization/organization-invites/organization-invites.component').then(m => m.OrganizationInvitesComponent),
-					},
-					{
-						path: 'invites/new',
-						loadComponent: () => import('./routes/organization/organization-invite-create/organization-invite-create.component').then(m => m.OrganizationInviteCreateComponent),
-					},
-					{
-						path: 'invites/:inviteId/edit',
-						loadComponent: () => import('./routes/organization/organization-invite-edit/organization-invite-edit.component').then(m => m.OrganizationInviteEditComponent),
-					},
-					{
-						path: 'webhooks',
-						loadComponent: () => import('./routes/organization/webhook-keys/webhook-keys.component').then(m => m.WebhookKeysComponent),
-					},
-					{
-						path: 'google-leads',
 						loadComponent: () =>
-							import('./routes/organization/google-lead-webhooks/google-lead-webhooks.component').then(
-								m => m.GoogleLeadWebhooksComponent,
+							import('./routes/organization/organization-settings-layout/organization-settings-layout.component').then(
+								m => m.OrganizationSettingsLayoutComponent,
 							),
+						data: {
+							panelItems: [
+								{ label: 'organization.settings.quoteDefaults', route: '/app/organization/settings/quote-defaults', icon: 'settings', exact: true },
+								{ label: 'organization.settings.whatsapp.title', route: '/app/organization/settings/whatsapp', icon: 'globe' },
+								{ label: 'organization.settings.smtp.title', route: '/app/organization/settings/smtp', icon: 'mail' },
+							],
+						} satisfies SidebarPanelConfig,
+						children: [
+							{
+								path: '',
+								pathMatch: 'full',
+								redirectTo: 'quote-defaults',
+							},
+							{
+								path: 'quote-defaults',
+								loadComponent: () =>
+									import(
+										'./routes/organization/organization-settings/quote-defaults/organization-quote-defaults-settings.component'
+									).then(m => m.OrganizationQuoteDefaultsSettingsComponent),
+							},
+							{
+								path: 'whatsapp',
+								loadComponent: () =>
+									import('./routes/organization/organization-settings/whatsapp/organization-whatsapp-settings.component').then(
+										m => m.OrganizationWhatsAppSettingsComponent,
+									),
+							},
+							{
+								path: 'smtp',
+								loadComponent: () =>
+									import('./routes/organization/organization-settings/smtp/organization-smtp-settings.component').then(
+										m => m.OrganizationSmtpSettingsComponent,
+									),
+							},
+						],
 					},
 					{
-						path: 'google-ads-export',
-						loadComponent: () => import('./routes/organization/google-ads-export/google-ads-export.component').then(m => m.GoogleAdsExportComponent),
+						path: 'team',
+						loadComponent: () => import('./routes/organization/organization-team-layout/organization-team-layout.component').then(m => m.OrganizationTeamLayoutComponent),
+						data: {
+							panelItems: [
+								{ label: 'organization.invites', route: '/app/organization/team', icon: 'mail', exact: true },
+								{ label: 'organization.newInvite', route: '/app/organization/team/new', icon: 'plus' },
+							],
+						} satisfies SidebarPanelConfig,
+						children: [
+							{
+								path: '',
+								loadComponent: () =>
+									import('./routes/organization/organization-invites/organization-invites.component').then(m => m.OrganizationInvitesComponent),
+							},
+							{
+								path: 'new',
+								loadComponent: () =>
+									import('./routes/organization/organization-invite-create/organization-invite-create.component').then(
+										m => m.OrganizationInviteCreateComponent,
+									),
+							},
+							{
+								path: ':inviteId/edit',
+								loadComponent: () =>
+									import('./routes/organization/organization-invite-edit/organization-invite-edit.component').then(
+										m => m.OrganizationInviteEditComponent,
+									),
+							},
+						],
+					},
+					{
+						path: 'integrations',
+						loadComponent: () =>
+							import('./routes/organization/organization-integrations-layout/organization-integrations-layout.component').then(
+								m => m.OrganizationIntegrationsLayoutComponent,
+							),
+						data: {
+							panelItems: [
+								{ label: 'webhook.navLabel', route: '/app/organization/integrations/webhooks', icon: 'webhook', exact: true },
+								{ label: 'webhook.googleLeads.navLabel', route: '/app/organization/integrations/google-leads', icon: 'globe' },
+								{ label: 'googleAds.navLabel', route: '/app/organization/integrations/google-ads-export', icon: 'download' },
+							],
+						} satisfies SidebarPanelConfig,
+						children: [
+							{
+								path: '',
+								pathMatch: 'full',
+								redirectTo: 'webhooks',
+							},
+							{
+								path: 'webhooks',
+								loadComponent: () => import('./routes/organization/webhook-keys/webhook-keys.component').then(m => m.WebhookKeysComponent),
+							},
+							{
+								path: 'google-leads',
+								loadComponent: () =>
+									import('./routes/organization/google-lead-webhooks/google-lead-webhooks.component').then(
+										m => m.GoogleLeadWebhooksComponent,
+									),
+							},
+							{
+								path: 'google-ads-export',
+								loadComponent: () =>
+									import('./routes/organization/google-ads-export/google-ads-export.component').then(m => m.GoogleAdsExportComponent),
+							},
+						],
 					},
 				],
 			},

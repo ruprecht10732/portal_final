@@ -634,7 +634,7 @@ export class LeadListComponent implements OnInit {
   }
 
   protected openGoogleAdsExport(): void {
-    this.router.navigate(['/app/organization/google-ads-export']);
+		this.router.navigate(['/app/organization/integrations/google-ads-export']);
   }
 
   protected closeDeleteDialog(): void {
