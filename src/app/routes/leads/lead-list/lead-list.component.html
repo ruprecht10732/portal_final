@@ -18,8 +18,11 @@
     </shared-button>
   </div>
 
-  <shared-fab-button
+  <shared-button
+    actionsDesktop
     class="hidden sm:flex"
+    variant="primary"
+    [fullWidth]="false"
     [ariaLabel]="'leads.list.newLead' | translate"
     (clicked)="createLead()"
   >
@@ -27,7 +30,7 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
     </svg>
     {{ 'leads.list.newLead' | translate }}
-  </shared-fab-button>
+  </shared-button>
 
   <shared-data-grid
     [columns]="columns()"

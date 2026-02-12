@@ -4,9 +4,11 @@
   [error]="error()"
   [removeMobilePadding]="true"
 >
-  <shared-fab-button
-    actions
+  <shared-button
+    actionsDesktop
     class="hidden sm:flex"
+    variant="primary"
+    [fullWidth]="false"
     [ariaLabel]="'partners.list.newPartner' | translate"
     (clicked)="addPartner()"
   >
@@ -14,7 +16,7 @@
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
     </svg>
     {{ 'partners.list.newPartner' | translate }}
-  </shared-fab-button>
+  </shared-button>
 
   <shared-data-grid
     [columns]="columns()"

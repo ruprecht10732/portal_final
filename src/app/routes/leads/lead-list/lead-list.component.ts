@@ -14,7 +14,6 @@ import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { formatFullAddress } from '../../../core/utils/address.util';
 import type { Lead, LeadStatus, PipelineStage, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { buildLeadStatusLabels, buildPipelineStageLabels, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
-import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -31,7 +30,7 @@ type LeadRow = Lead & Record<string, unknown>;
   templateUrl: './lead-list.component.html',
   styleUrl: './lead-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [FabButtonComponent, ButtonComponent, DataGridComponent, ConfirmDialogComponent, PageLayoutComponent, TranslatePipe],
+  imports: [ButtonComponent, DataGridComponent, ConfirmDialogComponent, PageLayoutComponent, TranslatePipe],
 })
 export class LeadListComponent implements OnInit {
   private readonly leadsService = inject(LeadsService);

@@ -11,7 +11,7 @@ import { isKvkValid, isVatValid } from '../../../core/utils/partner-validation.u
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
@@ -39,7 +39,7 @@ const MAX_LENGTHS = {
   imports: [
     DataGridComponent,
     ConfirmDialogComponent,
-    FabButtonComponent,
+    ButtonComponent,
     PageLayoutComponent,
     TranslatePipe,
   ],

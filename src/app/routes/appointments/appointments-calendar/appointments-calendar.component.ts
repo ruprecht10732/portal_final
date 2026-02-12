@@ -6,10 +6,11 @@ import { AppointmentsService } from '../../../core/services/appointments.service
 import type { AppointmentResponse, ListAppointmentsParams } from '../../../core/services/appointments.types';
 import { CalendarGridComponent, type CalendarEvent } from '../../../shared/components/calendar-grid/calendar-grid.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 
 @Component({
   selector: 'app-appointments-calendar',
-  imports: [CalendarGridComponent, ButtonComponent, TranslatePipe, DatePipe],
+  imports: [CalendarGridComponent, ButtonComponent, PageLayoutComponent, TranslatePipe, DatePipe],
   templateUrl: './appointments-calendar.component.html',
   styleUrl: './appointments-calendar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
