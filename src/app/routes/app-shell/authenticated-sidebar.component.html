@@ -7,7 +7,13 @@
       [attr.aria-label]="'sidebar.primary' | translate"
     >
       @for (item of items(); track item.route) {
-        <div class="group relative flex items-center">
+        <div
+          class="group relative flex items-center"
+          (mouseenter)="handleNavItemEnter(item.route)"
+          (mouseleave)="handleNavItemLeave(item.route)"
+          (focusin)="handleNavItemEnter(item.route)"
+          (focusout)="handleNavItemLeave(item.route)"
+        >
           <shared-button
             class="sidebar-item touch-manipulation"
             [routerLink]="item.route"
@@ -19,6 +25,7 @@
             shape="square"
             [fullWidth]="false"
             [ariaLabel]="item.label | translate"
+            (clicked)="handleNavItemClick()"
           >
             @switch (item.icon) {
               @case ('dashboard') {
@@ -52,7 +59,9 @@
           </shared-button>
 
           <div
-            class="pointer-events-none absolute left-full top-1/2 z-50 ml-3 hidden -translate-x-1 -translate-y-1/2 whitespace-nowrap rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 opacity-0 shadow-lg transition-all duration-150 group-hover:translate-x-0 group-hover:opacity-100 group-focus-within:translate-x-0 group-focus-within:opacity-100 md:block"
+            class="pointer-events-none absolute left-full top-1/2 z-50 ml-3 hidden -translate-x-1 -translate-y-1/2 whitespace-nowrap rounded-lg border border-zinc-200 bg-white px-3 py-1.5 text-xs font-medium text-zinc-700 opacity-0 shadow-lg transition-all duration-150 md:block"
+            [class.translate-x-0]="isTooltipVisible(item.route)"
+            [class.opacity-100]="isTooltipVisible(item.route)"
             role="tooltip"
           >
             {{ item.label | translate }}

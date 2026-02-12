@@ -52,6 +52,8 @@ export class AuthenticatedSidebarComponent {
   );
 
   protected readonly isExpanded = signal(true);
+  protected readonly hoveredItemRoute = signal<string | null>(null);
+  protected readonly suppressHoverTooltip = signal(false);
 
   private readonly user = toSignal(
     this.userService.getProfile().pipe(
@@ -119,6 +121,25 @@ export class AuthenticatedSidebarComponent {
 
   protected toggleExpanded(): void {
     this.isExpanded.update((value) => !value);
+  }
+
+  protected handleNavItemEnter(route: string): void {
+    this.suppressHoverTooltip.set(false);
+    this.hoveredItemRoute.set(route);
+  }
+
+  protected handleNavItemLeave(route: string): void {
+    if (this.hoveredItemRoute() !== route) return;
+    this.hoveredItemRoute.set(null);
+  }
+
+  protected handleNavItemClick(): void {
+    this.suppressHoverTooltip.set(true);
+    this.hoveredItemRoute.set(null);
+  }
+
+  protected isTooltipVisible(route: string): boolean {
+    return !this.suppressHoverTooltip() && this.hoveredItemRoute() === route;
   }
 
   protected handleProfileMenuSelection(item: MenuItem): void {
