@@ -38,6 +38,9 @@
       "city": "City",
       "initialService": "Initial Service",
       "serviceType": "Service Type",
+      "workflowLabel": "Workflow",
+      "workflowPlaceholder": "Select workflow",
+      "workflowDefaultOption": "Use organization default",
       "additionalServicesNote": "Additional services can be added later from the lead detail view.",
       "cancel": "Cancel",
       "saving": "Saving...",
@@ -48,7 +51,8 @@
         "loadLead": "Failed to load lead",
         "searchAddresses": "Failed to search addresses",
         "createLead": "Failed to create lead",
-        "updateLead": "Failed to update lead"
+        "updateLead": "Failed to update lead",
+        "setWorkflow": "Lead created, but setting workflow override failed"
       },
       "validation": {
         "required": "Please fill all required fields",
@@ -108,6 +112,19 @@
         "notProvided": "Not provided",
         "emptyTitle": "No preferences yet",
         "emptySubtitle": "The customer has not shared any preferences."
+      },
+      "workflow": {
+        "label": "Workflow for this lead",
+        "placeholder": "Select workflow",
+        "defaultOption": "Use organization default",
+        "save": "Save workflow",
+        "useDefault": "Use default",
+        "resolutionSource": "Current source",
+        "saved": "Workflow override saved",
+        "cleared": "Lead now uses default workflow",
+        "loadFailed": "Failed to load workflow data",
+        "saveFailed": "Failed to save workflow override",
+        "clearFailed": "Failed to clear workflow override"
       },
       "quickActions": {
         "call": "Call",

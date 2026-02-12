@@ -38,6 +38,9 @@
       "city": "Plaats",
       "initialService": "Eerste dienst",
       "serviceType": "Diensttype",
+      "workflowLabel": "Workflow",
+      "workflowPlaceholder": "Selecteer workflow",
+      "workflowDefaultOption": "Gebruik organisatie standaard",
       "additionalServicesNote": "Extra diensten kunnen later worden toegevoegd in het detailoverzicht.",
       "cancel": "Annuleren",
       "saving": "Opslaan...",
@@ -48,7 +51,8 @@
         "loadLead": "Kon lead niet laden",
         "searchAddresses": "Adres zoeken mislukt",
         "createLead": "Lead aanmaken mislukt",
-        "updateLead": "Lead bijwerken mislukt"
+        "updateLead": "Lead bijwerken mislukt",
+        "setWorkflow": "Lead aangemaakt, maar workflow-override instellen mislukte"
       },
       "validation": {
         "required": "Vul alle verplichte velden in",
@@ -108,6 +112,19 @@
         "notProvided": "Niet opgegeven",
         "emptyTitle": "Nog geen voorkeuren",
         "emptySubtitle": "De klant heeft nog geen voorkeuren gedeeld."
+      },
+      "workflow": {
+        "label": "Workflow voor deze lead",
+        "placeholder": "Selecteer workflow",
+        "defaultOption": "Gebruik organisatie standaard",
+        "save": "Workflow opslaan",
+        "useDefault": "Gebruik standaard",
+        "resolutionSource": "Huidige bron",
+        "saved": "Workflow-override opgeslagen",
+        "cleared": "Lead gebruikt nu de standaard workflow",
+        "loadFailed": "Workflowgegevens laden mislukt",
+        "saveFailed": "Workflow-override opslaan mislukt",
+        "clearFailed": "Workflow-override verwijderen mislukt"
       },
       "quickActions": {
         "call": "Bellen",

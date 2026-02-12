@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { toHttpParams } from '../utils/http-utils';
 
 export interface Organization {
   id: string;
@@ -62,13 +63,11 @@ export interface OrganizationSettings {
   quotePaymentDays: number;
   quoteValidDays: number;
   whatsAppDeviceId?: string | null;
-  whatsAppWelcomeDelayMinutes: number;
 }
 
 export interface UpdateOrganizationSettingsRequest {
   quotePaymentDays?: number;
   quoteValidDays?: number;
-  whatsAppWelcomeDelayMinutes?: number;
 }
 
 export interface WhatsAppStatus {
@@ -89,6 +88,11 @@ export interface DisconnectWhatsAppResponse {
 
 export interface ReconnectWhatsAppResponse {
   message: string;
+}
+
+export interface WhatsAppTestResponse {
+  status: string;
+  phoneNumber: string;
 }
 
 export interface SetSMTPRequest {
@@ -157,22 +161,132 @@ export interface UpdateInviteResponse {
   token?: string | null;
 }
 
-export interface NotificationWorkflowRule {
+export interface WorkflowStepRecipientConfig {
+  audience?: string;
+  includeAssignedAgent: boolean;
+  includeLeadContact: boolean;
+  includePartner: boolean;
+  includeInternal: boolean;
+  customEmails?: string[];
+  customPhones?: string[];
+}
+
+export interface WorkflowStep {
+  id?: string;
   trigger: string;
-  channel: string;
-  audience: string;
-  enabled: boolean;
+  channel: 'whatsapp' | 'email';
+  audience: 'lead' | 'partner' | 'agent' | 'internal' | 'custom';
+  action: 'send_message' | 'send_template';
+  stepOrder: number;
   delayMinutes: number;
+  enabled: boolean;
+  recipientConfig: WorkflowStepRecipientConfig;
+  templateSubject?: string | null;
+  templateBody?: string | null;
+  stopOnReply: boolean;
+}
+
+export interface WorkflowEngineWorkflow {
+  id: string;
+  workflowKey: string;
+  name: string;
+  description?: string | null;
+  enabled: boolean;
+  quoteValidDaysOverride?: number | null;
+  quotePaymentDaysOverride?: number | null;
+  steps: WorkflowStep[];
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertWorkflowStepRequest {
+  id?: string;
+  trigger: string;
+  channel: 'whatsapp' | 'email';
+  audience: 'lead' | 'partner' | 'agent' | 'internal' | 'custom';
+  action: 'send_message' | 'send_template';
+  stepOrder: number;
+  delayMinutes: number;
+  enabled: boolean;
+  recipientConfig: WorkflowStepRecipientConfig;
+  templateSubject?: string | null;
+  templateBody?: string | null;
+  stopOnReply: boolean;
+}
+
+export interface UpsertWorkflowRequest {
+  id?: string;
+  workflowKey: string;
+  name: string;
+  description?: string | null;
+  enabled: boolean;
+  quoteValidDaysOverride?: number | null;
+  quotePaymentDaysOverride?: number | null;
+  steps: UpsertWorkflowStepRequest[];
+}
+
+export interface ReplaceWorkflowEngineWorkflowsRequest {
+  workflows: UpsertWorkflowRequest[];
+}
+
+export interface ListWorkflowEngineWorkflowsResponse {
+  workflows: WorkflowEngineWorkflow[];
+}
+
+export interface WorkflowAssignmentRule {
+  id: string;
+  workflowId: string;
+  name: string;
+  enabled: boolean;
+  priority: number;
   leadSource?: string | null;
-  templateText?: string | null;
+  leadServiceType?: string | null;
+  pipelineStage?: string | null;
+  createdAt: string;
+  updatedAt: string;
 }
 
-export interface ListNotificationWorkflowsResponse {
-  workflows: NotificationWorkflowRule[];
+export interface UpsertWorkflowAssignmentRuleRequest {
+  id?: string;
+  workflowId: string;
+  name: string;
+  enabled: boolean;
+  priority: number;
+  leadSource?: string | null;
+  leadServiceType?: string | null;
+  pipelineStage?: string | null;
 }
 
-export interface ReplaceNotificationWorkflowsRequest {
-  workflows: NotificationWorkflowRule[];
+export interface ReplaceWorkflowAssignmentRulesRequest {
+  rules: UpsertWorkflowAssignmentRuleRequest[];
+}
+
+export interface ListWorkflowAssignmentRulesResponse {
+  rules: WorkflowAssignmentRule[];
+}
+
+export interface LeadWorkflowOverride {
+  leadId: string;
+  workflowId?: string | null;
+  overrideMode: 'manual' | 'manual_lock' | 'clear';
+  reason?: string | null;
+  assignedBy?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface UpsertLeadWorkflowOverrideRequest {
+  leadId: string;
+  workflowId?: string | null;
+  overrideMode: 'manual' | 'manual_lock' | 'clear';
+  reason?: string | null;
+}
+
+export interface ResolveLeadWorkflowResponse {
+  workflow?: WorkflowEngineWorkflow | null;
+  resolutionSource: 'manual_override' | 'auto_rule' | 'organization_default';
+  overrideMode?: 'manual' | 'manual_lock' | 'clear' | null;
+  matchedRuleId?: string | null;
 }
 
 @Injectable({ providedIn: 'root' })
@@ -230,16 +344,53 @@ export class OrganizationService {
     return this.http.patch<OrganizationSettings>(`${this.baseUrl}/me/settings`, payload);
   }
 
-  getNotificationWorkflows(): Observable<NotificationWorkflowRule[]> {
-    return this.http.get<ListNotificationWorkflowsResponse>(`${this.baseUrl}/me/workflows`).pipe(
+  getWorkflowEngineWorkflows(): Observable<WorkflowEngineWorkflow[]> {
+    return this.http.get<ListWorkflowEngineWorkflowsResponse>(`${this.baseUrl}/me/workflow-engine/workflows`).pipe(
       map(response => response.workflows)
     );
   }
 
-  replaceNotificationWorkflows(payload: ReplaceNotificationWorkflowsRequest): Observable<NotificationWorkflowRule[]> {
-    return this.http.put<ListNotificationWorkflowsResponse>(`${this.baseUrl}/me/workflows`, payload).pipe(
+  replaceWorkflowEngineWorkflows(payload: ReplaceWorkflowEngineWorkflowsRequest): Observable<WorkflowEngineWorkflow[]> {
+    return this.http.put<ListWorkflowEngineWorkflowsResponse>(`${this.baseUrl}/me/workflow-engine/workflows`, payload).pipe(
       map(response => response.workflows)
     );
+  }
+
+  getWorkflowAssignmentRules(): Observable<WorkflowAssignmentRule[]> {
+    return this.http.get<ListWorkflowAssignmentRulesResponse>(`${this.baseUrl}/me/workflow-engine/assignment-rules`).pipe(
+      map(response => response.rules)
+    );
+  }
+
+  replaceWorkflowAssignmentRules(payload: ReplaceWorkflowAssignmentRulesRequest): Observable<WorkflowAssignmentRule[]> {
+    return this.http.put<ListWorkflowAssignmentRulesResponse>(`${this.baseUrl}/me/workflow-engine/assignment-rules`, payload).pipe(
+      map(response => response.rules)
+    );
+  }
+
+  getLeadWorkflowOverride(leadId: string): Observable<LeadWorkflowOverride> {
+    return this.http.get<LeadWorkflowOverride>(`${this.baseUrl}/me/workflow-engine/leads/${leadId}/override`);
+  }
+
+  upsertLeadWorkflowOverride(leadId: string, payload: UpsertLeadWorkflowOverrideRequest): Observable<LeadWorkflowOverride> {
+    return this.http.put<LeadWorkflowOverride>(`${this.baseUrl}/me/workflow-engine/leads/${leadId}/override`, payload);
+  }
+
+  deleteLeadWorkflowOverride(leadId: string): Observable<{ status: string }> {
+    return this.http.delete<{ status: string }>(`${this.baseUrl}/me/workflow-engine/leads/${leadId}/override`);
+  }
+
+  resolveLeadWorkflow(leadId: string, params?: {
+    leadSource?: string | null;
+    leadServiceType?: string | null;
+    pipelineStage?: string | null;
+  }): Observable<ResolveLeadWorkflowResponse> {
+    const query = toHttpParams({
+      leadSource: params?.leadSource ?? undefined,
+      leadServiceType: params?.leadServiceType ?? undefined,
+      pipelineStage: params?.pipelineStage ?? undefined,
+    });
+    return this.http.get<ResolveLeadWorkflowResponse>(`${this.baseUrl}/me/workflow-engine/leads/${leadId}/resolve`, { params: query });
   }
 
   registerWhatsAppDevice(): Observable<RegisterWhatsAppResponse> {
@@ -252,6 +403,10 @@ export class OrganizationService {
 
   reconnectWhatsApp(): Observable<ReconnectWhatsAppResponse> {
     return this.http.post<ReconnectWhatsAppResponse>(`${this.baseUrl}/me/whatsapp/reconnect`, {});
+  }
+
+  testWhatsApp(): Observable<WhatsAppTestResponse> {
+    return this.http.post<WhatsAppTestResponse>(`${this.baseUrl}/me/whatsapp/test`, {});
   }
 
   disconnectWhatsApp(): Observable<DisconnectWhatsAppResponse> {
