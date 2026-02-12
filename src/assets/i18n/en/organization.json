@@ -72,6 +72,13 @@
         "subtitle": "Configure automated messages with templates and variables.",
         "enabled": "Enabled",
         "delayLabel": "Delay",
+        "activeWorkflowLabel": "Workflow profile",
+        "activeWorkflowPlaceholder": "Select a workflow",
+        "defaultWorkflowLabel": "Default workflow",
+        "defaultWorkflowPlaceholder": "Select default workflow",
+        "workflowNameLabel": "Workflow name",
+        "addWorkflow": "Add workflow",
+        "removeWorkflow": "Remove workflow",
         "leadSourceLabel": "Lead source filter (optional)",
         "leadSourceHint": "Only run when lead source matches exactly (leave empty for all).",
         "leadSourcePlaceholder": "e.g. google_ads",
@@ -90,6 +97,31 @@
             "title": "Quote sent (WhatsApp)",
             "hint": "Minutes to wait before sending this message.",
             "vars": "Variables: {{lead.name}}, {{quote.number}}, {{quote.previewUrl}}, {{org.name}}"
+          },
+          "quoteAcceptedLeadWhatsApp": {
+            "title": "Quote accepted (WhatsApp to lead)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{quote.number}}, {{org.name}}"
+          },
+          "quoteAcceptedLeadEmail": {
+            "title": "Quote accepted (Email to lead)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{quote.number}}, {{org.name}}"
+          },
+          "quoteAcceptedPartnerEmail": {
+            "title": "Quote accepted (Email to advisor)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{quote.number}}, {{org.name}}"
+          },
+          "quoteRejectedLeadWhatsApp": {
+            "title": "Quote rejected (WhatsApp to lead)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{org.name}}"
+          },
+          "quoteRejectedLeadEmail": {
+            "title": "Quote rejected (Email to lead)",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{org.name}}"
           },
           "appointmentCreated": {
             "title": "Appointment confirmed (WhatsApp)",
@@ -118,8 +150,6 @@
         "title": "WhatsApp",
         "statusLabel": "Connection status",
         "statusHint": "Connect a device to start sending WhatsApp updates.",
-        "welcomeDelayLabel": "Welcome message delay",
-        "welcomeDelayHint": "Minutes to wait before sending the automated welcome message (0 = send immediately).",
         "connect": "Connect WhatsApp",
         "reconnect": "Reconnect",
         "disconnect": "Disconnect",
@@ -134,6 +164,11 @@
         "qrHint": "Open WhatsApp on your phone and scan the QR code to link the device.",
         "qrFailed": "Failed to load QR code.",
         "refreshQr": "Refresh QR",
+        "testPhoneLabel": "Test number (organization)",
+        "testPhoneMissing": "No organization phone number is configured.",
+        "testButton": "Send test message",
+        "testSent": "Test message sent to {{ phone }}.",
+        "testFailed": "Failed to send test message.",
         "qrAlt": "WhatsApp QR code",
         "states": {
           "connected": "Connected",

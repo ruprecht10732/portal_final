@@ -5,24 +5,19 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { OrganizationService, WhatsAppStatus } from '../../../../core/services/organization.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
-import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
 import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-organization-whatsapp-settings',
-  imports: [ButtonComponent, CardComponent, NumberInputComponent, PageLayoutComponent, SkeletonComponent, TranslatePipe],
+  imports: [ButtonComponent, CardComponent, PageLayoutComponent, SkeletonComponent, TranslatePipe],
   templateUrl: './organization-whatsapp-settings.component.html',
   styleUrl: './organization-whatsapp-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class OrganizationWhatsAppSettingsComponent {
-  protected readonly whatsAppWelcomeDelayMinutes = signal<number | null>(2);
-  private readonly initialWhatsAppWelcomeDelayMinutes = signal<number>(2);
-
+  protected readonly orgPhoneNumber = signal('');
   protected readonly isLoading = signal(true);
-  protected readonly isSaving = signal(false);
-  protected readonly successMessage = signal('');
   protected readonly errorMessage = signal('');
 
   protected readonly whatsAppDeviceId = signal<string | null>(null);
@@ -31,6 +26,8 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly isWhatsAppAction = signal(false);
   protected readonly whatsAppErrorMessage = signal('');
   protected readonly whatsAppSuccessMessage = signal('');
+  protected readonly isWhatsAppTesting = signal(false);
+  protected readonly whatsAppTestMessage = signal('');
   protected readonly qrBlobUrl = signal<string | null>(null);
 
   private statusPollingStarted = false;
@@ -40,17 +37,6 @@ export class OrganizationWhatsAppSettingsComponent {
   private readonly orgService = inject(OrganizationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
-
-  protected readonly hasChanges = computed(() =>
-    (this.whatsAppWelcomeDelayMinutes() ?? this.initialWhatsAppWelcomeDelayMinutes()) !== this.initialWhatsAppWelcomeDelayMinutes()
-  );
-
-  protected readonly canSave = computed(() =>
-    !this.isSaving() &&
-    this.hasChanges() &&
-    (this.whatsAppWelcomeDelayMinutes() ?? 0) >= 0 &&
-    (this.whatsAppWelcomeDelayMinutes() ?? 0) <= 1440
-  );
 
   protected readonly isWhatsAppConnected = computed(() => this.whatsAppStatus()?.state === 'CONNECTED');
   protected readonly isWhatsAppUnregistered = computed(() => !this.whatsAppDeviceId());
@@ -81,11 +67,19 @@ export class OrganizationWhatsAppSettingsComponent {
       )
       .subscribe(settings => {
         this.whatsAppDeviceId.set(settings.whatsAppDeviceId ?? null);
-        this.whatsAppWelcomeDelayMinutes.set(settings.whatsAppWelcomeDelayMinutes ?? 2);
-        this.initialWhatsAppWelcomeDelayMinutes.set(settings.whatsAppWelcomeDelayMinutes ?? 2);
 
         this.startStatusPolling();
       });
+
+  this.orgService
+    .getOrganization()
+    .pipe(
+      catchError(() => EMPTY),
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe(org => {
+      this.orgPhoneNumber.set((org.phone ?? '').trim());
+    });
   }
 
   private startStatusPolling(): void {
@@ -253,29 +247,26 @@ export class OrganizationWhatsAppSettingsComponent {
     this.startQrRefreshCycle();
   }
 
-  protected saveDelay(): void {
-    if (!this.canSave()) return;
+  protected sendWhatsAppTest(): void {
+    if (this.isWhatsAppAction() || this.isWhatsAppTesting()) return;
 
-    this.isSaving.set(true);
-    this.errorMessage.set('');
-    this.successMessage.set('');
+    this.isWhatsAppTesting.set(true);
+    this.whatsAppErrorMessage.set('');
+    this.whatsAppSuccessMessage.set('');
+    this.whatsAppTestMessage.set('');
 
     this.orgService
-      .updateSettings({
-        ...(this.whatsAppWelcomeDelayMinutes() == null ? {} : { whatsAppWelcomeDelayMinutes: this.whatsAppWelcomeDelayMinutes()! }),
-      })
+      .testWhatsApp()
       .pipe(
         catchError(() => {
-          this.errorMessage.set(this.translate.instant('organization.settings.saveFailed'));
+          this.whatsAppErrorMessage.set(this.translate.instant('organization.settings.whatsapp.testFailed'));
           return EMPTY;
         }),
-        finalize(() => this.isSaving.set(false)),
+        finalize(() => this.isWhatsAppTesting.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(settings => {
-        this.whatsAppWelcomeDelayMinutes.set(settings.whatsAppWelcomeDelayMinutes ?? 2);
-        this.initialWhatsAppWelcomeDelayMinutes.set(settings.whatsAppWelcomeDelayMinutes ?? 2);
-        this.successMessage.set(this.translate.instant('organization.settings.saved'));
+      .subscribe(response => {
+        this.whatsAppTestMessage.set(this.translate.instant('organization.settings.whatsapp.testSent', { phone: response.phoneNumber }));
       });
   }
 }

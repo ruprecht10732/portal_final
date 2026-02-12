@@ -72,6 +72,13 @@
         "subtitle": "Configureer automatische berichten met templates en variabelen.",
         "enabled": "Ingeschakeld",
         "delayLabel": "Vertraging",
+        "activeWorkflowLabel": "Workflowprofiel",
+        "activeWorkflowPlaceholder": "Selecteer een workflow",
+        "defaultWorkflowLabel": "Standaard workflow",
+        "defaultWorkflowPlaceholder": "Selecteer standaard workflow",
+        "workflowNameLabel": "Workflownaam",
+        "addWorkflow": "Workflow toevoegen",
+        "removeWorkflow": "Workflow verwijderen",
         "leadSourceLabel": "Lead bron filter (optioneel)",
         "leadSourceHint": "Voer alleen uit wanneer de lead bron exact overeenkomt (laat leeg voor alles).",
         "leadSourcePlaceholder": "bijv. google_ads",
@@ -90,6 +97,31 @@
             "title": "Offerte verstuurd (WhatsApp)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
             "vars": "Variabelen: {{lead.name}}, {{quote.number}}, {{quote.previewUrl}}, {{org.name}}"
+          },
+          "quoteAcceptedLeadWhatsApp": {
+            "title": "Offerte geaccepteerd (WhatsApp naar lead)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{quote.number}}, {{org.name}}"
+          },
+          "quoteAcceptedLeadEmail": {
+            "title": "Offerte geaccepteerd (E-mail naar lead)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{quote.number}}, {{org.name}}"
+          },
+          "quoteAcceptedPartnerEmail": {
+            "title": "Offerte geaccepteerd (E-mail naar adviseur)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{quote.number}}, {{org.name}}"
+          },
+          "quoteRejectedLeadWhatsApp": {
+            "title": "Offerte afgewezen (WhatsApp naar lead)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{org.name}}"
+          },
+          "quoteRejectedLeadEmail": {
+            "title": "Offerte afgewezen (E-mail naar lead)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{org.name}}"
           },
           "appointmentCreated": {
             "title": "Afspraak bevestigd (WhatsApp)",
@@ -118,8 +150,6 @@
         "title": "WhatsApp",
         "statusLabel": "Verbindingsstatus",
         "statusHint": "Koppel een apparaat om WhatsApp updates te versturen.",
-        "welcomeDelayLabel": "Welkomstbericht vertraging",
-        "welcomeDelayHint": "Aantal minuten wachten voordat het automatische welkomstbericht wordt verstuurd (0 = direct).",
         "connect": "WhatsApp koppelen",
         "reconnect": "Opnieuw verbinden",
         "disconnect": "Ontkoppelen",
@@ -134,6 +164,11 @@
         "qrHint": "Open WhatsApp op uw telefoon en scan de QR-code om te koppelen.",
         "qrFailed": "QR-code laden mislukt.",
         "refreshQr": "QR vernieuwen",
+        "testPhoneLabel": "Testnummer (organisatie)",
+        "testPhoneMissing": "Geen organisatietelefoonnummer ingesteld.",
+        "testButton": "Stuur testbericht",
+        "testSent": "Testbericht verstuurd naar {{ phone }}.",
+        "testFailed": "Testbericht versturen mislukt.",
         "qrAlt": "WhatsApp QR-code",
         "states": {
           "connected": "Verbonden",
