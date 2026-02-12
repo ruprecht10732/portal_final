@@ -228,6 +228,16 @@
                 <p class="text-xs text-zinc-400 mt-2 font-mono">
                   * {{ 'leads.form.additionalServicesNote' | translate }}
                 </p>
+
+                <div class="mt-4">
+                  <shared-select
+                    [label]="'leads.form.workflowLabel' | translate"
+                    [options]="workflowOptions()"
+                    [value]="form.controls.workflowId.value"
+                    (valueChange)="setWorkflowId($event)"
+                    [placeholder]="'leads.form.workflowPlaceholder' | translate"
+                  />
+                </div>
               </div>
             }
 

@@ -1,6 +1,30 @@
 {
   "appointments": {
     "calendar": "Calendar",
+    "calendarUi": {
+      "previous": "Previous",
+      "next": "Next",
+      "views": "Calendar views",
+      "day": "Day",
+      "week": "Week",
+      "month": "Month",
+      "today": "Today",
+      "selected": "Selected",
+      "range": "Range",
+      "unavailable": "Unavailable",
+      "selectTime": "Select {{time}}",
+      "selectTimeOn": "Select {{time}} on {{day}}",
+      "instructions": "Use arrow keys to move between days. Press Enter to select. Use the Today button to jump to the current date.",
+      "weekShort": "Wk",
+      "moreCount": "+{{count}} more",
+      "rangeSep": "-",
+      "holidays": {
+        "newYear": "New Year's Day",
+        "independence": "Independence Day",
+        "thanksgiving": "Thanksgiving",
+        "christmas": "Christmas Day"
+      }
+    },
     "listView": "List View",
     "availabilityNav": "Availability",
     "createNew": "New Appointment",

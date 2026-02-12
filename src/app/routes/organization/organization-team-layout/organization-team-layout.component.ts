@@ -2,9 +2,10 @@ import { ChangeDetectionStrategy, Component } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 
 @Component({
-  selector: 'app-services-layout',
+  selector: 'app-organization-team-layout',
   imports: [RouterOutlet],
-  template: '<router-outlet />',
+  templateUrl: './organization-team-layout.component.html',
+  styleUrl: './organization-team-layout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class ServicesLayoutComponent {}
+export class OrganizationTeamLayoutComponent {}

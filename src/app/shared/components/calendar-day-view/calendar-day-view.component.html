@@ -29,7 +29,7 @@
           <button
             type="button"
             class="absolute inset-0 w-full h-full text-left focus-visible:outline-2 focus-visible:outline-zinc-900 focus-visible:outline-offset-2"
-            [attr.aria-label]="day() ? ('Select ' + hour.label + ' on ' + day()?.ariaLabel) : ('Select ' + hour.label)"
+            [attr.aria-label]="slotAriaLabel(hour.label)"
             [disabled]="isBlocked(hour.value)"
             (click)="onSlotClick(hour.value)"
           ></button>

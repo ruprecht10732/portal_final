@@ -1,0 +1,128 @@
+<shared-page-layout
+  [title]="'organization.settings.workflows.title' | translate"
+  [subtitle]="'organization.settings.workflows.subtitle' | translate"
+  [error]="errorMessage()"
+>
+  @if (isLoading()) {
+    <div class="mx-auto w-full max-w-4xl flex flex-col gap-6 py-6">
+      <shared-skeleton height="12rem" width="100%" />
+      <shared-skeleton height="12rem" width="100%" />
+    </div>
+  } @else {
+    <div class="mx-auto w-full max-w-4xl flex flex-col gap-6 py-6">
+      <shared-card>
+        <div class="grid gap-4 md:grid-cols-2">
+          <shared-select
+            [label]="'organization.settings.workflows.activeWorkflowLabel' | translate"
+            [options]="workflowOptions()"
+            [value]="selectedWorkflowKey()"
+            (valueChange)="updateSelectedWorkflow($event)"
+            [placeholder]="'organization.settings.workflows.activeWorkflowPlaceholder' | translate"
+          />
+
+          <shared-select
+            [label]="'organization.settings.workflows.defaultWorkflowLabel' | translate"
+            [options]="workflowOptions()"
+            [value]="selectedDefaultWorkflowKey()"
+            (valueChange)="updateSelectedDefaultWorkflow($event)"
+            [placeholder]="'organization.settings.workflows.defaultWorkflowPlaceholder' | translate"
+          />
+        </div>
+
+        <div class="mt-4 grid gap-4 md:grid-cols-[1fr_auto_auto]">
+          <shared-input
+            [label]="'organization.settings.workflows.workflowNameLabel' | translate"
+            [value]="selectedProfile()?.name ?? ''"
+            (valueChange)="updateSelectedWorkflowName($event)"
+          />
+
+          <shared-checkbox
+            class="self-end"
+            [label]="'organization.settings.workflows.enabled' | translate"
+            [checked]="selectedProfile()?.enabled ?? true"
+            (checkedChange)="updateSelectedWorkflowEnabled($event)"
+          />
+
+          <div class="self-end flex gap-2">
+            <shared-button
+              variant="secondary"
+              [fullWidth]="false"
+              (clicked)="addWorkflow()"
+            >
+              {{ 'organization.settings.workflows.addWorkflow' | translate }}
+            </shared-button>
+            <shared-button
+              variant="ghost"
+              [fullWidth]="false"
+              [disabled]="workflowOptions().length <= 1"
+              (clicked)="removeSelectedWorkflow()"
+            >
+              {{ 'organization.settings.workflows.removeWorkflow' | translate }}
+            </shared-button>
+          </div>
+        </div>
+      </shared-card>
+
+      @for (card of cards; track card.key) {
+        <shared-card>
+          <h4 class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6">
+            {{ card.titleKey | translate }}
+          </h4>
+
+          <div class="flex flex-col gap-4">
+            <shared-checkbox
+              [label]="'organization.settings.workflows.enabled' | translate"
+              [checked]="workflows()[card.key].enabled"
+              (checkedChange)="updateEnabled(card.key, $event)"
+            />
+
+            <shared-number-input
+              [label]="'organization.settings.workflows.delayLabel' | translate"
+              [hint]="card.hintKey | translate"
+              [value]="workflows()[card.key].delayMinutes"
+              (valueChange)="updateDelay(card.key, $event)"
+              [min]="0"
+              [max]="1440"
+              [step]="1"
+              suffix="min"
+            />
+
+            <shared-textarea
+              [label]="'organization.settings.workflows.templateLabel' | translate"
+              [hint]="card.varsKey | translate"
+              [value]="workflows()[card.key].templateText"
+              (valueChange)="updateTemplate(card.key, $event)"
+              [rows]="6"
+              [placeholder]="'organization.settings.workflows.templatePlaceholder' | translate"
+            />
+          </div>
+        </shared-card>
+      }
+
+      <shared-card>
+        <div class="flex flex-col sm:flex-row items-center justify-between gap-4">
+          <div>
+            @if (successMessage()) {
+              <p class="text-sm font-bold text-emerald-600 flex items-center gap-2">
+                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="3">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+                </svg>
+                {{ successMessage() }}
+              </p>
+            }
+          </div>
+
+          <shared-button
+            variant="primary"
+            [disabled]="!canSave() || isSaving()"
+            [loading]="isSaving()"
+            [fullWidth]="false"
+            (clicked)="save()"
+          >
+            {{ 'organization.settings.save' | translate }}
+          </shared-button>
+        </div>
+      </shared-card>
+    </div>
+  }
+</shared-page-layout>

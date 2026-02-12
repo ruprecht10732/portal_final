@@ -19,6 +19,7 @@
       <p class="text-sm text-zinc-500">{{ subtitle() }}</p>
     </div>
     <div class="flex gap-2">
+      <ng-content select="[actionsDesktop], [actions-desktop], .actions-desktop"></ng-content>
       <ng-content select="[actions]"></ng-content>
     </div>
   </header>

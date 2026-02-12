@@ -14,6 +14,16 @@
     {{ 'offertes.create' | translate }}
   </shared-button>
 
+  <shared-button
+    class="actions-desktop"
+    variant="primary"
+    [fullWidth]="false"
+    (clicked)="createQuote()"
+  >
+    <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
+    {{ 'offertes.create' | translate }}
+  </shared-button>
+
   <shared-data-grid
     [columns]="gridColumns()"
     [data]="gridData()"

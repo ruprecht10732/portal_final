@@ -8,7 +8,7 @@ import { AbstractControl, FormBuilder, ReactiveFormsModule, Validators } from '@
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
-import { OrganizationService, type WhatsAppStatus } from '../../../core/services/organization.service';
+import { OrganizationService, type WhatsAppStatus, type WorkflowEngineWorkflow } from '../../../core/services/organization.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import type { Lead, ConsumerRole, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
@@ -56,6 +56,9 @@ export class LeadFormComponent implements OnInit {
   protected readonly submitAttempted = signal(false);
   protected readonly whatsAppStatus = signal<WhatsAppStatus | null>(null);
   protected readonly isWhatsAppConfigured = computed(() => this.whatsAppStatus()?.canSend ?? false);
+  protected readonly workflowProfiles = signal<WorkflowEngineWorkflow[]>([]);
+
+  private readonly returnTo = signal<string | null>(null);
 
   protected readonly form = this.fb.group({
     firstName: ['', Validators.required],
@@ -71,6 +74,7 @@ export class LeadFormComponent implements OnInit {
     zipCode: ['', Validators.required],
     city: ['', Validators.required],
     serviceType: ['', Validators.required],
+    workflowId: this.fb.control<string | null>(null),
     latitude: this.fb.control<number | null>(null),
     longitude: this.fb.control<number | null>(null),
   });
@@ -89,6 +93,13 @@ export class LeadFormComponent implements OnInit {
     }))
   );
   protected readonly consumerRoleOptions = computed<SelectOption<ConsumerRole>[]>(() => CONSUMER_ROLE_OPTIONS);
+  protected readonly workflowOptions = computed<SelectOption<string | null>[]>(() => [
+    { label: this.translate.instant('leads.form.workflowDefaultOption'), value: null },
+    ...this.workflowProfiles().map(workflow => ({
+      label: workflow.name,
+      value: workflow.id,
+    })),
+  ]);
 
   protected readonly requiredError = computed(() => this.translate.instant('leads.form.validation.required'));
   protected readonly invalidPhoneError = computed(() => this.translate.instant('leads.form.validation.invalidPhone'));
@@ -101,6 +112,10 @@ export class LeadFormComponent implements OnInit {
     if (value) this.form.controls.serviceType.setValue(value);
   }
 
+  protected setWorkflowId(value: string | null): void {
+    this.form.controls.workflowId.setValue(value ?? null);
+  }
+
   constructor() {
     this.setupAddressSearch();
   }
@@ -108,12 +123,22 @@ export class LeadFormComponent implements OnInit {
   ngOnInit(): void {
     this.loadServiceTypes();
     this.loadWhatsAppStatus();
+    this.loadWorkflows();
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.isNew.set(false);
       this.loadLead(id);
     } else {
       this.captureTrackingData();
+
+      const params = this.route.snapshot.queryParamMap;
+      const returnTo = (params.get('returnTo') ?? '').trim();
+      this.returnTo.set(returnTo || null);
+
+      const sourcePrefill = (params.get('source') ?? '').trim();
+      if (sourcePrefill && !this.form.controls.source.value) {
+        this.form.controls.source.setValue(this.clampValue(sourcePrefill, this.sourceMaxLength));
+      }
     }
   }
 
@@ -231,6 +256,18 @@ export class LeadFormComponent implements OnInit {
       takeUntilDestroyed(this.destroyRef),
     ).subscribe(status => {
       this.whatsAppStatus.set(status);
+    });
+  }
+
+  private loadWorkflows(): void {
+    this.orgService.getWorkflowEngineWorkflows().pipe(
+      catchError((err) => {
+        this.reporter.report(err, { source: 'http', silent: true });
+        return of([]);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(workflows => {
+      this.workflowProfiles.set(workflows);
     });
   }
 
@@ -390,6 +427,7 @@ export class LeadFormComponent implements OnInit {
       const sourceValue = (values.source ?? '').trim();
       const consumerNoteValue = (values.consumerNote ?? '').trim();
       const emailValue = (values.email ?? '').trim();
+      const workflowIdValue = (values.workflowId ?? '').trim();
       const request: CreateLeadRequest = {
         firstName: (values.firstName ?? '').trim(),
         lastName: (values.lastName ?? '').trim(),
@@ -407,11 +445,19 @@ export class LeadFormComponent implements OnInit {
         ...(values.longitude !== null && { longitude: values.longitude }),
         ...(sourceValue && { source: sourceValue }),
         ...(consumerNoteValue && { consumerNote: consumerNoteValue }),
+        ...(workflowIdValue && { workflowId: workflowIdValue }),
       };
 
       this.leadsService.create(request).subscribe({
         next: (created) => {
-          this.router.navigate(['/app/leads', created.id]);
+				const returnTo = this.returnTo();
+				if (returnTo && this.isSafeInternalReturnTo(returnTo)) {
+					const tree = this.router.parseUrl(returnTo);
+					tree.queryParams = { ...tree.queryParams, leadId: created.id };
+					this.router.navigateByUrl(tree);
+					return;
+				}
+				this.router.navigate(['/app/leads', created.id]);
         },
         error: (err) => {
           const message = extractErrorMessage(err, this.translate.instant('leads.form.errors.createLead'));
@@ -453,6 +499,13 @@ export class LeadFormComponent implements OnInit {
         },
       });
     }
+  }
+
+  private isSafeInternalReturnTo(value: string): boolean {
+    // Prevent open-redirects and accidental loops.
+    if (!value.startsWith('/app/')) return false;
+    if (value.startsWith('/app/leads')) return false;
+    return true;
   }
 
 

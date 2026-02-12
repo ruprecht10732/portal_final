@@ -194,6 +194,7 @@ export interface CreateLeadRequest {
   utmTerm?: string;
   adLandingPage?: string;
   referrerUrl?: string;
+  workflowId?: string;
   whatsappOptedIn?: boolean;
 }
 

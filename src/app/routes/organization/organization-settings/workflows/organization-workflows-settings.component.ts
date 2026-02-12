@@ -1,0 +1,560 @@
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, EMPTY, finalize, forkJoin, switchMap } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import {
+  type UpsertWorkflowAssignmentRuleRequest,
+  type UpsertWorkflowRequest,
+  type UpsertWorkflowStepRequest,
+  type WorkflowAssignmentRule,
+  type WorkflowEngineWorkflow,
+  type WorkflowStep,
+  OrganizationService,
+} from '../../../../core/services/organization.service';
+import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { CardComponent } from '../../../../shared/components/card/card.component';
+import { CheckboxComponent } from '../../../../shared/components/checkbox/checkbox.component';
+import { InputComponent } from '../../../../shared/components/input/input.component';
+import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
+import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
+import { SelectComponent, type SelectOption } from '../../../../shared/components/select/select.component';
+import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
+import { TextareaComponent } from '../../../../shared/components/textarea/textarea.component';
+
+type WorkflowTrigger =
+  | 'lead_welcome'
+  | 'quote_sent'
+  | 'quote_accepted'
+  | 'quote_rejected'
+  | 'appointment_created'
+  | 'appointment_reminder'
+  | 'partner_offer_created';
+
+type WorkflowChannel = 'whatsapp' | 'email';
+type WorkflowAudience = 'lead' | 'partner';
+
+type WorkflowCardKey =
+  | 'lead_welcome_whatsapp_lead'
+  | 'quote_sent_whatsapp_lead'
+  | 'quote_accepted_whatsapp_lead'
+  | 'quote_accepted_email_lead'
+  | 'quote_accepted_email_partner'
+  | 'quote_rejected_whatsapp_lead'
+  | 'quote_rejected_email_lead'
+  | 'appointment_created_whatsapp_lead'
+  | 'appointment_reminder_whatsapp_lead'
+  | 'partner_offer_created_whatsapp_partner';
+
+interface WorkflowCardConfig {
+  key: WorkflowCardKey;
+  trigger: WorkflowTrigger;
+  channel: WorkflowChannel;
+  audience: WorkflowAudience;
+  titleKey: string;
+  hintKey: string;
+  varsKey: string;
+}
+
+interface WorkflowFormState {
+  enabled: boolean;
+  delayMinutes: number;
+  templateText: string;
+}
+
+interface WorkflowProfileState {
+  id?: string;
+  workflowKey: string;
+  name: string;
+  enabled: boolean;
+  cards: Record<WorkflowCardKey, WorkflowFormState>;
+}
+
+@Component({
+  selector: 'app-organization-workflows-settings',
+  imports: [
+    ButtonComponent,
+    CardComponent,
+    CheckboxComponent,
+    InputComponent,
+    NumberInputComponent,
+    PageLayoutComponent,
+    SelectComponent,
+    SkeletonComponent,
+    TextareaComponent,
+    TranslatePipe,
+  ],
+  templateUrl: './organization-workflows-settings.component.html',
+  styleUrl: './organization-workflows-settings.component.css',
+  changeDetection: ChangeDetectionStrategy.OnPush,
+})
+export class OrganizationWorkflowsSettingsComponent {
+  private readonly orgService = inject(OrganizationService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly translate = inject(TranslateService);
+
+  protected readonly isLoading = signal(true);
+  protected readonly isSaving = signal(false);
+  protected readonly errorMessage = signal('');
+  protected readonly successMessage = signal('');
+
+  private readonly initialSnapshot = signal('');
+  private readonly workflowProfiles = signal<WorkflowProfileState[]>([]);
+  private readonly assignmentRules = signal<WorkflowAssignmentRule[]>([]);
+
+  protected readonly selectedWorkflowKey = signal('');
+  protected readonly selectedDefaultWorkflowKey = signal('');
+
+  protected readonly cards: readonly WorkflowCardConfig[] = [
+    {
+      key: 'lead_welcome_whatsapp_lead',
+      trigger: 'lead_welcome',
+      channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.leadWelcome.title',
+      hintKey: 'organization.settings.workflows.cards.leadWelcome.hint',
+      varsKey: 'organization.settings.workflows.cards.leadWelcome.vars',
+    },
+    {
+      key: 'quote_sent_whatsapp_lead',
+      trigger: 'quote_sent',
+      channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.quoteSent.title',
+      hintKey: 'organization.settings.workflows.cards.quoteSent.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteSent.vars',
+    },
+    {
+      key: 'quote_accepted_whatsapp_lead',
+      trigger: 'quote_accepted',
+      channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.quoteAcceptedLeadWhatsApp.title',
+      hintKey: 'organization.settings.workflows.cards.quoteAcceptedLeadWhatsApp.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteAcceptedLeadWhatsApp.vars',
+    },
+    {
+      key: 'quote_accepted_email_lead',
+      trigger: 'quote_accepted',
+      channel: 'email',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.quoteAcceptedLeadEmail.title',
+      hintKey: 'organization.settings.workflows.cards.quoteAcceptedLeadEmail.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteAcceptedLeadEmail.vars',
+    },
+    {
+      key: 'quote_accepted_email_partner',
+      trigger: 'quote_accepted',
+      channel: 'email',
+      audience: 'partner',
+      titleKey: 'organization.settings.workflows.cards.quoteAcceptedPartnerEmail.title',
+      hintKey: 'organization.settings.workflows.cards.quoteAcceptedPartnerEmail.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteAcceptedPartnerEmail.vars',
+    },
+    {
+      key: 'quote_rejected_whatsapp_lead',
+      trigger: 'quote_rejected',
+      channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.quoteRejectedLeadWhatsApp.title',
+      hintKey: 'organization.settings.workflows.cards.quoteRejectedLeadWhatsApp.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteRejectedLeadWhatsApp.vars',
+    },
+    {
+      key: 'quote_rejected_email_lead',
+      trigger: 'quote_rejected',
+      channel: 'email',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.quoteRejectedLeadEmail.title',
+      hintKey: 'organization.settings.workflows.cards.quoteRejectedLeadEmail.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteRejectedLeadEmail.vars',
+    },
+    {
+      key: 'appointment_created_whatsapp_lead',
+      trigger: 'appointment_created',
+      channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.appointmentCreated.title',
+      hintKey: 'organization.settings.workflows.cards.appointmentCreated.hint',
+      varsKey: 'organization.settings.workflows.cards.appointmentCreated.vars',
+    },
+    {
+      key: 'appointment_reminder_whatsapp_lead',
+      trigger: 'appointment_reminder',
+      channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.appointmentReminder.title',
+      hintKey: 'organization.settings.workflows.cards.appointmentReminder.hint',
+      varsKey: 'organization.settings.workflows.cards.appointmentReminder.vars',
+    },
+    {
+      key: 'partner_offer_created_whatsapp_partner',
+      trigger: 'partner_offer_created',
+      channel: 'whatsapp',
+      audience: 'partner',
+      titleKey: 'organization.settings.workflows.cards.partnerOfferCreated.title',
+      hintKey: 'organization.settings.workflows.cards.partnerOfferCreated.hint',
+      varsKey: 'organization.settings.workflows.cards.partnerOfferCreated.vars',
+    },
+  ];
+
+  protected readonly workflowOptions = computed<SelectOption<string>[]>(() =>
+    this.workflowProfiles().map(profile => ({ value: profile.workflowKey, label: profile.name }))
+  );
+
+  protected readonly selectedProfile = computed<WorkflowProfileState | null>(() => {
+    const key = this.selectedWorkflowKey();
+    return this.workflowProfiles().find(profile => profile.workflowKey === key) ?? null;
+  });
+
+  protected readonly workflows = computed<Record<WorkflowCardKey, WorkflowFormState>>(() =>
+    this.selectedProfile()?.cards ?? this.defaultState()
+  );
+
+  protected readonly hasChanges = computed(() => this.initialSnapshot() !== JSON.stringify(this.serializeState()));
+  protected readonly canSave = computed(() => !this.isSaving() && this.hasChanges());
+
+  constructor() {
+    this.load();
+  }
+
+  private defaultState(): Record<WorkflowCardKey, WorkflowFormState> {
+    return {
+      lead_welcome_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
+      quote_sent_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
+      quote_accepted_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
+      quote_accepted_email_lead: { enabled: true, delayMinutes: 0, templateText: '' },
+      quote_accepted_email_partner: { enabled: true, delayMinutes: 0, templateText: '' },
+      quote_rejected_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
+      quote_rejected_email_lead: { enabled: true, delayMinutes: 0, templateText: '' },
+      appointment_created_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
+      appointment_reminder_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
+      partner_offer_created_whatsapp_partner: { enabled: true, delayMinutes: 0, templateText: '' },
+    };
+  }
+
+  private load(): void {
+    this.isLoading.set(true);
+    this.errorMessage.set('');
+
+    forkJoin({
+      workflows: this.orgService.getWorkflowEngineWorkflows(),
+      rules: this.orgService.getWorkflowAssignmentRules(),
+    })
+      .pipe(
+        catchError(() => {
+          this.errorMessage.set(this.translate.instant('organization.settings.workflows.loadFailed'));
+          return EMPTY;
+        }),
+        finalize(() => this.isLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(({ workflows, rules }) => {
+        this.applyWorkflowEngineData(workflows, rules);
+      });
+  }
+
+  private applyWorkflowEngineData(workflows: WorkflowEngineWorkflow[], rules: WorkflowAssignmentRule[]): void {
+    const mapped = workflows.map(workflow => this.mapWorkflowToProfile(workflow));
+    if (mapped.length === 0) {
+      mapped.push(this.createEmptyProfile('default'));
+    }
+
+    const selectedKey = this.selectedWorkflowKey();
+    const stillExists = mapped.some(profile => profile.workflowKey === selectedKey);
+    const first = mapped[0];
+
+    this.workflowProfiles.set(mapped);
+    this.assignmentRules.set(rules);
+    this.selectedWorkflowKey.set(stillExists ? selectedKey : (first?.workflowKey ?? ''));
+
+    const defaultRule = this.findDefaultRule(rules);
+    const defaultProfile = defaultRule
+      ? mapped.find(profile => profile.id === defaultRule.workflowId)
+      : null;
+
+    this.selectedDefaultWorkflowKey.set(defaultProfile?.workflowKey ?? (first?.workflowKey ?? ''));
+    this.initialSnapshot.set(JSON.stringify(this.serializeState()));
+  }
+
+  private mapWorkflowToProfile(workflow: WorkflowEngineWorkflow): WorkflowProfileState {
+    const cards = this.defaultState();
+
+    const cardIndex = new Map<string, WorkflowCardKey>();
+    for (const card of this.cards) {
+      cardIndex.set(this.toRuleKey(card.trigger, card.channel, card.audience), card.key);
+    }
+
+    for (const step of workflow.steps) {
+      const normalizedTrigger = this.normalizeTrigger(step.trigger);
+      if (!normalizedTrigger) continue;
+
+      const normalizedChannel = this.normalizeChannel(step.channel);
+      const normalizedAudience = this.normalizeAudience(step.audience);
+      if (!normalizedChannel || !normalizedAudience) continue;
+
+      const key = cardIndex.get(this.toRuleKey(normalizedTrigger, normalizedChannel, normalizedAudience));
+      if (!key) continue;
+
+      cards[key] = {
+        enabled: !!step.enabled,
+        delayMinutes: this.normalizeDelay(step.delayMinutes),
+        templateText: step.templateBody ?? '',
+      };
+    }
+
+    return {
+      id: workflow.id,
+      workflowKey: workflow.workflowKey,
+      name: workflow.name,
+      enabled: workflow.enabled,
+      cards,
+    };
+  }
+
+  private createEmptyProfile(seed: string): WorkflowProfileState {
+    return {
+      workflowKey: seed,
+      name: `Workflow ${seed}`,
+      enabled: true,
+      cards: this.defaultState(),
+    };
+  }
+
+  protected addWorkflow(): void {
+    const count = this.workflowProfiles().length + 1;
+    const workflowKey = `workflow_${count}`;
+    const profile: WorkflowProfileState = {
+      workflowKey,
+      name: `Workflow ${count}`,
+      enabled: true,
+      cards: this.defaultState(),
+    };
+    this.workflowProfiles.update(current => [...current, profile]);
+    this.selectedWorkflowKey.set(workflowKey);
+    if (!this.selectedDefaultWorkflowKey()) {
+      this.selectedDefaultWorkflowKey.set(workflowKey);
+    }
+  }
+
+  protected removeSelectedWorkflow(): void {
+    const selectedKey = this.selectedWorkflowKey();
+    const profiles = this.workflowProfiles();
+    if (profiles.length <= 1) {
+      return;
+    }
+    const next = profiles.filter(profile => profile.workflowKey !== selectedKey);
+    const first = next[0];
+    this.workflowProfiles.set(next);
+    this.selectedWorkflowKey.set(first?.workflowKey ?? '');
+    if (this.selectedDefaultWorkflowKey() === selectedKey) {
+      this.selectedDefaultWorkflowKey.set(first?.workflowKey ?? '');
+    }
+  }
+
+  protected updateSelectedWorkflow(value: string | null): void {
+    this.selectedWorkflowKey.set(value ?? '');
+  }
+
+  protected updateSelectedDefaultWorkflow(value: string | null): void {
+    this.selectedDefaultWorkflowKey.set(value ?? '');
+  }
+
+  protected updateSelectedWorkflowName(value: string): void {
+    const key = this.selectedWorkflowKey();
+    this.workflowProfiles.update(current => current.map(profile => (
+      profile.workflowKey === key
+        ? { ...profile, name: value.trim() || profile.name }
+        : profile
+    )));
+  }
+
+  protected updateSelectedWorkflowEnabled(enabled: boolean): void {
+    const key = this.selectedWorkflowKey();
+    this.workflowProfiles.update(current => current.map(profile => (
+      profile.workflowKey === key
+        ? { ...profile, enabled }
+        : profile
+    )));
+  }
+
+  private updateSelectedCard(update: (cards: Record<WorkflowCardKey, WorkflowFormState>) => Record<WorkflowCardKey, WorkflowFormState>): void {
+    const key = this.selectedWorkflowKey();
+    this.workflowProfiles.update(current => current.map(profile => (
+      profile.workflowKey === key
+        ? { ...profile, cards: update(profile.cards) }
+        : profile
+    )));
+  }
+
+  protected updateEnabled(key: WorkflowCardKey, enabled: boolean): void {
+    this.updateSelectedCard(current => ({
+      ...current,
+      [key]: { ...current[key], enabled },
+    }));
+  }
+
+  protected updateDelay(key: WorkflowCardKey, delayMinutes: number | null): void {
+    this.updateSelectedCard(current => ({
+      ...current,
+      [key]: { ...current[key], delayMinutes: this.normalizeDelay(delayMinutes ?? 0) },
+    }));
+  }
+
+  protected updateTemplate(key: WorkflowCardKey, templateText: string): void {
+    this.updateSelectedCard(current => ({
+      ...current,
+      [key]: { ...current[key], templateText },
+    }));
+  }
+
+  protected save(): void {
+    if (!this.canSave()) return;
+
+    this.isSaving.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    const workflowPayload = this.workflowProfiles().map(profile => this.mapProfileToUpsert(profile));
+
+    this.orgService
+      .replaceWorkflowEngineWorkflows({ workflows: workflowPayload })
+      .pipe(
+        switchMap(savedWorkflows => {
+          const defaultKey = this.selectedDefaultWorkflowKey();
+          const defaultWorkflow = savedWorkflows.find(workflow => workflow.workflowKey === defaultKey) ?? savedWorkflows[0];
+          if (!defaultWorkflow) {
+            return EMPTY;
+          }
+
+          const existingRules = this.assignmentRules();
+          const previousDefault = this.findDefaultRule(existingRules);
+          const preservedRules = existingRules.filter(rule => !this.isDefaultRule(rule));
+
+          const defaultRule: UpsertWorkflowAssignmentRuleRequest = {
+            ...(previousDefault?.id ? { id: previousDefault.id } : {}),
+            workflowId: defaultWorkflow.id,
+            name: 'Default workflow',
+            enabled: true,
+            priority: 1_000_000,
+            leadSource: null,
+            leadServiceType: null,
+            pipelineStage: null,
+          };
+
+          return this.orgService.replaceWorkflowAssignmentRules({ rules: [...preservedRules, defaultRule] }).pipe(
+            switchMap(() => forkJoin({
+              workflows: this.orgService.getWorkflowEngineWorkflows(),
+              rules: this.orgService.getWorkflowAssignmentRules(),
+            }))
+          );
+        }),
+        catchError(() => {
+          this.errorMessage.set(this.translate.instant('organization.settings.workflows.saveFailed'));
+          return EMPTY;
+        }),
+        finalize(() => this.isSaving.set(false)),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(({ workflows, rules }) => {
+        this.applyWorkflowEngineData(workflows, rules);
+        this.successMessage.set(this.translate.instant('organization.settings.workflows.saved'));
+      });
+  }
+
+  private serializeState(): {
+    workflows: WorkflowProfileState[];
+    selectedWorkflowKey: string;
+    selectedDefaultWorkflowKey: string;
+  } {
+    return {
+      workflows: this.workflowProfiles(),
+      selectedWorkflowKey: this.selectedWorkflowKey(),
+      selectedDefaultWorkflowKey: this.selectedDefaultWorkflowKey(),
+    };
+  }
+
+  private mapProfileToUpsert(profile: WorkflowProfileState): UpsertWorkflowRequest {
+    const steps: UpsertWorkflowStepRequest[] = this.cards.map((card, index) => {
+      const state = profile.cards[card.key];
+      return {
+        trigger: card.trigger,
+        channel: card.channel,
+        audience: card.audience,
+        action: 'send_message',
+        stepOrder: index + 1,
+        delayMinutes: this.normalizeDelay(state.delayMinutes),
+        enabled: state.enabled,
+        recipientConfig: this.defaultRecipientConfig(card.audience),
+        templateBody: state.templateText.trim() ? state.templateText.trim() : null,
+        stopOnReply: false,
+      };
+    });
+
+    return {
+      ...(profile.id ? { id: profile.id } : {}),
+      workflowKey: profile.workflowKey,
+      name: profile.name.trim() || profile.workflowKey,
+      enabled: profile.enabled,
+      steps,
+    };
+  }
+
+  private defaultRecipientConfig(audience: WorkflowAudience): WorkflowStep['recipientConfig'] {
+    return {
+      audience,
+      includeAssignedAgent: false,
+      includeLeadContact: audience === 'lead',
+      includePartner: audience === 'partner',
+      includeInternal: false,
+    };
+  }
+
+  private findDefaultRule(rules: WorkflowAssignmentRule[]): WorkflowAssignmentRule | null {
+    return rules.find(rule => this.isDefaultRule(rule)) ?? null;
+  }
+
+  private isDefaultRule(rule: WorkflowAssignmentRule): boolean {
+    return !rule.leadSource && !rule.leadServiceType && !rule.pipelineStage;
+  }
+
+  private toRuleKey(trigger: WorkflowTrigger, channel: WorkflowChannel, audience: WorkflowAudience): string {
+    return `${trigger}|${channel}|${audience}`;
+  }
+
+  private normalizeTrigger(trigger: string): WorkflowTrigger | null {
+    const value = trigger.trim().toLowerCase();
+    switch (value) {
+      case 'lead_welcome':
+      case 'quote_sent':
+      case 'quote_accepted':
+      case 'quote_rejected':
+      case 'appointment_created':
+      case 'appointment_reminder':
+      case 'partner_offer_created':
+        return value;
+      default:
+        return null;
+    }
+  }
+
+  private normalizeChannel(channel: string): WorkflowChannel | null {
+    const value = channel.trim().toLowerCase();
+    if (value === 'whatsapp' || value === 'email') {
+      return value;
+    }
+    return null;
+  }
+
+  private normalizeAudience(audience: string): WorkflowAudience | null {
+    const value = audience.trim().toLowerCase();
+    if (value === 'lead' || value === 'partner') {
+      return value;
+    }
+    return null;
+  }
+
+  private normalizeDelay(delayMinutes: number): number {
+    if (!Number.isFinite(delayMinutes)) return 0;
+    return Math.max(0, Math.min(1440, Math.round(delayMinutes)));
+  }
+}

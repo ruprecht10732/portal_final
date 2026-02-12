@@ -69,28 +69,32 @@
   </div>
 
   <!-- Desktop layout -->
-  <div class="hidden sm:block">
-    <header class="calendar-header">
-      <h1>{{ 'appointments.calendar' | translate }}</h1>
-      <shared-button variant="primary" (clicked)="onCreateClick()">
+  <div class="hidden sm:block relative">
+    <shared-page-layout
+      [title]="'appointments.calendar' | translate"
+      [subtitle]="'appointments.list.subtitle' | translate"
+      [error]="null"
+      [removeMobilePadding]="true"
+    >
+      <shared-button actionsDesktop variant="primary" [fullWidth]="false" (clicked)="onCreateClick()">
         {{ 'appointments.createNew' | translate }}
       </shared-button>
-    </header>
 
-    <div class="calendar-container">
-      <shared-calendar-grid
-        [events]="calendarEvents()"
-        [(view)]="view"
-        [maxVisibleEvents]="3"
-        [showLegend]="false"
-        [allowRange]="false"
-        [dayViewStartHour]="8"
-        [dayViewEndHour]="18"
-        [dayViewTimeSlotMinutes]="30"
-        (eventClick)="onEventClick($event)"
-        (slotClick)="onSlotClick($event)"
-      />
-    </div>
+      <div class="calendar-container">
+        <shared-calendar-grid
+          [events]="calendarEvents()"
+          [(view)]="view"
+          [maxVisibleEvents]="3"
+          [showLegend]="false"
+          [allowRange]="false"
+          [dayViewStartHour]="8"
+          [dayViewEndHour]="18"
+          [dayViewTimeSlotMinutes]="30"
+          (eventClick)="onEventClick($event)"
+          (slotClick)="onSlotClick($event)"
+        />
+      </div>
+    </shared-page-layout>
   </div>
 
   @if (loading()) {

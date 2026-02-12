@@ -2,13 +2,16 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   model,
   output,
   signal,
   viewChildren,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
 import { Grid, GridCell, GridCellWidget, GridRow } from '@angular/aria/grid';
+import { TranslateService } from '@ngx-translate/core';
 import { CalendarDayViewComponent } from '../calendar-day-view/calendar-day-view.component';
 
 export interface CalendarEvent {
@@ -38,7 +41,17 @@ interface CalendarDay {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarGridComponent {
-  protected readonly dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: {
+      lang: this.translate.currentLang || this.translate.getDefaultLang() || 'en',
+      translations: {},
+    },
+  });
+  protected readonly locale = computed(() => {
+    this.lang();
+    return this.translate.currentLang || this.translate.getDefaultLang() || 'en';
+  });
   private readonly dayButtons = viewChildren(GridCellWidget);
   protected readonly currentMonth = signal(new Date());
   protected readonly selectedStart = signal<string | null>(null);
@@ -76,7 +89,7 @@ export class CalendarGridComponent {
 
   protected readonly monthLabel = computed(() => {
     const date = this.currentMonth();
-    return new Intl.DateTimeFormat('en-US', { month: 'long', year: 'numeric' }).format(date);
+    return new Intl.DateTimeFormat(this.locale(), { month: 'long', year: 'numeric' }).format(date);
   });
 
   protected readonly activeDate = computed(() => {
@@ -89,7 +102,7 @@ export class CalendarGridComponent {
     const date = this.activeDate();
     return {
       displayName: String(date.getDate()),
-      ariaLabel: date.toLocaleDateString('en-US', {
+      ariaLabel: date.toLocaleDateString(this.locale(), {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
@@ -103,12 +116,12 @@ export class CalendarGridComponent {
 
   protected readonly activeDayTitle = computed(() => {
     const date = this.activeDate();
-    return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(date);
+    return new Intl.DateTimeFormat(this.locale(), { weekday: 'long' }).format(date);
   });
 
   protected readonly activeDaySubtitle = computed(() => {
     const date = this.activeDate();
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat(this.locale(), {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
@@ -119,7 +132,7 @@ export class CalendarGridComponent {
     const view = this.view();
     const active = this.activeDate();
     if (view === 'day') {
-      return new Intl.DateTimeFormat('en-US', {
+      return new Intl.DateTimeFormat(this.locale(), {
         weekday: 'long',
         month: 'long',
         day: 'numeric',
@@ -128,9 +141,9 @@ export class CalendarGridComponent {
     }
     if (view === 'week') {
       const [start, end] = this.weekRange(active);
-      const formatter = new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' });
-      const year = new Intl.DateTimeFormat('en-US', { year: 'numeric' }).format(active);
-      return `${formatter.format(start)} - ${formatter.format(end)}, ${year}`;
+      const formatter = new Intl.DateTimeFormat(this.locale(), { month: 'short', day: 'numeric' });
+      const year = new Intl.DateTimeFormat(this.locale(), { year: 'numeric' }).format(active);
+      return `${formatter.format(start)} ${this.t('appointments.calendarUi.rangeSep')} ${formatter.format(end)}, ${year}`;
     }
     return this.monthLabel();
   });
@@ -143,10 +156,17 @@ export class CalendarGridComponent {
   });
 
   protected readonly weekdays = computed(() => {
+    this.lang();
     const firstDay = this.firstDayOfWeek();
-    const long = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
-    const narrow = this.dayNames;
-    const days = long.map((name, index) => ({ long: name, narrow: narrow[index] }));
+    const formatterLong = new Intl.DateTimeFormat(this.locale(), { weekday: 'long' });
+    const formatterShort = new Intl.DateTimeFormat(this.locale(), { weekday: 'short' });
+    const days = Array.from({ length: 7 }, (_, index) => {
+      const date = new Date(Date.UTC(2024, 0, 7 + index));
+      return {
+        long: formatterLong.format(date),
+        narrow: formatterShort.format(date),
+      };
+    });
     return days.slice(firstDay).concat(days.slice(0, firstDay));
   });
 
@@ -174,7 +194,7 @@ export class CalendarGridComponent {
       const date = new Date(year, month, i + 1);
       weeks[rowIndex].push({
         displayName: String(i + 1),
-        ariaLabel: date.toLocaleDateString('en-US', {
+        ariaLabel: date.toLocaleDateString(this.locale(), {
           weekday: 'long',
           month: 'long',
           day: 'numeric',
@@ -198,7 +218,7 @@ export class CalendarGridComponent {
       date.setDate(start.getDate() + i);
       days.push({
         displayName: String(date.getDate()),
-        ariaLabel: date.toLocaleDateString('en-US', {
+        ariaLabel: date.toLocaleDateString(this.locale(), {
           weekday: 'long',
           month: 'long',
           day: 'numeric',
@@ -435,12 +455,17 @@ export class CalendarGridComponent {
     const christmas = new Date(year, 11, 25);
     const thanksgiving = this.nthWeekdayOfMonth(year, 10, 4, 4);
     const list = [
-      { iso: this.formatLocalIso(newYears), name: 'New Year\'s Day' },
-      { iso: this.formatLocalIso(independence), name: 'Independence Day' },
-      { iso: this.formatLocalIso(thanksgiving), name: 'Thanksgiving' },
-      { iso: this.formatLocalIso(christmas), name: 'Christmas Day' },
+      { iso: this.formatLocalIso(newYears), name: this.t('appointments.calendarUi.holidays.newYear') },
+      { iso: this.formatLocalIso(independence), name: this.t('appointments.calendarUi.holidays.independence') },
+      { iso: this.formatLocalIso(thanksgiving), name: this.t('appointments.calendarUi.holidays.thanksgiving') },
+      { iso: this.formatLocalIso(christmas), name: this.t('appointments.calendarUi.holidays.christmas') },
     ];
     return list;
+  }
+
+  protected t(key: string, params?: Record<string, string | number>): string {
+    this.lang();
+    return this.translate.instant(key, params);
   }
 
   private formatLocalIso(date: Date): string {
