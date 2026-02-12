@@ -3,6 +3,12 @@
     "overview": "Overzicht",
     "invites": "Uitnodigingen",
     "newInvite": "Nieuwe uitnodiging",
+    "team": {
+      "navLabel": "Team"
+    },
+    "integrations": {
+      "navLabel": "Integraties"
+    },
     "title": "Organisatie",
     "subtitle": "Beheer bedrijfsprofiel en teamuitnodigingen.",
     "profileTitle": "Organisatieprofiel",

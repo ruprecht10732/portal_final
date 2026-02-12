@@ -3,6 +3,12 @@
     "overview": "Overview",
     "invites": "Invites",
     "newInvite": "New invite",
+    "team": {
+      "navLabel": "Team"
+    },
+    "integrations": {
+      "navLabel": "Integrations"
+    },
     "title": "Organization",
     "subtitle": "Manage company profile and team invites.",
     "profileTitle": "Organization profile",

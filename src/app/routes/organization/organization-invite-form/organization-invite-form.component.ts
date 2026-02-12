@@ -15,7 +15,7 @@ export class OrganizationInviteFormComponent {
   title = input('');
   subtitle = input('');
   listLinkLabel = input('');
-  listLink = input('/app/organization/invites');
+  listLink = input('/app/organization/team');
 
   errorMessage = input('');
   successMessage = input('');
