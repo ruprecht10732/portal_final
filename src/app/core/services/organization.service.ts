@@ -157,6 +157,24 @@ export interface UpdateInviteResponse {
   token?: string | null;
 }
 
+export interface NotificationWorkflowRule {
+  trigger: string;
+  channel: string;
+  audience: string;
+  enabled: boolean;
+  delayMinutes: number;
+  leadSource?: string | null;
+  templateText?: string | null;
+}
+
+export interface ListNotificationWorkflowsResponse {
+  workflows: NotificationWorkflowRule[];
+}
+
+export interface ReplaceNotificationWorkflowsRequest {
+  workflows: NotificationWorkflowRule[];
+}
+
 @Injectable({ providedIn: 'root' })
 export class OrganizationService {
   private readonly http = inject(HttpClient);
@@ -210,6 +228,18 @@ export class OrganizationService {
 
   updateSettings(payload: UpdateOrganizationSettingsRequest): Observable<OrganizationSettings> {
     return this.http.patch<OrganizationSettings>(`${this.baseUrl}/me/settings`, payload);
+  }
+
+  getNotificationWorkflows(): Observable<NotificationWorkflowRule[]> {
+    return this.http.get<ListNotificationWorkflowsResponse>(`${this.baseUrl}/me/workflows`).pipe(
+      map(response => response.workflows)
+    );
+  }
+
+  replaceNotificationWorkflows(payload: ReplaceNotificationWorkflowsRequest): Observable<NotificationWorkflowRule[]> {
+    return this.http.put<ListNotificationWorkflowsResponse>(`${this.baseUrl}/me/workflows`, payload).pipe(
+      map(response => response.workflows)
+    );
   }
 
   registerWhatsAppDevice(): Observable<RegisterWhatsAppResponse> {

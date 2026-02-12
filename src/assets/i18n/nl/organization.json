@@ -67,6 +67,47 @@
       "navLabel": "Instellingen",
       "subtitle": "Stel standaardwaarden in voor offertes.",
       "quoteDefaults": "Standaardwaarden",
+      "workflows": {
+        "title": "Workflows",
+        "subtitle": "Configureer automatische berichten met templates en variabelen.",
+        "enabled": "Ingeschakeld",
+        "delayLabel": "Vertraging",
+        "leadSourceLabel": "Lead bron filter (optioneel)",
+        "leadSourceHint": "Voer alleen uit wanneer de lead bron exact overeenkomt (laat leeg voor alles).",
+        "leadSourcePlaceholder": "bijv. google_ads",
+        "templateLabel": "Template",
+        "templatePlaceholder": "Typ je bericht… Gebruik variabelen zoals {{lead.name}}",
+        "loadFailed": "Workflows laden mislukt.",
+        "saveFailed": "Workflows opslaan mislukt.",
+        "saved": "Workflows bijgewerkt.",
+        "cards": {
+          "leadWelcome": {
+            "title": "Lead welkomstbericht (WhatsApp)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{lead.phone}}, {{lead.source}}, {{links.track}}"
+          },
+          "quoteSent": {
+            "title": "Offerte verstuurd (WhatsApp)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{quote.number}}, {{quote.previewUrl}}, {{org.name}}"
+          },
+          "appointmentCreated": {
+            "title": "Afspraak bevestigd (WhatsApp)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}"
+          },
+          "appointmentReminder": {
+            "title": "Afspraak herinnering (WhatsApp)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}"
+          },
+          "partnerOfferCreated": {
+            "title": "Werkaanbod aangemaakt (WhatsApp)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{partner.name}}, {{offer.id}}, {{links.accept}}"
+          }
+        }
+      },
       "quotePaymentDays": "Betalingstermijn (dagen)",
       "quoteValidDays": "Geldigheid offerte (dagen)",
       "save": "Instellingen opslaan",
