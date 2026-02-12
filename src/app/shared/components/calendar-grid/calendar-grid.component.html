@@ -2,25 +2,25 @@
   <div class="calendar-header">
     <div class="calendar-header-row">
       @if (showNav()) {
-        <button class="month-control" aria-label="previous" (click)="previousPeriod()">
+        <button class="month-control" [attr.aria-label]="t('appointments.calendarUi.previous')" (click)="previousPeriod()">
           <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_left</span>
-          <span class="visually-hidden">Previous</span>
+          <span class="visually-hidden">{{ t('appointments.calendarUi.previous') }}</span>
         </button>
       }
       <div class="calendar-title">
         <h3 [id]="gridLabelId" aria-live="polite">{{ headerLabel() }}</h3>
       </div>
       @if (showNav()) {
-        <button class="month-control" aria-label="next" (click)="nextPeriod()">
+        <button class="month-control" [attr.aria-label]="t('appointments.calendarUi.next')" (click)="nextPeriod()">
           <span aria-hidden="true" class="material-symbols-outlined" translate="no">chevron_right</span>
-          <span class="visually-hidden">Next</span>
+          <span class="visually-hidden">{{ t('appointments.calendarUi.next') }}</span>
         </button>
       }
     </div>
 
     <div class="calendar-header-row secondary">
       @if (showViews()) {
-        <div class="calendar-views" role="tablist" aria-label="Calendar views">
+        <div class="calendar-views" role="tablist" [attr.aria-label]="t('appointments.calendarUi.views')">
           <button
             type="button"
             role="tab"
@@ -28,7 +28,7 @@
             (click)="view.set('day')"
             class="view-button"
           >
-            Day
+            {{ t('appointments.calendarUi.day') }}
           </button>
           <button
             type="button"
@@ -37,7 +37,7 @@
             (click)="view.set('week')"
             class="view-button"
           >
-            Week
+            {{ t('appointments.calendarUi.week') }}
           </button>
           <button
             type="button"
@@ -46,26 +46,26 @@
             (click)="view.set('month')"
             class="view-button"
           >
-            Month
+            {{ t('appointments.calendarUi.month') }}
           </button>
         </div>
       }
       @if (showToday()) {
-        <button type="button" class="today-button" (click)="selectToday()">Today</button>
+        <button type="button" class="today-button" (click)="selectToday()">{{ t('appointments.calendarUi.today') }}</button>
       }
     </div>
 
     @if (showLegend()) {
       <div class="calendar-legend" aria-hidden="true">
-        <span class="legend-item"><span class="legend-swatch is-selected"></span>Selected</span>
-        <span class="legend-item"><span class="legend-swatch in-range"></span>Range</span>
-        <span class="legend-item"><span class="legend-swatch is-unavailable"></span>Unavailable</span>
+        <span class="legend-item"><span class="legend-swatch is-selected"></span>{{ t('appointments.calendarUi.selected') }}</span>
+        <span class="legend-item"><span class="legend-swatch in-range"></span>{{ t('appointments.calendarUi.range') }}</span>
+        <span class="legend-item"><span class="legend-swatch is-unavailable"></span>{{ t('appointments.calendarUi.unavailable') }}</span>
       </div>
     }
   </div>
 
   <p [id]="instructionsId" class="visually-hidden">
-    Use arrow keys to move between days. Press Enter to select. Use the Today button to jump to the current date.
+    {{ t('appointments.calendarUi.instructions') }}
   </p>
 
   @switch (view()) {
@@ -106,7 +106,7 @@
           <thead>
             <tr>
               @if (showWeekNumbers()) {
-                <th scope="col" class="week-number">Wk</th>
+                <th scope="col" class="week-number">{{ t('appointments.calendarUi.weekShort') }}</th>
               }
               @for (day of weekdays(); track day.long; let i = $index) {
                 <th scope="col" class="text-xs uppercase tracking-wide text-zinc-500 border-b border-zinc-900 bg-zinc-50 p-2">
@@ -178,7 +178,7 @@
                       }
                       @if (getEventsForDay(day).length > maxVisibleEvents()) {
                         <div class="text-xs text-zinc-500 px-1">
-                          +{{ getEventsForDay(day).length - maxVisibleEvents() }} more
+                          {{ t('appointments.calendarUi.moreCount', { count: getEventsForDay(day).length - maxVisibleEvents() }) }}
                         </div>
                       }
                     </div>
@@ -208,7 +208,7 @@
           <thead>
             <tr>
               @if (showWeekNumbers()) {
-                <th scope="col" class="week-number">Wk</th>
+                <th scope="col" class="week-number">{{ t('appointments.calendarUi.weekShort') }}</th>
               }
               @for (day of weekdays(); track day.long; let i = $index) {
                 <th scope="col" class="text-xs uppercase tracking-wide text-zinc-500 border-b border-zinc-900 bg-zinc-50 p-2">
@@ -286,7 +286,7 @@
                       }
                       @if (getEventsForDay(day).length > maxVisibleEvents()) {
                         <div class="text-xs text-zinc-500 px-1">
-                          +{{ getEventsForDay(day).length - maxVisibleEvents() }} more
+                          {{ t('appointments.calendarUi.moreCount', { count: getEventsForDay(day).length - maxVisibleEvents() }) }}
                         </div>
                       }
                     </div>

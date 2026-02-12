@@ -1,6 +1,30 @@
 {
   "appointments": {
     "calendar": "Kalender",
+    "calendarUi": {
+      "previous": "Vorige",
+      "next": "Volgende",
+      "views": "Kalenderweergaven",
+      "day": "Dag",
+      "week": "Week",
+      "month": "Maand",
+      "today": "Vandaag",
+      "selected": "Geselecteerd",
+      "range": "Bereik",
+      "unavailable": "Niet beschikbaar",
+      "selectTime": "Selecteer {{time}}",
+      "selectTimeOn": "Selecteer {{time}} op {{day}}",
+      "instructions": "Gebruik de pijltoetsen om tussen dagen te bewegen. Druk op Enter om te selecteren. Gebruik de knop Vandaag om naar de huidige datum te gaan.",
+      "weekShort": "Wk",
+      "moreCount": "+{{count}} meer",
+      "rangeSep": "-",
+      "holidays": {
+        "newYear": "Nieuwjaarsdag",
+        "independence": "Onafhankelijkheidsdag",
+        "thanksgiving": "Danksgiving",
+        "christmas": "Eerste kerstdag"
+      }
+    },
     "listView": "Lijstweergave",
     "availabilityNav": "Beschikbaarheid",
     "createNew": "Nieuwe Afspraak",

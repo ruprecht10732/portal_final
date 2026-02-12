@@ -2,9 +2,12 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  inject,
   input,
   output,
 } from '@angular/core';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { TranslateService } from '@ngx-translate/core';
 
 export interface CalendarDayViewModel {
   displayName: string;
@@ -32,6 +35,17 @@ export interface CalendarDayEvent {
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class CalendarDayViewComponent {
+  private readonly translate = inject(TranslateService);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: {
+      lang: this.translate.currentLang || this.translate.getDefaultLang() || 'en',
+      translations: {},
+    },
+  });
+  protected readonly locale = computed(() => {
+    this.lang();
+    return this.translate.currentLang || this.translate.getDefaultLang() || 'en';
+  });
   readonly day = input<CalendarDayViewModel | null>(null);
   readonly isUnavailable = input(false);
   readonly holidayName = input<string | null>(null);
@@ -53,13 +67,13 @@ export class CalendarDayViewComponent {
   protected readonly dayTitle = computed(() => {
     const day = this.day();
     if (!day) return '';
-    return new Intl.DateTimeFormat('en-US', { weekday: 'long' }).format(new Date(day.iso));
+    return new Intl.DateTimeFormat(this.locale(), { weekday: 'long' }).format(new Date(day.iso));
   });
 
   protected readonly daySubtitle = computed(() => {
     const day = this.day();
     if (!day) return '';
-    return new Intl.DateTimeFormat('en-US', {
+    return new Intl.DateTimeFormat(this.locale(), {
       month: 'long',
       day: 'numeric',
       year: 'numeric',
@@ -75,10 +89,9 @@ export class CalendarDayViewComponent {
       const hour = Math.floor(minutes / 60);
       const minute = minutes % 60;
       slots.push({
-        label: new Intl.DateTimeFormat('en-US', {
-          hour: 'numeric',
+        label: new Intl.DateTimeFormat(this.locale(), {
+          hour: '2-digit',
           minute: '2-digit',
-          hour12: true,
         }).format(new Date(2026, 0, 1, hour, minute)),
         value: minutes,
       });
@@ -101,6 +114,17 @@ export class CalendarDayViewComponent {
     const day = this.day();
     if (!day || this.isBlocked(minutes)) return;
     this.slotClick.emit({ date: day.iso, time: minutes });
+  }
+
+  protected slotAriaLabel(label: string): string {
+    const day = this.day();
+    if (!day) {
+      return this.translate.instant('appointments.calendarUi.selectTime', { time: label });
+    }
+    return this.translate.instant('appointments.calendarUi.selectTimeOn', {
+      time: label,
+      day: day.ariaLabel,
+    });
   }
 
   protected onEventClick(event: CalendarDayEvent, clickEvent: MouseEvent): void {
