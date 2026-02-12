@@ -23,20 +23,6 @@
           </div>
         </div>
 
-        <div class="max-w-sm">
-          <shared-number-input
-            [label]="'organization.settings.whatsapp.welcomeDelayLabel' | translate"
-            [(value)]="whatsAppWelcomeDelayMinutes"
-            [min]="0"
-            [max]="1440"
-            [step]="1"
-            suffix="min"
-          />
-          <p class="mt-1 text-xs text-zinc-500">
-            {{ 'organization.settings.whatsapp.welcomeDelayHint' | translate }}
-          </p>
-        </div>
-
         <p class="text-xs text-zinc-500 mb-5">
           {{ 'organization.settings.smtp.subtitle' | translate }}
         </p>
