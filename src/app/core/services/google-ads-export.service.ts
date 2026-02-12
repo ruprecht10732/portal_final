@@ -3,37 +3,30 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 
-export interface GoogleAdsExportKey {
-  id: string;
-  name: string;
-  keyPrefix: string;
-  isActive: boolean;
+export interface GoogleAdsExportCredential {
+	username: string;
   createdAt: string;
   lastUsedAt?: string | null;
 }
 
-export interface CreateGoogleAdsExportKeyRequest {
-  name: string;
-}
-
-export interface CreateGoogleAdsExportKeyResponse extends GoogleAdsExportKey {
-  key: string;
+export interface UpsertGoogleAdsExportCredentialResponse extends GoogleAdsExportCredential {
+	password: string;
 }
 
 @Injectable({ providedIn: 'root' })
 export class GoogleAdsExportService {
   private readonly http = inject(HttpClient);
-  private readonly baseUrl = `${environment.apiBaseUrl}/admin/exports/keys`;
+  private readonly baseUrl = `${environment.apiBaseUrl}/admin/exports/credentials`;
 
-  listKeys(): Observable<GoogleAdsExportKey[]> {
-    return this.http.get<GoogleAdsExportKey[]>(this.baseUrl);
+  getCredential(): Observable<GoogleAdsExportCredential> {
+    return this.http.get<GoogleAdsExportCredential>(this.baseUrl);
   }
 
-  createKey(payload: CreateGoogleAdsExportKeyRequest): Observable<CreateGoogleAdsExportKeyResponse> {
-    return this.http.post<CreateGoogleAdsExportKeyResponse>(this.baseUrl, payload);
+  upsertCredential(): Observable<UpsertGoogleAdsExportCredentialResponse> {
+    return this.http.post<UpsertGoogleAdsExportCredentialResponse>(this.baseUrl, {});
   }
 
-  revokeKey(keyId: string): Observable<void> {
-    return this.http.delete<void>(`${this.baseUrl}/${keyId}`);
+  deleteCredential(): Observable<void> {
+    return this.http.delete<void>(this.baseUrl);
   }
 }

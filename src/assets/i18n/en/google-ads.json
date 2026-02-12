@@ -1,47 +1,45 @@
 {
   "googleAds": {
     "title": "Google Ads export",
-    "subtitle": "Create a secure feed for offline conversion imports.",
+    "subtitle": "Create HTTPS credentials for Google Ads conversion imports.",
     "navLabel": "Google Ads export",
-    "createKey": "Create API key",
-    "cancel": "Cancel",
-    "newKey": "New API key",
-    "generate": "Generate key",
-    "keyCreated": "API key created",
-    "keyCreatedWarning": "Copy this key now. It will not be shown again.",
+    "createCredentials": "Create credentials",
+    "rotateCredentials": "Rotate credentials",
+    "credentialsCreated": "Credentials updated",
+    "credentialsCreatedWarning": "Copy this password now. It will not be shown again.",
+    "credentialSaved": "Credentials saved",
+    "credentialDeleted": "Credentials deleted",
     "dismiss": "Dismiss",
-    "revoked": "API key revoked",
-    "revoke": "Revoke",
-    "revokedKeys": "Revoked keys",
-    "statusRevoked": "Revoked",
-    "empty": "No export keys yet",
-    "emptyHint": "Create a key to enable Google Ads scheduled imports.",
+    "deleteCredentials": "Delete credentials",
+    "emptyCredentials": "No export credentials configured",
+    "emptyCredentialsHint": "Create credentials to connect Google Ads HTTPS import.",
+    "lastUsedLabel": "Last used",
+    "neverUsed": "Never",
     "export": {
       "button": "Google Ads export"
     },
     "fields": {
-      "name": "Key name",
-      "namePlaceholder": "Google Ads scheduled import",
-      "apiKey": "API key",
+      "username": "Username",
+      "password": "Password",
       "url": "CSV URL"
     },
-    "copyKey": "Copy API key",
+    "copyUsername": "Copy username",
+    "copyPassword": "Copy password",
     "copyUrl": "Copy URL",
     "instructions": {
       "title": "How to connect",
       "step1": "Create conversion actions in Google Ads that match the names you want to import.",
-      "step2": "Set up a scheduled HTTPS import and use the CSV URL shown above.",
-      "step3": "Add a custom header with your API key so Google Ads can access the feed.",
-      "headersTitle": "Header example"
+      "step2": "Open Google Ads > Goals > Conversions and create an HTTPS data source import.",
+      "step3": "Use the CSV URL shown above and enter the username and password from this page.",
+      "step4": "Enable enhanced conversions in Google Ads if you want hashed email/phone matching."
     },
-    "revokeConfirm": {
-      "title": "Revoke API key",
-      "message": "This key will stop working immediately. You can create a new one at any time.",
-      "confirm": "Revoke",
+    "deleteConfirm": {
+      "title": "Delete credentials",
+      "message": "Google Ads will lose access immediately until you create new credentials.",
+      "confirm": "Delete",
       "cancel": "Cancel"
     },
     "errors": {
-      "nameRequired": "Please provide a name for the key.",
       "generic": "Something went wrong. Please try again."
     }
   }
