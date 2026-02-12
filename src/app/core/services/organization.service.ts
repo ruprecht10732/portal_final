@@ -63,13 +63,11 @@ export interface OrganizationSettings {
   quotePaymentDays: number;
   quoteValidDays: number;
   whatsAppDeviceId?: string | null;
-  whatsAppWelcomeDelayMinutes: number;
 }
 
 export interface UpdateOrganizationSettingsRequest {
   quotePaymentDays?: number;
   quoteValidDays?: number;
-  whatsAppWelcomeDelayMinutes?: number;
 }
 
 export interface WhatsAppStatus {

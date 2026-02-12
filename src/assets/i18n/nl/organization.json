@@ -150,8 +150,6 @@
         "title": "WhatsApp",
         "statusLabel": "Verbindingsstatus",
         "statusHint": "Koppel een apparaat om WhatsApp updates te versturen.",
-        "welcomeDelayLabel": "Welkomstbericht vertraging",
-        "welcomeDelayHint": "Aantal minuten wachten voordat het automatische welkomstbericht wordt verstuurd (0 = direct).",
         "connect": "WhatsApp koppelen",
         "reconnect": "Opnieuw verbinden",
         "disconnect": "Ontkoppelen",
