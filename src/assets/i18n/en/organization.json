@@ -3,6 +3,7 @@
     "overview": "Overview",
     "invites": "Invites",
     "newInvite": "New invite",
+    "backToOrg": "← Organization",
     "team": {
       "navLabel": "Team"
     },

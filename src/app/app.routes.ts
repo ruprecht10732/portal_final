@@ -131,6 +131,7 @@ export const routes: Routes = [
 							),
 						data: {
 							panelItems: [
+								{ label: 'organization.backToOrg', route: '/app/organization', icon: 'building', exact: true },
 								{ label: 'organization.settings.quoteDefaults', route: '/app/organization/settings/quote-defaults', icon: 'settings', exact: true },
 								{ label: 'organization.settings.whatsapp.title', route: '/app/organization/settings/whatsapp', icon: 'globe' },
 								{ label: 'organization.settings.smtp.title', route: '/app/organization/settings/smtp', icon: 'mail' },
@@ -170,6 +171,7 @@ export const routes: Routes = [
 						loadComponent: () => import('./routes/organization/organization-team-layout/organization-team-layout.component').then(m => m.OrganizationTeamLayoutComponent),
 						data: {
 							panelItems: [
+								{ label: 'organization.backToOrg', route: '/app/organization', icon: 'building', exact: true },
 								{ label: 'organization.invites', route: '/app/organization/team', icon: 'mail', exact: true },
 								{ label: 'organization.newInvite', route: '/app/organization/team/new', icon: 'plus' },
 							],
@@ -204,6 +206,7 @@ export const routes: Routes = [
 							),
 						data: {
 							panelItems: [
+								{ label: 'organization.backToOrg', route: '/app/organization', icon: 'building', exact: true },
 								{ label: 'webhook.navLabel', route: '/app/organization/integrations/webhooks', icon: 'webhook', exact: true },
 								{ label: 'webhook.googleLeads.navLabel', route: '/app/organization/integrations/google-leads', icon: 'globe' },
 								{ label: 'googleAds.navLabel', route: '/app/organization/integrations/google-ads-export', icon: 'download' },
