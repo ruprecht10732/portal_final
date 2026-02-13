@@ -6,6 +6,7 @@ export type PipelineStage =
   | 'Triage'
   | 'Nurturing'
   | 'Ready_For_Estimator'
+  | 'Quote_Draft'
   | 'Quote_Sent'
   | 'Ready_For_Partner'
   | 'Partner_Matching'
@@ -322,6 +323,7 @@ export const PIPELINE_STAGE_LABELS: Record<PipelineStage, string> = {
   Triage: 'Triage',
   Nurturing: 'Nurturing',
   Ready_For_Estimator: 'Ready for Estimator',
+  Quote_Draft: 'Quote draft',
   Quote_Sent: 'Quote sent',
   Ready_For_Partner: 'Ready for Partner',
   Partner_Matching: 'Partner Matching',
@@ -335,6 +337,7 @@ export const PIPELINE_STAGE_COLORS: Record<PipelineStage, string> = {
   Triage: 'bg-blue-100 text-blue-800',
   Nurturing: 'bg-amber-100 text-amber-800',
   Ready_For_Estimator: 'bg-indigo-100 text-indigo-800',
+  Quote_Draft: 'bg-cyan-100 text-cyan-800',
   Quote_Sent: 'bg-teal-100 text-teal-800',
   Ready_For_Partner: 'bg-sky-100 text-sky-800',
   Partner_Matching: 'bg-purple-100 text-purple-800',
@@ -368,6 +371,7 @@ export const PIPELINE_STAGE_I18N_KEYS: Record<PipelineStage, string> = {
   Triage: 'leads.pipeline.triage',
   Nurturing: 'leads.pipeline.nurturing',
   Ready_For_Estimator: 'leads.pipeline.readyForEstimator',
+  Quote_Draft: 'leads.pipeline.quoteDraft',
   Quote_Sent: 'leads.pipeline.quoteSent',
   Ready_For_Partner: 'leads.pipeline.readyForPartner',
   Partner_Matching: 'leads.pipeline.partnerMatching',
