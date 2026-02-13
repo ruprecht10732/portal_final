@@ -1,12 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
-import { map, Observable } from 'rxjs';
+import { catchError, map, Observable, of } from 'rxjs';
 import { parsePhoneNumberFromString } from 'libphonenumber-js';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { LeadsService } from '../../../core/services/leads.service';
+import { OrganizationService, type WhatsAppStatus } from '../../../core/services/organization.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
+import { ToastService } from '../../../core/services/toast.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import { UserService } from '../../../core/services/user.service';
 import { SSEService } from '../../../core/services/sse.service';
@@ -40,6 +42,8 @@ export class LeadListComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
+  private readonly orgService = inject(OrganizationService);
   private readonly sse = inject(SSEService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly lang = toSignal(this.translate.onLangChange, {
@@ -57,9 +61,18 @@ export class LeadListComponent implements OnInit {
   protected readonly pendingDeleteRows = signal<LeadRow[]>([]);
   protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
   protected readonly isAdmin = signal(false);
+  protected readonly whatsAppStatus = signal<WhatsAppStatus | null>(null);
+  protected readonly isWhatsAppConfigured = computed(() => this.whatsAppStatus()?.canSend ?? false);
   private readonly lastRequest = signal<DataRequest | null>(null);
   private ignoreNextRequest = true;
   private readonly phoneRegion = DEFAULT_PHONE_REGION;
+
+  private parseWhatsappOptedIn(value: unknown): boolean | undefined {
+    if (typeof value === 'boolean') return value;
+    if (value === 'true') return true;
+    if (value === 'false') return false;
+    return undefined;
+  }
 
   protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => {
     this.lang();
@@ -77,6 +90,14 @@ export class LeadListComponent implements OnInit {
       value: option.value,
       label: this.translate.instant(`leads.list.roles.${option.value.toLowerCase()}`),
     }));
+  });
+
+  protected readonly whatsappOptedInOptions = computed(() => {
+    this.lang();
+    return [
+      { value: true, label: this.translate.instant('leads.list.whatsappOptions.enabled') },
+      { value: false, label: this.translate.instant('leads.list.whatsappOptions.disabled') },
+    ];
   });
 
   private readonly baseColumns = computed<GridColumn<LeadRow>[]>(() => {
@@ -165,6 +186,19 @@ export class LeadListComponent implements OnInit {
         validator: value => this.consumerRoleOptions().some(opt => opt.value === value)
           ? null
           : this.translate.instant('leads.list.validation.required'),
+      },
+      {
+        id: 'whatsappOptedIn',
+        header: this.translate.instant('leads.list.columns.whatsappOptedIn'),
+        field: 'whatsappOptedIn',
+        sortable: false,
+        filterable: false,
+        editable: true,
+        width: '160px',
+        cellType: 'select',
+        validator: value => this.parseWhatsappOptedIn(value) === undefined
+          ? this.translate.instant('leads.list.validation.whatsappRequired')
+          : null,
       },
       {
         id: 'street',
@@ -294,13 +328,17 @@ export class LeadListComponent implements OnInit {
   );
 
   protected readonly columns = computed<GridColumn<LeadRow>[]>(() => {
+    const canEditWhatsappPreference = this.isWhatsAppConfigured();
     const assigneeOptions = [{ label: this.translate.instant('leads.list.unassigned'), value: '' }, ...this.userOptions()];
-    return this.baseColumns().map(column => {
+    return this.baseColumns().filter(column => canEditWhatsappPreference || column.id !== 'whatsappOptedIn').map(column => {
       if (column.id === 'assignedAgentId') {
         return { ...column, selectOptions: assigneeOptions };
       }
       if (column.id === 'serviceType') {
         return { ...column, selectOptions: this.serviceTypeOptions(), metaOptions: this.serviceTypeMetaOptions() };
+      }
+      if (column.id === 'whatsappOptedIn') {
+        return { ...column, selectOptions: this.whatsappOptedInOptions() };
       }
       return column;
     });
@@ -325,6 +363,7 @@ export class LeadListComponent implements OnInit {
 
   ngOnInit(): void {
     this.loadCurrentUser();
+    this.loadWhatsAppStatus();
     this.sse.leadUpdated
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe(() => this.refreshFromSse());
@@ -402,6 +441,25 @@ export class LeadListComponent implements OnInit {
       error: () => {
         this.isAdmin.set(false);
       },
+    });
+  }
+
+  private loadWhatsAppStatus(): void {
+    const fallbackStatus: WhatsAppStatus = {
+      state: 'ERROR',
+      message: '',
+      canSend: false,
+      needsReauth: false,
+    };
+
+    this.orgService.getWhatsAppStatus().pipe(
+      catchError((err) => {
+        this.reporter.report(err, { source: 'http', silent: true });
+        return of(fallbackStatus);
+      }),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe(status => {
+      this.whatsAppStatus.set(status);
     });
   }
 
@@ -702,6 +760,7 @@ export class LeadListComponent implements OnInit {
       if (row.id) {
         // Handle updates - note: serviceType and status are now per-service, not on lead level
         const emailValue = normalizeOptional(consumer.email ?? undefined);
+        const whatsappOptedIn = this.parseWhatsappOptedIn(row.whatsappOptedIn);
         const updateRequest: UpdateLeadRequest = {
           firstName: normalize(consumer.firstName),
           lastName: normalize(consumer.lastName),
@@ -712,11 +771,15 @@ export class LeadListComponent implements OnInit {
           zipCode: normalize(address.zipCode),
           city: normalize(address.city),
           assigneeId: normalizedAssigneeId,
+          ...(whatsappOptedIn !== undefined && { whatsappOptedIn }),
           ...(emailValue && { email: emailValue }),
         };
 
         this.leadsService.update(row.id, updateRequest).subscribe({
-          next: () => this.loadInitialData(),
+          next: () => {
+            this.toast.success(this.translate.instant('leads.list.success.updated'));
+            this.loadInitialData();
+          },
           error: (err) => {
             const message = extractErrorMessage(err, 'Failed to update lead', {
               allowErrorMessage: true,
@@ -731,6 +794,12 @@ export class LeadListComponent implements OnInit {
         // The grid likely puts nested objects if the field was 'consumer.firstName' etc.
         // Assuming the store.addNewRow() and cell updates maintain the structure.
         const emailValue = consumer.email;
+        const whatsappOptedIn = this.parseWhatsappOptedIn(row.whatsappOptedIn);
+        if (this.isWhatsAppConfigured() && whatsappOptedIn === undefined) {
+          this.error.set(this.translate.instant('leads.list.validation.whatsappRequired'));
+          return;
+        }
+
         const leadRequest: CreateLeadRequest = {
           firstName: consumer.firstName ?? '',
           lastName: consumer.lastName ?? '',
@@ -742,12 +811,13 @@ export class LeadListComponent implements OnInit {
           city: address.city ?? '',
           serviceType: (row['serviceType'] as string | undefined) ?? row.currentService?.serviceType ?? this.getDefaultServiceType(),
           assigneeId: normalizedAssigneeId,
-          whatsappOptedIn: true,
+          ...(whatsappOptedIn !== undefined && { whatsappOptedIn }),
           ...(emailValue && { email: emailValue }),
         };
 
         this.leadsService.create(leadRequest).subscribe({
           next: () => {
+            this.toast.success(this.translate.instant('leads.list.success.created'));
             this.loadInitialData();
           },
           error: (err) => {

@@ -810,6 +810,12 @@ export class LeadDetailComponent implements OnInit {
     this.router.navigate(['/app/offertes/new'], { queryParams: { leadId: lead.id } });
   }
 
+  protected editLead(): void {
+    const lead = this.lead();
+    if (!lead) return;
+    this.router.navigate(['/app/leads', lead.id, 'edit']);
+  }
+
   protected addNote(): void {
     const lead = this.lead();
     const text = this.noteText().trim();

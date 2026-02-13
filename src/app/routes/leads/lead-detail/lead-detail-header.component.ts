@@ -31,4 +31,5 @@ export class LeadDetailHeaderComponent {
   closeStatusMenu = output<void>();
   selectStatus = output<LeadStatus>();
   createQuote = output<void>();
+  editLead = output<void>();
 }

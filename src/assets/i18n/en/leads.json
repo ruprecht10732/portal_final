@@ -96,6 +96,7 @@
       "unassigned": "Unassigned",
       "customerNotHome": "Customer not home",
       "createQuote": "Create Quote",
+      "editLead": "Edit lead",
       "tabs": {
         "visit": "The Visit",
         "activity": "Activity / Notes",
@@ -435,6 +436,7 @@
         "lastName": "Last Name",
         "phone": "Phone",
         "email": "Email",
+        "whatsappOptedIn": "WhatsApp updates",
         "role": "Role",
         "street": "Street",
         "houseNumber": "House No.",
@@ -446,6 +448,10 @@
         "assignee": "Assignee",
         "createdAt": "Created"
       },
+      "whatsappOptions": {
+        "enabled": "Enabled",
+        "disabled": "Disabled"
+      },
       "roles": {
         "owner": "Owner",
         "tenant": "Tenant",
@@ -454,7 +460,12 @@
       "validation": {
         "required": "Required",
         "minChars": "Min {{count}} chars",
-        "invalidEmail": "Invalid email"
+        "invalidEmail": "Invalid email",
+        "whatsappRequired": "Choose whether WhatsApp updates are enabled"
+      },
+      "success": {
+        "created": "Lead created successfully",
+        "updated": "Lead updated successfully"
       },
       "errors": {
         "loadLeads": "Failed to load leads",

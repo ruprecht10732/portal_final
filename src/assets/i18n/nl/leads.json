@@ -96,6 +96,7 @@
       "unassigned": "Niet toegewezen",
       "customerNotHome": "Klant niet thuis",
       "createQuote": "Offerte maken",
+      "editLead": "Lead bewerken",
       "tabs": {
         "visit": "Het bezoek",
         "activity": "Activiteit / notities",
@@ -435,6 +436,7 @@
         "lastName": "Achternaam",
         "phone": "Telefoon",
         "email": "E-mailadres",
+        "whatsappOptedIn": "WhatsApp updates",
         "role": "Rol",
         "street": "Straat",
         "houseNumber": "Huisnr.",
@@ -446,6 +448,10 @@
         "assignee": "Toegewezen",
         "createdAt": "Aangemaakt"
       },
+      "whatsappOptions": {
+        "enabled": "Ingeschakeld",
+        "disabled": "Uitgeschakeld"
+      },
       "roles": {
         "owner": "Eigenaar",
         "tenant": "Huurder",
@@ -454,7 +460,12 @@
       "validation": {
         "required": "Verplicht",
         "minChars": "Minimaal {{count}} tekens",
-        "invalidEmail": "Ongeldig e-mailadres"
+        "invalidEmail": "Ongeldig e-mailadres",
+        "whatsappRequired": "Kies of WhatsApp-updates ingeschakeld zijn"
+      },
+      "success": {
+        "created": "Lead succesvol aangemaakt",
+        "updated": "Lead succesvol bijgewerkt"
       },
       "errors": {
         "loadLeads": "Kon leads niet laden",
