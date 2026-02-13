@@ -12,7 +12,7 @@ import { AppointmentsService } from '../../../core/services/appointments.service
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem } from '../../../core/services/leads.types';
-import { buildLeadStatusLabels, STATUS_COLORS, STATUS_LABELS, STATUS_OPTIONS } from '../../../core/services/leads.types';
+import { buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
 import type {
   AccessDifficulty,
   AppointmentAttachmentResponse,
@@ -317,7 +317,7 @@ export class LeadDetailComponent implements OnInit {
   );
 
   protected readonly statusOptions = computed<SelectOption<LeadStatus>[]>(() => (
-    STATUS_OPTIONS.map(option => ({
+    MANUAL_STATUS_OPTIONS.map(option => ({
       value: option.value,
       label: this.statusLabels()[option.value],
     }))
@@ -616,11 +616,14 @@ export class LeadDetailComponent implements OnInit {
   }
 
   private getConfirmMessage(status: LeadStatus): string {
-    if (status === 'Bad_Lead') {
-      return this.translate.instant('leads.detail.confirm.badLead');
+    if (status === 'Disqualified') {
+      return this.translate.instant('leads.detail.confirm.disqualified');
     }
-    if (status === 'Closed') {
-      return this.translate.instant('leads.detail.confirm.closed');
+    if (status === 'Completed') {
+      return this.translate.instant('leads.detail.confirm.completed');
+    }
+    if (status === 'Lost') {
+      return this.translate.instant('leads.detail.confirm.lost');
     }
     return this.translate.instant('leads.detail.confirm.default');
   }
@@ -1410,7 +1413,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected isTerminalStatus(status: LeadStatus): boolean {
-    return status === 'Closed' || status === 'Bad_Lead' || status === 'Surveyed';
+    return status === 'Completed' || status === 'Lost' || status === 'Disqualified';
   }
 
   protected onWorkflowSelectionChange(value: string | null): void {

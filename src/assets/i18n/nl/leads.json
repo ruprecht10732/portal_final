@@ -262,12 +262,17 @@
       },
       "status": {
         "new": "Nieuw",
-        "contacted": "Benaderd",
-        "scheduled": "Ingepland",
+        "attemptedContact": "Contactpoging",
+        "appointmentScheduled": "Afspraak ingepland",
+        "surveyCompleted": "Survey afgerond",
+        "quoteDraft": "Offerte concept",
+        "quoteSent": "Offerte verstuurd",
+        "quoteAccepted": "Offerte geaccepteerd",
+        "partnerAssigned": "Partner toegewezen",
         "completed": "Afgerond",
-        "badLead": "Slechte lead",
+        "lost": "Verloren",
+        "disqualified": "Gediskwalificeerd",
         "needsRescheduling": "Opnieuw inplannen",
-        "closed": "Gesloten",
         "noService": "Geen dienst"
       },
       "accessDifficulty": {
@@ -291,8 +296,9 @@
       },
       "confirm": {
         "changeTo": "Wijzigen naar {{status}}?",
-        "badLead": "Dit markeert de lead als een slechte lead. Dit kan rapportages beïnvloeden.",
-        "closed": "Dit sluit de lead. Zorg dat al het werk is afgerond.",
+        "disqualified": "Dit markeert de lead als gediskwalificeerd. Dit kan rapportages beïnvloeden.",
+        "completed": "Dit markeert de lead als afgerond. Zorg dat al het werk is voltooid.",
+        "lost": "Dit markeert de lead als verloren. Controleer of verdere opvolging niet nodig is.",
         "default": "Weet je zeker dat je deze wijziging wilt doorvoeren?"
       },
       "announcements": {

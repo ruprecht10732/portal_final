@@ -262,12 +262,17 @@
       },
       "status": {
         "new": "New",
-        "contacted": "Contacted",
-        "scheduled": "Scheduled",
+        "attemptedContact": "Attempted Contact",
+        "appointmentScheduled": "Appointment Scheduled",
+        "surveyCompleted": "Survey Completed",
+        "quoteDraft": "Quote Draft",
+        "quoteSent": "Quote Sent",
+        "quoteAccepted": "Quote Accepted",
+        "partnerAssigned": "Partner Assigned",
         "completed": "Completed",
-        "badLead": "Bad Lead",
+        "lost": "Lost",
+        "disqualified": "Disqualified",
         "needsRescheduling": "Needs Rescheduling",
-        "closed": "Closed",
         "noService": "No Service"
       },
       "accessDifficulty": {
@@ -291,8 +296,9 @@
       },
       "confirm": {
         "changeTo": "Change to {{status}}?",
-        "badLead": "This will mark the lead as a bad lead. This action may affect reporting.",
-        "closed": "This will close the lead. Make sure all work is completed.",
+        "disqualified": "This will mark the lead as disqualified. This action may affect reporting.",
+        "completed": "This will mark the lead as completed. Make sure all work is finished.",
+        "lost": "This will mark the lead as lost. Make sure follow-up is no longer required.",
         "default": "Are you sure you want to make this change?"
       },
       "announcements": {

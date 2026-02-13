@@ -1,7 +1,19 @@
 // Lead types matching backend DTOs
 
 export type ConsumerRole = 'Owner' | 'Tenant' | 'Landlord';
-export type LeadStatus = 'New' | 'Attempted_Contact' | 'Scheduled' | 'Surveyed' | 'Bad_Lead' | 'Needs_Rescheduling' | 'Closed';
+export type LeadStatus =
+  | 'New'
+  | 'Attempted_Contact'
+  | 'Appointment_Scheduled'
+  | 'Survey_Completed'
+  | 'Quote_Draft'
+  | 'Quote_Sent'
+  | 'Quote_Accepted'
+  | 'Partner_Assigned'
+  | 'Needs_Rescheduling'
+  | 'Completed'
+  | 'Lost'
+  | 'Disqualified';
 export type PipelineStage =
   | 'Triage'
   | 'Nurturing'
@@ -302,21 +314,31 @@ export type SortField =
 export const STATUS_LABELS: Record<LeadStatus, string> = {
   New: 'New',
   Attempted_Contact: 'Attempted Contact',
-  Scheduled: 'Scheduled',
-  Surveyed: 'Surveyed',
-  Bad_Lead: 'Bad Lead',
+  Appointment_Scheduled: 'Appointment Scheduled',
+  Survey_Completed: 'Survey Completed',
+  Quote_Draft: 'Quote Draft',
+  Quote_Sent: 'Quote Sent',
+  Quote_Accepted: 'Quote Accepted',
+  Partner_Assigned: 'Partner Assigned',
   Needs_Rescheduling: 'Needs Rescheduling',
-  Closed: 'Closed',
+  Completed: 'Completed',
+  Lost: 'Lost',
+  Disqualified: 'Disqualified',
 };
 
 export const STATUS_COLORS: Record<LeadStatus, string> = {
   New: 'bg-blue-100 text-blue-800',
   Attempted_Contact: 'bg-yellow-100 text-yellow-800',
-  Scheduled: 'bg-purple-100 text-purple-800',
-  Surveyed: 'bg-green-100 text-green-800',
-  Bad_Lead: 'bg-zinc-200 text-zinc-600',
+  Appointment_Scheduled: 'bg-purple-100 text-purple-800',
+  Survey_Completed: 'bg-green-100 text-green-800',
+  Quote_Draft: 'bg-cyan-100 text-cyan-800',
+  Quote_Sent: 'bg-teal-100 text-teal-800',
+  Quote_Accepted: 'bg-emerald-100 text-emerald-800',
+  Partner_Assigned: 'bg-indigo-100 text-indigo-800',
   Needs_Rescheduling: 'bg-orange-100 text-orange-800',
-  Closed: 'bg-gray-100 text-gray-600',
+  Completed: 'bg-gray-100 text-gray-700',
+  Lost: 'bg-zinc-200 text-zinc-600',
+  Disqualified: 'bg-rose-100 text-rose-800',
 };
 
 export const PIPELINE_STAGE_LABELS: Record<PipelineStage, string> = {
@@ -349,12 +371,17 @@ export const PIPELINE_STAGE_COLORS: Record<PipelineStage, string> = {
 
 export const LEAD_STATUS_I18N_KEYS: Record<LeadStatus, string> = {
   New: 'leads.detail.status.new',
-  Attempted_Contact: 'leads.detail.status.contacted',
-  Scheduled: 'leads.detail.status.scheduled',
-  Surveyed: 'leads.detail.status.completed',
-  Bad_Lead: 'leads.detail.status.badLead',
+  Attempted_Contact: 'leads.detail.status.attemptedContact',
+  Appointment_Scheduled: 'leads.detail.status.appointmentScheduled',
+  Survey_Completed: 'leads.detail.status.surveyCompleted',
+  Quote_Draft: 'leads.detail.status.quoteDraft',
+  Quote_Sent: 'leads.detail.status.quoteSent',
+  Quote_Accepted: 'leads.detail.status.quoteAccepted',
+  Partner_Assigned: 'leads.detail.status.partnerAssigned',
   Needs_Rescheduling: 'leads.detail.status.needsRescheduling',
-  Closed: 'leads.detail.status.closed',
+  Completed: 'leads.detail.status.completed',
+  Lost: 'leads.detail.status.lost',
+  Disqualified: 'leads.detail.status.disqualified',
 };
 
 export const buildLeadStatusLabels = (translate: (key: string) => string): Record<LeadStatus, string> => {
@@ -400,11 +427,27 @@ export const CONSUMER_ROLE_OPTIONS: { label: string; value: ConsumerRole }[] = [
 export const STATUS_OPTIONS: { label: string; value: LeadStatus }[] = [
   { label: 'New', value: 'New' },
   { label: 'Attempted Contact', value: 'Attempted_Contact' },
-  { label: 'Scheduled', value: 'Scheduled' },
-  { label: 'Surveyed', value: 'Surveyed' },
-  { label: 'Bad Lead', value: 'Bad_Lead' },
+  { label: 'Appointment Scheduled', value: 'Appointment_Scheduled' },
+  { label: 'Survey Completed', value: 'Survey_Completed' },
+  { label: 'Quote Draft', value: 'Quote_Draft' },
+  { label: 'Quote Sent', value: 'Quote_Sent' },
+  { label: 'Quote Accepted', value: 'Quote_Accepted' },
+  { label: 'Partner Assigned', value: 'Partner_Assigned' },
   { label: 'Needs Rescheduling', value: 'Needs_Rescheduling' },
-  { label: 'Closed', value: 'Closed' },
+  { label: 'Completed', value: 'Completed' },
+  { label: 'Lost', value: 'Lost' },
+  { label: 'Disqualified', value: 'Disqualified' },
+];
+
+export const MANUAL_STATUS_OPTIONS: { label: string; value: LeadStatus }[] = [
+  { label: 'New', value: 'New' },
+  { label: 'Attempted Contact', value: 'Attempted_Contact' },
+  { label: 'Appointment Scheduled', value: 'Appointment_Scheduled' },
+  { label: 'Survey Completed', value: 'Survey_Completed' },
+  { label: 'Needs Rescheduling', value: 'Needs_Rescheduling' },
+  { label: 'Completed', value: 'Completed' },
+  { label: 'Lost', value: 'Lost' },
+  { label: 'Disqualified', value: 'Disqualified' },
 ];
 
 // AI Analysis types
