@@ -92,7 +92,7 @@ export interface ListProductsParams {
 export interface CreateProductRequest {
   vatRateId: string;
   title: string;
-  reference: string;
+  reference?: string;
   description?: string;
   priceCents: number;
   unitPriceCents?: number;
@@ -155,6 +155,10 @@ export interface CatalogAssetListResponse {
 export interface PresignedDownloadResponse {
   downloadUrl: string;
   expiresAt?: number;
+}
+
+export interface NextProductReferenceResponse {
+  reference: string;
 }
 
 // ============================================================================
@@ -264,6 +268,10 @@ export class CatalogService {
 
   getProduct(id: string): Observable<Product> {
     return this.http.get<Product>(`${this.baseUrl}/products/${id}`);
+  }
+
+  getNextProductReference(): Observable<NextProductReferenceResponse> {
+    return this.http.get<NextProductReferenceResponse>(`${this.adminBaseUrl}/products/next-reference`);
   }
 
   createProduct(data: CreateProductRequest): Observable<Product> {

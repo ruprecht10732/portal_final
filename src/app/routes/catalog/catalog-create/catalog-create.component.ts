@@ -34,9 +34,22 @@ export class CatalogCreateComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly vatRates = signal<VatRate[]>([]);
+  protected readonly suggestedReference = signal<string | null>(null);
 
   ngOnInit(): void {
     this.loadVatRates();
+    this.loadSuggestedReference();
+  }
+
+  private loadSuggestedReference(): void {
+    this.catalogService.getNextProductReference().subscribe({
+      next: (response) => {
+        this.suggestedReference.set(response.reference);
+      },
+      error: () => {
+        this.suggestedReference.set(null);
+      },
+    });
   }
 
   private loadVatRates(): void {
@@ -69,11 +82,11 @@ export class CatalogCreateComponent implements OnInit {
 
     const request: CreateProductRequest = {
       title: values.title,
-      reference: values.reference,
       priceCents,
       unitPriceCents,
       vatRateId: values.vatRateId,
       type: values.type,
+      ...(values.reference && { reference: values.reference }),
       ...(descriptionValue && { description: descriptionValue }),
       ...(!isFixed && unitLabelValue && { unitLabel: unitLabelValue }),
     };

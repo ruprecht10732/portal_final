@@ -48,6 +48,7 @@ export class CatalogFormComponent {
   private readonly translate = inject(TranslateService);
 
   readonly initialValue = input<CatalogFormValue | null>(null);
+  readonly suggestedReference = input<string | null>(null);
   readonly vatRates = input<VatRate[]>([]);
   readonly saving = input(false);
   readonly submitLabel = input('');
@@ -63,7 +64,7 @@ export class CatalogFormComponent {
 
   protected readonly form = this.fb.group({
     title: ['', [Validators.required, Validators.maxLength(200)]],
-    reference: ['', [Validators.required, Validators.maxLength(100)]],
+    reference: ['', [Validators.maxLength(100)]],
     description: ['', Validators.maxLength(1000)],
     priceType: this.fb.control<'fixed' | 'unit'>('fixed', { nonNullable: true }),
     price: this.fb.control<number | null>(null, Validators.min(0)),
@@ -138,6 +139,16 @@ export class CatalogFormComponent {
       if (!firstRate) return;
       if (!this.form.controls.vatRateId.value) {
         this.form.controls.vatRateId.setValue(firstRate.id);
+      }
+    });
+
+    effect(() => {
+      const suggestedReference = this.suggestedReference();
+      if (!suggestedReference) return;
+
+      const current = String(this.form.controls.reference.value ?? '').trim();
+      if (!current) {
+        this.form.controls.reference.setValue(suggestedReference);
       }
     });
   }

@@ -22,8 +22,7 @@
           [label]="'catalog.products.fields.reference' | translate"
           [value]="form.controls.reference.value ?? ''"
           (valueChange)="form.controls.reference.setValue($event)"
-          [required]="true"
-          [error]="requiredControlError(form.controls.reference)"
+          [required]="false"
           [placeholder]="'catalog.products.placeholders.reference' | translate"
           [hint]="'catalog.products.hints.reference' | translate"
         />
