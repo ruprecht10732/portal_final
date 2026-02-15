@@ -70,6 +70,10 @@
       "workflows": {
         "title": "Workflows",
         "subtitle": "Configure automated messages with templates and variables.",
+        "actionsLabel": "Actions",
+        "whatsappColumnTitle": "WhatsApp message",
+        "emailColumnTitle": "Email message",
+        "channelUnavailable": "No step configured for this channel in the selected action.",
         "enabled": "Enabled",
         "delayLabel": "Delay",
         "activeWorkflowLabel": "Workflow profile",
@@ -82,11 +86,22 @@
         "leadSourceLabel": "Lead source filter (optional)",
         "leadSourceHint": "Only run when lead source matches exactly (leave empty for all).",
         "leadSourcePlaceholder": "e.g. google_ads",
+        "subjectLabel": "Email subject",
+        "subjectPlaceholder": "Type email subject…",
         "templateLabel": "Template",
         "templatePlaceholder": "Type your message… Use variables like {{lead.name}}",
         "loadFailed": "Failed to load workflows.",
         "saveFailed": "Failed to save workflows.",
         "saved": "Workflows updated.",
+        "actions": {
+          "leadWelcome": "Lead welcome",
+          "quoteSent": "Quote sent",
+          "quoteAccepted": "Quote accepted",
+          "quoteRejected": "Quote rejected",
+          "appointmentCreated": "Appointment confirmed",
+          "appointmentReminder": "Appointment reminder",
+          "partnerOfferCreated": "Partner offer created"
+        },
         "cards": {
           "leadWelcome": {
             "title": "Lead welcome (WhatsApp)",

@@ -35,15 +35,20 @@ type WorkflowAudience = 'lead' | 'partner';
 
 type WorkflowCardKey =
   | 'lead_welcome_whatsapp_lead'
+  | 'lead_welcome_email_lead'
   | 'quote_sent_whatsapp_lead'
+  | 'quote_sent_email_lead'
   | 'quote_accepted_whatsapp_lead'
   | 'quote_accepted_email_lead'
   | 'quote_accepted_email_partner'
   | 'quote_rejected_whatsapp_lead'
   | 'quote_rejected_email_lead'
   | 'appointment_created_whatsapp_lead'
+  | 'appointment_created_email_lead'
   | 'appointment_reminder_whatsapp_lead'
-  | 'partner_offer_created_whatsapp_partner';
+  | 'appointment_reminder_email_lead'
+  | 'partner_offer_created_whatsapp_partner'
+  | 'partner_offer_created_email_partner';
 
 interface WorkflowCardConfig {
   key: WorkflowCardKey;
@@ -58,6 +63,7 @@ interface WorkflowCardConfig {
 interface WorkflowFormState {
   enabled: boolean;
   delayMinutes: number;
+  templateSubject: string;
   templateText: string;
 }
 
@@ -67,6 +73,18 @@ interface WorkflowProfileState {
   name: string;
   enabled: boolean;
   cards: Record<WorkflowCardKey, WorkflowFormState>;
+}
+
+interface WorkflowChannelConfig {
+  cardKeys: WorkflowCardKey[];
+  hintKey: string;
+  varsKey: string;
+}
+
+interface WorkflowActionConfig {
+  id: WorkflowTrigger;
+  titleKey: string;
+  channels: Partial<Record<WorkflowChannel, WorkflowChannelConfig>>;
 }
 
 @Component({
@@ -103,6 +121,7 @@ export class OrganizationWorkflowsSettingsComponent {
 
   protected readonly selectedWorkflowKey = signal('');
   protected readonly selectedDefaultWorkflowKey = signal('');
+  protected readonly selectedAction = signal<WorkflowTrigger>('lead_welcome');
 
   protected readonly cards: readonly WorkflowCardConfig[] = [
     {
@@ -115,9 +134,27 @@ export class OrganizationWorkflowsSettingsComponent {
       varsKey: 'organization.settings.workflows.cards.leadWelcome.vars',
     },
     {
+      key: 'lead_welcome_email_lead',
+      trigger: 'lead_welcome',
+      channel: 'email',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.leadWelcome.title',
+      hintKey: 'organization.settings.workflows.cards.leadWelcome.hint',
+      varsKey: 'organization.settings.workflows.cards.leadWelcome.vars',
+    },
+    {
       key: 'quote_sent_whatsapp_lead',
       trigger: 'quote_sent',
       channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.quoteSent.title',
+      hintKey: 'organization.settings.workflows.cards.quoteSent.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteSent.vars',
+    },
+    {
+      key: 'quote_sent_email_lead',
+      trigger: 'quote_sent',
+      channel: 'email',
       audience: 'lead',
       titleKey: 'organization.settings.workflows.cards.quoteSent.title',
       hintKey: 'organization.settings.workflows.cards.quoteSent.hint',
@@ -178,9 +215,27 @@ export class OrganizationWorkflowsSettingsComponent {
       varsKey: 'organization.settings.workflows.cards.appointmentCreated.vars',
     },
     {
+      key: 'appointment_created_email_lead',
+      trigger: 'appointment_created',
+      channel: 'email',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.appointmentCreated.title',
+      hintKey: 'organization.settings.workflows.cards.appointmentCreated.hint',
+      varsKey: 'organization.settings.workflows.cards.appointmentCreated.vars',
+    },
+    {
       key: 'appointment_reminder_whatsapp_lead',
       trigger: 'appointment_reminder',
       channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.appointmentReminder.title',
+      hintKey: 'organization.settings.workflows.cards.appointmentReminder.hint',
+      varsKey: 'organization.settings.workflows.cards.appointmentReminder.vars',
+    },
+    {
+      key: 'appointment_reminder_email_lead',
+      trigger: 'appointment_reminder',
+      channel: 'email',
       audience: 'lead',
       titleKey: 'organization.settings.workflows.cards.appointmentReminder.title',
       hintKey: 'organization.settings.workflows.cards.appointmentReminder.hint',
@@ -194,6 +249,130 @@ export class OrganizationWorkflowsSettingsComponent {
       titleKey: 'organization.settings.workflows.cards.partnerOfferCreated.title',
       hintKey: 'organization.settings.workflows.cards.partnerOfferCreated.hint',
       varsKey: 'organization.settings.workflows.cards.partnerOfferCreated.vars',
+    },
+    {
+      key: 'partner_offer_created_email_partner',
+      trigger: 'partner_offer_created',
+      channel: 'email',
+      audience: 'partner',
+      titleKey: 'organization.settings.workflows.cards.partnerOfferCreated.title',
+      hintKey: 'organization.settings.workflows.cards.partnerOfferCreated.hint',
+      varsKey: 'organization.settings.workflows.cards.partnerOfferCreated.vars',
+    },
+  ];
+
+  protected readonly actions: readonly WorkflowActionConfig[] = [
+    {
+      id: 'lead_welcome',
+      titleKey: 'organization.settings.workflows.actions.leadWelcome',
+      channels: {
+        whatsapp: {
+          cardKeys: ['lead_welcome_whatsapp_lead'],
+          hintKey: 'organization.settings.workflows.cards.leadWelcome.hint',
+          varsKey: 'organization.settings.workflows.cards.leadWelcome.vars',
+        },
+        email: {
+          cardKeys: ['lead_welcome_email_lead'],
+          hintKey: 'organization.settings.workflows.cards.leadWelcome.hint',
+          varsKey: 'organization.settings.workflows.cards.leadWelcome.vars',
+        },
+      },
+    },
+    {
+      id: 'quote_sent',
+      titleKey: 'organization.settings.workflows.actions.quoteSent',
+      channels: {
+        whatsapp: {
+          cardKeys: ['quote_sent_whatsapp_lead'],
+          hintKey: 'organization.settings.workflows.cards.quoteSent.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteSent.vars',
+        },
+        email: {
+          cardKeys: ['quote_sent_email_lead'],
+          hintKey: 'organization.settings.workflows.cards.quoteSent.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteSent.vars',
+        },
+      },
+    },
+    {
+      id: 'quote_accepted',
+      titleKey: 'organization.settings.workflows.actions.quoteAccepted',
+      channels: {
+        whatsapp: {
+          cardKeys: ['quote_accepted_whatsapp_lead'],
+          hintKey: 'organization.settings.workflows.cards.quoteAcceptedLeadWhatsApp.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteAcceptedLeadWhatsApp.vars',
+        },
+        email: {
+          cardKeys: ['quote_accepted_email_lead', 'quote_accepted_email_partner'],
+          hintKey: 'organization.settings.workflows.cards.quoteAcceptedLeadEmail.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteAcceptedLeadEmail.vars',
+        },
+      },
+    },
+    {
+      id: 'quote_rejected',
+      titleKey: 'organization.settings.workflows.actions.quoteRejected',
+      channels: {
+        whatsapp: {
+          cardKeys: ['quote_rejected_whatsapp_lead'],
+          hintKey: 'organization.settings.workflows.cards.quoteRejectedLeadWhatsApp.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteRejectedLeadWhatsApp.vars',
+        },
+        email: {
+          cardKeys: ['quote_rejected_email_lead'],
+          hintKey: 'organization.settings.workflows.cards.quoteRejectedLeadEmail.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteRejectedLeadEmail.vars',
+        },
+      },
+    },
+    {
+      id: 'appointment_created',
+      titleKey: 'organization.settings.workflows.actions.appointmentCreated',
+      channels: {
+        whatsapp: {
+          cardKeys: ['appointment_created_whatsapp_lead'],
+          hintKey: 'organization.settings.workflows.cards.appointmentCreated.hint',
+          varsKey: 'organization.settings.workflows.cards.appointmentCreated.vars',
+        },
+        email: {
+          cardKeys: ['appointment_created_email_lead'],
+          hintKey: 'organization.settings.workflows.cards.appointmentCreated.hint',
+          varsKey: 'organization.settings.workflows.cards.appointmentCreated.vars',
+        },
+      },
+    },
+    {
+      id: 'appointment_reminder',
+      titleKey: 'organization.settings.workflows.actions.appointmentReminder',
+      channels: {
+        whatsapp: {
+          cardKeys: ['appointment_reminder_whatsapp_lead'],
+          hintKey: 'organization.settings.workflows.cards.appointmentReminder.hint',
+          varsKey: 'organization.settings.workflows.cards.appointmentReminder.vars',
+        },
+        email: {
+          cardKeys: ['appointment_reminder_email_lead'],
+          hintKey: 'organization.settings.workflows.cards.appointmentReminder.hint',
+          varsKey: 'organization.settings.workflows.cards.appointmentReminder.vars',
+        },
+      },
+    },
+    {
+      id: 'partner_offer_created',
+      titleKey: 'organization.settings.workflows.actions.partnerOfferCreated',
+      channels: {
+        whatsapp: {
+          cardKeys: ['partner_offer_created_whatsapp_partner'],
+          hintKey: 'organization.settings.workflows.cards.partnerOfferCreated.hint',
+          varsKey: 'organization.settings.workflows.cards.partnerOfferCreated.vars',
+        },
+        email: {
+          cardKeys: ['partner_offer_created_email_partner'],
+          hintKey: 'organization.settings.workflows.cards.partnerOfferCreated.hint',
+          varsKey: 'organization.settings.workflows.cards.partnerOfferCreated.vars',
+        },
+      },
     },
   ];
 
@@ -210,6 +389,11 @@ export class OrganizationWorkflowsSettingsComponent {
     this.selectedProfile()?.cards ?? this.defaultState()
   );
 
+  protected readonly selectedActionConfig = computed<WorkflowActionConfig>(() => {
+    const selected = this.actions.find(action => action.id === this.selectedAction());
+    return selected ?? this.actions.at(0)!;
+  });
+
   protected readonly hasChanges = computed(() => this.initialSnapshot() !== JSON.stringify(this.serializeState()));
   protected readonly canSave = computed(() => !this.isSaving() && this.hasChanges());
 
@@ -219,16 +403,21 @@ export class OrganizationWorkflowsSettingsComponent {
 
   private defaultState(): Record<WorkflowCardKey, WorkflowFormState> {
     return {
-      lead_welcome_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
-      quote_sent_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
-      quote_accepted_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
-      quote_accepted_email_lead: { enabled: true, delayMinutes: 0, templateText: '' },
-      quote_accepted_email_partner: { enabled: true, delayMinutes: 0, templateText: '' },
-      quote_rejected_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
-      quote_rejected_email_lead: { enabled: true, delayMinutes: 0, templateText: '' },
-      appointment_created_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
-      appointment_reminder_whatsapp_lead: { enabled: true, delayMinutes: 0, templateText: '' },
-      partner_offer_created_whatsapp_partner: { enabled: true, delayMinutes: 0, templateText: '' },
+      lead_welcome_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      lead_welcome_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_sent_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_sent_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_accepted_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_accepted_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_accepted_email_partner: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_rejected_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_rejected_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      appointment_created_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      appointment_created_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      appointment_reminder_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      appointment_reminder_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      partner_offer_created_whatsapp_partner: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      partner_offer_created_email_partner: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
     };
   }
 
@@ -298,6 +487,7 @@ export class OrganizationWorkflowsSettingsComponent {
       cards[key] = {
         enabled: !!step.enabled,
         delayMinutes: this.normalizeDelay(step.delayMinutes),
+        templateSubject: step.templateSubject ?? '',
         templateText: step.templateBody ?? '',
       };
     }
@@ -355,6 +545,10 @@ export class OrganizationWorkflowsSettingsComponent {
     this.selectedWorkflowKey.set(value ?? '');
   }
 
+  protected updateSelectedAction(action: WorkflowTrigger): void {
+    this.selectedAction.set(action);
+  }
+
   protected updateSelectedDefaultWorkflow(value: string | null): void {
     this.selectedDefaultWorkflowKey.set(value ?? '');
   }
@@ -386,6 +580,75 @@ export class OrganizationWorkflowsSettingsComponent {
     )));
   }
 
+  private updateSelectedCards(cardKeys: WorkflowCardKey[], update: (state: WorkflowFormState) => WorkflowFormState): void {
+    if (cardKeys.length === 0) {
+      return;
+    }
+
+    this.updateSelectedCard(current => {
+      const next = { ...current };
+      for (const key of cardKeys) {
+        next[key] = update(next[key]);
+      }
+      return next;
+    });
+  }
+
+  private selectedChannelConfig(channel: WorkflowChannel): WorkflowChannelConfig | null {
+    return this.selectedActionConfig().channels[channel] ?? null;
+  }
+
+  private selectedChannelCardKeys(channel: WorkflowChannel): WorkflowCardKey[] {
+    return this.selectedChannelConfig(channel)?.cardKeys ?? [];
+  }
+
+  protected isChannelAvailable(channel: WorkflowChannel): boolean {
+    return this.selectedChannelCardKeys(channel).length > 0;
+  }
+
+  protected channelHintKey(channel: WorkflowChannel): string {
+    return this.selectedChannelConfig(channel)?.hintKey ?? '';
+  }
+
+  protected channelVarsKey(channel: WorkflowChannel): string {
+    return this.selectedChannelConfig(channel)?.varsKey ?? '';
+  }
+
+  protected channelEnabled(channel: WorkflowChannel): boolean {
+    const keys = this.selectedChannelCardKeys(channel);
+    if (keys.length === 0) {
+      return false;
+    }
+    return keys.every(key => this.workflows()[key].enabled);
+  }
+
+  protected channelDelay(channel: WorkflowChannel): number {
+    const keys = this.selectedChannelCardKeys(channel);
+    const firstKey = keys.at(0);
+    if (!firstKey) {
+      return 0;
+    }
+    return this.workflows()[firstKey].delayMinutes;
+  }
+
+  protected channelTemplate(channel: WorkflowChannel): string {
+    const keys = this.selectedChannelCardKeys(channel);
+    const firstKey = keys.at(0);
+    if (!firstKey) {
+      return '';
+    }
+    return this.workflows()[firstKey].templateText;
+  }
+
+  protected channelSubject(channel: WorkflowChannel): string {
+    const keys = this.selectedChannelCardKeys(channel);
+    const firstKey = keys.at(0);
+    if (!firstKey) {
+      return '';
+    }
+    return this.workflows()[firstKey].templateSubject;
+  }
+
   protected updateEnabled(key: WorkflowCardKey, enabled: boolean): void {
     this.updateSelectedCard(current => ({
       ...current,
@@ -405,6 +668,23 @@ export class OrganizationWorkflowsSettingsComponent {
       ...current,
       [key]: { ...current[key], templateText },
     }));
+  }
+
+  protected updateChannelEnabled(channel: WorkflowChannel, enabled: boolean): void {
+    this.updateSelectedCards(this.selectedChannelCardKeys(channel), state => ({ ...state, enabled }));
+  }
+
+  protected updateChannelDelay(channel: WorkflowChannel, delayMinutes: number | null): void {
+    const normalized = this.normalizeDelay(delayMinutes ?? 0);
+    this.updateSelectedCards(this.selectedChannelCardKeys(channel), state => ({ ...state, delayMinutes: normalized }));
+  }
+
+  protected updateChannelTemplate(channel: WorkflowChannel, templateText: string): void {
+    this.updateSelectedCards(this.selectedChannelCardKeys(channel), state => ({ ...state, templateText }));
+  }
+
+  protected updateChannelSubject(channel: WorkflowChannel, templateSubject: string): void {
+    this.updateSelectedCards(this.selectedChannelCardKeys(channel), state => ({ ...state, templateSubject }));
   }
 
   protected save(): void {
@@ -476,6 +756,12 @@ export class OrganizationWorkflowsSettingsComponent {
   private mapProfileToUpsert(profile: WorkflowProfileState): UpsertWorkflowRequest {
     const steps: UpsertWorkflowStepRequest[] = this.cards.map((card, index) => {
       const state = profile.cards[card.key];
+      const trimmedTemplateSubject = state.templateSubject.trim();
+      let templateSubject: string | null = null;
+      if (card.channel === 'email' && trimmedTemplateSubject !== '') {
+        templateSubject = trimmedTemplateSubject;
+      }
+
       return {
         trigger: card.trigger,
         channel: card.channel,
@@ -485,6 +771,7 @@ export class OrganizationWorkflowsSettingsComponent {
         delayMinutes: this.normalizeDelay(state.delayMinutes),
         enabled: state.enabled,
         recipientConfig: this.defaultRecipientConfig(card.audience),
+        templateSubject,
         templateBody: state.templateText.trim() ? state.templateText.trim() : null,
         stopOnReply: false,
       };

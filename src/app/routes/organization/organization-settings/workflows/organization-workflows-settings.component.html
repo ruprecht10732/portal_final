@@ -4,12 +4,12 @@
   [error]="errorMessage()"
 >
   @if (isLoading()) {
-    <div class="mx-auto w-full max-w-4xl flex flex-col gap-6 py-6">
+    <div class="mx-auto w-full max-w-7xl flex flex-col gap-6 py-6">
       <shared-skeleton height="12rem" width="100%" />
       <shared-skeleton height="12rem" width="100%" />
     </div>
   } @else {
-    <div class="mx-auto w-full max-w-4xl flex flex-col gap-6 py-6">
+    <div class="mx-auto w-full max-w-7xl flex flex-col gap-6 py-6">
       <shared-card>
         <div class="grid gap-4 md:grid-cols-2">
           <shared-select
@@ -63,41 +63,122 @@
         </div>
       </shared-card>
 
-      @for (card of cards; track card.key) {
-        <shared-card>
-          <h4 class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6">
-            {{ card.titleKey | translate }}
-          </h4>
-
-          <div class="flex flex-col gap-4">
-            <shared-checkbox
-              [label]="'organization.settings.workflows.enabled' | translate"
-              [checked]="workflows()[card.key].enabled"
-              (checkedChange)="updateEnabled(card.key, $event)"
-            />
-
-            <shared-number-input
-              [label]="'organization.settings.workflows.delayLabel' | translate"
-              [hint]="card.hintKey | translate"
-              [value]="workflows()[card.key].delayMinutes"
-              (valueChange)="updateDelay(card.key, $event)"
-              [min]="0"
-              [max]="1440"
-              [step]="1"
-              suffix="min"
-            />
-
-            <shared-textarea
-              [label]="'organization.settings.workflows.templateLabel' | translate"
-              [hint]="card.varsKey | translate"
-              [value]="workflows()[card.key].templateText"
-              (valueChange)="updateTemplate(card.key, $event)"
-              [rows]="6"
-              [placeholder]="'organization.settings.workflows.templatePlaceholder' | translate"
-            />
+      <shared-card>
+        <div class="flex flex-col gap-6">
+          <div class="flex flex-col gap-3">
+            <p class="text-xs font-bold uppercase tracking-widest text-zinc-400">
+              {{ 'organization.settings.workflows.actionsLabel' | translate }}
+            </p>
+            <div class="workflow-actions-row">
+              @for (action of actions; track action.id) {
+                <button
+                  type="button"
+                  class="workflow-action-pill shrink-0 rounded-full border border-zinc-300 bg-white px-3.5 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+                  [class.text-zinc-800]="selectedAction() !== action.id"
+                  [class.hover:border-zinc-400]="selectedAction() !== action.id"
+                  [class.hover:bg-zinc-100]="selectedAction() !== action.id"
+                  [class.hover:text-zinc-900]="selectedAction() !== action.id"
+                  [class.border-zinc-950]="selectedAction() === action.id"
+                  [class.bg-zinc-950]="selectedAction() === action.id"
+                  [class.text-white]="selectedAction() === action.id"
+                  (click)="updateSelectedAction(action.id)"
+                >
+                  {{ action.titleKey | translate }}
+                </button>
+              }
+            </div>
           </div>
-        </shared-card>
-      }
+
+          <div class="grid gap-4 lg:grid-cols-2">
+            <shared-card>
+              <div class="flex flex-col gap-4">
+                <h4 class="text-xs font-bold uppercase tracking-widest text-zinc-400">
+                  {{ 'organization.settings.workflows.whatsappColumnTitle' | translate }}
+                </h4>
+
+                @if (isChannelAvailable('whatsapp')) {
+                  <shared-checkbox
+                    [label]="'organization.settings.workflows.enabled' | translate"
+                    [checked]="channelEnabled('whatsapp')"
+                    (checkedChange)="updateChannelEnabled('whatsapp', $event)"
+                  />
+
+                  <shared-number-input
+                    [label]="'organization.settings.workflows.delayLabel' | translate"
+                    [hint]="channelHintKey('whatsapp') | translate"
+                    [value]="channelDelay('whatsapp')"
+                    (valueChange)="updateChannelDelay('whatsapp', $event)"
+                    [min]="0"
+                    [max]="1440"
+                    [step]="1"
+                    suffix="min"
+                  />
+
+                  <shared-textarea
+                    [label]="'organization.settings.workflows.templateLabel' | translate"
+                    [hint]="channelVarsKey('whatsapp') | translate"
+                    [value]="channelTemplate('whatsapp')"
+                    (valueChange)="updateChannelTemplate('whatsapp', $event)"
+                    [rows]="7"
+                    [placeholder]="'organization.settings.workflows.templatePlaceholder' | translate"
+                  />
+                } @else {
+                  <p class="text-sm text-zinc-500">
+                    {{ 'organization.settings.workflows.channelUnavailable' | translate }}
+                  </p>
+                }
+              </div>
+            </shared-card>
+
+            <shared-card>
+              <div class="flex flex-col gap-4">
+                <h4 class="text-xs font-bold uppercase tracking-widest text-zinc-400">
+                  {{ 'organization.settings.workflows.emailColumnTitle' | translate }}
+                </h4>
+
+                @if (isChannelAvailable('email')) {
+                  <shared-checkbox
+                    [label]="'organization.settings.workflows.enabled' | translate"
+                    [checked]="channelEnabled('email')"
+                    (checkedChange)="updateChannelEnabled('email', $event)"
+                  />
+
+                  <shared-input
+                    [label]="'organization.settings.workflows.subjectLabel' | translate"
+                    [value]="channelSubject('email')"
+                    (valueChange)="updateChannelSubject('email', $event)"
+                    [placeholder]="'organization.settings.workflows.subjectPlaceholder' | translate"
+                  />
+
+                  <shared-number-input
+                    [label]="'organization.settings.workflows.delayLabel' | translate"
+                    [hint]="channelHintKey('email') | translate"
+                    [value]="channelDelay('email')"
+                    (valueChange)="updateChannelDelay('email', $event)"
+                    [min]="0"
+                    [max]="1440"
+                    [step]="1"
+                    suffix="min"
+                  />
+
+                  <shared-textarea
+                    [label]="'organization.settings.workflows.templateLabel' | translate"
+                    [hint]="channelVarsKey('email') | translate"
+                    [value]="channelTemplate('email')"
+                    (valueChange)="updateChannelTemplate('email', $event)"
+                    [rows]="7"
+                    [placeholder]="'organization.settings.workflows.templatePlaceholder' | translate"
+                  />
+                } @else {
+                  <p class="text-sm text-zinc-500">
+                    {{ 'organization.settings.workflows.channelUnavailable' | translate }}
+                  </p>
+                }
+              </div>
+            </shared-card>
+          </div>
+        </div>
+      </shared-card>
 
       <shared-card>
         <div class="flex flex-col sm:flex-row items-center justify-between gap-4">

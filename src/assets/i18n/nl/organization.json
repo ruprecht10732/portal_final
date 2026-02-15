@@ -70,6 +70,10 @@
       "workflows": {
         "title": "Workflows",
         "subtitle": "Configureer automatische berichten met templates en variabelen.",
+        "actionsLabel": "Acties",
+        "whatsappColumnTitle": "WhatsApp-bericht",
+        "emailColumnTitle": "E-mailbericht",
+        "channelUnavailable": "Geen stap geconfigureerd voor dit kanaal in de geselecteerde actie.",
         "enabled": "Ingeschakeld",
         "delayLabel": "Vertraging",
         "activeWorkflowLabel": "Workflowprofiel",
@@ -82,11 +86,22 @@
         "leadSourceLabel": "Lead bron filter (optioneel)",
         "leadSourceHint": "Voer alleen uit wanneer de lead bron exact overeenkomt (laat leeg voor alles).",
         "leadSourcePlaceholder": "bijv. google_ads",
+        "subjectLabel": "E-mailonderwerp",
+        "subjectPlaceholder": "Typ e-mailonderwerp…",
         "templateLabel": "Template",
         "templatePlaceholder": "Typ je bericht… Gebruik variabelen zoals {{lead.name}}",
         "loadFailed": "Workflows laden mislukt.",
         "saveFailed": "Workflows opslaan mislukt.",
         "saved": "Workflows bijgewerkt.",
+        "actions": {
+          "leadWelcome": "Lead welkom",
+          "quoteSent": "Offerte verstuurd",
+          "quoteAccepted": "Offerte geaccepteerd",
+          "quoteRejected": "Offerte afgewezen",
+          "appointmentCreated": "Afspraak bevestigd",
+          "appointmentReminder": "Afspraak herinnering",
+          "partnerOfferCreated": "Werkaanbod aangemaakt"
+        },
         "cards": {
           "leadWelcome": {
             "title": "Lead welkomstbericht (WhatsApp)",
