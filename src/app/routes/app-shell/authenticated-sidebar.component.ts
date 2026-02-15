@@ -11,8 +11,10 @@ import { MenuComponent, MenuItem, MenuSection } from '../../shared/components/me
 import { AuthenticatedSidebarPanelComponent } from './authenticated-sidebar-panel.component';
 import { SidebarPanelItem } from './sidebar-panel.config';
 import { AuthService } from '../../core/services/auth.service';
+import { NotificationsService } from '../../core/services/notifications.service';
 import { TokenStorageService } from '../../core/services/token-storage.service';
 import { UserService } from '../../core/services/user.service';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import type { UserProfile } from '../../core/services/user.types';
 
 interface SidebarItem {
@@ -30,6 +32,7 @@ interface SidebarItem {
     MenuComponent,
     LucideAngularModule,
     AuthenticatedSidebarPanelComponent,
+    NotificationBellComponent,
     TranslatePipe,
   ],
   templateUrl: './authenticated-sidebar.component.html',
@@ -40,6 +43,7 @@ export class AuthenticatedSidebarComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
+  private readonly notificationsService = inject(NotificationsService);
   private readonly tokens = inject(TokenStorageService);
   private readonly userService = inject(UserService);
 
@@ -63,6 +67,8 @@ export class AuthenticatedSidebarComponent {
   );
 
   protected readonly isAdmin = computed(() => this.user()?.roles?.includes('admin') ?? false);
+
+  protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
 
   protected readonly items = computed<SidebarItem[]>(() => {
     const base: SidebarItem[] = [

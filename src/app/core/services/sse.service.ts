@@ -7,6 +7,7 @@ import { TokenStorageService } from './token-storage.service';
 
 // SSE event types from the backend
 export type SSEEventType =
+  | 'in_app_notification'
   | 'analysis_complete'
   | 'photo_analysis_complete'
   | 'lead_updated'
@@ -81,12 +82,14 @@ export class SSEService {
 
   // Event subjects for different event types
   private readonly photoAnalysisComplete$ = new Subject<SSEEvent & { data: PhotoAnalysisEventData }>();
+  private readonly inAppNotification$ = new Subject<SSEEvent>();
   private readonly leadUpdated$ = new Subject<SSEEvent>();
   private readonly appointmentEvent$ = new Subject<SSEEvent>();
   private readonly allEvents$ = new Subject<SSEEvent>();
 
   readonly state = this.connectionState.asReadonly();
   readonly photoAnalysisComplete = this.photoAnalysisComplete$.asObservable();
+  readonly inAppNotification = this.inAppNotification$.asObservable();
   readonly leadUpdated = this.leadUpdated$.asObservable();
   readonly appointmentEvent = this.appointmentEvent$.asObservable();
   readonly events = this.allEvents$.asObservable();
@@ -145,6 +148,12 @@ export class SSEService {
         this.eventSource.addEventListener('analysis_complete', (event) => {
           this.zone.run(() => {
             this.handleEventMessage(event, 'analysis_complete');
+          });
+        });
+
+        this.eventSource.addEventListener('in_app_notification', (event) => {
+          this.zone.run(() => {
+            this.handleEventMessage(event, 'in_app_notification');
           });
         });
 
@@ -240,6 +249,9 @@ export class SSEService {
 
     if (event.type === 'photo_analysis_complete') {
       this.photoAnalysisComplete$.next(event as SSEEvent & { data: PhotoAnalysisEventData });
+    }
+    if (event.type === 'in_app_notification') {
+      this.inAppNotification$.next(event);
     }
     if (event.type === 'lead_updated') {
       this.leadUpdated$.next(event);
