@@ -4,8 +4,10 @@ import { RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
+import { NotificationsService } from '../../core/services/notifications.service';
 import { UserService } from '../../core/services/user.service';
 import type { UserProfile } from '../../core/services/user.types';
+import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 
 type MobileNavIcon =
   | 'dashboard'
@@ -26,7 +28,7 @@ interface MobileNavItem {
 
 @Component({
   selector: 'app-authenticated-mobile-nav',
-  imports: [RouterLink, RouterLinkActive, LucideAngularModule, TranslatePipe],
+  imports: [RouterLink, RouterLinkActive, LucideAngularModule, TranslatePipe, NotificationBellComponent],
   styles: `
     :host { display: contents; }
     .mobile-nav-scroll { scrollbar-width: none; -ms-overflow-style: none; }
@@ -53,7 +55,12 @@ interface MobileNavItem {
                 <lucide-icon name="layout-dashboard" class="h-5 w-5"></lucide-icon>
               }
               @case ('leads') {
-                <lucide-icon name="users" class="h-5 w-5"></lucide-icon>
+                <span class="relative inline-flex">
+                  <lucide-icon name="users" class="h-5 w-5"></lucide-icon>
+                  @if (unreadLeadNotifications() > 0) {
+                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadLeadNotifications() }}</span>
+                  }
+                </span>
               }
               @case ('partners') {
                 <lucide-icon name="briefcase" class="h-5 w-5"></lucide-icon>
@@ -80,12 +87,16 @@ interface MobileNavItem {
             <span class="text-[10px] leading-tight">{{ item.label | translate }}</span>
           </a>
         }
+        <div class="ml-1 flex shrink-0 items-center">
+          <app-notification-bell></app-notification-bell>
+        </div>
       </div>
     </nav>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthenticatedMobileNavComponent {
+  private readonly notificationsService = inject(NotificationsService);
   private readonly userService = inject(UserService);
 
   private readonly user = toSignal(
@@ -94,6 +105,8 @@ export class AuthenticatedMobileNavComponent {
   );
 
   private readonly isAdmin = computed(() => this.user()?.roles?.includes('admin') ?? false);
+
+  protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
 
   /** All primary navigation items — mirrors the desktop sidebar. */
   protected readonly items = computed<MobileNavItem[]>(() => {

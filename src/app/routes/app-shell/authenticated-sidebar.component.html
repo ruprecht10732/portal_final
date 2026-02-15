@@ -32,7 +32,12 @@
                 <lucide-icon name="layout-dashboard" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
               }
               @case ('leads') {
-                <lucide-icon name="users" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+                <span class="relative inline-flex">
+                  <lucide-icon name="users" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+                  @if (unreadLeadNotifications() > 0) {
+                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadLeadNotifications() }}</span>
+                  }
+                </span>
               }
               @case ('partners') {
                 <lucide-icon name="briefcase" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
@@ -86,6 +91,8 @@
       >
         <lucide-icon name="arrow-left-right" class="h-5 w-5"></lucide-icon>
       </shared-button>
+
+      <app-notification-bell></app-notification-bell>
 
       <shared-menu
         triggerLabel="navigation.profile"
