@@ -96,6 +96,7 @@
       "unassigned": "Niet toegewezen",
       "customerNotHome": "Klant niet thuis",
       "createQuote": "Offerte maken",
+      "editLead": "Lead bewerken",
       "tabs": {
         "visit": "Het bezoek",
         "activity": "Activiteit / notities",
@@ -261,12 +262,17 @@
       },
       "status": {
         "new": "Nieuw",
-        "contacted": "Benaderd",
-        "scheduled": "Ingepland",
+        "attemptedContact": "Contactpoging",
+        "appointmentScheduled": "Afspraak ingepland",
+        "surveyCompleted": "Survey afgerond",
+        "quoteDraft": "Offerte concept",
+        "quoteSent": "Offerte verstuurd",
+        "quoteAccepted": "Offerte geaccepteerd",
+        "partnerAssigned": "Partner toegewezen",
         "completed": "Afgerond",
-        "badLead": "Slechte lead",
+        "lost": "Verloren",
+        "disqualified": "Gediskwalificeerd",
         "needsRescheduling": "Opnieuw inplannen",
-        "closed": "Gesloten",
         "noService": "Geen dienst"
       },
       "accessDifficulty": {
@@ -290,8 +296,9 @@
       },
       "confirm": {
         "changeTo": "Wijzigen naar {{status}}?",
-        "badLead": "Dit markeert de lead als een slechte lead. Dit kan rapportages beïnvloeden.",
-        "closed": "Dit sluit de lead. Zorg dat al het werk is afgerond.",
+        "disqualified": "Dit markeert de lead als gediskwalificeerd. Dit kan rapportages beïnvloeden.",
+        "completed": "Dit markeert de lead als afgerond. Zorg dat al het werk is voltooid.",
+        "lost": "Dit markeert de lead als verloren. Controleer of verdere opvolging niet nodig is.",
         "default": "Weet je zeker dat je deze wijziging wilt doorvoeren?"
       },
       "announcements": {
@@ -411,6 +418,7 @@
       "triage": "Triage",
       "nurturing": "Opvolging",
       "readyForEstimator": "Klaar voor inschatting",
+      "quoteDraft": "Offerte in concept",
       "quoteSent": "Offerte verstuurd",
       "readyForPartner": "Klaar voor partner",
       "partnerMatching": "Partner koppeling",
@@ -435,6 +443,7 @@
         "lastName": "Achternaam",
         "phone": "Telefoon",
         "email": "E-mailadres",
+        "whatsappOptedIn": "WhatsApp updates",
         "role": "Rol",
         "street": "Straat",
         "houseNumber": "Huisnr.",
@@ -446,6 +455,10 @@
         "assignee": "Toegewezen",
         "createdAt": "Aangemaakt"
       },
+      "whatsappOptions": {
+        "enabled": "Ingeschakeld",
+        "disabled": "Uitgeschakeld"
+      },
       "roles": {
         "owner": "Eigenaar",
         "tenant": "Huurder",
@@ -454,7 +467,12 @@
       "validation": {
         "required": "Verplicht",
         "minChars": "Minimaal {{count}} tekens",
-        "invalidEmail": "Ongeldig e-mailadres"
+        "invalidEmail": "Ongeldig e-mailadres",
+        "whatsappRequired": "Kies of WhatsApp-updates ingeschakeld zijn"
+      },
+      "success": {
+        "created": "Lead succesvol aangemaakt",
+        "updated": "Lead succesvol bijgewerkt"
       },
       "errors": {
         "loadLeads": "Kon leads niet laden",

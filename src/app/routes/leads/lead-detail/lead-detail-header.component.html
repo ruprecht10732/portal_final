@@ -57,6 +57,15 @@
           size="compact"
           [uppercase]="false"
           [fullWidth]="false"
+          (clicked)="editLead.emit()"
+        >
+          {{ 'leads.detail.editLead' | translate }}
+        </shared-button>
+        <shared-button
+          variant="secondary"
+          size="compact"
+          [uppercase]="false"
+          [fullWidth]="false"
           (clicked)="createQuote.emit()"
         >
           {{ 'leads.detail.createQuote' | translate }}
