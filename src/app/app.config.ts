@@ -7,6 +7,7 @@ import { provideAnimations } from '@angular/platform-browser/animations';
 import { ColorPickerModule } from '@iplab/ngx-color-picker';
 import {
   CircleAlert,
+  Bell,
   ArrowLeft,
   ArrowLeftRight,
   BookOpen,
@@ -136,6 +137,7 @@ export const appConfig: ApplicationConfig = {
       ColorPickerModule,
       LucideAngularModule.pick({
         CircleAlert,
+        Bell,
         ArrowLeft,
         ArrowLeftRight,
         BookOpen,
