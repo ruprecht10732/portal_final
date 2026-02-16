@@ -371,8 +371,25 @@ export interface GenerateQuoteRequest {
   quoteId?: string;
 }
 
-export interface GenerateQuoteResponse {
-  quoteId: string;
-  quoteNumber: string;
-  itemCount: number;
+export type GenerateQuoteJobStatus = 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+
+export interface GenerateQuoteAcceptedResponse {
+  jobId: string;
+  status: GenerateQuoteJobStatus;
+}
+
+export interface GenerateQuoteJobResponse {
+  jobId: string;
+  status: GenerateQuoteJobStatus;
+  step: string;
+  progressPercent: number;
+  error?: string;
+  quoteId?: string;
+  quoteNumber?: string;
+  itemCount?: number;
+  leadId: string;
+  leadServiceId: string;
+  startedAt: string;
+  updatedAt: string;
+  finishedAt?: string;
 }

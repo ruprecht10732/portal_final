@@ -15,6 +15,7 @@ import { NotificationsService } from '../../core/services/notifications.service'
 import { TokenStorageService } from '../../core/services/token-storage.service';
 import { UserService } from '../../core/services/user.service';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
+import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-bell.component';
 import type { UserProfile } from '../../core/services/user.types';
 
 interface SidebarItem {
@@ -33,6 +34,7 @@ interface SidebarItem {
     LucideAngularModule,
     AuthenticatedSidebarPanelComponent,
     NotificationBellComponent,
+    AIJobBellComponent,
     TranslatePipe,
   ],
   templateUrl: './authenticated-sidebar.component.html',

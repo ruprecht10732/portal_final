@@ -1,0 +1,71 @@
+<div class="relative">
+  <shared-button
+    variant="ghost"
+    size="compact"
+    [iconOnly]="true"
+    shape="square"
+    [fullWidth]="false"
+    ariaLabel="AI taken"
+    [ariaExpanded]="isOpen()"
+    ariaHaspopup="dialog"
+    (clicked)="toggle()"
+  >
+    <span class="relative inline-flex">
+      <lucide-icon name="sparkles" class="h-6 w-6" [class.animate-pulse]="activeCount() > 0"></lucide-icon>
+      @if (activeCount() > 0) {
+        <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-blue-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ activeCount() }}</span>
+      }
+    </span>
+  </shared-button>
+
+  @if (isOpen()) {
+    <button
+      type="button"
+      class="fixed inset-0 z-60 bg-transparent"
+      aria-label="Sluit AI taken"
+      (click)="close()"
+    ></button>
+
+    <dialog open class="absolute bottom-16 left-1/2 z-70 flex max-h-105 w-80 -translate-x-1/2 flex-col overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-2xl lg:bottom-13 lg:left-full lg:ml-3 lg:translate-x-0" aria-label="AI taken">
+      <header class="flex items-center justify-between gap-2 border-b border-zinc-200 px-3 py-2.5">
+        <h3 class="m-0 text-xs font-bold uppercase tracking-wide">AI taken</h3>
+      </header>
+
+      @if (jobs().length === 0) {
+        <div class="px-3 py-4 text-xs text-zinc-600">Geen actieve taken</div>
+      } @else {
+        <ul class="m-0 list-none overflow-y-auto p-0">
+          @for (job of jobs(); track job.jobId) {
+            <li class="relative border-b border-zinc-100 px-3 py-2.5">
+              <button
+                type="button"
+                class="w-full text-left"
+                (click)="viewJob(job.jobId, job.quoteId)"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-xs font-bold text-zinc-900">Offerte generatie</span>
+                  <span class="text-[11px] uppercase font-semibold"
+                        [class.text-blue-700]="job.status === 'pending' || job.status === 'running'"
+                        [class.text-green-700]="job.status === 'completed'"
+                        [class.text-red-700]="job.status === 'failed'">
+                    {{ job.status }}
+                  </span>
+                </div>
+                <div class="mt-1 text-xs text-zinc-700">{{ job.step }}</div>
+                <div class="mt-2 h-1.5 w-full rounded-full bg-zinc-100">
+                  <div class="h-full rounded-full bg-zinc-900 transition-all" [style.width.%]="job.progressPercent"></div>
+                </div>
+                @if (job.quoteNumber) {
+                  <div class="mt-2 text-[11px] text-zinc-500">{{ job.quoteNumber }}</div>
+                }
+                @if (job.error) {
+                  <div class="mt-2 text-[11px] text-red-600">{{ job.error }}</div>
+                }
+              </button>
+            </li>
+          }
+        </ul>
+      }
+    </dialog>
+  }
+</div>
