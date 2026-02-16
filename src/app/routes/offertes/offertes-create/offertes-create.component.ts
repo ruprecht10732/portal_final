@@ -10,6 +10,7 @@ import { LeadsService } from '../../../core/services/leads.service';
 import { QuotesService } from '../../../core/services/quotes.service';
 import { OrganizationService } from '../../../core/services/organization.service';
 import { CatalogService, type AutocompleteItemResponse } from '../../../core/services/catalog.service';
+import { AIJobService } from '../../../core/services/ai-job.service';
 import type { Lead } from '../../../core/services/leads.types';
 import type {
   QuoteResponse,
@@ -77,6 +78,7 @@ export class OffertesCreateComponent implements OnInit {
   private readonly quotesService = inject(QuotesService);
   private readonly orgService = inject(OrganizationService);
   private readonly catalogService = inject(CatalogService);
+  private readonly aiJobs = inject(AIJobService);
   private readonly translate = inject(TranslateService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
@@ -96,6 +98,12 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly generating = signal(false);
   protected readonly generateError = signal<string | null>(null);
   protected readonly showGeneratePanel = signal(true);
+  protected readonly currentGenerateJobId = signal<string | null>(null);
+  protected readonly currentGenerateJob = computed(() => this.aiJobs.job(this.currentGenerateJobId()));
+  protected readonly isGenerateLocked = computed(() => {
+    const status = this.currentGenerateJob()?.status;
+    return status === 'pending' || status === 'running';
+  });
   protected readonly financingDisclaimer = signal(false);
 
   // Lead's services (for service selection in generate)
@@ -715,7 +723,7 @@ export class OffertesCreateComponent implements OnInit {
     const serviceId = this.selectedServiceId();
     const prompt = this.generatePrompt().trim();
 
-    if (!lead || !serviceId || !prompt) return;
+    if (!lead || !serviceId || !prompt || this.isGenerateLocked()) return;
 
     this.generating.set(true);
     this.generateError.set(null);
@@ -731,18 +739,24 @@ export class OffertesCreateComponent implements OnInit {
     ).subscribe({
       next: result => {
         this.generating.set(false);
-        if (this.isEditMode() && existingQuote) {
-          // Reload the updated quote in-place
-          this.loadQuote(result.quoteId);
-        } else {
-          void this.router.navigate(['/app/offertes', result.quoteId]);
-        }
+        this.currentGenerateJobId.set(result.jobId);
+        this.aiJobs.track(result.jobId);
       },
       error: () => {
         this.generating.set(false);
         this.generateError.set(this.translate.instant('offertes.generate.error'));
       },
     });
+  }
+
+  protected openGeneratedQuote(): void {
+		const job = this.currentGenerateJob();
+		if (!job?.quoteId) return;
+		if (this.isEditMode() && this.existingQuote()) {
+			this.loadQuote(job.quoteId);
+			return;
+		}
+		void this.router.navigate(['/app/offertes', job.quoteId]);
   }
 
   // ── Catalog Ghost-Text Autocomplete ─────────────────────────────────────────

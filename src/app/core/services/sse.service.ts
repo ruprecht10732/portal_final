@@ -7,6 +7,7 @@ import { TokenStorageService } from './token-storage.service';
 
 // SSE event types from the backend
 export type SSEEventType =
+  | 'ai_job_progress'
   | 'in_app_notification'
   | 'analysis_complete'
   | 'photo_analysis_complete'
@@ -148,6 +149,12 @@ export class SSEService {
         this.eventSource.addEventListener('analysis_complete', (event) => {
           this.zone.run(() => {
             this.handleEventMessage(event, 'analysis_complete');
+          });
+        });
+
+        this.eventSource.addEventListener('ai_job_progress', (event) => {
+          this.zone.run(() => {
+            this.handleEventMessage(event, 'ai_job_progress');
           });
         });
 

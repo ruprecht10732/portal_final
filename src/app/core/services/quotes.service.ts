@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { toHttpParams } from '../utils/http-utils';
 import type {
@@ -18,7 +18,8 @@ import type {
   PresignedUploadResponse,
   PresignedDownloadResponse,
   GenerateQuoteRequest,
-  GenerateQuoteResponse,
+  GenerateQuoteAcceptedResponse,
+  GenerateQuoteJobResponse,
 } from './quotes.types';
 
 /**
@@ -128,7 +129,85 @@ export class QuotesService {
   }
 
   /** Generate a draft quote from a user prompt using the AI agent pipeline */
-  generate(data: GenerateQuoteRequest): Observable<GenerateQuoteResponse> {
-    return this.http.post<GenerateQuoteResponse>(`${this.baseUrl}/generate`, data);
+  generate(data: GenerateQuoteRequest): Observable<GenerateQuoteAcceptedResponse> {
+    return this.http.post<unknown>(`${this.baseUrl}/generate`, data).pipe(
+      map((response) => this.normalizeGenerateAcceptedResponse(response)),
+    );
+  }
+
+  /** Get status/progress for an async quote generation job */
+  getGenerateJob(jobId: string): Observable<GenerateQuoteJobResponse> {
+    return this.http.get<unknown>(`${this.baseUrl}/generate-jobs/${jobId}`).pipe(
+      map((response) => this.normalizeGenerateJobResponse(response)),
+    );
+  }
+
+  private normalizeGenerateAcceptedResponse(input: unknown): GenerateQuoteAcceptedResponse {
+    const source = (input ?? {}) as Record<string, unknown>;
+    const jobId = this.readString(source, 'jobId') ?? this.readString(source, 'job_id') ?? '';
+    const status = this.normalizeGenerateStatus(this.readString(source, 'status'));
+
+    return {
+      jobId,
+      status,
+    };
+  }
+
+  private normalizeGenerateJobResponse(input: unknown): GenerateQuoteJobResponse {
+    const source = (input ?? {}) as Record<string, unknown>;
+
+    const readString = (camel: string, snake: string): string | undefined =>
+      this.readString(source, camel) ?? this.readString(source, snake);
+
+    const readNumber = (camel: string, snake: string): number | undefined =>
+      this.readNumber(source, camel) ?? this.readNumber(source, snake);
+
+    const error = readString('error', 'error');
+    const quoteId = readString('quoteId', 'quote_id');
+    const quoteNumber = readString('quoteNumber', 'quote_number');
+    const itemCount = readNumber('itemCount', 'item_count');
+    const finishedAt = readString('finishedAt', 'finished_at');
+
+    const normalized: GenerateQuoteJobResponse = {
+      jobId: readString('jobId', 'job_id') ?? '',
+      status: this.normalizeGenerateStatus(readString('status', 'status')),
+      step: readString('step', 'step') ?? '',
+      progressPercent: readNumber('progressPercent', 'progress_percent') ?? 0,
+      leadId: readString('leadId', 'lead_id') ?? '',
+      leadServiceId: readString('leadServiceId', 'lead_service_id') ?? '',
+      startedAt: readString('startedAt', 'started_at') ?? '',
+      updatedAt: readString('updatedAt', 'updated_at') ?? '',
+    };
+
+    if (error !== undefined) normalized.error = error;
+    if (quoteId !== undefined) normalized.quoteId = quoteId;
+    if (quoteNumber !== undefined) normalized.quoteNumber = quoteNumber;
+    if (typeof itemCount === 'number') normalized.itemCount = itemCount;
+    if (finishedAt !== undefined) normalized.finishedAt = finishedAt;
+
+    return normalized;
+  }
+
+  private normalizeGenerateStatus(value: string | undefined): GenerateQuoteAcceptedResponse['status'] {
+    switch (value) {
+      case 'pending':
+      case 'running':
+      case 'completed':
+      case 'failed':
+      case 'cancelled':
+        return value;
+      default:
+        return 'pending';
+    }
+  }
+
+  private readString(source: Record<string, unknown>, key: string): string | undefined {
+    const value = source[key];
+    return typeof value === 'string' && value.length > 0 ? value : undefined;
+  }
+
+  private readNumber(source: Record<string, unknown>, key: string): number | undefined {
+    const value = source[key];
+    return typeof value === 'number' ? value : undefined;
   }
 }
