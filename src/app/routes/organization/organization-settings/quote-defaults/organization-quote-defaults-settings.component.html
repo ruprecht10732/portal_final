@@ -31,6 +31,16 @@
             [step]="1"
             suffix="dagen"
           />
+          <div class="sm:col-span-2">
+            <shared-input
+              [label]="'organization.settings.notificationEmail' | translate"
+              [placeholder]="'organization.settings.notificationEmailPlaceholder' | translate"
+              [hint]="'organization.settings.notificationEmailHint' | translate"
+              [error]="notificationEmailError()"
+              type="email"
+              [(value)]="notificationEmail"
+            />
+          </div>
         </div>
       </shared-card>
 

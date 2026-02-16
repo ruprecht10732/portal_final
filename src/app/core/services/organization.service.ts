@@ -62,12 +62,14 @@ export interface OrgLogoDownloadResponse {
 export interface OrganizationSettings {
   quotePaymentDays: number;
   quoteValidDays: number;
+  notificationEmail?: string | null;
   whatsAppDeviceId?: string | null;
 }
 
 export interface UpdateOrganizationSettingsRequest {
   quotePaymentDays?: number;
   quoteValidDays?: number;
+  notificationEmail?: string;
 }
 
 export interface WhatsAppStatus {
