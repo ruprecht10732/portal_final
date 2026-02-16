@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
-import { Router } from '@angular/router';
+import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { ButtonComponent } from '../button/button.component';
 import { AIJobService } from '../../../core/services/ai-job.service';
+import { NotificationSidebarStateService } from '../../../core/services/notification-sidebar-state.service';
 
 @Component({
   selector: 'app-ai-job-bell',
@@ -13,27 +13,12 @@ import { AIJobService } from '../../../core/services/ai-job.service';
 })
 export class AIJobBellComponent {
   private readonly aiJobs = inject(AIJobService);
-  private readonly router = inject(Router);
+  private readonly sidebarState = inject(NotificationSidebarStateService);
 
-  protected readonly isOpen = signal(false);
+  protected readonly isOpen = this.sidebarState.isAiJobsOpen;
   protected readonly activeCount = this.aiJobs.activeCount;
-  protected readonly jobs = this.aiJobs.activeJobs;
 
   protected toggle(): void {
-    this.isOpen.update(v => !v);
-  }
-
-  protected close(): void {
-    this.isOpen.set(false);
-  }
-
-  protected viewJob(jobId?: string, quoteId?: string): void {
-    if (!jobId && !quoteId) return;
-    if (quoteId) {
-      this.router.navigate(['/app/offertes', quoteId]);
-      this.close();
-      return;
-    }
-    this.close();
+    this.sidebarState.toggleAiJobs();
   }
 }

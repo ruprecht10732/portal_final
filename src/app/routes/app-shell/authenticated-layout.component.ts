@@ -1,7 +1,9 @@
 import { ChangeDetectionStrategy, Component, inject, signal } from '@angular/core';
 import { RouterLink, RouterOutlet } from '@angular/router';
 import { SSEService } from '../../core/services/sse.service';
+import { AIJobSidebarPanelComponent } from '../../shared/components/ai-job-sidebar-panel/ai-job-sidebar-panel.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { NotificationSidebarPanelComponent } from '../../shared/components/notification-sidebar-panel/notification-sidebar-panel.component';
 import { ToastContainerComponent } from '../../shared/components/toast-container/toast-container.component';
 import { AuthenticatedMobileNavComponent } from './authenticated-mobile-nav.component';
 import { AuthenticatedSidebarComponent } from './authenticated-sidebar.component';
@@ -12,7 +14,9 @@ import { MobileSectionTabsComponent } from './mobile-section-tabs.component';
   imports: [
     RouterLink,
     RouterOutlet,
+    AIJobSidebarPanelComponent,
     ButtonComponent,
+    NotificationSidebarPanelComponent,
     ToastContainerComponent,
     AuthenticatedMobileNavComponent,
     AuthenticatedSidebarComponent,

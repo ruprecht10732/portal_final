@@ -1,0 +1,49 @@
+<app-right-sidebar [isOpen]="isOpen()" title="Notificaties" (closed)="close()">
+  @if (loading()) {
+    <div class="px-4 py-4 text-xs text-zinc-600">Laden...</div>
+  } @else if (notifications().length === 0) {
+    <div class="px-4 py-4 text-xs text-zinc-600">Geen notificaties</div>
+  } @else {
+    <ul class="m-0 list-none p-0">
+      @for (notification of notifications(); track trackById($index, notification)) {
+        <li class="relative">
+          <button
+            type="button"
+            class="flex w-full items-start gap-2.5 border-b border-zinc-100 bg-transparent px-4 py-3 pr-10 text-left hover:bg-zinc-50"
+            [class.bg-zinc-50]="!notification.isRead"
+            (click)="onNotificationClick(notification)"
+          >
+            <span class="mt-1.5 h-2 w-2 shrink-0 rounded-full bg-zinc-400" [class.bg-emerald-500]="notification.category === 'success'" [class.bg-amber-500]="notification.category === 'warning'" [class.bg-rose-500]="notification.category === 'error'"></span>
+            <span class="flex min-w-0 flex-col gap-0.5">
+              <span class="text-xs font-bold text-zinc-900">{{ notification.title }}</span>
+              <span class="text-xs leading-5 text-zinc-700">{{ notification.content }}</span>
+              <span class="text-[11px] text-zinc-500">{{ notification.createdAt | date:'short' }}</span>
+            </span>
+          </button>
+          <button
+            type="button"
+            class="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+            aria-label="Verwijder notificatie"
+            (click)="onDeleteNotification($event, notification.id)"
+          >
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+          </button>
+        </li>
+      }
+    </ul>
+  }
+
+  <div rightSidebarFooter class="grid grid-cols-2 gap-3">
+    <shared-button
+      variant="secondary"
+      [disabled]="!hasUnread()"
+      (clicked)="onMarkAllRead()"
+      ariaLabel="Markeer alle notificaties als gelezen"
+    >
+      Alles gelezen
+    </shared-button>
+    <shared-button variant="primary" (clicked)="close()" ariaLabel="Sluit notificaties">
+      Sluiten
+    </shared-button>
+  </div>
+</app-right-sidebar>
