@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
@@ -54,6 +55,7 @@ interface LineItemDraft {
   selector: 'app-offertes-create',
   imports: [
     ReactiveFormsModule,
+    DragDropModule,
     TranslatePipe,
     LucideAngularModule,
     AutocompleteComponent,
@@ -536,6 +538,16 @@ export class OffertesCreateComponent implements OnInit {
       const next = { ...state };
       delete next[id];
       return next;
+    });
+    this.requestCalculation();
+  }
+
+  protected onLineItemDrop(event: CdkDragDrop<LineItemDraft[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    this.lineItems.update(items => {
+      const reordered = [...items];
+      moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+      return reordered;
     });
     this.requestCalculation();
   }

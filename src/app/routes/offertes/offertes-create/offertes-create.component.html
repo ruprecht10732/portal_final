@@ -242,7 +242,8 @@
             </div>
           </div>
 
-          <div class="hidden rounded-lg border border-zinc-200 bg-zinc-50/80 px-4 py-3 lg:grid lg:grid-cols-[148px_1fr_108px_116px_120px_92px_56px] lg:items-center lg:gap-x-3">
+          <div class="hidden rounded-lg border border-zinc-200 bg-zinc-50/80 px-4 py-3 lg:grid lg:grid-cols-[28px_148px_1fr_108px_116px_120px_92px_56px] lg:items-center lg:gap-x-3">
+            <span></span>
             <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.qty' | translate }}</span>
             <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.description' | translate }}</span>
             <span class="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.price' | translate }}</span>
@@ -252,9 +253,18 @@
             <span></span>
           </div>
 
-          <div class="mt-3 space-y-3">
+          <div
+            cdkDropList
+            cdkDropListOrientation="vertical"
+            [cdkDropListData]="lineItems()"
+            (cdkDropListDropped)="onLineItemDrop($event)"
+            class="mt-3 space-y-3"
+          >
             @for (item of lineItems(); track item.id) {
               <app-quote-line-item-row
+                cdkDrag
+                cdkDragLockAxis="y"
+                [cdkDragDisabled]="lineItems().length < 2"
                 [item]="item"
                 [ghostSearchFn]="catalogSearchFn"
                 [taxRateOptions]="taxRateOptions()"

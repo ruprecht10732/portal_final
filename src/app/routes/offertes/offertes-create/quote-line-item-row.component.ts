@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { DragDropModule } from '@angular/cdk/drag-drop';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { firstValueFrom } from 'rxjs';
@@ -23,6 +24,7 @@ interface QuoteLineItemRowData {
 @Component({
   selector: 'app-quote-line-item-row',
   imports: [
+    DragDropModule,
     TranslatePipe,
     LucideAngularModule,
     CheckboxComponent,

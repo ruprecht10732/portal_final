@@ -7,7 +7,7 @@
   grid-template-columns: repeat(2, minmax(0, 1fr));
   grid-template-areas:
     'desc desc'
-    'qty qty'
+    'drag qty'
     'price tax'
     'total total'
     'optional actions';
@@ -29,6 +29,13 @@
   justify-content: center;
 }
 
+.quote-cell-drag {
+  grid-area: drag;
+  display: flex;
+  justify-content: flex-start;
+  align-items: center;
+}
+
 .quote-cell-actions {
   grid-area: actions;
   display: flex;
@@ -41,6 +48,14 @@
 .quote-cell-price { grid-area: price; }
 .quote-cell-tax { grid-area: tax; }
 .quote-cell-total { grid-area: total; }
+
+.quote-drag-handle {
+  cursor: grab;
+}
+
+.quote-drag-handle:active {
+  cursor: grabbing;
+}
 
 .quote-desc-editor-wrapper {
   position: relative;
@@ -120,10 +135,11 @@
 
 @media (min-width: 1024px) {
   .quote-line-item-grid {
+    --drag-col-width: 28px;
     --qty-col-width: 148px;
     --price-col-width: 108px;
-    grid-template-columns: var(--qty-col-width) minmax(0, 1fr) var(--price-col-width) 116px 120px 92px 56px;
-    grid-template-areas: 'qty desc price tax total optional actions';
+    grid-template-columns: var(--drag-col-width) var(--qty-col-width) minmax(0, 1fr) var(--price-col-width) 116px 120px 92px 56px;
+    grid-template-areas: 'drag qty desc price tax total optional actions';
     column-gap: 0.75rem;
     row-gap: 0.75rem;
     align-items: center;

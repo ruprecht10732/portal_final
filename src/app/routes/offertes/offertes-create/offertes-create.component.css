@@ -1,3 +1,19 @@
 :host {
   display: block;
 }
+
+app-quote-line-item-row.cdk-drag-preview {
+  display: block;
+  opacity: 0.96;
+  transform: rotate(0.4deg);
+  box-shadow: 0 10px 24px rgb(0 0 0 / 14%);
+}
+
+app-quote-line-item-row.cdk-drag-placeholder {
+  display: block;
+  opacity: 0.35;
+}
+
+.cdk-drop-list-dragging app-quote-line-item-row:not(.cdk-drag-placeholder) {
+  transition: transform 160ms ease;
+}
