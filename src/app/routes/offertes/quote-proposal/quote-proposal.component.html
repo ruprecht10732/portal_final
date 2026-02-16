@@ -224,7 +224,7 @@
           @if (q.notes) {
             <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
               <h3 class="mb-2 text-sm font-medium text-zinc-500">{{ 'offertes.notes' | translate }}</h3>
-              <p class="text-sm text-zinc-700 whitespace-pre-wrap">{{ q.notes }}</p>
+              <div class="text-sm text-zinc-700 whitespace-pre-wrap" [innerHTML]="q.notes | safeHtml"></div>
             </div>
           }
 

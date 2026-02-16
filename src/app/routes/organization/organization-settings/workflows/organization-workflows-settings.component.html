@@ -121,12 +121,12 @@
                           suffix="min"
                         />
 
-                        <shared-textarea
+                        <shared-rich-text-editor
                           [label]="'organization.settings.workflows.templateLabel' | translate"
                           [hint]="card.varsKey | translate"
                           [value]="card.state.templateText"
                           (valueChange)="updateTemplate(card.key, $event)"
-                          [rows]="7"
+                          [minHeight]="180"
                           [placeholder]="'organization.settings.workflows.templatePlaceholder' | translate"
                         />
                       </div>
@@ -149,12 +149,12 @@
                       suffix="min"
                     />
 
-                    <shared-textarea
+                    <shared-rich-text-editor
                       [label]="'organization.settings.workflows.templateLabel' | translate"
                       [hint]="channelVarsKey('whatsapp') | translate"
                       [value]="channelTemplate('whatsapp')"
                       (valueChange)="updateChannelTemplate('whatsapp', $event)"
-                      [rows]="7"
+                      [minHeight]="180"
                       [placeholder]="'organization.settings.workflows.templatePlaceholder' | translate"
                     />
                   }
@@ -204,12 +204,12 @@
                           suffix="min"
                         />
 
-                        <shared-textarea
+                        <shared-rich-text-editor
                           [label]="'organization.settings.workflows.templateLabel' | translate"
                           [hint]="card.varsKey | translate"
                           [value]="card.state.templateText"
                           (valueChange)="updateTemplate(card.key, $event)"
-                          [rows]="7"
+                          [minHeight]="180"
                           [placeholder]="'organization.settings.workflows.templatePlaceholder' | translate"
                         />
                       </div>
@@ -239,12 +239,12 @@
                       suffix="min"
                     />
 
-                    <shared-textarea
+                    <shared-rich-text-editor
                       [label]="'organization.settings.workflows.templateLabel' | translate"
                       [hint]="channelVarsKey('email') | translate"
                       [value]="channelTemplate('email')"
                       (valueChange)="updateChannelTemplate('email', $event)"
-                      [rows]="7"
+                      [minHeight]="180"
                       [placeholder]="'organization.settings.workflows.templatePlaceholder' | translate"
                     />
                   }

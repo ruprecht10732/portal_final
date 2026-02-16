@@ -31,6 +31,7 @@ import { QuoteProposalActionFooterComponent } from './quote-proposal-action-foot
 import { QuoteProposalAskSheetComponent } from './quote-proposal-ask-sheet.component';
 import { QuoteProposalAcceptSheetComponent } from './quote-proposal-accept-sheet.component';
 import { QuoteProposalRejectSheetComponent } from './quote-proposal-reject-sheet.component';
+import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-quote-proposal',
@@ -47,6 +48,7 @@ import { QuoteProposalRejectSheetComponent } from './quote-proposal-reject-sheet
     QuoteProposalAskSheetComponent,
     QuoteProposalAcceptSheetComponent,
     QuoteProposalRejectSheetComponent,
+    SafeHtmlPipe,
   ],
   templateUrl: './quote-proposal.component.html',
   styleUrl: './quote-proposal.component.css',

@@ -27,11 +27,11 @@
           [hint]="'catalog.products.hints.reference' | translate"
         />
 
-        <shared-textarea
+        <shared-rich-text-editor
           [label]="'catalog.products.fields.description' | translate"
           [value]="form.controls.description.value ?? ''"
           (valueChange)="form.controls.description.setValue($event)"
-          [rows]="4"
+          [minHeight]="160"
           [placeholder]="'catalog.products.placeholders.description' | translate"
         />
 

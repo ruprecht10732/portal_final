@@ -1,0 +1,26 @@
+<shared-field-shell
+  [label]="label()"
+  [required]="required()"
+  [hint]="hint()"
+  [error]="error()"
+  [uid]="uid"
+  [hintId]="hintId"
+  [errorId]="errorId"
+>
+  <div class="rich-text-wrapper" [class.rich-text-wrapper-error]="!!error()">
+    <quill-editor
+      class="quill-editor-host"
+      [id]="uid"
+      [ngModel]="value()"
+      (ngModelChange)="value.set($event ?? '')"
+      [placeholder]="placeholder()"
+      [modules]="modules"
+      [styles]="{ height: minHeight() + 'px' }"
+      [readOnly]="disabled()"
+      [format]="'html'"
+      [attr.aria-required]="required() || null"
+      [attr.aria-invalid]="!!error() || null"
+      [attr.aria-describedby]="describedBy()"
+    />
+  </div>
+</shared-field-shell>

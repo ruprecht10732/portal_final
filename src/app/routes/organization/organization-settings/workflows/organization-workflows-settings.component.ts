@@ -17,9 +17,9 @@ import { CheckboxComponent } from '../../../../shared/components/checkbox/checkb
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
 import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
+import { RichTextEditorComponent } from '../../../../shared/components/rich-text-editor/rich-text-editor.component';
 import { SelectComponent, type SelectOption } from '../../../../shared/components/select/select.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
-import { TextareaComponent } from '../../../../shared/components/textarea/textarea.component';
 
 type WorkflowTrigger =
   | 'lead_welcome'
@@ -104,9 +104,9 @@ interface WorkflowSelectedChannelCardState {
     InputComponent,
     NumberInputComponent,
     PageLayoutComponent,
+    RichTextEditorComponent,
     SelectComponent,
     SkeletonComponent,
-    TextareaComponent,
     TranslatePipe,
   ],
   templateUrl: './organization-workflows-settings.component.html',

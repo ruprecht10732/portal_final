@@ -5,10 +5,11 @@ import type { AnnotationResponse, PublicQuoteItemResponse, PricingMode } from '.
 import { centsToEuros } from '../../../core/services/quotes.types';
 import { QuoteAnnotationListComponent } from './quote-annotation-list.component';
 import { LucideAngularModule } from 'lucide-angular';
+import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-quote-proposal-item-mobile',
-  imports: [QuoteAnnotationListComponent, LucideAngularModule, TranslatePipe],
+  imports: [QuoteAnnotationListComponent, LucideAngularModule, TranslatePipe, SafeHtmlPipe],
   templateUrl: './quote-proposal-item-mobile.component.html',
   styleUrl: './quote-proposal-item-mobile.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
