@@ -62,6 +62,7 @@
     "markAccepted": "Mark as Accepted",
     "markRejected": "Mark as Rejected",
     "sendProposal": "Send quote",
+    "resendProposal": "Resend quote",
     "saveDraft": "Save draft",
     "saveAndSend": "Save & send",
     "save": "Save",

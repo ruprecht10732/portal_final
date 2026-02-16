@@ -125,6 +125,16 @@
                   }
                   @case ('Sent') {
                     <shared-button
+                      variant="primary"
+                      size="compact"
+                      [fullWidth]="true"
+                      [loading]="sending()"
+                      (clicked)="sendProposal()"
+                    >
+                      <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                      {{ 'offertes.resendProposal' | translate }}
+                    </shared-button>
+                    <shared-button
                       variant="success"
                       size="compact"
                       [fullWidth]="true"
@@ -376,6 +386,16 @@
                       </shared-button>
                     }
                     @case ('Sent') {
+                      <shared-button
+                        variant="primary"
+                        size="compact"
+                        [fullWidth]="false"
+                        [loading]="sending()"
+                        (clicked)="sendProposal()"
+                      >
+                        <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                        {{ 'offertes.resendProposal' | translate }}
+                      </shared-button>
                       <shared-button
                         variant="success"
                         size="compact"
