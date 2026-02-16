@@ -6,6 +6,7 @@ import {
   CatalogService,
   type CatalogAsset,
   type CatalogAssetType,
+  type MaterialPricingMode,
   type Product,
   type ProductType,
   type UpdateProductRequest,
@@ -69,6 +70,7 @@ export class CatalogEditComponent implements OnInit {
   protected readonly availableMaterials = signal<Product[]>([]);
   protected readonly showAddMaterialDialog = signal(false);
   protected readonly selectedMaterialIds = signal<string[]>([]);
+  protected readonly selectedMaterialModes = signal<Record<string, MaterialPricingMode>>({});
   protected readonly addingMaterials = signal(false);
   protected readonly removingMaterialId = signal<string | null>(null);
 
@@ -410,6 +412,7 @@ export class CatalogEditComponent implements OnInit {
   // Materials management methods
   protected openAddMaterialDialog(): void {
     this.selectedMaterialIds.set([]);
+    this.selectedMaterialModes.set({});
     this.loadAvailableMaterials();
     this.showAddMaterialDialog.set(true);
   }
@@ -417,6 +420,7 @@ export class CatalogEditComponent implements OnInit {
   protected closeAddMaterialDialog(): void {
     this.showAddMaterialDialog.set(false);
     this.selectedMaterialIds.set([]);
+    this.selectedMaterialModes.set({});
   }
 
   private loadAvailableMaterials(): void {
@@ -437,10 +441,24 @@ export class CatalogEditComponent implements OnInit {
   protected toggleMaterialSelection(materialId: string): void {
     this.selectedMaterialIds.update(ids => {
       if (ids.includes(materialId)) {
+        this.selectedMaterialModes.update(current => {
+          const next = { ...current };
+          delete next[materialId];
+          return next;
+        });
         return ids.filter(id => id !== materialId);
       }
+      this.selectedMaterialModes.update(current => ({ ...current, [materialId]: current[materialId] ?? 'additional' }));
       return [...ids, materialId];
     });
+  }
+
+  protected setSelectedMaterialMode(materialId: string, pricingMode: MaterialPricingMode): void {
+    this.selectedMaterialModes.update(current => ({ ...current, [materialId]: pricingMode }));
+  }
+
+  protected getSelectedMaterialMode(materialId: string): MaterialPricingMode {
+    return this.selectedMaterialModes()[materialId] ?? 'additional';
   }
 
   protected isMaterialSelected(materialId: string): boolean {
@@ -453,7 +471,13 @@ export class CatalogEditComponent implements OnInit {
     if (!product || ids.length === 0) return;
 
     this.addingMaterials.set(true);
-    this.catalogService.addProductMaterials(product.id, { materialIds: ids }).subscribe({
+    const modes = this.selectedMaterialModes();
+    this.catalogService.addProductMaterials(product.id, {
+      materials: ids.map(materialId => ({
+        materialId,
+        pricingMode: modes[materialId] ?? 'additional',
+      })),
+    }).subscribe({
       next: () => {
         this.closeAddMaterialDialog();
         this.loadMaterials(product.id);
@@ -491,6 +515,10 @@ export class CatalogEditComponent implements OnInit {
 
   protected formatPrice(priceCents: number): string {
     return `€${CatalogService.centsToPrice(priceCents).toFixed(2)}`;
+  }
+
+  protected formatPricingMode(mode?: MaterialPricingMode): string {
+    return this.translate.instant(`catalog.products.materialPricingModeOptions.${mode ?? 'additional'}`);
   }
 
 }

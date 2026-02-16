@@ -288,6 +288,28 @@
         "period": "Optional: fill in for subscriptions or recurring services",
         "materialsAfterCreate": "After creating this service, you can add materials on the next screen."
       },
+      "materialPricingMode": "Material billing",
+      "materialPricingModeOptions": {
+        "included": "Included",
+        "additional": "Additional",
+        "optional": "Optional"
+      },
+      "inlineMaterials": {
+        "title": "Materials during creation",
+        "hint": "For services, add materials directly here and choose if each one is included, additional, or optional.",
+        "addRow": "Add material row",
+        "rowTitle": "Material {{index}}",
+        "empty": "No material rows yet. Add a row to create and link materials while creating this service.",
+        "priceType": "Material pricing",
+        "selectVatRate": "Select VAT rate",
+        "validation": {
+          "titleRequired": "Each material row needs a title",
+          "vatRateRequired": "Each material row needs a VAT rate",
+          "fixedPriceRequired": "Each fixed-price material needs a price above 0",
+          "unitPriceRequired": "Each unit-price material needs a unit price above 0",
+          "unitLabelRequired": "Each unit-price material needs a unit label"
+        }
+      },
       "types": {
         "all": "All types",
         "digital_service": "Digital Service",

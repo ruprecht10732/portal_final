@@ -27,6 +27,7 @@ export interface Product {
   unitLabel?: string;
   laborTimeText?: string;
   type: ProductType;
+  pricingMode?: MaterialPricingMode;
   periodCount?: number;
   periodUnit?: PeriodUnit;
   createdAt: string;
@@ -35,6 +36,7 @@ export interface Product {
 
 export type ProductType = 'digital_service' | 'service' | 'product' | 'material';
 export type PeriodUnit = 'day' | 'week' | 'month' | 'quarter' | 'year';
+export type MaterialPricingMode = 'included' | 'additional' | 'optional';
 export type CatalogAssetType = 'image' | 'document' | 'terms_url';
 
 export interface CatalogAsset {
@@ -118,7 +120,13 @@ export interface UpdateProductRequest {
 }
 
 export interface MaterialsRequest {
-  materialIds: string[];
+  materialIds?: string[];
+  materials?: MaterialLinkInput[];
+}
+
+export interface MaterialLinkInput {
+  materialId: string;
+  pricingMode: MaterialPricingMode;
 }
 
 export interface PresignCatalogAssetRequest {
