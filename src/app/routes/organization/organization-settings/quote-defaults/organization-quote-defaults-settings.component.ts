@@ -3,15 +3,17 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { OrganizationService } from '../../../../core/services/organization.service';
+import { isEmailValid } from '../../../../core/utils/email.util';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
+import { InputComponent } from '../../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
 import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 
 @Component({
   selector: 'app-organization-quote-defaults-settings',
-  imports: [ButtonComponent, CardComponent, NumberInputComponent, PageLayoutComponent, SkeletonComponent, TranslatePipe],
+  imports: [ButtonComponent, CardComponent, InputComponent, NumberInputComponent, PageLayoutComponent, SkeletonComponent, TranslatePipe],
   templateUrl: './organization-quote-defaults-settings.component.html',
   styleUrl: './organization-quote-defaults-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -22,6 +24,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
 
   protected readonly quoteValidDays = signal<number | null>(14);
   private readonly initialQuoteValidDays = signal<number>(14);
+
+  protected readonly notificationEmail = signal('');
+  private readonly initialNotificationEmail = signal('');
 
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
@@ -34,12 +39,22 @@ export class OrganizationQuoteDefaultsSettingsComponent {
 
   protected readonly hasChanges = computed(() =>
     (this.quotePaymentDays() ?? this.initialQuotePaymentDays()) !== this.initialQuotePaymentDays() ||
-    (this.quoteValidDays() ?? this.initialQuoteValidDays()) !== this.initialQuoteValidDays()
+    (this.quoteValidDays() ?? this.initialQuoteValidDays()) !== this.initialQuoteValidDays() ||
+    this.notificationEmail().trim() !== this.initialNotificationEmail().trim()
   );
+
+  protected readonly notificationEmailError = computed(() => {
+    const value = this.notificationEmail().trim();
+    if (!value) {
+      return '';
+    }
+    return isEmailValid(value) ? '' : this.translate.instant('organization.settings.notificationEmailInvalid');
+  });
 
   protected readonly canSave = computed(() =>
     !this.isSaving() &&
     this.hasChanges() &&
+    this.notificationEmailError() === '' &&
     (this.quotePaymentDays() ?? 0) >= 1 &&
     (this.quoteValidDays() ?? 0) >= 1
   );
@@ -67,6 +82,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
         this.initialQuotePaymentDays.set(settings.quotePaymentDays);
         this.quoteValidDays.set(settings.quoteValidDays);
         this.initialQuoteValidDays.set(settings.quoteValidDays);
+        const notificationEmail = settings.notificationEmail ?? '';
+        this.notificationEmail.set(notificationEmail);
+        this.initialNotificationEmail.set(notificationEmail);
       });
   }
 
@@ -81,6 +99,7 @@ export class OrganizationQuoteDefaultsSettingsComponent {
       .updateSettings({
         ...(this.quotePaymentDays() == null ? {} : { quotePaymentDays: this.quotePaymentDays()! }),
         ...(this.quoteValidDays() == null ? {} : { quoteValidDays: this.quoteValidDays()! }),
+        notificationEmail: this.notificationEmail().trim(),
       })
       .pipe(
         catchError(() => {
@@ -95,6 +114,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
         this.initialQuotePaymentDays.set(settings.quotePaymentDays);
         this.quoteValidDays.set(settings.quoteValidDays);
         this.initialQuoteValidDays.set(settings.quoteValidDays);
+        const notificationEmail = settings.notificationEmail ?? '';
+        this.notificationEmail.set(notificationEmail);
+        this.initialNotificationEmail.set(notificationEmail);
         this.successMessage.set(this.translate.instant('organization.settings.saved'));
       });
   }

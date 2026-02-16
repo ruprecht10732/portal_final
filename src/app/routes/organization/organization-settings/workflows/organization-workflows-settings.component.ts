@@ -87,6 +87,14 @@ interface WorkflowActionConfig {
   channels: Partial<Record<WorkflowChannel, WorkflowChannelConfig>>;
 }
 
+interface WorkflowSelectedChannelCardState {
+  key: WorkflowCardKey;
+  titleKey: string;
+  hintKey: string;
+  varsKey: string;
+  state: WorkflowFormState;
+}
+
 @Component({
   selector: 'app-organization-workflows-settings',
   imports: [
@@ -376,6 +384,10 @@ export class OrganizationWorkflowsSettingsComponent {
     },
   ];
 
+  private readonly cardConfigsByKey = new Map<WorkflowCardKey, WorkflowCardConfig>(
+    this.cards.map(card => [card.key, card])
+  );
+
   protected readonly workflowOptions = computed<SelectOption<string>[]>(() =>
     this.workflowProfiles().map(profile => ({ value: profile.workflowKey, label: profile.name }))
   );
@@ -602,6 +614,36 @@ export class OrganizationWorkflowsSettingsComponent {
     return this.selectedChannelConfig(channel)?.cardKeys ?? [];
   }
 
+  private cardConfigByKey(key: WorkflowCardKey): WorkflowCardConfig | null {
+    return this.cardConfigsByKey.get(key) ?? null;
+  }
+
+  protected isMultiCardChannel(channel: WorkflowChannel): boolean {
+    return this.selectedChannelCardKeys(channel).length > 1;
+  }
+
+  protected selectedChannelCardStates(channel: WorkflowChannel): WorkflowSelectedChannelCardState[] {
+    const workflowStates = this.workflows();
+
+    return this.selectedChannelCardKeys(channel)
+      .map(key => {
+        const config = this.cardConfigByKey(key);
+        const state = workflowStates[key];
+        if (!config || !state) {
+          return null;
+        }
+
+        return {
+          key,
+          titleKey: config.titleKey,
+          hintKey: config.hintKey,
+          varsKey: config.varsKey,
+          state,
+        };
+      })
+      .filter((card): card is WorkflowSelectedChannelCardState => card !== null);
+  }
+
   protected isChannelAvailable(channel: WorkflowChannel): boolean {
     return this.selectedChannelCardKeys(channel).length > 0;
   }
@@ -667,6 +709,13 @@ export class OrganizationWorkflowsSettingsComponent {
     this.updateSelectedCard(current => ({
       ...current,
       [key]: { ...current[key], templateText },
+    }));
+  }
+
+  protected updateSubject(key: WorkflowCardKey, templateSubject: string): void {
+    this.updateSelectedCard(current => ({
+      ...current,
+      [key]: { ...current[key], templateSubject },
     }));
   }
 
