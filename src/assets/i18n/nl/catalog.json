@@ -288,6 +288,28 @@
         "period": "Optioneel: vul in voor abonnementen of periodieke diensten",
         "materialsAfterCreate": "Na het aanmaken van deze dienst kun je materialen toevoegen op het volgende scherm."
       },
+      "materialPricingMode": "Materiaal facturatie",
+      "materialPricingModeOptions": {
+        "included": "Inbegrepen",
+        "additional": "Extra",
+        "optional": "Optioneel"
+      },
+      "inlineMaterials": {
+        "title": "Materialen tijdens aanmaken",
+        "hint": "Voor diensten kun je hier direct materialen toevoegen en per materiaal kiezen: inbegrepen, extra of optioneel.",
+        "addRow": "Materiaalregel toevoegen",
+        "rowTitle": "Materiaal {{index}}",
+        "empty": "Nog geen materiaalregels. Voeg een regel toe om materialen direct mee aan te maken en te koppelen.",
+        "priceType": "Prijsmodel materiaal",
+        "selectVatRate": "Selecteer BTW-tarief",
+        "validation": {
+          "titleRequired": "Elke materiaalregel heeft een titel nodig",
+          "vatRateRequired": "Elke materiaalregel heeft een BTW-tarief nodig",
+          "fixedPriceRequired": "Elke vaste-prijs materiaalregel heeft een prijs van 0 of hoger nodig",
+          "unitPriceRequired": "Elke prijs-per-eenheid materiaalregel heeft een eenheidsprijs van 0 of hoger nodig",
+          "unitLabelRequired": "Elke prijs-per-eenheid materiaalregel heeft een eenheidslabel nodig"
+        }
+      },
       "types": {
         "all": "Alle types",
         "digital_service": "Digitale dienst",
@@ -378,6 +400,7 @@
       "noMaterialsDescription": "Voeg materialen toe die bij deze dienst horen",
       "noAvailableMaterials": "Geen beschikbare materialen",
       "materialsAdded": "Materialen succesvol toegevoegd",
+      "materialModeUpdated": "Materiaal facturatiemodus bijgewerkt",
       "materialRemoved": "Materiaal succesvol verwijderd",
       "removeMaterial": "Materiaal verwijderen"
     }

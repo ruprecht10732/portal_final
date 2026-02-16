@@ -87,20 +87,24 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly formattedPrice = computed(() => {
     const product = this.product();
     if (!product) return '—';
-    if (product.priceCents > 0) {
-      return `€${CatalogService.centsToPrice(product.priceCents).toFixed(2)}`;
+    if (product.unitLabel) {
+      if (typeof product.unitPriceCents === 'number' && product.unitPriceCents >= 0) {
+        return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)} / ${product.unitLabel}`;
+      }
+      return '—';
     }
-    if (product.unitPriceCents > 0 && product.unitLabel) {
-      return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)} / ${product.unitLabel}`;
+    if (product.priceCents >= 0) {
+      return `€${CatalogService.centsToPrice(product.priceCents).toFixed(2)}`;
     }
     return '—';
   });
 
   protected readonly formattedUnitPrice = computed(() => {
     const product = this.product();
-    if (!product || product.unitPriceCents <= 0) return '—';
-    const unit = product.unitLabel ? ` / ${product.unitLabel}` : '';
-    return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)}${unit}`;
+    if (!product?.unitLabel || typeof product?.unitPriceCents !== 'number' || product.unitPriceCents < 0) {
+      return '—';
+    }
+    return `€${CatalogService.centsToPrice(product.unitPriceCents).toFixed(2)} / ${product.unitLabel}`;
   });
 
   protected readonly formattedVatRate = computed(() => {
@@ -314,12 +318,11 @@ export class CatalogDetailComponent implements OnInit {
   }
 
   protected formatMaterialPrice(priceCents: number, unitPriceCents?: number, unitLabel?: string): string {
-    if (priceCents > 0) {
-      return `€${CatalogService.centsToPrice(priceCents).toFixed(2)}`;
+    if (unitLabel && typeof unitPriceCents === 'number' && unitPriceCents >= 0) {
+      return `€${CatalogService.centsToPrice(unitPriceCents).toFixed(2)} / ${unitLabel}`;
     }
-    if (unitPriceCents && unitPriceCents > 0) {
-      const unit = unitLabel ? ` / ${unitLabel}` : '';
-      return `€${CatalogService.centsToPrice(unitPriceCents).toFixed(2)}${unit}`;
+    if (priceCents >= 0) {
+      return `€${CatalogService.centsToPrice(priceCents).toFixed(2)}`;
     }
     return '—';
   }
