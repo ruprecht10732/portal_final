@@ -1,0 +1,37 @@
+<section class="flex h-full flex-col gap-3">
+  <header class="flex items-center justify-between gap-3 px-1">
+    <h2 class="text-base font-semibold text-zinc-900">
+      {{ 'dashboard.needsAttention.title' | translate }}
+    </h2>
+
+    <div class="inline-flex rounded-lg border border-zinc-200 bg-white p-1">
+      <button
+        type="button"
+        class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+        [class.bg-zinc-900]="activeTab() === 'actionItems'"
+        [class.text-white]="activeTab() === 'actionItems'"
+        [class.text-zinc-700]="activeTab() !== 'actionItems'"
+        (click)="setTab('actionItems')"
+      >
+        {{ 'dashboard.needsAttention.actionItems' | translate }}
+      </button>
+
+      <button
+        type="button"
+        class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
+        [class.bg-zinc-900]="activeTab() === 'draftApprovals'"
+        [class.text-white]="activeTab() === 'draftApprovals'"
+        [class.text-zinc-700]="activeTab() !== 'draftApprovals'"
+        (click)="setTab('draftApprovals')"
+      >
+        {{ 'dashboard.needsAttention.draftApprovals' | translate }}
+      </button>
+    </div>
+  </header>
+
+  @if (activeTab() === 'actionItems') {
+    <app-dashboard-action-items />
+  } @else {
+    <app-dashboard-draft-approvals />
+  }
+</section>

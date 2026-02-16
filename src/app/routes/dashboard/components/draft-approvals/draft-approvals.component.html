@@ -1,93 +1,93 @@
-<shared-card className="flex h-full flex-col rounded-none" [attr.aria-label]="'dashboard.draftApprovals.title' | translate">
-  <header class="flex flex-col gap-4 border-b-2 border-black p-4 sm:flex-row sm:items-center sm:justify-between">
-    <div class="flex items-center gap-3">
-      <h2 class="text-lg font-semibold leading-tight text-black">
-        {{ 'dashboard.draftApprovals.title' | translate }}
-      </h2>
-      <span class="flex items-center justify-center border border-black bg-white px-2 py-0.5 font-mono text-xs font-bold text-black">
-        {{ total() }}
-      </span>
+<shared-card class="p-0! h-full border-2 border-black dark:border-white bg-white dark:bg-zinc-950 overflow-hidden flex flex-col shadow-none">
+  
+  <header class="flex flex-col border-b-2 border-black dark:border-white sm:flex-row sm:items-stretch">
+    <div class="flex-1 flex items-center justify-between p-4 sm:border-r-2 border-black dark:border-white">
+      <div class="flex items-center gap-3">
+        <h2 class="text-sm font-bold uppercase tracking-[0.2em] text-black dark:text-white">
+          {{ 'dashboard.draftApprovals.title' | translate }}
+        </h2>
+        <span class="font-mono text-[10px] border border-black dark:border-white px-1.5 py-0.5 tabular-nums">
+          {{ total() }}
+        </span>
+      </div>
     </div>
 
-    <div class="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+    <div class="flex divide-x-2 divide-black dark:divide-white border-t-2 sm:border-t-0 border-black dark:border-white">
       <shared-button
-        class="w-full sm:w-auto"
         variant="secondary"
-        size="compact"
-        [uppercase]="false"
-        [fullWidth]="true"
         [disabled]="!hasPrevious()"
         (clicked)="previous()"
-        styleClass="rounded-none border border-black hover:bg-black hover:text-white transition-colors focus:ring-2 focus:ring-black focus:ring-offset-2"
+        class="border-0!"
       >
-        <span aria-hidden="true">&larr;</span> {{ 'dashboard.draftApprovals.previous' | translate }}
+        <span class="font-mono text-lg">&larr;</span>
       </shared-button>
-
+      
       <shared-button
-        class="w-full sm:w-auto"
         variant="secondary"
-        size="compact"
-        [uppercase]="false"
-        [fullWidth]="true"
         [disabled]="!hasNext()"
         (clicked)="next()"
-        styleClass="rounded-none border border-black hover:bg-black hover:text-white transition-colors focus:ring-2 focus:ring-black focus:ring-offset-2"
+        class="border-0!"
       >
-        {{ 'dashboard.draftApprovals.next' | translate }} <span aria-hidden="true">&rarr;</span>
+        <span class="font-mono text-lg">&rarr;</span>
       </shared-button>
     </div>
   </header>
 
   <div class="flex-1">
     @if (loading()) {
-      <div class="flex h-40 flex-col items-center justify-center gap-3 text-black">
-        <div class="h-5 w-5 animate-spin border-2 border-zinc-300 border-t-black rounded-none"></div>
-        <span class="font-mono text-xs font-medium text-zinc-700">
-          {{ 'dashboard.draftApprovals.loading' | translate }}...
-        </span>
+      <div class="flex h-48 flex-col items-center justify-center gap-4">
+        <div class="h-6 w-6 animate-spin border-2 border-black border-t-transparent dark:border-white"></div>
+        <span class="font-mono text-[10px] uppercase tracking-[0.3em] opacity-40">{{ 'dashboard.draftApprovals.loading' | translate }}</span>
       </div>
     } @else if (error()) {
-      <div class="flex h-full items-center justify-center p-6">
-        <div class="w-full border border-red-600 bg-red-50 p-4">
-          <p class="text-sm font-bold text-red-800">{{ error() | translate }}</p>
+      <div class="p-6">
+        <div class="border-2 border-red-600 p-4">
+          <p class="text-[10px] font-black uppercase text-red-600 tracking-widest text-center">{{ error() | translate }}</p>
         </div>
       </div>
     } @else if (!items().length) {
-      <div class="flex h-40 items-center justify-center p-6">
-        <p class="text-sm text-zinc-600">{{ 'dashboard.draftApprovals.empty' | translate }}</p>
+      <div class="flex h-48 items-center justify-center">
+        <p class="text-[10px] font-bold uppercase tracking-[0.2em] opacity-30 italic">{{ 'dashboard.draftApprovals.empty' | translate }}</p>
       </div>
     } @else {
-      <ul class="flex flex-col">
+      <ul class="flex flex-col divide-y-2 divide-black dark:divide-white">
         @for (item of items(); track item.quoteId) {
-          <li class="group border-b border-black last:border-b-0 hover:bg-zinc-50 transition-colors duration-150">
-            <div class="grid gap-3 p-4 lg:grid-cols-[1.5fr_1fr_1fr_auto] lg:items-center">
-              <div class="flex flex-col gap-1">
-                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-600">{{ 'dashboard.draftApprovals.consumerName' | translate }}</span>
-                <p class="text-sm font-semibold text-black">{{ item.consumerName }}</p>
+          <li class="group hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+            <div class="grid grid-cols-1 gap-6 p-6 lg:grid-cols-4 lg:items-center">
+              
+              <div class="space-y-1">
+                <span class="text-[9px] font-bold uppercase tracking-widest text-zinc-400">{{ 'dashboard.draftApprovals.consumerName' | translate }}</span>
+                <p class="text-xs font-black uppercase tracking-tight text-black dark:text-white truncate">
+                  {{ item.consumerName }}
+                </p>
               </div>
 
-              <div class="flex flex-col gap-1">
-                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-600">{{ 'dashboard.draftApprovals.totalAmount' | translate }}</span>
-                <p class="text-sm font-semibold text-black">{{ formatCurrency(item.totalCents) }}</p>
+              <div class="space-y-1">
+                <span class="text-[9px] font-bold uppercase tracking-widest text-zinc-400">{{ 'dashboard.draftApprovals.totalAmount' | translate }}</span>
+                <p class="text-xs font-mono font-bold text-black dark:text-white">
+                  {{ formatCurrency(item.totalCents) }}
+                </p>
               </div>
 
-              <div class="flex flex-col gap-1">
-                <span class="text-[11px] font-semibold uppercase tracking-wide text-zinc-600">{{ 'dashboard.draftApprovals.confidenceScore' | translate }}</span>
-                <span [class]="getConfidenceBadgeClass(item.confidenceScore)">{{ formatConfidence(item.confidenceScore) }}</span>
+              <div class="space-y-1">
+                <span class="text-[9px] font-bold uppercase tracking-widest text-zinc-400">{{ 'dashboard.draftApprovals.confidenceScore' | translate }}</span>
+                <div class="flex items-center gap-2">
+                  <div class="h-2 w-2 bg-blue-600"></div>
+                  <span class="font-mono text-xs font-bold leading-none">
+                    {{ formatConfidence(item.confidenceScore) }}
+                  </span>
+                </div>
               </div>
 
               <div class="lg:justify-self-end">
                 <shared-button
                   [routerLink]="['/app/offertes', item.quoteId]"
                   variant="primary"
-                  size="compact"
-                  [uppercase]="false"
-                  [fullWidth]="true"
-                  styleClass="rounded-none"
                 >
                   {{ 'dashboard.draftApprovals.reviewAndSend' | translate }}
                 </shared-button>
               </div>
+
             </div>
           </li>
         }

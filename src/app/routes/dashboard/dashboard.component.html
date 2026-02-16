@@ -10,14 +10,14 @@
 			<app-dashboard-kpi-row />
 		</div>
 
-		<!-- Action items -->
+		<!-- Combined urgent work -->
 		<div class="mt-4">
-			<app-dashboard-action-items />
+			<app-dashboard-needs-attention />
 		</div>
 
-		<!-- Draft approvals -->
+		<!-- Pipeline overview chart -->
 		<div class="mt-4">
-			<app-dashboard-draft-approvals />
+			<app-dashboard-pipeline-overview />
 		</div>
 
 		<!-- Upcoming schedule -->
@@ -42,12 +42,12 @@
 	<app-dashboard-kpi-row />
 
 	<div class="grid gap-4 grid-cols-1 lg:grid-cols-3 items-stretch">
-		<!-- Main content: heatmap + action items -->
+		<!-- Main content -->
 		<div class="lg:col-span-2 flex flex-col gap-4">
 			<div class="grid gap-4 grid-cols-1 sm:grid-cols-2 items-stretch">
+				<app-dashboard-needs-attention />
+				<app-dashboard-pipeline-overview />
 				<app-dashboard-lead-heatmap class="sm:col-span-2" />
-				<app-dashboard-action-items class="sm:col-span-2" />
-				<app-dashboard-draft-approvals class="sm:col-span-2" />
 			</div>
 		</div>
 

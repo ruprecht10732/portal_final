@@ -6,9 +6,10 @@ import type { DashboardMetricsResponse } from '../../../../core/services/dashboa
 import { KpiCardComponent } from '../../../../shared/components/kpi-card/kpi-card.component';
 
 interface KpiCardViewModel {
-  id: 'totalLeads' | 'projectedValue' | 'disqualifiedRate' | 'touchpointsPerLead';
+  id: 'activeLeads' | 'quotePipeline' | 'conversionRate' | 'avgQuoteValue';
   labelKey: string;
   value: string;
+  trend: number[];
   hintKey: string;
   isLoading: boolean;
 }
@@ -48,31 +49,41 @@ export class DashboardKpiRowComponent {
 
     return [
       {
-        id: 'totalLeads',
-        labelKey: 'dashboard.kpis.totalLeads',
-        value: loading ? '' : this.formatNumber(metrics?.totalLeads ?? 0, hasError),
-        hintKey: hasError ? 'dashboard.kpis.unavailable' : '',
+        id: 'activeLeads',
+        labelKey: 'dashboard.kpis.activeLeads',
+        value: loading ? '' : this.formatNumber(metrics?.activeLeads ?? 0, hasError),
+        trend: loading ? [] : this.resolveTrend(metrics?.activeLeadsTrend, metrics?.activeLeads ?? 0),
+        hintKey: hasError ? 'dashboard.kpis.unavailable' : 'dashboard.kpis.activeLeadsHint',
         isLoading: loading,
       },
       {
-        id: 'projectedValue',
-        labelKey: 'dashboard.kpis.projectedValue',
-        value: loading ? '' : this.formatCurrency(metrics?.projectedValueCents ?? 0, hasError),
-        hintKey: hasError ? 'dashboard.kpis.unavailable' : '',
+        id: 'quotePipeline',
+        labelKey: 'dashboard.kpis.quotePipeline',
+        value: loading ? '' : this.formatCurrency(metrics?.quotePipelineCents ?? 0, hasError),
+        trend: loading ? [] : this.resolveTrend(
+          metrics?.quotePipelineTrendCents?.map(value => value / 100),
+          (metrics?.quotePipelineCents ?? 0) / 100,
+        ),
+        hintKey: hasError ? 'dashboard.kpis.unavailable' : 'dashboard.kpis.quotePipelineHint',
         isLoading: loading,
       },
       {
-        id: 'disqualifiedRate',
-        labelKey: 'dashboard.kpis.disqualifiedRate',
-        value: loading ? '' : this.formatPercent(metrics?.disqualifiedRate ?? 0, hasError),
-        hintKey: hasError ? 'dashboard.kpis.unavailable' : 'dashboard.kpis.disqualifiedHint',
+        id: 'conversionRate',
+        labelKey: 'dashboard.kpis.conversionRate',
+        value: loading ? '' : this.formatPercent(metrics?.conversionRate ?? 0, hasError),
+        trend: loading ? [] : this.resolveTrend(metrics?.conversionRateTrend, metrics?.conversionRate ?? 0),
+        hintKey: hasError ? 'dashboard.kpis.unavailable' : 'dashboard.kpis.conversionRateHint',
         isLoading: loading,
       },
       {
-        id: 'touchpointsPerLead',
-        labelKey: 'dashboard.kpis.touchpointsPerLead',
-        value: loading ? '' : this.formatNumber(metrics?.touchpointsPerLead ?? 0, hasError),
-        hintKey: hasError ? 'dashboard.kpis.unavailable' : 'dashboard.kpis.touchpointsHint',
+        id: 'avgQuoteValue',
+        labelKey: 'dashboard.kpis.avgQuoteValue',
+        value: loading ? '' : this.formatCurrency(metrics?.avgQuoteValueCents ?? 0, hasError),
+        trend: loading ? [] : this.resolveTrend(
+          metrics?.avgQuoteValueTrendCents?.map(value => value / 100),
+          (metrics?.avgQuoteValueCents ?? 0) / 100,
+        ),
+        hintKey: hasError ? 'dashboard.kpis.unavailable' : 'dashboard.kpis.avgQuoteValueHint',
         isLoading: loading,
       },
     ];
@@ -114,5 +125,13 @@ export class DashboardKpiRowComponent {
       return '—';
     }
     return this.percentFormatter.format(valuePercent / 100);
+  }
+
+  private resolveTrend(trend: number[] | undefined, currentValue: number): number[] {
+    if (Array.isArray(trend) && trend.length >= 2) {
+      return trend;
+    }
+
+    return [currentValue, currentValue, currentValue, currentValue, currentValue, currentValue];
   }
 }

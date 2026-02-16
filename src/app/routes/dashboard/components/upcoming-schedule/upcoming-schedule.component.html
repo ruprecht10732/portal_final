@@ -1,93 +1,92 @@
-<shared-card className="flex h-full flex-col rounded-none">
-  <!-- Header -->
-  <header class="flex items-center justify-between border-b-2 border-black p-4">
-    <h2 class="text-lg font-semibold leading-tight text-black">
+<shared-card class="p-0! h-full border-2 border-black dark:border-white bg-white dark:bg-zinc-950 overflow-hidden flex flex-col shadow-none">
+  
+  <header class="flex items-center justify-between border-b-2 border-black dark:border-white p-5">
+    <h2 class="text-sm font-bold uppercase tracking-[0.3em] text-black dark:text-white">
       {{ 'dashboard.schedule.title' | translate }}
     </h2>
     <a
       routerLink="/app/appointments"
-      class="text-xs font-semibold text-zinc-500 underline decoration-1 underline-offset-4 hover:text-black hover:decoration-2"
+      class="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
     >
-      {{ 'dashboard.schedule.viewAll' | translate }}
+      {{ 'dashboard.schedule.viewAll' | translate }} //
     </a>
   </header>
 
-  <!-- Body -->
-  <div class="flex-1 overflow-y-auto" style="max-height: 420px;">
+  <div class="flex-1 overflow-y-auto" style="max-height: 440px;">
     @if (scheduleService.loading()) {
-      <div class="flex h-40 flex-col items-center justify-center gap-3 text-black">
-        <div class="h-5 w-5 animate-spin border-2 border-zinc-300 border-t-black rounded-none"></div>
-        <span class="font-mono text-xs font-medium text-zinc-700">{{ 'common.loading' | translate }}</span>
+      <div class="flex h-48 flex-col items-center justify-center gap-3">
+        <div class="h-6 w-6 animate-spin border-2 border-black border-t-transparent dark:border-white"></div>
+        <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-500">{{ 'common.loading' | translate }}</span>
       </div>
     } @else if (scheduleService.error()) {
-      <div class="flex h-full items-center justify-center p-6">
-        <div class="w-full border border-red-600 bg-red-50 p-4">
-          <p class="text-sm font-bold text-red-800">{{ scheduleService.error() }}</p>
+      <div class="p-6">
+        <div class="border-2 border-red-600 bg-red-600/5 p-4">
+          <p class="text-[10px] font-bold uppercase text-red-600 tracking-tighter">{{ scheduleService.error() }}</p>
         </div>
       </div>
     } @else {
       @for (group of scheduleService.schedule(); track group.date) {
-        <!-- Day header -->
-        <div class="sticky top-0 z-10 border-b border-black bg-zinc-50 px-4 py-2">
-          <span class="text-xs font-bold uppercase tracking-widest text-black">{{ group.label }}</span>
-          <span class="ml-2 font-mono text-[10px] text-zinc-500">
+        
+        <div class="sticky top-0 z-10 border-b-2 border-black dark:border-white bg-white dark:bg-zinc-900 px-5 py-2.5 flex justify-between items-center">
+          <span class="text-[11px] font-black uppercase tracking-tighter text-black dark:text-white">
+            {{ group.label }}
+          </span>
+          <span class="font-mono text-[9px] text-zinc-400 uppercase">
             {{ 'dashboard.schedule.appointmentsCount' | translate:{ count: group.appointments.length } }}
           </span>
         </div>
 
         @if (!group.appointments.length) {
-          <div class="px-4 py-6 text-center">
-            <p class="text-xs text-zinc-400">{{ 'dashboard.schedule.noAppointments' | translate }}</p>
+          <div class="p-8 text-center border-b border-black/5">
+            <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-300 italic">{{ 'dashboard.schedule.noAppointments' | translate }}</p>
           </div>
         } @else {
           @for (appt of group.appointments; track appt.id) {
-            <div class="group border-b border-zinc-200 last:border-b-0 hover:bg-zinc-50 transition-colors duration-150">
-              <div class="flex items-start gap-3 p-3.5">
-                <!-- Time block -->
-                <div class="shrink-0 w-18 text-right">
-                  <span class="font-mono text-xs font-bold text-black">{{ formatTime(appt.startTime) }}</span>
-                  <span class="block font-mono text-[10px] text-zinc-400">{{ formatTime(appt.endTime) }}</span>
-                </div>
+            <div class="group border-b border-black/5 last:border-b-0 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
+              <div class="flex items-stretch gap-0">
+                
+                <div class="w-1.5 shrink-0" [class.bg-blue-600]="appt.status === 'scheduled'" [class.bg-red-600]="appt.status === 'requested'"></div>
 
-                <!-- Vertical divider -->
-                <div class="flex flex-col items-center pt-0.5">
-                  <span
-                    class="h-2.5 w-2.5 rounded-full border-2"
-                    [class]="statusColor(appt.status)"
-                  ></span>
-                  <span class="w-px flex-1 bg-zinc-200 mt-1"></span>
-                </div>
-
-                <!-- Content -->
-                <div class="flex-1 min-w-0">
-                  <div class="flex items-center gap-2">
-                    <span class="text-xs">{{ typeIcon(appt.type) }}</span>
-                    @if (appt.leadId) {
-                      <a
-                        [routerLink]="['/app/leads', appt.leadId]"
-                        class="text-sm font-bold text-black underline decoration-1 underline-offset-4 hover:decoration-2 truncate"
-                      >
-                        {{ customerLabel(appt) }}
-                      </a>
-                    } @else {
-                      <span class="text-sm font-bold text-black truncate">
-                        {{ customerLabel(appt) }}
-                      </span>
-                    }
+                <div class="flex items-start gap-5 p-5 flex-1">
+                  <div class="shrink-0 w-16 text-right border-r border-black/5 pr-4">
+                    <span class="font-mono text-xs font-black text-black dark:text-white leading-none">
+                      {{ formatTime(appt.startTime) }}
+                    </span>
+                    <span class="block font-mono text-[9px] text-zinc-400 mt-1 uppercase">
+                      {{ formatTime(appt.endTime) }}
+                    </span>
                   </div>
 
-                  @if (addressLabel(appt); as address) {
-                    <p class="text-xs text-zinc-500 mt-0.5 truncate">{{ address }}</p>
-                  }
+                  <div class="flex-1 min-w-0">
+                    <div class="flex flex-col gap-1">
+                      @if (appt.leadId) {
+                        <a
+                          [routerLink]="['/app/leads', appt.leadId]"
+                          class="text-xs font-bold uppercase tracking-tight text-black dark:text-white underline decoration-black/10 decoration-2 underline-offset-4 hover:decoration-blue-600"
+                        >
+                          {{ customerLabel(appt) }}
+                        </a>
+                      } @else {
+                        <span class="text-xs font-bold uppercase tracking-tight text-black dark:text-white">
+                          {{ customerLabel(appt) }}
+                        </span>
+                      }
+                      
+                      @if (addressLabel(appt); as address) {
+                        <p class="text-[10px] font-medium text-zinc-500 leading-tight truncate uppercase tracking-tight">
+                          {{ address }}
+                        </p>
+                      }
+                    </div>
 
-                  <div class="mt-1.5 flex items-center gap-2">
-                    <shared-status-badge
-                      [status]="appt.status"
-                      type="appointment"
-                      size="sm"
-                      [emptyLabel]="statusLabel(appt.status)"
-                    ></shared-status-badge>
-                    <span class="text-[10px] text-zinc-400">{{ typeLabel(appt.type) }}</span>
+                    <div class="mt-4 flex items-center gap-3">
+                       <span class="text-[9px] font-black uppercase px-1.5 py-0.5 border border-black dark:border-white">
+                         {{ statusLabel(appt.status) }}
+                       </span>
+                       <span class="font-mono text-[9px] text-zinc-400 uppercase tracking-tighter">
+                         {{ typeLabel(appt.type) }}
+                       </span>
+                    </div>
                   </div>
                 </div>
               </div>

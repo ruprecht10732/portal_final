@@ -1,9 +1,10 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
 import { CardComponent } from '../card/card.component';
+import { KpiSparklineComponent } from '../kpi-sparkline/kpi-sparkline.component';
 
 @Component({
   selector: 'shared-kpi-card',
-  imports: [CardComponent],
+  imports: [CardComponent, KpiSparklineComponent],
   templateUrl: './kpi-card.component.html',
   styleUrl: './kpi-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -15,6 +16,7 @@ export class KpiCardComponent {
   label = input('');
   value = input('');
   hint = input('');
+  trend = input<number[]>([]);
   isLoading = input(false);
 
   protected readonly hostClass = computed(() => {

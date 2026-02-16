@@ -204,12 +204,15 @@
   },
   "dashboard": {
     "kpis": {
-      "totalLeads": "Totaal leads",
-      "projectedValue": "Verwachte waarde",
-      "disqualifiedRate": "Afkeuringspercentage",
-      "touchpointsPerLead": "Contactmomenten per lead",
-      "disqualifiedHint": "Aandeel leads als slechte lead",
-      "touchpointsHint": "Gem. activiteiten per lead",
+      "activeLeads": "Actieve Leads",
+      "quotePipeline": "Offerte Pipeline",
+      "conversionRate": "Conversie",
+      "avgQuoteValue": "Gem. Offerte Waarde",
+      "activeLeadsHint": "Leads in behandeling",
+      "quotePipelineHint": "Totaalwaarde verzonden + geaccepteerde offertes",
+      "conversionRateHint": "% geaccepteerde offertes van verzonden + geaccepteerde offertes",
+      "avgQuoteValueHint": "Gemiddelde waarde per offerte",
+      "sectionLabel": "Dashboard KPI's",
       "unavailable": "Niet beschikbaar"
     },
     "heatmap": {
@@ -222,6 +225,7 @@
       "clear": "Wissen",
       "loading": "Heatmap laden...",
       "empty": "Geen leads gevonden voor deze periode.",
+      "retry": "Opnieuw proberen",
       "error": "Heatmap laden mislukt.",
       "mapLabel": "Lead-dichtheidskaart"
     },
@@ -249,9 +253,32 @@
       "empty": "Geen offertes klaar voor controle.",
       "error": "Conceptoffertes laden mislukt."
     },
+    "needsAttention": {
+      "title": "Directe aandacht",
+      "actionItems": "Actie-items",
+      "draftApprovals": "Offertecontrole"
+    },
+    "pipeline": {
+      "title": "Pipeline Overzicht",
+      "subtitle": "Financiële momentopname op basis van live offertedata.",
+      "conversion": "Conversie",
+      "quotePipeline": "Offerte Pipeline",
+      "avgQuoteValue": "Gem. Offerte Waarde",
+      "weekShort": "W{{week}}",
+      "retry": "Opnieuw proberen",
+      "error": "Pipeline-overzicht laden mislukt."
+    },
     "activityFeed": {
       "title": "Activiteit",
       "empty": "Nog geen activiteit",
+      "count": "Aantal: {{count}}",
+      "now": "Nu",
+      "filters": {
+        "leads": "Leads",
+        "quotes": "Offertes",
+        "appointments": "Afspraken",
+        "ai": "AI"
+      },
       "emptyHint": "Nieuwe events verschijnen hier in real-time."
     },
     "schedule": {

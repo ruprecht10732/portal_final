@@ -1,8 +1,12 @@
 export interface DashboardMetricsResponse {
-  totalLeads: number;
-  projectedValueCents: number;
-  disqualifiedRate: number;
-  touchpointsPerLead: number;
+  activeLeads: number;
+  quotePipelineCents: number;
+  conversionRate: number;
+  avgQuoteValueCents: number;
+  activeLeadsTrend?: number[];
+  quotePipelineTrendCents?: number[];
+  conversionRateTrend?: number[];
+  avgQuoteValueTrendCents?: number[];
 }
 
 export interface LeadHeatmapPoint {

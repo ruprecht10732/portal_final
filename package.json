@@ -47,6 +47,7 @@
     "@angular/router": "21.1.2",
     "@iplab/ngx-color-picker": "^21.0.0",
     "@ngx-translate/core": "^17.0.0",
+    "chart.js": "^4.5.1",
     "dayjs": "1.11.19",
     "gsap": "3.12.5",
     "leaflet": "1.9.4",

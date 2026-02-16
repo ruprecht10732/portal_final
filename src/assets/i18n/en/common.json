@@ -204,12 +204,15 @@
   },
   "dashboard": {
     "kpis": {
-      "totalLeads": "Total leads",
-      "projectedValue": "Projected value",
-      "disqualifiedRate": "Disqualified rate",
-      "touchpointsPerLead": "Touchpoints per lead",
-      "disqualifiedHint": "Share of leads marked as bad",
-      "touchpointsHint": "Avg. activities per lead",
+      "activeLeads": "Active Leads",
+      "quotePipeline": "Quote Pipeline",
+      "conversionRate": "Conversion",
+      "avgQuoteValue": "Avg Quote Value",
+      "activeLeadsHint": "Leads currently in progress",
+      "quotePipelineHint": "Total value of sent + accepted quotes",
+      "conversionRateHint": "% accepted quotes out of sent + accepted quotes",
+      "avgQuoteValueHint": "Average value per quote",
+      "sectionLabel": "Dashboard KPIs",
       "unavailable": "Unavailable"
     },
     "heatmap": {
@@ -222,6 +225,7 @@
       "clear": "Clear",
       "loading": "Loading heatmap...",
       "empty": "No leads found for this date range.",
+      "retry": "Retry",
       "error": "Unable to load heatmap.",
       "mapLabel": "Lead density heatmap"
     },
@@ -249,9 +253,32 @@
       "empty": "No quotes ready for review.",
       "error": "Unable to load draft approvals."
     },
+    "needsAttention": {
+      "title": "Needs Attention",
+      "actionItems": "Action Items",
+      "draftApprovals": "Draft Approvals"
+    },
+    "pipeline": {
+      "title": "Pipeline Overview",
+      "subtitle": "Financial snapshot from live quote data.",
+      "conversion": "Conversion",
+      "quotePipeline": "Quote Pipeline",
+      "avgQuoteValue": "Avg Quote Value",
+      "weekShort": "W{{week}}",
+      "retry": "Retry",
+      "error": "Unable to load pipeline overview."
+    },
     "activityFeed": {
       "title": "Activity",
       "empty": "No activity yet",
+      "count": "Count: {{count}}",
+      "now": "Now",
+      "filters": {
+        "leads": "Leads",
+        "quotes": "Quotes",
+        "appointments": "Appointments",
+        "ai": "AI"
+      },
       "emptyHint": "New events will appear here in real-time."
     },
     "schedule": {

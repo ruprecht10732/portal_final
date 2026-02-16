@@ -11,6 +11,12 @@
   height: 100%;
 }
 
+.kpi-card__container {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
 .kpi-card__label {
   font-size: 0.875rem;
   color: #6b7280;
@@ -26,6 +32,10 @@
 .kpi-card__hint {
   font-size: 0.75rem;
   color: #9ca3af;
+}
+
+.kpi-card__trend {
+  margin-top: 0.1rem;
 }
 
 .kpi-card__skeleton {

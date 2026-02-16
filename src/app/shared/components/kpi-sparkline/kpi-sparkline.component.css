@@ -1,0 +1,14 @@
+:host {
+  display: block;
+}
+
+.kpi-sparkline {
+  height: 2rem;
+  width: 100%;
+}
+
+.kpi-sparkline canvas {
+  display: block;
+  height: 100%;
+  width: 100%;
+}
