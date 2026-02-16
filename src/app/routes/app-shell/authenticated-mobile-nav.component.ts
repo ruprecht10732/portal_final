@@ -8,6 +8,7 @@ import { NotificationsService } from '../../core/services/notifications.service'
 import { UserService } from '../../core/services/user.service';
 import type { UserProfile } from '../../core/services/user.types';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
+import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-bell.component';
 
 type MobileNavIcon =
   | 'dashboard'
@@ -28,7 +29,7 @@ interface MobileNavItem {
 
 @Component({
   selector: 'app-authenticated-mobile-nav',
-  imports: [RouterLink, RouterLinkActive, LucideAngularModule, TranslatePipe, NotificationBellComponent],
+  imports: [RouterLink, RouterLinkActive, LucideAngularModule, TranslatePipe, NotificationBellComponent, AIJobBellComponent],
   styles: `
     :host { display: contents; }
     .mobile-nav-scroll { scrollbar-width: none; -ms-overflow-style: none; }
@@ -89,6 +90,9 @@ interface MobileNavItem {
         }
         <div class="ml-1 flex shrink-0 items-center">
           <app-notification-bell></app-notification-bell>
+        </div>
+        <div class="ml-1 flex shrink-0 items-center">
+          <app-ai-job-bell></app-ai-job-bell>
         </div>
       </div>
     </nav>
