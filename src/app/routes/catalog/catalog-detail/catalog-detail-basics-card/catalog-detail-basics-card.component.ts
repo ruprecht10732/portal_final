@@ -1,5 +1,6 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, inject, input, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, SecurityContext, signal } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TranslateModule } from '@ngx-translate/core';
 import { CatalogService, type Product, type ProductType, type UpdateProductRequest, type VatRate } from '../../../../core/services/catalog.service';
 import { ChipComponent, type ChipVariant } from '../../../../shared/components/chip/chip.component';
@@ -50,6 +51,7 @@ export class CatalogDetailBasicsCardComponent {
   readonly onDeleteHeroImage = input.required<(assetId: string) => void>();
 
   private readonly datePipe = inject(DatePipe);
+  private readonly sanitizer = inject(DomSanitizer);
   protected readonly editingField = signal<DetailsRow['key'] | null>(null);
   protected readonly savingField = signal<DetailsRow['key'] | null>(null);
   protected readonly editTitle = signal('');
@@ -133,6 +135,13 @@ export class CatalogDetailBasicsCardComponent {
     const current = this.heroImageUrl();
     if (!current) return null;
     return this.heroImages().find(image => image.url === current) || null;
+  }
+
+  protected renderDescription(value: string | null | undefined): SafeHtml {
+    const source = (value ?? '').trim();
+    if (!source) return '';
+    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, source) ?? '';
+    return this.sanitizer.bypassSecurityTrustHtml(sanitized);
   }
 
   protected startEdit(key: DetailsRow['key']): void {

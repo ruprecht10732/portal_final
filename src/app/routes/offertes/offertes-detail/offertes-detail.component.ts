@@ -15,10 +15,11 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/components/menu/menu.component';
+import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-offertes-detail',
-  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, PageHeaderComponent, MenuComponent],
+  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, PageHeaderComponent, MenuComponent, SafeHtmlPipe],
   templateUrl: './offertes-detail.component.html',
   styleUrl: './offertes-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

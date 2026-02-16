@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, input, output, SecurityContext } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import type { AnnotationResponse, PublicQuoteItemResponse } from '../../../core/services/quotes.types';
@@ -13,6 +14,8 @@ import { QuoteAnnotationListComponent } from './quote-annotation-list.component'
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class QuoteProposalItemDesktopComponent {
+  private readonly sanitizer = inject(DomSanitizer);
+
   readonly item = input.required<PublicQuoteItemResponse>();
   readonly isFinalized = input(false);
   readonly isReadOnly = input(false);
@@ -37,6 +40,13 @@ export class QuoteProposalItemDesktopComponent {
 
   protected formatTaxRate(bps: number): string {
     return `${bps / 100}%`;
+  }
+
+  protected renderDescription(value: string | null | undefined): SafeHtml {
+    const source = (value ?? '').trim();
+    if (!source) return '';
+    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, source) ?? '';
+    return this.sanitizer.bypassSecurityTrustHtml(sanitized);
   }
 
   protected emitAsk(): void {

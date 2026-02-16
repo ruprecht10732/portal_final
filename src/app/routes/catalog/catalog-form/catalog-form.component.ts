@@ -10,8 +10,8 @@ import {
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
+import { RichTextEditorComponent } from '../../../shared/components/rich-text-editor/rich-text-editor.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
-import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 
 export interface CatalogFormValue {
   title: string;
@@ -36,8 +36,8 @@ export interface CatalogFormValue {
     ButtonComponent,
     InputComponent,
     NumberInputComponent,
+    RichTextEditorComponent,
     SelectComponent,
-    TextareaComponent,
   ],
   templateUrl: './catalog-form.component.html',
   styleUrl: './catalog-form.component.css',

@@ -65,9 +65,7 @@
         <h4 class="mb-2 text-xs font-bold uppercase tracking-wider text-zinc-400">
           {{ 'catalog.products.fields.description' | translate }}
         </h4>
-        <p class="text-sm leading-relaxed text-zinc-600 whitespace-pre-wrap">
-          {{ product().description }}
-        </p>
+        <div class="text-sm leading-relaxed text-zinc-600 whitespace-pre-wrap" [innerHTML]="renderDescription(product().description)"></div>
       </div>
     }
 

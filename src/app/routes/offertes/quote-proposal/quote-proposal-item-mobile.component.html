@@ -18,7 +18,7 @@
     <div class="flex-1">
       <div class="mb-1 flex items-start justify-between">
         <div class="flex items-center gap-2">
-          <h4 class="max-w-[70%] text-slate-900 font-medium leading-tight">{{ item().description }}</h4>
+          <div class="max-w-[70%] text-slate-900 font-medium leading-tight" [innerHTML]="item().description | safeHtml"></div>
           @if (item().isOptional) {
             <span class="rounded bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-700">
               {{ 'offertes.optional' | translate }}

@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
@@ -30,13 +31,15 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
+import { RichTextEditorComponent } from '../../../shared/components/rich-text-editor/rich-text-editor.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { SplitActionComponent, type SplitMenuSection } from '../../../shared/components/split-action/split-action.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
-import { GhostTextDirective, type GhostSuggestion } from '../../../shared/components/ghost-text/ghost-text.directive';
+import { type GhostSuggestion } from '../../../shared/components/ghost-text/ghost-text.directive';
 import { AttachmentPanelComponent, type AttachmentDraft } from '../../../shared/components/attachment-panel/attachment-panel.component';
 import { FilePreviewDialogComponent } from '../../../shared/components/file-preview-dialog/file-preview-dialog.component';
+import { QuoteLineItemRowComponent } from './quote-line-item-row.component';
 
 interface LineItemDraft {
   id: string;
@@ -52,6 +55,7 @@ interface LineItemDraft {
   selector: 'app-offertes-create',
   imports: [
     ReactiveFormsModule,
+    DragDropModule,
     TranslatePipe,
     LucideAngularModule,
     AutocompleteComponent,
@@ -59,13 +63,14 @@ interface LineItemDraft {
     CheckboxComponent,
     InputComponent,
     NumberInputComponent,
+    RichTextEditorComponent,
     SelectComponent,
     SplitActionComponent,
     TextareaComponent,
     PageHeaderComponent,
-    GhostTextDirective,
     AttachmentPanelComponent,
     FilePreviewDialogComponent,
+    QuoteLineItemRowComponent,
   ],
   templateUrl: './offertes-create.component.html',
   styleUrl: './offertes-create.component.css',
@@ -123,6 +128,7 @@ export class OffertesCreateComponent implements OnInit {
 
   // Line items
   protected readonly lineItems = signal<LineItemDraft[]>([]);
+  protected readonly descriptionEditState = signal<Record<string, boolean>>({});
 
   // Document attachments & URLs (collected from catalog autocomplete + manual uploads)
   protected readonly attachmentDrafts = signal<AttachmentDraft[]>([]);
@@ -459,6 +465,11 @@ export class OffertesCreateComponent implements OnInit {
         ...(item.catalogProductId == null ? {} : { catalogProductId: item.catalogProductId }),
       }))
     );
+    this.descriptionEditState.set(
+      Object.fromEntries(
+        quote.items.map(item => [item.id, !(item.catalogProductId && /<[^>]+>/.test(item.description))]),
+      ),
+    );
 
     // Restore attachments
     if (quote.attachments?.length) {
@@ -508,18 +519,47 @@ export class OffertesCreateComponent implements OnInit {
 
   // Line item management
   protected addLineItem(): void {
-    this.lineItems.update(items => [...items, this.createEmptyLineItem()]);
+    const item = this.createEmptyLineItem();
+    this.lineItems.update(items => [...items, item]);
+    this.descriptionEditState.update(state => ({ ...state, [item.id]: true }));
     this.requestCalculation();
   }
 
   protected removeLineItem(id: string): void {
     this.lineItems.update(items => {
       if (items.length <= 1) {
-        return [this.createEmptyLineItem()];
+        const item = this.createEmptyLineItem();
+        this.descriptionEditState.set({ [item.id]: true });
+        return [item];
       }
       return items.filter(item => item.id !== id);
     });
+    this.descriptionEditState.update(state => {
+      const next = { ...state };
+      delete next[id];
+      return next;
+    });
     this.requestCalculation();
+  }
+
+  protected onLineItemDrop(event: CdkDragDrop<LineItemDraft[]>): void {
+    if (event.previousIndex === event.currentIndex) return;
+    this.lineItems.update(items => {
+      const reordered = [...items];
+      moveItemInArray(reordered, event.previousIndex, event.currentIndex);
+      return reordered;
+    });
+    this.requestCalculation();
+  }
+
+  protected isDescriptionEditing(item: LineItemDraft): boolean {
+    const current = this.descriptionEditState()[item.id];
+    if (current !== undefined) return current;
+    return !(item.catalogProductId && /<[^>]+>/.test(item.description));
+  }
+
+  protected setDescriptionEditing(item: LineItemDraft, editing: boolean): void {
+    this.descriptionEditState.update(state => ({ ...state, [item.id]: editing }));
   }
 
   protected updateLineItem(
@@ -796,6 +836,7 @@ export class OffertesCreateComponent implements OnInit {
         };
       }),
     );
+    this.descriptionEditState.update(state => ({ ...state, [itemId]: false }));
 
     // Collect documents from the catalog product
     if (product.documents?.length) {
@@ -1046,7 +1087,9 @@ export class OffertesCreateComponent implements OnInit {
 
   private ensureInitialLineItem(): void {
     if (this.lineItems().length === 0) {
-      this.lineItems.set([this.createEmptyLineItem()]);
+      const item = this.createEmptyLineItem();
+      this.lineItems.set([item]);
+      this.descriptionEditState.set({ [item.id]: true });
     }
   }
 

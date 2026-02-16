@@ -106,9 +106,9 @@
                 [value]="summaryForm.controls.validUntil.value ?? ''"
                 (valueChange)="summaryForm.controls.validUntil.setValue($event)"
               />
-              <shared-textarea
+              <shared-rich-text-editor
                 [label]="'offertes.notes' | translate"
-                [rows]="3"
+                [minHeight]="140"
                 [placeholder]="'offertes.notesPlaceholder' | translate"
                 [value]="summaryForm.controls.notes.value ?? ''"
                 (valueChange)="summaryForm.controls.notes.setValue($event)"
@@ -242,163 +242,42 @@
             </div>
           </div>
 
-          <!-- Line items mobile cards -->
-          <div class="sm:hidden space-y-3">
-            @for (item of lineItems(); track item.id) {
-              <div class="border border-zinc-200 rounded-lg bg-white p-4 space-y-3">
-                <div class="flex items-start justify-between gap-2">
-                  <textarea
-                    appGhostText
-                    [ghostSearchFn]="catalogSearchFn"
-                    (ghostAccepted)="onGhostAccepted(item.id, $event)"
-                    [value]="item.description"
-                    (input)="updateLineItem(item.id, 'description', $any($event.target).value)"
-                    rows="2"
-                    class="flex-1 px-3 py-2 text-sm bg-white border border-zinc-200 rounded transition-all focus:outline-none focus:border-black placeholder:text-zinc-400 resize-none"
-                    [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
-                  ></textarea>
-                  <button
-                    type="button"
-                    (click)="removeLineItem(item.id)"
-                    class="text-zinc-400 hover:text-red-500 p-1 shrink-0"
-                    [attr.aria-label]="'offertes.removeItem' | translate"
-                  >
-                    <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
-                  </button>
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                  <shared-input
-                    [label]="'offertes.qty' | translate"
-                    [value]="item.quantity"
-                    (valueChange)="updateLineItem(item.id, 'quantity', $event)"
-                    [placeholder]="'offertes.qtyPlaceholder' | translate"
-                  />
-                  <shared-number-input
-                    [label]="'offertes.price' | translate"
-                    [value]="item.unitPrice"
-                    (valueChange)="updateLineItemPrice(item.id, $event)"
-                    prefix="€"
-                    [alignRight]="true"
-                  />
-                </div>
-
-                <div class="grid grid-cols-2 gap-3">
-                  <shared-select
-                    [label]="'offertes.tax' | translate"
-                    [options]="taxRateOptions()"
-                    [value]="item.taxRate"
-                    (valueChange)="updateLineItemTaxRate(item.id, $event)"
-                  />
-                  <div class="flex flex-col justify-end">
-                    <span class="text-xs text-zinc-400 mb-1">{{ 'offertes.total' | translate }}</span>
-                    <span class="text-sm font-semibold text-right">{{ formatCurrency(getLineItemTotal(item)) }}</span>
-                  </div>
-                </div>
-
-                <shared-checkbox
-                  [dense]="true"
-                  [label]="'offertes.optional' | translate"
-                  [checked]="item.optional"
-                  (checkedChange)="updateLineItemOptional(item.id, $event)"
-                />
-              </div>
-            }
+          <div class="hidden rounded-lg border border-zinc-200 bg-zinc-50/80 px-4 py-3 lg:grid lg:grid-cols-[28px_148px_1fr_108px_116px_120px_92px_56px] lg:items-center lg:gap-x-3">
+            <span></span>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.qty' | translate }}</span>
+            <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.description' | translate }}</span>
+            <span class="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.price' | translate }}</span>
+            <span class="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.tax' | translate }}</span>
+            <span class="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.total' | translate }}</span>
+            <span class="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.optional' | translate }}</span>
+            <span></span>
           </div>
 
-          <!-- Line items table (desktop) -->
-          <div class="hidden sm:block overflow-x-auto bg-white border border-zinc-200 rounded-lg shadow-sm">
-            <table class="w-full text-sm">
-              <thead>
-                <tr class="border-b-2 border-zinc-200 bg-zinc-50">
-                  <th class="text-left py-3.5 px-4 text-[10px] font-bold uppercase tracking-widest text-zinc-600 w-24">
-                    {{ 'offertes.qty' | translate }}
-                  </th>
-                  <th class="text-left py-3.5 px-4 text-[10px] font-bold uppercase tracking-widest text-zinc-600">
-                    {{ 'offertes.description' | translate }}
-                  </th>
-                  <th class="text-right py-3.5 px-4 text-[10px] font-bold uppercase tracking-widest text-zinc-600 w-28">
-                    {{ 'offertes.price' | translate }}
-                  </th>
-                  <th class="text-right py-3.5 px-4 text-[10px] font-bold uppercase tracking-widest text-zinc-600 w-32">
-                    {{ 'offertes.tax' | translate }}
-                  </th>
-                  <th class="text-right py-3.5 px-4 text-[10px] font-bold uppercase tracking-widest text-zinc-600 w-28">
-                    {{ 'offertes.total' | translate }}
-                  </th>
-                  <th class="text-left py-3.5 px-4 text-[10px] font-bold uppercase tracking-widest text-zinc-600 w-28">
-                    {{ 'offertes.optional' | translate }}
-                  </th>
-                  <th class="w-12"></th>
-                </tr>
-              </thead>
-              <tbody>
-                @for (item of lineItems(); track item.id) {
-                  <tr class="border-b border-zinc-100 last:border-0 group hover:bg-zinc-50/50 transition-colors duration-150">
-                    <td class="py-3 px-4">
-                      <shared-input
-                        [value]="item.quantity"
-                        (valueChange)="updateLineItem(item.id, 'quantity', $event)"
-                        [placeholder]="'offertes.qtyPlaceholder' | translate"
-                        class="w-20"
-                      />
-                    </td>
-                    <td class="py-3 px-4">
-                      <div class="relative">
-                        <textarea
-                          appGhostText
-                          [ghostSearchFn]="catalogSearchFn"
-                          (ghostAccepted)="onGhostAccepted(item.id, $event)"
-                          [value]="item.description"
-                          (input)="updateLineItem(item.id, 'description', $any($event.target).value)"
-                          rows="1"
-                          class="w-full px-4 py-3 text-sm bg-white border border-zinc-200 rounded-md transition-all duration-200 focus:outline-none focus:ring-2 focus:ring-black/5 focus:border-black placeholder:text-zinc-400 resize-y min-h-12 shadow-sm"
-                          [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
-                        ></textarea>
-                      </div>
-                    </td>
-                    <td class="py-3 px-4">
-                      <shared-number-input
-                        [value]="item.unitPrice"
-                        (valueChange)="updateLineItemPrice(item.id, $event)"
-                        prefix="€"
-                        [alignRight]="true"
-                        class="w-24"
-                      />
-                    </td>
-                    <td class="py-3 px-4">
-                      <shared-select
-                        class="w-28"
-                        [options]="taxRateOptions()"
-                        [value]="item.taxRate"
-                        (valueChange)="updateLineItemTaxRate(item.id, $event)"
-                      />
-                    </td>
-                    <td class="py-3 px-4 text-right font-semibold text-zinc-900 tabular-nums">
-                      {{ formatCurrency(getLineItemTotal(item)) }}
-                    </td>
-                    <td class="py-3 px-4">
-                      <shared-checkbox
-                        [dense]="true"
-                        [checked]="item.optional"
-                        [ariaLabel]="'offertes.optional' | translate"
-                        (checkedChange)="updateLineItemOptional(item.id, $event)"
-                      />
-                    </td>
-                    <td class="py-3 px-4 text-center">
-                      <button
-                        type="button"
-                        (click)="removeLineItem(item.id)"
-                        class="opacity-0 group-hover:opacity-100 text-zinc-400 hover:text-red-600 p-1.5 rounded transition-all duration-150 hover:bg-red-50"
-                        [attr.aria-label]="'offertes.removeItem' | translate"
-                      >
-                        <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
-                      </button>
-                    </td>
-                  </tr>
-                }
-              </tbody>
-            </table>
+          <div
+            cdkDropList
+            cdkDropListOrientation="vertical"
+            [cdkDropListData]="lineItems()"
+            (cdkDropListDropped)="onLineItemDrop($event)"
+            class="mt-3 space-y-3"
+          >
+            @for (item of lineItems(); track item.id) {
+              <app-quote-line-item-row
+                cdkDrag
+                cdkDragLockAxis="y"
+                [cdkDragDisabled]="lineItems().length < 2"
+                [item]="item"
+                [ghostSearchFn]="catalogSearchFn"
+                [taxRateOptions]="taxRateOptions()"
+                [totalDisplay]="formatCurrency(getLineItemTotal(item))"
+                (quantityChange)="updateLineItem(item.id, 'quantity', $event)"
+                (descriptionChange)="updateLineItem(item.id, 'description', $event)"
+                (unitPriceChange)="updateLineItemPrice(item.id, $event)"
+                (taxRateChange)="updateLineItemTaxRate(item.id, $event)"
+                (optionalChange)="updateLineItemOptional(item.id, $event)"
+                (ghostAccepted)="onGhostAccepted(item.id, $event)"
+                (remove)="removeLineItem(item.id)"
+              />
+            }
           </div>
 
           <div class="mt-4">
