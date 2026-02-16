@@ -73,6 +73,7 @@ export class CatalogEditComponent implements OnInit {
   protected readonly selectedMaterialModes = signal<Record<string, MaterialPricingMode>>({});
   protected readonly addingMaterials = signal(false);
   protected readonly removingMaterialId = signal<string | null>(null);
+  protected readonly updatingMaterialModeId = signal<string | null>(null);
 
   /** True for service types that support billing periods */
   protected readonly isServiceType = computed(() => {
@@ -87,7 +88,7 @@ export class CatalogEditComponent implements OnInit {
   protected readonly formInitialValue = computed<CatalogFormValue | null>(() => {
     const product = this.product();
     if (!product) return null;
-    const priceType = product.unitPriceCents > 0 ? 'unit' : 'fixed';
+    const priceType = ((product.unitLabel?.trim().length ?? 0) > 0 || product.unitPriceCents > 0) ? 'unit' : 'fixed';
     return {
       title: product.title,
       reference: product.reference,
@@ -509,6 +510,30 @@ export class CatalogEditComponent implements OnInit {
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.removingMaterialId.set(null);
+      },
+    });
+  }
+
+  protected updateMaterialPricingMode(materialId: string, pricingMode: MaterialPricingMode): void {
+    const product = this.product();
+    if (!product) return;
+
+    this.updatingMaterialModeId.set(materialId);
+    this.catalogService.addProductMaterials(product.id, {
+      materials: [{ materialId, pricingMode }],
+    }).subscribe({
+      next: () => {
+        this.materials.update(list => list.map(material =>
+          material.id === materialId ? { ...material, pricingMode } : material
+        ));
+        this.updatingMaterialModeId.set(null);
+        this.toast.success(this.translate.instant('catalog.products.materialModeUpdated'));
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.addMaterials'));
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.updatingMaterialModeId.set(null);
       },
     });
   }

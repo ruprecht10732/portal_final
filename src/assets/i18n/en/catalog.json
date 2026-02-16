@@ -305,8 +305,8 @@
         "validation": {
           "titleRequired": "Each material row needs a title",
           "vatRateRequired": "Each material row needs a VAT rate",
-          "fixedPriceRequired": "Each fixed-price material needs a price above 0",
-          "unitPriceRequired": "Each unit-price material needs a unit price above 0",
+          "fixedPriceRequired": "Each fixed-price material needs a price of 0 or higher",
+          "unitPriceRequired": "Each unit-price material needs a unit price of 0 or higher",
           "unitLabelRequired": "Each unit-price material needs a unit label"
         }
       },
@@ -400,6 +400,7 @@
       "noMaterialsDescription": "Add materials that are part of this service",
       "noAvailableMaterials": "No available materials",
       "materialsAdded": "Materials added successfully",
+      "materialModeUpdated": "Material billing mode updated",
       "materialRemoved": "Material removed successfully",
       "removeMaterial": "Remove material"
     }

@@ -185,7 +185,7 @@
                             step="0.01"
                             class="w-full border-0 px-3 py-2 text-sm font-normal focus:outline-none"
                             [value]="row.price ?? ''"
-                            (input)="updateMaterialField(row.id, 'price', $any($event.target).valueAsNumber || null)"
+                            (input)="updateMaterialField(row.id, 'price', mapNumberInput($any($event.target).valueAsNumber))"
                           />
                         </div>
                       </label>
@@ -200,7 +200,7 @@
                             step="0.01"
                             class="w-full border-0 px-3 py-2 text-sm font-normal focus:outline-none"
                             [value]="row.unitPrice ?? ''"
-                            (input)="updateMaterialField(row.id, 'unitPrice', $any($event.target).valueAsNumber || null)"
+                            (input)="updateMaterialField(row.id, 'unitPrice', mapNumberInput($any($event.target).valueAsNumber))"
                           />
                         </div>
                       </label>

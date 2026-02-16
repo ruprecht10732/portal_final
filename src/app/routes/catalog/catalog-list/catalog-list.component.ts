@@ -394,7 +394,7 @@ export class CatalogListComponent {
   }
 
   private buildProductRow(product: Product): ProductRow {
-    const hasUnitPrice = product.unitPriceCents > 0;
+    const hasUnitPrice = (product.unitLabel?.trim().length ?? 0) > 0 || product.unitPriceCents > 0;
     const fixedPriceValue = hasUnitPrice ? null : CatalogService.centsToPrice(product.priceCents ?? 0);
     const unitPriceValue = hasUnitPrice ? CatalogService.centsToPrice(product.unitPriceCents) : null;
     return {

@@ -238,6 +238,10 @@ export class CatalogCreateComponent implements OnInit {
     }));
   }
 
+  protected mapNumberInput(value: number): number | null {
+    return Number.isNaN(value) ? null : value;
+  }
+
   private validateInlineMaterials(type: ProductType): string | null {
     if (type !== 'service' && type !== 'digital_service') {
       return null;
@@ -261,12 +265,12 @@ export class CatalogCreateComponent implements OnInit {
       return this.translate.instant('catalog.products.inlineMaterials.validation.vatRateRequired');
     }
     if (row.priceType === 'fixed') {
-      if (row.price === null || row.price <= 0) {
+      if (row.price === null || row.price < 0) {
         return this.translate.instant('catalog.products.inlineMaterials.validation.fixedPriceRequired');
       }
       return null;
     }
-    if (row.unitPrice === null || row.unitPrice <= 0) {
+    if (row.unitPrice === null || row.unitPrice < 0) {
       return this.translate.instant('catalog.products.inlineMaterials.validation.unitPriceRequired');
     }
     if (!row.unitLabel.trim()) {
