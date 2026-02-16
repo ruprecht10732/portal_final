@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, finalize, firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { formatFullAddress } from '../../../core/utils/address.util';
 import { LeadsService } from '../../../core/services/leads.service';
@@ -50,6 +51,72 @@ import { LeadDetailTimelineTabComponent } from './lead-detail-timeline-tab.compo
 import { TIMEOUT_MS } from '../../../core/config';
 
 type WhatsAppMessageStatus = 'sent' | 'draft' | 'failed';
+
+const REPORT_SAVED_TRANSLATION_KEY = 'leads.detail.appointments.reportSaved';
+const REPORT_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.reportError';
+const APPOINTMENT_NO_SERVICE_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.noServiceError';
+const APPOINTMENT_DEFAULT_TITLE_TRANSLATION_KEY = 'leads.detail.appointments.defaultTitle';
+const APPOINTMENT_CREATED_TRANSLATION_KEY = 'leads.detail.appointments.created';
+const APPOINTMENT_CREATE_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.createError';
+const APPOINTMENT_ATTACHMENT_SAVED_TRANSLATION_KEY = 'leads.detail.appointments.attachmentSaved';
+const APPOINTMENT_ATTACHMENT_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.attachmentError';
+const APPOINTMENT_APPROVED_TRANSLATION_KEY = 'leads.detail.appointments.approved';
+const APPOINTMENT_APPROVE_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.approveError';
+const APPOINTMENT_LOAD_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.loadError';
+const APPOINTMENT_REPORT_LOAD_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.reportLoadError';
+const APPOINTMENT_ATTACHMENTS_LOAD_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.attachmentsLoadError';
+const WORKFLOW_DEFAULT_OPTION_TRANSLATION_KEY = 'leads.detail.workflow.defaultOption';
+const TAB_ACTIVITY_TRANSLATION_KEY = 'leads.detail.tabs.activity';
+const TAB_PREFERENCES_TRANSLATION_KEY = 'leads.detail.tabs.preferences';
+const TAB_APPOINTMENTS_TRANSLATION_KEY = 'leads.detail.tabs.appointments';
+const TAB_TIMELINE_TRANSLATION_KEY = 'leads.detail.tabs.timeline';
+const TAB_FILES_TRANSLATION_KEY = 'leads.detail.tabs.files';
+const ADD_SERVICE_CONSUMER_NOTE_TOO_LONG_TRANSLATION_KEY = 'leads.detail.addService.consumerNoteTooLong';
+const ACCESS_DIFFICULTY_LOW_TRANSLATION_KEY = 'appointments.accessDifficulty.low';
+const ACCESS_DIFFICULTY_MEDIUM_TRANSLATION_KEY = 'appointments.accessDifficulty.medium';
+const ACCESS_DIFFICULTY_HIGH_TRANSLATION_KEY = 'appointments.accessDifficulty.high';
+const STATUS_NO_SERVICE_TRANSLATION_KEY = 'leads.detail.status.noService';
+const ACTIVITY_SYSTEM_TRANSLATION_KEY = 'leads.detail.activity.system';
+const ACTIVITY_LEAD_CREATED_TRANSLATION_KEY = 'leads.detail.activity.leadCreated';
+const ACTIVITY_LEAD_UPDATED_TRANSLATION_KEY = 'leads.detail.activity.leadUpdated';
+const ACTIVITY_LEAD_VIEWED_TRANSLATION_KEY = 'leads.detail.activity.leadViewed';
+const ERROR_LOAD_LEAD_TRANSLATION_KEY = 'leads.detail.errors.loadLead';
+const ERROR_LOAD_PROFILE_TRANSLATION_KEY = 'leads.detail.errors.loadProfile';
+const UNASSIGNED_TRANSLATION_KEY = 'leads.detail.unassigned';
+const ERROR_LOAD_USERS_TRANSLATION_KEY = 'leads.detail.errors.loadUsers';
+const ERROR_LOAD_SERVICE_TYPES_TRANSLATION_KEY = 'leads.detail.errors.loadServiceTypes';
+const DATETIME_TODAY_AT_TRANSLATION_KEY = 'leads.detail.datetime.todayAt';
+const DATETIME_YESTERDAY_AT_TRANSLATION_KEY = 'leads.detail.datetime.yesterdayAt';
+const DATETIME_AT_TRANSLATION_KEY = 'leads.detail.datetime.at';
+const CONFIRM_CHANGE_TO_TRANSLATION_KEY = 'leads.detail.confirm.changeTo';
+const CONFIRM_DISQUALIFIED_TRANSLATION_KEY = 'leads.detail.confirm.disqualified';
+const CONFIRM_COMPLETED_TRANSLATION_KEY = 'leads.detail.confirm.completed';
+const CONFIRM_LOST_TRANSLATION_KEY = 'leads.detail.confirm.lost';
+const CONFIRM_DEFAULT_TRANSLATION_KEY = 'leads.detail.confirm.default';
+const CALL_LOGGER_PROCESSED_TRANSLATION_KEY = 'leads.callLogger.announcements.processed';
+const CALL_LOGGER_PROCESS_ERROR_TRANSLATION_KEY = 'leads.callLogger.errors.process';
+const ANNOUNCEMENT_STATUS_CHANGED_TRANSLATION_KEY = 'leads.detail.announcements.statusChanged';
+const ERROR_UPDATE_STATUS_TRANSLATION_KEY = 'leads.detail.errors.updateStatus';
+const ERROR_ASSIGN_LEAD_TRANSLATION_KEY = 'leads.detail.errors.assignLead';
+const ANNOUNCEMENT_NOTE_ADDED_TRANSLATION_KEY = 'leads.detail.announcements.noteAdded';
+const ERROR_ADD_NOTE_TRANSLATION_KEY = 'leads.detail.errors.addNote';
+const ERROR_LOAD_NOTES_TRANSLATION_KEY = 'leads.detail.errors.loadNotes';
+const ERROR_LOAD_TIMELINE_TRANSLATION_KEY = 'leads.detail.errors.loadTimeline';
+const ERROR_LOAD_AI_ANALYSIS_TRANSLATION_KEY = 'leads.detail.errors.loadAIAnalysis';
+const ANNOUNCEMENT_AI_NO_NEW_INFO_TRANSLATION_KEY = 'leads.detail.announcements.aiNoNewInfo';
+const ANNOUNCEMENT_AI_UPDATED_TRANSLATION_KEY = 'leads.detail.announcements.aiUpdated';
+const ERROR_UNEXPECTED_RESPONSE_TRANSLATION_KEY = 'leads.detail.errors.unexpectedResponse';
+const ERROR_ANALYZE_LEAD_TRANSLATION_KEY = 'leads.detail.errors.analyzeLead';
+const TIMELINE_MESSAGE_COPIED_TRANSLATION_KEY = 'leads.detail.timeline.messageCopied';
+const ERROR_ADD_SERVICE_TRANSLATION_KEY = 'leads.detail.errors.addService';
+const ERROR_UPDATE_SERVICE_STATUS_TRANSLATION_KEY = 'leads.detail.errors.updateServiceStatus';
+const WORKFLOW_SAVED_TRANSLATION_KEY = 'leads.detail.workflow.saved';
+const WORKFLOW_SAVE_FAILED_TRANSLATION_KEY = 'leads.detail.workflow.saveFailed';
+const WORKFLOW_CLEARED_TRANSLATION_KEY = 'leads.detail.workflow.cleared';
+const WORKFLOW_CLEAR_FAILED_TRANSLATION_KEY = 'leads.detail.workflow.clearFailed';
+const WORKFLOW_LOAD_FAILED_TRANSLATION_KEY = 'leads.detail.workflow.loadFailed';
+const FILES_UPLOADED_TRANSLATION_KEY = 'leads.detail.files.uploaded';
+
 interface TimelineContactMessage {
   channel: 'WhatsApp' | 'Email';
   message: string;
@@ -73,6 +140,7 @@ export class LeadDetailComponent implements OnInit {
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly userService = inject(UserService);
   private readonly reporter = inject(ErrorReportingService);
+  private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly lang = toSignal(this.translate.onLangChange, {
     initialValue: { lang: 'en', translations: {} },
@@ -101,18 +169,18 @@ export class LeadDetailComponent implements OnInit {
   protected readonly workflowError = signal<string | null>(null);
 
   protected readonly workflowOptions = computed<SelectOption<string | null>[]>(() => [
-    { value: null, label: this.translate.instant('leads.detail.workflow.defaultOption') },
+    { value: null, label: this.translate.instant(WORKFLOW_DEFAULT_OPTION_TRANSLATION_KEY) },
     ...this.workflowProfiles().map(workflow => ({ value: workflow.id, label: workflow.name })),
   ]);
   protected readonly tabs = computed<TabItem[]>(() => {
     // Read lang to trigger recomputation on language change
     this.lang();
     return [
-      { id: 'activity', label: this.translate.instant('leads.detail.tabs.activity') },
-      { id: 'preferences', label: this.translate.instant('leads.detail.tabs.preferences') },
-      { id: 'appointments', label: this.translate.instant('leads.detail.tabs.appointments') },
-      { id: 'timeline', label: this.translate.instant('leads.detail.tabs.timeline') },
-      { id: 'files', label: this.translate.instant('leads.detail.tabs.files') },
+      { id: 'activity', label: this.translate.instant(TAB_ACTIVITY_TRANSLATION_KEY) },
+      { id: 'preferences', label: this.translate.instant(TAB_PREFERENCES_TRANSLATION_KEY) },
+      { id: 'appointments', label: this.translate.instant(TAB_APPOINTMENTS_TRANSLATION_KEY) },
+      { id: 'timeline', label: this.translate.instant(TAB_TIMELINE_TRANSLATION_KEY) },
+      { id: 'files', label: this.translate.instant(TAB_FILES_TRANSLATION_KEY) },
     ];
   });
 
@@ -254,7 +322,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly consumerNoteRemaining = computed(() => Math.max(0, this.maxConsumerNoteLength - this.consumerNoteLength()));
   protected readonly consumerNoteError = computed(() =>
     this.consumerNoteTooLong()
-      ? this.translate.instant('leads.detail.addService.consumerNoteTooLong', { max: this.maxConsumerNoteLength })
+      ? this.translate.instant(ADD_SERVICE_CONSUMER_NOTE_TOO_LONG_TRANSLATION_KEY, { max: this.maxConsumerNoteLength })
       : null
   );
 
@@ -292,9 +360,9 @@ export class LeadDetailComponent implements OnInit {
   protected readonly accessDifficultyOptions = computed<SelectOption<AccessDifficulty>[]>(() => {
     this.lang();
     const labels: Record<AccessDifficulty, string> = {
-      Low: this.translate.instant('appointments.accessDifficulty.low'),
-      Medium: this.translate.instant('appointments.accessDifficulty.medium'),
-      High: this.translate.instant('appointments.accessDifficulty.high'),
+      Low: this.translate.instant(ACCESS_DIFFICULTY_LOW_TRANSLATION_KEY),
+      Medium: this.translate.instant(ACCESS_DIFFICULTY_MEDIUM_TRANSLATION_KEY),
+      High: this.translate.instant(ACCESS_DIFFICULTY_HIGH_TRANSLATION_KEY),
     };
     return ACCESS_DIFFICULTY_OPTIONS.map(option => ({
       value: option.value,
@@ -334,7 +402,7 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly headerNoServiceLabel = computed(() => {
     this.lang();
-    return this.translate.instant('leads.detail.status.noService');
+    return this.translate.instant(STATUS_NO_SERVICE_TRANSLATION_KEY);
   });
 
   protected readonly headerServiceTypeLabel = computed(() => {
@@ -365,16 +433,16 @@ export class LeadDetailComponent implements OnInit {
         id: `created-${lead.id}`,
         type: 'audit',
         timestamp: lead.createdAt,
-        user: this.translate.instant('leads.detail.activity.system'),
-        message: this.translate.instant('leads.detail.activity.leadCreated'),
+        user: this.translate.instant(ACTIVITY_SYSTEM_TRANSLATION_KEY),
+        message: this.translate.instant(ACTIVITY_LEAD_CREATED_TRANSLATION_KEY),
       });
       if (lead.updatedAt && lead.updatedAt !== lead.createdAt) {
         entries.push({
           id: `updated-${lead.id}`,
           type: 'audit',
           timestamp: lead.updatedAt,
-          user: this.translate.instant('leads.detail.activity.system'),
-          message: this.translate.instant('leads.detail.activity.leadUpdated'),
+          user: this.translate.instant(ACTIVITY_SYSTEM_TRANSLATION_KEY),
+          message: this.translate.instant(ACTIVITY_LEAD_UPDATED_TRANSLATION_KEY),
         });
       }
       if (lead.viewedAt) {
@@ -382,8 +450,8 @@ export class LeadDetailComponent implements OnInit {
           id: `viewed-${lead.id}`,
           type: 'audit',
           timestamp: lead.viewedAt,
-          user: this.translate.instant('leads.detail.activity.system'),
-          message: this.translate.instant('leads.detail.activity.leadViewed'),
+          user: this.translate.instant(ACTIVITY_SYSTEM_TRANSLATION_KEY),
+          message: this.translate.instant(ACTIVITY_LEAD_VIEWED_TRANSLATION_KEY),
         });
       }
     }
@@ -482,7 +550,7 @@ export class LeadDetailComponent implements OnInit {
         this.leadsService.markViewed(id).subscribe();
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadLead'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_LEAD_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
@@ -494,7 +562,7 @@ export class LeadDetailComponent implements OnInit {
     this.userService.getProfile().subscribe({
       next: profile => this.user.set(profile),
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadProfile'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_PROFILE_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -505,7 +573,7 @@ export class LeadDetailComponent implements OnInit {
     this.userService.listUsers().subscribe({
       next: users => {
         const options = [
-          { label: this.translate.instant('leads.detail.unassigned'), value: null },
+          { label: this.translate.instant(UNASSIGNED_TRANSLATION_KEY), value: null },
           ...users.map(user => ({
             label: user.roles.length ? `${user.email} (${user.roles.join(', ')})` : user.email,
             value: user.id,
@@ -514,7 +582,7 @@ export class LeadDetailComponent implements OnInit {
         this.assigneeOptions.set(options);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadUsers'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_USERS_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -532,7 +600,7 @@ export class LeadDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadServiceTypes'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_SERVICE_TYPES_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -569,16 +637,16 @@ export class LeadDetailComponent implements OnInit {
 
     // Check if date is today (between start of today and start of tomorrow)
     if (date >= startOfToday && date < startOfTomorrow) {
-      return this.translate.instant('leads.detail.datetime.todayAt', { time: timeLabel });
+      return this.translate.instant(DATETIME_TODAY_AT_TRANSLATION_KEY, { time: timeLabel });
     }
     // Check if date is yesterday
     if (date >= startOfYesterday && date < startOfToday) {
-      return this.translate.instant('leads.detail.datetime.yesterdayAt', { time: timeLabel });
+      return this.translate.instant(DATETIME_YESTERDAY_AT_TRANSLATION_KEY, { time: timeLabel });
     }
 
     // For other dates, show full date with time
     const dateLabel = date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-    return this.translate.instant('leads.detail.datetime.at', { date: dateLabel, time: timeLabel });
+    return this.translate.instant(DATETIME_AT_TRANSLATION_KEY, { date: dateLabel, time: timeLabel });
   };
 
   private parseTimestamp(value: string | null | undefined): number {
@@ -605,7 +673,7 @@ export class LeadDetailComponent implements OnInit {
     // Check if this is a terminal status that needs confirmation
     if (this.isTerminalStatus(status) && status !== this.lead()?.currentService?.status) {
       this.pendingStatusChange.set(status);
-      this.confirmDialogTitle.set(this.translate.instant('leads.detail.confirm.changeTo', { status: this.getStatusLabel(status) }));
+      this.confirmDialogTitle.set(this.translate.instant(CONFIRM_CHANGE_TO_TRANSLATION_KEY, { status: this.getStatusLabel(status) }));
       this.confirmDialogMessage.set(this.getConfirmMessage(status));
       this.showConfirmDialog.set(true);
       return;
@@ -617,15 +685,15 @@ export class LeadDetailComponent implements OnInit {
 
   private getConfirmMessage(status: LeadStatus): string {
     if (status === 'Disqualified') {
-      return this.translate.instant('leads.detail.confirm.disqualified');
+      return this.translate.instant(CONFIRM_DISQUALIFIED_TRANSLATION_KEY);
     }
     if (status === 'Completed') {
-      return this.translate.instant('leads.detail.confirm.completed');
+      return this.translate.instant(CONFIRM_COMPLETED_TRANSLATION_KEY);
     }
     if (status === 'Lost') {
-      return this.translate.instant('leads.detail.confirm.lost');
+      return this.translate.instant(CONFIRM_LOST_TRANSLATION_KEY);
     }
-    return this.translate.instant('leads.detail.confirm.default');
+    return this.translate.instant(CONFIRM_DEFAULT_TRANSLATION_KEY);
   }
 
   protected confirmStatusChange(): void {
@@ -750,10 +818,10 @@ export class LeadDetailComponent implements OnInit {
         // Reload data to reflect changes
         this.loadLead(lead.id);
         this.loadTimeline(lead.id, this.selectedService()?.id);
-        this.announce(this.translate.instant('leads.callLogger.announcements.processed'));
+        this.announce(this.translate.instant(CALL_LOGGER_PROCESSED_TRANSLATION_KEY));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.callLogger.errors.process'));
+        const message = extractErrorMessage(err, this.translate.instant(CALL_LOGGER_PROCESS_ERROR_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.callLoggerProcessing.set(false);
@@ -772,10 +840,10 @@ export class LeadDetailComponent implements OnInit {
       next: (updated) => {
         this.lead.set(updated);
         this.saving.set(false);
-        this.announce(this.translate.instant('leads.detail.announcements.statusChanged', { status: this.getStatusLabel(status) }));
+        this.announce(this.translate.instant(ANNOUNCEMENT_STATUS_CHANGED_TRANSLATION_KEY, { status: this.getStatusLabel(status) }));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.updateStatus'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_UPDATE_STATUS_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -795,7 +863,7 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.assignLead'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_ASSIGN_LEAD_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -833,10 +901,10 @@ export class LeadDetailComponent implements OnInit {
         this.noteSaving.set(false);
         this.loadTimeline(lead.id, this.selectedService()?.id);
         this.focusNoteBox();
-        this.announce(this.translate.instant('leads.detail.announcements.noteAdded'));
+        this.announce(this.translate.instant(ANNOUNCEMENT_NOTE_ADDED_TRANSLATION_KEY));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.addNote'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_ADD_NOTE_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.noteSaving.set(false);
@@ -850,7 +918,7 @@ export class LeadDetailComponent implements OnInit {
         this.leadNotes.set(response.items || []);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadNotes'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_NOTES_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -866,7 +934,7 @@ export class LeadDetailComponent implements OnInit {
         this.timelineLoading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadTimeline'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_TIMELINE_TRANSLATION_KEY));
         this.timelineError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.timelineLoading.set(false);
@@ -885,7 +953,7 @@ export class LeadDetailComponent implements OnInit {
         this.aiAnalysisLoading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.loadAIAnalysis'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_AI_ANALYSIS_TRANSLATION_KEY));
         this.aiAnalysisError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.aiAnalysisLoading.set(false);
@@ -929,22 +997,22 @@ export class LeadDetailComponent implements OnInit {
           this.aiAnalysisIsDefault.set(false);
           if (response.status === 'no_change') {
             this.aiAnalysisNoNewInfo.set(true);
-            this.announce(this.translate.instant('leads.detail.announcements.aiNoNewInfo'));
+            this.announce(this.translate.instant(ANNOUNCEMENT_AI_NO_NEW_INFO_TRANSLATION_KEY));
           } else {
             this.aiAnalysisNoNewInfo.set(false);
-            this.announce(this.translate.instant('leads.detail.announcements.aiUpdated'));
+            this.announce(this.translate.instant(ANNOUNCEMENT_AI_UPDATED_TRANSLATION_KEY));
             // Reload photo analysis as it may have been updated during AI analysis
             this.loadPhotoAnalysis(lead.id, service.id);
           }
         } else {
-          const message = this.translate.instant('leads.detail.errors.unexpectedResponse');
+          const message = this.translate.instant(ERROR_UNEXPECTED_RESPONSE_TRANSLATION_KEY);
           this.aiAnalysisError.set(message);
           this.reporter.report(new Error(message), { source: 'manual', silent: true, userMessage: message });
         }
         this.aiAnalysisRefreshing.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.analyzeLead'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_ANALYZE_LEAD_TRANSLATION_KEY));
         this.aiAnalysisError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.aiAnalysisRefreshing.set(false);
@@ -959,7 +1027,7 @@ export class LeadDetailComponent implements OnInit {
   protected getUserLabelById = (id: string | null | undefined): string => {
     if (!id) return 'Unassigned';
     const match = this.assigneeOptions().find(option => option.value === id);
-    return match?.label ?? this.translate.instant('leads.detail.unassigned');
+    return match?.label ?? this.translate.instant(UNASSIGNED_TRANSLATION_KEY);
   };
 
   protected readonly getTimelineTypeLabel = (type: LeadTimelineItem['type']): string => {
@@ -1051,7 +1119,7 @@ export class LeadDetailComponent implements OnInit {
   protected copyContactMessage(itemId: string, message: string): void {
     navigator.clipboard.writeText(message).then(() => {
       this.copiedContactMessage.set(itemId);
-      this.announce(this.translate.instant('leads.detail.timeline.messageCopied'));
+      this.announce(this.translate.instant(TIMELINE_MESSAGE_COPIED_TRANSLATION_KEY));
       setTimeout(() => {
         if (this.copiedContactMessage() === itemId) {
           this.copiedContactMessage.set(null);
@@ -1371,7 +1439,7 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.addService'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_ADD_SERVICE_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -1390,7 +1458,7 @@ export class LeadDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.errors.updateServiceStatus'));
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_UPDATE_SERVICE_STATUS_TRANSLATION_KEY));
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
@@ -1441,10 +1509,10 @@ export class LeadDetailComponent implements OnInit {
       finalize(() => this.workflowSaving.set(false)),
     ).subscribe({
       next: () => {
-        this.announce(this.translate.instant('leads.detail.workflow.saved'));
+        this.announce(this.translate.instant(WORKFLOW_SAVED_TRANSLATION_KEY));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.workflow.saveFailed'));
+        const message = extractErrorMessage(err, this.translate.instant(WORKFLOW_SAVE_FAILED_TRANSLATION_KEY));
         this.workflowError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -1464,10 +1532,10 @@ export class LeadDetailComponent implements OnInit {
       next: () => {
         this.selectedLeadWorkflowId.set(null);
         this.leadWorkflowOverrideMode.set(null);
-        this.announce(this.translate.instant('leads.detail.workflow.cleared'));
+        this.announce(this.translate.instant(WORKFLOW_CLEARED_TRANSLATION_KEY));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.workflow.clearFailed'));
+        const message = extractErrorMessage(err, this.translate.instant(WORKFLOW_CLEAR_FAILED_TRANSLATION_KEY));
         this.workflowError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -1488,7 +1556,7 @@ export class LeadDetailComponent implements OnInit {
         this.leadWorkflowResolutionSource.set(resolved.resolutionSource ?? null);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.workflow.loadFailed'));
+        const message = extractErrorMessage(err, this.translate.instant(WORKFLOW_LOAD_FAILED_TRANSLATION_KEY));
         this.workflowError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
@@ -1532,7 +1600,7 @@ export class LeadDetailComponent implements OnInit {
     // Use currentService or first service for the appointment
     const leadServiceId = lead.currentService?.id ?? lead.services[0]?.id;
     if (!leadServiceId) {
-      this.appointmentsError.set(this.translate.instant('leads.detail.appointments.noServiceError'));
+      this.appointmentsError.set(this.translate.instant(APPOINTMENT_NO_SERVICE_ERROR_TRANSLATION_KEY));
       return;
     }
 
@@ -1542,7 +1610,7 @@ export class LeadDetailComponent implements OnInit {
       leadId: lead.id,
       leadServiceId,
       type: 'lead_visit',
-      title: this.appointmentTitle().trim() || this.translate.instant('leads.detail.appointments.defaultTitle'),
+      title: this.appointmentTitle().trim() || this.translate.instant(APPOINTMENT_DEFAULT_TITLE_TRANSLATION_KEY),
       startTime: startTime.toISOString(),
       endTime: endTime.toISOString(),
       allDay: false,
@@ -1559,10 +1627,10 @@ export class LeadDetailComponent implements OnInit {
         this.resetAppointmentForm();
         this.appointmentSaving.set(false);
         this.loadAppointmentDetails(created.id);
-        this.announce(this.translate.instant('leads.detail.appointments.created'));
+        this.announce(this.translate.instant(APPOINTMENT_CREATED_TRANSLATION_KEY));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.createError'));
+        const message = extractErrorMessage(err, this.translate.instant(APPOINTMENT_CREATE_ERROR_TRANSLATION_KEY));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.appointmentSaving.set(false);
@@ -1592,14 +1660,17 @@ export class LeadDetailComponent implements OnInit {
     this.reportSaving.set(true);
     this.appointmentsService.upsertVisitReport(appointment.id, payload).subscribe({
       next: (response) => {
+        const successMessage = this.translate.instant(REPORT_SAVED_TRANSLATION_KEY);
         this.visitReport.set(response);
         this.syncReportFields(response);
         this.reportSaving.set(false);
-        this.announce(this.translate.instant('leads.detail.appointments.reportSaved'));
+        this.toast.success(successMessage);
+        this.announce(successMessage);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.reportError'));
+        const message = extractErrorMessage(err, this.translate.instant(REPORT_ERROR_TRANSLATION_KEY));
         this.appointmentsError.set(message);
+        this.toast.error(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.reportSaving.set(false);
       },
@@ -1625,10 +1696,10 @@ export class LeadDetailComponent implements OnInit {
         this.attachments.update(items => [created, ...items]);
         this.resetAttachmentForm();
         this.attachmentSaving.set(false);
-        this.announce(this.translate.instant('leads.detail.appointments.attachmentSaved'));
+        this.announce(this.translate.instant(APPOINTMENT_ATTACHMENT_SAVED_TRANSLATION_KEY));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.attachmentError'));
+        const message = extractErrorMessage(err, this.translate.instant(APPOINTMENT_ATTACHMENT_ERROR_TRANSLATION_KEY));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.attachmentSaving.set(false);
@@ -1648,10 +1719,10 @@ export class LeadDetailComponent implements OnInit {
           items.map(item => item.id === appointmentId ? updated : item),
         );
         this.approvingAppointmentId.set(null);
-        this.announce(this.translate.instant('leads.detail.appointments.approved'));
+        this.announce(this.translate.instant(APPOINTMENT_APPROVED_TRANSLATION_KEY));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.approveError'));
+        const message = extractErrorMessage(err, this.translate.instant(APPOINTMENT_APPROVE_ERROR_TRANSLATION_KEY));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.approvingAppointmentId.set(null);
@@ -1674,7 +1745,7 @@ export class LeadDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.loadError'));
+        const message = extractErrorMessage(err, this.translate.instant(APPOINTMENT_LOAD_ERROR_TRANSLATION_KEY));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.appointmentsLoading.set(false);
@@ -1702,7 +1773,7 @@ export class LeadDetailComponent implements OnInit {
           this.reportLoading.set(false);
           return;
         }
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.reportLoadError'));
+        const message = extractErrorMessage(err, this.translate.instant(APPOINTMENT_REPORT_LOAD_ERROR_TRANSLATION_KEY));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.reportLoading.set(false);
@@ -1718,7 +1789,7 @@ export class LeadDetailComponent implements OnInit {
         this.attachmentsLoading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('leads.detail.appointments.attachmentsLoadError'));
+        const message = extractErrorMessage(err, this.translate.instant(APPOINTMENT_ATTACHMENTS_LOAD_ERROR_TRANSLATION_KEY));
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.attachmentsLoading.set(false);
@@ -1860,7 +1931,7 @@ export class LeadDetailComponent implements OnInit {
   protected handleServiceAttachmentUploaded(attachment: LeadServiceAttachment): void {
     this.serviceAttachmentError.set(null);
     this.serviceAttachments.update(items => [attachment, ...items]);
-    this.announce(this.translate.instant('leads.detail.files.uploaded'));
+    this.announce(this.translate.instant(FILES_UPLOADED_TRANSLATION_KEY));
   }
 
   protected readonly presignServiceAttachment = async (file: File): Promise<PresignedUpload> => {

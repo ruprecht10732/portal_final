@@ -237,6 +237,18 @@
       "new": "Nieuwe lead",
       "newLead": "Nieuwe lead (laatste 7 dagen)"
     },
+    "draftApprovals": {
+      "title": "Offertes klaar voor controle",
+      "consumerName": "Consument",
+      "totalAmount": "Totaalbedrag",
+      "confidenceScore": "Betrouwbaarheidsscore",
+      "reviewAndSend": "Controleren & verzenden",
+      "previous": "Vorige",
+      "next": "Volgende",
+      "loading": "Conceptoffertes laden...",
+      "empty": "Geen offertes klaar voor controle.",
+      "error": "Conceptoffertes laden mislukt."
+    },
     "activityFeed": {
       "title": "Activiteit",
       "empty": "Nog geen activiteit",

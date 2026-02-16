@@ -237,6 +237,18 @@
       "new": "New lead",
       "newLead": "New lead (last 7 days)"
     },
+    "draftApprovals": {
+      "title": "Quotes Ready for Review",
+      "consumerName": "Consumer name",
+      "totalAmount": "Total amount",
+      "confidenceScore": "Confidence score",
+      "reviewAndSend": "Review & Send",
+      "previous": "Previous",
+      "next": "Next",
+      "loading": "Loading draft quotes...",
+      "empty": "No quotes ready for review.",
+      "error": "Unable to load draft approvals."
+    },
     "activityFeed": {
       "title": "Activity",
       "empty": "No activity yet",
