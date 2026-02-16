@@ -1,18 +1,35 @@
-<shared-card className="kpi-card">
-  <div class="kpi-card__label" [attr.aria-label]="label()">
-    {{ label() }}
-  </div>
-  @if (isLoading()) {
-    <div class="kpi-card__value kpi-card__skeleton" aria-hidden="true"></div>
-    <div class="kpi-card__hint kpi-card__skeleton kpi-card__skeleton--sm" aria-hidden="true"></div>
-  } @else {
-    <div class="kpi-card__value" [attr.aria-label]="value()">
-      {{ value() }}
+<shared-card class="p-0! h-full border-2 border-black dark:border-white bg-white dark:bg-zinc-950 overflow-hidden shadow-none">
+  <dl class="flex flex-col h-full divide-y-2 divide-black dark:divide-white">
+    
+    <dt class="p-4 bg-zinc-50 dark:bg-zinc-900 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
+      {{ label() }}
+    </dt>
+
+    <div class="flex-1 p-4 space-y-4">
+      @if (isLoading()) {
+        <dd class="h-10 w-24 bg-zinc-100 animate-pulse border border-black/5" aria-busy="true"></dd>
+        <dd class="h-12 w-full bg-zinc-50 animate-pulse border border-black/5"></dd>
+      } @else {
+        <dd class="text-4xl font-black tracking-tighter text-black dark:text-white leading-none">
+          {{ value() }}
+        </dd>
+
+        <dd class="h-12 w-full transition-all">
+          <shared-kpi-sparkline 
+            [points]="trend()" 
+            [isLoading]="isLoading()" 
+            class="h-full w-full"
+          />
+        </dd>
+
+        @if (hint()) {
+          <dd class="pt-2 border-t border-black/5">
+            <span class="text-[9px] font-bold uppercase tracking-widest text-zinc-400">
+              {{ hint() }}
+            </span>
+          </dd>
+        }
+      }
     </div>
-    @if (hint()) {
-      <div class="kpi-card__hint">
-        {{ hint() }}
-      </div>
-    }
-  }
+  </dl>
 </shared-card>

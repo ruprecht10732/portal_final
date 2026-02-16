@@ -3,7 +3,6 @@ import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { DashboardScheduleService } from '../../../../core/services/dashboard-schedule.service';
 import { CardComponent } from '../../../../shared/components/card/card.component';
-import { StatusBadgeComponent } from '../../../../shared/components/status-badge/status-badge.component';
 import {
   APPOINTMENT_STATUS_COLORS,
   type AppointmentResponse,
@@ -16,7 +15,7 @@ import {
   templateUrl: './upcoming-schedule.component.html',
   styleUrl: './upcoming-schedule.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, RouterLink, TranslatePipe, StatusBadgeComponent],
+  imports: [CardComponent, RouterLink, TranslatePipe],
 })
 export class UpcomingScheduleComponent {
   protected readonly scheduleService = inject(DashboardScheduleService);

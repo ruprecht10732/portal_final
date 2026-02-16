@@ -140,21 +140,39 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
 
     const points = this.points();
     const heatData: [number, number, number][] = points.map(point => [point.latitude, point.longitude, 0.7]);
+    const heatGradient: Record<number, string> = {
+      0.2: this.themeColor('--color-cyan-400'),
+      0.45: this.themeColor('--color-blue-500'),
+      0.7: this.themeColor('--color-indigo-500'),
+      1: this.themeColor('--color-red-500'),
+    };
+    const heatLayerOptions = {
+      radius: 25,
+      blur: 18,
+      maxZoom: 12,
+      minOpacity: 0.35,
+      gradient: heatGradient,
+    } as L.HeatLayerOptions & { gradient: Record<number, string> };
 
     if (this.heatLayer === null) {
-      this.heatLayer = L.heatLayer(heatData, {
-        radius: 25,
-        blur: 18,
-        maxZoom: 12,
-        minOpacity: 0.35,
-      }).addTo(this.map);
+      this.heatLayer = L.heatLayer(heatData, heatLayerOptions).addTo(this.map);
     } else {
-      this.heatLayer.setLatLngs(heatData);
+      this.heatLayer.remove();
+      this.heatLayer = L.heatLayer(heatData, heatLayerOptions).addTo(this.map);
     }
 
     if (points.length > 0) {
       const bounds = L.latLngBounds(points.map(point => [point.latitude, point.longitude] as [number, number]));
       this.map.fitBounds(bounds, { padding: [24, 24], maxZoom: 12 });
     }
+  }
+
+  private themeColor(variableName: string): string {
+    if (typeof document === 'undefined') {
+      return 'currentColor';
+    }
+
+    const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
+    return value || 'currentColor';
   }
 }
