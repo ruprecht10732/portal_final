@@ -19,7 +19,7 @@
         type="button"
         class="py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-zinc-400 cursor-not-allowed"
         disabled
-        title="{{ 'catalog.products.hints.materialsAfterCreate' | translate }}"
+        title="{{ 'catalog.products.inlineMaterials.title' | translate }}"
         aria-describedby="catalog-create-tabs-hint"
       >
         {{ 'catalog.products.tabs.materials' | translate }}
@@ -28,14 +28,14 @@
         type="button"
         class="py-3 text-sm font-bold uppercase tracking-wider border-b-2 border-transparent text-zinc-400 cursor-not-allowed"
         disabled
-        title="{{ 'catalog.products.hints.materialsAfterCreate' | translate }}"
+        title="{{ 'catalog.products.inlineMaterials.title' | translate }}"
         aria-describedby="catalog-create-tabs-hint"
       >
         {{ 'catalog.products.tabs.assets' | translate }}
       </button>
     </nav>
     <p id="catalog-create-tabs-hint" class="text-xs text-zinc-500 uppercase tracking-widest pb-3">
-      {{ 'catalog.products.hints.materialsAfterCreate' | translate }}
+      {{ 'catalog.products.inlineMaterials.hint' | translate }}
     </p>
   </div>
 
@@ -60,9 +60,168 @@
       [saving]="saving()"
       [submitLabel]="'catalog.products.create' | translate"
       [cancelLabel]="'catalog.products.cancel' | translate"
-      [showMaterialsHint]="true"
+      [showMaterialsHint]="false"
+      (typeChanged)="handleTypeChange($event)"
       (submitted)="save($event)"
       (cancelled)="cancel()"
     ></catalog-form>
+
+    @if (isServiceType()) {
+      <section class="border-t border-zinc-200 bg-zinc-50/50 p-4 sm:p-6">
+        <div class="border border-zinc-200 bg-white">
+          <div class="flex flex-col gap-3 border-b border-zinc-200 px-4 py-4 sm:flex-row sm:items-start sm:justify-between sm:px-6">
+            <div>
+              <h2 class="text-sm font-bold uppercase tracking-wider text-zinc-900">
+                {{ 'catalog.products.inlineMaterials.title' | translate }}
+              </h2>
+              <p class="mt-1 text-xs text-zinc-500">{{ 'catalog.products.inlineMaterials.hint' | translate }}</p>
+            </div>
+            <button
+              type="button"
+              class="inline-flex items-center justify-center gap-2 border border-black px-3 py-2 text-xs font-semibold uppercase tracking-wide text-black hover:bg-black hover:text-white"
+              (click)="addMaterialRow()"
+            >
+              <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+              </svg>
+              {{ 'catalog.products.inlineMaterials.addRow' | translate }}
+            </button>
+          </div>
+
+          @if (materialRows().length === 0) {
+            <div class="px-4 py-8 text-center sm:px-6">
+              <p class="text-sm text-zinc-600">{{ 'catalog.products.inlineMaterials.empty' | translate }}</p>
+            </div>
+          } @else {
+            <div class="space-y-4 p-4 sm:p-6">
+              @for (row of materialRows(); track row.id; let rowIndex = $index) {
+                <article class="border border-zinc-200 bg-white">
+                  <header class="flex items-center justify-between border-b border-zinc-200 bg-zinc-50 px-4 py-2.5">
+                    <p class="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                      {{ 'catalog.products.inlineMaterials.rowTitle' | translate:{ index: rowIndex + 1 } }}
+                    </p>
+                    <button
+                      type="button"
+                      class="inline-flex items-center gap-1.5 px-2 py-1 text-xs font-semibold uppercase tracking-wide text-red-700 hover:bg-red-50"
+                      (click)="removeMaterialRow(row.id)"
+                    >
+                      <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                      </svg>
+                      {{ 'catalog.products.removeMaterial' | translate }}
+                    </button>
+                  </header>
+
+                  <div class="grid grid-cols-1 gap-3 p-4 md:grid-cols-2 xl:grid-cols-4">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                      {{ 'catalog.products.fields.title' | translate }}
+                      <input
+                        type="text"
+                        class="mt-1 w-full border border-zinc-300 bg-white px-3 py-2 text-sm font-normal focus:border-black focus:outline-none"
+                        [value]="row.title"
+                        (input)="updateMaterialField(row.id, 'title', $any($event.target).value)"
+                      />
+                    </label>
+
+                    <label class="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                      {{ 'catalog.products.fields.reference' | translate }}
+                      <input
+                        type="text"
+                        class="mt-1 w-full border border-zinc-300 bg-white px-3 py-2 text-sm font-normal focus:border-black focus:outline-none"
+                        [value]="row.reference"
+                        (input)="updateMaterialField(row.id, 'reference', $any($event.target).value)"
+                      />
+                    </label>
+
+                    <label class="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                      {{ 'catalog.products.fields.vatRate' | translate }}
+                      <select
+                        class="mt-1 w-full border border-zinc-300 bg-white px-3 py-2 text-sm font-normal focus:border-black focus:outline-none"
+                        [value]="row.vatRateId"
+                        (change)="updateMaterialField(row.id, 'vatRateId', $any($event.target).value)"
+                      >
+                        <option value="">{{ 'catalog.products.inlineMaterials.selectVatRate' | translate }}</option>
+                        @for (rate of vatRates(); track rate.id) {
+                          <option [value]="rate.id">{{ rate.name }} ({{ CatalogService.bpsToRate(rate.rateBps) }}%)</option>
+                        }
+                      </select>
+                    </label>
+
+                    <label class="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                      {{ 'catalog.products.materialPricingMode' | translate }}
+                      <select
+                        class="mt-1 w-full border border-zinc-300 bg-white px-3 py-2 text-sm font-normal focus:border-black focus:outline-none"
+                        [value]="row.pricingMode"
+                        (change)="updateMaterialField(row.id, 'pricingMode', $any($event.target).value)"
+                      >
+                        <option value="included">{{ 'catalog.products.materialPricingModeOptions.included' | translate }}</option>
+                        <option value="additional">{{ 'catalog.products.materialPricingModeOptions.additional' | translate }}</option>
+                        <option value="optional">{{ 'catalog.products.materialPricingModeOptions.optional' | translate }}</option>
+                      </select>
+                    </label>
+                  </div>
+
+                  <div class="grid grid-cols-1 gap-3 border-t border-zinc-200 p-4 md:grid-cols-3">
+                    <label class="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                      {{ 'catalog.products.inlineMaterials.priceType' | translate }}
+                      <select
+                        class="mt-1 w-full border border-zinc-300 bg-white px-3 py-2 text-sm font-normal focus:border-black focus:outline-none"
+                        [value]="row.priceType"
+                        (change)="updateMaterialField(row.id, 'priceType', $any($event.target).value)"
+                      >
+                        <option value="fixed">{{ 'catalog.products.pricing.fixed' | translate }}</option>
+                        <option value="unit">{{ 'catalog.products.pricing.unit' | translate }}</option>
+                      </select>
+                    </label>
+
+                    @if (row.priceType === 'fixed') {
+                      <label class="text-xs font-semibold uppercase tracking-wide text-zinc-600 md:col-span-2">
+                        {{ 'catalog.products.fields.price' | translate }}
+                        <div class="mt-1 flex items-center border border-zinc-300 bg-white">
+                          <span class="px-3 text-sm text-zinc-500">€</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            class="w-full border-0 px-3 py-2 text-sm font-normal focus:outline-none"
+                            [value]="row.price ?? ''"
+                            (input)="updateMaterialField(row.id, 'price', mapNumberInput($any($event.target).valueAsNumber))"
+                          />
+                        </div>
+                      </label>
+                    } @else {
+                      <label class="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                        {{ 'catalog.products.fields.unitPrice' | translate }}
+                        <div class="mt-1 flex items-center border border-zinc-300 bg-white">
+                          <span class="px-3 text-sm text-zinc-500">€</span>
+                          <input
+                            type="number"
+                            min="0"
+                            step="0.01"
+                            class="w-full border-0 px-3 py-2 text-sm font-normal focus:outline-none"
+                            [value]="row.unitPrice ?? ''"
+                            (input)="updateMaterialField(row.id, 'unitPrice', mapNumberInput($any($event.target).valueAsNumber))"
+                          />
+                        </div>
+                      </label>
+
+                      <label class="text-xs font-semibold uppercase tracking-wide text-zinc-600">
+                        {{ 'catalog.products.fields.unitLabel' | translate }}
+                        <input
+                          type="text"
+                          class="mt-1 w-full border border-zinc-300 bg-white px-3 py-2 text-sm font-normal focus:border-black focus:outline-none"
+                          [value]="row.unitLabel"
+                          (input)="updateMaterialField(row.id, 'unitLabel', $any($event.target).value)"
+                        />
+                      </label>
+                    }
+                  </div>
+                </article>
+              }
+            </div>
+          }
+        </div>
+      </section>
+    }
   }
 </div>

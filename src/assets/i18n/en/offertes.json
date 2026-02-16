@@ -52,6 +52,7 @@
     "pricingMode": "Prices",
     "pricesExclVat": "Excl. BTW",
     "pricesInclVat": "Incl. BTW",
+    "includedMaterialsLabel": "Included:",
     "tax": "BTW",
     "totalAmount": "Total",
     "validUntil": "Valid until",

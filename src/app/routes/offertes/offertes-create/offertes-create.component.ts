@@ -10,7 +10,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { LeadsService } from '../../../core/services/leads.service';
 import { QuotesService } from '../../../core/services/quotes.service';
 import { OrganizationService } from '../../../core/services/organization.service';
-import { CatalogService, type AutocompleteItemResponse } from '../../../core/services/catalog.service';
+import { CatalogService, type AutocompleteItemResponse, type MaterialPricingMode, type Product } from '../../../core/services/catalog.service';
 import { AIJobService } from '../../../core/services/ai-job.service';
 import type { Lead } from '../../../core/services/leads.types';
 import type {
@@ -49,6 +49,7 @@ interface LineItemDraft {
   taxRate: TaxRateDisplay;
   optional: boolean;
   catalogProductId?: string;
+  parentLineItemId?: string;
 }
 
 @Component({
@@ -87,6 +88,7 @@ export class OffertesCreateComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly materialExpandRequestSeq = new Map<string, number>();
 
   // Server-side calculation trigger
   private readonly calcTrigger$ = new Subject<void>();
@@ -526,17 +528,22 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected removeLineItem(id: string): void {
+    const removedGeneratedIds = this.lineItems()
+      .filter(item => item.parentLineItemId === id)
+      .map(item => item.id);
+
     this.lineItems.update(items => {
       if (items.length <= 1) {
         const item = this.createEmptyLineItem();
         this.descriptionEditState.set({ [item.id]: true });
         return [item];
       }
-      return items.filter(item => item.id !== id);
+      return items.filter(item => item.id !== id && item.parentLineItemId !== id);
     });
     this.descriptionEditState.update(state => {
       const next = { ...state };
       delete next[id];
+      for (const generatedId of removedGeneratedIds) delete next[generatedId];
       return next;
     });
     this.requestCalculation();
@@ -821,10 +828,17 @@ export class OffertesCreateComponent implements OnInit {
    */
   protected onGhostAccepted(itemId: string, suggestion: GhostSuggestion): void {
     const product = suggestion.payload as AutocompleteItemResponse;
+    const requestSeq = (this.materialExpandRequestSeq.get(itemId) ?? 0) + 1;
+    this.materialExpandRequestSeq.set(itemId, requestSeq);
+
+    const previousGeneratedIds = this.lineItems()
+      .filter(item => item.parentLineItemId === itemId)
+      .map(item => item.id);
 
     // Update the line item with product data
-    this.lineItems.update(items =>
-      items.map(item => {
+    this.lineItems.update(items => {
+      const withoutGenerated = items.filter(item => item.parentLineItemId !== itemId);
+      return withoutGenerated.map(item => {
         if (item.id !== itemId) return item;
         return {
           ...item,
@@ -834,9 +848,16 @@ export class OffertesCreateComponent implements OnInit {
           taxRate: taxBpsToDisplay(product.vatRateBps),
           catalogProductId: product.id,
         };
-      }),
-    );
+      });
+    });
     this.descriptionEditState.update(state => ({ ...state, [itemId]: false }));
+    if (previousGeneratedIds.length) {
+      this.descriptionEditState.update(state => {
+        const next = { ...state };
+        for (const id of previousGeneratedIds) delete next[id];
+        return next;
+      });
+    }
 
     // Collect documents from the catalog product
     if (product.documents?.length) {
@@ -864,7 +885,75 @@ export class OffertesCreateComponent implements OnInit {
       this.urlDrafts.update(existing => [...existing, ...newUrls]);
     }
 
+    this.catalogService.listProductMaterials(product.id).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: materials => {
+        if (this.materialExpandRequestSeq.get(itemId) !== requestSeq) return;
+
+        const currentParent = this.lineItems().find(item => item.id === itemId);
+        if (currentParent?.catalogProductId !== product.id) return;
+
+        const includedTitles = materials
+          .filter(material => material.pricingMode === 'included')
+          .map(material => material.title.trim())
+          .filter(Boolean);
+
+        const parentDescriptionBase = product.description || product.title;
+        const parentDescription = this.formatDescriptionWithIncludedMaterials(parentDescriptionBase, includedTitles);
+
+        const generatedRows = this.createGeneratedMaterialRows(itemId, materials, currentParent.taxRate);
+        this.lineItems.update(items => {
+          const withoutGenerated = items.filter(item => item.parentLineItemId !== itemId);
+          const parentIndex = withoutGenerated.findIndex(item => item.id === itemId);
+          if (parentIndex === -1) return withoutGenerated;
+          const parentLine = withoutGenerated[parentIndex];
+          if (!parentLine) return withoutGenerated;
+
+          const updatedParent: LineItemDraft = {
+            ...parentLine,
+            description: parentDescription,
+          };
+
+          return [
+            ...withoutGenerated.slice(0, parentIndex),
+            updatedParent,
+            ...generatedRows,
+            ...withoutGenerated.slice(parentIndex + 1),
+          ];
+        });
+
+        this.descriptionEditState.update(state => {
+          const next = { ...state, [itemId]: false };
+          for (const row of generatedRows) next[row.id] = false;
+          return next;
+        });
+
+        this.requestCalculation();
+      },
+    });
+
     this.requestCalculation();
+  }
+
+  private createGeneratedMaterialRows(parentLineItemId: string, materials: Product[], fallbackTaxRate: TaxRateDisplay): LineItemDraft[] {
+    return materials
+      .filter(material => material.pricingMode === 'additional' || material.pricingMode === 'optional')
+      .map(material => this.createGeneratedMaterialRow(parentLineItemId, material, fallbackTaxRate));
+  }
+
+  private createGeneratedMaterialRow(parentLineItemId: string, material: Product, fallbackTaxRate: TaxRateDisplay): LineItemDraft {
+    const pricingMode: MaterialPricingMode = material.pricingMode === 'optional' ? 'optional' : 'additional';
+    return {
+      id: crypto.randomUUID(),
+      parentLineItemId,
+      description: material.description || material.title,
+      quantity: '1 x',
+      unitPrice: centsToEuros(material.unitPriceCents || material.priceCents),
+      taxRate: fallbackTaxRate,
+      optional: pricingMode === 'optional',
+      catalogProductId: material.id,
+    };
   }
 
   // ── Attachment Panel ────────────────────────────────────────────────────────
@@ -1083,6 +1172,13 @@ export class OffertesCreateComponent implements OnInit {
       style: 'currency',
       currency: 'EUR',
     }).format(amount);
+  }
+
+  private formatDescriptionWithIncludedMaterials(baseDescription: string, includedTitles: string[]): string {
+    if (includedTitles.length === 0) return baseDescription;
+
+    const includedBlockLines = [this.translate.instant('offertes.includedMaterialsLabel'), ...includedTitles.map(title => `- ${title}`)];
+    return `${baseDescription}<br><br>${includedBlockLines.join('<br>')}`;
   }
 
   private ensureInitialLineItem(): void {
