@@ -28,3 +28,21 @@ export interface ActionItemsResponse {
   page: number;
   pageSize: number;
 }
+
+export interface DraftApprovalItem {
+  quoteId: string;
+  leadId: string;
+  quoteNumber: string;
+  consumerName: string;
+  totalCents: number;
+  confidenceScore?: number;
+  createdAt: string;
+}
+
+export interface DraftApprovalsResponse {
+  items: DraftApprovalItem[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
