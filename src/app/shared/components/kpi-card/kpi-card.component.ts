@@ -1,10 +1,9 @@
 import { ChangeDetectionStrategy, Component, computed, input } from '@angular/core';
-import { CardComponent } from '../card/card.component';
 import { KpiSparklineComponent } from '../kpi-sparkline/kpi-sparkline.component';
 
 @Component({
   selector: 'shared-kpi-card',
-  imports: [CardComponent, KpiSparklineComponent],
+  imports: [KpiSparklineComponent],
   templateUrl: './kpi-card.component.html',
   styleUrl: './kpi-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

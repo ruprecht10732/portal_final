@@ -5,7 +5,6 @@ import * as L from 'leaflet';
 import { DashboardHeatmapService } from '../../../../core/services/dashboard-heatmap.service';
 import type { LeadHeatmapPoint } from '../../../../core/services/dashboard.types';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { CardComponent } from '../../../../shared/components/card/card.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 
 @Component({
@@ -13,7 +12,7 @@ import { InputComponent } from '../../../../shared/components/input/input.compon
   templateUrl: './lead-heatmap.component.html',
   styleUrl: './lead-heatmap.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [InputComponent, ButtonComponent, CardComponent, TranslatePipe],
+  imports: [InputComponent, ButtonComponent, TranslatePipe],
 })
 export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
   private readonly heatmapService = inject(DashboardHeatmapService);

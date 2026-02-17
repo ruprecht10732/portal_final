@@ -6,13 +6,12 @@ import { Chart, registerables } from 'chart.js';
 import { DashboardMetricsService } from '../../../../core/services/dashboard-metrics.service';
 import type { DashboardMetricsResponse } from '../../../../core/services/dashboard.types';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { CardComponent } from '../../../../shared/components/card/card.component';
 
 Chart.register(...registerables);
 
 @Component({
   selector: 'app-dashboard-pipeline-overview',
-  imports: [CardComponent, ButtonComponent, TranslatePipe, DecimalPipe],
+  imports: [ButtonComponent, TranslatePipe, DecimalPipe],
   templateUrl: './pipeline-overview.component.html',
   styleUrl: './pipeline-overview.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
