@@ -16,7 +16,7 @@
       }
 
       @if (getActiveHero()) {
-        <div class="absolute right-3 top-3 flex gap-2 opacity-0 transition-opacity duration-200 group-hover:opacity-100">
+        <div class="absolute right-3 top-3 flex gap-2 transition-opacity duration-200 sm:opacity-0 sm:group-hover:opacity-100">
           <button
             class="inline-flex h-8 w-8 items-center justify-center rounded-full bg-black/40 text-white backdrop-blur-md hover:bg-black/60 transition-colors"
             (click)="onPreviewHeroImage()(getActiveHero()!.id)"
@@ -122,10 +122,10 @@
                             ? editPrice.set($any($event.target).value) 
                             : (row.key === 'title' ? editTitle.set($any($event.target).value) : editReference.set($any($event.target).value))"
                         />
-                        <button class="text-green-600 hover:text-green-700" (click)="saveEdit(row.key)">
+                        <button class="min-h-11 min-w-11 flex items-center justify-center text-green-600 hover:text-green-700 touch-manipulation" (click)="saveEdit(row.key)">
                           <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
                         </button>
-                         <button class="text-zinc-400 hover:text-zinc-500" (click)="cancelEdit()">
+                         <button class="min-h-11 min-w-11 flex items-center justify-center text-zinc-400 hover:text-zinc-500 touch-manipulation" (click)="cancelEdit()">
                           <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
                         </button>
                       </div>
@@ -135,7 +135,7 @@
                       </span>
                       @if (row.editable) {
                         <button
-                          class="ml-2 hidden text-zinc-400 hover:text-blue-600 group-hover:inline-block"
+                          class="ml-2 inline-flex h-9 w-9 items-center justify-center text-zinc-400 hover:text-blue-600 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation"
                           (click)="startEdit(row.key)"
                         >
                           <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>

@@ -44,7 +44,7 @@
         </div>
       </shared-card>
 
-      <div class="flex flex-col sm:flex-row items-center justify-between gap-4 pt-2">
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
         <div>
           @if (successMessage()) {
             <p class="text-sm font-bold text-emerald-600 flex items-center gap-2">
@@ -60,7 +60,6 @@
           variant="primary"
           [disabled]="!canSave() || isSaving()"
           [loading]="isSaving()"
-          [fullWidth]="false"
           (clicked)="save()"
         >
           {{ 'organization.settings.save' | translate }}
