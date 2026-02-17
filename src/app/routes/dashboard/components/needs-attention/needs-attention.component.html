@@ -1,16 +1,16 @@
 <section class="flex h-full flex-col gap-3">
   <header class="flex items-center justify-between gap-3 px-1">
-    <h2 class="text-base font-semibold text-zinc-900">
+    <h2 class="text-sm font-semibold text-zinc-900 dark:text-white">
       {{ 'dashboard.needsAttention.title' | translate }}
     </h2>
 
-    <div class="inline-flex rounded-lg border border-zinc-200 bg-white p-1">
+    <div class="inline-flex rounded-full border border-zinc-100 dark:border-zinc-800 bg-zinc-50 dark:bg-zinc-900 p-1 gap-1">
       <button
         type="button"
-        class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-        [class.bg-zinc-900]="activeTab() === 'actionItems'"
-        [class.text-white]="activeTab() === 'actionItems'"
-        [class.text-zinc-700]="activeTab() !== 'actionItems'"
+        class="rounded-full px-3 py-1 text-[11px] font-semibold transition-colors"
+        [class]="activeTab() === 'actionItems'
+          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+          : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'"
         (click)="setTab('actionItems')"
       >
         {{ 'dashboard.needsAttention.actionItems' | translate }}
@@ -18,10 +18,10 @@
 
       <button
         type="button"
-        class="rounded-md px-3 py-1.5 text-xs font-medium transition-colors"
-        [class.bg-zinc-900]="activeTab() === 'draftApprovals'"
-        [class.text-white]="activeTab() === 'draftApprovals'"
-        [class.text-zinc-700]="activeTab() !== 'draftApprovals'"
+        class="rounded-full px-3 py-1 text-[11px] font-semibold transition-colors"
+        [class]="activeTab() === 'draftApprovals'
+          ? 'bg-white dark:bg-zinc-800 text-zinc-900 dark:text-white shadow-sm'
+          : 'text-zinc-500 dark:text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200'"
         (click)="setTab('draftApprovals')"
       >
         {{ 'dashboard.needsAttention.draftApprovals' | translate }}

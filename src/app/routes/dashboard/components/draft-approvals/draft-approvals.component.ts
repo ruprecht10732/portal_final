@@ -2,17 +2,16 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import type { DraftApprovalItem } from '../../../../core/services/dashboard.types';
 import { DashboardDraftApprovalsService } from '../../../../core/services/dashboard-draft-approvals.service';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { CardComponent } from '../../../../shared/components/card/card.component';
 
 @Component({
   selector: 'app-dashboard-draft-approvals',
   templateUrl: './draft-approvals.component.html',
   styleUrl: './draft-approvals.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CardComponent, RouterLink, TranslatePipe],
+  imports: [LucideAngularModule, RouterLink, TranslatePipe],
 })
 export class DraftApprovalsComponent {
   private readonly draftApprovalsService = inject(DashboardDraftApprovalsService);
@@ -77,18 +76,16 @@ export class DraftApprovalsComponent {
   }
 
   protected getConfidenceBadgeClass(score: number | undefined): string {
-    const baseClass = 'inline-flex w-fit items-center justify-center border px-2 py-0.5 text-xs font-semibold';
-
     if (typeof score !== 'number') {
-      return `${baseClass} border-zinc-300 bg-zinc-100 text-zinc-600`;
+      return 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400';
     }
     if (score >= 80) {
-      return `${baseClass} border-emerald-700 bg-emerald-100 text-emerald-900`;
+      return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400';
     }
     if (score >= 50) {
-      return `${baseClass} border-amber-700 bg-amber-100 text-amber-900`;
+      return 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400';
     }
-    return `${baseClass} border-red-700 bg-red-100 text-red-900`;
+    return 'bg-red-50 text-red-500 dark:bg-red-950/50 dark:text-red-400';
   }
 
   private loadItems(): void {
