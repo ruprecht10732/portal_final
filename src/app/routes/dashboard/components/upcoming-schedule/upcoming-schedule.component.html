@@ -1,99 +1,109 @@
-<shared-card class="p-0! h-full border-2 border-black dark:border-white bg-white dark:bg-zinc-950 overflow-hidden flex flex-col shadow-none">
-  
-  <header class="flex items-center justify-between border-b-2 border-black dark:border-white p-5">
-    <h2 class="text-sm font-bold uppercase tracking-[0.3em] text-black dark:text-white">
+<div class="upcoming-schedule-card h-full flex flex-col bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-sm border border-zinc-100 dark:border-zinc-800">
+
+  <!-- Header -->
+  <header class="flex items-center justify-between px-5 pt-5 pb-4">
+    <h2 class="text-sm font-semibold text-zinc-900 dark:text-white">
       {{ 'dashboard.schedule.title' | translate }}
     </h2>
-    <a
-      routerLink="/app/appointments"
-      class="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-black dark:hover:text-white transition-colors"
-    >
-      {{ 'dashboard.schedule.viewAll' | translate }} //
-    </a>
+    <div class="flex items-center gap-3">
+      <a
+        routerLink="/app/appointments"
+        class="flex items-center gap-1 text-[11px] font-semibold text-zinc-400 hover:text-zinc-700 dark:hover:text-zinc-200 transition-colors"
+      >
+        {{ 'dashboard.schedule.viewAll' | translate }}
+        <lucide-icon name="arrow-up-right" [size]="12"></lucide-icon>
+      </a>
+      <div class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
+        <lucide-icon name="calendar" [size]="15" class="text-zinc-500 dark:text-zinc-400"></lucide-icon>
+      </div>
+    </div>
   </header>
 
-  <div class="flex-1 overflow-y-auto" style="max-height: 440px;">
+  <!-- Body -->
+  <div class="flex-1 overflow-y-auto schedule-scroll px-3 pb-3" style="max-height: 420px;">
     @if (scheduleService.loading()) {
       <div class="flex h-48 flex-col items-center justify-center gap-3">
-        <div class="h-6 w-6 animate-spin border-2 border-black border-t-transparent dark:border-white"></div>
-        <span class="font-mono text-[9px] uppercase tracking-[0.2em] text-zinc-500">{{ 'common.loading' | translate }}</span>
+        <div class="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700 dark:border-zinc-600 dark:border-t-zinc-200"></div>
+        <span class="text-[10px] text-zinc-400 uppercase tracking-widest">{{ 'common.loading' | translate }}</span>
       </div>
     } @else if (scheduleService.error()) {
-      <div class="p-6">
-        <div class="border-2 border-red-600 bg-red-600/5 p-4">
-          <p class="text-[10px] font-bold uppercase text-red-600 tracking-tighter">{{ scheduleService.error() }}</p>
-        </div>
+      <div class="m-3 rounded-xl bg-red-50 dark:bg-red-950/30 border border-red-200 dark:border-red-800 p-4">
+        <p class="text-[11px] font-medium text-red-600 dark:text-red-400">{{ scheduleService.error() }}</p>
       </div>
     } @else {
       @for (group of scheduleService.schedule(); track group.date) {
-        
-        <div class="sticky top-0 z-10 border-b-2 border-black dark:border-white bg-white dark:bg-zinc-900 px-5 py-2.5 flex justify-between items-center">
-          <span class="text-[11px] font-black uppercase tracking-tighter text-black dark:text-white">
-            {{ group.label }}
-          </span>
-          <span class="font-mono text-[9px] text-zinc-400 uppercase">
-            {{ 'dashboard.schedule.appointmentsCount' | translate:{ count: group.appointments.length } }}
-          </span>
+
+        <!-- Day label -->
+        <div class="sticky top-0 z-10 bg-white dark:bg-zinc-900 pt-2 pb-1 px-2">
+          <div class="flex items-center justify-between">
+            <span class="text-[11px] font-semibold text-zinc-400 dark:text-zinc-500 uppercase tracking-widest">
+              {{ group.label }}
+            </span>
+            @if (group.appointments.length) {
+              <span class="text-[10px] text-zinc-300 dark:text-zinc-600 tabular-nums">
+                {{ group.appointments.length }}
+              </span>
+            }
+          </div>
         </div>
 
         @if (!group.appointments.length) {
-          <div class="p-8 text-center border-b border-black/5">
-            <p class="text-[10px] font-bold uppercase tracking-widest text-zinc-300 italic">{{ 'dashboard.schedule.noAppointments' | translate }}</p>
+          <div class="mx-2 mb-2 rounded-xl bg-zinc-50 dark:bg-zinc-800/50 px-4 py-5 text-center">
+            <p class="text-[11px] text-zinc-300 dark:text-zinc-600">{{ 'dashboard.schedule.noAppointments' | translate }}</p>
           </div>
         } @else {
-          @for (appt of group.appointments; track appt.id) {
-            <div class="group border-b border-black/5 last:border-b-0 hover:bg-zinc-50 dark:hover:bg-zinc-900 transition-colors">
-              <div class="flex items-stretch gap-0">
-                
-                <div class="w-1.5 shrink-0" [class.bg-blue-600]="appt.status === 'scheduled'" [class.bg-red-600]="appt.status === 'requested'"></div>
+          <div class="mb-2 space-y-1">
+            @for (appt of group.appointments; track appt.id) {
+              <div
+                class="group flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors cursor-default"
+              >
+                <!-- Icon avatar -->
+                <div
+                  class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm"
+                  [class]="apptIconBg(appt)"
+                >
+                  {{ typeIcon(appt.type) }}
+                </div>
 
-                <div class="flex items-start gap-5 p-5 flex-1">
-                  <div class="shrink-0 w-16 text-right border-r border-black/5 pr-4">
-                    <span class="font-mono text-xs font-black text-black dark:text-white leading-none">
-                      {{ formatTime(appt.startTime) }}
+                <!-- Content -->
+                <div class="flex-1 min-w-0">
+                  @if (appt.leadId) {
+                    <a
+                      [routerLink]="['/app/leads', appt.leadId]"
+                      class="block text-[13px] font-semibold text-zinc-800 dark:text-zinc-100 truncate hover:text-blue-600 dark:hover:text-blue-400 transition-colors leading-tight"
+                    >
+                      {{ customerLabel(appt) }}
+                    </a>
+                  } @else {
+                    <span class="block text-[13px] font-semibold text-zinc-800 dark:text-zinc-100 truncate leading-tight">
+                      {{ customerLabel(appt) }}
                     </span>
-                    <span class="block font-mono text-[9px] text-zinc-400 mt-1 uppercase">
-                      {{ formatTime(appt.endTime) }}
-                    </span>
-                  </div>
+                  }
+                  <span class="text-[11px] text-zinc-400 dark:text-zinc-500 truncate leading-tight">
+                    {{ typeLabel(appt.type) }}
+                    @if (addressLabel(appt); as address) {
+                      &nbsp;· {{ address }}
+                    }
+                  </span>
+                </div>
 
-                  <div class="flex-1 min-w-0">
-                    <div class="flex flex-col gap-1">
-                      @if (appt.leadId) {
-                        <a
-                          [routerLink]="['/app/leads', appt.leadId]"
-                          class="text-xs font-bold uppercase tracking-tight text-black dark:text-white underline decoration-black/10 decoration-2 underline-offset-4 hover:decoration-blue-600"
-                        >
-                          {{ customerLabel(appt) }}
-                        </a>
-                      } @else {
-                        <span class="text-xs font-bold uppercase tracking-tight text-black dark:text-white">
-                          {{ customerLabel(appt) }}
-                        </span>
-                      }
-                      
-                      @if (addressLabel(appt); as address) {
-                        <p class="text-[10px] font-medium text-zinc-500 leading-tight truncate uppercase tracking-tight">
-                          {{ address }}
-                        </p>
-                      }
-                    </div>
-
-                    <div class="mt-4 flex items-center gap-3">
-                       <span class="text-[9px] font-black uppercase px-1.5 py-0.5 border border-black dark:border-white">
-                         {{ statusLabel(appt.status) }}
-                       </span>
-                       <span class="font-mono text-[9px] text-zinc-400 uppercase tracking-tighter">
-                         {{ typeLabel(appt.type) }}
-                       </span>
-                    </div>
-                  </div>
+                <!-- Time -->
+                <div class="shrink-0 text-right">
+                  <span class="block text-[12px] font-semibold tabular-nums text-zinc-700 dark:text-zinc-300 leading-tight">
+                    {{ formatTime(appt.startTime) }}
+                  </span>
+                  <span
+                    class="inline-block mt-0.5 rounded-full px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wide"
+                    [class]="apptStatusChip(appt.status)"
+                  >
+                    {{ statusLabel(appt.status) }}
+                  </span>
                 </div>
               </div>
-            </div>
-          }
+            }
+          </div>
         }
       }
     }
   </div>
-</shared-card>
+</div>
