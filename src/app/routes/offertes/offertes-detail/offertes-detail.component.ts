@@ -8,7 +8,10 @@ import { QuotesService } from '../../../core/services/quotes.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { SSEService } from '../../../core/services/sse.service';
 import type { QuoteResponse, QuoteStatus, QuoteActivityResponse } from '../../../core/services/quotes.types';
-import { QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros } from '../../../core/services/quotes.types';
+import { MONEYBIRD_PROVIDER, QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros } from '../../../core/services/quotes.types';
+import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { formatDateValue } from '../../../core/utils/date-utils';
 import type { Lead } from '../../../core/services/leads.types';
 
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -31,6 +34,7 @@ export class OffertesDetailComponent implements OnInit {
   private readonly leadsService = inject(LeadsService);
   private readonly translate = inject(TranslateService);
   private readonly sse = inject(SSEService);
+  private readonly reporter = inject(ErrorReportingService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly loading = signal(true);
@@ -43,6 +47,11 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly downloadingPdf = signal(false);
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly loadingPreview = signal(false);
+  protected readonly moneybirdConnected = signal(false);
+  protected readonly exportingToMoneybird = signal(false);
+  protected readonly moneybirdExported = signal(false);
+  protected readonly moneybirdExternalUrl = signal<string | null>(null);
+  protected readonly moneybirdFeedback = signal<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Reply text per item (keyed by item ID)
   protected readonly replyTexts = signal<Record<string, string>>({});
@@ -67,6 +76,7 @@ export class OffertesDetailComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.loadMoneybirdConnectionStatus();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
       this.loadQuote(id);
@@ -148,6 +158,7 @@ export class OffertesDetailComponent implements OnInit {
           this.quote.set(quote);
           this.loadPreviewLink(quote);
           this.loadLead(quote.leadId);
+          this.loadMoneybirdExportStatus(quote.id);
         } else {
           this.error.set(this.translate.instant('offertes.errors.notFound'));
           this.loading.set(false);
@@ -327,6 +338,67 @@ export class OffertesDetailComponent implements OnInit {
     globalThis.open(url, '_blank', 'noopener');
   }
 
+  private loadMoneybirdConnectionStatus(): void {
+    this.quotesService.getProviderIntegrationStatus(MONEYBIRD_PROVIDER).subscribe({
+      next: status => {
+        this.moneybirdConnected.set(status.isConnected);
+      },
+      error: err => {
+        this.moneybirdConnected.set(false);
+        const message = this.translate.instant('offertes.errors.moneybirdStatusLoad');
+        this.moneybirdFeedback.set({ type: 'error', message });
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  private loadMoneybirdExportStatus(quoteID: string): void {
+    this.quotesService.getQuoteExportStatus(quoteID, MONEYBIRD_PROVIDER).subscribe({
+      next: status => {
+        this.moneybirdExported.set(status.isExported);
+        this.moneybirdExternalUrl.set(status.externalUrl ?? null);
+      },
+      error: () => {
+        this.moneybirdExported.set(false);
+        this.moneybirdExternalUrl.set(null);
+      },
+    });
+  }
+
+  protected sendToMoneybird(): void {
+    const q = this.quote();
+    if (q?.status !== 'Accepted' || !this.moneybirdConnected()) return;
+
+    this.moneybirdFeedback.set(null);
+    this.exportingToMoneybird.set(true);
+    this.quotesService.exportQuoteToProvider(q.id, MONEYBIRD_PROVIDER).subscribe({
+      next: result => {
+        this.moneybirdExported.set(true);
+        this.moneybirdExternalUrl.set(result.externalUrl ?? null);
+        this.moneybirdFeedback.set({
+          type: 'success',
+          message: this.translate.instant('offertes.viewInMoneybird'),
+        });
+        this.exportingToMoneybird.set(false);
+      },
+      error: err => {
+        const message = extractErrorMessage(err, this.translate.instant('offertes.errors.moneybirdExport'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
+        this.moneybirdFeedback.set({ type: 'error', message });
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.exportingToMoneybird.set(false);
+      },
+    });
+  }
+
+  protected openMoneybird(): void {
+    const url = this.moneybirdExternalUrl();
+    if (!url) return;
+    globalThis.open(url, '_blank', 'noopener');
+  }
+
   private buildPreviewUrl(token: string): string {
     const origin = globalThis.location?.origin ?? '';
     return origin ? `${origin}/quote/${token}` : `/quote/${token}`;
@@ -354,19 +426,19 @@ export class OffertesDetailComponent implements OnInit {
   }
 
   protected formatDate(date: string): string {
-    return new Intl.DateTimeFormat('nl-NL', {
+    return formatDateValue(date, 'nl-NL', {
       day: 'numeric',
       month: 'long',
       year: 'numeric',
-    }).format(new Date(date));
+    });
   }
 
   protected formatAnnotationDate(date: string): string {
-    return new Intl.DateTimeFormat('nl-NL', {
+    return formatDateValue(date, 'nl-NL', {
       day: 'numeric',
       month: 'short',
       hour: '2-digit',
       minute: '2-digit',
-    }).format(new Date(date));
+    });
   }
 }

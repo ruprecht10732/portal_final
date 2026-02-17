@@ -8,7 +8,31 @@
       "navLabel": "Team"
     },
     "integrations": {
-      "navLabel": "Integraties"
+      "navLabel": "Integraties",
+      "moneybird": {
+        "navLabel": "Moneybird-integratie",
+        "title": "Moneybird",
+        "subtitle": "Koppel Moneybird om geaccepteerde offertes als conceptfactuur te exporteren.",
+        "status": "Verbindingsstatus",
+        "connectedAt": "Verbonden op",
+        "refresh": "Vernieuwen",
+        "connect": "Koppel Moneybird",
+        "disconnect": "Ontkoppel Moneybird",
+        "authOpened": "Autorisatie geopend. Rond de koppeling af in het geopende venster en sluit dat venster daarna.",
+        "connected": "Moneybird is gekoppeld.",
+        "disconnected": "Moneybird is ontkoppeld.",
+        "helpText": "Na koppelen wordt de knop 'Verstuur naar Moneybird' zichtbaar bij geaccepteerde offertes.",
+        "states": {
+          "connected": "Verbonden",
+          "notConnected": "Niet verbonden"
+        },
+        "errors": {
+          "loadFailed": "Moneybird status laden mislukt.",
+          "connectFailed": "Moneybird koppelen mislukt.",
+          "disconnectFailed": "Moneybird ontkoppelen mislukt.",
+          "callbackFailed": "Moneybird autorisatie is mislukt of afgebroken."
+        }
+      }
     },
     "title": "Organisatie",
     "subtitle": "Beheer bedrijfsprofiel en teamuitnodigingen.",

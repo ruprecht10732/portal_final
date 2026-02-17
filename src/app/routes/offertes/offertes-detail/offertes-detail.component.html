@@ -20,6 +20,20 @@
     </div>
   } @else if (quote(); as q) {
     <div class="flex-1 overflow-y-auto bg-linear-to-br from-zinc-50 to-zinc-100 sm:bg-zinc-50/50">
+      @if (moneybirdFeedback(); as feedback) {
+        <div
+          class="border-y px-4 py-3 text-sm sm:border sm:rounded-sm sm:m-4"
+          [class.border-red-200]="feedback.type === 'error'"
+          [class.bg-red-50]="feedback.type === 'error'"
+          [class.text-red-800]="feedback.type === 'error'"
+          [class.border-emerald-200]="feedback.type === 'success'"
+          [class.bg-emerald-50]="feedback.type === 'success'"
+          [class.text-emerald-800]="feedback.type === 'success'"
+        >
+          {{ feedback.message }}
+        </div>
+      }
+
       <!-- Mobile layout -->
       <div class="sm:hidden">
         <nav class="sticky top-0 z-40 grid grid-cols-[40px_1fr_40px] items-center border-b border-gray-100 bg-white/70 px-4 py-4 backdrop-blur">
@@ -167,6 +181,32 @@
                     <lucide-icon name="pencil" class="h-4 w-4"></lucide-icon>
                     {{ 'offertes.edit' | translate }}
                   </shared-button>
+                }
+
+                @if (q.status === 'Accepted' && moneybirdConnected()) {
+                  @if (!moneybirdExported()) {
+                    <shared-button
+                      variant="secondary"
+                      size="compact"
+                      [fullWidth]="true"
+                      [loading]="exportingToMoneybird()"
+                      (clicked)="sendToMoneybird()"
+                    >
+                      <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                      {{ 'offertes.sendToMoneybird' | translate }}
+                    </shared-button>
+                  } @else {
+                    <shared-button
+                      variant="ghost"
+                      size="compact"
+                      [fullWidth]="true"
+                      (clicked)="openMoneybird()"
+                      [attr.aria-label]="'offertes.viewInMoneybird' | translate"
+                    >
+                      <lucide-icon name="external-link" class="h-4 w-4"></lucide-icon>
+                      {{ 'offertes.viewInMoneybird' | translate }}
+                    </shared-button>
+                  }
                 }
 
               </div>
@@ -429,6 +469,32 @@
                       <lucide-icon name="pencil" class="h-4 w-4"></lucide-icon>
                       {{ 'offertes.edit' | translate }}
                     </shared-button>
+                  }
+
+                  @if (q.status === 'Accepted' && moneybirdConnected()) {
+                    @if (!moneybirdExported()) {
+                      <shared-button
+                        variant="secondary"
+                        size="compact"
+                        [fullWidth]="false"
+                        [loading]="exportingToMoneybird()"
+                        (clicked)="sendToMoneybird()"
+                      >
+                        <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                        {{ 'offertes.sendToMoneybird' | translate }}
+                      </shared-button>
+                    } @else {
+                      <shared-button
+                        variant="ghost"
+                        size="compact"
+                        [fullWidth]="false"
+                        (clicked)="openMoneybird()"
+                        [attr.aria-label]="'offertes.viewInMoneybird' | translate"
+                      >
+                        <lucide-icon name="external-link" class="h-4 w-4"></lucide-icon>
+                        {{ 'offertes.viewInMoneybird' | translate }}
+                      </shared-button>
+                    }
                   }
 
                   <!-- Secondary actions -->

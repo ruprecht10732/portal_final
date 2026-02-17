@@ -20,6 +20,13 @@ import type {
   GenerateQuoteRequest,
   GenerateQuoteAcceptedResponse,
   GenerateQuoteJobResponse,
+  ExternalAccountingProvider,
+  ProviderIntegrationStatusResponse,
+  MoneybirdAuthorizeURLResponse,
+  QuoteExportResponse,
+  QuoteExportStatusResponse,
+  BulkQuoteExportRequest,
+  BulkQuoteExportResponse,
 } from './quotes.types';
 
 /**
@@ -140,6 +147,30 @@ export class QuotesService {
     return this.http.get<unknown>(`${this.baseUrl}/generate-jobs/${jobId}`).pipe(
       map((response) => this.normalizeGenerateJobResponse(response)),
     );
+  }
+
+  getProviderIntegrationStatus(provider: ExternalAccountingProvider): Observable<ProviderIntegrationStatusResponse> {
+    return this.http.get<ProviderIntegrationStatusResponse>(`${this.baseUrl}/integrations/${provider}/status`);
+  }
+
+  getMoneybirdAuthorizeURL(): Observable<MoneybirdAuthorizeURLResponse> {
+    return this.http.get<MoneybirdAuthorizeURLResponse>(`${this.baseUrl}/integrations/moneybird/authorize-url`);
+  }
+
+  disconnectProvider(provider: ExternalAccountingProvider): Observable<{ status: string }> {
+    return this.http.delete<{ status: string }>(`${this.baseUrl}/integrations/${provider}`);
+  }
+
+  exportQuoteToProvider(quoteId: string, provider: ExternalAccountingProvider): Observable<QuoteExportResponse> {
+    return this.http.post<QuoteExportResponse>(`${this.baseUrl}/${quoteId}/export/${provider}`, {});
+  }
+
+  getQuoteExportStatus(quoteId: string, provider: ExternalAccountingProvider): Observable<QuoteExportStatusResponse> {
+    return this.http.get<QuoteExportStatusResponse>(`${this.baseUrl}/${quoteId}/export/${provider}/status`);
+  }
+
+  bulkExportQuotesToProvider(provider: ExternalAccountingProvider, data: BulkQuoteExportRequest): Observable<BulkQuoteExportResponse> {
+    return this.http.post<BulkQuoteExportResponse>(`${this.baseUrl}/export/${provider}/bulk`, data);
   }
 
   private normalizeGenerateAcceptedResponse(input: unknown): GenerateQuoteAcceptedResponse {

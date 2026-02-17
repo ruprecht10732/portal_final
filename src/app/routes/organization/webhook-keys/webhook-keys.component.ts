@@ -9,6 +9,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { WebhookService, WebhookAPIKey, CreateWebhookAPIKeyResponse } from '../../../core/services/webhook.service';
 import { environment } from '../../../../environments/environment';
+import { formatDateValue } from '../../../core/utils/date-utils';
 
 @Component({
   selector: 'app-webhook-keys',
@@ -194,10 +195,8 @@ export class WebhookKeysComponent {
   // ---- Helpers ----
 
   protected formatDate(value: string): string {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
     const locale = this.lang().lang || 'nl';
-    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+    return formatDateValue(value, locale, { dateStyle: 'medium', timeStyle: 'short' });
   }
 
   protected dismissCreatedKey(): void {
@@ -206,21 +205,25 @@ export class WebhookKeysComponent {
 
   private normalizeError(error: unknown): string {
     if (typeof error === 'string') return error;
-    if (error && typeof error === 'object') {
-      const err = error as Record<string, unknown>;
-      if ('error' in err) {
-        const nested = err['error'];
-        if (typeof nested === 'object' && nested && 'error' in nested) {
-          const msg = (nested as Record<string, unknown>)['error'];
-          if (typeof msg === 'string') return msg;
-        }
-        if (typeof nested === 'string') return nested;
-      }
-      if ('message' in err) {
-        const msg = err['message'];
-        if (typeof msg === 'string') return msg;
-      }
+    if (!error || typeof error !== 'object') {
+      return this.translate.instant('webhook.errors.generic');
     }
-    return this.translate.instant('webhook.errors.generic');
+
+    const err = error as Record<string, unknown>;
+    return this.extractNestedError(err) ?? this.extractMessageField(err) ?? this.translate.instant('webhook.errors.generic');
+  }
+
+  private extractNestedError(err: Record<string, unknown>): string | null {
+    const nested = err['error'];
+    if (typeof nested === 'string') return nested;
+    if (!nested || typeof nested !== 'object') return null;
+
+    const nestedMessage = (nested as Record<string, unknown>)['error'];
+    return typeof nestedMessage === 'string' ? nestedMessage : null;
+  }
+
+  private extractMessageField(err: Record<string, unknown>): string | null {
+    const message = err['message'];
+    return typeof message === 'string' ? message : null;
   }
 }

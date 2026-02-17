@@ -6,14 +6,14 @@ import { LucideAngularModule } from 'lucide-angular';
 import { map, type Observable } from 'rxjs';
 
 import { QuotesService } from '../../../core/services/quotes.service';
-import { QUOTE_STATUS_LABELS, centsToEuros, formatQuoteCreatedBy, formatQuoteCustomerName, type QuoteResponse, type QuoteStatus } from '../../../core/services/quotes.types';
+import { MONEYBIRD_PROVIDER, QUOTE_STATUS_LABELS, centsToEuros, formatQuoteCreatedBy, formatQuoteCustomerName, type QuoteResponse, type QuoteStatus } from '../../../core/services/quotes.types';
 import { DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
-import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
+import type { DataRequest, DataResponse, GridColumn, GridConfig, SelectionChangeEvent } from '../../../shared/components/data-grid/data-grid.types';
 
 interface QuoteRow extends QuoteResponse, Record<string, unknown> {
   customerName: string;
@@ -58,6 +58,10 @@ export class OffertesListComponent implements OnInit {
   protected readonly quotes = signal<QuoteRow[]>([]);
   protected readonly total = signal(0);
   protected readonly error = signal<string | null>(null);
+  protected readonly moneybirdConnected = signal(false);
+  protected readonly selectedQuoteIds = signal<string[]>([]);
+  protected readonly bulkExporting = signal(false);
+  protected readonly bulkExportFeedback = signal<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
   private readonly lastRequest = signal<DataRequest | null>(null);
   private ignoreNextRequest = true;
 
@@ -165,7 +169,8 @@ export class OffertesListComponent implements OnInit {
 
   protected readonly gridConfig: Partial<GridConfig<QuoteRow>> = {
     rowIdField: 'id',
-    selectable: false,
+    selectable: true,
+    multiSelect: true,
     cardViewEnabled: true,
     mobileBreakpoint: MOBILE_BREAKPOINT,
     cardTitleField: 'quoteNumber',
@@ -189,7 +194,15 @@ export class OffertesListComponent implements OnInit {
     this.fetchData(request) as Observable<DataResponse<Record<string, unknown>>>;
 
   ngOnInit(): void {
+    this.loadMoneybirdConnectionStatus();
     this.loadInitialData();
+  }
+
+  private loadMoneybirdConnectionStatus(): void {
+    this.quotesService.getProviderIntegrationStatus(MONEYBIRD_PROVIDER).subscribe({
+      next: status => this.moneybirdConnected.set(status.isConnected),
+      error: () => this.moneybirdConnected.set(false),
+    });
   }
 
   private loadInitialData(): void {
@@ -423,6 +436,54 @@ export class OffertesListComponent implements OnInit {
 
   protected onGridRowDoubleClick(row: Record<string, unknown>): void {
     this.onQuoteDoubleClick(row as QuoteRow);
+  }
+
+  protected onSelectionChange(event: SelectionChangeEvent<Record<string, unknown>>): void {
+    const acceptedIds = event.selectedRows
+      .map(row => row as QuoteRow)
+      .filter(row => row.status === 'Accepted')
+      .map(row => row.id);
+    this.selectedQuoteIds.set(acceptedIds);
+  }
+
+  protected bulkSendToMoneybird(): void {
+    if (!this.moneybirdConnected() || this.selectedQuoteIds().length === 0) {
+      return;
+    }
+
+    this.bulkExportFeedback.set(null);
+    this.bulkExporting.set(true);
+    this.quotesService.bulkExportQuotesToProvider(MONEYBIRD_PROVIDER, { quoteIds: this.selectedQuoteIds() }).subscribe({
+      next: response => {
+        const total = response.items.length;
+        const succeeded = response.items.filter(item => item.status === 'exported').length;
+        const failed = total - succeeded;
+
+        if (failed === 0) {
+          this.bulkExportFeedback.set({
+            type: 'success',
+            message: this.translate.instant('offertes.bulkExportAllSuccess', { succeeded }),
+          });
+        } else {
+          this.bulkExportFeedback.set({
+            type: 'warning',
+            message: this.translate.instant('offertes.bulkExportPartial', { succeeded, total, failed }),
+          });
+        }
+
+        this.bulkExporting.set(false);
+        const request = this.lastRequest() ?? this.buildDefaultRequest();
+        this.onDataRequest(request);
+        this.selectedQuoteIds.set([]);
+      },
+      error: () => {
+        this.bulkExportFeedback.set({
+          type: 'error',
+          message: this.translate.instant('offertes.bulkExportFailed'),
+        });
+        this.bulkExporting.set(false);
+      },
+    });
   }
 
   protected formatCurrency(amount: number): string {
