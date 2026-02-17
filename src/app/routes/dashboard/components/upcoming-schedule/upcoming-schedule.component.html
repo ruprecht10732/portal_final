@@ -59,10 +59,10 @@
               >
                 <!-- Icon avatar -->
                 <div
-                  class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white text-sm font-bold shadow-sm"
+                  class="shrink-0 w-9 h-9 rounded-xl flex items-center justify-center text-white shadow-sm"
                   [class]="apptIconBg(appt)"
                 >
-                  {{ typeIcon(appt.type) }}
+                  <lucide-icon [name]="typeIcon(appt.type)" [size]="16"></lucide-icon>
                 </div>
 
                 <!-- Content -->

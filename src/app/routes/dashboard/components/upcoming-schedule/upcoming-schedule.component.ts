@@ -47,16 +47,12 @@ export class UpcomingScheduleComponent {
   protected typeIcon(type: AppointmentType): string {
     switch (type) {
       case 'lead_visit':
-        return '🏠';
+        return 'house';
       case 'standalone':
-        return '📋';
+        return 'calendar-check';
       case 'blocked':
-        return '🚫';
+        return 'lock';
     }
-  }
-
-  protected statusColor(status: AppointmentStatus): string {
-    return APPOINTMENT_STATUS_COLORS[status];
   }
 
   protected statusLabel(status: AppointmentStatus): string {
