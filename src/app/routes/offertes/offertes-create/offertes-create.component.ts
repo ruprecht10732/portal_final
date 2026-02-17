@@ -228,12 +228,6 @@ export class OffertesCreateComponent implements OnInit {
     // Client-side fallback
     const items = this.lineItems().filter(i => !i.optional);
     const mode = this.pricingMode();
-    const dType = this.discountType();
-    const dValue = this.discountValue();
-
-    const subtotal = items.reduce((sum, item) => sum + parseQuantityNumber(item.quantity) * item.unitPrice, 0);
-    let discountAmount = dType === 'percentage' ? subtotal * (dValue / 100) : dValue;
-    discountAmount = Math.min(Math.max(discountAmount, 0), subtotal);
 
     const byRate = new Map<number, number>();
     for (const item of items) {
