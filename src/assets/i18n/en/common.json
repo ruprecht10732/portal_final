@@ -13,6 +13,7 @@
     "confirm": "Confirm",
     "yes": "Yes",
     "no": "No",
+    "empty": "No items",
     "optional": "Optional",
     "upload": {
       "dropHint": "Drop a file here or click to browse",
@@ -203,6 +204,20 @@
     }
   },
   "dashboard": {
+    "views": {
+      "overview": "Overview",
+      "leadsByStatus": "Leads by Status",
+      "leadsByPipeline": "Leads by Pipeline",
+      "quotes": "Quotes Kanban"
+    },
+    "viewsSubtitles": {
+      "leadsByStatus": "Move leads between allowed statuses.",
+      "leadsByPipeline": "Pipeline stage overview for active leads.",
+      "quotes": "Move quotes between allowed statuses."
+    },
+    "boards": {
+      "partialDataWarning": "Showing the first {{maxItems}} items. Refine filters to view a smaller dataset."
+    },
     "kpis": {
       "activeLeads": "Active Leads",
       "quotePipeline": "Quote Pipeline",

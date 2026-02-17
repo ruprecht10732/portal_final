@@ -1,0 +1,8 @@
+:host {
+  display: block;
+}
+
+.kanban-scroll {
+  overflow-x: auto;
+  overflow-y: hidden;
+}
