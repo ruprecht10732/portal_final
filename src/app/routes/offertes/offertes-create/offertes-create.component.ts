@@ -206,17 +206,14 @@ export class OffertesCreateComponent implements OnInit {
 
     let discountAmount = dType === 'percentage' ? subtotal * (dValue / 100) : dValue;
     discountAmount = Math.min(Math.max(discountAmount, 0), subtotal);
-    const afterDiscount = subtotal - discountAmount;
 
     const taxAmount = items.reduce((sum, item) => {
       const lineTotal = parseQuantityNumber(item.quantity) * item.unitPrice;
-      const proportion = subtotal > 0 ? lineTotal / subtotal : 0;
-      const lineAfterDiscount = afterDiscount * proportion;
       const rate = item.taxRate / 100;
-      return sum + (mode === 'exclusive' ? lineAfterDiscount * rate : lineAfterDiscount - lineAfterDiscount / (1 + rate));
+      return sum + (mode === 'exclusive' ? lineTotal * rate : lineTotal - lineTotal / (1 + rate));
     }, 0);
 
-    const total = mode === 'exclusive' ? afterDiscount + taxAmount : afterDiscount;
+    const total = mode === 'exclusive' ? subtotal - discountAmount + taxAmount : subtotal - discountAmount;
     return { subtotal, discountAmount, taxAmount, total };
   });
 
@@ -237,15 +234,12 @@ export class OffertesCreateComponent implements OnInit {
     const subtotal = items.reduce((sum, item) => sum + parseQuantityNumber(item.quantity) * item.unitPrice, 0);
     let discountAmount = dType === 'percentage' ? subtotal * (dValue / 100) : dValue;
     discountAmount = Math.min(Math.max(discountAmount, 0), subtotal);
-    const afterDiscount = subtotal - discountAmount;
 
     const byRate = new Map<number, number>();
     for (const item of items) {
       const lineTotal = parseQuantityNumber(item.quantity) * item.unitPrice;
-      const proportion = subtotal > 0 ? lineTotal / subtotal : 0;
-      const lineAfterDiscount = afterDiscount * proportion;
       const rate = item.taxRate / 100;
-      const tax = mode === 'exclusive' ? lineAfterDiscount * rate : lineAfterDiscount - lineAfterDiscount / (1 + rate);
+      const tax = mode === 'exclusive' ? lineTotal * rate : lineTotal - lineTotal / (1 + rate);
       byRate.set(item.taxRate, (byRate.get(item.taxRate) ?? 0) + tax);
     }
 
