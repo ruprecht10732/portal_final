@@ -12,4 +12,5 @@
 
 .workflow-action-pill {
   white-space: nowrap;
+  min-height: 2.75rem;
 }
