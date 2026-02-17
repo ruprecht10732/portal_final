@@ -1,35 +1,24 @@
-<shared-card class="p-0! h-full border-2 border-black dark:border-white bg-white dark:bg-zinc-950 overflow-hidden shadow-none">
-  <dl class="flex flex-col h-full divide-y-2 divide-black dark:divide-white">
-    
-    <dt class="p-4 bg-zinc-50 dark:bg-zinc-900 text-[10px] font-black uppercase tracking-[0.3em] text-zinc-500">
-      {{ label() }}
-    </dt>
+<div class="flex flex-col gap-2 bg-white dark:bg-zinc-900 rounded-xl border border-zinc-100 dark:border-zinc-800 px-4 py-3">
 
-    <div class="flex-1 p-4 space-y-4">
-      @if (isLoading()) {
-        <dd class="h-10 w-24 bg-zinc-100 animate-pulse border border-black/5" aria-busy="true"></dd>
-        <dd class="h-12 w-full bg-zinc-50 animate-pulse border border-black/5"></dd>
-      } @else {
-        <dd class="text-4xl font-black tracking-tighter text-black dark:text-white leading-none">
-          {{ value() }}
-        </dd>
+  <span class="text-[11px] font-semibold text-zinc-500 dark:text-zinc-400 uppercase tracking-wider leading-none">
+    {{ label() }}
+  </span>
 
-        <dd class="h-12 w-full transition-all">
-          <shared-kpi-sparkline 
-            [points]="trend()" 
-            [isLoading]="isLoading()" 
-            class="h-full w-full"
-          />
-        </dd>
-
-        @if (hint()) {
-          <dd class="pt-2 border-t border-black/5">
-            <span class="text-[9px] font-bold uppercase tracking-widest text-zinc-400">
-              {{ hint() }}
-            </span>
-          </dd>
-        }
+  @if (isLoading()) {
+    <div class="h-7 w-20 rounded bg-zinc-100 dark:bg-zinc-800 animate-pulse" aria-busy="true"></div>
+  } @else {
+    <div class="flex items-end justify-between gap-2">
+      <span class="text-[1.6rem] font-bold tracking-tight text-zinc-900 dark:text-white leading-none">
+        {{ value() }}
+      </span>
+      @if (trend().length) {
+        <div class="h-8 w-20 shrink-0">
+          <shared-kpi-sparkline [points]="trend()" [isLoading]="isLoading()" class="h-full w-full" />
+        </div>
       }
     </div>
-  </dl>
-</shared-card>
+    @if (hint()) {
+      <span class="text-[11px] font-medium text-zinc-500 dark:text-zinc-400 leading-none">{{ hint() }}</span>
+    }
+  }
+</div>
