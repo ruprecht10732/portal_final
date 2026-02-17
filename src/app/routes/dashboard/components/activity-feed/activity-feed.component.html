@@ -16,7 +16,7 @@
   </header>
 
   <!-- Filter pills -->
-  <div class="flex items-center gap-1.5 px-4 pb-3">
+  <div class="flex flex-wrap items-center gap-x-1.5 gap-y-1.5 px-4 pb-3">
     @for (cat of categories; track cat.key) {
       <button
         type="button"
@@ -33,7 +33,7 @@
   </div>
 
   <!-- Feed -->
-  <div class="flex-1 overflow-y-auto activity-scroll px-3 pb-3" style="max-height: 440px;">
+  <div class="flex-1 overflow-y-auto activity-scroll px-3 pb-3 sm:max-h-[440px]">
     @if (!activityService.filteredEvents().length) {
       <div class="flex h-48 items-center justify-center">
         <p class="text-[11px] text-zinc-300 dark:text-zinc-600">{{ 'dashboard.activityFeed.empty' | translate }}</p>

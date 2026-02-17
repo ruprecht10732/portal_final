@@ -20,7 +20,7 @@
   </header>
 
   <!-- Body -->
-  <div class="flex-1 overflow-y-auto schedule-scroll px-3 pb-3" style="max-height: 420px;">
+  <div class="flex-1 overflow-y-auto schedule-scroll px-3 pb-3 sm:max-h-[420px]">
     @if (scheduleService.loading()) {
       <div class="flex h-48 flex-col items-center justify-center gap-3">
         <div class="h-5 w-5 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-700 dark:border-zinc-600 dark:border-t-zinc-200"></div>
