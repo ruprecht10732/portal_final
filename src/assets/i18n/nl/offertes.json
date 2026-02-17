@@ -64,6 +64,12 @@
     "markRejected": "Markeer als afgewezen",
     "sendProposal": "Offerte versturen",
     "resendProposal": "Offerte opnieuw versturen",
+    "sendToMoneybird": "Verstuur naar Moneybird",
+    "viewInMoneybird": "Bekijk in Moneybird",
+    "bulkSendToMoneybird": "Verstuur {{count}} offerte(s) naar Moneybird",
+    "bulkExportAllSuccess": "{{succeeded}} offerte(s) succesvol naar Moneybird geëxporteerd.",
+    "bulkExportPartial": "{{succeeded}} van {{total}} offerte(s) geëxporteerd naar Moneybird. {{failed}} mislukt.",
+    "bulkExportFailed": "Offertes exporteren naar Moneybird mislukt.",
     "saveDraft": "Concept opslaan",
     "saveAndSend": "Opslaan & versturen",
     "save": "Opslaan",
@@ -76,7 +82,9 @@
     "errors": {
       "save": "Offerte opslaan mislukt. Probeer het opnieuw.",
       "load": "Offertes laden mislukt. Probeer het opnieuw.",
-      "loadPreview": "Bestandsvoorbeeld laden mislukt."
+      "loadPreview": "Bestandsvoorbeeld laden mislukt.",
+      "moneybirdStatusLoad": "Moneybird status laden mislukt.",
+      "moneybirdExport": "Offerte exporteren naar Moneybird mislukt."
     },
     "generate": {
       "title": "Genereer met AI",

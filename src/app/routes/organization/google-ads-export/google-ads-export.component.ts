@@ -11,6 +11,7 @@ import {
   type UpsertGoogleAdsExportCredentialResponse,
 } from '../../../core/services/google-ads-export.service';
 import { environment } from '../../../../environments/environment';
+import { formatDateValue } from '../../../core/utils/date-utils';
 
 @Component({
   selector: 'app-google-ads-export',
@@ -147,10 +148,8 @@ export class GoogleAdsExportComponent {
   }
 
   protected formatDate(value: string): string {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
     const locale = this.lang().lang || 'nl';
-    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium', timeStyle: 'short' }).format(date);
+    return formatDateValue(value, locale, { dateStyle: 'medium', timeStyle: 'short' });
   }
 
   protected dismissGeneratedCredential(): void {

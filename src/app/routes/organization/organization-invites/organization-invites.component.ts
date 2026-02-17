@@ -8,6 +8,7 @@ import { OrganizationInvite, OrganizationService } from '../../../core/services/
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import type { GridColumn, GridConfig, SelectionChangeEvent } from '../../../shared/components/data-grid/data-grid.types';
 import { MOBILE_BREAKPOINT } from '../../../core/config';
+import { formatDateValue } from '../../../core/utils/date-utils';
 
 type InviteStatus = 'used' | 'expired' | 'pending';
 type InviteRow = OrganizationInvite & { status: InviteStatus; expiresAtDisplay: string } & Record<string, unknown>;
@@ -222,10 +223,8 @@ export class OrganizationInvitesComponent {
   }
 
   private formatDate(value: string): string {
-    const date = new Date(value);
-    if (Number.isNaN(date.getTime())) return value;
     const locale = this.lang().lang || 'en';
-    return new Intl.DateTimeFormat(locale, { dateStyle: 'medium' }).format(date);
+    return formatDateValue(value, locale, { dateStyle: 'medium' });
   }
 
   private normalizeError(error: unknown): string {

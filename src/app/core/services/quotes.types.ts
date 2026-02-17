@@ -3,6 +3,10 @@
 
 // Backend uses PascalCase enum values
 export type QuoteStatus = 'Draft' | 'Sent' | 'Accepted' | 'Rejected' | 'Expired';
+export type ExternalAccountingProvider = 'moneybird' | 'rompslomp' | 'stripe';
+export type QuoteExportState = 'pending' | 'exported' | 'failed' | 'synced';
+
+export const MONEYBIRD_PROVIDER: ExternalAccountingProvider = 'moneybird';
 
 export type DiscountType = 'percentage' | 'fixed';
 
@@ -127,8 +131,66 @@ export interface QuoteResponse {
   urls: QuoteURLResponse[];
   pdfFileKey?: string;
   financingDisclaimer: boolean;
+  exports?: QuoteExportInfo[];
   createdAt: string;
   updatedAt: string;
+}
+
+export interface QuoteExportInfo {
+  provider: ExternalAccountingProvider;
+  externalId?: string;
+  externalUrl?: string;
+  state?: QuoteExportState;
+  exportedAt?: string;
+}
+
+export interface ProviderIntegrationStatusResponse {
+  provider: ExternalAccountingProvider;
+  isConnected: boolean;
+  connectedAt?: string;
+}
+
+export interface MoneybirdAuthorizeURLResponse {
+  provider: 'moneybird';
+  authorizeUrl: string;
+}
+
+export interface QuoteExportResponse {
+  quoteId: string;
+  provider: ExternalAccountingProvider;
+  externalId: string;
+  externalUrl?: string;
+  state: QuoteExportState;
+  exportedAt: string;
+}
+
+export interface QuoteExportStatusResponse {
+  quoteId: string;
+  provider: ExternalAccountingProvider;
+  isExported: boolean;
+  externalId?: string;
+  externalUrl?: string;
+  state?: QuoteExportState;
+  exportedAt?: string;
+}
+
+export interface BulkQuoteExportRequest {
+  quoteIds: string[];
+}
+
+export interface BulkQuoteExportItem {
+  quoteId: string;
+  provider: ExternalAccountingProvider;
+  status: 'exported' | 'failed';
+  externalId?: string;
+  externalUrl?: string;
+  state?: QuoteExportState;
+  exportedAt?: string;
+  error?: string;
+}
+
+export interface BulkQuoteExportResponse {
+  items: BulkQuoteExportItem[];
 }
 
 export interface QuoteListResponse {

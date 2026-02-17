@@ -24,6 +24,36 @@
     {{ 'offertes.create' | translate }}
   </shared-button>
 
+  @if (moneybirdConnected() && selectedQuoteIds().length > 0) {
+    <shared-button
+      class="actions-desktop"
+      variant="secondary"
+      [fullWidth]="false"
+      [loading]="bulkExporting()"
+      (clicked)="bulkSendToMoneybird()"
+    >
+      <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+      {{ 'offertes.bulkSendToMoneybird' | translate:{count: selectedQuoteIds().length} }}
+    </shared-button>
+  }
+
+  @if (bulkExportFeedback(); as feedback) {
+    <div
+      class="mb-3 border-y px-4 py-3 text-sm sm:border sm:rounded-sm"
+      [class.border-emerald-200]="feedback.type === 'success'"
+      [class.bg-emerald-50]="feedback.type === 'success'"
+      [class.text-emerald-800]="feedback.type === 'success'"
+      [class.border-amber-200]="feedback.type === 'warning'"
+      [class.bg-amber-50]="feedback.type === 'warning'"
+      [class.text-amber-800]="feedback.type === 'warning'"
+      [class.border-red-200]="feedback.type === 'error'"
+      [class.bg-red-50]="feedback.type === 'error'"
+      [class.text-red-800]="feedback.type === 'error'"
+    >
+      {{ feedback.message }}
+    </div>
+  }
+
   <shared-data-grid
     [columns]="gridColumns()"
     [data]="gridData()"
@@ -34,6 +64,7 @@
     [fetchData]="fetchDataAdapter"
     (dataRequest)="onDataRequest($event)"
     (rowDoubleClick)="onGridRowDoubleClick($event)"
+    (selectionChange)="onSelectionChange($event)"
     [ariaLabel]="'offertes.list.title' | translate"
   />
 </shared-page-layout>

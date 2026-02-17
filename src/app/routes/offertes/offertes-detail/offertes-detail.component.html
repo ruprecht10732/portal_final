@@ -169,6 +169,32 @@
                   </shared-button>
                 }
 
+                @if (q.status === 'Accepted' && moneybirdConnected()) {
+                  @if (!moneybirdExported()) {
+                    <shared-button
+                      variant="secondary"
+                      size="compact"
+                      [fullWidth]="true"
+                      [loading]="exportingToMoneybird()"
+                      (clicked)="sendToMoneybird()"
+                    >
+                      <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                      {{ 'offertes.sendToMoneybird' | translate }}
+                    </shared-button>
+                  } @else {
+                    <shared-button
+                      variant="ghost"
+                      size="compact"
+                      [fullWidth]="true"
+                      (clicked)="openMoneybird()"
+                      [attr.aria-label]="'offertes.viewInMoneybird' | translate"
+                    >
+                      <lucide-icon name="external-link" class="h-4 w-4"></lucide-icon>
+                      {{ 'offertes.viewInMoneybird' | translate }}
+                    </shared-button>
+                  }
+                }
+
               </div>
             </div>
 
@@ -429,6 +455,32 @@
                       <lucide-icon name="pencil" class="h-4 w-4"></lucide-icon>
                       {{ 'offertes.edit' | translate }}
                     </shared-button>
+                  }
+
+                  @if (q.status === 'Accepted' && moneybirdConnected()) {
+                    @if (!moneybirdExported()) {
+                      <shared-button
+                        variant="secondary"
+                        size="compact"
+                        [fullWidth]="false"
+                        [loading]="exportingToMoneybird()"
+                        (clicked)="sendToMoneybird()"
+                      >
+                        <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                        {{ 'offertes.sendToMoneybird' | translate }}
+                      </shared-button>
+                    } @else {
+                      <shared-button
+                        variant="ghost"
+                        size="compact"
+                        [fullWidth]="false"
+                        (clicked)="openMoneybird()"
+                        [attr.aria-label]="'offertes.viewInMoneybird' | translate"
+                      >
+                        <lucide-icon name="external-link" class="h-4 w-4"></lucide-icon>
+                        {{ 'offertes.viewInMoneybird' | translate }}
+                      </shared-button>
+                    }
                   }
 
                   <!-- Secondary actions -->

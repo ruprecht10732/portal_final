@@ -8,7 +8,31 @@
       "navLabel": "Team"
     },
     "integrations": {
-      "navLabel": "Integrations"
+      "navLabel": "Integrations",
+      "moneybird": {
+        "navLabel": "Moneybird Integration",
+        "title": "Moneybird",
+        "subtitle": "Connect Moneybird to export accepted quotes as draft invoices.",
+        "status": "Connection status",
+        "connectedAt": "Connected at",
+        "refresh": "Refresh",
+        "connect": "Connect Moneybird",
+        "disconnect": "Disconnect Moneybird",
+        "authOpened": "Authorization opened. Complete the connection in the opened window and close it afterwards.",
+        "connected": "Moneybird connected.",
+        "disconnected": "Moneybird disconnected.",
+        "helpText": "After connecting, the 'Send to Moneybird' button appears on accepted quotes.",
+        "states": {
+          "connected": "Connected",
+          "notConnected": "Not connected"
+        },
+        "errors": {
+          "loadFailed": "Failed to load Moneybird status.",
+          "connectFailed": "Failed to connect Moneybird.",
+          "disconnectFailed": "Failed to disconnect Moneybird.",
+          "callbackFailed": "Moneybird authorization failed or was cancelled."
+        }
+      }
     },
     "title": "Organization",
     "subtitle": "Manage company profile and team invites.",

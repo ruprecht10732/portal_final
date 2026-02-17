@@ -7,6 +7,8 @@
     "start": "ng serve",
     "build": "ng build",
     "build:prod": "ng build --configuration production",
+    "build:portaldev": "ng build --configuration portaldev",
+    "start:portaldev": "ng serve --configuration portaldev",
     "watch": "ng build --watch --configuration development",
     "test": "ng test",
     "lint": "ng lint",

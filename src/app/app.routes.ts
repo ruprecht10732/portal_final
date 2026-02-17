@@ -215,6 +215,7 @@ export const routes: Routes = [
 						data: {
 							panelItems: [
 								{ label: 'organization.backToOrg', route: '/app/organization', icon: 'building', exact: true },
+								{ label: 'organization.integrations.moneybird.navLabel', route: '/app/organization/integrations/moneybird', icon: 'settings', exact: true },
 								{ label: 'webhook.navLabel', route: '/app/organization/integrations/webhooks', icon: 'webhook', exact: true },
 								{ label: 'webhook.googleLeads.navLabel', route: '/app/organization/integrations/google-leads', icon: 'globe' },
 								{ label: 'googleAds.navLabel', route: '/app/organization/integrations/google-ads-export', icon: 'download' },
@@ -224,7 +225,14 @@ export const routes: Routes = [
 							{
 								path: '',
 								pathMatch: 'full',
-								redirectTo: 'webhooks',
+								redirectTo: 'moneybird',
+							},
+							{
+								path: 'moneybird',
+								loadComponent: () =>
+									import('./routes/organization/moneybird-integration/moneybird-integration.component').then(
+										m => m.MoneybirdIntegrationComponent,
+									),
 							},
 							{
 								path: 'webhooks',

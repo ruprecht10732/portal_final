@@ -14,13 +14,25 @@
         }
         <p class="toast__message">{{ toast.message }}</p>
         @if (toast.link) {
-          <a
-            class="toast__link"
-            [routerLink]="toast.link.url"
-            (click)="dismiss(toast.id)"
-          >
-            {{ toast.link.label }}
-          </a>
+          @if (toast.link.external) {
+            <a
+              class="toast__link"
+              [attr.href]="asHref(toast.link.url)"
+              target="_blank"
+              rel="noopener noreferrer"
+              (click)="dismiss(toast.id)"
+            >
+              {{ toast.link.label }}
+            </a>
+          } @else {
+            <a
+              class="toast__link"
+              [routerLink]="toast.link.url"
+              (click)="dismiss(toast.id)"
+            >
+              {{ toast.link.label }}
+            </a>
+          }
         }
       </div>
       @if (toast.dismissible) {
