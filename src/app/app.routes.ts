@@ -435,6 +435,10 @@ export const routes: Routes = [
 				],
 			},
 			{
+				path: 'search',
+				loadComponent: () => import('./routes/search/search.component').then(m => m.SearchComponent),
+			},
+			{
 				path: 'appointments',
 				loadComponent: () => import('./routes/appointments/appointments-layout/appointments-layout.component').then(m => m.AppointmentsLayoutComponent),
 				data: {

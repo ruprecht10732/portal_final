@@ -1,0 +1,14 @@
+<div class="flex h-full flex-col items-center justify-start px-6 py-12">
+  <div class="w-full max-w-xl">
+    <div class="mb-6 flex items-center gap-3">
+      <lucide-icon name="search" class="h-6 w-6 text-zinc-400"></lucide-icon>
+      <h1 class="text-2xl font-bold text-zinc-900">{{ 'search.title' | translate }}</h1>
+    </div>
+
+    <input
+      type="search"
+      class="w-full rounded-lg border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 shadow-sm placeholder:text-zinc-400 focus:border-zinc-400 focus:outline-none focus:ring-2 focus:ring-zinc-200"
+      [placeholder]="'search.placeholder' | translate"
+    />
+  </div>
+</div>

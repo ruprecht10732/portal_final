@@ -118,6 +118,7 @@ const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLo
   { prefix: '/assets/i18n/', suffix: '/appointments.json' },
   { prefix: '/assets/i18n/', suffix: '/webhook.json' },
   { prefix: '/assets/i18n/', suffix: '/google-ads.json' },
+  { prefix: '/assets/i18n/', suffix: '/search.json' },
 ]);
 
 export const appConfig: ApplicationConfig = {
