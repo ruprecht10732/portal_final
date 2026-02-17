@@ -171,7 +171,7 @@
                   <div class="inline-flex items-center gap-1.5 shrink-0">
                     <button
                       type="button"
-                      class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100 touch-manipulation"
                       (click)="previewAsset()(asset)"
                       [attr.aria-label]="section.previewLabel"
                     >
@@ -180,7 +180,7 @@
                     @if (section.showDownload) {
                       <button
                         type="button"
-                        class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100"
+                        class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-zinc-200 bg-white text-zinc-500 transition-colors hover:border-zinc-300 hover:text-zinc-900 hover:bg-zinc-100 touch-manipulation"
                         (click)="downloadAsset()(asset)"
                         aria-label="Download"
                       >
@@ -189,7 +189,7 @@
                     }
                     <button
                       type="button"
-                      class="inline-flex h-7 w-7 items-center justify-center rounded-md border border-red-200 bg-white text-red-600 transition-colors hover:border-red-300 hover:text-red-700"
+                      class="inline-flex h-9 w-9 items-center justify-center rounded-md border border-red-200 bg-white text-red-600 transition-colors hover:border-red-300 hover:text-red-700 touch-manipulation"
                       (click)="deleteAsset()(asset)"
                       aria-label="Delete"
                     >
