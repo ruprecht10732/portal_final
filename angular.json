@@ -83,7 +83,6 @@
                   "with": "src/environments/environment.portaldev.ts"
                 }
               ],
-              "baseHref": "/klant/",
               "outputHashing": "all"
             }
           },
