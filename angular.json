@@ -75,6 +75,16 @@
                 }
               ],
               "outputHashing": "all"
+            },
+            "publicdev": {
+              "fileReplacements": [
+                {
+                  "replace": "src/environments/environment.ts",
+                  "with": "src/environments/environment.portaldev.ts"
+                }
+              ],
+              "baseHref": "/klant/",
+              "outputHashing": "all"
             }
           },
           "defaultConfiguration": "production"
@@ -90,6 +100,9 @@
             },
             "portaldev": {
               "buildTarget": "my-portal-app:build:portaldev"
+            },
+            "publicdev": {
+              "buildTarget": "my-portal-app:build:publicdev"
             }
           },
           "defaultConfiguration": "development"
