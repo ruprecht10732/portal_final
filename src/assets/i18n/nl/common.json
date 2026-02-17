@@ -13,6 +13,7 @@
     "confirm": "Bevestigen",
     "yes": "Ja",
     "no": "Nee",
+    "empty": "Geen items",
     "optional": "Optioneel",
     "upload": {
       "dropHint": "Zet een bestand hier neer of klik om te bladeren",
@@ -203,6 +204,20 @@
     }
   },
   "dashboard": {
+    "views": {
+      "overview": "Overzicht",
+      "leadsByStatus": "Leads op status",
+      "leadsByPipeline": "Leads op pipeline",
+      "quotes": "Offertes Kanban"
+    },
+    "viewsSubtitles": {
+      "leadsByStatus": "Verplaats leads tussen toegestane statussen.",
+      "leadsByPipeline": "Pipeline-overzicht van actieve leads.",
+      "quotes": "Verplaats offertes tussen toegestane statussen."
+    },
+    "boards": {
+      "partialDataWarning": "De eerste {{maxItems}} items worden getoond. Verfijn filters om een kleinere dataset te bekijken."
+    },
     "kpis": {
       "activeLeads": "Actieve Leads",
       "quotePipeline": "Offerte Pipeline",

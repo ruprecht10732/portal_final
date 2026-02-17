@@ -1,0 +1,60 @@
+<shared-page-layout
+  [title]="'dashboard.views.quotes' | translate"
+  [subtitle]="'dashboard.viewsSubtitles.quotes' | translate"
+  [removeMobilePadding]="true"
+>
+  @if (loading()) {
+    <div class="rounded-xl border border-zinc-200 bg-white p-4 text-sm text-zinc-500 mx-4 sm:mx-0">
+      {{ 'common.loading' | translate }}
+    </div>
+  } @else {
+    <div cdkDropListGroup class="grid grid-cols-1 gap-4 pb-4 px-4 sm:px-0 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+      @for (column of columns(); track column.status) {
+          <article
+            class="rounded-xl border border-zinc-200 bg-white p-3 transition-opacity"
+            [class.opacity-40]="isColumnDimmed(column.status)"
+          >
+            <header class="flex items-center justify-between gap-2">
+              <span class="inline-flex items-center rounded-full px-2 py-1 text-xs font-medium" [class]="column.colorClass">
+                {{ column.titleKey | translate }}
+              </span>
+              <span class="text-xs font-semibold text-zinc-500">{{ column.items.length }}</span>
+            </header>
+
+            <div
+              class="mt-3 flex flex-col gap-2"
+              cdkDropList
+              [id]="quoteDropListId(column.status)"
+              [cdkDropListData]="column.items"
+              [cdkDropListConnectedTo]="connectedDropListIds(column.status)"
+              [cdkDropListEnterPredicate]="canEnterColumn"
+              (cdkDropListDropped)="onDrop($event)"
+            >
+              @if (column.items.length === 0) {
+                <div class="rounded-lg border border-dashed border-zinc-200 p-3 text-xs text-zinc-400">
+                  {{ 'common.empty' | translate }}
+                </div>
+              } @else {
+                @for (quote of column.items; track trackQuote($index, quote)) {
+                  <a
+                    cdkDrag
+                    [cdkDragData]="quote"
+                    [cdkDragDisabled]="isSavingQuote(quote.id)"
+                    (cdkDragStarted)="onDragStarted(quote)"
+                    (cdkDragEnded)="onDragEnded()"
+                    class="block rounded-lg border border-zinc-200 bg-zinc-50 p-3 transition-colors hover:border-zinc-300 hover:bg-white"
+                    [routerLink]="['/app/offertes', quote.id]"
+                  >
+                    <p class="text-sm font-semibold text-zinc-900">{{ quote.quoteNumber }}</p>
+                    <p class="mt-1 text-xs text-zinc-600">{{ getCustomerName(quote) }}</p>
+                    <p class="mt-1 text-xs text-zinc-600">{{ quote.totalCents / 100 | currency: 'EUR' : 'symbol' : '1.0-2' : 'nl-NL' }}</p>
+                    <p class="mt-2 text-[11px] text-zinc-400">{{ quote.updatedAt | date: 'short' }}</p>
+                  </a>
+                }
+              }
+            </div>
+          </article>
+      }
+    </div>
+  }
+</shared-page-layout>
