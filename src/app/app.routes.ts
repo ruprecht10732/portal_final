@@ -79,7 +79,38 @@ export const routes: Routes = [
 			},
 			{
 				path: 'dashboard',
-				loadComponent: () => import('./routes/dashboard/dashboard.component').then(m => m.DashboardComponent),
+				data: {
+					panelItems: [
+						{ label: 'dashboard.views.overview', route: '/app/dashboard/overview', icon: 'list', exact: true },
+						{ label: 'dashboard.views.leadsByStatus', route: '/app/dashboard/leads-status', icon: 'users' },
+						{ label: 'dashboard.views.leadsByPipeline', route: '/app/dashboard/leads-pipeline', icon: 'activity' },
+						{ label: 'dashboard.views.quotes', route: '/app/dashboard/quotes', icon: 'file-text' },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						pathMatch: 'full',
+						redirectTo: 'overview',
+					},
+					{
+						path: 'overview',
+						loadComponent: () => import('./routes/dashboard/dashboard.component').then(m => m.DashboardComponent),
+					},
+					{
+						path: 'leads-status',
+						loadComponent: () => import('./routes/dashboard/leads-status-board/leads-status-board.component').then(m => m.LeadsStatusBoardComponent),
+					},
+					{
+						path: 'leads-pipeline',
+						loadComponent: () =>
+							import('./routes/dashboard/leads-pipeline-board/leads-pipeline-board.component').then(m => m.LeadsPipelineBoardComponent),
+					},
+					{
+						path: 'quotes',
+						loadComponent: () => import('./routes/dashboard/quotes-board/quotes-board.component').then(m => m.QuotesBoardComponent),
+					},
+				],
 			},
 			{
 				path: 'profile',
