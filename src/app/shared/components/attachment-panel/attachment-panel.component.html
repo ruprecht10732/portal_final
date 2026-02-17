@@ -5,7 +5,7 @@
       {{ 'offertes.attachments' | translate }}
     </h3>
     <label
-      class="inline-flex items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 cursor-pointer"
+      class="inline-flex min-h-11 items-center gap-1.5 text-xs font-semibold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 cursor-pointer touch-manipulation"
     >
       <lucide-icon name="upload" class="h-3.5 w-3.5"></lucide-icon>
       {{ 'offertes.uploadPdf' | translate }}
@@ -77,7 +77,7 @@
           <button
             type="button"
             (click)="previewRequested.emit(att)"
-            class="p-1 text-zinc-400 hover:text-black transition-colors"
+            class="p-2 min-h-11 flex items-center justify-center text-zinc-400 hover:text-black transition-colors touch-manipulation"
             [attr.aria-label]="'offertes.preview' | translate"
             [title]="'offertes.preview' | translate"
           >
@@ -88,7 +88,7 @@
           <button
             type="button"
             (click)="remove(att.uid)"
-            class="p-1 text-zinc-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-all"
+            class="p-2 min-h-11 flex items-center justify-center text-zinc-400 hover:text-red-500 transition-all sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation"
             [attr.aria-label]="'offertes.remove' | translate"
           >
             <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>

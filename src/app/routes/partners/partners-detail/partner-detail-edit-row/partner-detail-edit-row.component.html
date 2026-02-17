@@ -20,10 +20,10 @@
             (input)="editValueChange.emit($any($event.target).value)"
           />
         }
-        <button class="text-green-600 hover:text-green-700" (click)="saveEdit.emit()">
+        <button class="min-h-11 min-w-11 flex items-center justify-center text-green-600 hover:text-green-700 touch-manipulation" (click)="saveEdit.emit()">
           <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
         </button>
-        <button class="text-zinc-400 hover:text-zinc-500" (click)="cancelEdit.emit()">
+        <button class="min-h-11 min-w-11 flex items-center justify-center text-zinc-400 hover:text-zinc-500 touch-manipulation" (click)="cancelEdit.emit()">
           <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
         </button>
       </div>
@@ -37,7 +37,7 @@
       </span>
       @if (editable()) {
         <button
-          class="ml-2 hidden text-zinc-400 hover:text-blue-600 group-hover:inline-block"
+          class="ml-2 inline-flex h-9 w-9 items-center justify-center text-zinc-400 hover:text-blue-600 transition-opacity sm:opacity-0 sm:group-hover:opacity-100 touch-manipulation"
           (click)="startEdit.emit()"
         >
           <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>

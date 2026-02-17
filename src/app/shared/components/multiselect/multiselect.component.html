@@ -62,13 +62,13 @@
         @if (options().length) {
           @for (option of options(); track option.value; let i = $index) {
             <label
-              class="flex items-center justify-between gap-3 px-4 py-3 text-sm cursor-pointer transition-colors duration-150 focus-within:bg-zinc-100 focus-within:outline-1 focus-within:outline-black"
+              class="flex items-center justify-between gap-3 px-4 py-3 text-sm cursor-pointer transition-colors duration-150 focus-within:bg-zinc-100 focus-within:outline-1 focus-within:outline-black min-h-11"
               [class.bg-zinc-100]="isSelected(option) || activeIndex() === i"
             >
               <span class="truncate">{{ option.label }}</span>
               <input
                 type="checkbox"
-                class="h-4 w-4 accent-black"
+                class="h-5 w-5 shrink-0 accent-black"
                 [id]="getOptionId(i)"
                 [checked]="isSelected(option)"
                 (focus)="activeIndex.set(i)"
