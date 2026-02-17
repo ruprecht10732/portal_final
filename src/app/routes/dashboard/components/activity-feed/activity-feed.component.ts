@@ -1,26 +1,26 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import { DashboardActivityService } from '../../../../core/services/dashboard-activity.service';
 import type { ActivityCategory, ActivityEvent } from '../../../../core/services/dashboard-activity.types';
-import { CardComponent } from '../../../../shared/components/card/card.component';
 
 @Component({
   selector: 'app-dashboard-activity-feed',
   templateUrl: './activity-feed.component.html',
   styleUrl: './activity-feed.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, RouterLink, TranslatePipe],
+  imports: [RouterLink, TranslatePipe, LucideAngularModule],
 })
 export class ActivityFeedComponent {
   protected readonly activityService = inject(DashboardActivityService);
   private readonly translateService = inject(TranslateService);
 
   protected readonly categories: { key: ActivityCategory; label: string; icon: string }[] = [
-    { key: 'leads', label: 'dashboard.activityFeed.filters.leads', icon: '👤' },
-    { key: 'quotes', label: 'dashboard.activityFeed.filters.quotes', icon: '📄' },
-    { key: 'appointments', label: 'dashboard.activityFeed.filters.appointments', icon: '📅' },
-    { key: 'ai', label: 'dashboard.activityFeed.filters.ai', icon: '🤖' },
+    { key: 'leads', label: 'dashboard.activityFeed.filters.leads', icon: 'user' },
+    { key: 'quotes', label: 'dashboard.activityFeed.filters.quotes', icon: 'file-text' },
+    { key: 'appointments', label: 'dashboard.activityFeed.filters.appointments', icon: 'calendar' },
+    { key: 'ai', label: 'dashboard.activityFeed.filters.ai', icon: 'sparkles' },
   ];
 
   protected isFilterActive(category: ActivityCategory): boolean {
@@ -72,27 +72,28 @@ export class ActivityFeedComponent {
 
   protected categoryIcon(event: ActivityEvent): string {
     switch (event.category) {
-      case 'leads':
-        return '👤';
-      case 'quotes':
-        return '📄';
-      case 'appointments':
-        return '📅';
-      case 'ai':
-        return '🤖';
+      case 'leads':        return 'user';
+      case 'quotes':       return 'file-text';
+      case 'appointments': return 'calendar';
+      case 'ai':           return 'sparkles';
     }
   }
 
   protected categoryColor(event: ActivityEvent): string {
     switch (event.category) {
-      case 'leads':
-        return 'bg-blue-500';
-      case 'quotes':
-        return 'bg-indigo-500';
-      case 'appointments':
-        return 'bg-emerald-500';
-      case 'ai':
-        return 'bg-violet-500';
+      case 'leads':        return 'bg-blue-500';
+      case 'quotes':       return 'bg-indigo-500';
+      case 'appointments': return 'bg-emerald-500';
+      case 'ai':           return 'bg-violet-500';
+    }
+  }
+
+  protected categoryPillActive(key: ActivityCategory): string {
+    switch (key) {
+      case 'leads':        return 'bg-blue-100 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400';
+      case 'quotes':       return 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400';
+      case 'appointments': return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400';
+      case 'ai':           return 'bg-violet-100 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400';
     }
   }
 }

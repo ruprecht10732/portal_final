@@ -3,17 +3,16 @@ import { DatePipe } from '@angular/common';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import type { ActionItem } from '../../../../core/services/dashboard.types';
 import { DashboardActionItemsService } from '../../../../core/services/dashboard-action-items.service';
-import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { CardComponent } from '../../../../shared/components/card/card.component';
 
 @Component({
   selector: 'app-dashboard-action-items',
   templateUrl: './action-items.component.html',
   styleUrl: './action-items.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CardComponent, DatePipe, RouterLink, TranslatePipe],
+  imports: [LucideAngularModule, DatePipe, RouterLink, TranslatePipe],
 })
 export class ActionItemsComponent {
   private readonly actionItemsService = inject(DashboardActionItemsService);
