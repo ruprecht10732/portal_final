@@ -6,6 +6,7 @@ export type ToastVariant = 'info' | 'success' | 'warning' | 'error';
 export interface ToastLink {
   label: string;
   url: string | string[]; // Can be a string or router link segments
+  external?: boolean;
 }
 
 export interface ToastItem {

@@ -13,6 +13,10 @@ export class ToastContainerComponent {
   private readonly toastService = inject(ToastService);
   protected readonly toasts = computed(() => this.toastService.toasts());
 
+  protected asHref(url: string | string[]): string | null {
+    return typeof url === 'string' ? url : null;
+  }
+
   protected dismiss(id: string): void {
     this.toastService.dismiss(id);
   }

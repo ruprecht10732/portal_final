@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
+import { finalize } from 'rxjs';
 
 import { QuotesService } from '../../../core/services/quotes.service';
 import { LeadsService } from '../../../core/services/leads.service';
@@ -11,6 +12,7 @@ import type { QuoteResponse, QuoteStatus, QuoteActivityResponse } from '../../..
 import { MONEYBIRD_PROVIDER, QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros } from '../../../core/services/quotes.types';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { formatDateValue } from '../../../core/utils/date-utils';
 import type { Lead } from '../../../core/services/leads.types';
 
@@ -35,6 +37,7 @@ export class OffertesDetailComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly sse = inject(SSEService);
   private readonly reporter = inject(ErrorReportingService);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
   protected readonly loading = signal(true);
@@ -51,7 +54,6 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly exportingToMoneybird = signal(false);
   protected readonly moneybirdExported = signal(false);
   protected readonly moneybirdExternalUrl = signal<string | null>(null);
-  protected readonly moneybirdFeedback = signal<{ type: 'success' | 'error'; message: string } | null>(null);
 
   // Reply text per item (keyed by item ID)
   protected readonly replyTexts = signal<Record<string, string>>({});
@@ -346,7 +348,7 @@ export class OffertesDetailComponent implements OnInit {
       error: err => {
         this.moneybirdConnected.set(false);
         const message = this.translate.instant('offertes.errors.moneybirdStatusLoad');
-        this.moneybirdFeedback.set({ type: 'error', message });
+        this.toast.error(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
     });
@@ -369,26 +371,38 @@ export class OffertesDetailComponent implements OnInit {
     const q = this.quote();
     if (q?.status !== 'Accepted' || !this.moneybirdConnected()) return;
 
-    this.moneybirdFeedback.set(null);
     this.exportingToMoneybird.set(true);
-    this.quotesService.exportQuoteToProvider(q.id, MONEYBIRD_PROVIDER).subscribe({
+    this.quotesService.exportQuoteToProvider(q.id, MONEYBIRD_PROVIDER)
+      .pipe(finalize(() => this.exportingToMoneybird.set(false)))
+      .subscribe({
       next: result => {
         this.moneybirdExported.set(true);
-        this.moneybirdExternalUrl.set(result.externalUrl ?? null);
-        this.moneybirdFeedback.set({
-          type: 'success',
-          message: this.translate.instant('offertes.viewInMoneybird'),
-        });
-        this.exportingToMoneybird.set(false);
+        const externalUrl = result.externalUrl ?? null;
+        this.moneybirdExternalUrl.set(externalUrl);
+
+        const linkLabel = this.translate.instant('offertes.viewInMoneybird');
+        if (externalUrl) {
+          this.toast.show({
+            message: this.translate.instant('offertes.bulkExportAllSuccess', { succeeded: 1 }),
+            variant: 'success',
+            link: {
+              label: linkLabel,
+              url: externalUrl,
+              external: true,
+            },
+          });
+          return;
+        }
+
+        this.toast.success(linkLabel);
       },
       error: err => {
         const message = extractErrorMessage(err, this.translate.instant('offertes.errors.moneybirdExport'), {
           allowErrorMessage: true,
           allowMessageField: true,
         });
-        this.moneybirdFeedback.set({ type: 'error', message });
+        this.toast.error(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-        this.exportingToMoneybird.set(false);
       },
     });
   }
