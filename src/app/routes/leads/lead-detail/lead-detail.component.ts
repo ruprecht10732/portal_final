@@ -13,7 +13,7 @@ import { AppointmentsService } from '../../../core/services/appointments.service
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem } from '../../../core/services/leads.types';
-import { buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
+import { ALLOWED_STATUS_TRANSITIONS, buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
 import type {
   AccessDifficulty,
   AppointmentAttachmentResponse,
@@ -90,8 +90,6 @@ const DATETIME_YESTERDAY_AT_TRANSLATION_KEY = 'leads.detail.datetime.yesterdayAt
 const DATETIME_AT_TRANSLATION_KEY = 'leads.detail.datetime.at';
 const CONFIRM_CHANGE_TO_TRANSLATION_KEY = 'leads.detail.confirm.changeTo';
 const CONFIRM_DISQUALIFIED_TRANSLATION_KEY = 'leads.detail.confirm.disqualified';
-const CONFIRM_COMPLETED_TRANSLATION_KEY = 'leads.detail.confirm.completed';
-const CONFIRM_LOST_TRANSLATION_KEY = 'leads.detail.confirm.lost';
 const CONFIRM_DEFAULT_TRANSLATION_KEY = 'leads.detail.confirm.default';
 const CALL_LOGGER_PROCESSED_TRANSLATION_KEY = 'leads.callLogger.announcements.processed';
 const CALL_LOGGER_PROCESS_ERROR_TRANSLATION_KEY = 'leads.callLogger.errors.process';
@@ -384,12 +382,16 @@ export class LeadDetailComponent implements OnInit {
     }))
   );
 
-  protected readonly statusOptions = computed<SelectOption<LeadStatus>[]>(() => (
-    MANUAL_STATUS_OPTIONS.map(option => ({
-      value: option.value,
-      label: this.statusLabels()[option.value],
-    }))
-  ));
+  protected readonly statusOptions = computed<SelectOption<LeadStatus>[]>(() => {
+    const currentStatus = this.lead()?.currentService?.status;
+    const allowed = currentStatus ? ALLOWED_STATUS_TRANSITIONS[currentStatus] : [];
+    return MANUAL_STATUS_OPTIONS
+      .filter(option => allowed.includes(option.value))
+      .map(option => ({
+        value: option.value,
+        label: this.statusLabels()[option.value],
+      }));
+  });
   protected readonly canAssign = computed(() => {
     const currentUser = this.user();
     const lead = this.lead();
@@ -671,7 +673,7 @@ export class LeadDetailComponent implements OnInit {
     this.statusMenuOpen.set(false);
     
     // Check if this is a terminal status that needs confirmation
-    if (this.isTerminalStatus(status) && status !== this.lead()?.currentService?.status) {
+    if (this.requiresConfirmation(status) && status !== this.lead()?.currentService?.status) {
       this.pendingStatusChange.set(status);
       this.confirmDialogTitle.set(this.translate.instant(CONFIRM_CHANGE_TO_TRANSLATION_KEY, { status: this.getStatusLabel(status) }));
       this.confirmDialogMessage.set(this.getConfirmMessage(status));
@@ -686,12 +688,6 @@ export class LeadDetailComponent implements OnInit {
   private getConfirmMessage(status: LeadStatus): string {
     if (status === 'Disqualified') {
       return this.translate.instant(CONFIRM_DISQUALIFIED_TRANSLATION_KEY);
-    }
-    if (status === 'Completed') {
-      return this.translate.instant(CONFIRM_COMPLETED_TRANSLATION_KEY);
-    }
-    if (status === 'Lost') {
-      return this.translate.instant(CONFIRM_LOST_TRANSLATION_KEY);
     }
     return this.translate.instant(CONFIRM_DEFAULT_TRANSLATION_KEY);
   }
@@ -1480,8 +1476,8 @@ export class LeadDetailComponent implements OnInit {
     }
   }
 
-  protected isTerminalStatus(status: LeadStatus): boolean {
-    return status === 'Completed' || status === 'Lost' || status === 'Disqualified';
+  protected requiresConfirmation(status: LeadStatus): boolean {
+    return status === 'Disqualified';
   }
 
   protected onWorkflowSelectionChange(value: string | null): void {

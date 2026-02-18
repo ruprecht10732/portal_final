@@ -3,26 +3,18 @@
 export type ConsumerRole = 'Owner' | 'Tenant' | 'Landlord';
 export type LeadStatus =
   | 'New'
+  | 'Pending'
+  | 'In_Progress'
   | 'Attempted_Contact'
   | 'Appointment_Scheduled'
-  | 'Survey_Completed'
-  | 'Quote_Draft'
-  | 'Quote_Sent'
-  | 'Quote_Accepted'
-  | 'Partner_Assigned'
   | 'Needs_Rescheduling'
-  | 'Completed'
-  | 'Lost'
   | 'Disqualified';
 export type PipelineStage =
   | 'Triage'
   | 'Nurturing'
-  | 'Ready_For_Estimator'
-  | 'Quote_Draft'
-  | 'Quote_Sent'
-  | 'Ready_For_Partner'
-  | 'Partner_Matching'
-  | 'Partner_Assigned'
+  | 'Estimation'
+  | 'Proposal'
+  | 'Fulfillment'
   | 'Manual_Intervention'
   | 'Completed'
   | 'Lost';
@@ -313,43 +305,30 @@ export type SortField =
 // Status display helpers
 export const STATUS_LABELS: Record<LeadStatus, string> = {
   New: 'New',
+  Pending: 'Pending',
+  In_Progress: 'In Progress',
   Attempted_Contact: 'Attempted Contact',
   Appointment_Scheduled: 'Appointment Scheduled',
-  Survey_Completed: 'Survey Completed',
-  Quote_Draft: 'Quote Draft',
-  Quote_Sent: 'Quote Sent',
-  Quote_Accepted: 'Quote Accepted',
-  Partner_Assigned: 'Partner Assigned',
   Needs_Rescheduling: 'Needs Rescheduling',
-  Completed: 'Completed',
-  Lost: 'Lost',
   Disqualified: 'Disqualified',
 };
 
 export const STATUS_COLORS: Record<LeadStatus, string> = {
   New: 'bg-blue-100 text-blue-800',
+  Pending: 'bg-sky-100 text-sky-800',
+  In_Progress: 'bg-indigo-100 text-indigo-800',
   Attempted_Contact: 'bg-yellow-100 text-yellow-800',
   Appointment_Scheduled: 'bg-purple-100 text-purple-800',
-  Survey_Completed: 'bg-green-100 text-green-800',
-  Quote_Draft: 'bg-cyan-100 text-cyan-800',
-  Quote_Sent: 'bg-teal-100 text-teal-800',
-  Quote_Accepted: 'bg-emerald-100 text-emerald-800',
-  Partner_Assigned: 'bg-indigo-100 text-indigo-800',
   Needs_Rescheduling: 'bg-orange-100 text-orange-800',
-  Completed: 'bg-gray-100 text-gray-700',
-  Lost: 'bg-zinc-200 text-zinc-600',
   Disqualified: 'bg-rose-100 text-rose-800',
 };
 
 export const PIPELINE_STAGE_LABELS: Record<PipelineStage, string> = {
   Triage: 'Triage',
   Nurturing: 'Nurturing',
-  Ready_For_Estimator: 'Ready for Estimator',
-  Quote_Draft: 'Quote draft',
-  Quote_Sent: 'Quote sent',
-  Ready_For_Partner: 'Ready for Partner',
-  Partner_Matching: 'Partner Matching',
-  Partner_Assigned: 'Partner Assigned',
+  Estimation: 'Estimation',
+  Proposal: 'Proposal',
+  Fulfillment: 'Fulfillment',
   Manual_Intervention: 'Manual Intervention',
   Completed: 'Completed',
   Lost: 'Lost',
@@ -358,12 +337,9 @@ export const PIPELINE_STAGE_LABELS: Record<PipelineStage, string> = {
 export const PIPELINE_STAGE_COLORS: Record<PipelineStage, string> = {
   Triage: 'bg-blue-100 text-blue-800',
   Nurturing: 'bg-amber-100 text-amber-800',
-  Ready_For_Estimator: 'bg-indigo-100 text-indigo-800',
-  Quote_Draft: 'bg-cyan-100 text-cyan-800',
-  Quote_Sent: 'bg-teal-100 text-teal-800',
-  Ready_For_Partner: 'bg-sky-100 text-sky-800',
-  Partner_Matching: 'bg-purple-100 text-purple-800',
-  Partner_Assigned: 'bg-emerald-100 text-emerald-800',
+  Estimation: 'bg-indigo-100 text-indigo-800',
+  Proposal: 'bg-teal-100 text-teal-800',
+  Fulfillment: 'bg-purple-100 text-purple-800',
   Manual_Intervention: 'bg-red-100 text-red-800',
   Completed: 'bg-zinc-200 text-zinc-700',
   Lost: 'bg-zinc-200 text-zinc-600',
@@ -371,16 +347,11 @@ export const PIPELINE_STAGE_COLORS: Record<PipelineStage, string> = {
 
 export const LEAD_STATUS_I18N_KEYS: Record<LeadStatus, string> = {
   New: 'leads.detail.status.new',
+  Pending: 'leads.detail.status.pending',
+  In_Progress: 'leads.detail.status.inProgress',
   Attempted_Contact: 'leads.detail.status.attemptedContact',
   Appointment_Scheduled: 'leads.detail.status.appointmentScheduled',
-  Survey_Completed: 'leads.detail.status.surveyCompleted',
-  Quote_Draft: 'leads.detail.status.quoteDraft',
-  Quote_Sent: 'leads.detail.status.quoteSent',
-  Quote_Accepted: 'leads.detail.status.quoteAccepted',
-  Partner_Assigned: 'leads.detail.status.partnerAssigned',
   Needs_Rescheduling: 'leads.detail.status.needsRescheduling',
-  Completed: 'leads.detail.status.completed',
-  Lost: 'leads.detail.status.lost',
   Disqualified: 'leads.detail.status.disqualified',
 };
 
@@ -397,12 +368,9 @@ export const buildLeadStatusLabels = (translate: (key: string) => string): Recor
 export const PIPELINE_STAGE_I18N_KEYS: Record<PipelineStage, string> = {
   Triage: 'leads.pipeline.triage',
   Nurturing: 'leads.pipeline.nurturing',
-  Ready_For_Estimator: 'leads.pipeline.readyForEstimator',
-  Quote_Draft: 'leads.pipeline.quoteDraft',
-  Quote_Sent: 'leads.pipeline.quoteSent',
-  Ready_For_Partner: 'leads.pipeline.readyForPartner',
-  Partner_Matching: 'leads.pipeline.partnerMatching',
-  Partner_Assigned: 'leads.pipeline.partnerAssigned',
+  Estimation: 'leads.pipeline.estimation',
+  Proposal: 'leads.pipeline.proposal',
+  Fulfillment: 'leads.pipeline.fulfillment',
   Manual_Intervention: 'leads.pipeline.manualIntervention',
   Completed: 'leads.pipeline.completed',
   Lost: 'leads.pipeline.lost',
@@ -426,29 +394,33 @@ export const CONSUMER_ROLE_OPTIONS: { label: string; value: ConsumerRole }[] = [
 
 export const STATUS_OPTIONS: { label: string; value: LeadStatus }[] = [
   { label: 'New', value: 'New' },
+  { label: 'Pending', value: 'Pending' },
+  { label: 'In Progress', value: 'In_Progress' },
   { label: 'Attempted Contact', value: 'Attempted_Contact' },
   { label: 'Appointment Scheduled', value: 'Appointment_Scheduled' },
-  { label: 'Survey Completed', value: 'Survey_Completed' },
-  { label: 'Quote Draft', value: 'Quote_Draft' },
-  { label: 'Quote Sent', value: 'Quote_Sent' },
-  { label: 'Quote Accepted', value: 'Quote_Accepted' },
-  { label: 'Partner Assigned', value: 'Partner_Assigned' },
   { label: 'Needs Rescheduling', value: 'Needs_Rescheduling' },
-  { label: 'Completed', value: 'Completed' },
-  { label: 'Lost', value: 'Lost' },
   { label: 'Disqualified', value: 'Disqualified' },
 ];
 
 export const MANUAL_STATUS_OPTIONS: { label: string; value: LeadStatus }[] = [
   { label: 'New', value: 'New' },
+  { label: 'Pending', value: 'Pending' },
+  { label: 'In Progress', value: 'In_Progress' },
   { label: 'Attempted Contact', value: 'Attempted_Contact' },
   { label: 'Appointment Scheduled', value: 'Appointment_Scheduled' },
-  { label: 'Survey Completed', value: 'Survey_Completed' },
   { label: 'Needs Rescheduling', value: 'Needs_Rescheduling' },
-  { label: 'Completed', value: 'Completed' },
-  { label: 'Lost', value: 'Lost' },
   { label: 'Disqualified', value: 'Disqualified' },
 ];
+
+export const ALLOWED_STATUS_TRANSITIONS: Record<LeadStatus, readonly LeadStatus[]> = {
+  New: ['Attempted_Contact', 'Pending', 'Appointment_Scheduled', 'Needs_Rescheduling', 'In_Progress', 'Disqualified'],
+  Attempted_Contact: ['Pending', 'Appointment_Scheduled', 'Needs_Rescheduling', 'Disqualified'],
+  Pending: ['Attempted_Contact', 'Appointment_Scheduled', 'In_Progress', 'Disqualified'],
+  Appointment_Scheduled: ['Needs_Rescheduling', 'Pending', 'In_Progress', 'Disqualified'],
+  Needs_Rescheduling: ['Appointment_Scheduled', 'Attempted_Contact', 'Pending', 'Disqualified'],
+  In_Progress: ['Pending', 'Disqualified'],
+  Disqualified: [],
+};
 
 // AI Analysis types
 export type UrgencyLevel = 'High' | 'Medium' | 'Low';

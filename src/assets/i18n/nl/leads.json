@@ -262,15 +262,10 @@
       },
       "status": {
         "new": "Nieuw",
+        "pending": "In afwachting",
+        "inProgress": "Bezig",
         "attemptedContact": "Contactpoging",
         "appointmentScheduled": "Afspraak ingepland",
-        "surveyCompleted": "Survey afgerond",
-        "quoteDraft": "Offerte concept",
-        "quoteSent": "Offerte verstuurd",
-        "quoteAccepted": "Offerte geaccepteerd",
-        "partnerAssigned": "Partner toegewezen",
-        "completed": "Afgerond",
-        "lost": "Verloren",
         "disqualified": "Gediskwalificeerd",
         "needsRescheduling": "Opnieuw inplannen",
         "noService": "Geen dienst"
@@ -297,8 +292,6 @@
       "confirm": {
         "changeTo": "Wijzigen naar {{status}}?",
         "disqualified": "Dit markeert de lead als gediskwalificeerd. Dit kan rapportages beïnvloeden.",
-        "completed": "Dit markeert de lead als afgerond. Zorg dat al het werk is voltooid.",
-        "lost": "Dit markeert de lead als verloren. Controleer of verdere opvolging niet nodig is.",
         "default": "Weet je zeker dat je deze wijziging wilt doorvoeren?"
       },
       "announcements": {
@@ -417,12 +410,9 @@
     "pipeline": {
       "triage": "Triage",
       "nurturing": "Opvolging",
-      "readyForEstimator": "Klaar voor inschatting",
-      "quoteDraft": "Offerte in concept",
-      "quoteSent": "Offerte verstuurd",
-      "readyForPartner": "Klaar voor partner",
-      "partnerMatching": "Partner koppeling",
-      "partnerAssigned": "Partner toegewezen",
+      "estimation": "Inschatting",
+      "proposal": "Voorstel",
+      "fulfillment": "Uitvoering",
       "manualIntervention": "Handmatige interventie",
       "completed": "Afgerond",
       "lost": "Verloren"
