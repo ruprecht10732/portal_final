@@ -246,7 +246,7 @@
     },
     "actionItems": {
       "title": "Urgent action items",
-      "count": "{count} items",
+      "count": "{{count}} items",
       "previous": "Previous",
       "next": "Next",
       "loading": "Loading action items...",

@@ -27,7 +27,7 @@
     "catalogSearchPlaceholder": "Typ om de catalogus te zoeken...",
     "qtyPlaceholder": "1 x",
     "lineItems": "Regels",
-    "itemsCount": "{count} regels",
+    "itemsCount": "{{count}} regels",
     "customer": "Klant",
     "description": "Omschrijving",
     "qty": "Aantal",

@@ -27,7 +27,7 @@
     "catalogSearchPlaceholder": "Type to search catalog...",
     "qtyPlaceholder": "1 x",
     "lineItems": "Line Items",
-    "itemsCount": "{count} items",
+    "itemsCount": "{{count}} items",
     "customer": "Customer",
     "description": "Description",
     "qty": "Qty",
