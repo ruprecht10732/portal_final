@@ -113,8 +113,11 @@ export class OffertesCreateComponent implements OnInit {
   });
   protected readonly financingDisclaimer = signal(false);
 
-  // Lead's services (for service selection in generate)
-  protected readonly selectedServiceId = signal<string | null>(null);
+  // Lead's services
+  // - selectedGenerateServiceId: required for AI-generate flow
+  // - selectedQuoteLeadServiceId: optional linkage for the quote (leadServiceId)
+  protected readonly selectedGenerateServiceId = signal<string | null>(null);
+  protected readonly selectedQuoteLeadServiceId = signal<string | null>(null);
   protected readonly leadServices = computed(() => this.selectedLead()?.services ?? []);
   protected readonly leadServiceOptions = computed<SelectOption<string>[]>(() =>
     this.leadServices().map(s => ({ label: s.serviceType, value: s.id }))
@@ -386,7 +389,8 @@ export class OffertesCreateComponent implements OnInit {
 
     if (lead) {
       this.selectedLead.set(lead);
-      this.selectedServiceId.set(lead.services?.[0]?.id ?? null);
+      this.selectedGenerateServiceId.set(lead.services?.[0]?.id ?? null);
+      this.selectedQuoteLeadServiceId.set(null);
       this.leadSearchQuery.set(
         `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`
       );
@@ -400,7 +404,8 @@ export class OffertesCreateComponent implements OnInit {
 
   protected clearLead(): void {
     this.selectedLead.set(null);
-    this.selectedServiceId.set(null);
+    this.selectedGenerateServiceId.set(null);
+    this.selectedQuoteLeadServiceId.set(null);
     this.leadSearchQuery.set('');
     this.leadOptions.set([]);
     this.leadSuggestions.set([]);
@@ -411,10 +416,11 @@ export class OffertesCreateComponent implements OnInit {
     this.leadsService.getById(id).subscribe({
       next: lead => {
         this.selectedLead.set(lead);
-        this.selectedServiceId.set(
+        this.selectedGenerateServiceId.set(lead.services?.[0]?.id ?? null);
+        this.selectedQuoteLeadServiceId.set(
           preferredServiceId && lead.services?.some(s => s.id === preferredServiceId)
             ? preferredServiceId
-            : (lead.services?.[0]?.id ?? null),
+            : null,
         );
         this.leadSearchQuery.set(
           `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`
@@ -645,9 +651,37 @@ export class OffertesCreateComponent implements OnInit {
     this.saving.set(true);
     this.error.set(null);
 
+    const payload = this.buildQuotePayload();
+    if (!payload) {
+      this.saving.set(false);
+      return;
+    }
+
+    const existing = this.isEditMode() ? this.existingQuote() : null;
+    if (existing) {
+      this.saveExistingQuote(existing.id, payload, status);
+      return;
+    }
+
+    this.createNewQuote(lead.id, payload, status);
+  }
+
+  private buildQuotePayload(): {
+    leadServiceId?: string;
+    items: QuoteItemRequest[];
+    attachments: QuoteAttachmentRequest[];
+    urls: QuoteURLRequest[];
+    discountType: DiscountType;
+    discountValue: number;
+    pricingMode: PricingMode;
+    financingDisclaimer: boolean;
+    validUntil?: string;
+    notes?: string;
+  } | null {
     const values = this.summaryForm.getRawValue();
     const dType = values.discountType;
     const dVal = dType === 'fixed' ? eurosToCents(values.discountValue ?? 0) : (values.discountValue ?? 0);
+
     const items: QuoteItemRequest[] = this.lineItems().map(item => ({
       description: item.description,
       quantity: item.quantity,
@@ -657,7 +691,6 @@ export class OffertesCreateComponent implements OnInit {
       ...(item.catalogProductId ? { catalogProductId: item.catalogProductId } : {}),
     }));
 
-    // Build attachment & URL payloads from drafts
     const attachments: QuoteAttachmentRequest[] = this.attachmentDrafts()
       .filter(a => a.fileKey) // exclude still-uploading entries
       .map((a, i) => ({
@@ -675,71 +708,69 @@ export class OffertesCreateComponent implements OnInit {
       ...(u.catalogProductId ? { catalogProductId: u.catalogProductId } : {}),
     }));
 
-    if (this.isEditMode() && this.existingQuote()) {
-      this.quotesService
-        .update(this.existingQuote()!.id, {
-          items,
-          attachments,
-          urls,
-          discountType: dType,
-          discountValue: dVal,
-          pricingMode: this.pricingMode(),
-          financingDisclaimer: this.financingDisclaimer(),
-          ...(values.validUntil ? { validUntil: values.validUntil + 'T00:00:00Z' } : {}),
-          ...(values.notes ? { notes: values.notes } : {}),
-        })
-        .subscribe({
-          next: updated => {
-            if (status === 'Sent') {
-              this.quotesService.updateStatus(updated.id, 'Sent').subscribe({
-                next: () => void this.router.navigate(['/app/offertes', updated.id]),
-                error: () => void this.router.navigate(['/app/offertes', updated.id]),
-              });
-            } else {
-              void this.router.navigate(['/app/offertes', updated.id]);
-            }
-            this.saving.set(false);
-          },
-          error: () => {
-            this.error.set(this.translate.instant('offertes.errors.save'));
-            this.saving.set(false);
-          },
-        });
-    } else {
-      this.quotesService
-        .create({
-          leadId: lead.id,
-          items,
-          attachments,
-          urls,
-          discountType: dType,
-          discountValue: dVal,
-          pricingMode: this.pricingMode(),
-          financingDisclaimer: this.financingDisclaimer(),
-          ...(values.validUntil ? { validUntil: values.validUntil + 'T00:00:00Z' } : {}),
-          ...(values.notes ? { notes: values.notes } : {}),
-        })
-        .subscribe({
-          next: created => {
-            // Upload any pending manual files (deferred from create mode)
-            this.uploadPendingFiles(created.id);
+    const leadServiceId = this.selectedQuoteLeadServiceId();
 
-            if (status === 'Sent') {
-              this.quotesService.updateStatus(created.id, 'Sent').subscribe({
-                next: () => void this.router.navigate(['/app/offertes', created.id]),
-                error: () => void this.router.navigate(['/app/offertes', created.id]),
-              });
-            } else {
-              void this.router.navigate(['/app/offertes', created.id]);
-            }
-            this.saving.set(false);
-          },
-          error: () => {
-            this.error.set(this.translate.instant('offertes.errors.save'));
-            this.saving.set(false);
-          },
-        });
+    return {
+      ...(leadServiceId ? { leadServiceId } : {}),
+      items,
+      attachments,
+      urls,
+      discountType: dType,
+      discountValue: dVal,
+      pricingMode: this.pricingMode(),
+      financingDisclaimer: this.financingDisclaimer(),
+      ...(values.validUntil ? { validUntil: values.validUntil + 'T00:00:00Z' } : {}),
+      ...(values.notes ? { notes: values.notes } : {}),
+    };
+  }
+
+  private saveExistingQuote(
+    quoteId: string,
+    payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R ? Exclude<R, null> : never,
+    status: 'Draft' | 'Sent',
+  ): void {
+    this.quotesService.update(quoteId, payload).subscribe({
+      next: updated => {
+        this.navigateAfterSave(updated.id, status);
+        this.saving.set(false);
+      },
+      error: () => {
+        this.error.set(this.translate.instant('offertes.errors.save'));
+        this.saving.set(false);
+      },
+    });
+  }
+
+  private createNewQuote(
+    leadId: string,
+    payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R ? Exclude<R, null> : never,
+    status: 'Draft' | 'Sent',
+  ): void {
+    this.quotesService.create({ leadId, ...payload }).subscribe({
+      next: created => {
+        // Upload any pending manual files (deferred from create mode)
+        this.uploadPendingFiles(created.id);
+
+        this.navigateAfterSave(created.id, status);
+        this.saving.set(false);
+      },
+      error: () => {
+        this.error.set(this.translate.instant('offertes.errors.save'));
+        this.saving.set(false);
+      },
+    });
+  }
+
+  private navigateAfterSave(quoteId: string, status: 'Draft' | 'Sent'): void {
+    if (status !== 'Sent') {
+      void this.router.navigate(['/app/offertes', quoteId]);
+      return;
     }
+
+    this.quotesService.updateStatus(quoteId, 'Sent').subscribe({
+      next: () => void this.router.navigate(['/app/offertes', quoteId]),
+      error: () => void this.router.navigate(['/app/offertes', quoteId]),
+    });
   }
 
   protected cancel(): void {
@@ -755,7 +786,7 @@ export class OffertesCreateComponent implements OnInit {
 
   protected generateQuote(): void {
     const lead = this.selectedLead();
-    const serviceId = this.selectedServiceId();
+    const serviceId = this.selectedGenerateServiceId();
     const prompt = this.generatePrompt().trim();
 
     if (!lead || !serviceId || !prompt || this.isGenerateLocked()) return;

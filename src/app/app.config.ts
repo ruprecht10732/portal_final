@@ -91,6 +91,7 @@ import {
   AlertTriangle,
   Webhook,
   TrendingUp,
+  Handshake,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -226,6 +227,7 @@ export const appConfig: ApplicationConfig = {
         AlertTriangle,
         Webhook,
         TrendingUp,
+        Handshake,
       }),
     ),
   ]

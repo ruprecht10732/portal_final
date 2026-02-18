@@ -21,6 +21,7 @@
     "selectLead": "Selecteer Lead",
     "changeLead": "Wijzig",
     "searchLeadPlaceholder": "Zoek een lead...",
+    "serviceLinkLabel": "Dienst (optioneel)",
     "leadAutocomplete": {
       "createNewWithQuery": "Nieuwe lead aanmaken \"{{query}}\""
     },
@@ -97,6 +98,32 @@
       "loadPreview": "Bestandsvoorbeeld laden mislukt.",
       "moneybirdStatusLoad": "Moneybird status laden mislukt.",
       "moneybirdExport": "Offerte exporteren naar Moneybird mislukt."
+    },
+    "partnerOffer": {
+      "title": "Partner aanbod",
+      "subtitle": "Maak handmatig een werkaanbod voor een partner op basis van deze offerte.",
+      "quoteLabel": "Offerte",
+      "totalLabel": "Totaal",
+      "notAccepted": "Deze offerte is niet geaccepteerd. Maak eerst de offerte geaccepteerd om een aanbod te kunnen maken.",
+      "noService": "Deze offerte heeft geen gekoppelde dienst (leadServiceId ontbreekt).",
+      "searchLabel": "Zoek partner",
+      "searchPlaceholder": "Naam, plaats, e-mail...",
+      "searchButton": "Zoeken",
+      "selectLabel": "Selecteer partner",
+      "createOffer": "Maak aanbod",
+      "linkPartner": "Koppel partner",
+      "offerLinkLabel": "Aanbodlink",
+      "openWhatsApp": "Open WhatsApp",
+      "success": {
+        "offerCreated": "Aanbod aangemaakt",
+        "partnerLinked": "Partner gekoppeld"
+      },
+      "errors": {
+        "loadQuote": "Kon offerte niet laden",
+        "searchPartners": "Kon partners niet zoeken",
+        "createOffer": "Kon aanbod niet aanmaken",
+        "linkPartner": "Kon partner niet koppelen"
+      }
     },
     "generate": {
       "title": "Genereer met AI",

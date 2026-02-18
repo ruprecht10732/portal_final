@@ -14,6 +14,10 @@ import { ServiceTypesService } from '../../../core/services/service-types.servic
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem } from '../../../core/services/leads.types';
 import { ALLOWED_STATUS_TRANSITIONS, buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
+import { PartnersService } from '../../../core/services/partners.service';
+import type { Partner } from '../../../core/services/partners.types';
+import { QuotesService } from '../../../core/services/quotes.service';
+import type { QuoteResponse } from '../../../core/services/quotes.types';
 import type {
   AccessDifficulty,
   AppointmentAttachmentResponse,
@@ -49,6 +53,7 @@ import { LeadDetailTabsShellComponent } from './lead-detail-tabs-shell.component
 import { LeadDetailTopSectionComponent } from './lead-detail-top-section.component';
 import { LeadDetailTimelineTabComponent } from './lead-detail-timeline-tab.component';
 import { TIMEOUT_MS } from '../../../core/config';
+import { InputComponent } from '../../../shared/components/input/input.component';
 
 type WhatsAppMessageStatus = 'sent' | 'draft' | 'failed';
 
@@ -127,7 +132,7 @@ interface TimelineContactMessage {
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, SelectComponent, TranslatePipe],
+  imports: [ButtonComponent, CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, InputComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, SelectComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -137,6 +142,8 @@ export class LeadDetailComponent implements OnInit {
   private readonly appointmentsService = inject(AppointmentsService);
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly userService = inject(UserService);
+  private readonly partnersService = inject(PartnersService);
+  private readonly quotesService = inject(QuotesService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
@@ -328,6 +335,52 @@ export class LeadDetailComponent implements OnInit {
   protected readonly selectedService = computed(() =>
     this.resolveSelectedService(this.lead(), this.selectedServiceId())
   );
+
+  // ── Manual partner recovery (Manual Intervention) ─────────────────────────
+
+  protected readonly showManualPartnerActions = computed(() => {
+    const service = this.selectedService();
+    return service?.pipelineStage === 'Manual_Intervention';
+  });
+
+  protected readonly acceptedQuote = signal<QuoteResponse | null>(null);
+  protected readonly acceptedQuoteLoading = signal(false);
+  protected readonly acceptedQuoteError = signal<string | null>(null);
+
+  protected readonly partnerSearch = signal('');
+  protected readonly partnerSearchLoading = signal(false);
+  protected readonly partnerSearchError = signal<string | null>(null);
+  protected readonly partnerResults = signal<Partner[]>([]);
+  protected readonly selectedPartnerId = signal<string | null>(null);
+
+  protected readonly offerCreating = signal(false);
+  protected readonly offerError = signal<string | null>(null);
+  protected readonly createdOfferToken = signal<string | null>(null);
+  protected readonly createdOfferVakmanPriceCents = signal<number | null>(null);
+
+  protected readonly selectedPartner = computed(() => {
+    const id = this.selectedPartnerId();
+    if (!id) return null;
+    return this.partnerResults().find(p => p.id === id) ?? null;
+  });
+
+  protected readonly partnerOptions = computed<SelectOption<string>[]>(() =>
+    (this.partnerResults() ?? []).map(p => ({ value: p.id, label: `${p.businessName} — ${p.city}` }))
+  );
+
+  protected readonly offerAcceptanceUrl = computed(() => {
+    const token = this.createdOfferToken();
+    if (!token) return null;
+    return this.partnersService.buildOfferAcceptanceUrl(token);
+  });
+
+  protected readonly canCreateOffer = computed(() => {
+    if (this.offerCreating()) return false;
+    if (!this.selectedPartnerId()) return false;
+    const quote = this.acceptedQuote();
+    if (!quote) return false;
+    return quote.totalCents > 0;
+  });
 
   protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => {
     this.lang();
@@ -522,6 +575,23 @@ export class LeadDetailComponent implements OnInit {
       if (tab === 'files' && service) {
         this.loadServiceAttachments();
       }
+    });
+
+    // Effect to load Accepted quote for the selected service when manual intervention is active.
+    effect(() => {
+      const lead = this.lead();
+      const service = this.selectedService();
+
+      this.acceptedQuote.set(null);
+      this.acceptedQuoteError.set(null);
+      this.createdOfferToken.set(null);
+      this.createdOfferVakmanPriceCents.set(null);
+      this.offerError.set(null);
+
+      if (!lead || !service) return;
+      if (service.pipelineStage !== 'Manual_Intervention') return;
+
+      this.loadAcceptedQuoteForService(lead.id, service.id);
     });
   }
 
@@ -875,6 +945,141 @@ export class LeadDetailComponent implements OnInit {
     const lead = this.lead();
     if (!lead) return;
     this.router.navigate(['/app/offertes/new'], { queryParams: { leadId: lead.id } });
+  }
+
+  protected searchPartners(): void {
+    const query = this.partnerSearch().trim();
+    if (!query || this.partnerSearchLoading()) return;
+
+    this.partnerSearchLoading.set(true);
+    this.partnerSearchError.set(null);
+    this.partnerResults.set([]);
+    this.selectedPartnerId.set(null);
+
+    this.partnersService
+      .list({ search: query, page: 1, pageSize: 10, sortBy: 'businessName', sortOrder: 'asc' })
+      .subscribe({
+        next: (response) => {
+          this.partnerResults.set(response.items ?? []);
+          this.partnerSearchLoading.set(false);
+        },
+        error: (err) => {
+          const message = extractErrorMessage(err, this.translate.instant('leads.detail.manualPartner.errors.searchPartners'));
+          this.partnerSearchError.set(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+          this.partnerSearchLoading.set(false);
+        },
+      });
+  }
+
+  protected clearPartnerSearch(): void {
+    this.partnerSearch.set('');
+    this.partnerSearchError.set(null);
+    this.partnerResults.set([]);
+    this.selectedPartnerId.set(null);
+  }
+
+  protected createManualOffer(): void {
+    const lead = this.lead();
+    const service = this.selectedService();
+    const partnerId = this.selectedPartnerId();
+    const quote = this.acceptedQuote();
+    if (!lead || !service || !partnerId || !quote || this.offerCreating()) return;
+
+    this.offerCreating.set(true);
+    this.offerError.set(null);
+    this.createdOfferToken.set(null);
+    this.createdOfferVakmanPriceCents.set(null);
+
+    this.partnersService
+      .createOffer({
+        partnerId,
+        leadServiceId: service.id,
+        pricingSource: 'quote',
+        customerPriceCents: quote.totalCents,
+        expiresInHours: 48,
+      })
+      .subscribe({
+        next: (resp) => {
+          this.createdOfferToken.set(resp.publicToken);
+          this.createdOfferVakmanPriceCents.set(resp.vakmanPriceCents);
+          this.offerCreating.set(false);
+          this.toast.success(this.translate.instant('leads.detail.manualPartner.success.offerCreated'));
+
+          // Refresh lead state — offer creation publishes events that may reconcile stage/status.
+          this.loadLead(lead.id);
+          this.loadTimeline(lead.id, service.id);
+        },
+        error: (err) => {
+          const message = extractErrorMessage(err, this.translate.instant('leads.detail.manualPartner.errors.createOffer'));
+          this.offerError.set(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+          this.offerCreating.set(false);
+        },
+      });
+  }
+
+  protected openOfferWhatsApp(): void {
+    const partner = this.selectedPartner();
+    const token = this.createdOfferToken();
+    const vakmanPrice = this.createdOfferVakmanPriceCents();
+    if (!partner || !token || !vakmanPrice) return;
+
+    const url = this.partnersService.buildOfferWhatsAppUrl(
+      partner.contactPhone,
+      partner.businessName,
+      token,
+      vakmanPrice,
+    );
+
+    globalThis.open(url, '_blank', 'noopener');
+  }
+
+  protected linkSelectedPartnerToLead(): void {
+    const lead = this.lead();
+    const partnerId = this.selectedPartnerId();
+    if (!lead || !partnerId || this.offerCreating()) return;
+
+    this.offerError.set(null);
+    this.partnersService.linkLead(partnerId, lead.id).subscribe({
+      next: () => {
+        this.toast.success(this.translate.instant('leads.detail.manualPartner.success.partnerLinked'));
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.manualPartner.errors.linkPartner'));
+        this.offerError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  protected formatEuroCents(cents: number): string {
+    const lang = this.lang().lang;
+    const locale = lang === 'nl' ? 'nl-NL' : 'en-US';
+    return (cents / 100).toLocaleString(locale, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+  }
+
+  private loadAcceptedQuoteForService(leadId: string, serviceId: string): void {
+    this.acceptedQuoteLoading.set(true);
+    this.acceptedQuoteError.set(null);
+    this.acceptedQuote.set(null);
+
+    this.quotesService
+      .list({ leadId, status: 'Accepted', page: 1, pageSize: 50, sortBy: 'createdAt', sortOrder: 'desc' })
+      .subscribe({
+        next: (resp) => {
+          const items = resp.items ?? [];
+          const match = items.find(q => q.status === 'Accepted' && q.leadServiceId === serviceId) ?? null;
+          this.acceptedQuote.set(match);
+          this.acceptedQuoteLoading.set(false);
+        },
+        error: (err) => {
+          const message = extractErrorMessage(err, this.translate.instant('leads.detail.manualPartner.errors.loadAcceptedQuote'));
+          this.acceptedQuoteError.set(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+          this.acceptedQuoteLoading.set(false);
+        },
+      });
   }
 
   protected editLead(): void {

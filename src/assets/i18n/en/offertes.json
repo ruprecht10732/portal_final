@@ -24,6 +24,7 @@
     "leadAutocomplete": {
       "createNewWithQuery": "Create new lead \"{{query}}\""
     },
+      "serviceLinkLabel": "Service (optional)",
     "catalogSearchPlaceholder": "Type to search catalog...",
     "qtyPlaceholder": "1 x",
     "lineItems": "Line Items",
@@ -106,6 +107,32 @@
       "promptPlaceholder": "e.g. Solar panel installation for a detached house, 10 panels on pitched roof...",
       "submit": "Generate quote",
       "generating": "Generating...",
+    "partnerOffer": {
+      "title": "Partner offer",
+      "subtitle": "Manually create a job offer for a partner based on this quote.",
+      "quoteLabel": "Quote",
+      "totalLabel": "Total",
+      "notAccepted": "This quote is not accepted. Accept the quote first to create an offer.",
+      "noService": "This quote has no linked service (leadServiceId is missing).",
+      "searchLabel": "Search partner",
+      "searchPlaceholder": "Name, city, email...",
+      "searchButton": "Search",
+      "selectLabel": "Select partner",
+      "createOffer": "Create offer",
+      "linkPartner": "Link partner",
+      "offerLinkLabel": "Offer link",
+      "openWhatsApp": "Open WhatsApp",
+      "success": {
+        "offerCreated": "Offer created",
+        "partnerLinked": "Partner linked"
+      },
+      "errors": {
+        "loadQuote": "Failed to load quote",
+        "searchPartners": "Failed to search partners",
+        "createOffer": "Failed to create offer",
+        "linkPartner": "Failed to link partner"
+      }
+    },
       "error": "Failed to generate quote. Check your prompt and try again."
     },
     "list": {
