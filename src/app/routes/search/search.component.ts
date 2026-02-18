@@ -8,6 +8,11 @@ import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.com
 import { SearchService } from '../../core/services/search.service';
 import type { SearchEntityType, SearchResponse, SearchResultItem } from '../../core/services/search.types';
 
+interface SearchSection {
+  type: SearchEntityType;
+  items: SearchResultItem[];
+}
+
 interface RecentSearch {
   query: string;
   date: string; // ISO date string
@@ -80,6 +85,19 @@ export class SearchComponent {
   );
 
   protected readonly items = computed(() => this.response().items ?? []);
+
+  protected readonly sections = computed<SearchSection[]>(() => {
+    const allItems = this.items();
+    if (allItems.length === 0) return [];
+
+    const order: SearchEntityType[] = ['lead', 'quote', 'appointment', 'partner'];
+    return order
+      .map((type) => ({
+        type,
+        items: allItems.filter((item) => item.type === type),
+      }))
+      .filter((section) => section.items.length > 0);
+  });
 
   protected readonly showRecent = computed(
     () => this.trimmedQuery().length === 0 && this.recentSearches().length > 0,
@@ -159,6 +177,10 @@ export class SearchComponent {
 
   protected typeLabelKey(type: SearchEntityType): string {
     return `search.types.${type}`;
+  }
+
+  protected sectionLabelKey(type: SearchEntityType): string {
+    return `search.sections.${type}`;
   }
 
   protected formatDate(iso: string): string {
