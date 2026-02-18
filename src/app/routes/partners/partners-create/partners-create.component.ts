@@ -85,12 +85,10 @@ export class PartnersCreateComponent implements OnInit {
   protected readonly form = this.fb.group({
     businessName: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.businessName)]],
     kvkNumber: ['', [
-      Validators.required,
       Validators.maxLength(MAX_LENGTHS.kvkNumber),
       Validators.pattern(KVK_REGEX),
     ]],
     vatNumber: ['', [
-      Validators.required,
       Validators.maxLength(MAX_LENGTHS.vatNumber),
       Validators.pattern(VAT_REGEX),
     ]],
@@ -148,8 +146,8 @@ export class PartnersCreateComponent implements OnInit {
     const serviceTypeIds = values.serviceTypeIds ?? [];
     const request: CreatePartnerRequest = {
       businessName: (values.businessName ?? '').trim(),
-      kvkNumber: (values.kvkNumber ?? '').trim(),
-      vatNumber: (values.vatNumber ?? '').trim().toUpperCase(),
+      ...((values.kvkNumber ?? '').trim() ? { kvkNumber: (values.kvkNumber ?? '').trim() } : {}),
+      ...((values.vatNumber ?? '').trim() ? { vatNumber: (values.vatNumber ?? '').trim().toUpperCase() } : {}),
       contactName: (values.contactName ?? '').trim(),
       contactEmail: (values.contactEmail ?? '').trim(),
       contactPhone: normalizePhoneE164(values.contactPhone ?? ''),

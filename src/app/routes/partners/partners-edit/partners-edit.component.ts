@@ -89,12 +89,10 @@ export class PartnersEditComponent implements OnInit {
   protected readonly form = this.fb.group({
     businessName: ['', [Validators.required, Validators.maxLength(MAX_LENGTHS.businessName)]],
     kvkNumber: ['', [
-      Validators.required,
       Validators.maxLength(MAX_LENGTHS.kvkNumber),
       Validators.pattern(KVK_REGEX),
     ]],
     vatNumber: ['', [
-      Validators.required,
       Validators.maxLength(MAX_LENGTHS.vatNumber),
       Validators.pattern(VAT_REGEX),
     ]],
@@ -346,8 +344,8 @@ export class PartnersEditComponent implements OnInit {
         this.partner.set(partner);
         this.form.patchValue({
           businessName: partner.businessName,
-          kvkNumber: partner.kvkNumber,
-          vatNumber: partner.vatNumber,
+          kvkNumber: partner.kvkNumber ?? '',
+          vatNumber: partner.vatNumber ?? '',
           contactName: partner.contactName,
           contactEmail: partner.contactEmail,
           contactPhone: partner.contactPhone,

@@ -43,5 +43,8 @@ const patchFirefoxMouseEvent = (): void => {
 
 patchFirefoxMouseEvent();
 
-bootstrapApplication(App, appConfig)
-  .catch((err) => console.error(err));
+try {
+  await bootstrapApplication(App, appConfig);
+} catch (err) {
+  console.error(err);
+}

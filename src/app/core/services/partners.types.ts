@@ -1,8 +1,8 @@
 export interface Partner {
   id: string;
   businessName: string;
-  kvkNumber: string;
-  vatNumber: string;
+  kvkNumber?: string | null;
+  vatNumber?: string | null;
   addressLine1: string;
   addressLine2?: string | null;
   houseNumber?: string | null;
@@ -34,8 +34,8 @@ export interface PartnerListResponse {
 
 export interface CreatePartnerRequest {
   businessName: string;
-  kvkNumber: string;
-  vatNumber: string;
+  kvkNumber?: string;
+  vatNumber?: string;
   addressLine1: string;
   addressLine2?: string | null;
   houseNumber?: string | null;

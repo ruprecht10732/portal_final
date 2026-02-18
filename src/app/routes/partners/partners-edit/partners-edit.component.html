@@ -42,14 +42,14 @@
               [label]="'partners.form.kvkNumber' | translate"
               [value]="form.controls.kvkNumber.value ?? ''"
               (valueChange)="form.controls.kvkNumber.setValue($event)"
-              [required]="true"
+              [required]="false"
               [error]="controlError('kvkNumber', { maxLength: 20, patternError: invalidKvkError() })"
             />
             <shared-input
               [label]="'partners.form.vatNumber' | translate"
               [value]="form.controls.vatNumber.value ?? ''"
               (valueChange)="form.controls.vatNumber.setValue($event)"
-              [required]="true"
+              [required]="false"
               [error]="controlError('vatNumber', { maxLength: 20, patternError: invalidVatError() })"
             />
           </div>
