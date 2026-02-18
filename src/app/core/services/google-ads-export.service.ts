@@ -17,6 +17,10 @@ export interface RevealGoogleAdsExportPasswordResponse {
   password: string;
 }
 
+export interface BackfillExportsResponse {
+  backfilledRows: number;
+}
+
 @Injectable({ providedIn: 'root' })
 export class GoogleAdsExportService {
   private readonly http = inject(HttpClient);
@@ -36,5 +40,9 @@ export class GoogleAdsExportService {
 
   revealPassword(): Observable<RevealGoogleAdsExportPasswordResponse> {
     return this.http.get<RevealGoogleAdsExportPasswordResponse>(`${this.baseUrl}/password`);
+  }
+
+  backfillExports(): Observable<BackfillExportsResponse> {
+    return this.http.post<BackfillExportsResponse>(`${environment.apiBaseUrl}/admin/exports/backfill`, {});
   }
 }

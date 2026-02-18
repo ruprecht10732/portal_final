@@ -35,6 +35,8 @@ export class GoogleAdsExportComponent {
   protected readonly urlCopied = signal(false);
 
   protected readonly showDeleteDialog = signal(false);
+  protected readonly isBackfilling = signal(false);
+  protected readonly backfillResult = signal<number | null>(null);
   protected readonly hasCredential = computed(() => this.credential() !== null);
 
   private readonly exportService = inject(GoogleAdsExportService);
@@ -184,6 +186,26 @@ export class GoogleAdsExportComponent {
 
   protected dismissGeneratedCredential(): void {
     this.generatedCredential.set(null);
+  }
+
+  protected backfillHistoricalData(): void {
+    this.isBackfilling.set(true);
+    this.errorMessage.set('');
+    this.backfillResult.set(null);
+
+    this.exportService
+      .backfillExports()
+      .pipe(
+        catchError(error => {
+          this.errorMessage.set(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.isBackfilling.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => {
+        this.backfillResult.set(response.backfilledRows);
+      });
   }
 
   private getStatusCode(error: unknown): number | null {

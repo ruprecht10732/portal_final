@@ -249,6 +249,30 @@
             </shared-button>
           </div>
         </div>
+
+        <div class="space-y-4 border border-zinc-200 rounded-sm p-4 sm:p-6 bg-white">
+          <div class="space-y-1">
+            <h4 class="text-sm font-semibold text-zinc-900">{{ 'googleAds.backfill.title' | translate }}</h4>
+            <p class="text-xs text-zinc-500">{{ 'googleAds.backfill.description' | translate }}</p>
+          </div>
+
+          @if (backfillResult() !== null) {
+            <div class="border border-emerald-200 bg-emerald-50 px-4 py-3 rounded-sm text-sm text-emerald-800">
+              {{ 'googleAds.backfill.success' | translate: { count: backfillResult() } }}
+            </div>
+          }
+
+          <shared-button
+            variant="secondary"
+            size="compact"
+            [fullWidth]="false"
+            [loading]="isBackfilling()"
+            [disabled]="isSaving()"
+            (clicked)="backfillHistoricalData()"
+          >
+            {{ 'googleAds.backfill.button' | translate }}
+          </shared-button>
+        </div>
       }
     }
   }

@@ -43,6 +43,12 @@
     },
     "errors": {
       "generic": "Something went wrong. Please try again."
+    },
+    "backfill": {
+      "title": "Historical data",
+      "description": "Backfill conversion events from existing lead data into the export table. Previously exported rows are skipped.",
+      "button": "Backfill historical data",
+      "success": "{{count}} conversion events backfilled successfully."
     }
   }
 }
