@@ -70,6 +70,17 @@
     "bulkExportAllSuccess": "{{succeeded}} offerte(s) succesvol naar Moneybird geëxporteerd.",
     "bulkExportPartial": "{{succeeded}} van {{total}} offerte(s) geëxporteerd naar Moneybird. {{failed}} mislukt.",
     "bulkExportFailed": "Offertes exporteren naar Moneybird mislukt.",
+    "stats": {
+      "selected": "offerte geselecteerd",
+      "selectedPlural": "offertes geselecteerd",
+      "totalValue": "Totaalwaarde",
+      "avgValue": "Gemiddelde waarde",
+      "accepted": "Geaccepteerd",
+      "draft": "Concept",
+      "sent": "Verstuurd",
+      "rejected": "Afgewezen",
+      "expired": "Verlopen"
+    },
     "saveDraft": "Concept opslaan",
     "saveAndSend": "Opslaan & versturen",
     "save": "Opslaan",

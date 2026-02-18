@@ -1,3 +1,117 @@
 :host {
   display: block;
 }
+
+/* Floating stats bar */
+.stats-float-bar {
+  margin-top: 0.5rem;
+  padding: 0.625rem 1rem;
+  background: #fff;
+  border: 1px solid #e2e8f0;
+  border-radius: 0.5rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.06);
+}
+
+/* Header row */
+.stats-float-bar__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.stats-float-bar__count {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: #374151;
+}
+
+.stats-float-bar__totals {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 1rem;
+}
+
+.stats-float-bar__kv {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.8125rem;
+  color: #6b7280;
+}
+
+.stats-float-bar__kv strong {
+  color: #111827;
+  font-weight: 600;
+}
+
+.stats-float-bar__kv--muted {
+  color: #9ca3af;
+}
+
+.stats-float-bar__dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.stats-float-bar__dot--accepted { background: #16a34a; }
+
+/* Stacked progress bar */
+.stats-float-bar__track {
+  display: flex;
+  height: 10px;
+  border-radius: 9999px;
+  overflow: hidden;
+  background: #f3f4f6;
+  margin-bottom: 0.5rem;
+  gap: 1px;
+}
+
+.stats-float-bar__seg {
+  height: 100%;
+  transition: width 0.3s ease;
+}
+
+.stats-float-bar__seg--draft    { background: #94a3b8; }
+.stats-float-bar__seg--sent     { background: #3b82f6; }
+.stats-float-bar__seg--accepted { background: #16a34a; }
+.stats-float-bar__seg--rejected { background: #ef4444; }
+.stats-float-bar__seg--expired  { background: #f59e0b; }
+
+/* Legend */
+.stats-float-bar__legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.625rem;
+}
+
+.stats-float-bar__legend-item {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.stats-float-bar__legend-dot {
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+.stats-float-bar__legend-dot--draft    { background: #94a3b8; }
+.stats-float-bar__legend-dot--sent     { background: #3b82f6; }
+.stats-float-bar__legend-dot--accepted { background: #16a34a; }
+.stats-float-bar__legend-dot--rejected { background: #ef4444; }
+.stats-float-bar__legend-dot--expired  { background: #f59e0b; }

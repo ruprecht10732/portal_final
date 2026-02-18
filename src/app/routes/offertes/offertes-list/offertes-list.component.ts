@@ -61,12 +61,43 @@ export class OffertesListComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly moneybirdConnected = signal(false);
   protected readonly selectedQuoteIds = signal<string[]>([]);
+  protected readonly selectedRows = signal<QuoteRow[]>([]);
   protected readonly bulkExporting = signal(false);
   protected readonly bulkExportFeedback = signal<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
   protected readonly isDeleteDialogOpen = signal(false);
   protected readonly pendingDeleteRows = signal<QuoteRow[]>([]);
   protected readonly deleteInProgress = signal(false);
   protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
+
+  protected readonly selectionStats = computed(() => {
+    const rows = this.selectedRows();
+    if (rows.length === 0) return null;
+
+    const totalCents = rows.reduce((sum, r) => sum + r.totalCents, 0);
+    const byStatus: Record<QuoteStatus, number> = { Draft: 0, Sent: 0, Accepted: 0, Rejected: 0, Expired: 0 };
+    for (const row of rows) {
+      byStatus[row.status] = (byStatus[row.status] ?? 0) + 1;
+    }
+    const acceptedCents = rows.filter(r => r.status === 'Accepted').reduce((sum, r) => sum + r.totalCents, 0);
+    const labels = this.statusLabels();
+    const statusOrder: QuoteStatus[] = ['Draft', 'Sent', 'Accepted', 'Rejected', 'Expired'];
+    const segments = statusOrder.map(status => ({
+      status,
+      count: byStatus[status],
+      width: (byStatus[status] / rows.length) * 100,
+      label: labels[status],
+    }));
+
+    return {
+      count: rows.length,
+      totalValue: centsToEuros(totalCents),
+      avgValue: centsToEuros(Math.round(totalCents / rows.length)),
+      acceptedValue: centsToEuros(acceptedCents),
+      byStatus,
+      segments,
+    };
+  });
+
   private readonly lastRequest = signal<DataRequest | null>(null);
   private ignoreNextRequest = true;
 
@@ -445,10 +476,9 @@ export class OffertesListComponent implements OnInit {
   }
 
   protected onSelectionChange(event: SelectionChangeEvent<Record<string, unknown>>): void {
-    const acceptedIds = event.selectedRows
-      .map(row => row as QuoteRow)
-      .filter(row => row.status === 'Accepted')
-      .map(row => row.id);
+    const rows = event.selectedRows.map(row => row as QuoteRow);
+    this.selectedRows.set(rows);
+    const acceptedIds = rows.filter(row => row.status === 'Accepted').map(row => row.id);
     this.selectedQuoteIds.set(acceptedIds);
   }
 

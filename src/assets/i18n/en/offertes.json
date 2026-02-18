@@ -70,6 +70,17 @@
     "bulkExportAllSuccess": "Successfully exported {{succeeded}} quote(s) to Moneybird.",
     "bulkExportPartial": "Exported {{succeeded}} of {{total}} quote(s) to Moneybird. {{failed}} failed.",
     "bulkExportFailed": "Failed to export quotes to Moneybird.",
+    "stats": {
+      "selected": "quote selected",
+      "selectedPlural": "quotes selected",
+      "totalValue": "Total value",
+      "avgValue": "Average value",
+      "accepted": "Accepted",
+      "draft": "Draft",
+      "sent": "Sent",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
     "saveDraft": "Save draft",
     "saveAndSend": "Save & send",
     "save": "Save",

@@ -90,6 +90,7 @@ import {
   Copy,
   AlertTriangle,
   Webhook,
+  TrendingUp,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -224,6 +225,7 @@ export const appConfig: ApplicationConfig = {
         Copy,
         AlertTriangle,
         Webhook,
+        TrendingUp,
       }),
     ),
   ]
