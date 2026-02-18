@@ -14,6 +14,12 @@
       "quote": "Quote",
       "partner": "Partner",
       "appointment": "Appointment"
+    },
+    "sections": {
+      "lead": "Leads",
+      "quote": "Quotes",
+      "partner": "Partners",
+      "appointment": "Appointments"
     }
   }
 }
