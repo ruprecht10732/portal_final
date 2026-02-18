@@ -43,12 +43,6 @@
     },
     "errors": {
       "generic": "Er ging iets mis. Probeer het opnieuw."
-    },
-    "backfill": {
-      "title": "Historische gegevens",
-      "description": "Vul conversiegebeurtenissen aan vanuit bestaande leadgegevens. Eerder geëxporteerde rijen worden overgeslagen.",
-      "button": "Historische gegevens aanvullen",
-      "success": "{{count}} conversiegebeurtenissen succesvol aangevuld."
     }
   }
 }
