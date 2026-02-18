@@ -1,6 +1,19 @@
 {
   "search": {
     "title": "Zoeken",
-    "placeholder": "Zoek naar leads, offertes, contacten..."
+    "placeholder": "Zoek naar leads, offertes, contacten...",
+    "hint": "Begin te typen om te zoeken in leads, offertes, partners en afspraken.",
+    "minChars": "Typ minimaal 2 tekens.",
+    "noResults": "Geen resultaten gevonden.",
+    "error": "Zoeken mislukt. Probeer het opnieuw.",
+    "recent": "Recent",
+    "clearAll": "Wis alles",
+    "resultsFor": "resultaten voor",
+    "types": {
+      "lead": "Lead",
+      "quote": "Offerte",
+      "partner": "Partner",
+      "appointment": "Afspraak"
+    }
   }
 }

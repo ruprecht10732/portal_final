@@ -31,6 +31,9 @@
               @case ('dashboard') {
                 <lucide-icon name="layout-dashboard" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
               }
+              @case ('search') {
+                <lucide-icon name="search" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
               @case ('leads') {
                 <span class="relative inline-flex">
                   <lucide-icon name="users" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
@@ -103,13 +106,24 @@
         [showChevron]="false"
         [triggerVariant]="'ghost'"
         [triggerSize]="'compact'"
-        [triggerShape]="'square'"
+        [triggerShape]="'round'"
         [fullWidth]="false"
         [sections]="profileMenu"
         [tooltip]="'navigation.profile' | translate"
         (itemSelected)="handleProfileMenuSelection($event)"
       >
-        <lucide-icon menuTrigger name="user" class="h-6 w-6"></lucide-icon>
+        <span menuTrigger class="relative flex shrink-0 items-center justify-center select-none" style="width:2.75rem;height:2.75rem" aria-hidden="true">
+          <!-- tri-color conic ring -->
+          <span class="absolute inset-0 rounded-full" style="background:conic-gradient(#4285F4 0deg 120deg,#EA4335 120deg 240deg,#34A853 240deg 360deg)"></span>
+          <!-- white gap -->
+          <span class="absolute rounded-full" style="inset:4px;background:#f4f4f5"></span>
+          <!-- initials disc -->
+          <span
+            class="relative z-10 flex items-center justify-center rounded-full text-[11px] font-bold leading-none text-white"
+            style="width:calc(2.75rem - 10px);height:calc(2.75rem - 10px)"
+            [style.background-color]="avatarColor()"
+          >{{ userInitials() }}</span>
+        </span>
       </shared-menu>
     </div>
   </aside>

@@ -153,7 +153,20 @@ export class DashboardActivityService {
 
   /** Build a dedup key from category + type + timestamp (coarse enough). */
   private eventKey(e: ActivityEvent): string {
-    return `${e.category}:${e.type}:${e.timestamp}`;
+    // Prefer a stable ID when available (HTTP history items have a backend-generated ID).
+    // SSE events don't provide a stable event id today, so we fall back to a composite key.
+    if (e.id) {
+      return e.id;
+    }
+
+    const data = e.data ?? {};
+    const entityId =
+      (data['appointmentId'] as string | undefined) ||
+      (data['quoteId'] as string | undefined) ||
+      (data['leadId'] as string | undefined) ||
+      '';
+
+    return `${e.category}:${e.type}:${entityId}:${e.timestamp}`;
   }
 
   // ---------------------------------------------------------------------------
@@ -165,7 +178,9 @@ export class DashboardActivityService {
       id: crypto.randomUUID(),
       type: raw.type,
       timestamp: raw.timestamp ?? new Date().toISOString(),
-      data: raw.data,
+      data: raw.data
+        ? { ...raw.data, leadId: raw.leadId, serviceId: raw.serviceId }
+        : { leadId: raw.leadId, serviceId: raw.serviceId },
     };
 
     switch (raw.type) {

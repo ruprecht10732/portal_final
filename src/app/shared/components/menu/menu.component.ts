@@ -37,7 +37,7 @@ export class MenuComponent {
   ariaLabel = input<string | undefined>(undefined);
   triggerVariant = input<'primary' | 'secondary' | 'ghost' | 'success' | 'danger'>('secondary');
   triggerSize = input<'default' | 'compact'>('compact');
-  triggerShape = input<'default' | 'square'>('default');
+  triggerShape = input<'default' | 'square' | 'round'>('default');
   iconOnly = input(false);
   showChevron = input(true);
   fullWidth = input(false);

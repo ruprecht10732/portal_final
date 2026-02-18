@@ -7,7 +7,7 @@
         {{ 'dashboard.activityFeed.title' | translate }}
       </h2>
       <span class="inline-flex items-center justify-center rounded-full bg-zinc-100 dark:bg-zinc-800 px-2 py-0.5 text-[10px] font-semibold tabular-nums text-zinc-500 dark:text-zinc-400">
-        {{ activityService.filteredEvents().length }}
+        {{ filteredCount() }}
       </span>
     </div>
     <div class="w-8 h-8 rounded-lg bg-zinc-100 dark:bg-zinc-800 flex items-center justify-center">
@@ -34,13 +34,13 @@
 
   <!-- Feed -->
   <div class="flex-1 overflow-y-auto activity-scroll px-3 pb-3 sm:max-h-110">
-    @if (!activityService.filteredEvents().length) {
+    @if (!filteredCount()) {
       <div class="flex h-48 items-center justify-center">
         <p class="text-[11px] text-zinc-300 dark:text-zinc-600">{{ 'dashboard.activityFeed.empty' | translate }}</p>
       </div>
     } @else {
       <ul class="space-y-1">
-        @for (event of activityService.filteredEvents(); track event.id) {
+        @for (event of filteredEvents(); track event.id) {
           <li>
             <div class="flex items-center gap-3 rounded-xl px-3 py-2.5 hover:bg-zinc-50 dark:hover:bg-zinc-800/60 transition-colors">
 

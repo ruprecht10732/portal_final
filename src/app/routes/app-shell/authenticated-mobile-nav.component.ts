@@ -12,6 +12,7 @@ import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-b
 
 type MobileNavIcon =
   | 'dashboard'
+  | 'search'
   | 'leads'
   | 'partners'
   | 'appointments'
@@ -54,6 +55,9 @@ interface MobileNavItem {
             @switch (item.icon) {
               @case ('dashboard') {
                 <lucide-icon name="layout-dashboard" class="h-5 w-5"></lucide-icon>
+              }
+              @case ('search') {
+                <lucide-icon name="search" class="h-5 w-5"></lucide-icon>
               }
               @case ('leads') {
                 <span class="relative inline-flex">
@@ -116,6 +120,7 @@ export class AuthenticatedMobileNavComponent {
   protected readonly items = computed<MobileNavItem[]>(() => {
     const base: MobileNavItem[] = [
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
+      { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
@@ -123,7 +128,7 @@ export class AuthenticatedMobileNavComponent {
       { label: 'navigation.catalog', route: '/app/catalog', icon: 'catalog' },
     ];
     if (this.isAdmin()) {
-      base.splice(3, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
+      base.splice(4, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
       base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
     }
     base.push({ label: 'navigation.profile', route: '/app/profile', icon: 'profile' });
