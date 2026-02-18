@@ -13,6 +13,7 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import type { DataRequest, DataResponse, GridColumn, GridConfig, SelectionChangeEvent } from '../../../shared/components/data-grid/data-grid.types';
 
 interface QuoteRow extends QuoteResponse, Record<string, unknown> {
@@ -40,7 +41,7 @@ interface QuoteListParams {
 
 @Component({
   selector: 'app-offertes-list',
-  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, PageLayoutComponent, DataGridComponent],
+  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, PageLayoutComponent, DataGridComponent, ConfirmDialogComponent],
   templateUrl: './offertes-list.component.html',
   styleUrl: './offertes-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -60,8 +61,43 @@ export class OffertesListComponent implements OnInit {
   protected readonly error = signal<string | null>(null);
   protected readonly moneybirdConnected = signal(false);
   protected readonly selectedQuoteIds = signal<string[]>([]);
+  protected readonly selectedRows = signal<QuoteRow[]>([]);
   protected readonly bulkExporting = signal(false);
   protected readonly bulkExportFeedback = signal<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
+  protected readonly isDeleteDialogOpen = signal(false);
+  protected readonly pendingDeleteRows = signal<QuoteRow[]>([]);
+  protected readonly deleteInProgress = signal(false);
+  protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
+
+  protected readonly selectionStats = computed(() => {
+    const rows = this.selectedRows();
+    if (rows.length === 0) return null;
+
+    const totalCents = rows.reduce((sum, r) => sum + r.totalCents, 0);
+    const byStatus: Record<QuoteStatus, number> = { Draft: 0, Sent: 0, Accepted: 0, Rejected: 0, Expired: 0 };
+    for (const row of rows) {
+      byStatus[row.status] = (byStatus[row.status] ?? 0) + 1;
+    }
+    const acceptedCents = rows.filter(r => r.status === 'Accepted').reduce((sum, r) => sum + r.totalCents, 0);
+    const labels = this.statusLabels();
+    const statusOrder: QuoteStatus[] = ['Draft', 'Sent', 'Accepted', 'Rejected', 'Expired'];
+    const segments = statusOrder.map(status => ({
+      status,
+      count: byStatus[status],
+      width: (byStatus[status] / rows.length) * 100,
+      label: labels[status],
+    }));
+
+    return {
+      count: rows.length,
+      totalValue: centsToEuros(totalCents),
+      avgValue: centsToEuros(Math.round(totalCents / rows.length)),
+      acceptedValue: centsToEuros(acceptedCents),
+      byStatus,
+      segments,
+    };
+  });
+
   private readonly lastRequest = signal<DataRequest | null>(null);
   private ignoreNextRequest = true;
 
@@ -179,7 +215,8 @@ export class OffertesListComponent implements OnInit {
     cardPreviewFieldCount: 4,
     mobileAddRowEnabled: false,
     rowViewActionEnabled: true,
-    rowDeleteActionEnabled: false,
+    rowDeleteActionEnabled: true,
+    rowDeleteActionPredicate: (row: QuoteRow) => row.status === 'Draft',
   };
 
   protected readonly fetchDataFn = this.fetchData.bind(this);
@@ -439,10 +476,9 @@ export class OffertesListComponent implements OnInit {
   }
 
   protected onSelectionChange(event: SelectionChangeEvent<Record<string, unknown>>): void {
-    const acceptedIds = event.selectedRows
-      .map(row => row as QuoteRow)
-      .filter(row => row.status === 'Accepted')
-      .map(row => row.id);
+    const rows = event.selectedRows.map(row => row as QuoteRow);
+    this.selectedRows.set(rows);
+    const acceptedIds = rows.filter(row => row.status === 'Accepted').map(row => row.id);
     this.selectedQuoteIds.set(acceptedIds);
   }
 
@@ -484,6 +520,59 @@ export class OffertesListComponent implements OnInit {
         this.bulkExporting.set(false);
       },
     });
+  }
+
+  protected onDeleteQuotes(rows: Record<string, unknown>[]): void {
+    const quoteRows = rows as QuoteRow[];
+    if (quoteRows.length === 0) return;
+    this.pendingDeleteRows.set(quoteRows);
+    this.isDeleteDialogOpen.set(true);
+  }
+
+  protected closeDeleteDialog(): void {
+    this.isDeleteDialogOpen.set(false);
+    this.pendingDeleteRows.set([]);
+    this.deleteInProgress.set(false);
+  }
+
+  protected confirmDelete(): void {
+    const rows = this.pendingDeleteRows();
+    if (rows.length === 0) {
+      this.closeDeleteDialog();
+      return;
+    }
+
+    this.deleteInProgress.set(true);
+
+    const ids = rows.map(row => row.id).filter((id): id is string => !!id);
+    let completed = 0;
+    let failed = 0;
+
+    for (const id of ids) {
+      this.quotesService.delete(id).subscribe({
+        next: () => {
+          completed++;
+          if (completed + failed === ids.length) {
+            this.finishDelete(failed);
+          }
+        },
+        error: (err) => {
+          failed++;
+          this.reporter.report(err, { source: 'http', silent: true });
+          if (completed + failed === ids.length) {
+            this.finishDelete(failed);
+          }
+        },
+      });
+    }
+  }
+
+  private finishDelete(failed: number): void {
+    this.closeDeleteDialog();
+    if (failed > 0) {
+      this.error.set(this.translate.instant('offertes.errors.delete', { failed }));
+    }
+    this.loadInitialData();
   }
 
   protected formatCurrency(amount: number): string {

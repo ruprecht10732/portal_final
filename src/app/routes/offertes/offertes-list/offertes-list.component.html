@@ -65,6 +65,75 @@
     (dataRequest)="onDataRequest($event)"
     (rowDoubleClick)="onGridRowDoubleClick($event)"
     (selectionChange)="onSelectionChange($event)"
+    (deleteRows)="onDeleteQuotes($event)"
     [ariaLabel]="'offertes.list.title' | translate"
+  />
+
+  @if (selectionStats(); as stats) {
+    <div class="stats-float-bar">
+      <div class="stats-float-bar__header">
+        <span class="stats-float-bar__count">
+          <lucide-icon name="trending-up" class="h-3.5 w-3.5"></lucide-icon>
+          {{ stats.count }}&nbsp;{{ stats.count === 1 ? ('offertes.stats.selected' | translate) : ('offertes.stats.selectedPlural' | translate) }}
+        </span>
+        <div class="stats-float-bar__totals">
+          @if (stats.byStatus.Accepted > 0) {
+            <span class="stats-float-bar__kv">
+              <span class="stats-float-bar__dot stats-float-bar__dot--accepted"></span>
+              {{ 'offertes.stats.accepted' | translate }}: <strong>{{ formatCurrency(stats.acceptedValue) }}</strong>
+            </span>
+          }
+          <span class="stats-float-bar__kv">{{ 'offertes.stats.totalValue' | translate }}: <strong>{{ formatCurrency(stats.totalValue) }}</strong></span>
+          <span class="stats-float-bar__kv stats-float-bar__kv--muted">Ø {{ formatCurrency(stats.avgValue) }}</span>
+        </div>
+      </div>
+
+      <div class="stats-float-bar__track">
+        @for (seg of stats.segments; track seg.status) {
+          @if (seg.count > 0) {
+            <div
+              class="stats-float-bar__seg"
+              [class.stats-float-bar__seg--draft]="seg.status === 'Draft'"
+              [class.stats-float-bar__seg--sent]="seg.status === 'Sent'"
+              [class.stats-float-bar__seg--accepted]="seg.status === 'Accepted'"
+              [class.stats-float-bar__seg--rejected]="seg.status === 'Rejected'"
+              [class.stats-float-bar__seg--expired]="seg.status === 'Expired'"
+              [style.width.%]="seg.width"
+              [title]="seg.label + ': ' + seg.count"
+            ></div>
+          }
+        }
+      </div>
+
+      <div class="stats-float-bar__legend">
+        @for (seg of stats.segments; track seg.status) {
+          @if (seg.count > 0) {
+            <span class="stats-float-bar__legend-item">
+              <span
+                class="stats-float-bar__legend-dot"
+                [class.stats-float-bar__legend-dot--draft]="seg.status === 'Draft'"
+                [class.stats-float-bar__legend-dot--sent]="seg.status === 'Sent'"
+                [class.stats-float-bar__legend-dot--accepted]="seg.status === 'Accepted'"
+                [class.stats-float-bar__legend-dot--rejected]="seg.status === 'Rejected'"
+                [class.stats-float-bar__legend-dot--expired]="seg.status === 'Expired'"
+              ></span>
+              {{ seg.label }} ({{ seg.count }})
+            </span>
+          }
+        }
+      </div>
+    </div>
+  }
+
+  <shared-confirm-dialog
+    [isOpen]="isDeleteDialogOpen()"
+    [title]="'offertes.list.deleteTitle' | translate"
+    [message]="'offertes.list.deleteMessage' | translate:{count: deleteCount()}"
+    [confirmText]="'offertes.list.deleteConfirm' | translate"
+    [cancelText]="'offertes.list.deleteCancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="deleteInProgress()"
+    (confirm)="confirmDelete()"
+    (cancelled)="closeDeleteDialog()"
   />
 </shared-page-layout>

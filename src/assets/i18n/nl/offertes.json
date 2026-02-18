@@ -70,6 +70,17 @@
     "bulkExportAllSuccess": "{{succeeded}} offerte(s) succesvol naar Moneybird geëxporteerd.",
     "bulkExportPartial": "{{succeeded}} van {{total}} offerte(s) geëxporteerd naar Moneybird. {{failed}} mislukt.",
     "bulkExportFailed": "Offertes exporteren naar Moneybird mislukt.",
+    "stats": {
+      "selected": "offerte geselecteerd",
+      "selectedPlural": "offertes geselecteerd",
+      "totalValue": "Totaalwaarde",
+      "avgValue": "Gemiddelde waarde",
+      "accepted": "Geaccepteerd",
+      "draft": "Concept",
+      "sent": "Verstuurd",
+      "rejected": "Afgewezen",
+      "expired": "Verlopen"
+    },
     "saveDraft": "Concept opslaan",
     "saveAndSend": "Opslaan & versturen",
     "save": "Opslaan",
@@ -82,6 +93,7 @@
     "errors": {
       "save": "Offerte opslaan mislukt. Probeer het opnieuw.",
       "load": "Offertes laden mislukt. Probeer het opnieuw.",
+      "delete": "{{failed}} offerte(s) verwijderen mislukt.",
       "loadPreview": "Bestandsvoorbeeld laden mislukt.",
       "moneybirdStatusLoad": "Moneybird status laden mislukt.",
       "moneybirdExport": "Offerte exporteren naar Moneybird mislukt."
@@ -115,7 +127,11 @@
         "total": "Totaal",
         "validUntil": "Geldig tot",
         "createdAt": "Datum"
-      }
+      },
+      "deleteTitle": "Offerte(s) verwijderen",
+      "deleteMessage": "{{count}} offerte(s) verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "deleteConfirm": "Verwijderen",
+      "deleteCancel": "Annuleren"
     },
     "status": {
       "draft": "Concept",

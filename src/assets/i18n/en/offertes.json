@@ -70,6 +70,17 @@
     "bulkExportAllSuccess": "Successfully exported {{succeeded}} quote(s) to Moneybird.",
     "bulkExportPartial": "Exported {{succeeded}} of {{total}} quote(s) to Moneybird. {{failed}} failed.",
     "bulkExportFailed": "Failed to export quotes to Moneybird.",
+    "stats": {
+      "selected": "quote selected",
+      "selectedPlural": "quotes selected",
+      "totalValue": "Total value",
+      "avgValue": "Average value",
+      "accepted": "Accepted",
+      "draft": "Draft",
+      "sent": "Sent",
+      "rejected": "Rejected",
+      "expired": "Expired"
+    },
     "saveDraft": "Save draft",
     "saveAndSend": "Save & send",
     "save": "Save",
@@ -82,6 +93,7 @@
     "errors": {
       "save": "Failed to save quote. Please try again.",
       "load": "Failed to load quotes. Please try again.",
+      "delete": "Failed to delete {{failed}} quote(s).",
       "loadPreview": "Failed to load file preview.",
       "moneybirdStatusLoad": "Failed to load Moneybird status.",
       "moneybirdExport": "Failed to export quote to Moneybird."
@@ -115,7 +127,11 @@
         "total": "Total",
         "validUntil": "Valid until",
         "createdAt": "Date"
-      }
+      },
+      "deleteTitle": "Delete quote(s)",
+      "deleteMessage": "Delete {{count}} quote(s)? This cannot be undone.",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel"
     },
     "status": {
       "draft": "Draft",
