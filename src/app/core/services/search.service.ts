@@ -11,7 +11,7 @@ export class SearchService {
   private readonly baseUrl = `${environment.apiBaseUrl}/search`;
 
   globalSearch(params: GlobalSearchParams): Observable<SearchResponse> {
-    const httpParams = toHttpParams({ q: params.q, limit: params.limit });
+    const httpParams = toHttpParams({ q: params.q, limit: params.limit, types: params.types });
     return this.http.get<SearchResponse>(this.baseUrl, { params: httpParams });
   }
 }

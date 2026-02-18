@@ -6,7 +6,7 @@
     "createCredentials": "Inloggegevens maken",
     "rotateCredentials": "Inloggegevens roteren",
     "credentialsCreated": "Inloggegevens bijgewerkt",
-    "credentialsCreatedWarning": "Kopieer dit wachtwoord nu. Het wordt niet opnieuw getoond.",
+    "credentialsCreatedWarning": "Kopieer dit wachtwoord nu. Mogelijk heb je het later opnieuw nodig bij het instellen van extra conversieacties.",
     "credentialSaved": "Inloggegevens opgeslagen",
     "credentialDeleted": "Inloggegevens verwijderd",
     "dismiss": "Sluiten",
@@ -26,6 +26,8 @@
     "copyUsername": "Gebruikersnaam kopieren",
     "copyPassword": "Wachtwoord kopieren",
     "copyUrl": "URL kopieren",
+    "revealPassword": "Wachtwoord tonen",
+    "hidePassword": "Wachtwoord verbergen",
     "instructions": {
       "title": "Zo koppel je het",
       "step1": "Maak conversieacties in Google Ads met exact dezelfde namen.",

@@ -148,6 +148,53 @@
           </div>
 
           <div class="space-y-2">
+            <p class="block text-xs font-medium text-zinc-700">{{ 'googleAds.fields.password' | translate }}</p>
+            <div class="flex items-center gap-2">
+              <code class="flex-1 rounded bg-zinc-50 border border-zinc-200 px-3 py-2 text-sm font-mono text-zinc-900 break-all select-all">
+                @if (revealedPassword(); as password) {
+                  {{ password }}
+                } @else {
+                  ••••••••••••••••
+                }
+              </code>
+              <shared-button
+                variant="secondary"
+                size="compact"
+                [iconOnly]="true"
+                shape="square"
+                [fullWidth]="false"
+                [loading]="isRevealingPassword()"
+                [disabled]="isSaving()"
+                [ariaLabel]="(revealedPassword() ? 'googleAds.hidePassword' : 'googleAds.revealPassword') | translate"
+                (clicked)="togglePasswordReveal()"
+              >
+                @if (revealedPassword()) {
+                  <lucide-icon name="eye-off" class="h-4 w-4"></lucide-icon>
+                } @else {
+                  <lucide-icon name="eye" class="h-4 w-4"></lucide-icon>
+                }
+              </shared-button>
+
+              <shared-button
+                variant="secondary"
+                size="compact"
+                [iconOnly]="true"
+                shape="square"
+                [fullWidth]="false"
+                [disabled]="!revealedPassword()"
+                [ariaLabel]="'googleAds.copyPassword' | translate"
+                (clicked)="copyPassword()"
+              >
+                @if (passwordCopied()) {
+                  <lucide-icon name="check" class="h-4 w-4 text-emerald-600"></lucide-icon>
+                } @else {
+                  <lucide-icon name="copy" class="h-4 w-4"></lucide-icon>
+                }
+              </shared-button>
+            </div>
+          </div>
+
+          <div class="space-y-2">
             <p class="block text-xs font-medium text-zinc-700">{{ 'googleAds.fields.url' | translate }}</p>
             <div class="flex items-center gap-2">
               <code class="flex-1 rounded bg-zinc-50 border border-zinc-200 px-3 py-2 text-sm font-mono text-zinc-900 break-all select-all">

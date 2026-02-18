@@ -286,43 +286,46 @@ export class ServiceTypesComponent implements OnInit {
   private buildUpdateRequest(row: ServiceTypeRow, existing: ServiceTypeItem): UpdateServiceTypeRequest {
     const request: UpdateServiceTypeRequest = {};
 
-    const name = this.normalizeOptional(row.name);
-    if (name && name !== existing.name) {
-      request.name = name;
-    }
-
-    const description = this.normalizeNullable(row.description, existing.description ?? null);
-    if (description !== undefined && description !== null) {
-      request.description = description;
-    } else if (description === null) {
-      request.description = null;
-    }
-
-    const intakeGuidelines = this.normalizeNullable(row.intakeGuidelines, existing.intakeGuidelines ?? null);
-    if (intakeGuidelines !== undefined && intakeGuidelines !== null) {
-      request.intakeGuidelines = intakeGuidelines;
-    } else if (intakeGuidelines === null) {
-      request.intakeGuidelines = null;
-    }
-
-    const icon = this.normalizeNullable(row.icon, existing.icon ?? null);
-    if (icon !== undefined && icon !== null) {
-      const normalized = normalizeIconName(icon);
-      if (normalized !== undefined) {
-        request.icon = normalized;
-      }
-    } else if (icon === null) {
-      request.icon = null;
-    }
-
-    const color = this.normalizeNullable(row.color, existing.color ?? null);
-    if (color !== undefined && color !== null) {
-      request.color = color;
-    } else if (color === null) {
-      request.color = null;
-    }
+    this.applyOptionalChanged(request, 'name', this.normalizeOptional(row.name), existing.name);
+    this.applyNullableUpdate(request, 'description', this.normalizeNullable(row.description, existing.description ?? null));
+    this.applyNullableUpdate(request, 'intakeGuidelines', this.normalizeNullable(row.intakeGuidelines, existing.intakeGuidelines ?? null));
+    this.applyIconUpdate(request, this.normalizeNullable(row.icon, existing.icon ?? null));
+    this.applyNullableUpdate(request, 'color', this.normalizeNullable(row.color, existing.color ?? null));
 
     return request;
+  }
+
+  private applyOptionalChanged(
+    request: UpdateServiceTypeRequest,
+    field: 'name',
+    value: string | undefined,
+    existingValue: string,
+  ): void {
+    if (!value) return;
+    if (value === existingValue) return;
+    request[field] = value;
+  }
+
+  private applyNullableUpdate(
+    request: UpdateServiceTypeRequest,
+    field: 'description' | 'intakeGuidelines' | 'color',
+    value: string | null | undefined,
+  ): void {
+    if (value === undefined) return;
+    request[field] = value;
+  }
+
+  private applyIconUpdate(request: UpdateServiceTypeRequest, value: string | null | undefined): void {
+    if (value === undefined) return;
+    if (value === null) {
+      request.icon = null;
+      return;
+    }
+
+    const normalized = normalizeIconName(value);
+    if (normalized !== undefined) {
+      request.icon = normalized;
+    }
   }
 
   private buildCreateRequest(row: ServiceTypeRow): CreateServiceTypeRequest | null {
@@ -391,33 +394,9 @@ export class ServiceTypesComponent implements OnInit {
       ...(sortOrder !== undefined && { sortOrder }),
     };
 
-    if (request.searchTerm) {
-      params.search = request.searchTerm;
-    }
-
-    const searchFilters: string[] = [];
-
-    for (const filter of request.filters) {
-      if (filter.columnId === 'isActive') {
-        const normalized = filter.value.trim().toLowerCase();
-        if (['true', 'active', 'yes', '1'].includes(normalized)) {
-          params.isActive = true;
-        } else if (['false', 'inactive', 'no', '0'].includes(normalized)) {
-          params.isActive = false;
-        }
-        continue;
-      }
-
-      if (['name', 'slug', 'description', 'intakeGuidelines', 'icon', 'color'].includes(filter.columnId)) {
-        if (filter.value.trim()) {
-          searchFilters.push(filter.value.trim());
-        }
-      }
-    }
-
-    if (!params.search && searchFilters.length > 0) {
-      params.search = searchFilters.join(' ');
-    }
+    this.applySearchTerm(params, request.searchTerm);
+    const searchFilters = this.collectSearchFiltersAndApplyIsActive(params, request.filters);
+    this.applyFallbackSearch(params, searchFilters);
 
     return this.serviceTypesService.listAdmin(params).pipe(
       map(response => ({
@@ -427,6 +406,51 @@ export class ServiceTypesComponent implements OnInit {
         pageSize: response.pageSize ?? request.pageSize,
       }))
     );
+  }
+
+  private applySearchTerm(params: ListServiceTypesParams, searchTerm: string | undefined): void {
+    if (!searchTerm) return;
+    params.search = searchTerm;
+  }
+
+  private collectSearchFiltersAndApplyIsActive(
+    params: ListServiceTypesParams,
+    filters: DataRequest['filters'],
+  ): string[] {
+    const searchFilters: string[] = [];
+
+    for (const filter of filters) {
+      if (filter.columnId === 'isActive') {
+        this.applyIsActiveFilter(params, filter.value);
+        continue;
+      }
+
+      if (!this.isSearchableColumn(filter.columnId)) continue;
+
+      const trimmed = filter.value.trim();
+      if (trimmed) searchFilters.push(trimmed);
+    }
+
+    return searchFilters;
+  }
+
+  private applyIsActiveFilter(params: ListServiceTypesParams, rawValue: string): void {
+    const normalized = rawValue.trim().toLowerCase();
+    if (['true', 'active', 'yes', '1'].includes(normalized)) {
+      params.isActive = true;
+    } else if (['false', 'inactive', 'no', '0'].includes(normalized)) {
+      params.isActive = false;
+    }
+  }
+
+  private isSearchableColumn(columnId: string): boolean {
+    return ['name', 'slug', 'description', 'intakeGuidelines', 'icon', 'color'].includes(columnId);
+  }
+
+  private applyFallbackSearch(params: ListServiceTypesParams, searchFilters: string[]): void {
+    if (params.search) return;
+    if (searchFilters.length === 0) return;
+    params.search = searchFilters.join(' ');
   }
 
   protected onDataRequest(request: DataRequest): void {

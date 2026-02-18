@@ -8,6 +8,7 @@ import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialo
 import {
   GoogleAdsExportService,
   type GoogleAdsExportCredential,
+  type RevealGoogleAdsExportPasswordResponse,
   type UpsertGoogleAdsExportCredentialResponse,
 } from '../../../core/services/google-ads-export.service';
 import { environment } from '../../../../environments/environment';
@@ -23,10 +24,12 @@ export class GoogleAdsExportComponent {
   protected readonly credential = signal<GoogleAdsExportCredential | null>(null);
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
+  protected readonly isRevealingPassword = signal(false);
   protected readonly errorMessage = signal('');
   protected readonly successMessage = signal('');
 
   protected readonly generatedCredential = signal<UpsertGoogleAdsExportCredentialResponse | null>(null);
+  protected readonly revealedPassword = signal<string | null>(null);
   protected readonly usernameCopied = signal(false);
   protected readonly passwordCopied = signal(false);
   protected readonly urlCopied = signal(false);
@@ -50,6 +53,7 @@ export class GoogleAdsExportComponent {
   protected loadCredential(): void {
     this.isLoading.set(true);
     this.errorMessage.set('');
+    this.revealedPassword.set(null);
 
     this.exportService
       .getCredential()
@@ -74,6 +78,7 @@ export class GoogleAdsExportComponent {
     this.errorMessage.set('');
     this.successMessage.set('');
     this.generatedCredential.set(null);
+    this.revealedPassword.set(null);
     this.usernameCopied.set(false);
     this.passwordCopied.set(false);
     this.urlCopied.set(false);
@@ -121,7 +126,32 @@ export class GoogleAdsExportComponent {
       .subscribe(() => {
         this.credential.set(null);
         this.generatedCredential.set(null);
+        this.revealedPassword.set(null);
         this.successMessage.set(this.translate.instant('googleAds.credentialDeleted'));
+      });
+  }
+
+  protected togglePasswordReveal(): void {
+    if (this.revealedPassword()) {
+      this.revealedPassword.set(null);
+      return;
+    }
+
+    this.isRevealingPassword.set(true);
+    this.errorMessage.set('');
+
+    this.exportService
+      .revealPassword()
+      .pipe(
+        catchError(error => {
+          this.errorMessage.set(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.isRevealingPassword.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response: RevealGoogleAdsExportPasswordResponse) => {
+        this.revealedPassword.set(response.password);
       });
   }
 
@@ -134,7 +164,7 @@ export class GoogleAdsExportComponent {
   }
 
   protected async copyPassword(): Promise<void> {
-    const password = this.generatedCredential()?.password;
+    const password = this.generatedCredential()?.password ?? this.revealedPassword();
     if (!password) return;
     await navigator.clipboard.writeText(password);
     this.passwordCopied.set(true);

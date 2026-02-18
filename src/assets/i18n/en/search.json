@@ -9,17 +9,24 @@
     "recent": "Recent",
     "clearAll": "Clear all",
     "resultsFor": "results for",
+    "filters": {
+      "all": "All"
+    },
     "types": {
       "lead": "Lead",
       "quote": "Quote",
       "partner": "Partner",
-      "appointment": "Appointment"
+      "appointment": "Appointment",
+      "catalog_product": "Catalog",
+      "service_type": "Service type"
     },
     "sections": {
       "lead": "Leads",
       "quote": "Quotes",
       "partner": "Partners",
-      "appointment": "Appointments"
+      "appointment": "Appointments",
+      "catalog_product": "Catalog",
+      "service_type": "Service types"
     }
   }
 }

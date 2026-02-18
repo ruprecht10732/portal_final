@@ -1,8 +1,9 @@
-export type SearchEntityType = 'lead' | 'quote' | 'partner' | 'appointment';
+export type SearchEntityType = 'lead' | 'quote' | 'partner' | 'appointment' | 'catalog_product' | 'service_type';
 
 export interface GlobalSearchParams {
   q: string;
   limit?: number;
+  types?: string;
 }
 
 export interface SearchResultItem {

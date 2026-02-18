@@ -2,10 +2,12 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signa
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
-import { catchError, debounceTime, distinctUntilChanged, finalize, map, of, startWith, switchMap, tap } from 'rxjs';
+import { catchError, combineLatest, debounceTime, distinctUntilChanged, finalize, map, of, startWith, switchMap, tap } from 'rxjs';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
 import { SearchService } from '../../core/services/search.service';
+import { UserService } from '../../core/services/user.service';
+import type { UserProfile } from '../../core/services/user.types';
 import type { SearchEntityType, SearchResponse, SearchResultItem } from '../../core/services/search.types';
 
 interface SearchSection {
@@ -31,6 +33,7 @@ interface RecentSearch {
 })
 export class SearchComponent {
   private readonly searchService = inject(SearchService);
+  private readonly userService = inject(UserService);
   private readonly route = inject(ActivatedRoute);
   private readonly destroyRef = inject(DestroyRef);
 
@@ -42,27 +45,45 @@ export class SearchComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly recentSearches = signal<RecentSearch[]>(this.loadRecent());
 
+  protected readonly selectedType = signal<SearchEntityType | 'all'>('all');
+
+  private readonly profile = toSignal(
+    this.userService.getProfile().pipe(catchError(() => of(null))),
+    { initialValue: null as UserProfile | null },
+  );
+
+  protected readonly isAdmin = computed(() => this.profile()?.roles?.includes('admin') ?? false);
+
   private readonly emptyResponse: SearchResponse = { items: [], total: 0 };
 
   protected readonly trimmedQuery = computed(() => this.query().trim());
   protected readonly isQueryValid = computed(() => this.trimmedQuery().length >= 2);
 
+  protected readonly activeTypesParam = computed(() => {
+    const selected = this.selectedType();
+    return selected === 'all' ? undefined : selected;
+  });
+
   protected readonly response = toSignal(
-    toObservable(this.query).pipe(
-      map((value) => value.trim()),
+    combineLatest([
+      toObservable(this.query),
+      toObservable(this.activeTypesParam),
+    ]).pipe(
+      map(([value, types]) => ({ q: value.trim(), types })),
       debounceTime(250),
-      distinctUntilChanged(),
+      distinctUntilChanged((a, b) => a.q === b.q && a.types === b.types),
       tap(() => {
         this.error.set(null);
       }),
-      switchMap((q) => {
+      switchMap(({ q, types }) => {
         if (q.length < 2) {
           this.isLoading.set(false);
           return of(this.emptyResponse);
         }
 
         this.isLoading.set(true);
-        return this.searchService.globalSearch({ q, limit: 20 }).pipe(
+        const params = types ? { q, limit: 20, types } : { q, limit: 20 };
+        return this.searchService.globalSearch(params).pipe(
           tap((response) => {
             if ((response.items?.length ?? 0) > 0) {
               this.addToRecent(q);
@@ -90,7 +111,7 @@ export class SearchComponent {
     const allItems = this.items();
     if (allItems.length === 0) return [];
 
-    const order: SearchEntityType[] = ['lead', 'quote', 'appointment', 'partner'];
+    const order: SearchEntityType[] = ['lead', 'quote', 'appointment', 'partner', 'catalog_product', 'service_type'];
     return order
       .map((type) => ({
         type,
@@ -98,6 +119,27 @@ export class SearchComponent {
       }))
       .filter((section) => section.items.length > 0);
   });
+
+  protected readonly typeChips = computed(() => {
+    const base: { value: SearchEntityType | 'all'; labelKey: string }[] = [
+      { value: 'all' as const, labelKey: 'search.filters.all' },
+      { value: 'lead' as const, labelKey: 'search.sections.lead' },
+      { value: 'quote' as const, labelKey: 'search.sections.quote' },
+      { value: 'appointment' as const, labelKey: 'search.sections.appointment' },
+      { value: 'partner' as const, labelKey: 'search.sections.partner' },
+      { value: 'catalog_product' as const, labelKey: 'search.sections.catalog_product' },
+    ];
+
+    if (this.isAdmin()) {
+      base.push({ value: 'service_type' as const, labelKey: 'search.sections.service_type' });
+    }
+
+    return base;
+  });
+
+  protected setSelectedType(type: SearchEntityType | 'all'): void {
+    this.selectedType.set(type);
+  }
 
   protected readonly showRecent = computed(
     () => this.trimmedQuery().length === 0 && this.recentSearches().length > 0,
@@ -161,6 +203,8 @@ export class SearchComponent {
   }
 
   protected buildLink(item: SearchResultItem): string {
+    if (item.link) return item.link;
+
     switch (item.type) {
       case 'lead':
         return `/app/leads/${encodeURIComponent(item.id)}`;
@@ -170,6 +214,10 @@ export class SearchComponent {
         return `/app/partners/${encodeURIComponent(item.id)}`;
       case 'appointment':
         return `/app/appointments/${encodeURIComponent(item.id)}`;
+      case 'catalog_product':
+        return `/app/catalog/${encodeURIComponent(item.id)}`;
+      case 'service_type':
+        return `/app/services/${encodeURIComponent(item.id)}`;
       default:
         return '/app';
     }

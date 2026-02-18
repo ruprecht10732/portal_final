@@ -13,6 +13,10 @@ export interface UpsertGoogleAdsExportCredentialResponse extends GoogleAdsExport
 	password: string;
 }
 
+export interface RevealGoogleAdsExportPasswordResponse {
+  password: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class GoogleAdsExportService {
   private readonly http = inject(HttpClient);
@@ -28,5 +32,9 @@ export class GoogleAdsExportService {
 
   deleteCredential(): Observable<void> {
     return this.http.delete<void>(this.baseUrl);
+  }
+
+  revealPassword(): Observable<RevealGoogleAdsExportPasswordResponse> {
+    return this.http.get<RevealGoogleAdsExportPasswordResponse>(`${this.baseUrl}/password`);
   }
 }

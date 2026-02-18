@@ -9,17 +9,24 @@
     "recent": "Recent",
     "clearAll": "Wis alles",
     "resultsFor": "resultaten voor",
+    "filters": {
+      "all": "Alles"
+    },
     "types": {
       "lead": "Lead",
       "quote": "Offerte",
       "partner": "Partner",
-      "appointment": "Afspraak"
+      "appointment": "Afspraak",
+      "catalog_product": "Catalogus",
+      "service_type": "Diensttype"
     },
     "sections": {
       "lead": "Leads",
       "quote": "Offertes",
       "partner": "Partners",
-      "appointment": "Afspraken"
+      "appointment": "Afspraken",
+      "catalog_product": "Catalogus",
+      "service_type": "Diensttypes"
     }
   }
 }

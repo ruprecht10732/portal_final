@@ -6,7 +6,7 @@
     "createCredentials": "Create credentials",
     "rotateCredentials": "Rotate credentials",
     "credentialsCreated": "Credentials updated",
-    "credentialsCreatedWarning": "Copy this password now. It will not be shown again.",
+    "credentialsCreatedWarning": "Copy this password now. You may need it again when setting up additional conversion actions.",
     "credentialSaved": "Credentials saved",
     "credentialDeleted": "Credentials deleted",
     "dismiss": "Dismiss",
@@ -26,6 +26,8 @@
     "copyUsername": "Copy username",
     "copyPassword": "Copy password",
     "copyUrl": "Copy URL",
+    "revealPassword": "Reveal password",
+    "hidePassword": "Hide password",
     "instructions": {
       "title": "How to connect",
       "step1": "Create conversion actions in Google Ads that match the names you want to import.",
