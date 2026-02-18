@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
@@ -15,6 +15,11 @@ import type { ActivityCategory, ActivityEvent } from '../../../../core/services/
 export class ActivityFeedComponent {
   protected readonly activityService = inject(DashboardActivityService);
   private readonly translateService = inject(TranslateService);
+
+  protected readonly filteredEvents = this.activityService.filteredEvents;
+  protected readonly filteredCount = computed(() => this.filteredEvents().length);
+
+  private readonly rtfCache = new Map<string, Intl.RelativeTimeFormat>();
 
   protected readonly categories: { key: ActivityCategory; label: string; icon: string }[] = [
     { key: 'leads', label: 'dashboard.activityFeed.filters.leads', icon: 'user' },
@@ -46,7 +51,11 @@ export class ActivityFeedComponent {
 
     const language = this.translateService.currentLang || this.translateService.getDefaultLang() || 'en';
     const locale = language === 'nl' ? 'nl-NL' : 'en-US';
-    const formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+    let formatter = this.rtfCache.get(locale);
+    if (!formatter) {
+      formatter = new Intl.RelativeTimeFormat(locale, { numeric: 'auto' });
+      this.rtfCache.set(locale, formatter);
+    }
 
     if (minutes < 60) {
       return formatter.format(-minutes, 'minute');

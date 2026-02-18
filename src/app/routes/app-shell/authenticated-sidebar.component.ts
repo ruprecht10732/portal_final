@@ -21,7 +21,7 @@ import type { UserProfile } from '../../core/services/user.types';
 interface SidebarItem {
   label: string;
   route: string;
-  icon: 'dashboard' | 'leads' | 'partners' | 'appointments' | 'services' | 'offertes' | 'catalog' | 'organization' | 'profile';
+  icon: 'dashboard' | 'search' | 'leads' | 'partners' | 'appointments' | 'services' | 'offertes' | 'catalog' | 'organization' | 'profile';
 }
 
 @Component({
@@ -70,11 +70,37 @@ export class AuthenticatedSidebarComponent {
 
   protected readonly isAdmin = computed(() => this.user()?.roles?.includes('admin') ?? false);
 
+  protected readonly userInitials = computed(() => {
+    const u = this.user();
+    if (!u) return '?';
+    const first = u.firstName?.trim().charAt(0).toUpperCase() ?? '';
+    const last = u.lastName?.trim().charAt(0).toUpperCase() ?? '';
+    return first + last || u.email.charAt(0).toUpperCase();
+  });
+
+  private static readonly AVATAR_COLORS = [
+    '#e53935', '#d81b60', '#8e24aa', '#5e35b1',
+    '#1e88e5', '#039be5', '#00897b', '#43a047',
+    '#f4511e', '#fb8c00', '#fdd835', '#6d4c41',
+  ];
+
+  protected readonly avatarColor = computed(() => {
+    const u = this.user();
+    const seed = u ? (u.firstName ?? u.email) : '';
+    let hash = 0;
+    for (let i = 0; i < seed.length; i++) {
+      hash = (seed.codePointAt(i) ?? 0) + ((hash << 5) - hash);
+    }
+    const colors = AuthenticatedSidebarComponent.AVATAR_COLORS;
+    return colors[Math.abs(hash) % colors.length];
+  });
+
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
 
   protected readonly items = computed<SidebarItem[]>(() => {
     const base: SidebarItem[] = [
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
+      { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
@@ -82,7 +108,7 @@ export class AuthenticatedSidebarComponent {
       { label: 'navigation.catalog', route: '/app/catalog', icon: 'catalog' },
     ];
     if (this.isAdmin()) {
-      base.splice(3, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
+      base.splice(4, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
       base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
     }
     return base;

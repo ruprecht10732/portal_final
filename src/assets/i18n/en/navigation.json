@@ -1,6 +1,7 @@
 {
   "navigation": {
     "dashboard": "Dashboard",
+    "search": "Search",
     "leads": "Leads",
     "partners": "Partners",
     "appointments": "Appointments",
