@@ -82,6 +82,7 @@
     "errors": {
       "save": "Failed to save quote. Please try again.",
       "load": "Failed to load quotes. Please try again.",
+      "delete": "Failed to delete {{failed}} quote(s).",
       "loadPreview": "Failed to load file preview.",
       "moneybirdStatusLoad": "Failed to load Moneybird status.",
       "moneybirdExport": "Failed to export quote to Moneybird."
@@ -115,7 +116,11 @@
         "total": "Total",
         "validUntil": "Valid until",
         "createdAt": "Date"
-      }
+      },
+      "deleteTitle": "Delete quote(s)",
+      "deleteMessage": "Delete {{count}} quote(s)? This cannot be undone.",
+      "deleteConfirm": "Delete",
+      "deleteCancel": "Cancel"
     },
     "status": {
       "draft": "Draft",

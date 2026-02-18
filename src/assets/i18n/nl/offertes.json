@@ -82,6 +82,7 @@
     "errors": {
       "save": "Offerte opslaan mislukt. Probeer het opnieuw.",
       "load": "Offertes laden mislukt. Probeer het opnieuw.",
+      "delete": "{{failed}} offerte(s) verwijderen mislukt.",
       "loadPreview": "Bestandsvoorbeeld laden mislukt.",
       "moneybirdStatusLoad": "Moneybird status laden mislukt.",
       "moneybirdExport": "Offerte exporteren naar Moneybird mislukt."
@@ -115,7 +116,11 @@
         "total": "Totaal",
         "validUntil": "Geldig tot",
         "createdAt": "Datum"
-      }
+      },
+      "deleteTitle": "Offerte(s) verwijderen",
+      "deleteMessage": "{{count}} offerte(s) verwijderen? Dit kan niet ongedaan worden gemaakt.",
+      "deleteConfirm": "Verwijderen",
+      "deleteCancel": "Annuleren"
     },
     "status": {
       "draft": "Concept",

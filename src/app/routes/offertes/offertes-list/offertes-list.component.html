@@ -65,6 +65,19 @@
     (dataRequest)="onDataRequest($event)"
     (rowDoubleClick)="onGridRowDoubleClick($event)"
     (selectionChange)="onSelectionChange($event)"
+    (deleteRows)="onDeleteQuotes($event)"
     [ariaLabel]="'offertes.list.title' | translate"
+  />
+
+  <shared-confirm-dialog
+    [isOpen]="isDeleteDialogOpen()"
+    [title]="'offertes.list.deleteTitle' | translate"
+    [message]="'offertes.list.deleteMessage' | translate:{count: deleteCount()}"
+    [confirmText]="'offertes.list.deleteConfirm' | translate"
+    [cancelText]="'offertes.list.deleteCancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="deleteInProgress()"
+    (confirm)="confirmDelete()"
+    (cancelled)="closeDeleteDialog()"
   />
 </shared-page-layout>

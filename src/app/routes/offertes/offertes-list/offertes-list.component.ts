@@ -13,6 +13,7 @@ import { ErrorReportingService } from '../../../core/services/error-reporting.se
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import type { DataRequest, DataResponse, GridColumn, GridConfig, SelectionChangeEvent } from '../../../shared/components/data-grid/data-grid.types';
 
 interface QuoteRow extends QuoteResponse, Record<string, unknown> {
@@ -40,7 +41,7 @@ interface QuoteListParams {
 
 @Component({
   selector: 'app-offertes-list',
-  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, PageLayoutComponent, DataGridComponent],
+  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, PageLayoutComponent, DataGridComponent, ConfirmDialogComponent],
   templateUrl: './offertes-list.component.html',
   styleUrl: './offertes-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -62,6 +63,10 @@ export class OffertesListComponent implements OnInit {
   protected readonly selectedQuoteIds = signal<string[]>([]);
   protected readonly bulkExporting = signal(false);
   protected readonly bulkExportFeedback = signal<{ type: 'success' | 'warning' | 'error'; message: string } | null>(null);
+  protected readonly isDeleteDialogOpen = signal(false);
+  protected readonly pendingDeleteRows = signal<QuoteRow[]>([]);
+  protected readonly deleteInProgress = signal(false);
+  protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
   private readonly lastRequest = signal<DataRequest | null>(null);
   private ignoreNextRequest = true;
 
@@ -179,7 +184,8 @@ export class OffertesListComponent implements OnInit {
     cardPreviewFieldCount: 4,
     mobileAddRowEnabled: false,
     rowViewActionEnabled: true,
-    rowDeleteActionEnabled: false,
+    rowDeleteActionEnabled: true,
+    rowDeleteActionPredicate: (row: QuoteRow) => row.status === 'Draft',
   };
 
   protected readonly fetchDataFn = this.fetchData.bind(this);
@@ -484,6 +490,59 @@ export class OffertesListComponent implements OnInit {
         this.bulkExporting.set(false);
       },
     });
+  }
+
+  protected onDeleteQuotes(rows: Record<string, unknown>[]): void {
+    const quoteRows = rows as QuoteRow[];
+    if (quoteRows.length === 0) return;
+    this.pendingDeleteRows.set(quoteRows);
+    this.isDeleteDialogOpen.set(true);
+  }
+
+  protected closeDeleteDialog(): void {
+    this.isDeleteDialogOpen.set(false);
+    this.pendingDeleteRows.set([]);
+    this.deleteInProgress.set(false);
+  }
+
+  protected confirmDelete(): void {
+    const rows = this.pendingDeleteRows();
+    if (rows.length === 0) {
+      this.closeDeleteDialog();
+      return;
+    }
+
+    this.deleteInProgress.set(true);
+
+    const ids = rows.map(row => row.id).filter((id): id is string => !!id);
+    let completed = 0;
+    let failed = 0;
+
+    for (const id of ids) {
+      this.quotesService.delete(id).subscribe({
+        next: () => {
+          completed++;
+          if (completed + failed === ids.length) {
+            this.finishDelete(failed);
+          }
+        },
+        error: (err) => {
+          failed++;
+          this.reporter.report(err, { source: 'http', silent: true });
+          if (completed + failed === ids.length) {
+            this.finishDelete(failed);
+          }
+        },
+      });
+    }
+  }
+
+  private finishDelete(failed: number): void {
+    this.closeDeleteDialog();
+    if (failed > 0) {
+      this.error.set(this.translate.instant('offertes.errors.delete', { failed }));
+    }
+    this.loadInitialData();
   }
 
   protected formatCurrency(amount: number): string {
