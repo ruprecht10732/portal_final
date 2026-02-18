@@ -90,6 +90,10 @@ export class PartnersService extends BaseCrudService<
     return this.http.get<ListOffersResponse>(`${this.baseUrl}/${partnerId}/offers`);
   }
 
+  linkLead(partnerId: string, leadId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/${partnerId}/leads`, { leadId });
+  }
+
   /** Fetch what the vakman sees (authenticated preview for admin users). */
   previewOffer(offerId: string): Observable<PublicPartnerOfferResponse> {
     return this.http.get<PublicPartnerOfferResponse>(`${this.baseUrl}/offers/${offerId}/preview`);

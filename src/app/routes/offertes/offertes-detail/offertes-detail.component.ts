@@ -66,11 +66,13 @@ export class OffertesDetailComponent implements OnInit {
     const q = this.quote();
     const previewAvailable = !!this.previewUrl();
     const pdfAvailable = !!q?.pdfFileKey;
+    const canOpenPartnerOffer = q?.status === 'Accepted';
     return [
       {
         items: [
           { label: 'offertes.preview', disabled: !previewAvailable },
           { label: 'offertes.downloadPdf', disabled: !pdfAvailable },
+          { label: 'offertes.partnerOffer.title', disabled: !canOpenPartnerOffer },
           { label: 'common.delete' },
         ],
       },
@@ -221,12 +223,21 @@ export class OffertesDetailComponent implements OnInit {
       case 'offertes.downloadPdf':
         this.downloadPdf();
         break;
+      case 'offertes.partnerOffer.title':
+        this.openPartnerOffer();
+        break;
       case 'common.delete':
         this.confirmDelete();
         break;
       default:
         break;
     }
+  }
+
+  protected openPartnerOffer(): void {
+    const q = this.quote();
+    if (!q) return;
+    this.router.navigate(['/app/offertes', q.id, 'partner-offer']);
   }
 
   protected editQuote(): void {

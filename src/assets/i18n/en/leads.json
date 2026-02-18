@@ -134,6 +134,30 @@
         "logCall": "Log Call",
         "quote": "Quote"
       },
+      "manualPartner": {
+        "title": "Manual partner action",
+        "subtitle": "The quote is accepted but no partners were found. Select a partner and create a job offer.",
+        "searchLabel": "Search partner",
+        "searchPlaceholder": "Name, city, email...",
+        "searchButton": "Search",
+        "selectLabel": "Select partner",
+        "acceptedQuoteLabel": "Accepted quote",
+        "noAcceptedQuote": "No accepted quote found for this service.",
+        "createOffer": "Create offer",
+        "linkPartner": "Link partner",
+        "offerLinkLabel": "Offer link",
+        "openWhatsApp": "Open WhatsApp",
+        "success": {
+          "offerCreated": "Offer created",
+          "partnerLinked": "Partner linked"
+        },
+        "errors": {
+          "loadAcceptedQuote": "Failed to load accepted quote",
+          "searchPartners": "Failed to search partners",
+          "createOffer": "Failed to create offer",
+          "linkPartner": "Failed to link partner"
+        }
+      },
       "appointments": {
         "defaultTitle": "Lead visit",
         "created": "Appointment created",

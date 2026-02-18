@@ -83,6 +83,30 @@
                 <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
               </button>
             </div>
+
+            @if (leadServices().length > 0) {
+              <div class="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 items-end">
+                <shared-select
+                  [label]="'offertes.serviceLinkLabel' | translate"
+                  [placeholder]="'common.select' | translate"
+                  [options]="leadServiceOptions()"
+                  [value]="selectedQuoteLeadServiceId()"
+                  (valueChange)="selectedQuoteLeadServiceId.set($event)"
+                />
+
+                @if (selectedQuoteLeadServiceId()) {
+                  <shared-button
+                    variant="ghost"
+                    size="compact"
+                    [fullWidth]="false"
+                    (clicked)="selectedQuoteLeadServiceId.set(null)"
+                  >
+                    <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+                    {{ 'common.reset' | translate }}
+                  </shared-button>
+                }
+              </div>
+            }
           } @else {
             <!-- Lead search -->
             <shared-autocomplete
@@ -153,8 +177,8 @@
                     <shared-select
                       id="generate-service-select"
                       [options]="leadServiceOptions()"
-                      [value]="selectedServiceId()"
-                      (valueChange)="selectedServiceId.set($event)"
+                      [value]="selectedGenerateServiceId()"
+                      (valueChange)="selectedGenerateServiceId.set($event)"
                     />
                   </div>
                 }
@@ -178,7 +202,7 @@
                   <shared-button
                     variant="secondary"
                     size="compact"
-                    [disabled]="!generatePrompt().trim() || !selectedServiceId() || generating() || isGenerateLocked()"
+                    [disabled]="!generatePrompt().trim() || !selectedGenerateServiceId() || generating() || isGenerateLocked()"
                     [loading]="generating()"
                     (clicked)="generateQuote()"
                   >

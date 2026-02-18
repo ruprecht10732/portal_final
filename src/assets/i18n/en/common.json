@@ -7,6 +7,8 @@
     "edit": "Edit",
     "add": "Add",
     "search": "Search",
+    "select": "Select",
+    "reset": "Reset",
     "loading": "Loading...",
     "error": "Error",
     "success": "Success",

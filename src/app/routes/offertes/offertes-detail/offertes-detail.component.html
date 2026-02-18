@@ -445,6 +445,18 @@
                     }
                   }
 
+                  @if (q.status === 'Accepted') {
+                    <shared-button
+                      variant="secondary"
+                      size="compact"
+                      [fullWidth]="false"
+                      (clicked)="openPartnerOffer()"
+                    >
+                      <lucide-icon name="handshake" class="h-4 w-4"></lucide-icon>
+                      {{ 'offertes.partnerOffer.title' | translate }}
+                    </shared-button>
+                  }
+
                   @if (q.status === 'Draft') {
                     <shared-button
                       variant="secondary"

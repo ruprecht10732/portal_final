@@ -370,6 +370,13 @@ export const routes: Routes = [
 						loadComponent: () => import('./routes/offertes/offertes-detail/offertes-detail.component').then(m => m.OffertesDetailComponent),
 					},
 					{
+						path: ':id/partner-offer',
+						loadComponent: () =>
+							import('./routes/offertes/offertes-partner-offer/offertes-partner-offer.component').then(
+								m => m.OffertesPartnerOfferComponent,
+							),
+					},
+					{
 						path: ':id/edit',
 						loadComponent: () => import('./routes/offertes/offertes-create/offertes-create.component').then(m => m.OffertesCreateComponent),
 					},

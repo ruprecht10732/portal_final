@@ -252,6 +252,7 @@ export interface CreateQuoteRequest {
 }
 
 export interface UpdateQuoteRequest {
+  leadServiceId?: string;
   pricingMode?: PricingMode;
   discountType?: DiscountType;
   discountValue?: number;
