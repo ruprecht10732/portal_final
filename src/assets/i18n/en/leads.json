@@ -262,15 +262,10 @@
       },
       "status": {
         "new": "New",
+        "pending": "Pending",
+        "inProgress": "In Progress",
         "attemptedContact": "Attempted Contact",
         "appointmentScheduled": "Appointment Scheduled",
-        "surveyCompleted": "Survey Completed",
-        "quoteDraft": "Quote Draft",
-        "quoteSent": "Quote Sent",
-        "quoteAccepted": "Quote Accepted",
-        "partnerAssigned": "Partner Assigned",
-        "completed": "Completed",
-        "lost": "Lost",
         "disqualified": "Disqualified",
         "needsRescheduling": "Needs Rescheduling",
         "noService": "No Service"
@@ -297,8 +292,6 @@
       "confirm": {
         "changeTo": "Change to {{status}}?",
         "disqualified": "This will mark the lead as disqualified. This action may affect reporting.",
-        "completed": "This will mark the lead as completed. Make sure all work is finished.",
-        "lost": "This will mark the lead as lost. Make sure follow-up is no longer required.",
         "default": "Are you sure you want to make this change?"
       },
       "announcements": {
@@ -417,12 +410,9 @@
     "pipeline": {
       "triage": "Triage",
       "nurturing": "Nurturing",
-      "readyForEstimator": "Ready for estimator",
-      "quoteDraft": "Quote draft",
-      "quoteSent": "Quote sent",
-      "readyForPartner": "Ready for partner",
-      "partnerMatching": "Partner matching",
-      "partnerAssigned": "Partner assigned",
+      "estimation": "Estimation",
+      "proposal": "Proposal",
+      "fulfillment": "Fulfillment",
       "manualIntervention": "Manual intervention",
       "completed": "Completed",
       "lost": "Lost"

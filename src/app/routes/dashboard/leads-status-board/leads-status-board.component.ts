@@ -7,6 +7,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import {
+  ALLOWED_STATUS_TRANSITIONS,
   LEAD_STATUS_I18N_KEYS,
   STATUS_COLORS,
   Lead,
@@ -20,33 +21,13 @@ const MAX_AUTO_PAGES = 10;
 
 const STATUS_ORDER: LeadStatus[] = [
   'New',
+  'Pending',
   'Attempted_Contact',
   'Appointment_Scheduled',
-  'Survey_Completed',
-  'Quote_Draft',
-  'Quote_Sent',
-  'Quote_Accepted',
-  'Partner_Assigned',
   'Needs_Rescheduling',
-  'Completed',
-  'Lost',
+  'In_Progress',
   'Disqualified',
 ];
-
-const ALLOWED_STATUS_TRANSITIONS: Record<LeadStatus, readonly LeadStatus[]> = {
-  New: ['Attempted_Contact', 'Appointment_Scheduled', 'Lost', 'Disqualified'],
-  Attempted_Contact: ['Appointment_Scheduled', 'Needs_Rescheduling', 'Lost', 'Disqualified'],
-  Appointment_Scheduled: ['Survey_Completed', 'Needs_Rescheduling', 'Lost', 'Disqualified'],
-  Survey_Completed: ['Quote_Draft', 'Needs_Rescheduling', 'Lost', 'Disqualified'],
-  Quote_Draft: ['Quote_Sent', 'Lost', 'Disqualified'],
-  Quote_Sent: ['Quote_Accepted', 'Lost', 'Disqualified'],
-  Quote_Accepted: ['Partner_Assigned', 'Completed'],
-  Partner_Assigned: ['Completed', 'Needs_Rescheduling'],
-  Needs_Rescheduling: ['Appointment_Scheduled', 'Lost', 'Disqualified'],
-  Completed: [],
-  Lost: [],
-  Disqualified: [],
-};
 
 @Component({
   selector: 'app-leads-status-board',
