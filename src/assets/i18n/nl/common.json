@@ -246,7 +246,7 @@
     },
     "actionItems": {
       "title": "Urgente actie-items",
-      "count": "{count} items",
+      "count": "{{count}} items",
       "previous": "Vorige",
       "next": "Volgende",
       "loading": "Actie-items laden...",
