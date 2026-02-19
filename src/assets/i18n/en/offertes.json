@@ -271,6 +271,8 @@
       "itemsHintToggle": "Click optional items to toggle them on or off",
       "financingDisclaimer": "This quote is subject to financing approval. The agreement becomes final only after the financing application is approved.",
       "askQuestion": "Ask a question",
+      "showMore": "Show more",
+      "showLess": "Show less",
       "askQuestionShort": "Ask a question →",
       "askSheetTitle": "Ask about",
       "askSheetPlaceholder": "Type your question for {{organization}}...",
