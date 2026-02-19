@@ -45,3 +45,85 @@
 :host ::ng-deep .rich-text-wrapper.rich-text-wrapper-error .ql-container.ql-snow {
   border-color: #ef4444;
 }
+
+/* Variable insert button in toolbar */
+:host ::ng-deep .ql-variable-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px !important;
+  height: 24px !important;
+  padding: 3px 5px !important;
+  border: none !important;
+  border-radius: 0;
+  background: transparent !important;
+  color: #444;
+  cursor: pointer;
+  float: left;
+}
+
+:host ::ng-deep .ql-variable-btn:hover {
+  color: #06c !important;
+  background: transparent !important;
+}
+
+/* Variable dropdown */
+.rich-text-wrapper {
+  position: relative;
+}
+
+.variable-dropdown {
+  position: absolute;
+  top: 42px;
+  right: 0;
+  z-index: 1000;
+  min-width: 260px;
+  max-height: 280px;
+  overflow-y: auto;
+  background: #ffffff;
+  border: 1px solid #e4e4e7;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.10);
+  padding: 4px 0;
+}
+
+.variable-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  width: 100%;
+  padding: 8px 14px;
+  border: none;
+  background: none;
+  cursor: pointer;
+  text-align: left;
+  font-size: 0.8125rem;
+  color: #18181b;
+  transition: background 0.12s;
+}
+
+.variable-option:hover {
+  background: #f4f4f5;
+}
+
+.variable-option-label {
+  font-weight: 500;
+}
+
+.variable-option-code {
+  font-family: 'JetBrains Mono', ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: #52525b;
+  background: #f4f4f5;
+  padding: 2px 6px;
+  border-radius: 3px;
+  white-space: nowrap;
+}
+
+/* Backdrop to close dropdown when clicking outside */
+.variable-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 999;
+}

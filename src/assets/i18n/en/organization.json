@@ -130,47 +130,47 @@
           "leadWelcome": {
             "title": "Lead welcome (WhatsApp)",
             "hint": "Minutes to wait before sending this message.",
-            "vars": "Variables: {{lead.name}}, {{lead.phone}}, {{lead.source}}, {{links.track}}"
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.phone}}, {{lead.address}}, {{lead.city}}, {{lead.zipCode}}, {{lead.serviceType}}, {{lead.source}}, {{org.name}}, {{links.track}}"
           },
           "quoteSent": {
             "title": "Quote sent (WhatsApp)",
             "hint": "Minutes to wait before sending this message.",
-            "vars": "Variables: {{lead.name}}, {{quote.number}}, {{quote.previewUrl}}, {{org.name}}"
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{quote.number}}, {{quote.previewUrl}}, {{quote.downloadUrl}}, {{org.name}}"
           },
           "quoteAcceptedLeadWhatsApp": {
             "title": "Quote accepted (WhatsApp to lead)",
             "hint": "Minutes to wait before sending this message.",
-            "vars": "Variables: {{lead.name}}, {{quote.number}}, {{org.name}}"
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{quote.number}}, {{quote.total}}, {{quote.downloadUrl}}, {{org.name}}"
           },
           "quoteAcceptedLeadEmail": {
             "title": "Quote accepted (Email to lead)",
             "hint": "Minutes to wait before sending this message.",
-            "vars": "Variables: {{lead.name}}, {{quote.number}}, {{org.name}}"
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{quote.number}}, {{quote.total}}, {{quote.downloadUrl}}, {{org.name}}"
           },
           "quoteAcceptedPartnerEmail": {
             "title": "Quote accepted (Email to advisor)",
             "hint": "Minutes to wait before sending this message.",
-            "vars": "Variables: {{lead.name}}, {{quote.number}}, {{org.name}}"
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{quote.number}}, {{quote.total}}, {{quote.downloadUrl}}, {{org.name}}"
           },
           "quoteRejectedLeadWhatsApp": {
             "title": "Quote rejected (WhatsApp to lead)",
             "hint": "Minutes to wait before sending this message.",
-            "vars": "Variables: {{lead.name}}, {{org.name}}"
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{org.name}}"
           },
           "quoteRejectedLeadEmail": {
             "title": "Quote rejected (Email to lead)",
             "hint": "Minutes to wait before sending this message.",
-            "vars": "Variables: {{lead.name}}, {{org.name}}"
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{org.name}}"
           },
           "appointmentCreated": {
             "title": "Appointment confirmed (WhatsApp)",
             "hint": "Minutes to wait before sending this message.",
-            "vars": "Variables: {{lead.name}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}"
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}, {{org.name}}"
           },
           "appointmentReminder": {
             "title": "Appointment reminder (WhatsApp)",
             "hint": "Minutes to wait before sending this message.",
-            "vars": "Variables: {{lead.name}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}"
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}, {{org.name}}"
           },
           "partnerOfferCreated": {
             "title": "Partner offer created (WhatsApp)",

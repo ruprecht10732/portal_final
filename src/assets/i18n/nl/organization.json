@@ -130,47 +130,47 @@
           "leadWelcome": {
             "title": "Lead welkomstbericht (WhatsApp)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
-            "vars": "Variabelen: {{lead.name}}, {{lead.phone}}, {{lead.source}}, {{links.track}}"
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.phone}}, {{lead.address}}, {{lead.city}}, {{lead.zipCode}}, {{lead.serviceType}}, {{lead.source}}, {{org.name}}, {{links.track}}"
           },
           "quoteSent": {
             "title": "Offerte verstuurd (WhatsApp)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
-            "vars": "Variabelen: {{lead.name}}, {{quote.number}}, {{quote.previewUrl}}, {{org.name}}"
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{quote.number}}, {{quote.previewUrl}}, {{quote.downloadUrl}}, {{org.name}}"
           },
           "quoteAcceptedLeadWhatsApp": {
             "title": "Offerte geaccepteerd (WhatsApp naar lead)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
-            "vars": "Variabelen: {{lead.name}}, {{quote.number}}, {{org.name}}"
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{quote.number}}, {{quote.total}}, {{quote.downloadUrl}}, {{org.name}}"
           },
           "quoteAcceptedLeadEmail": {
             "title": "Offerte geaccepteerd (E-mail naar lead)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
-            "vars": "Variabelen: {{lead.name}}, {{quote.number}}, {{org.name}}"
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{quote.number}}, {{quote.total}}, {{quote.downloadUrl}}, {{org.name}}"
           },
           "quoteAcceptedPartnerEmail": {
             "title": "Offerte geaccepteerd (E-mail naar adviseur)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
-            "vars": "Variabelen: {{lead.name}}, {{quote.number}}, {{org.name}}"
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{quote.number}}, {{quote.total}}, {{quote.downloadUrl}}, {{org.name}}"
           },
           "quoteRejectedLeadWhatsApp": {
             "title": "Offerte afgewezen (WhatsApp naar lead)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
-            "vars": "Variabelen: {{lead.name}}, {{org.name}}"
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{org.name}}"
           },
           "quoteRejectedLeadEmail": {
             "title": "Offerte afgewezen (E-mail naar lead)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
-            "vars": "Variabelen: {{lead.name}}, {{org.name}}"
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{org.name}}"
           },
           "appointmentCreated": {
             "title": "Afspraak bevestigd (WhatsApp)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
-            "vars": "Variabelen: {{lead.name}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}"
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}, {{org.name}}"
           },
           "appointmentReminder": {
             "title": "Afspraak herinnering (WhatsApp)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
-            "vars": "Variabelen: {{lead.name}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}"
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{appointment.date}}, {{appointment.time}}, {{appointment.location}}, {{org.name}}"
           },
           "partnerOfferCreated": {
             "title": "Werkaanbod aangemaakt (WhatsApp)",

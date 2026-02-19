@@ -22,5 +22,20 @@
       [attr.aria-invalid]="!!error() || null"
       [attr.aria-describedby]="describedBy()"
     />
+
+    @if (variables().length && showVariableDropdown()) {
+      <div class="variable-dropdown" (click)="$event.stopPropagation()" (keydown.escape)="closeDropdown()">
+        @for (v of variables(); track v.value) {
+          <button type="button" class="variable-option" (click)="insertVariable(v)">
+            <span class="variable-option-label">{{ v.label }}</span>
+            <code class="variable-option-code" [textContent]="'{' + '{' + v.value + '}' + '}'"></code>
+          </button>
+        }
+      </div>
+    }
   </div>
 </shared-field-shell>
+
+@if (showVariableDropdown()) {
+  <div class="variable-backdrop" (click)="closeDropdown()" (keydown.escape)="closeDropdown()"></div>
+}
