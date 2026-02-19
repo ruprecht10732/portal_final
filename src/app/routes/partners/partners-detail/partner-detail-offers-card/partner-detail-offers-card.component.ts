@@ -69,7 +69,7 @@ export class PartnerDetailOffersCardComponent {
   }
 
   protected previewOffer(offer: OfferResponse): void {
-    this.router.navigate(['/app/partners/offers', offer.id, 'preview']);
+	this.router.navigate(['/app/offers', offer.id, 'preview']);
   }
 
   protected openWhatsApp(offer: OfferResponse): void {

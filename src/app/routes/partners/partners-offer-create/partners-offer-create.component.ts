@@ -219,7 +219,7 @@ export class PartnersOfferCreateComponent {
   });
 
   protected goBack(): void {
-    this.router.navigate(['/app/partners']);
+	this.router.navigate(['/app/offers']);
   }
 
   protected onPartnerSearchChange(value: string): void {

@@ -2,13 +2,15 @@ import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } 
 import { ActivatedRoute, Router } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { map, Observable } from 'rxjs';
+import { forkJoin, map, Observable } from 'rxjs';
 import { DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { ToastService } from '../../../core/services/toast.service';
 import { PartnersService } from '../../../core/services/partners.service';
 import type { ListOffersParams, OfferResponse } from '../../../core/services/partners.types';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
@@ -32,7 +34,7 @@ type OfferRow = OfferResponse & Record<string, unknown> & {
   templateUrl: './partners-offer-list.component.html',
   styleUrl: './partners-offer-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, DataGridComponent, PageLayoutComponent, TranslatePipe],
+  imports: [ButtonComponent, DataGridComponent, PageLayoutComponent, ConfirmDialogComponent, TranslatePipe],
 })
 export class PartnersOfferListComponent implements OnInit {
   private readonly partnersService = inject(PartnersService);
@@ -40,6 +42,7 @@ export class PartnersOfferListComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
+  private readonly toast = inject(ToastService);
 
   private readonly lang = toSignal(this.translate.onLangChange, {
     initialValue: { lang: 'en', translations: {} },
@@ -49,6 +52,11 @@ export class PartnersOfferListComponent implements OnInit {
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
   protected readonly total = signal(0);
+
+  protected readonly isDeleteDialogOpen = signal(false);
+  protected readonly pendingDeleteRows = signal<OfferRow[]>([]);
+  protected readonly deleting = signal(false);
+  protected readonly deleteCount = computed(() => this.pendingDeleteRows().length);
 
   protected readonly partnerOptions = signal<{ label: string; value: string }[]>([]);
   protected readonly serviceTypeOptions = signal<{ label: string; value: string }[]>([]);
@@ -153,7 +161,7 @@ export class PartnersOfferListComponent implements OnInit {
 
   protected readonly gridConfig = computed<Partial<GridConfig<OfferRow>>>(() => ({
     rowIdField: 'id',
-    selectable: false,
+	selectable: true,
     cardViewEnabled: true,
     mobileBreakpoint: MOBILE_BREAKPOINT,
     cardTitleField: 'partnerName',
@@ -162,7 +170,8 @@ export class PartnersOfferListComponent implements OnInit {
     cardPreviewFieldCount: 4,
     mobileAddRowEnabled: false,
     rowViewActionEnabled: true,
-    rowDeleteActionEnabled: false,
+	rowDeleteActionEnabled: true,
+	rowDeleteActionPredicate: (row) => this.canDeleteOffer(row),
   }));
 
   protected readonly fetchDataFn = this.fetchData.bind(this);
@@ -306,12 +315,68 @@ export class PartnersOfferListComponent implements OnInit {
     });
   }
 
+  protected onDeleteRows(rows: OfferRow[]): void {
+    const deletable = rows.filter(r => this.canDeleteOffer(r));
+    const blockedCount = Math.max(0, rows.length - deletable.length);
+
+    if (deletable.length === 0) {
+      this.toast.warning(this.translate.instant('partners.offersList.deleteNotAllowed'));
+      return;
+    }
+
+    if (blockedCount > 0) {
+      this.toast.info(this.translate.instant('partners.offersList.deleteSkipped', { count: blockedCount }));
+    }
+
+    this.pendingDeleteRows.set(deletable);
+    this.isDeleteDialogOpen.set(true);
+  }
+
+  protected closeDeleteDialog(): void {
+    this.isDeleteDialogOpen.set(false);
+    this.pendingDeleteRows.set([]);
+  }
+
+  protected confirmDelete(): void {
+    const rows = this.pendingDeleteRows();
+    if (rows.length === 0) {
+      this.closeDeleteDialog();
+      return;
+    }
+
+    this.deleting.set(true);
+    const requests = rows.map(row => this.partnersService.deleteOffer(row.id));
+    const requestMap = Object.fromEntries(requests.map((request, index) => [index, request]));
+
+    forkJoin(requestMap).subscribe({
+      next: () => {
+        this.deleting.set(false);
+        this.closeDeleteDialog();
+        this.loadInitialData();
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('partners.offersList.errors.deleteOffers'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.deleting.set(false);
+      },
+    });
+  }
+
+  private canDeleteOffer(row: OfferRow): boolean {
+    const status = String(row.status ?? '').toLowerCase();
+    return status === 'pending' || status === 'sent' || status === 'expired';
+  }
+
   protected createOffer(): void {
-    this.router.navigate(['/app/partners/offers/new']);
+	this.router.navigate(['/app/offers/new']);
   }
 
   protected onOfferDoubleClick(offer: OfferRow): void {
     if (!offer.id) return;
-    this.router.navigate(['/app/partners/offers', offer.id, 'preview']);
+	this.router.navigate(['/app/offers', offer.id, 'preview']);
   }
 }
