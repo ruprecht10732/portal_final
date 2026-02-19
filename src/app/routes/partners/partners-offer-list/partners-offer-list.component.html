@@ -1,0 +1,60 @@
+<shared-page-layout
+  [title]="'partners.offersList.title' | translate"
+  [subtitle]="'partners.offersList.subtitle' | translate"
+  [error]="error()"
+  [removeMobilePadding]="true"
+>
+  <div class="sm:hidden flex flex-wrap items-center gap-2 px-4 pt-4">
+    <shared-button
+      variant="primary"
+      size="compact"
+      [ariaLabel]="'partners.offersList.newOffer' | translate"
+      (clicked)="createOffer()"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      {{ 'partners.offersList.newOffer' | translate }}
+    </shared-button>
+  </div>
+
+  <shared-button
+    actionsDesktop
+    class="hidden sm:flex"
+    variant="primary"
+    [fullWidth]="false"
+    [ariaLabel]="'partners.offersList.newOffer' | translate"
+    (clicked)="createOffer()"
+  >
+    <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+    </svg>
+    {{ 'partners.offersList.newOffer' | translate }}
+  </shared-button>
+
+  <shared-data-grid
+    [columns]="columns()"
+    [data]="offers()"
+    [totalItems]="total()"
+    [loading]="loading()"
+    [config]="gridConfig()"
+    [serverSide]="true"
+    [fetchData]="fetchDataFn"
+    (dataRequest)="onDataRequest($event)"
+    (deleteRows)="onDeleteRows($event)"
+    (rowDoubleClick)="onOfferDoubleClick($event)"
+    [ariaLabel]="'partners.offersList.ariaLabel' | translate"
+  />
+
+  <shared-confirm-dialog
+    [isOpen]="isDeleteDialogOpen()"
+    [title]="'partners.offersList.deleteTitle' | translate"
+    [message]="'partners.offersList.deleteMessage' | translate:{count: deleteCount()}"
+    [confirmText]="'partners.offersList.deleteConfirm' | translate"
+    [cancelText]="'partners.offersList.deleteCancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="deleting()"
+    (confirm)="confirmDelete()"
+    (cancelled)="closeDeleteDialog()"
+  />
+</shared-page-layout>

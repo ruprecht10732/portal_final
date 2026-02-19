@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, effect, injec
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
+import { TranslatePipe } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -10,7 +11,7 @@ import { getErrorMessage } from '../../../core/utils/error-utils';
 
 @Component({
   selector: 'auth-verify-email',
-  imports: [RouterLink, ButtonComponent],
+  imports: [RouterLink, TranslatePipe, ButtonComponent],
   templateUrl: './verify-email.component.html',
   styleUrl: './verify-email.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

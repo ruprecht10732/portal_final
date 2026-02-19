@@ -104,12 +104,11 @@ export interface ListPartnersParams {
 
 // ── Partner Offers (authenticated / dispatcher) ─────────────────────────
 
-export interface CreateOfferRequest {
+export interface CreateOfferFromQuoteRequest {
   partnerId: string;
-  leadServiceId: string;
-  pricingSource: 'quote' | 'estimate';
-  customerPriceCents: number;
+  quoteId: string;
   expiresInHours: number;
+  jobSummaryShort?: string;
 }
 
 export interface CreateOfferResponse {
@@ -123,6 +122,9 @@ export interface OfferResponse {
   id: string;
   partnerId: string;
   partnerName: string;
+  serviceType?: string;
+  serviceTypeId?: string;
+  leadCity?: string;
   leadServiceId: string;
   pricingSource: string;
   customerPriceCents: number;
@@ -138,5 +140,25 @@ export interface OfferResponse {
 
 export interface ListOffersResponse {
   items: OfferResponse[];
+}
+
+export interface ListOffersParams {
+  search?: string;
+  status?: 'pending' | 'sent' | 'accepted' | 'rejected' | 'expired';
+  partnerId?: string;
+  leadServiceId?: string;
+  serviceTypeId?: string;
+  sortBy?: 'createdAt' | 'expiresAt' | 'status' | 'partnerName' | 'serviceType' | 'vakmanPriceCents' | 'customerPriceCents';
+  sortOrder?: 'asc' | 'desc';
+  page?: number;
+  pageSize?: number;
+}
+
+export interface OfferListResponse {
+  items: OfferResponse[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
 }
 

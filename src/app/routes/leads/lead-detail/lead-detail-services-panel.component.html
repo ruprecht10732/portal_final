@@ -11,6 +11,9 @@
   [newServiceSource]="newServiceSource()"
   [closeCurrentService]="closeCurrentService()"
   [saving]="saving()"
+  [editingServiceTypeId]="editingServiceTypeId()"
+  [editingServiceType]="editingServiceType()"
+  [savingServiceType]="savingServiceType()"
   (openAdd)="openAdd.emit()"
   (cancelAdd)="cancelAdd.emit()"
   (addService)="addService.emit()"
@@ -19,4 +22,8 @@
   (newServiceConsumerNoteChange)="newServiceConsumerNoteChange.emit($event)"
   (newServiceSourceChange)="newServiceSourceChange.emit($event)"
   (closeCurrentServiceChange)="closeCurrentServiceChange.emit($event)"
+  (startEditServiceType)="startEditServiceType.emit($event)"
+  (cancelEditServiceType)="cancelEditServiceType.emit()"
+  (saveServiceType)="saveServiceType.emit()"
+  (editingServiceTypeChange)="editingServiceTypeChange.emit($event)"
 ></shared-lead-services-card>

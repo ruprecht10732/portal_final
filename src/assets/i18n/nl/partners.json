@@ -2,6 +2,52 @@
   "partners": {
     "overview": "Partneroverzicht",
     "create": "Partner aanmaken",
+    "createOffer": "Werkaanbod maken",
+    "offersOverview": "Werkaanbod overzicht",
+    "createOfferPage": {
+      "title": "Werkaanbod maken",
+      "subtitle": "Maak een werkaanbod op basis van een geaccepteerde offerte.",
+      "partnerSection": "Partner",
+      "leadSection": "Lead",
+      "quoteSection": "Geaccepteerde offertes",
+      "createSection": "Aanmaken",
+      "partnerLabel": "Zoek partner",
+      "partnerPlaceholder": "Naam, plaats, e-mail...",
+      "leadLabel": "Zoek lead",
+      "leadPlaceholder": "Naam, adres, telefoon...",
+      "loadingLead": "Lead laden...",
+      "serviceLabel": "Dienst",
+      "noQuotes": "Geen geaccepteerde offertes gevonden voor deze lead.",
+      "quoteTotal": "Offertetotaal:",
+      "selectQuote": "Selecteer",
+      "quoteSelected": "Geselecteerd",
+      "selectedQuote": "Geselecteerde offerte",
+      "quoteMissingService": "Deze offerte is nog niet gekoppeld aan een dienst. Koppel een dienst om door te gaan.",
+      "quoteMissingServiceShort": "Dienstkoppeling ontbreekt.",
+      "linkServiceToQuote": "Dienst koppelen",
+      "linkPartnerToLead": "Koppel partner aan lead",
+      "expiresLabel": "Acceptatie-window (uren)",
+      "createButton": "Maak aanbod",
+      "resultTitle": "Aanbod aangemaakt",
+      "offerLinkLabel": "Aanbodlink",
+      "openLink": "Open link",
+      "openWhatsApp": "Open WhatsApp",
+      "vakmanFeeLabel": "Vakman vergoeding",
+      "expiresAtLabel": "Verloopt op",
+      "offerIdLabel": "Offer ID",
+      "success": {
+        "offerCreated": "Aanbod aangemaakt",
+        "partnerLinked": "Partner gekoppeld"
+      },
+      "errors": {
+        "searchPartners": "Kon partners niet zoeken",
+        "searchLeads": "Kon leads niet zoeken",
+        "loadLead": "Kon lead niet laden",
+        "loadQuotes": "Kon offertes niet laden",
+        "createOffer": "Kon aanbod niet aanmaken",
+        "linkPartner": "Kon partner niet koppelen"
+      }
+    },
     "form": {
       "newPartner": "Nieuwe partner",
       "subtitle": "Maak een partnerbedrijf aan",
@@ -167,6 +213,10 @@
         "source": "Bron",
         "validUntil": "Geldig tot"
       },
+      "deadline": {
+        "remaining": "Nog {{hours}}u {{minutes}}m",
+        "banner": "U heeft nog {{hours}} uur en {{minutes}} minuten om dit aanbod te accepteren. Daarna bieden we het aan een andere partner aan."
+      },
       "pricingSource": {
         "quote": "Offerte",
         "estimate": "Schatting"
@@ -251,6 +301,32 @@
         "loadFailed": "Kon het aanbod niet laden. Controleer de link en probeer het opnieuw.",
         "acceptFailed": "Kon het aanbod niet accepteren. Probeer het later opnieuw.",
         "rejectFailed": "Kon het aanbod niet afwijzen. Probeer het later opnieuw."
+      }
+    },
+        "offersList": {
+      "title": "Werkaanbod overzicht",
+      "subtitle": "Alle werkaanbiedingen binnen uw organisatie.",
+      "ariaLabel": "Werkaanbiedingen gegevensraster",
+      "newOffer": "Werkaanbod maken",
+          "deleteTitle": "Werkaanbiedingen verwijderen",
+          "deleteMessage": "{{count}} werkaanbieding(en) verwijderen?",
+          "deleteConfirm": "Verwijderen",
+          "deleteCancel": "Annuleren",
+          "deleteNotAllowed": "Geselecteerde werkaanbiedingen kunnen niet worden verwijderd. Alleen In afwachting, Verstuurd of Verlopen kan worden verwijderd.",
+          "deleteSkipped": "{{count}} geselecteerde werkaanbieding(en) worden overgeslagen (niet verwijderbaar).",
+      "columns": {
+        "partner": "Partner",
+        "serviceType": "Dienst",
+        "city": "Plaats",
+        "status": "Status",
+        "vakmanPrice": "Vakman (EUR)",
+        "customerPrice": "Klant (EUR)",
+        "expiresAt": "Verloopt",
+        "createdAt": "Aangemaakt"
+      },
+      "errors": {
+		"loadOffers": "Kon werkaanbiedingen niet laden",
+		"deleteOffers": "Kon werkaanbiedingen niet verwijderen"
       }
     },
     "offersCard": {

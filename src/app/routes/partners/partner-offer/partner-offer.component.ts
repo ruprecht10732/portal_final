@@ -2,15 +2,18 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   inject,
   OnInit,
   signal,
   viewChild,
 } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
 import { DatePipe } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
+import { interval, startWith } from 'rxjs';
 import { PublicPartnerOfferService } from '../../../core/services/public-partner-offer.service';
 import { PartnersService } from '../../../core/services/partners.service';
 import { type PublicPartnerOfferResponse, type TimeSlot, centsToEuros } from '../../../core/services/partner-offer.types';
@@ -30,6 +33,7 @@ export class PartnerOfferComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly offerService = inject(PublicPartnerOfferService);
   private readonly partnersService = inject(PartnersService);
+  private readonly destroyRef = inject(DestroyRef);
 
   // Mode
   protected readonly isPreview = signal(false);
@@ -41,6 +45,32 @@ export class PartnerOfferComponent implements OnInit {
   protected readonly accepting = signal(false);
   protected readonly rejecting = signal(false);
   protected readonly done = signal<'accepted' | 'rejected' | null>(null);
+
+  // Live clock for countdown (ticks every minute)
+  protected readonly now = signal(new Date());
+
+  protected readonly timeRemaining = computed(() => {
+    const o = this.offer();
+    if (!o) return null;
+
+    const expiresMs = new Date(o.expiresAt).getTime();
+    const diffMs = expiresMs - this.now().getTime();
+    const clampedMs = Math.max(0, diffMs);
+    const totalMinutes = Math.floor(clampedMs / 60_000);
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return { hours, minutes };
+  });
+
+  protected readonly deadlineBadgeClass = computed(() => {
+    const tr = this.timeRemaining();
+    if (!tr) return 'bg-gray-100 text-slate-500';
+    if (this.isExpired()) return 'bg-zinc-200 text-zinc-600';
+    const totalMinutes = tr.hours * 60 + tr.minutes;
+    if (totalMinutes <= 120) return 'bg-red-50 text-red-700';
+    if (totalMinutes <= 360) return 'bg-amber-50 text-amber-700';
+    return 'bg-emerald-50 text-emerald-700';
+  });
 
   // Accept form
   protected readonly showAcceptForm = signal(false);
@@ -249,6 +279,10 @@ export class PartnerOfferComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    interval(60_000)
+      .pipe(startWith(0), takeUntilDestroyed(this.destroyRef))
+      .subscribe(() => this.now.set(new Date()));
+
     const preview = this.route.snapshot.data['preview'] === true;
     this.isPreview.set(preview);
 

@@ -5,6 +5,7 @@ import { guestGuard } from './core/guards/guest.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { catalogDetailResolver } from './routes/catalog/catalog-detail/catalog-detail.resolver';
 import { leadsListResolver } from './routes/leads/leads-list.resolver';
+import { partnersOfferListResolver } from './routes/partners/partners-offer-list/partners-offer-list.resolver';
 import { quoteIntroGuard } from './core/guards/quote-intro.guard';
 import { SidebarPanelConfig } from './routes/app-shell/sidebar-panel.config';
 
@@ -333,6 +334,20 @@ export const routes: Routes = [
 						loadComponent: () => import('./routes/partners/partners-create/partners-create.component').then(m => m.PartnersCreateComponent),
 					},
 					{
+						path: 'offers',
+						redirectTo: '/app/offers',
+						pathMatch: 'full',
+					},
+					{
+						path: 'offers/new',
+						redirectTo: '/app/offers/new',
+						pathMatch: 'full',
+					},
+					{
+						path: 'offers/:offerId/preview',
+						redirectTo: '/app/offers/:offerId/preview',
+					},
+					{
 						path: ':id',
 						loadComponent: () => import('./routes/partners/partners-detail/partners-detail.component').then(m => m.PartnersDetailComponent),
 					},
@@ -340,10 +355,40 @@ export const routes: Routes = [
 						path: ':id/edit',
 						loadComponent: () => import('./routes/partners/partners-edit/partners-edit.component').then(m => m.PartnersEditComponent),
 					},
+				],
+			},
+			{
+				path: 'offers',
+				loadComponent: () =>
+					import('./routes/partners/partners-offers-layout/partners-offers-layout.component').then(
+						m => m.PartnersOffersLayoutComponent,
+					),
+				data: {
+					panelItems: [
+						{ label: 'partners.offersOverview', route: '/app/offers', icon: 'briefcase', exact: true },
+						{ label: 'partners.createOffer', route: '/app/offers/new', icon: 'handshake' },
+					],
+				} satisfies SidebarPanelConfig,
+				children: [
 					{
-						path: 'offers/:offerId/preview',
+						path: 'new',
+						loadComponent: () =>
+							import('./routes/partners/partners-offer-create/partners-offer-create.component').then(
+								m => m.PartnersOfferCreateComponent,
+							),
+					},
+					{
+						path: ':offerId/preview',
 						loadComponent: () => import('./routes/partners/partner-offer/partner-offer.component').then(m => m.PartnerOfferComponent),
 						data: { preview: true },
+					},
+					{
+						path: '',
+						loadComponent: () =>
+							import('./routes/partners/partners-offer-list/partners-offer-list.component').then(
+								m => m.PartnersOfferListComponent,
+							),
+						resolve: { resolved: partnersOfferListResolver },
 					},
 				],
 			},

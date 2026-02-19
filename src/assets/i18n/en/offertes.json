@@ -24,7 +24,8 @@
     "leadAutocomplete": {
       "createNewWithQuery": "Create new lead \"{{query}}\""
     },
-      "serviceLinkLabel": "Service (optional)",
+    "serviceLinkLabel": "Service",
+    "serviceHint": "This service is used for AI generation and to link the quote to a service.",
     "catalogSearchPlaceholder": "Type to search catalog...",
     "qtyPlaceholder": "1 x",
     "lineItems": "Line Items",
@@ -117,6 +118,7 @@
       "searchLabel": "Search partner",
       "searchPlaceholder": "Name, city, email...",
       "searchButton": "Search",
+      "expiryHoursLabel": "Acceptance window (hours)",
       "selectLabel": "Select partner",
       "createOffer": "Create offer",
       "linkPartner": "Link partner",

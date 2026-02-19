@@ -21,7 +21,8 @@
     "selectLead": "Selecteer Lead",
     "changeLead": "Wijzig",
     "searchLeadPlaceholder": "Zoek een lead...",
-    "serviceLinkLabel": "Dienst (optioneel)",
+    "serviceLinkLabel": "Dienst",
+    "serviceHint": "Deze dienst wordt gebruikt voor AI generatie en om de offerte aan een dienst te koppelen.",
     "leadAutocomplete": {
       "createNewWithQuery": "Nieuwe lead aanmaken \"{{query}}\""
     },
@@ -109,6 +110,7 @@
       "searchLabel": "Zoek partner",
       "searchPlaceholder": "Naam, plaats, e-mail...",
       "searchButton": "Zoeken",
+      "expiryHoursLabel": "Acceptatie-window (uren)",
       "selectLabel": "Selecteer partner",
       "createOffer": "Maak aanbod",
       "linkPartner": "Koppel partner",

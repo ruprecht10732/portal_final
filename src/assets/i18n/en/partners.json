@@ -2,6 +2,52 @@
   "partners": {
     "overview": "Partner overview",
     "create": "Create partner",
+    "createOffer": "Create offer",
+    "offersOverview": "Offers overview",
+    "createOfferPage": {
+      "title": "Create offer",
+      "subtitle": "Create a work offer from an accepted quote.",
+      "partnerSection": "Partner",
+      "leadSection": "Lead",
+      "quoteSection": "Accepted quotes",
+      "createSection": "Create",
+      "partnerLabel": "Search partner",
+      "partnerPlaceholder": "Name, city, email...",
+      "leadLabel": "Search lead",
+      "leadPlaceholder": "Name, address, phone...",
+      "loadingLead": "Loading lead...",
+      "serviceLabel": "Service",
+      "noQuotes": "No accepted quotes found for this lead.",
+      "quoteTotal": "Quote total:",
+      "selectQuote": "Select",
+      "quoteSelected": "Selected",
+      "selectedQuote": "Selected quote",
+      "quoteMissingService": "This quote is not linked to a lead service yet. Link a service to continue.",
+      "quoteMissingServiceShort": "Missing service link.",
+      "linkServiceToQuote": "Link service",
+      "linkPartnerToLead": "Link partner to lead",
+      "expiresLabel": "Acceptance window (hours)",
+      "createButton": "Create offer",
+      "resultTitle": "Offer created",
+      "offerLinkLabel": "Offer link",
+      "openLink": "Open link",
+      "openWhatsApp": "Open WhatsApp",
+      "vakmanFeeLabel": "Partner compensation",
+      "expiresAtLabel": "Expires at",
+      "offerIdLabel": "Offer ID",
+      "success": {
+        "offerCreated": "Offer created",
+        "partnerLinked": "Partner linked"
+      },
+      "errors": {
+        "searchPartners": "Failed to search partners",
+        "searchLeads": "Failed to search leads",
+        "loadLead": "Failed to load lead",
+        "loadQuotes": "Failed to load quotes",
+        "createOffer": "Failed to create offer",
+        "linkPartner": "Failed to link partner"
+      }
+    },
     "form": {
       "newPartner": "New Partner",
       "subtitle": "Create a partner company",
@@ -167,6 +213,10 @@
         "source": "Source",
         "validUntil": "Valid until"
       },
+      "deadline": {
+        "remaining": "{{hours}}h {{minutes}}m left",
+        "banner": "You have {{hours}} hours and {{minutes}} minutes left to accept this offer. After that, we will offer it to another partner."
+      },
       "pricingSource": {
         "quote": "Quote",
         "estimate": "Estimate"
@@ -251,6 +301,32 @@
         "loadFailed": "Could not load the offer. Check the link and try again.",
         "acceptFailed": "Could not accept the offer. Please try again later.",
         "rejectFailed": "Could not reject the offer. Please try again later."
+      }
+    },
+        "offersList": {
+      "title": "Offers overview",
+      "subtitle": "All work offers within your organization.",
+      "ariaLabel": "Work offers data grid",
+      "newOffer": "Create offer",
+          "deleteTitle": "Delete offers",
+          "deleteMessage": "Delete {{count}} offer(s)?",
+          "deleteConfirm": "Delete",
+          "deleteCancel": "Cancel",
+          "deleteNotAllowed": "Selected offers cannot be deleted. Only pending, sent, or expired offers can be deleted.",
+          "deleteSkipped": "{{count}} selected offer(s) will be skipped (not deletable).",
+      "columns": {
+        "partner": "Partner",
+        "serviceType": "Service",
+        "city": "City",
+        "status": "Status",
+        "vakmanPrice": "Partner (EUR)",
+        "customerPrice": "Customer (EUR)",
+        "expiresAt": "Expires",
+        "createdAt": "Created"
+      },
+      "errors": {
+  		"loadOffers": "Failed to load offers",
+  		"deleteOffers": "Failed to delete offers"
       }
     },
     "offersCard": {

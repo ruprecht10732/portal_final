@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { ActivatedRoute, NavigationEnd, Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import {
   LucideAngularModule
 } from 'lucide-angular';
@@ -21,14 +21,24 @@ import type { UserProfile } from '../../core/services/user.types';
 interface SidebarItem {
   label: string;
   route: string;
-  icon: 'dashboard' | 'search' | 'leads' | 'partners' | 'appointments' | 'services' | 'offertes' | 'catalog' | 'organization' | 'profile';
+  icon:
+    | 'dashboard'
+    | 'search'
+    | 'leads'
+    | 'partners'
+    | 'partnerOffers'
+    | 'appointments'
+    | 'services'
+    | 'offertes'
+    | 'catalog'
+    | 'organization'
+    | 'profile';
 }
 
 @Component({
   selector: 'app-authenticated-sidebar',
   imports: [
     RouterLink,
-    RouterLinkActive,
     ButtonComponent,
     MenuComponent,
     LucideAngularModule,
@@ -103,6 +113,7 @@ export class AuthenticatedSidebarComponent {
       { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
+      { label: 'navigation.partnerOffers', route: '/app/offers', icon: 'partnerOffers' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
       { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },
       { label: 'navigation.catalog', route: '/app/catalog', icon: 'catalog' },
@@ -125,9 +136,15 @@ export class AuthenticatedSidebarComponent {
   ];
 
   protected readonly activeTitle = computed(() => {
-    const url = this.currentUrl();
-    return this.items().find((item: SidebarItem) => url.startsWith(item.route))?.label ?? '';
+    const item = this.items().find((i) => this.isNavItemActive(i));
+    return item?.label ?? '';
   });
+
+  protected isNavItemActive(item: SidebarItem): boolean {
+    const url = this.currentUrl();
+
+    return url.startsWith(item.route);
+  }
 
   protected readonly panelItems = toSignal(
     this.router.events.pipe(

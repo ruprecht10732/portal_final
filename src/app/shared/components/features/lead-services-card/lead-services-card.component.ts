@@ -31,6 +31,11 @@ export class LeadServicesCardComponent {
   closeCurrentService = input(true);
   saving = input(false);
 
+  // Service type editing
+  editingServiceTypeId = input<string | null>(null);
+  editingServiceType = input<string | null>(null);
+  savingServiceType = input(false);
+
   openAdd = output<void>();
   cancelAdd = output<void>();
   addService = output<void>();
@@ -40,7 +45,17 @@ export class LeadServicesCardComponent {
   newServiceSourceChange = output<string>();
   closeCurrentServiceChange = output<boolean>();
 
+  // Service type editing outputs
+  startEditServiceType = output<LeadService>();
+  cancelEditServiceType = output<void>();
+  saveServiceType = output<void>();
+  editingServiceTypeChange = output<string | null>();
+
   protected isSelected(service: LeadService): boolean {
     return service.id === this.selectedServiceId();
+  }
+
+  protected isEditing(service: LeadService): boolean {
+    return service.id === this.editingServiceTypeId();
   }
 }

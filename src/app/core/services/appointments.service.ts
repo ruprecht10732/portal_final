@@ -51,8 +51,8 @@ export class AppointmentsService {
     return this.http.delete<{ message: string }>(`${this.baseUrl}/${id}`);
   }
 
-  getVisitReport(id: string): Observable<AppointmentVisitReportResponse> {
-    return this.http.get<AppointmentVisitReportResponse>(`${this.baseUrl}/${id}/visit-report`);
+  getVisitReport(id: string): Observable<AppointmentVisitReportResponse | null> {
+    return this.http.get<AppointmentVisitReportResponse | null>(`${this.baseUrl}/${id}/visit-report`);
   }
 
   upsertVisitReport(id: string, data: UpsertVisitReportRequest): Observable<AppointmentVisitReportResponse> {

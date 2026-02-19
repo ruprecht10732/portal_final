@@ -1,103 +1,116 @@
-<div class="quote-line-item-row rounded-lg border border-zinc-200 bg-white p-3 lg:p-4">
-  <div class="quote-line-item-grid gap-3">
-    <div class="quote-cell quote-cell-drag">
+<div class="rounded-lg border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300 lg:py-3">
+  <div class="flex flex-col gap-3 lg:grid lg:grid-cols-[24px_minmax(72px,120px)_1fr_minmax(64px,100px)_minmax(72px,108px)_minmax(64px,96px)_48px_36px] lg:items-center lg:gap-x-2">
+
+    <!-- Drag handle — desktop grid column only -->
+    <div class="hidden lg:order-1 lg:flex lg:items-center lg:justify-start lg:self-center">
       <button
         type="button"
         cdkDragHandle
-        class="quote-drag-handle inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-300 transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-500"
+        class="inline-flex h-9 w-9 cursor-grab items-center justify-center rounded-md text-zinc-300 transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-500 active:cursor-grabbing"
         [attr.aria-label]="'offertes.lineItems' | translate"
       >
         <lucide-icon name="grip-vertical" class="h-4 w-4"></lucide-icon>
       </button>
     </div>
 
-    <div class="quote-cell quote-cell-qty">
-      <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
-        {{ 'offertes.qty' | translate }}
+    <!-- Description — full width on mobile -->
+    <div
+      class="relative lg:order-3 lg:min-w-45 lg:self-center"
+      (keydown)="onDescriptionKeydown($event)"
+      tabindex="-1"
+    >
+      <div class="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
+        {{ 'offertes.description' | translate }}
       </div>
-      <shared-input
+      <shared-rich-text-editor
         [label]="''"
-        [value]="item().quantity"
-        (valueChange)="quantityChange.emit($event)"
-        [placeholder]="'offertes.qtyPlaceholder' | translate"
-        [clearable]="false"
+        [value]="item().description"
+        (valueChange)="onDescriptionInput($event)"
+        [minHeight]="84"
+        [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
       />
-    </div>
 
-    <div class="quote-cell quote-cell-desc">
-      <div class="quote-desc-editor-wrapper" (keydown)="onDescriptionKeydown($event)">
-        <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
-          {{ 'offertes.description' | translate }}
+      @if (ghostSuggestion(); as suggestion) {
+        <div class="pointer-events-none absolute right-2.5 bottom-2 z-10 rounded-md border border-zinc-300 bg-white/95 px-1.5 py-0.5 text-[11px] leading-tight text-zinc-500 shadow-sm">
+          Tab ↹ {{ suggestion.displayText }}
         </div>
-        <shared-rich-text-editor
+      } @else if (ghostLoading()) {
+        <div class="pointer-events-none absolute right-2.5 bottom-2 z-10 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-zinc-400">
+          {{ 'common.loading' | translate }}...
+        </div>
+      }
+    </div>
+
+    <!-- Qty + Price — stacked on xs, side-by-side on sm, separate grid cols on lg -->
+    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:contents">
+      <div class="lg:order-2 lg:self-center [&_input]:whitespace-nowrap [&_input]:lg:min-h-11">
+        <div class="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
+          {{ 'offertes.qty' | translate }}
+        </div>
+        <shared-input
           [label]="''"
-          [value]="item().description"
-          (valueChange)="onDescriptionInput($event)"
-          [minHeight]="84"
-          [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
+          [value]="item().quantity"
+          (valueChange)="quantityChange.emit($event)"
+          [placeholder]="'offertes.qtyPlaceholder' | translate"
+          [clearable]="false"
         />
-
-        @if (ghostSuggestion(); as suggestion) {
-          <div class="quote-desc-ghost-hint text-zinc-500">
-            Tab ↹ {{ suggestion.displayText }}
-          </div>
-        } @else if (ghostLoading()) {
-          <div class="quote-desc-ghost-hint text-zinc-400">
-            {{ 'common.loading' | translate }}...
-          </div>
-        }
+      </div>
+      <div class="lg:order-4 lg:self-center [&_input]:lg:min-h-11">
+        <div class="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
+          {{ 'offertes.price' | translate }}
+        </div>
+        <shared-number-input
+          [label]="''"
+          [value]="item().unitPrice"
+          (valueChange)="unitPriceChange.emit($event)"
+          prefix="€"
+          [alignRight]="true"
+        />
       </div>
     </div>
 
-    <div class="quote-cell quote-cell-price">
-      <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
-        {{ 'offertes.price' | translate }}
+    <!-- Tax + Total — always side-by-side, separate grid cols on lg -->
+    <div class="grid grid-cols-2 gap-3 items-end lg:contents">
+      <div class="lg:order-5 lg:self-center [&_button]:lg:min-h-11">
+        <div class="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
+          {{ 'offertes.tax' | translate }}
+        </div>
+        <shared-select
+          [label]="''"
+          [options]="taxRateOptions()"
+          [value]="item().taxRate"
+          (valueChange)="taxRateChange.emit($event)"
+        />
       </div>
-      <shared-number-input
-        [label]="''"
-        [value]="item().unitPrice"
-        (valueChange)="unitPriceChange.emit($event)"
-        prefix="€"
-        [alignRight]="true"
-      />
-    </div>
-
-    <div class="quote-cell quote-cell-tax">
-      <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
-        {{ 'offertes.tax' | translate }}
-      </div>
-      <shared-select
-        [label]="''"
-        [options]="taxRateOptions()"
-        [value]="item().taxRate"
-        (valueChange)="taxRateChange.emit($event)"
-      />
-    </div>
-
-    <div class="quote-cell quote-cell-total">
-      <div class="flex h-full flex-col justify-end lg:items-end lg:justify-center">
-        <span class="mb-1 text-xs text-zinc-400 lg:hidden">
+      <div class="lg:order-6 flex items-center justify-between rounded-md bg-zinc-50 px-3 py-2.5 lg:flex-col lg:items-end lg:justify-center lg:self-center lg:bg-transparent lg:px-0 lg:py-0">
+        <span class="text-xs font-medium text-zinc-500 lg:hidden">
           {{ 'offertes.total' | translate }}
         </span>
-        <span class="text-sm font-semibold text-zinc-900 lg:text-base lg:font-bold lg:text-right">{{ totalDisplay() }}</span>
+        <span class="text-sm font-bold tabular-nums text-zinc-900 lg:text-right lg:text-base">{{ totalDisplay() }}</span>
       </div>
     </div>
 
-    <div class="quote-cell quote-cell-optional">
-      <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
-        {{ 'offertes.optional' | translate }}
+    <!-- Optional + Actions — inline row on mobile, separate grid cols on lg -->
+    <div class="flex items-center justify-between border-t border-zinc-100 pt-2 lg:contents">
+      <div class="lg:order-7 flex items-center gap-2 lg:justify-center lg:self-center">
+        <shared-checkbox
+          [dense]="true"
+          [label]="''"
+          [checked]="item().optional"
+          [ariaLabel]="'offertes.optional' | translate"
+          (checkedChange)="optionalChange.emit($event)"
+        />
+        <span class="text-xs text-zinc-500 lg:hidden">{{ 'offertes.optional' | translate }}</span>
       </div>
-      <shared-checkbox
-        [dense]="true"
-        [label]="''"
-        [checked]="item().optional"
-        [ariaLabel]="'offertes.optional' | translate"
-        (checkedChange)="optionalChange.emit($event)"
-      />
-    </div>
-
-    <div class="quote-cell quote-cell-actions">
-      <div class="flex items-center gap-1">
+      <div class="lg:order-8 flex items-center gap-1 lg:justify-center lg:self-center">
+        <button
+          type="button"
+          cdkDragHandle
+          class="inline-flex h-9 w-9 cursor-grab items-center justify-center rounded-md text-zinc-300 transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-500 active:cursor-grabbing lg:hidden"
+          [attr.aria-label]="'offertes.lineItems' | translate"
+        >
+          <lucide-icon name="grip-vertical" class="h-4 w-4"></lucide-icon>
+        </button>
         <button
           type="button"
           (click)="remove.emit()"

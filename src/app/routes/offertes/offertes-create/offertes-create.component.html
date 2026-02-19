@@ -1,5 +1,5 @@
-<div class="flex flex-col w-full min-h-full pb-16 sm:pb-0">
-  <div class="border-b border-zinc-200">
+<div class="flex flex-col w-full min-h-full pb-16 sm:pb-0 relative">
+  <div class="border-b border-zinc-200 z-10 bg-white sticky top-0">
     <shared-page-header
       [title]="isEditMode() ? ('offertes.editTitle' | translate) : ('offertes.createTitle' | translate)"
       [subtitle]="isEditMode() ? (existingQuote()?.quoteNumber ?? '') : ('offertes.newDraft' | translate)"
@@ -25,15 +25,13 @@
     </shared-page-header>
   </div>
 
-  <!-- Mobile save action bar -->
-  <div class="sm:hidden border-b border-gray-100 bg-white px-5 py-3">
+  <div class="sm:hidden border-b border-zinc-100 bg-white px-5 py-3">
     <shared-button variant="primary" size="compact" [fullWidth]="true" [disabled]="!canSave() || saving()" [loading]="saving()" (clicked)="saveDraft()">
       <lucide-icon name="save" class="h-4 w-4"></lucide-icon>
       {{ 'offertes.save' | translate }}
     </shared-button>
   </div>
 
-  <!-- Error Alert -->
   @if (error()) {
     <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
       <span class="font-bold uppercase text-red-600 shrink-0">{{ 'offertes.errorLabel' | translate }}</span>
@@ -41,17 +39,14 @@
     </div>
   }
 
-  <!-- Loading State -->
   @if (loading()) {
     <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
       <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
       <p class="text-xs font-mono uppercase text-zinc-400">{{ 'offertes.loading' | translate }}</p>
     </div>
   } @else {
-    <div class="flex-1 flex flex-col lg:flex-row">
-      <!-- Main Content -->
-      <div class="flex-1 flex flex-col">
-        <!-- Section 1: Lead Selection -->
+    <div class="flex-1 flex flex-col lg:flex-row items-start">
+      <div class="flex-1 flex flex-col min-w-0">
         <section class="p-4 sm:p-6 border-b border-zinc-200">
           <div class="flex items-center gap-3 mb-5">
             <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">01</span>
@@ -61,7 +56,6 @@
           </div>
 
           @if (selectedLead(); as lead) {
-            <!-- Selected lead card -->
             <div class="flex items-start justify-between gap-4 p-5 bg-white border border-zinc-200 rounded-lg shadow-sm hover:shadow transition-shadow duration-150">
               <div class="flex flex-col gap-1.5">
                 <span class="font-semibold text-zinc-900 text-base">
@@ -88,18 +82,21 @@
               <div class="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 items-end">
                 <shared-select
                   [label]="'offertes.serviceLinkLabel' | translate"
+                  [hint]="'offertes.serviceHint' | translate"
                   [placeholder]="'common.select' | translate"
                   [options]="leadServiceOptions()"
-                  [value]="selectedQuoteLeadServiceId()"
-                  (valueChange)="selectedQuoteLeadServiceId.set($event)"
+                  [value]="selectedLeadServiceId()"
+                  (valueChange)="selectedLeadServiceId.set($event)"
+                  [disabled]="generating() || isGenerateLocked()"
                 />
 
-                @if (selectedQuoteLeadServiceId()) {
+                @if (selectedLeadServiceId()) {
                   <shared-button
                     variant="ghost"
                     size="compact"
                     [fullWidth]="false"
-                    (clicked)="selectedQuoteLeadServiceId.set(null)"
+                    [disabled]="generating() || isGenerateLocked()"
+                    (clicked)="selectedLeadServiceId.set(null)"
                   >
                     <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
                     {{ 'common.reset' | translate }}
@@ -108,7 +105,6 @@
               </div>
             }
           } @else {
-            <!-- Lead search -->
             <shared-autocomplete
               [label]="''"
               [placeholder]="'offertes.searchLeadPlaceholder' | translate"
@@ -146,7 +142,6 @@
           </div>
         </section>
 
-        <!-- AI Generate Panel -->
         @if (selectedLead()) {
           <section class="p-4 sm:p-6 border-b border-zinc-200 bg-linear-to-r from-zinc-50 to-white">
             <button
@@ -168,22 +163,11 @@
                   {{ 'offertes.generate.description' | translate }}
                 </p>
 
-                <!-- Service selector -->
-                @if (leadServices().length > 1) {
-                  <div>
-                    <label for="generate-service-select" class="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1">
-                      {{ 'offertes.generate.service' | translate }}
-                    </label>
-                    <shared-select
-                      id="generate-service-select"
-                      [options]="leadServiceOptions()"
-                      [value]="selectedGenerateServiceId()"
-                      (valueChange)="selectedGenerateServiceId.set($event)"
-                    />
-                  </div>
-                }
+                <div class="text-xs text-zinc-600">
+                  <span class="font-bold uppercase tracking-widest text-zinc-400">{{ 'offertes.generate.service' | translate }}</span>
+                  <span class="ml-2 font-medium text-zinc-800">{{ selectedLeadServiceLabel() ?? '-' }}</span>
+                </div>
 
-                <!-- Prompt textarea -->
                 <shared-textarea
                   [label]="'offertes.generate.promptLabel' | translate"
                   [rows]="3"
@@ -202,7 +186,7 @@
                   <shared-button
                     variant="secondary"
                     size="compact"
-                    [disabled]="!generatePrompt().trim() || !selectedGenerateServiceId() || generating() || isGenerateLocked()"
+                    [disabled]="!generatePrompt().trim() || !selectedLeadServiceId() || generating() || isGenerateLocked()"
                     [loading]="generating()"
                     (clicked)="generateQuote()"
                   >
@@ -244,7 +228,6 @@
           </section>
         }
 
-        <!-- Section 2: Line Items -->
         <section class="p-4 sm:p-6 border-b border-zinc-200 flex-1">
           <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
             <div class="flex items-center gap-3">
@@ -266,7 +249,7 @@
             </div>
           </div>
 
-          <div class="hidden rounded-lg border border-zinc-200 bg-zinc-50/80 px-4 py-3 lg:grid lg:grid-cols-[28px_148px_1fr_108px_116px_120px_92px_56px] lg:items-center lg:gap-x-3">
+          <div class="hidden rounded-lg border border-zinc-200 bg-zinc-50/80 px-4 py-3 lg:grid lg:grid-cols-[24px_minmax(72px,120px)_1fr_minmax(64px,100px)_minmax(72px,108px)_minmax(64px,96px)_48px_36px] lg:items-center lg:gap-x-2">
             <span></span>
             <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.qty' | translate }}</span>
             <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.description' | translate }}</span>
@@ -322,7 +305,6 @@
           }
         </section>
 
-        <!-- Section 3: Documents & Links -->
         <section class="p-4 sm:p-6 border-b border-zinc-200">
           <div class="flex items-center gap-3 mb-5">
             <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">03</span>
@@ -338,7 +320,6 @@
             (previewRequested)="openPreview($event)"
           />
 
-          <!-- URL links -->
           <div class="mt-6">
             <h3 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">
               {{ 'offertes.urls' | translate }}
@@ -371,9 +352,8 @@
               </div>
             }
 
-            <!-- Add URL form -->
-            <div class="flex items-end gap-3">
-              <div class="flex-1 min-w-0">
+            <div class="flex flex-col sm:flex-row sm:items-end items-start gap-3">
+              <div class="flex-1 min-w-0 w-full">
                 <label for="urlLabelInput" class="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">{{ 'offertes.urlLabel' | translate }}</label>
                 <input
                   #urlLabel
@@ -383,7 +363,7 @@
                   class="w-full rounded-md border border-zinc-200 shadow-sm px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none transition-all duration-150"
                 />
               </div>
-              <div class="flex-1 min-w-0">
+              <div class="flex-1 min-w-0 w-full">
                 <label for="urlHrefInput" class="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">{{ 'offertes.urlHref' | translate }}</label>
                 <input
                   #urlHref
@@ -396,7 +376,7 @@
               <button
                 type="button"
                 (click)="addUrl(urlLabel.value, urlHref.value); urlLabel.value = ''; urlHref.value = ''"
-                class="inline-flex items-center gap-2 rounded-md bg-zinc-100 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900 transition-all duration-150 shadow-sm shrink-0"
+                class="inline-flex items-center justify-center gap-2 rounded-md bg-zinc-100 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900 transition-all duration-150 shadow-sm shrink-0 w-full sm:w-auto mt-2 sm:mt-0"
               >
                 <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
                 {{ 'offertes.addUrl' | translate }}
@@ -404,12 +384,9 @@
             </div>
           </div>
         </section>
-
-        
       </div>
 
-      <!-- Sidebar: Summary -->
-      <aside class="lg:w-80 xl:w-96 bg-white border-l border-zinc-200 flex flex-col shadow-lg">
+      <aside class="w-full shrink-0 flex flex-col bg-white border-t border-zinc-200 z-10 lg:w-80 xl:w-96 lg:border-l lg:border-t-0 lg:shadow-lg lg:sticky lg:top-18.25 lg:max-h-[calc(100dvh-73px)] lg:overflow-y-auto">
         <div class="p-5 sm:p-6 flex-1">
           <div class="flex items-center gap-3 mb-6">
             <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">04</span>
@@ -418,15 +395,12 @@
             </h2>
           </div>
 
-          <!-- Totals -->
           <div class="space-y-5">
-            <!-- Subtotal -->
             <div class="flex justify-between text-sm items-center">
               <span class="text-zinc-600 font-medium">{{ 'offertes.subtotal' | translate }}</span>
               <span class="font-semibold text-zinc-900 tabular-nums">{{ formatCurrency(totals().subtotal) }}</span>
             </div>
 
-            <!-- Discount -->
             <div class="flex items-center gap-3">
               <span class="text-zinc-600 text-sm font-medium shrink-0">{{ 'offertes.discount' | translate }}</span>
               <div class="flex-1 flex items-center gap-2 justify-end">
@@ -455,7 +429,6 @@
               </div>
             }
 
-            <!-- Tax -->
             <div class="flex justify-between text-sm pt-3 border-t border-zinc-200 items-center">
               <span class="text-zinc-600 font-medium">{{ 'offertes.tax' | translate }}</span>
               <span class="font-semibold text-zinc-900 tabular-nums">{{ formatCurrency(totals().taxAmount) }}</span>
@@ -471,7 +444,6 @@
               </div>
             }
 
-            <!-- Total -->
             <div class="flex justify-between pt-5 border-t-2 border-zinc-900 items-baseline">
               <span class="text-base font-bold uppercase tracking-wide">{{ 'offertes.totalAmount' | translate }}</span>
               <span class="text-2xl font-bold text-zinc-900 tabular-nums">{{ formatCurrency(totals().total) }}</span>
@@ -480,7 +452,6 @@
             <div class="pt-4"></div>
           </div>
         </div>
-
       </aside>
     </div>
   }

@@ -136,13 +136,17 @@
       },
       "manualPartner": {
         "title": "Manual partner action",
-        "subtitle": "The quote is accepted but no partners were found. Select a partner and create a job offer.",
+        "subtitle": "This service is in manual partner action. Select a partner and create a job offer.",
+        "acceptedOfferTitle": "Offer accepted",
+        "acceptedOfferSubtitle": "The job offer was accepted by {{partnerName}}.",
+        "viewOffer": "View offer",
         "searchLabel": "Search partner",
         "searchPlaceholder": "Name, city, email...",
         "searchButton": "Search",
         "selectLabel": "Select partner",
         "acceptedQuoteLabel": "Accepted quote",
         "noAcceptedQuote": "No accepted quote found for this service.",
+        "expiryHoursLabel": "Acceptance window (hours)",
         "createOffer": "Create offer",
         "linkPartner": "Link partner",
         "offerLinkLabel": "Offer link",
@@ -153,6 +157,7 @@
         },
         "errors": {
           "loadAcceptedQuote": "Failed to load accepted quote",
+          "loadAcceptedOffer": "Failed to load accepted offer",
           "searchPartners": "Failed to search partners",
           "createOffer": "Failed to create offer",
           "linkPartner": "Failed to link partner"

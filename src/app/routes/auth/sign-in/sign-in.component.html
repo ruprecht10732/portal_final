@@ -2,24 +2,24 @@
   <section class="flex-1 flex items-center justify-center px-4 py-10">
     <div class="w-full max-w-md bg-white border border-zinc-200 p-6 sm:p-8 space-y-6">
       <header class="space-y-2 text-left">
-        <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Welcome back</p>
-        <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Sign In</h1>
-        <p class="text-sm text-zinc-500">Use your account credentials to continue.</p>
+        <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">{{ 'auth.signIn.eyebrow' | translate }}</p>
+        <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">{{ 'auth.signIn.title' | translate }}</h1>
+        <p class="text-sm text-zinc-500">{{ 'auth.signIn.subtitle' | translate }}</p>
       </header>
 
       <form class="space-y-5" (submit)="onSubmit($event)">
         <shared-input
           [(value)]="email"
-          label="Email"
-          placeholder="name@company.com"
+          [label]="'auth.form.email' | translate"
+          [placeholder]="'auth.form.emailPlaceholder' | translate"
           [required]="true"
           [error]="emailError()"
         />
 
         <shared-input
           [(value)]="password"
-          label="Password"
-          placeholder="••••••••"
+          [label]="'auth.form.password' | translate"
+          [placeholder]="'auth.form.passwordDots' | translate"
           type="password"
           [required]="true"
           [passwordToggle]="true"
@@ -28,23 +28,23 @@
         />
 
         <div class="flex items-center justify-between text-xs uppercase tracking-widest font-semibold text-zinc-400">
-          <span>Secure access</span>
-          <a class="text-black hover:text-zinc-600" routerLink="/forgot-password">Forgot password?</a>
+          <span>{{ 'auth.form.secureAccess' | translate }}</span>
+          <a class="text-black hover:text-zinc-600" routerLink="/forgot-password">{{ 'auth.signIn.forgotPassword' | translate }}</a>
         </div>
 
         <shared-button
           [type]="'submit'"
           [loading]="isSubmitting()"
           [disabled]="!canSubmit()"
-          ariaLabel="Sign in"
+          [ariaLabel]="'auth.signIn.submitAriaLabel' | translate"
         >
-          Sign In
+          {{ 'auth.signIn.submit' | translate }}
         </shared-button>
       </form>
 
       <footer class="text-xs uppercase tracking-widest font-semibold text-zinc-400">
-        New here?
-        <a class="text-black hover:text-zinc-600" routerLink="/sign-up">Create an account</a>
+        {{ 'auth.signIn.footer' | translate }}
+        <a class="text-black hover:text-zinc-600" routerLink="/sign-up">{{ 'auth.signIn.createAccount' | translate }}</a>
       </footer>
     </div>
   </section>

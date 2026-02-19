@@ -17,9 +17,7 @@
           <shared-button
             class="sidebar-item touch-manipulation"
             [routerLink]="item.route"
-            routerLinkActive
-            #activeLink="routerLinkActive"
-            [variant]="activeLink.isActive ? 'primary' : 'ghost'"
+            [variant]="isNavItemActive(item) ? 'primary' : 'ghost'"
             size="compact"
             [iconOnly]="true"
             shape="square"
@@ -44,6 +42,9 @@
               }
               @case ('partners') {
                 <lucide-icon name="briefcase" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              }
+              @case ('partnerOffers') {
+                <lucide-icon name="handshake" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
               }
               @case ('appointments') {
                 <lucide-icon name="calendar-check" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>

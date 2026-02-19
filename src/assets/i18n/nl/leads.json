@@ -134,6 +134,34 @@
         "logCall": "Log gesprek",
         "quote": "Offerte"
       },
+      "manualPartner": {
+        "title": "Handmatige partneractie",
+        "subtitle": "Deze dienst staat op handmatige partneractie. Selecteer een partner en maak een werkaanbod.",
+        "acceptedOfferTitle": "Aanbod geaccepteerd",
+        "acceptedOfferSubtitle": "Het werkaanbod is geaccepteerd door {{partnerName}}.",
+        "viewOffer": "Bekijk aanbod",
+        "searchLabel": "Zoek partner",
+        "searchPlaceholder": "Naam, plaats, e-mail...",
+        "selectLabel": "Selecteer partner",
+        "acceptedQuoteLabel": "Geaccepteerde offerte",
+        "noAcceptedQuote": "Geen geaccepteerde offerte gevonden voor deze dienst.",
+        "expiryHoursLabel": "Acceptatie-window (uren)",
+        "createOffer": "Maak aanbod",
+        "linkPartner": "Koppel partner",
+        "offerLinkLabel": "Aanbodlink",
+        "openWhatsApp": "Open WhatsApp",
+        "success": {
+          "offerCreated": "Aanbod aangemaakt",
+          "partnerLinked": "Partner gekoppeld"
+        },
+        "errors": {
+          "loadAcceptedQuote": "Kon geaccepteerde offerte niet laden",
+          "loadAcceptedOffer": "Kon geaccepteerd aanbod niet laden",
+          "searchPartners": "Kon partners niet zoeken",
+          "createOffer": "Kon aanbod niet aanmaken",
+          "linkPartner": "Kon partner niet koppelen"
+        }
+      },
       "appointments": {
         "defaultTitle": "Leadbezoek",
         "created": "Afspraak aangemaakt",

@@ -2,13 +2,13 @@
   <section class="flex-1 flex items-center justify-center px-4 py-10">
     <div class="w-full max-w-md bg-white border border-zinc-200 p-6 sm:p-8 space-y-6 text-left">
       <header class="space-y-2">
-        <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Email sent</p>
+        <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">{{ 'auth.checkEmail.eyebrow' | translate }}</p>
         <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">{{ title() }}</h1>
         <p class="text-sm text-zinc-500">{{ message() }}</p>
       </header>
 
       <div class="border border-zinc-200 bg-zinc-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-zinc-500">
-        If you do not see the message, check spam or promotions.
+        {{ 'auth.checkEmail.spamNote' | translate }}
       </div>
 
       <div class="space-y-3">
@@ -21,7 +21,7 @@
           {{ resendLabel() }}
         </shared-button>
         <a class="text-xs uppercase tracking-widest font-semibold text-black hover:text-zinc-600" routerLink="/sign-in">
-          Back to sign in
+          {{ 'auth.checkEmail.backToSignIn' | translate }}
         </a>
       </div>
     </div>

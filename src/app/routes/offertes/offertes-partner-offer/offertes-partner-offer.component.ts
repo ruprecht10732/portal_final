@@ -1,20 +1,22 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { EMPTY, Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
 import { QuotesService } from '../../../core/services/quotes.service';
 import type { QuoteResponse } from '../../../core/services/quotes.types';
 import { PartnersService } from '../../../core/services/partners.service';
 import type { Partner } from '../../../core/services/partners.types';
-import type { SelectOption } from '../../../shared/components/select/select.component';
+import type { AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
 
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { CardComponent } from '../../../shared/components/card/card.component';
-import { InputComponent } from '../../../shared/components/input/input.component';
-import { SelectComponent } from '../../../shared/components/select/select.component';
+import { AutocompleteComponent } from '../../../shared/components/autocomplete/autocomplete.component';
+import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 @Component({
@@ -22,9 +24,9 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
   templateUrl: './offertes-partner-offer.component.html',
   styleUrl: './offertes-partner-offer.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [TranslatePipe, PageHeaderComponent, CardComponent, InputComponent, SelectComponent, ButtonComponent],
+  imports: [TranslatePipe, PageHeaderComponent, CardComponent, AutocompleteComponent, NumberInputComponent, ButtonComponent],
 })
-export class OffertesPartnerOfferComponent {
+export class OffertesPartnerOfferComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly translate = inject(TranslateService);
@@ -32,6 +34,9 @@ export class OffertesPartnerOfferComponent {
   private readonly partnersService = inject(PartnersService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly toast = inject(ToastService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly partnerSearch$ = new Subject<string>();
 
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
@@ -44,6 +49,8 @@ export class OffertesPartnerOfferComponent {
   protected readonly partnerResults = signal<Partner[]>([]);
   protected readonly selectedPartnerId = signal<string | null>(null);
 
+  protected readonly expiresInHours = signal<number>(12);
+
   protected readonly offerCreating = signal(false);
   protected readonly offerError = signal<string | null>(null);
   protected readonly createdOfferToken = signal<string | null>(null);
@@ -55,7 +62,7 @@ export class OffertesPartnerOfferComponent {
     return this.partnerResults().find(p => p.id === id) ?? null;
   });
 
-  protected readonly partnerOptions = computed<SelectOption<string>[]>(() =>
+  protected readonly partnerOptions = computed<AutocompleteOption[]>(() =>
     (this.partnerResults() ?? []).map(p => ({ value: p.id, label: `${p.businessName} — ${p.city}` })),
   );
 
@@ -75,35 +82,32 @@ export class OffertesPartnerOfferComponent {
     return q.status === 'Accepted';
   });
 
-  constructor() {
+  ngOnInit(): void {
     const id = this.route.snapshot.paramMap.get('id');
     if (!id) {
       this.router.navigate(['/app/offertes']);
       return;
     }
-    this.loadQuote(id);
-  }
 
-  protected goBack(): void {
-    const id = this.route.snapshot.paramMap.get('id');
-    if (id) {
-      this.router.navigate(['/app/offertes', id]);
-      return;
-    }
-    this.router.navigate(['/app/offertes']);
-  }
+    this.partnerSearch$
+      .pipe(
+        debounceTime(350),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((query) => {
+          const trimmed = query.trim();
+          if (trimmed.length < 2) {
+            this.partnerResults.set([]);
+            this.partnerSearchLoading.set(false);
+            this.partnerSearchError.set(null);
+            return EMPTY;
+          }
 
-  protected searchPartners(): void {
-    const query = this.partnerSearch().trim();
-    if (!query || this.partnerSearchLoading()) return;
-
-    this.partnerSearchLoading.set(true);
-    this.partnerSearchError.set(null);
-    this.partnerResults.set([]);
-    this.selectedPartnerId.set(null);
-
-    this.partnersService
-      .list({ search: query, page: 1, pageSize: 10, sortBy: 'businessName', sortOrder: 'asc' })
+          this.partnerSearchLoading.set(true);
+          this.partnerSearchError.set(null);
+          return this.partnersService.list({ search: trimmed, page: 1, pageSize: 10, sortBy: 'businessName', sortOrder: 'asc' });
+        }),
+      )
       .subscribe({
         next: (response) => {
           this.partnerResults.set(response.items ?? []);
@@ -116,6 +120,32 @@ export class OffertesPartnerOfferComponent {
           this.partnerSearchLoading.set(false);
         },
       });
+
+    this.loadQuote(id);
+  }
+
+  protected goBack(): void {
+    const id = this.route.snapshot.paramMap.get('id');
+    if (id) {
+      this.router.navigate(['/app/offertes', id]);
+      return;
+    }
+    this.router.navigate(['/app/offertes']);
+  }
+
+  protected onPartnerSearchChange(value: string): void {
+    this.partnerSearch.set(value);
+    this.selectedPartnerId.set(null);
+    this.createdOfferToken.set(null);
+    this.createdOfferVakmanPriceCents.set(null);
+    this.offerError.set(null);
+    this.partnerSearch$.next(value);
+  }
+
+  protected onPartnerSelected(value: string): void {
+    const opt = this.partnerOptions().find(o => o.label === value);
+    if (!opt) return;
+    this.selectedPartnerId.set(opt.value);
   }
 
   protected clearPartnerSearch(): void {
@@ -123,13 +153,17 @@ export class OffertesPartnerOfferComponent {
     this.partnerSearchError.set(null);
     this.partnerResults.set([]);
     this.selectedPartnerId.set(null);
+    this.partnerSearchLoading.set(false);
   }
 
   protected createOffer(): void {
     const q = this.quote();
     const partnerId = this.selectedPartnerId();
-    if (!q || !partnerId || !q.leadServiceId || this.offerCreating()) return;
+    if (!q || !partnerId || this.offerCreating()) return;
     if (q.status !== 'Accepted') return;
+    if (!q.leadServiceId) return;
+
+    const expiresInHours = Math.max(1, Math.min(12, Math.floor(this.expiresInHours() || 12)));
 
     this.offerCreating.set(true);
     this.offerError.set(null);
@@ -137,13 +171,7 @@ export class OffertesPartnerOfferComponent {
     this.createdOfferVakmanPriceCents.set(null);
 
     this.partnersService
-      .createOffer({
-        partnerId,
-        leadServiceId: q.leadServiceId,
-        pricingSource: 'quote',
-        customerPriceCents: q.totalCents,
-        expiresInHours: 48,
-      })
+      .createOfferFromQuote({ partnerId, quoteId: q.id, expiresInHours })
       .subscribe({
         next: (resp) => {
           this.createdOfferToken.set(resp.publicToken);
@@ -184,12 +212,7 @@ export class OffertesPartnerOfferComponent {
     const vakmanPrice = this.createdOfferVakmanPriceCents();
     if (!partner || !token || !vakmanPrice) return;
 
-    const url = this.partnersService.buildOfferWhatsAppUrl(
-      partner.contactPhone,
-      partner.businessName,
-      token,
-      vakmanPrice,
-    );
+    const url = this.partnersService.buildOfferWhatsAppUrl(partner.contactPhone, partner.businessName, token, vakmanPrice);
     globalThis.open(url, '_blank', 'noopener');
   }
 

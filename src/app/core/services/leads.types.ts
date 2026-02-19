@@ -230,6 +230,10 @@ export interface UpdateServiceStatusRequest {
   status: LeadStatus;
 }
 
+export interface UpdateServiceTypeRequest {
+  serviceType: string;
+}
+
 export interface UpdateStatusRequest {
   status: LeadStatus;
 }

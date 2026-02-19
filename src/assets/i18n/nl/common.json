@@ -1,6 +1,7 @@
 {
   "common": {
     "save": "Opslaan",
+    "saved": "Opgeslagen",
     "cancel": "Annuleren",
     "close": "Sluiten",
     "delete": "Verwijderen",
