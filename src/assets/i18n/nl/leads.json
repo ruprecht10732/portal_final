@@ -136,7 +136,10 @@
       },
       "manualPartner": {
         "title": "Handmatige partneractie",
-        "subtitle": "De offerte is geaccepteerd maar er zijn geen partners gevonden. Selecteer een partner en maak een werkaanbod.",
+        "subtitle": "Deze dienst staat op handmatige partneractie. Selecteer een partner en maak een werkaanbod.",
+        "acceptedOfferTitle": "Aanbod geaccepteerd",
+        "acceptedOfferSubtitle": "Het werkaanbod is geaccepteerd door {{partnerName}}.",
+        "viewOffer": "Bekijk aanbod",
         "searchLabel": "Zoek partner",
         "searchPlaceholder": "Naam, plaats, e-mail...",
         "selectLabel": "Selecteer partner",
@@ -153,6 +156,7 @@
         },
         "errors": {
           "loadAcceptedQuote": "Kon geaccepteerde offerte niet laden",
+          "loadAcceptedOffer": "Kon geaccepteerd aanbod niet laden",
           "searchPartners": "Kon partners niet zoeken",
           "createOffer": "Kon aanbod niet aanmaken",
           "linkPartner": "Kon partner niet koppelen"

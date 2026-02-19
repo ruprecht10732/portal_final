@@ -15,7 +15,7 @@ import type { ServiceTypeItem } from '../../../core/services/service-types.types
 import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem } from '../../../core/services/leads.types';
 import { ALLOWED_STATUS_TRANSITIONS, buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
 import { PartnersService } from '../../../core/services/partners.service';
-import type { Partner } from '../../../core/services/partners.types';
+import type { OfferResponse, Partner } from '../../../core/services/partners.types';
 import { QuotesService } from '../../../core/services/quotes.service';
 import type { QuoteResponse } from '../../../core/services/quotes.types';
 import type {
@@ -347,6 +347,14 @@ export class LeadDetailComponent implements OnInit {
     return service?.pipelineStage === 'Manual_Intervention';
   });
 
+  protected readonly acceptedOffer = signal<OfferResponse | null>(null);
+  protected readonly acceptedOfferLoading = signal(false);
+  protected readonly acceptedOfferError = signal<string | null>(null);
+
+  protected readonly manualPartnerCardMode = computed<'manual' | 'accepted'>(() => {
+    return this.acceptedOffer() ? 'accepted' : 'manual';
+  });
+
   protected readonly acceptedQuote = signal<QuoteResponse | null>(null);
   protected readonly acceptedQuoteLoading = signal(false);
   protected readonly acceptedQuoteError = signal<string | null>(null);
@@ -630,6 +638,21 @@ export class LeadDetailComponent implements OnInit {
       if (service.pipelineStage !== 'Manual_Intervention') return;
 
       this.loadAcceptedQuoteForService(lead.id, service.id);
+    });
+
+    // Effect to detect if a partner offer is already accepted for this service.
+    // This prevents showing the "no partners found" manual-action UI when the offer is actually accepted.
+    effect(() => {
+      const service = this.selectedService();
+
+      this.acceptedOffer.set(null);
+      this.acceptedOfferError.set(null);
+      this.acceptedOfferLoading.set(false);
+
+      if (!service) return;
+      if (service.pipelineStage !== 'Manual_Intervention') return;
+
+      this.loadAcceptedOfferForService(service.id);
     });
   }
 
@@ -1140,6 +1163,34 @@ export class LeadDetailComponent implements OnInit {
           this.acceptedQuoteLoading.set(false);
         },
       });
+  }
+
+  private loadAcceptedOfferForService(serviceId: string): void {
+    this.acceptedOfferLoading.set(true);
+    this.acceptedOfferError.set(null);
+    this.acceptedOffer.set(null);
+
+    this.partnersService
+      .listOffers({ leadServiceId: serviceId, status: 'accepted', page: 1, pageSize: 1, sortBy: 'createdAt', sortOrder: 'desc' })
+      .subscribe({
+        next: (resp) => {
+          const offer = (resp.items ?? []).at(0) ?? null;
+          this.acceptedOffer.set(offer);
+          this.acceptedOfferLoading.set(false);
+        },
+        error: (err) => {
+          const message = extractErrorMessage(err, this.translate.instant('leads.detail.manualPartner.errors.loadAcceptedOffer'));
+          this.acceptedOfferError.set(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+          this.acceptedOfferLoading.set(false);
+        },
+      });
+  }
+
+  protected viewAcceptedOffer(): void {
+    const offer = this.acceptedOffer();
+    if (!offer?.id) return;
+    this.router.navigate(['/app/offers', offer.id, 'preview']);
   }
 
   protected editLead(): void {
