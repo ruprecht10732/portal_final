@@ -1,1 +1,14 @@
 /* Mobile item row styles are handled with utility classes. */
+
+/* Support line-clamp for rich-text descriptions */
+:host ::ng-deep .rich-text.line-clamp-3 {
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+:host ::ng-deep .rich-text.line-clamp-3 * {
+  display: inline;
+  margin: 0;
+}
