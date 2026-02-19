@@ -18,3 +18,97 @@
 :host ::ng-deep .signature-frame .clear-btn {
 	display: none;
 }
+
+/* ── Rich-text (Quill HTML output) styling ──────────────────────────── */
+
+:host ::ng-deep .rich-text p {
+	margin-bottom: 0.5em;
+}
+
+:host ::ng-deep .rich-text p:last-child {
+	margin-bottom: 0;
+}
+
+:host ::ng-deep .rich-text strong,
+:host ::ng-deep .rich-text b {
+	font-weight: 700;
+}
+
+:host ::ng-deep .rich-text em,
+:host ::ng-deep .rich-text i {
+	font-style: italic;
+}
+
+:host ::ng-deep .rich-text u {
+	text-decoration: underline;
+}
+
+:host ::ng-deep .rich-text s {
+	text-decoration: line-through;
+}
+
+:host ::ng-deep .rich-text a {
+	color: #2563eb;
+	text-decoration: underline;
+}
+
+:host ::ng-deep .rich-text ul,
+:host ::ng-deep .rich-text ol {
+	padding-left: 1.5em;
+	margin-top: 0.25em;
+	margin-bottom: 0.5em;
+}
+
+:host ::ng-deep .rich-text ul {
+	list-style-type: disc;
+}
+
+:host ::ng-deep .rich-text ol {
+	list-style-type: decimal;
+}
+
+:host ::ng-deep .rich-text li {
+	margin-bottom: 0.15em;
+}
+
+:host ::ng-deep .rich-text blockquote {
+	border-left: 3px solid #d1d5db;
+	padding-left: 0.75em;
+	margin: 0.5em 0;
+	color: #6b7280;
+	font-style: italic;
+}
+
+:host ::ng-deep .rich-text h1 {
+	font-size: 1.5em;
+	font-weight: 700;
+	margin-bottom: 0.5em;
+}
+
+:host ::ng-deep .rich-text h2 {
+	font-size: 1.25em;
+	font-weight: 700;
+	margin-bottom: 0.4em;
+}
+
+:host ::ng-deep .rich-text h3 {
+	font-size: 1.1em;
+	font-weight: 600;
+	margin-bottom: 0.3em;
+}
+
+:host ::ng-deep .rich-text br {
+	content: '';
+	display: block;
+	margin-top: 0.25em;
+}
+
+/* Quill indent classes */
+:host ::ng-deep .rich-text .ql-indent-1 { padding-left: 1.5em; }
+:host ::ng-deep .rich-text .ql-indent-2 { padding-left: 3em; }
+:host ::ng-deep .rich-text .ql-indent-3 { padding-left: 4.5em; }
+
+/* Quill alignment classes */
+:host ::ng-deep .rich-text .ql-align-center { text-align: center; }
+:host ::ng-deep .rich-text .ql-align-right { text-align: right; }
+:host ::ng-deep .rich-text .ql-align-justify { text-align: justify; }

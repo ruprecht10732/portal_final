@@ -1,5 +1,5 @@
 @if (variant() === 'mobile') {
-  <div class="mt-8 space-y-4 px-5">
+  <div class="border-b border-gray-100 bg-white px-5 pb-6 pt-5 mt-4 space-y-4">
     <div class="flex items-center justify-between text-[14px]">
       <span class="font-medium text-slate-500">{{ 'offertes.subtotal' | translate }}</span>
       <span class="font-semibold text-slate-900">{{ formatCents(subtotalCents()) }}</span>
@@ -20,9 +20,6 @@
       <div>
         <span class="text-xs font-black uppercase tracking-widest text-slate-400">{{ 'offertes.totalAmount' | translate }}</span>
         <div class="mt-1 text-4xl font-black tracking-tighter text-slate-900">{{ formatCents(totalCents()) }}</div>
-      </div>
-      <div class="pb-1">
-        <span class="text-3xl text-emerald-500">✓</span>
       </div>
     </div>
   </div>

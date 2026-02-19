@@ -17,6 +17,7 @@ export class QuoteProposalTotalsComponent {
   readonly vatBreakdown = input<VatBreakdown[]>([]);
   readonly totalCents = input(0);
   readonly variant = input<'mobile' | 'desktop'>('mobile');
+  readonly status = input<string>('');
 
   protected formatCents(cents: number): string {
     return new Intl.NumberFormat('nl-NL', {

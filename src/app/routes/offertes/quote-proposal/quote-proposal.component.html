@@ -106,8 +106,16 @@
                 [discountAmountCents]="q.discountAmountCents"
                 [vatBreakdown]="getVatBreakdown()"
                 [totalCents]="q.totalCents"
+                [status]="q.status"
                 [variant]="'mobile'"
               />
+
+              @if (q.notes) {
+                <div class="border-b border-gray-100 bg-white px-5 py-5">
+                  <h3 class="mb-2 text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'offertes.notes' | translate }}</h3>
+                  <div class="text-sm leading-relaxed text-zinc-700 break-words rich-text" [innerHTML]="q.notes | safeHtml"></div>
+                </div>
+              }
             </main>
               @if (q.financingDisclaimer) {
                 <div class="mx-4 mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
@@ -216,6 +224,7 @@
               [discountAmountCents]="q.discountAmountCents"
               [vatBreakdown]="getVatBreakdown()"
               [totalCents]="q.totalCents"
+              [status]="q.status"
               [variant]="'desktop'"
             />
           </div>
@@ -224,7 +233,7 @@
           @if (q.notes) {
             <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
               <h3 class="mb-2 text-sm font-medium text-zinc-500">{{ 'offertes.notes' | translate }}</h3>
-              <div class="text-sm text-zinc-700 whitespace-pre-wrap" [innerHTML]="q.notes | safeHtml"></div>
+              <div class="text-sm text-zinc-700 break-words rich-text" [innerHTML]="q.notes | safeHtml"></div>
             </div>
           }
 
