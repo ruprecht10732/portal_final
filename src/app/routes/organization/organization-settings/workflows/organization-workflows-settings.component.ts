@@ -17,7 +17,7 @@ import { CheckboxComponent } from '../../../../shared/components/checkbox/checkb
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
 import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
-import { RichTextEditorComponent } from '../../../../shared/components/rich-text-editor/rich-text-editor.component';
+import { RichTextEditorComponent, type TemplateVariable } from '../../../../shared/components/rich-text-editor/rich-text-editor.component';
 import { SelectComponent, type SelectOption } from '../../../../shared/components/select/select.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
 
@@ -387,6 +387,64 @@ export class OrganizationWorkflowsSettingsComponent {
   private readonly cardConfigsByKey = new Map<WorkflowCardKey, WorkflowCardConfig>(
     this.cards.map(card => [card.key, card])
   );
+
+  private readonly baseLeadVars: TemplateVariable[] = [
+    { label: 'Naam', value: 'lead.name' },
+    { label: 'Voornaam', value: 'lead.firstName' },
+    { label: 'Achternaam', value: 'lead.lastName' },
+    { label: 'Telefoon', value: 'lead.phone' },
+    { label: 'Adres', value: 'lead.address' },
+    { label: 'Straat', value: 'lead.street' },
+    { label: 'Huisnummer', value: 'lead.houseNumber' },
+    { label: 'Postcode', value: 'lead.zipCode' },
+    { label: 'Plaats', value: 'lead.city' },
+    { label: 'Diensttype', value: 'lead.serviceType' },
+    { label: 'Bron', value: 'lead.source' },
+    { label: 'Organisatie', value: 'org.name' },
+  ];
+
+  private readonly triggerVariables: Record<WorkflowTrigger, TemplateVariable[]> = {
+    lead_welcome: [
+      ...this.baseLeadVars,
+      { label: 'Tracking link', value: 'links.track' },
+    ],
+    quote_sent: [
+      ...this.baseLeadVars,
+      { label: 'Offertenummer', value: 'quote.number' },
+      { label: 'Offerte preview', value: 'quote.previewUrl' },
+      { label: 'Offerte download', value: 'quote.downloadUrl' },
+    ],
+    quote_accepted: [
+      ...this.baseLeadVars,
+      { label: 'Offertenummer', value: 'quote.number' },
+      { label: 'Offerte totaal', value: 'quote.total' },
+      { label: 'Offerte download', value: 'quote.downloadUrl' },
+    ],
+    quote_rejected: [
+      ...this.baseLeadVars,
+    ],
+    appointment_created: [
+      ...this.baseLeadVars,
+      { label: 'Datum', value: 'appointment.date' },
+      { label: 'Tijd', value: 'appointment.time' },
+      { label: 'Locatie', value: 'appointment.location' },
+    ],
+    appointment_reminder: [
+      ...this.baseLeadVars,
+      { label: 'Datum', value: 'appointment.date' },
+      { label: 'Tijd', value: 'appointment.time' },
+      { label: 'Locatie', value: 'appointment.location' },
+    ],
+    partner_offer_created: [
+      { label: 'Partner naam', value: 'partner.name' },
+      { label: 'Aanbod ID', value: 'offer.id' },
+      { label: 'Accepteer link', value: 'links.accept' },
+    ],
+  };
+
+  protected variablesForTrigger(trigger: WorkflowTrigger): TemplateVariable[] {
+    return this.triggerVariables[trigger] ?? [];
+  }
 
   protected readonly workflowOptions = computed<SelectOption<string>[]>(() =>
     this.workflowProfiles().map(profile => ({ value: profile.workflowKey, label: profile.name }))

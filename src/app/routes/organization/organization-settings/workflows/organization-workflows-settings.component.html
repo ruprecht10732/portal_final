@@ -124,6 +124,7 @@
                         <shared-rich-text-editor
                           [label]="'organization.settings.workflows.templateLabel' | translate"
                           [hint]="card.varsKey | translate"
+                          [variables]="variablesForTrigger(selectedAction())"
                           [value]="card.state.templateText"
                           (valueChange)="updateTemplate(card.key, $event)"
                           [minHeight]="180"
@@ -152,6 +153,7 @@
                     <shared-rich-text-editor
                       [label]="'organization.settings.workflows.templateLabel' | translate"
                       [hint]="channelVarsKey('whatsapp') | translate"
+                      [variables]="variablesForTrigger(selectedAction())"
                       [value]="channelTemplate('whatsapp')"
                       (valueChange)="updateChannelTemplate('whatsapp', $event)"
                       [minHeight]="180"
@@ -207,6 +209,7 @@
                         <shared-rich-text-editor
                           [label]="'organization.settings.workflows.templateLabel' | translate"
                           [hint]="card.varsKey | translate"
+                          [variables]="variablesForTrigger(selectedAction())"
                           [value]="card.state.templateText"
                           (valueChange)="updateTemplate(card.key, $event)"
                           [minHeight]="180"
@@ -242,6 +245,7 @@
                     <shared-rich-text-editor
                       [label]="'organization.settings.workflows.templateLabel' | translate"
                       [hint]="channelVarsKey('email') | translate"
+                      [variables]="variablesForTrigger(selectedAction())"
                       [value]="channelTemplate('email')"
                       (valueChange)="updateChannelTemplate('email', $event)"
                       [minHeight]="180"
