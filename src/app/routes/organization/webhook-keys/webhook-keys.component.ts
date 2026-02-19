@@ -29,6 +29,12 @@ export class WebhookKeysComponent {
   protected readonly keys = signal<WebhookAPIKey[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
+
+  // GTM config state
+  protected readonly gtmContainerId = signal('');
+  protected readonly isGtmLoading = signal(true);
+  protected readonly isGtmSaving = signal(false);
+
   protected readonly errorMessage = signal('');
   protected readonly successMessage = signal('');
 
@@ -67,8 +73,11 @@ export class WebhookKeysComponent {
     return `<script src="${this.sdkBaseUrl()}" data-api-key="${created.key}" defer></script>`;
   });
 
+  private readonly gtmContainerIdRegex = /^GTM-[A-Z0-9]+$/;
+
   constructor() {
     this.loadKeys();
+    this.loadGTMConfig();
   }
 
   // ---- Data loading ----
@@ -88,6 +97,70 @@ export class WebhookKeysComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(keys => this.keys.set(keys));
+  }
+
+  protected loadGTMConfig(): void {
+    this.isGtmLoading.set(true);
+
+    this.webhookService
+      .getGTMConfig()
+      .pipe(
+        catchError(error => {
+          this.errorMessage.set(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.isGtmLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(cfg => this.gtmContainerId.set(cfg.gtmContainerId ?? ''));
+  }
+
+  protected saveGTMConfig(): void {
+    const raw = this.gtmContainerId().trim().toUpperCase();
+    if (!raw || !this.gtmContainerIdRegex.test(raw)) {
+      this.errorMessage.set(this.translate.instant('webhook.gtm.errors.invalid'));
+      return;
+    }
+
+    this.isGtmSaving.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.webhookService
+      .updateGTMConfig({ gtmContainerId: raw })
+      .pipe(
+        catchError(error => {
+          this.errorMessage.set(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.isGtmSaving.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(cfg => {
+        this.gtmContainerId.set(cfg.gtmContainerId ?? raw);
+        this.successMessage.set(this.translate.instant('webhook.gtm.saved'));
+      });
+  }
+
+  protected clearGTMConfig(): void {
+    this.isGtmSaving.set(true);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+
+    this.webhookService
+      .deleteGTMConfig()
+      .pipe(
+        catchError(error => {
+          this.errorMessage.set(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.isGtmSaving.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.gtmContainerId.set('');
+        this.successMessage.set(this.translate.instant('webhook.gtm.cleared'));
+      });
   }
 
   // ---- Create ----

@@ -150,6 +150,7 @@ export class CatalogCreateComponent implements OnInit {
       unitPriceCents,
       vatRateId: values.vatRateId,
       type: values.type,
+      isDraft: values.isDraft,
       ...(values.reference && { reference: values.reference }),
       ...(descriptionValue && { description: descriptionValue }),
       ...(!isFixed && unitLabelValue && { unitLabel: unitLabelValue }),

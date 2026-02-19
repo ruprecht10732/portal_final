@@ -30,6 +30,7 @@ export interface Product {
   pricingMode?: MaterialPricingMode;
   periodCount?: number;
   periodUnit?: PeriodUnit;
+  isDraft: boolean;
   createdAt: string;
   updatedAt: string;
 }
@@ -84,6 +85,7 @@ export interface UpdateVatRateRequest {
 export interface ListProductsParams {
   search?: string;
   type?: ProductType;
+  isDraft?: boolean;
   vatRateId?: string;
   page?: number;
   pageSize?: number;
@@ -103,6 +105,7 @@ export interface CreateProductRequest {
   type: ProductType;
   periodCount?: number;
   periodUnit?: PeriodUnit;
+  isDraft?: boolean;
 }
 
 export interface UpdateProductRequest {
@@ -117,6 +120,7 @@ export interface UpdateProductRequest {
   type?: ProductType;
   periodCount?: number;
   periodUnit?: PeriodUnit;
+  isDraft?: boolean;
 }
 
 export interface MaterialsRequest {
@@ -360,9 +364,10 @@ export class CatalogService {
   }
 
   private buildProductsParams(params: ListProductsParams) {
-    const entries: Record<string, string | number | undefined | null> = {
+    const entries: Record<string, string | number | boolean | undefined | null> = {
       search: params.search,
       type: params.type,
+      isDraft: params.isDraft,
       vatRateId: params.vatRateId,
       page: params.page,
       pageSize: params.pageSize,

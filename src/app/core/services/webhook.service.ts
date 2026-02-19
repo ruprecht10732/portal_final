@@ -44,11 +44,20 @@ export interface UpdateGoogleCampaignMappingRequest {
   serviceType: string;
 }
 
+export interface GTMConfigResponse {
+  gtmContainerId: string | null;
+}
+
+export interface UpdateGTMConfigRequest {
+  gtmContainerId: string;
+}
+
 @Injectable({ providedIn: 'root' })
 export class WebhookService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/admin/webhook/keys`;
   private readonly googleBaseUrl = `${environment.apiBaseUrl}/admin/webhook/google-lead-config`;
+  private readonly gtmBaseUrl = `${environment.apiBaseUrl}/admin/webhook/gtm-config`;
 
   list(): Observable<WebhookAPIKey[]> {
     return this.http.get<WebhookAPIKey[]>(this.baseUrl);
@@ -80,5 +89,17 @@ export class WebhookService {
 
   deleteGoogleConfig(configId: string): Observable<void> {
     return this.http.delete<void>(`${this.googleBaseUrl}/${configId}`);
+  }
+
+  getGTMConfig(): Observable<GTMConfigResponse> {
+    return this.http.get<GTMConfigResponse>(this.gtmBaseUrl);
+  }
+
+  updateGTMConfig(payload: UpdateGTMConfigRequest): Observable<GTMConfigResponse> {
+    return this.http.put<GTMConfigResponse>(this.gtmBaseUrl, payload);
+  }
+
+  deleteGTMConfig(): Observable<void> {
+    return this.http.delete<void>(this.gtmBaseUrl);
   }
 }

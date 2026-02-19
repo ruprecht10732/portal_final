@@ -165,6 +165,7 @@ export const routes: Routes = [
 							panelItems: [
 								{ label: 'organization.backToOrg', route: '/app/organization', icon: 'building', exact: true },
 								{ label: 'organization.settings.quoteDefaults', route: '/app/organization/settings/quote-defaults', icon: 'settings', exact: true },
+								{ label: 'organization.settings.ai.title', route: '/app/organization/settings/ai', icon: 'settings' },
 								{ label: 'organization.settings.whatsapp.title', route: '/app/organization/settings/whatsapp', icon: 'globe' },
 								{ label: 'organization.settings.smtp.title', route: '/app/organization/settings/smtp', icon: 'mail' },
 								{ label: 'organization.settings.workflows.title', route: '/app/organization/settings/workflows', icon: 'settings' },
@@ -182,6 +183,13 @@ export const routes: Routes = [
 									import(
 										'./routes/organization/organization-settings/quote-defaults/organization-quote-defaults-settings.component'
 									).then(m => m.OrganizationQuoteDefaultsSettingsComponent),
+							},
+							{
+								path: 'ai',
+								loadComponent: () =>
+									import('./routes/organization/organization-settings/ai/organization-ai-settings.component').then(
+										m => m.OrganizationAiSettingsComponent,
+									),
 							},
 							{
 								path: 'whatsapp',

@@ -99,6 +99,17 @@
                 </dd>
               </div>
             }
+
+            @if (item.estimationGuidelines) {
+              <div>
+                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
+                  {{ 'services.detail.fields.estimationGuidelines' | translate }}
+                </dt>
+                <dd class="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">
+                  {{ item.estimationGuidelines }}
+                </dd>
+              </div>
+            }
           </dl>
         </section>
 

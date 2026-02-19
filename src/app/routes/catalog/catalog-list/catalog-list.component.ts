@@ -123,6 +123,16 @@ export class CatalogListComponent {
         width: '160px',
       },
       {
+        id: 'isDraft',
+        header: this.translate.instant('catalog.products.fields.isDraft'),
+        field: 'isDraft',
+        sortable: true,
+        filterable: true,
+        cellType: 'boolean',
+        editable: true,
+        width: '100px',
+      },
+      {
         id: 'vatRateId',
         header: this.translate.instant('catalog.products.columns.vatRate'),
         field: 'vatRateId',
@@ -247,6 +257,7 @@ export class CatalogListComponent {
           reference: row.reference?.trim(),
           type: row.type,
           vatRateId: row.vatRateId,
+          isDraft: row.isDraft,
         };
 
         if (hasUnitPrice) {
@@ -355,6 +366,14 @@ export class CatalogListComponent {
       if (filter.columnId === 'type') {
         params.type = filter.value as ProductType;
       }
+      if (filter.columnId === 'isDraft') {
+        const normalized = String(filter.value ?? '').trim().toLowerCase();
+        if (['true', '1', 'yes', 'ja'].includes(normalized)) {
+          params.isDraft = true;
+        } else if (['false', '0', 'no', 'nee'].includes(normalized)) {
+          params.isDraft = false;
+        }
+      }
       if (filter.columnId === 'vatRateId') {
         params.vatRateId = filter.value;
       }
@@ -450,6 +469,7 @@ export class CatalogListComponent {
       row.id === productId ? { ...row, thumbnailUrl: url } : row
     )));
   }
+
   private mapSortField(columnId?: string | null): string {
     switch (columnId) {
       case 'reference':
@@ -458,6 +478,8 @@ export class CatalogListComponent {
         return 'title';
       case 'type':
         return 'type';
+      case 'isDraft':
+        return 'isDraft';
       case 'vatRateId':
         return 'vatRateId';
       case 'fixedPriceValue':

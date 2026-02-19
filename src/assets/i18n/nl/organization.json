@@ -91,6 +91,22 @@
       "navLabel": "Instellingen",
       "subtitle": "Stel standaardwaarden in voor offertes.",
       "quoteDefaults": "Standaardwaarden",
+      "ai": {
+        "title": "AI",
+        "subtitle": "Beheer AI-automatisering en catalogus-verbetering.",
+        "sectionTitle": "AI instellingen",
+        "autoDisqualifyJunk": "Auto-disqualify Junk leads",
+        "autoDisqualifyJunkHint": "Laat AI leads met kwaliteit 'Junk' automatisch naar Verloren/Disqualified verplaatsen.",
+        "autoEstimate": "Auto-estimatie",
+        "autoEstimateHint": "Laat AI automatisch een schatting maken wanneer de lead klaar is voor Estimation.",
+        "autoDispatch": "Auto-dispatch",
+        "autoDispatchHint": "Laat AI automatisch partners matchen wanneer de lead klaar is voor Fulfillment.",
+        "catalogGapThreshold": "Catalogus gap drempel (aantal keer)",
+        "catalogGapLookbackDays": "Catalogus gap periode",
+        "loadFailed": "AI-instellingen laden mislukt.",
+        "saveFailed": "AI-instellingen opslaan mislukt.",
+        "saved": "AI-instellingen bijgewerkt."
+      },
       "workflows": {
         "title": "Workflows",
         "subtitle": "Configureer automatische berichten met templates en variabelen.",

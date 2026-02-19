@@ -34,8 +34,25 @@
       "step3": "All forms on that page will be automatically captured as leads.",
       "optionsTitle": "Optional attributes:",
       "optionSelector": "Only capture forms matching a CSS selector (e.g. \"#contact-form\").",
-      "optionSuccess": "Custom success message shown after submission.",
+      "optionSuccess": "Redirect to a URL after a successful submission.",
       "optionIgnore": "Add this to a form element to skip it."
+    },
+    "gtm": {
+      "title": "Google Tag Manager (GTM)",
+      "subtitle": "Optional. Set your GTM container ID so the SDK can load GTM and push a dataLayer event after a successful submission. Configure conversion tags and Enhanced Conversions in GTM.",
+      "loading": "Loading GTM configuration...",
+      "save": "Save",
+      "clear": "Clear",
+      "saved": "GTM container saved.",
+      "cleared": "GTM container cleared.",
+      "fields": {
+        "containerId": "GTM container ID",
+        "containerIdPlaceholder": "e.g. GTM-ABC1234",
+        "containerIdHint": "Format: GTM-XXXXXXX"
+      },
+      "errors": {
+        "invalid": "Invalid GTM container ID (expected GTM-XXXXXXX)."
+      }
     },
     "revokeConfirm": {
       "title": "Revoke API key",

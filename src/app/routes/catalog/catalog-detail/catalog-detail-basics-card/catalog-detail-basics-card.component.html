@@ -106,7 +106,7 @@
 
                 @case ('chip') {
                   <shared-chip [variant]="row.variant || 'default'" size="sm">
-                    {{ row.value }}
+                    {{ row.value | translate }}
                   </shared-chip>
                 }
 

@@ -102,6 +102,7 @@ export class CatalogEditComponent implements OnInit {
       type: product.type,
       periodCount: product.periodCount ?? null,
       periodUnit: product.periodUnit ?? null,
+      isDraft: product.isDraft ?? false,
     };
   });
 
@@ -227,6 +228,7 @@ export class CatalogEditComponent implements OnInit {
       unitPriceCents,
       ...(isFixed ? { unitLabel: '' } : { unitLabel: unitLabelValue }),
       type: values.type,
+      isDraft: values.isDraft,
       ...(descriptionValue && { description: descriptionValue }),
       ...(vatRateIdValue && { vatRateId: vatRateIdValue }),
     };

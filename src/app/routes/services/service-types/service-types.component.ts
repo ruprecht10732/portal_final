@@ -97,6 +97,16 @@ export class ServiceTypesComponent implements OnInit {
         cellType: 'text',
       },
       {
+        id: 'estimationGuidelines',
+        header: this.translate.instant('services.list.columns.estimationGuidelines'),
+        field: 'estimationGuidelines',
+        sortable: false,
+        filterable: false,
+        editable: true,
+        width: '280px',
+        cellType: 'text',
+      },
+      {
         id: 'icon',
         header: this.translate.instant('services.list.columns.icon'),
         field: 'icon',
@@ -289,6 +299,7 @@ export class ServiceTypesComponent implements OnInit {
     this.applyOptionalChanged(request, 'name', this.normalizeOptional(row.name), existing.name);
     this.applyNullableUpdate(request, 'description', this.normalizeNullable(row.description, existing.description ?? null));
     this.applyNullableUpdate(request, 'intakeGuidelines', this.normalizeNullable(row.intakeGuidelines, existing.intakeGuidelines ?? null));
+    this.applyNullableUpdate(request, 'estimationGuidelines', this.normalizeNullable(row.estimationGuidelines, existing.estimationGuidelines ?? null));
     this.applyIconUpdate(request, this.normalizeNullable(row.icon, existing.icon ?? null));
     this.applyNullableUpdate(request, 'color', this.normalizeNullable(row.color, existing.color ?? null));
 
@@ -308,7 +319,7 @@ export class ServiceTypesComponent implements OnInit {
 
   private applyNullableUpdate(
     request: UpdateServiceTypeRequest,
-    field: 'description' | 'intakeGuidelines' | 'color',
+    field: 'description' | 'intakeGuidelines' | 'estimationGuidelines' | 'color',
     value: string | null | undefined,
   ): void {
     if (value === undefined) return;
@@ -337,12 +348,14 @@ export class ServiceTypesComponent implements OnInit {
     const icon = rawIcon === null ? undefined : rawIcon;
     const description = this.normalizeOptional(row.description);
     const intakeGuidelines = this.normalizeOptional(row.intakeGuidelines);
+    const estimationGuidelines = this.normalizeOptional(row.estimationGuidelines);
     const color = this.normalizeOptional(row.color);
 
     return {
       name,
       ...(description !== undefined && { description }),
       ...(intakeGuidelines !== undefined && { intakeGuidelines }),
+      ...(estimationGuidelines !== undefined && { estimationGuidelines }),
       ...(icon !== undefined && { icon }),
       ...(color !== undefined && { color }),
     };
@@ -444,7 +457,7 @@ export class ServiceTypesComponent implements OnInit {
   }
 
   private isSearchableColumn(columnId: string): boolean {
-    return ['name', 'slug', 'description', 'intakeGuidelines', 'icon', 'color'].includes(columnId);
+    return ['name', 'slug', 'description', 'intakeGuidelines', 'estimationGuidelines', 'icon', 'color'].includes(columnId);
   }
 
   private applyFallbackSearch(params: ListServiceTypesParams, searchFilters: string[]): void {

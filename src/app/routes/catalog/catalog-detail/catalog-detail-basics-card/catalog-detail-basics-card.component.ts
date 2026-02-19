@@ -7,7 +7,7 @@ import { ChipComponent, type ChipVariant } from '../../../../shared/components/c
 import { LucideAngularModule } from 'lucide-angular';
 
 interface DetailsRow {
-  key: 'title' | 'reference' | 'vatRate' | 'price' | 'unitPrice' | 'laborTimeText' | 'type' | 'createdAt' | 'updatedAt';
+  key: 'title' | 'reference' | 'vatRate' | 'price' | 'unitPrice' | 'isDraft' | 'laborTimeText' | 'type' | 'createdAt' | 'updatedAt';
   labelKey: string;
   value: string | null;
   variant?: ChipVariant;
@@ -73,6 +73,15 @@ export class CatalogDetailBasicsCardComponent {
       value: this.product().reference,
       valueType: 'text',
       editable: true,
+    },
+    {
+      key: 'isDraft',
+      labelKey: 'catalog.products.fields.isDraft',
+      value: this.product().isDraft
+        ? 'catalog.products.draftStatus.draft'
+        : 'catalog.products.draftStatus.published',
+      valueType: 'chip',
+      variant: this.product().isDraft ? 'warning' : 'success',
     },
     {
       key: 'vatRate',

@@ -110,6 +110,18 @@
           [required]="true"
         />
 
+        <div class="flex items-center gap-2 mt-2">
+          <input
+            type="checkbox"
+            id="isDraft"
+            [formControl]="form.controls.isDraft"
+            class="h-4 w-4 rounded border-zinc-300 text-blue-600 focus:ring-blue-600"
+          />
+          <label for="isDraft" class="text-sm font-medium text-zinc-700">
+            {{ 'catalog.products.fields.isDraft' | translate }}
+          </label>
+        </div>
+
         @if (isServiceType()) {
           <shared-input
             [label]="'catalog.products.fields.laborTimeText' | translate"

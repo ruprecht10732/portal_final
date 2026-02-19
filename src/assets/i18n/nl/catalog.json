@@ -280,8 +280,13 @@
         "type": "Type",
         "periodCount": "Periode aantal",
         "periodUnit": "Periode-eenheid",
+        "isDraft": "Concept",
         "createdAt": "Aangemaakt",
         "updatedAt": "Bijgewerkt"
+      },
+      "draftStatus": {
+        "draft": "Concept",
+        "published": "Gepubliceerd"
       },
       "hints": {
         "reference": "Unieke code voor dit product",
@@ -355,7 +360,8 @@
       "confirmDelete": "Verwijderen",
       "tabs": {
         "details": "Details",
-        "materials": "Materialen"
+        "materials": "Materialen",
+        "assets": "Bestanden"
       },
       "assets": {
         "title": "Bestanden",

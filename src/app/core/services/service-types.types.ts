@@ -4,6 +4,7 @@ export interface ServiceTypeItem {
   slug: string;
   description?: string;
   intakeGuidelines?: string;
+  estimationGuidelines?: string;
   icon?: string;
   color?: string;
   isActive: boolean;
@@ -15,6 +16,7 @@ export interface CreateServiceTypeRequest {
   name: string;
   description?: string;
   intakeGuidelines?: string;
+  estimationGuidelines?: string;
   icon?: string;
   color?: string;
 }
@@ -23,6 +25,7 @@ export interface UpdateServiceTypeRequest {
   name?: string;
   description?: string | null;
   intakeGuidelines?: string | null;
+  estimationGuidelines?: string | null;
   icon?: string | null;
   color?: string | null;
 }

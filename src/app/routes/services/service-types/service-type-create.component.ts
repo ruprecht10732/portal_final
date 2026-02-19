@@ -39,6 +39,7 @@ export class ServiceTypeCreateComponent {
   protected readonly name = signal('');
   protected readonly description = signal('');
   protected readonly intakeGuidelines = signal('');
+  protected readonly estimationGuidelines = signal('');
   protected readonly icon = signal('');
   protected readonly color = signal('');
 
@@ -56,12 +57,14 @@ export class ServiceTypeCreateComponent {
     const normalizedIcon = normalizeIconName(this.normalizeOptional(this.icon()));
     const description = this.normalizeOptional(this.description());
     const intakeGuidelines = this.normalizeOptional(this.intakeGuidelines());
+    const estimationGuidelines = this.normalizeOptional(this.estimationGuidelines());
     const icon = normalizedIcon ?? undefined;
     const color = this.normalizeOptional(this.color());
     const request: CreateServiceTypeRequest = {
       name: this.name().trim(),
       ...(description !== undefined && { description }),
       ...(intakeGuidelines !== undefined && { intakeGuidelines }),
+      ...(estimationGuidelines !== undefined && { estimationGuidelines }),
       ...(icon !== undefined && { icon }),
       ...(color !== undefined && { color }),
     };
@@ -84,6 +87,7 @@ export class ServiceTypeCreateComponent {
     this.name.set('');
     this.description.set('');
     this.intakeGuidelines.set('');
+    this.estimationGuidelines.set('');
     this.icon.set('');
     this.color.set('');
     this.creating.set(false);

@@ -34,8 +34,25 @@
       "step3": "Alle formulieren op die pagina worden automatisch vastgelegd als leads.",
       "optionsTitle": "Optionele attributen:",
       "optionSelector": "Alleen formulieren vastleggen die voldoen aan een CSS-selector (bijv. \"#contact-form\").",
-      "optionSuccess": "Aangepast succesbericht na verzending.",
+      "optionSuccess": "Doorverwijzen naar een URL na succesvolle verzending.",
       "optionIgnore": "Voeg dit toe aan een formulier om het over te slaan."
+    },
+    "gtm": {
+      "title": "Google Tag Manager (GTM)",
+      "subtitle": "Optioneel. Vul uw GTM-container-ID in zodat de SDK GTM kan laden en een dataLayer-event pusht bij succesvolle verzending. Conversietags en Enhanced Conversions configureert u in GTM.",
+      "loading": "GTM-configuratie laden...",
+      "save": "Opslaan",
+      "clear": "Verwijderen",
+      "saved": "GTM-container opgeslagen.",
+      "cleared": "GTM-container verwijderd.",
+      "fields": {
+        "containerId": "GTM-container-ID",
+        "containerIdPlaceholder": "bijv. GTM-ABC1234",
+        "containerIdHint": "Formaat: GTM-XXXXXXX"
+      },
+      "errors": {
+        "invalid": "Ongeldig GTM-container-ID (verwacht GTM-XXXXXXX)."
+      }
     },
     "revokeConfirm": {
       "title": "API-sleutel intrekken",

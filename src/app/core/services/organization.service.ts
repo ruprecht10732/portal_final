@@ -62,6 +62,11 @@ export interface OrgLogoDownloadResponse {
 export interface OrganizationSettings {
   quotePaymentDays: number;
   quoteValidDays: number;
+  aiAutoDisqualifyJunk: boolean;
+  aiAutoDispatch: boolean;
+  aiAutoEstimate: boolean;
+  catalogGapThreshold: number;
+  catalogGapLookbackDays: number;
   notificationEmail?: string | null;
   whatsAppDeviceId?: string | null;
 }
@@ -70,6 +75,12 @@ export interface UpdateOrganizationSettingsRequest {
   quotePaymentDays?: number;
   quoteValidDays?: number;
   notificationEmail?: string;
+
+  aiAutoDisqualifyJunk?: boolean;
+  aiAutoDispatch?: boolean;
+  aiAutoEstimate?: boolean;
+  catalogGapThreshold?: number;
+  catalogGapLookbackDays?: number;
 }
 
 export interface WhatsAppStatus {

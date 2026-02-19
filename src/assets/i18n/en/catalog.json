@@ -280,8 +280,13 @@
         "type": "Type",
         "periodCount": "Period Count",
         "periodUnit": "Period Unit",
+        "isDraft": "Draft",
         "createdAt": "Created",
         "updatedAt": "Updated"
+      },
+      "draftStatus": {
+        "draft": "Draft",
+        "published": "Published"
       },
       "hints": {
         "reference": "Unique code for this product",
@@ -355,7 +360,8 @@
       "confirmDelete": "Delete",
       "tabs": {
         "details": "Details",
-        "materials": "Materials"
+        "materials": "Materials",
+        "assets": "Assets"
       },
       "assets": {
         "title": "Assets",

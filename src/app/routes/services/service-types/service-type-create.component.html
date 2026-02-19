@@ -54,6 +54,13 @@
             [value]="intakeGuidelines()"
             (valueChange)="intakeGuidelines.set($event)"
           />
+
+          <shared-textarea
+            [label]="'services.create.estimationGuidelinesLabel' | translate"
+            [rows]="5"
+            [value]="estimationGuidelines()"
+            (valueChange)="estimationGuidelines.set($event)"
+          />
         </div>
       </section>
 

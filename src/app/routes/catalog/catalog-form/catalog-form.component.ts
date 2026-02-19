@@ -26,6 +26,7 @@ export interface CatalogFormValue {
   type: ProductType;
   periodCount: number | null;
   periodUnit: PeriodUnit | null;
+  isDraft: boolean;
 }
 
 @Component({
@@ -75,6 +76,7 @@ export class CatalogFormComponent {
     type: this.fb.control<ProductType>('product', { nonNullable: true }),
     periodCount: this.fb.control<number | null>(null),
     periodUnit: this.fb.control<PeriodUnit | null>(null),
+    isDraft: this.fb.control<boolean>(false, { nonNullable: true }),
   }, { validators: [this.pricingValidator] });
 
   protected readonly typeOptions = computed<SelectOption<ProductType>[]>(() => [
@@ -128,6 +130,7 @@ export class CatalogFormComponent {
         type: initial.type,
         periodCount: initial.periodCount ?? null,
         periodUnit: initial.periodUnit ?? null,
+        isDraft: initial.isDraft,
       });
       this.selectedType.set(initial.type);
     });
@@ -208,6 +211,7 @@ export class CatalogFormComponent {
       type: values.type,
       periodCount: values.periodCount ?? null,
       periodUnit: values.periodUnit ?? null,
+      isDraft: values.isDraft,
     });
   }
 

@@ -56,6 +56,7 @@ export class OnboardingComponent {
   protected readonly serviceTypeName = signal('');
   protected readonly serviceTypeDescription = signal('');
   protected readonly intakeGuidelines = signal('');
+  protected readonly estimationGuidelines = signal('');
   protected readonly serviceTypeIcon = signal<string | null>(null);
   protected readonly serviceTypeColor = signal('');
   protected readonly serviceTypeSkipped = signal(false);
@@ -247,6 +248,14 @@ export class OnboardingComponent {
     return this.isNonEmpty(this.intakeGuidelines())
         ? ''
         : this.t('onboarding.errors.intakeRequired');
+  });
+
+  protected readonly estimationGuidelinesError = computed(() => {
+    if (!this.shouldShowErrors(this.serviceTypeStep())) return '';
+    if (this.serviceTypeSkipped()) return '';
+    return this.isNonEmpty(this.estimationGuidelines())
+        ? ''
+        : this.t('onboarding.errors.estimationRequired');
   });
 
   protected readonly productTitleError = computed(() => {
@@ -511,6 +520,7 @@ export class OnboardingComponent {
       const request: CreateServiceTypeRequest = {
         name: this.serviceTypeName().trim(),
         intakeGuidelines: this.intakeGuidelines().trim(),
+        estimationGuidelines: this.estimationGuidelines().trim(),
       };
 
       const description = this.normalizeOptional(this.serviceTypeDescription());
@@ -662,7 +672,7 @@ export class OnboardingComponent {
 
   private canProceedServiceType(): boolean {
     if (this.serviceTypeSkipped()) return true;
-    return this.isNonEmpty(this.serviceTypeName()) && this.isNonEmpty(this.intakeGuidelines());
+    return this.isNonEmpty(this.serviceTypeName()) && this.isNonEmpty(this.intakeGuidelines()) && this.isNonEmpty(this.estimationGuidelines());
   }
 
   private canProceedProduct(): boolean {
