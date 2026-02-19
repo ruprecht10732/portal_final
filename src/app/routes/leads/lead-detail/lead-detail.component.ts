@@ -1179,6 +1179,28 @@ export class LeadDetailComponent implements OnInit {
           this.acceptedOfferLoading.set(false);
         },
         error: (err) => {
+          // Backstop: older backend versions could fail query-binding UUID filters and return 400 "invalid request".
+          // If that happens, fall back to the service-scoped endpoint and filter client-side.
+          const maybeError = err;
+          const isInvalidRequest = maybeError?.status === 400 && maybeError?.error?.error === 'invalid request';
+          if (isInvalidRequest) {
+            this.partnersService.listServiceOffers(serviceId).subscribe({
+              next: (fallbackResp) => {
+                const accepted = (fallbackResp.items ?? [])
+                  .filter(o => (o.status ?? '').toLowerCase() === 'accepted')
+                  .sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+                this.acceptedOffer.set(accepted.at(0) ?? null);
+                this.acceptedOfferLoading.set(false);
+              },
+              error: (fallbackErr) => {
+                const message = extractErrorMessage(fallbackErr, this.translate.instant('leads.detail.manualPartner.errors.loadAcceptedOffer'));
+                this.acceptedOfferError.set(message);
+                this.reporter.report(fallbackErr, { source: 'http', silent: true, userMessage: message });
+                this.acceptedOfferLoading.set(false);
+              },
+            });
+            return;
+          }
           const message = extractErrorMessage(err, this.translate.instant('leads.detail.manualPartner.errors.loadAcceptedOffer'));
           this.acceptedOfferError.set(message);
           this.reporter.report(err, { source: 'http', silent: true, userMessage: message });

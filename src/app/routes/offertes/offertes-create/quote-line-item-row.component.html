@@ -1,17 +1,18 @@
-<div class="quote-line-item-row rounded-lg border border-zinc-200 bg-white p-3 lg:p-4">
-  <div class="quote-line-item-grid gap-3">
-    <div class="quote-cell quote-cell-drag">
+<div class="rounded-lg border border-zinc-200 bg-white p-3 transition-colors duration-150 hover:border-zinc-300 lg:px-4 lg:py-3">
+  <div class="grid grid-cols-2 gap-3 transition-[grid-template-columns] duration-200 ease-in-out lg:grid-cols-[28px_148px_1fr_108px_116px_120px_92px_56px] lg:items-center lg:has-focus-within:grid-cols-[28px_198px_1fr_100px_116px_120px_92px_56px]">
+    
+    <div class="order-2 flex items-center justify-start lg:order-none lg:self-center">
       <button
         type="button"
         cdkDragHandle
-        class="quote-drag-handle inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-300 transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-500"
+        class="inline-flex h-9 w-9 cursor-grab items-center justify-center rounded-md text-zinc-300 transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-500 active:cursor-grabbing"
         [attr.aria-label]="'offertes.lineItems' | translate"
       >
         <lucide-icon name="grip-vertical" class="h-4 w-4"></lucide-icon>
       </button>
     </div>
 
-    <div class="quote-cell quote-cell-qty">
+    <div class="order-3 [&_input]:whitespace-nowrap lg:order-none lg:self-center [&_input]:lg:min-h-[2.75rem]">
       <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
         {{ 'offertes.qty' | translate }}
       </div>
@@ -24,32 +25,30 @@
       />
     </div>
 
-    <div class="quote-cell quote-cell-desc">
-      <div class="quote-desc-editor-wrapper" (keydown)="onDescriptionKeydown($event)">
-        <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
-          {{ 'offertes.description' | translate }}
-        </div>
-        <shared-rich-text-editor
-          [label]="''"
-          [value]="item().description"
-          (valueChange)="onDescriptionInput($event)"
-          [minHeight]="84"
-          [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
-        />
-
-        @if (ghostSuggestion(); as suggestion) {
-          <div class="quote-desc-ghost-hint text-zinc-500">
-            Tab ↹ {{ suggestion.displayText }}
-          </div>
-        } @else if (ghostLoading()) {
-          <div class="quote-desc-ghost-hint text-zinc-400">
-            {{ 'common.loading' | translate }}...
-          </div>
-        }
+    <div class="relative col-span-2 order-1 lg:col-span-1 lg:order-none lg:min-w-[180px] lg:self-center" (keydown)="onDescriptionKeydown($event)">
+      <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
+        {{ 'offertes.description' | translate }}
       </div>
+      <shared-rich-text-editor
+        [label]="''"
+        [value]="item().description"
+        (valueChange)="onDescriptionInput($event)"
+        [minHeight]="84"
+        [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
+      />
+
+      @if (ghostSuggestion(); as suggestion) {
+        <div class="pointer-events-none absolute right-2.5 bottom-2 z-10 rounded-md border border-zinc-300 bg-white/95 px-1.5 py-0.5 text-[11px] leading-tight text-zinc-500 shadow-sm">
+          Tab ↹ {{ suggestion.displayText }}
+        </div>
+      } @else if (ghostLoading()) {
+        <div class="pointer-events-none absolute right-2.5 bottom-2 z-10 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-zinc-400">
+          {{ 'common.loading' | translate }}...
+        </div>
+      }
     </div>
 
-    <div class="quote-cell quote-cell-price">
+    <div class="order-4 lg:order-none lg:self-center [&_input]:lg:min-h-[2.75rem]">
       <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
         {{ 'offertes.price' | translate }}
       </div>
@@ -62,7 +61,7 @@
       />
     </div>
 
-    <div class="quote-cell quote-cell-tax">
+    <div class="order-5 lg:order-none lg:self-center [&_button]:lg:min-h-[2.75rem]">
       <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
         {{ 'offertes.tax' | translate }}
       </div>
@@ -74,16 +73,14 @@
       />
     </div>
 
-    <div class="quote-cell quote-cell-total">
-      <div class="flex h-full flex-col justify-end lg:items-end lg:justify-center">
-        <span class="mb-1 text-xs text-zinc-400 lg:hidden">
-          {{ 'offertes.total' | translate }}
-        </span>
-        <span class="text-sm font-semibold text-zinc-900 lg:text-base lg:font-bold lg:text-right">{{ totalDisplay() }}</span>
-      </div>
+    <div class="col-span-2 order-6 flex flex-col justify-end lg:col-span-1 lg:order-none lg:h-full lg:items-end lg:justify-center lg:self-center">
+      <span class="mb-1 text-xs text-zinc-400 lg:hidden">
+        {{ 'offertes.total' | translate }}
+      </span>
+      <span class="text-sm font-semibold text-zinc-900 lg:text-right lg:text-base lg:font-bold">{{ totalDisplay() }}</span>
     </div>
 
-    <div class="quote-cell quote-cell-optional">
+    <div class="order-7 flex flex-col justify-center lg:order-none lg:self-center lg:pt-0">
       <div class="mb-1 block text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
         {{ 'offertes.optional' | translate }}
       </div>
@@ -96,17 +93,15 @@
       />
     </div>
 
-    <div class="quote-cell quote-cell-actions">
-      <div class="flex items-center gap-1">
-        <button
-          type="button"
-          (click)="remove.emit()"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-600"
-          [attr.aria-label]="'offertes.removeItem' | translate"
-        >
-          <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
-        </button>
-      </div>
+    <div class="order-8 flex items-center justify-end lg:order-none lg:justify-center lg:self-center lg:pt-0">
+      <button
+        type="button"
+        (click)="remove.emit()"
+        class="inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-600"
+        [attr.aria-label]="'offertes.removeItem' | translate"
+      >
+        <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
+      </button>
     </div>
   </div>
 </div>

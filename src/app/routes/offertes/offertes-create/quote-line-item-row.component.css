@@ -2,91 +2,19 @@
   display: block;
 }
 
-.quote-line-item-grid {
-  display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  grid-template-areas:
-    'desc desc'
-    'drag qty'
-    'price tax'
-    'total total'
-    'optional actions';
-  gap: 0.75rem;
-}
-
-.quote-line-item-row {
-  transition: border-color 0.15s ease;
-}
-
-.quote-line-item-row:hover {
-  border-color: #d4d4d8;
-}
-
-.quote-cell-optional {
-  grid-area: optional;
-  display: flex;
-  flex-direction: column;
-  justify-content: center;
-}
-
-.quote-cell-drag {
-  grid-area: drag;
-  display: flex;
-  justify-content: flex-start;
-  align-items: center;
-}
-
-.quote-cell-actions {
-  grid-area: actions;
-  display: flex;
-  justify-content: flex-end;
-  align-items: center;
-}
-
-.quote-cell-desc { grid-area: desc; }
-.quote-cell-qty { grid-area: qty; }
-.quote-cell-price { grid-area: price; }
-.quote-cell-tax { grid-area: tax; }
-.quote-cell-total { grid-area: total; }
-
-.quote-drag-handle {
-  cursor: grab;
-}
-
-.quote-drag-handle:active {
-  cursor: grabbing;
-}
-
-.quote-desc-editor-wrapper {
-  position: relative;
-}
-
-.quote-desc-ghost-hint {
-  position: absolute;
-  right: 0.6rem;
-  bottom: 0.55rem;
-  z-index: 4;
-  pointer-events: none;
-  border-radius: 0.35rem;
-  background: rgb(255 255 255 / 96%);
-  border: 1px solid #d4d4d8;
-  padding: 0.125rem 0.375rem;
-  font-size: 11px;
-  line-height: 1.2;
-}
-
-:host ::ng-deep .quote-cell-desc shared-rich-text-editor shared-field-shell > div {
+/* Quill Editor Inner Overrides */
+:host ::ng-deep shared-rich-text-editor shared-field-shell > div {
   gap: 0.25rem;
 }
 
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow {
+:host ::ng-deep .ql-toolbar.ql-snow {
   padding: 0.28rem 0.34rem;
   background-color: #fafafa;
   border-color: #d4d4d8;
 }
 
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow button,
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow .ql-picker-label {
+:host ::ng-deep .ql-toolbar.ql-snow button,
+:host ::ng-deep .ql-toolbar.ql-snow .ql-picker-label {
   width: 1.4rem;
   height: 1.4rem;
   display: inline-flex;
@@ -97,90 +25,28 @@
   transition: background-color 0.15s ease, color 0.15s ease;
 }
 
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow button:hover,
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow .ql-picker-label:hover {
+:host ::ng-deep .ql-toolbar.ql-snow button:hover,
+:host ::ng-deep .ql-toolbar.ql-snow .ql-picker-label:hover,
+:host ::ng-deep .ql-toolbar.ql-snow button.ql-active,
+:host ::ng-deep .ql-toolbar.ql-snow .ql-picker-label.ql-active {
   background-color: #f4f4f5;
   color: #18181b;
 }
 
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow button.ql-active,
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow .ql-picker-label.ql-active {
-  background-color: #f4f4f5;
-  color: #18181b;
-}
+:host ::ng-deep .ql-toolbar.ql-snow .ql-stroke { stroke-width: 1.6; }
+:host ::ng-deep .ql-toolbar.ql-snow .ql-fill { fill: currentColor; }
+:host ::ng-deep .ql-toolbar.ql-snow svg { width: 0.95rem; height: 0.95rem; }
+:host ::ng-deep .ql-container.ql-snow { border-color: #d4d4d8; }
 
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow .ql-stroke {
-  stroke-width: 1.6;
-}
-
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow .ql-fill {
-  fill: currentColor;
-}
-
-:host ::ng-deep .quote-cell-desc .ql-toolbar.ql-snow svg {
-  width: 0.95rem;
-  height: 0.95rem;
-}
-
-:host ::ng-deep .quote-cell-desc .ql-container .ql-editor {
+:host ::ng-deep .ql-container .ql-editor {
   min-height: 5rem;
   font-size: 0.875rem;
   line-height: 1.45;
   padding-right: 6.5rem;
 }
 
-:host ::ng-deep .quote-cell-desc .ql-container.ql-snow {
-  border-color: #d4d4d8;
-}
-
 @media (min-width: 1024px) {
-  .quote-line-item-grid {
-    --drag-col-width: 28px;
-    --qty-col-width: 148px;
-    --price-col-width: 108px;
-    grid-template-columns: var(--drag-col-width) var(--qty-col-width) minmax(0, 1fr) var(--price-col-width) 116px 120px 92px 56px;
-    grid-template-areas: 'drag qty desc price tax total optional actions';
-    column-gap: 0.75rem;
-    row-gap: 0.75rem;
-    align-items: center;
-    transition: grid-template-columns 0.18s ease;
-  }
-
-  .quote-line-item-grid:has(.quote-cell-qty:focus-within) {
-    --qty-col-width: 198px;
-    --price-col-width: 100px;
-  }
-
-  .quote-cell-qty,
-  .quote-cell-price,
-  .quote-cell-tax,
-  .quote-cell-total,
-  .quote-cell-optional,
-  .quote-cell-actions {
-    align-self: center;
-  }
-
-  .quote-cell-optional {
-    justify-content: center;
-    padding-top: 0;
-  }
-
-  .quote-cell-actions {
-    justify-content: center;
-    padding-top: 0;
-  }
-
-  :host ::ng-deep .quote-cell-desc .ql-container .ql-editor {
+  :host ::ng-deep .ql-container .ql-editor {
     min-height: 4.25rem;
-  }
-
-  :host ::ng-deep .quote-cell-qty input,
-  :host ::ng-deep .quote-cell-price input,
-  :host ::ng-deep .quote-cell-tax button {
-    min-height: 2.75rem;
-  }
-
-  :host ::ng-deep .quote-cell-qty input {
-    white-space: nowrap;
   }
 }
