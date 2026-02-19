@@ -24,7 +24,8 @@
     "leadAutocomplete": {
       "createNewWithQuery": "Create new lead \"{{query}}\""
     },
-      "serviceLinkLabel": "Service (optional)",
+    "serviceLinkLabel": "Service",
+    "serviceHint": "This service is used for AI generation and to link the quote to a service.",
     "catalogSearchPlaceholder": "Type to search catalog...",
     "qtyPlaceholder": "1 x",
     "lineItems": "Line Items",

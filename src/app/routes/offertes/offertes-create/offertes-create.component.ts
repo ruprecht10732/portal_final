@@ -114,14 +114,19 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly financingDisclaimer = signal(false);
 
   // Lead's services
-  // - selectedGenerateServiceId: required for AI-generate flow
-  // - selectedQuoteLeadServiceId: optional linkage for the quote (leadServiceId)
-  protected readonly selectedGenerateServiceId = signal<string | null>(null);
-  protected readonly selectedQuoteLeadServiceId = signal<string | null>(null);
+  // Single source of truth:
+  // - Used as quote.leadServiceId (linkage)
+  // - Used as leadServiceId for AI generation
+  protected readonly selectedLeadServiceId = signal<string | null>(null);
   protected readonly leadServices = computed(() => this.selectedLead()?.services ?? []);
   protected readonly leadServiceOptions = computed<SelectOption<string>[]>(() =>
     this.leadServices().map(s => ({ label: s.serviceType, value: s.id }))
   );
+  protected readonly selectedLeadServiceLabel = computed(() => {
+    const id = this.selectedLeadServiceId();
+    if (!id) return null;
+    return this.leadServices().find(s => s.id === id)?.serviceType ?? null;
+  });
 
   // Lead selection
   protected readonly selectedLead = signal<Lead | null>(null);
@@ -314,8 +319,9 @@ export class OffertesCreateComponent implements OnInit {
 
     // Check for leadId in query params
     const leadId = this.route.snapshot.queryParamMap.get('leadId');
+    const preferredServiceId = this.route.snapshot.queryParamMap.get('serviceId') ?? undefined;
     if (leadId) {
-      this.loadLead(leadId);
+      this.loadLead(leadId, preferredServiceId);
     }
 
     // Check for edit mode
@@ -389,8 +395,8 @@ export class OffertesCreateComponent implements OnInit {
 
     if (lead) {
       this.selectedLead.set(lead);
-      this.selectedGenerateServiceId.set(lead.services?.[0]?.id ?? null);
-      this.selectedQuoteLeadServiceId.set(null);
+      // Default to the first service; user can change it explicitly.
+      this.selectedLeadServiceId.set(lead.services?.[0]?.id ?? null);
       this.leadSearchQuery.set(
         `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`
       );
@@ -404,8 +410,7 @@ export class OffertesCreateComponent implements OnInit {
 
   protected clearLead(): void {
     this.selectedLead.set(null);
-    this.selectedGenerateServiceId.set(null);
-    this.selectedQuoteLeadServiceId.set(null);
+    this.selectedLeadServiceId.set(null);
     this.leadSearchQuery.set('');
     this.leadOptions.set([]);
     this.leadSuggestions.set([]);
@@ -416,12 +421,11 @@ export class OffertesCreateComponent implements OnInit {
     this.leadsService.getById(id).subscribe({
       next: lead => {
         this.selectedLead.set(lead);
-        this.selectedGenerateServiceId.set(lead.services?.[0]?.id ?? null);
-        this.selectedQuoteLeadServiceId.set(
+        const nextServiceId =
           preferredServiceId && lead.services?.some(s => s.id === preferredServiceId)
             ? preferredServiceId
-            : null,
-        );
+            : (lead.services?.[0]?.id ?? null);
+        this.selectedLeadServiceId.set(nextServiceId);
         this.leadSearchQuery.set(
           `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`
         );
@@ -708,7 +712,7 @@ export class OffertesCreateComponent implements OnInit {
       ...(u.catalogProductId ? { catalogProductId: u.catalogProductId } : {}),
     }));
 
-    const leadServiceId = this.selectedQuoteLeadServiceId();
+    const leadServiceId = this.selectedLeadServiceId();
 
     return {
       ...(leadServiceId ? { leadServiceId } : {}),
@@ -786,7 +790,7 @@ export class OffertesCreateComponent implements OnInit {
 
   protected generateQuote(): void {
     const lead = this.selectedLead();
-    const serviceId = this.selectedGenerateServiceId();
+    const serviceId = this.selectedLeadServiceId();
     const prompt = this.generatePrompt().trim();
 
     if (!lead || !serviceId || !prompt || this.isGenerateLocked()) return;

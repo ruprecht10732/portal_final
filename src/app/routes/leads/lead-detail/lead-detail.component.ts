@@ -982,7 +982,13 @@ export class LeadDetailComponent implements OnInit {
   protected createQuote(): void {
     const lead = this.lead();
     if (!lead) return;
-    this.router.navigate(['/app/offertes/new'], { queryParams: { leadId: lead.id } });
+    const serviceId = this.selectedService()?.id ?? null;
+    this.router.navigate(['/app/offertes/new'], {
+      queryParams: {
+        leadId: lead.id,
+        ...(serviceId ? { serviceId } : {}),
+      },
+    });
   }
 
   protected searchPartners(): void {

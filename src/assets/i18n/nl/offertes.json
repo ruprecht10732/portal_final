@@ -21,7 +21,8 @@
     "selectLead": "Selecteer Lead",
     "changeLead": "Wijzig",
     "searchLeadPlaceholder": "Zoek een lead...",
-    "serviceLinkLabel": "Dienst (optioneel)",
+    "serviceLinkLabel": "Dienst",
+    "serviceHint": "Deze dienst wordt gebruikt voor AI generatie en om de offerte aan een dienst te koppelen.",
     "leadAutocomplete": {
       "createNewWithQuery": "Nieuwe lead aanmaken \"{{query}}\""
     },
