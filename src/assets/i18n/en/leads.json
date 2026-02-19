@@ -143,6 +143,7 @@
         "selectLabel": "Select partner",
         "acceptedQuoteLabel": "Accepted quote",
         "noAcceptedQuote": "No accepted quote found for this service.",
+        "expiryHoursLabel": "Acceptance window (hours)",
         "createOffer": "Create offer",
         "linkPartner": "Link partner",
         "offerLinkLabel": "Offer link",

@@ -43,11 +43,15 @@
             </div>
           }
 
-          <shared-input
+          <shared-autocomplete
             [label]="'offertes.partnerOffer.searchLabel' | translate"
             [placeholder]="'offertes.partnerOffer.searchPlaceholder' | translate"
             [value]="partnerSearch()"
-            (valueChange)="partnerSearch.set($event)"
+            (valueChange)="onPartnerSearchChange($event); onPartnerSelected($event)"
+            [options]="partnerOptions()"
+            filterMode="manual"
+            [disabled]="partnerSearchLoading()"
+            [hint]="partnerSearchLoading() ? ('common.loading' | translate) : ''"
           />
 
           @if (partnerSearchError()) {
@@ -55,15 +59,6 @@
           }
 
           <div class="flex flex-wrap gap-2">
-            <shared-button
-              variant="primary"
-              [fullWidth]="false"
-              [loading]="partnerSearchLoading()"
-              [disabled]="partnerSearchLoading() || !partnerSearch().trim()"
-              (clicked)="searchPartners()"
-            >
-              {{ 'offertes.partnerOffer.searchButton' | translate }}
-            </shared-button>
             <shared-button
               variant="ghost"
               [fullWidth]="false"
@@ -74,12 +69,14 @@
             </shared-button>
           </div>
 
-          <shared-select
-            [label]="'offertes.partnerOffer.selectLabel' | translate"
-            [options]="partnerOptions()"
-            [value]="selectedPartnerId()"
-            (valueChange)="selectedPartnerId.set($event)"
-            [placeholder]="'common.select' | translate"
+          <shared-number-input
+            [label]="'offertes.partnerOffer.expiryHoursLabel' | translate"
+            [value]="expiresInHours()"
+            (valueChange)="expiresInHours.set($event ?? 12)"
+            [min]="1"
+            [max]="12"
+            [step]="1"
+            [suffix]="'u'"
           />
 
           @if (offerError()) {

@@ -22,6 +22,8 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/components/menu/menu.component';
 import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 
+type LeadServiceOption = { label: string; value: string };
+
 @Component({
   selector: 'app-offertes-detail',
   imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, PageHeaderComponent, MenuComponent, SafeHtmlPipe],
@@ -55,6 +57,14 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly moneybirdExported = signal(false);
   protected readonly moneybirdExternalUrl = signal<string | null>(null);
 
+  // Lead service linking (for Accepted quotes with missing leadServiceId)
+  protected readonly selectedLeadServiceId = signal<string | null>(null);
+  protected readonly savingLeadService = signal(false);
+  protected readonly leadServiceOptions = computed<LeadServiceOption[]>(() => {
+    const services = this.lead()?.services ?? [];
+    return services.map(s => ({ label: s.serviceType, value: s.id }));
+  });
+
   // Reply text per item (keyed by item ID)
   protected readonly replyTexts = signal<Record<string, string>>({});
   protected readonly replyingItemId = signal<string | null>(null);
@@ -66,7 +76,7 @@ export class OffertesDetailComponent implements OnInit {
     const q = this.quote();
     const previewAvailable = !!this.previewUrl();
     const pdfAvailable = !!q?.pdfFileKey;
-    const canOpenPartnerOffer = q?.status === 'Accepted';
+    const canOpenPartnerOffer = q?.status === 'Accepted' && !!q?.leadServiceId;
     return [
       {
         items: [
@@ -160,6 +170,7 @@ export class OffertesDetailComponent implements OnInit {
       next: quote => {
         if (quote) {
           this.quote.set(quote);
+          this.selectedLeadServiceId.set(quote.leadServiceId ?? null);
           this.loadPreviewLink(quote);
           this.loadLead(quote.leadId);
           this.loadMoneybirdExportStatus(quote.id);
@@ -237,7 +248,39 @@ export class OffertesDetailComponent implements OnInit {
   protected openPartnerOffer(): void {
     const q = this.quote();
     if (!q) return;
+
+    if (!q.leadServiceId) {
+      this.toast.error(this.translate.instant('offertes.partnerOffer.noService'));
+      return;
+    }
+
     this.router.navigate(['/app/offertes', q.id, 'partner-offer']);
+  }
+
+  protected saveLeadServiceLink(): void {
+    const q = this.quote();
+    const leadServiceId = this.selectedLeadServiceId();
+    if (!q || !leadServiceId) return;
+    if (q.leadServiceId === leadServiceId) return;
+
+    this.savingLeadService.set(true);
+    this.quotesService.setLeadServiceId(q.id, leadServiceId).subscribe({
+      next: updated => {
+        this.quote.set(updated);
+        this.selectedLeadServiceId.set(updated.leadServiceId ?? null);
+        this.savingLeadService.set(false);
+        this.toast.success(this.translate.instant('common.saved'));
+      },
+      error: err => {
+        this.savingLeadService.set(false);
+        const message = extractErrorMessage(err, this.translate.instant('common.error'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
+        this.toast.error(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
   }
 
   protected editQuote(): void {

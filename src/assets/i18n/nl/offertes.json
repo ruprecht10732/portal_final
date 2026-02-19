@@ -109,6 +109,7 @@
       "searchLabel": "Zoek partner",
       "searchPlaceholder": "Naam, plaats, e-mail...",
       "searchButton": "Zoeken",
+      "expiryHoursLabel": "Acceptatie-window (uren)",
       "selectLabel": "Selecteer partner",
       "createOffer": "Maak aanbod",
       "linkPartner": "Koppel partner",

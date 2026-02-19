@@ -14,9 +14,11 @@ import type {
   PartnerLogoPresignResponse,
   SetPartnerLogoRequest,
   PartnerLogoDownloadResponse,
-  CreateOfferRequest,
+  CreateOfferFromQuoteRequest,
   CreateOfferResponse,
   ListOffersResponse,
+  ListOffersParams,
+  OfferListResponse,
 } from './partners.types';
 import type { PublicPartnerOfferResponse } from './partner-offer.types';
 
@@ -78,14 +80,31 @@ export class PartnersService extends BaseCrudService<
 
   // ── Offers ──────────────────────────────────────────────────────────────
 
-  createOffer(data: CreateOfferRequest): Observable<CreateOfferResponse> {
-    return this.http.post<CreateOfferResponse>(`${this.baseUrl}/offers`, data);
+  createOfferFromQuote(data: CreateOfferFromQuoteRequest): Observable<CreateOfferResponse> {
+    return this.http.post<CreateOfferResponse>(`${this.baseUrl}/offers/from-quote`, data);
   }
 
   listServiceOffers(serviceId: string): Observable<ListOffersResponse> {
     return this.http.get<ListOffersResponse>(`${this.baseUrl}/services/${serviceId}/offers`);
   }
 
+
+
+  listOffers(params: ListOffersParams = {}): Observable<OfferListResponse> {
+    const entries: Record<string, string | number | undefined | null> = {
+      search: params.search,
+      status: params.status,
+      partnerId: params.partnerId,
+      leadServiceId: params.leadServiceId,
+      serviceTypeId: params.serviceTypeId,
+      page: params.page,
+      pageSize: params.pageSize,
+      sortBy: params.sortBy,
+      sortOrder: params.sortOrder,
+    };
+
+    return this.http.get<OfferListResponse>(`${this.baseUrl}/offers`, { params: toHttpParams(entries) });
+  }
   listPartnerOffers(partnerId: string): Observable<ListOffersResponse> {
     return this.http.get<ListOffersResponse>(`${this.baseUrl}/${partnerId}/offers`);
   }

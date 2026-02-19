@@ -117,6 +117,7 @@
       "searchLabel": "Search partner",
       "searchPlaceholder": "Name, city, email...",
       "searchButton": "Search",
+      "expiryHoursLabel": "Acceptance window (hours)",
       "selectLabel": "Select partner",
       "createOffer": "Create offer",
       "linkPartner": "Link partner",

@@ -5,6 +5,7 @@ import { guestGuard } from './core/guards/guest.guard';
 import { adminGuard } from './core/guards/admin.guard';
 import { catalogDetailResolver } from './routes/catalog/catalog-detail/catalog-detail.resolver';
 import { leadsListResolver } from './routes/leads/leads-list.resolver';
+import { partnersOfferListResolver } from './routes/partners/partners-offer-list/partners-offer-list.resolver';
 import { quoteIntroGuard } from './core/guards/quote-intro.guard';
 import { SidebarPanelConfig } from './routes/app-shell/sidebar-panel.config';
 
@@ -320,6 +321,8 @@ export const routes: Routes = [
 				data: {
 					panelItems: [
 						{ label: 'partners.overview', route: '/app/partners', icon: 'list', exact: true },
+						{ label: 'partners.offersOverview', route: '/app/partners/offers', icon: 'briefcase' },
+						{ label: 'partners.createOffer', route: '/app/partners/offers/new', icon: 'handshake' },
 						{ label: 'partners.create', route: '/app/partners/new', icon: 'plus' },
 					],
 				} satisfies SidebarPanelConfig,
@@ -331,6 +334,21 @@ export const routes: Routes = [
 					{
 						path: 'new',
 						loadComponent: () => import('./routes/partners/partners-create/partners-create.component').then(m => m.PartnersCreateComponent),
+					},
+					{
+						path: 'offers',
+						loadComponent: () =>
+							import('./routes/partners/partners-offer-list/partners-offer-list.component').then(
+								m => m.PartnersOfferListComponent,
+							),
+						resolve: { resolved: partnersOfferListResolver },
+					},
+					{
+						path: 'offers/new',
+						loadComponent: () =>
+							import('./routes/partners/partners-offer-create/partners-offer-create.component').then(
+								m => m.PartnersOfferCreateComponent,
+							),
 					},
 					{
 						path: ':id',
