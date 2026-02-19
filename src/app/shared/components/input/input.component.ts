@@ -1,6 +1,7 @@
-import { Component, computed, input, model, signal, ChangeDetectionStrategy } from '@angular/core';
+import { Component, computed, input, model, signal, ChangeDetectionStrategy, ElementRef, viewChild } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { FieldShellComponent } from '../field-shell/field-shell.component';
+import { type TemplateVariable } from '../rich-text-editor/rich-text-editor.component';
 
 @Component({
   selector: 'shared-input',
@@ -19,6 +20,7 @@ import { FieldShellComponent } from '../field-shell/field-shell.component';
     >
       <div class="relative w-full group">
         <input
+          #inputEl
           [id]="uid"
           [type]="inputType()"
           [placeholder]="placeholder()"
@@ -59,6 +61,19 @@ import { FieldShellComponent } from '../field-shell/field-shell.component';
 
         @if (suffixCount() > 0) {
           <div class="absolute right-0 top-0 bottom-0 flex items-center gap-1 pr-2 z-10">
+
+            @if (hasVariables()) {
+              <button
+                type="button"
+                (click)="toggleVariableDropdown($event)"
+                class="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors cursor-pointer touch-manipulation
+                       hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
+                aria-label="Variabele invoegen"
+                tabindex="-1"
+              >
+                <svg viewBox="0 0 18 18" class="h-4 w-4"><text x="1" y="14" font-size="12" font-family="sans-serif" font-weight="600" fill="currentColor">{{ '{' }}x{{ '}' }}</text></svg>
+              </button>
+            }
             
             @if (showPasswordToggle()) {
               <button
@@ -100,8 +115,26 @@ import { FieldShellComponent } from '../field-shell/field-shell.component';
             }
           </div>
         }
+
+        @if (hasVariables() && showVariableDropdown()) {
+          <div class="absolute right-0 top-full mt-1 z-1000 min-w-65 max-h-70 overflow-y-auto bg-white border border-zinc-200 rounded-lg shadow-lg py-1"
+               (click)="$event.stopPropagation()">
+            @for (v of variables(); track v.value) {
+              <button type="button"
+                      class="flex items-center justify-between gap-3 w-full px-3.5 py-2 border-none bg-transparent cursor-pointer text-left text-[0.8125rem] text-zinc-900 transition-colors hover:bg-zinc-100"
+                      (click)="insertVariable(v)">
+                <span class="font-medium">{{ v.label }}</span>
+                <code class="font-mono text-xs text-zinc-500 bg-zinc-100 px-1.5 py-0.5 rounded whitespace-nowrap">{{ '{' + '{' + v.value + '}' + '}' }}</code>
+              </button>
+            }
+          </div>
+        }
       </div>
     </shared-field-shell>
+
+    @if (showVariableDropdown()) {
+      <div class="fixed inset-0 z-999" (click)="closeVariableDropdown()"></div>
+    }
   `,
   styles: `
     :host {
@@ -127,9 +160,12 @@ export class InputComponent {
   passwordToggleLabel = input('Toggle password visibility');
   min = input<string | undefined>(undefined);
   max = input<string | undefined>(undefined);
+  variables = input<TemplateVariable[]>([]);
 
   protected readonly isPasswordVisible = signal(false);
+  protected readonly showVariableDropdown = signal(false);
   protected readonly showPasswordToggle = computed(() => this.passwordToggle() && this.type() === 'password');
+  protected readonly hasVariables = computed(() => this.variables().length > 0);
   
   protected readonly showClearButton = computed(() => 
     this.clearable() && !!this.value() && !this.readonly() && !this.disabled()
@@ -137,10 +173,13 @@ export class InputComponent {
 
   protected readonly suffixCount = computed(() => {
     let count = 0;
+    if (this.hasVariables()) count++;
     if (this.showPasswordToggle()) count++;
     if (this.showClearButton()) count++;
     return count;
   });
+
+  private readonly inputElRef = viewChild<ElementRef<HTMLInputElement>>('inputEl');
 
   protected readonly inputType = computed(() => {
     const baseType = this.type();
@@ -167,5 +206,34 @@ export class InputComponent {
   protected togglePasswordVisibility(): void {
     if (this.disabled()) return;
     this.isPasswordVisible.update(visible => !visible);
+  }
+
+  protected toggleVariableDropdown(event: Event): void {
+    event.stopPropagation();
+    this.showVariableDropdown.update(v => !v);
+  }
+
+  protected closeVariableDropdown(): void {
+    this.showVariableDropdown.set(false);
+  }
+
+  protected insertVariable(variable: TemplateVariable): void {
+    this.showVariableDropdown.set(false);
+    const el = this.inputElRef()?.nativeElement;
+    const token = `{{${variable.value}}}`;
+    const current = this.value() ?? '';
+
+    if (el) {
+      const start = el.selectionStart ?? current.length;
+      const end = el.selectionEnd ?? start;
+      this.value.set(current.slice(0, start) + token + current.slice(end));
+      requestAnimationFrame(() => {
+        const pos = start + token.length;
+        el.setSelectionRange(pos, pos);
+        el.focus();
+      });
+    } else {
+      this.value.set(current + token);
+    }
   }
 }

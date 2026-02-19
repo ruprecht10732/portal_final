@@ -271,6 +271,8 @@
       "itemsHintToggle": "Klik op optionele items om ze in- of uit te schakelen",
       "financingDisclaimer": "Deze offerte is onder voorbehoud van financiering. De overeenkomst wordt pas definitief na goedkeuring van de financieringsaanvraag.",
       "askQuestion": "Vraag stellen",
+      "showMore": "Meer lezen",
+      "showLess": "Minder",
       "askQuestionShort": "Stel een vraag →",
       "askSheetTitle": "Vraag stellen over",
       "askSheetPlaceholder": "Typ hier je vraag voor {{organization}}...",

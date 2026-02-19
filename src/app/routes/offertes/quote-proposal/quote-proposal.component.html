@@ -33,9 +33,13 @@
                 <div class="mb-6 flex items-start justify-between">
                   <div class="flex items-center gap-4">
                     <div class="h-16 w-16 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.04),0_2px_8px_-2px_rgba(0,0,0,0.02)]">
-                      <div class="flex h-full w-full items-center justify-center bg-zinc-100 text-xl font-extrabold text-zinc-700">
-                        {{ q.organizationName[0] ?? 'O' }}
-                      </div>
+                      @if (q.logoUrl) {
+                        <img [src]="q.logoUrl" [alt]="q.organizationName" class="h-full w-full object-contain" />
+                      } @else {
+                        <div class="flex h-full w-full items-center justify-center bg-zinc-100 text-xl font-extrabold text-zinc-700">
+                          {{ q.organizationName[0] ?? 'O' }}
+                        </div>
+                      }
                     </div>
                     <div>
                       <h1 class="text-xl font-extrabold tracking-tight text-slate-900 line-clamp-2 sm:text-2xl">{{ q.organizationName }}</h1>
@@ -106,8 +110,16 @@
                 [discountAmountCents]="q.discountAmountCents"
                 [vatBreakdown]="getVatBreakdown()"
                 [totalCents]="q.totalCents"
+                [status]="q.status"
                 [variant]="'mobile'"
               />
+
+              @if (q.notes) {
+                <div class="border-b border-gray-100 bg-white px-5 py-5">
+                  <h3 class="mb-2 text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'offertes.notes' | translate }}</h3>
+                  <div class="text-sm leading-relaxed text-zinc-700 wrap-break-word rich-text" [innerHTML]="q.notes | safeHtml"></div>
+                </div>
+              }
             </main>
               @if (q.financingDisclaimer) {
                 <div class="mx-4 mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
@@ -216,6 +228,7 @@
               [discountAmountCents]="q.discountAmountCents"
               [vatBreakdown]="getVatBreakdown()"
               [totalCents]="q.totalCents"
+              [status]="q.status"
               [variant]="'desktop'"
             />
           </div>
@@ -224,7 +237,7 @@
           @if (q.notes) {
             <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
               <h3 class="mb-2 text-sm font-medium text-zinc-500">{{ 'offertes.notes' | translate }}</h3>
-              <div class="text-sm text-zinc-700 whitespace-pre-wrap" [innerHTML]="q.notes | safeHtml"></div>
+              <div class="text-sm text-zinc-700 wrap-break-word rich-text" [innerHTML]="q.notes | safeHtml"></div>
             </div>
           }
 
