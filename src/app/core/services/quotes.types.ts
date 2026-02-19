@@ -380,6 +380,7 @@ export interface PublicQuoteResponse {
   status: QuoteStatus;
   pricingMode: PricingMode;
   organizationName: string;
+  logoUrl?: string;
   customerName: string;
   subtotalCents: number;
   discountAmountCents: number;

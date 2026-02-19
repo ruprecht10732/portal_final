@@ -193,6 +193,7 @@
                           [value]="card.state.templateSubject"
                           (valueChange)="updateSubject(card.key, $event)"
                           [placeholder]="'organization.settings.workflows.subjectPlaceholder' | translate"
+                          [variables]="variablesForTrigger(selectedAction())"
                         />
 
                         <shared-number-input
@@ -229,6 +230,7 @@
                       [value]="channelSubject('email')"
                       (valueChange)="updateChannelSubject('email', $event)"
                       [placeholder]="'organization.settings.workflows.subjectPlaceholder' | translate"
+                      [variables]="variablesForTrigger(selectedAction())"
                     />
 
                     <shared-number-input
