@@ -105,6 +105,10 @@ export class PartnersService extends BaseCrudService<
 
     return this.http.get<OfferListResponse>(`${this.baseUrl}/offers`, { params: toHttpParams(entries) });
   }
+
+  deleteOffer(offerId: string): Observable<{ message: string }> {
+    return this.http.delete<{ message: string }>(`${this.baseUrl}/offers/${offerId}`);
+  }
   listPartnerOffers(partnerId: string): Observable<ListOffersResponse> {
     return this.http.get<ListOffersResponse>(`${this.baseUrl}/${partnerId}/offers`);
   }

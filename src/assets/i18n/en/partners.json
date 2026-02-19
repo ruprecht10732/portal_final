@@ -308,6 +308,12 @@
       "subtitle": "All work offers within your organization.",
       "ariaLabel": "Work offers data grid",
       "newOffer": "Create offer",
+          "deleteTitle": "Delete offers",
+          "deleteMessage": "Delete {{count}} offer(s)?",
+          "deleteConfirm": "Delete",
+          "deleteCancel": "Cancel",
+          "deleteNotAllowed": "Selected offers cannot be deleted. Only pending, sent, or expired offers can be deleted.",
+          "deleteSkipped": "{{count}} selected offer(s) will be skipped (not deletable).",
       "columns": {
         "partner": "Partner",
         "serviceType": "Service",
@@ -319,7 +325,8 @@
         "createdAt": "Created"
       },
       "errors": {
-        "loadOffers": "Failed to load offers"
+  		"loadOffers": "Failed to load offers",
+  		"deleteOffers": "Failed to delete offers"
       }
     },
     "offersCard": {

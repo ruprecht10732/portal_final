@@ -308,6 +308,12 @@
       "subtitle": "Alle werkaanbiedingen binnen uw organisatie.",
       "ariaLabel": "Werkaanbiedingen gegevensraster",
       "newOffer": "Werkaanbod maken",
+          "deleteTitle": "Werkaanbiedingen verwijderen",
+          "deleteMessage": "{{count}} werkaanbieding(en) verwijderen?",
+          "deleteConfirm": "Verwijderen",
+          "deleteCancel": "Annuleren",
+          "deleteNotAllowed": "Geselecteerde werkaanbiedingen kunnen niet worden verwijderd. Alleen In afwachting, Verstuurd of Verlopen kan worden verwijderd.",
+          "deleteSkipped": "{{count}} geselecteerde werkaanbieding(en) worden overgeslagen (niet verwijderbaar).",
       "columns": {
         "partner": "Partner",
         "serviceType": "Dienst",
@@ -319,7 +325,8 @@
         "createdAt": "Aangemaakt"
       },
       "errors": {
-        "loadOffers": "Kon werkaanbiedingen niet laden"
+		"loadOffers": "Kon werkaanbiedingen niet laden",
+		"deleteOffers": "Kon werkaanbiedingen niet verwijderen"
       }
     },
     "offersCard": {

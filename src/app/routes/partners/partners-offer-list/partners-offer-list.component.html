@@ -41,7 +41,20 @@
     [serverSide]="true"
     [fetchData]="fetchDataFn"
     (dataRequest)="onDataRequest($event)"
+    (deleteRows)="onDeleteRows($event)"
     (rowDoubleClick)="onOfferDoubleClick($event)"
     [ariaLabel]="'partners.offersList.ariaLabel' | translate"
+  />
+
+  <shared-confirm-dialog
+    [isOpen]="isDeleteDialogOpen()"
+    [title]="'partners.offersList.deleteTitle' | translate"
+    [message]="'partners.offersList.deleteMessage' | translate:{count: deleteCount()}"
+    [confirmText]="'partners.offersList.deleteConfirm' | translate"
+    [cancelText]="'partners.offersList.deleteCancel' | translate"
+    confirmVariant="danger"
+    [confirmDisabled]="deleting()"
+    (confirm)="confirmDelete()"
+    (cancelled)="closeDeleteDialog()"
   />
 </shared-page-layout>
