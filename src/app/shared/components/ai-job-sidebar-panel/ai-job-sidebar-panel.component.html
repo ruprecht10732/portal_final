@@ -1,6 +1,8 @@
 <app-right-sidebar [isOpen]="isOpen()" title="AI taken" (closed)="close()">
-  @if (jobs().length === 0) {
-    <div class="px-4 py-4 text-xs text-zinc-600">Geen actieve taken</div>
+  @if (loading()) {
+    <div class="px-4 py-4 text-xs text-zinc-600">Laden...</div>
+  } @else if (jobs().length === 0) {
+    <div class="px-4 py-4 text-xs text-zinc-600">Geen taken</div>
   } @else {
     <ul class="m-0 list-none p-0">
       @for (job of jobs(); track job.jobId) {
@@ -10,7 +12,7 @@
             class="w-full text-left"
             (click)="viewJob(job.jobId, job.quoteId)"
           >
-            <div class="flex items-center justify-between gap-2">
+            <div class="flex items-center justify-between gap-2 pr-8">
               <span class="text-xs font-bold text-zinc-900">Offerte generatie</span>
               <span class="text-[11px] font-semibold uppercase"
                     [class.text-blue-700]="job.status === 'pending' || job.status === 'running'"
@@ -30,12 +32,31 @@
               <div class="mt-2 text-[11px] text-red-600">{{ job.error }}</div>
             }
           </button>
+
+          @if (job.status === 'completed' || job.status === 'failed') {
+            <button
+              type="button"
+              class="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
+              aria-label="Verwijder AI taak"
+              (click)="onDeleteJob($event, job)"
+            >
+              <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+            </button>
+          }
         </li>
       }
     </ul>
   }
 
-  <div rightSidebarFooter class="grid grid-cols-1 gap-3">
+  <div rightSidebarFooter class="grid grid-cols-2 gap-3">
+    <shared-button
+      variant="secondary"
+      [disabled]="!hasCompleted()"
+      (clicked)="onClearCompleted()"
+      ariaLabel="Wis voltooide AI taken"
+    >
+      Voltooide wissen
+    </shared-button>
     <shared-button variant="primary" (clicked)="close()" ariaLabel="Sluit AI taken">
       Sluiten
     </shared-button>

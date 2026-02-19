@@ -1,8 +1,10 @@
 import { DestroyRef, computed, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { catchError, map, Observable, tap, throwError } from 'rxjs';
 import type { GenerateQuoteJobResponse, GenerateQuoteJobStatus } from './quotes.types';
 import { QuotesService } from './quotes.service';
 import { SSEService } from './sse.service';
+import { ToastService } from './toast.service';
 
 export interface AIJobState {
   jobId: string;
@@ -24,6 +26,7 @@ export interface AIJobState {
 export class AIJobService {
   private readonly quotesService = inject(QuotesService);
   private readonly sse = inject(SSEService);
+  private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly trackedStorageKey = 'ai_job_tracked_ids';
   private readonly basePollMs = 5000;
@@ -31,6 +34,7 @@ export class AIJobService {
 
   private readonly jobsState = signal<Record<string, AIJobState>>({});
   private readonly trackedJobIds = signal<string[]>([]);
+  private readonly loadingState = signal(false);
   private pollTimer: ReturnType<typeof setTimeout> | null = null;
   private pollDelayMs = this.basePollMs;
   private visibilityListener: (() => void) | null = null;
@@ -38,6 +42,7 @@ export class AIJobService {
   readonly jobs = computed(() => Object.values(this.jobsState()).sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)));
   readonly activeJobs = computed(() => this.jobs().filter(job => job.status === 'pending' || job.status === 'running'));
   readonly activeCount = computed(() => this.activeJobs().length);
+  readonly loading = this.loadingState.asReadonly();
 
   constructor() {
     this.sse.events
@@ -84,6 +89,76 @@ export class AIJobService {
       }
       this.visibilityListener = null;
     });
+  }
+
+  /** Load the most recent jobs from the server (cross-device persistence). */
+  loadJobs(page = 1, limit = 20): void {
+    this.loadingState.set(true);
+    this.quotesService.listGenerateJobs({ page, limit }).subscribe({
+      next: response => {
+        const byId: Record<string, AIJobState> = {};
+        for (const item of response.items) {
+          byId[item.jobId] = this.mapJob(item);
+        }
+
+        // Merge with any in-flight jobs state (SSE updates, local tracked polling) to avoid regressions.
+        this.jobsState.update(current => ({
+          ...current,
+          ...byId,
+        }));
+
+        this.loadingState.set(false);
+      },
+      error: () => {
+        this.loadingState.set(false);
+      },
+    });
+  }
+
+  delete(jobId: string): Observable<void> {
+    const target = this.jobsState()[jobId];
+    if (!target) {
+      return new Observable<void>(subscriber => {
+        subscriber.next();
+        subscriber.complete();
+      });
+    }
+
+    return this.quotesService.deleteGenerateJob(jobId).pipe(
+      tap(() => {
+        this.jobsState.update(current => {
+          const { [jobId]: _, ...rest } = current;
+          return rest;
+        });
+        this.removeTrackedJob(jobId);
+      }),
+      catchError(error => {
+        this.toast.error('Kon AI taak niet verwijderen');
+        return throwError(() => error);
+      }),
+      map(() => undefined),
+    );
+  }
+
+  clearCompleted(): Observable<void> {
+    return this.quotesService.clearCompletedGenerateJobs().pipe(
+      tap(() => {
+        this.jobsState.update(current => {
+          const next: Record<string, AIJobState> = {};
+          for (const [id, job] of Object.entries(current)) {
+            if (job.status !== 'completed') {
+              next[id] = job;
+            }
+          }
+          return next;
+        });
+      }),
+      catchError(error => {
+        this.toast.error('Kon voltooide AI taken niet wissen');
+        return throwError(() => error);
+      }),
+      map(() => undefined),
+    );
   }
 
   job(jobId: string | null): AIJobState | null {

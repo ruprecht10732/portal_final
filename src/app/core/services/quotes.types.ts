@@ -456,3 +456,9 @@ export interface GenerateQuoteJobResponse {
   updatedAt: string;
   finishedAt?: string;
 }
+
+export interface GenerateQuoteJobsListResponse {
+  items: GenerateQuoteJobResponse[];
+  total: number;
+  page: number;
+}

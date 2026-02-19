@@ -16,6 +16,18 @@
     (cancelled)="cancelConfirmDialog()"
   />
 
+  <!-- Service Type Change Confirmation Dialog -->
+  <shared-confirm-dialog
+    [isOpen]="showServiceTypeConfirmDialog()"
+    title="Confirm Service Type Change"
+    [message]="serviceTypeConfirmMessage()"
+    [confirmText]="'leads.detail.confirmLabel' | translate"
+    [cancelText]="'leads.detail.cancel' | translate"
+    confirmVariant="primary"
+    (confirm)="confirmServiceTypeChange()"
+    (cancelled)="cancelServiceTypeConfirmDialog()"
+  />
+
   <!-- Call Logger Dialog -->
   <shared-call-logger-dialog
     [isOpen]="showCallLoggerDialog()"
@@ -108,11 +120,15 @@
                 </div>
               }
 
-              <shared-input
+              <shared-autocomplete
                 [label]="'leads.detail.manualPartner.searchLabel' | translate"
                 [placeholder]="'leads.detail.manualPartner.searchPlaceholder' | translate"
                 [value]="partnerSearch()"
-                (valueChange)="partnerSearch.set($event)"
+                (valueChange)="onPartnerSearchChange($event); onPartnerSelected($event)"
+                [options]="partnerOptions()"
+                filterMode="manual"
+                [disabled]="partnerSearchLoading()"
+                [hint]="partnerSearchLoading() ? ('common.loading' | translate) : ''"
               />
 
               @if (partnerSearchError()) {
@@ -120,15 +136,6 @@
               }
 
               <div class="flex flex-wrap gap-2">
-                <shared-button
-                  variant="primary"
-                  [fullWidth]="false"
-                  [loading]="partnerSearchLoading()"
-                  [disabled]="partnerSearchLoading() || !partnerSearch().trim()"
-                  (clicked)="searchPartners()"
-                >
-                  {{ 'leads.detail.manualPartner.searchButton' | translate }}
-                </shared-button>
                 <shared-button
                   variant="ghost"
                   [fullWidth]="false"
@@ -139,12 +146,14 @@
                 </shared-button>
               </div>
 
-              <shared-select
-                [label]="'leads.detail.manualPartner.selectLabel' | translate"
-                [options]="partnerOptions()"
-                [value]="selectedPartnerId()"
-                (valueChange)="selectedPartnerId.set($event)"
-                [placeholder]="'common.select' | translate"
+              <shared-number-input
+                [label]="'leads.detail.manualPartner.expiryHoursLabel' | translate"
+                [value]="expiresInHours()"
+                (valueChange)="expiresInHours.set($event ?? 12)"
+                [min]="1"
+                [max]="12"
+                [step]="1"
+                [suffix]="'u'"
               />
 
               @if (offerError()) {
@@ -421,6 +430,9 @@
           [newServiceSource]="newServiceSource()"
           [closeCurrentService]="closeCurrentService()"
           [saving]="saving()"
+          [editingServiceTypeId]="editingServiceTypeId()"
+          [editingServiceType]="editingServiceType()"
+          [savingServiceType]="savingServiceType()"
           (openAdd)="openAddServiceForm()"
           (cancelAdd)="cancelAddService()"
           (addService)="addService()"
@@ -429,6 +441,10 @@
           (newServiceConsumerNoteChange)="newServiceConsumerNote.set($event)"
           (newServiceSourceChange)="newServiceSource.set($event)"
           (closeCurrentServiceChange)="closeCurrentService.set($event)"
+          (startEditServiceType)="startEditServiceType($event)"
+          (cancelEditServiceType)="cancelEditServiceType()"
+          (saveServiceType)="saveServiceTypeHandler()"
+          (editingServiceTypeChange)="editingServiceType.set($event)"
         />
       </div>
 
@@ -475,44 +491,41 @@
                   </div>
                 }
 
-                <shared-input
-                  [label]="'leads.detail.manualPartner.searchLabel' | translate"
-                  [placeholder]="'leads.detail.manualPartner.searchPlaceholder' | translate"
-                  [value]="partnerSearch()"
-                  (valueChange)="partnerSearch.set($event)"
-                />
+                  <shared-autocomplete
+                    [label]="'leads.detail.manualPartner.searchLabel' | translate"
+                    [placeholder]="'leads.detail.manualPartner.searchPlaceholder' | translate"
+                    [value]="partnerSearch()"
+                    (valueChange)="onPartnerSearchChange($event); onPartnerSelected($event)"
+                    [options]="partnerOptions()"
+                    filterMode="manual"
+                    [disabled]="partnerSearchLoading()"
+                    [hint]="partnerSearchLoading() ? ('common.loading' | translate) : ''"
+                  />
 
                 @if (partnerSearchError()) {
                   <div class="text-sm text-red-600">{{ partnerSearchError() }}</div>
                 }
 
-                <div class="flex flex-wrap gap-2">
-                  <shared-button
-                    variant="primary"
-                    [fullWidth]="false"
-                    [loading]="partnerSearchLoading()"
-                    [disabled]="partnerSearchLoading() || !partnerSearch().trim()"
-                    (clicked)="searchPartners()"
-                  >
-                    {{ 'leads.detail.manualPartner.searchButton' | translate }}
-                  </shared-button>
-                  <shared-button
-                    variant="ghost"
-                    [fullWidth]="false"
-                    [disabled]="partnerSearchLoading()"
-                    (clicked)="clearPartnerSearch()"
-                  >
-                    {{ 'common.reset' | translate }}
-                  </shared-button>
-                </div>
+                  <div class="flex flex-wrap gap-2">
+                    <shared-button
+                      variant="ghost"
+                      [fullWidth]="false"
+                      [disabled]="partnerSearchLoading()"
+                      (clicked)="clearPartnerSearch()"
+                    >
+                      {{ 'common.reset' | translate }}
+                    </shared-button>
+                  </div>
 
-                <shared-select
-                  [label]="'leads.detail.manualPartner.selectLabel' | translate"
-                  [options]="partnerOptions()"
-                  [value]="selectedPartnerId()"
-                  (valueChange)="selectedPartnerId.set($event)"
-                  [placeholder]="'common.select' | translate"
-                />
+                  <shared-number-input
+                    [label]="'leads.detail.manualPartner.expiryHoursLabel' | translate"
+                    [value]="expiresInHours()"
+                    (valueChange)="expiresInHours.set($event ?? 12)"
+                    [min]="1"
+                    [max]="12"
+                    [step]="1"
+                    [suffix]="'u'"
+                  />
 
                 @if (offerError()) {
                   <div class="text-sm text-red-600">{{ offerError() }}</div>
@@ -573,6 +586,9 @@
             [newServiceSource]="newServiceSource()"
             [closeCurrentService]="closeCurrentService()"
             [saving]="saving()"
+            [editingServiceTypeId]="editingServiceTypeId()"
+            [editingServiceType]="editingServiceType()"
+            [savingServiceType]="savingServiceType()"
             (openAdd)="openAddServiceForm()"
             (cancelAdd)="cancelAddService()"
             (addService)="addService()"
@@ -581,6 +597,10 @@
             (newServiceConsumerNoteChange)="newServiceConsumerNote.set($event)"
             (newServiceSourceChange)="newServiceSource.set($event)"
             (closeCurrentServiceChange)="closeCurrentService.set($event)"
+            (startEditServiceType)="startEditServiceType($event)"
+            (cancelEditServiceType)="cancelEditServiceType()"
+            (saveServiceType)="saveServiceTypeHandler()"
+            (editingServiceTypeChange)="editingServiceType.set($event)"
           />
 
           <app-lead-detail-info-cards

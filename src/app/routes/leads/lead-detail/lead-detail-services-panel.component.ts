@@ -24,6 +24,11 @@ export class LeadDetailServicesPanelComponent {
   closeCurrentService = input<boolean>(true);
   saving = input<boolean>(false);
 
+  // Service type editing
+  editingServiceTypeId = input<string | null>(null);
+  editingServiceType = input<string | null>(null);
+  savingServiceType = input(false);
+
   openAdd = output<void>();
   cancelAdd = output<void>();
   addService = output<void>();
@@ -32,4 +37,10 @@ export class LeadDetailServicesPanelComponent {
   newServiceConsumerNoteChange = output<string>();
   newServiceSourceChange = output<string>();
   closeCurrentServiceChange = output<boolean>();
+
+  // Service type editing outputs
+  startEditServiceType = output<LeadService>();
+  cancelEditServiceType = output<void>();
+  saveServiceType = output<void>();
+  editingServiceTypeChange = output<string | null>();
 }

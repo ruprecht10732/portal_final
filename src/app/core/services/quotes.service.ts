@@ -20,6 +20,7 @@ import type {
   GenerateQuoteRequest,
   GenerateQuoteAcceptedResponse,
   GenerateQuoteJobResponse,
+  GenerateQuoteJobsListResponse,
   ExternalAccountingProvider,
   ProviderIntegrationStatusResponse,
   MoneybirdAuthorizeURLResponse,
@@ -76,6 +77,11 @@ export class QuotesService {
   /** Update the status of a quote */
   updateStatus(id: string, status: QuoteStatus): Observable<QuoteResponse> {
     return this.http.patch<QuoteResponse>(`${this.baseUrl}/${id}/status`, { status });
+  }
+
+  /** Link/replace the lead service for a quote (used for Accepted quotes that are otherwise immutable). */
+  setLeadServiceId(id: string, leadServiceId: string): Observable<QuoteResponse> {
+    return this.http.patch<QuoteResponse>(`${this.baseUrl}/${id}/lead-service`, { leadServiceId });
   }
 
   /** Delete a quote */
@@ -149,6 +155,25 @@ export class QuotesService {
     );
   }
 
+  /** List async quote generation jobs for the current user */
+  listGenerateJobs(params: { page?: number; limit?: number } = {}): Observable<GenerateQuoteJobsListResponse> {
+    return this.http.get<unknown>(`${this.baseUrl}/generate-jobs`, {
+      params: toHttpParams(params),
+    }).pipe(
+      map((response) => this.normalizeGenerateJobsListResponse(response)),
+    );
+  }
+
+  /** Delete a finished (completed/failed) async quote generation job */
+  deleteGenerateJob(jobId: string): Observable<{ status: string }> {
+    return this.http.delete<{ status: string }>(`${this.baseUrl}/generate-jobs/${jobId}`);
+  }
+
+  /** Clear all completed async quote generation jobs for the current user */
+  clearCompletedGenerateJobs(): Observable<{ status: string; deleted: number }> {
+    return this.http.delete<{ status: string; deleted: number }>(`${this.baseUrl}/generate-jobs/completed`);
+  }
+
   getProviderIntegrationStatus(provider: ExternalAccountingProvider): Observable<ProviderIntegrationStatusResponse> {
     return this.http.get<ProviderIntegrationStatusResponse>(`${this.baseUrl}/integrations/${provider}/status`);
   }
@@ -217,6 +242,23 @@ export class QuotesService {
     if (finishedAt !== undefined) normalized.finishedAt = finishedAt;
 
     return normalized;
+  }
+
+  private normalizeGenerateJobsListResponse(input: unknown): GenerateQuoteJobsListResponse {
+    const source = (input ?? {}) as Record<string, unknown>;
+    const itemsSource = source['items'];
+    const totalSource = source['total'];
+    const pageSource = source['page'];
+
+    const items: GenerateQuoteJobResponse[] = Array.isArray(itemsSource)
+      ? itemsSource.map(item => this.normalizeGenerateJobResponse(item))
+      : [];
+
+    return {
+      items,
+      total: typeof totalSource === 'number' ? totalSource : items.length,
+      page: typeof pageSource === 'number' ? pageSource : 1,
+    };
   }
 
   private normalizeGenerateStatus(value: string | undefined): GenerateQuoteAcceptedResponse['status'] {

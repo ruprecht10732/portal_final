@@ -1,8 +1,8 @@
-import { ChangeDetectionStrategy, Component, computed, effect, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
-import { toSignal } from '@angular/core/rxjs-interop';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { catchError, finalize, firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
+import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, finalize, firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
@@ -33,6 +33,8 @@ import type { UserProfile } from '../../../core/services/user.types';
 import { CardComponent } from '../../../shared/components/card/card.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
+import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
 import { SelectComponent } from '../../../shared/components/select/select.component';
 import { type SelectOption } from '../../../shared/components/select/select.component';
 import type { ChipVariant } from '../../../shared/components/chip/chip.component';
@@ -53,7 +55,6 @@ import { LeadDetailTabsShellComponent } from './lead-detail-tabs-shell.component
 import { LeadDetailTopSectionComponent } from './lead-detail-top-section.component';
 import { LeadDetailTimelineTabComponent } from './lead-detail-timeline-tab.component';
 import { TIMEOUT_MS } from '../../../core/config';
-import { InputComponent } from '../../../shared/components/input/input.component';
 
 type WhatsAppMessageStatus = 'sent' | 'draft' | 'failed';
 
@@ -132,7 +133,7 @@ interface TimelineContactMessage {
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, InputComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, SelectComponent, TranslatePipe],
+  imports: [ButtonComponent, CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, AutocompleteComponent, NumberInputComponent, SelectComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -147,6 +148,9 @@ export class LeadDetailComponent implements OnInit {
   private readonly reporter = inject(ErrorReportingService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+  private readonly destroyRef = inject(DestroyRef);
+
+  private readonly partnerSearch$ = new Subject<string>();
   private readonly lang = toSignal(this.translate.onLangChange, {
     initialValue: { lang: 'en', translations: {} },
   });
@@ -353,6 +357,8 @@ export class LeadDetailComponent implements OnInit {
   protected readonly partnerResults = signal<Partner[]>([]);
   protected readonly selectedPartnerId = signal<string | null>(null);
 
+  protected readonly expiresInHours = signal<number>(12);
+
   protected readonly offerCreating = signal(false);
   protected readonly offerError = signal<string | null>(null);
   protected readonly createdOfferToken = signal<string | null>(null);
@@ -364,7 +370,7 @@ export class LeadDetailComponent implements OnInit {
     return this.partnerResults().find(p => p.id === id) ?? null;
   });
 
-  protected readonly partnerOptions = computed<SelectOption<string>[]>(() =>
+  protected readonly partnerOptions = computed<AutocompleteOption[]>(() =>
     (this.partnerResults() ?? []).map(p => ({ value: p.id, label: `${p.businessName} — ${p.city}` }))
   );
 
@@ -556,6 +562,38 @@ export class LeadDetailComponent implements OnInit {
   private loadedAnalysisServiceId: string | null = null;
 
   constructor() {
+    this.partnerSearch$
+      .pipe(
+        debounceTime(350),
+        distinctUntilChanged(),
+        takeUntilDestroyed(this.destroyRef),
+        switchMap((query) => {
+          const trimmed = query.trim();
+          if (trimmed.length < 2) {
+            this.partnerResults.set([]);
+            this.partnerSearchLoading.set(false);
+            this.partnerSearchError.set(null);
+            return EMPTY;
+          }
+
+          this.partnerSearchLoading.set(true);
+          this.partnerSearchError.set(null);
+          return this.partnersService.list({ search: trimmed, page: 1, pageSize: 10, sortBy: 'businessName', sortOrder: 'asc' });
+        }),
+      )
+      .subscribe({
+        next: (response) => {
+          this.partnerResults.set(response.items ?? []);
+          this.partnerSearchLoading.set(false);
+        },
+        error: (err) => {
+          const message = extractErrorMessage(err, this.translate.instant('leads.detail.manualPartner.errors.searchPartners'));
+          this.partnerSearchError.set(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+          this.partnerSearchLoading.set(false);
+        },
+      });
+
     // Effect to reload AI analysis when selected service changes
     effect(() => {
       const lead = this.lead();
@@ -972,11 +1010,27 @@ export class LeadDetailComponent implements OnInit {
       });
   }
 
+  protected onPartnerSearchChange(value: string): void {
+    this.partnerSearch.set(value);
+    this.selectedPartnerId.set(null);
+    this.createdOfferToken.set(null);
+    this.createdOfferVakmanPriceCents.set(null);
+    this.offerError.set(null);
+    this.partnerSearch$.next(value);
+  }
+
+  protected onPartnerSelected(value: string): void {
+    const opt = this.partnerOptions().find(o => o.label === value);
+    if (!opt) return;
+    this.selectedPartnerId.set(opt.value);
+  }
+
   protected clearPartnerSearch(): void {
     this.partnerSearch.set('');
     this.partnerSearchError.set(null);
     this.partnerResults.set([]);
     this.selectedPartnerId.set(null);
+    this.partnerSearchLoading.set(false);
   }
 
   protected createManualOffer(): void {
@@ -985,20 +1039,20 @@ export class LeadDetailComponent implements OnInit {
     const partnerId = this.selectedPartnerId();
     const quote = this.acceptedQuote();
     if (!lead || !service || !partnerId || !quote || this.offerCreating()) return;
+    if (!quote.leadServiceId) {
+      this.offerError.set(this.translate.instant('offertes.partnerOffer.noService'));
+      return;
+    }
 
     this.offerCreating.set(true);
     this.offerError.set(null);
     this.createdOfferToken.set(null);
     this.createdOfferVakmanPriceCents.set(null);
 
+    const expiresInHours = Math.max(1, Math.min(12, Math.floor(this.expiresInHours() || 12)));
+
     this.partnersService
-      .createOffer({
-        partnerId,
-        leadServiceId: service.id,
-        pricingSource: 'quote',
-        customerPriceCents: quote.totalCents,
-        expiresInHours: 48,
-      })
+      .createOfferFromQuote({ partnerId, quoteId: quote.id, expiresInHours })
       .subscribe({
         next: (resp) => {
           this.createdOfferToken.set(resp.publicToken);
@@ -2215,6 +2269,91 @@ export class LeadDetailComponent implements OnInit {
 
   protected maxServiceAttachmentSizeBytes(): number {
     return 100 * 1024 * 1024;
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────────
+  // Service Type Editing
+  // ─────────────────────────────────────────────────────────────────────────────
+
+  protected readonly editingServiceTypeId = signal<string | null>(null);
+  protected readonly editingServiceType = signal<string | null>(null);
+  protected readonly savingServiceType = signal(false);
+
+  // Confirmation dialog for service type change
+  protected readonly showServiceTypeConfirmDialog = signal(false);
+  protected readonly confirmServiceTypeOldValue = signal<string>('');
+  protected readonly confirmServiceTypeNewValue = signal<string>('');
+  protected readonly pendingServiceTypeService = signal<LeadService | null>(null);
+
+  protected readonly serviceTypeConfirmMessage = computed(() => {
+    const oldValue = this.confirmServiceTypeOldValue();
+    const newValue = this.confirmServiceTypeNewValue();
+    return `Change service type from "${oldValue}" to "${newValue}"?`;
+  });
+
+  protected startEditServiceType(service: LeadService): void {
+    this.editingServiceTypeId.set(service.id);
+    this.editingServiceType.set(service.serviceType);
+  }
+
+  protected cancelEditServiceType(): void {
+    this.editingServiceTypeId.set(null);
+    this.editingServiceType.set(null);
+  }
+
+  protected confirmServiceTypeChange(): void {
+    const service = this.pendingServiceTypeService();
+    const newType = this.confirmServiceTypeNewValue();
+    if (!service || !newType) return;
+
+    this.saveServiceTypeInternal(service, newType);
+    this.cancelServiceTypeConfirmDialog();
+  }
+
+  protected cancelServiceTypeConfirmDialog(): void {
+    this.showServiceTypeConfirmDialog.set(false);
+    this.confirmServiceTypeOldValue.set('');
+    this.confirmServiceTypeNewValue.set('');
+    this.pendingServiceTypeService.set(null);
+  }
+
+  protected saveServiceTypeHandler(): void {
+    const lead = this.lead();
+    const serviceId = this.editingServiceTypeId();
+    const newType = this.editingServiceType();
+    if (!lead || !serviceId || !newType) return;
+
+    const service = lead.services.find(s => s.id === serviceId);
+    if (!service) return;
+
+    // Show confirmation dialog
+    this.pendingServiceTypeService.set(service);
+    this.confirmServiceTypeOldValue.set(service.serviceType);
+    this.confirmServiceTypeNewValue.set(newType);
+    this.showServiceTypeConfirmDialog.set(true);
+  }
+
+  private saveServiceTypeInternal(service: LeadService, newType: string): void {
+    const lead = this.lead();
+    if (!lead) return;
+
+    this.savingServiceType.set(true);
+    this.leadsService.updateServiceType(lead.id, service.id, { serviceType: newType }).subscribe({
+      next: (updated) => {
+        this.lead.set(updated);
+        this.cancelEditServiceType();
+        this.savingServiceType.set(false);
+        this.announce(`Service type updated to ${newType}`);
+        // Reload timeline to show the change
+        this.loadTimeline(lead.id, service.id);
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, 'Failed to update service type');
+        this.error.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.savingServiceType.set(false);
+      },
+    });
   }
 }
 
