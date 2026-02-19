@@ -2,11 +2,12 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { ActivatedRoute, RouterLink } from '@angular/router';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { map } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 @Component({
   selector: 'auth-check-email',
-  imports: [RouterLink, ButtonComponent],
+  imports: [RouterLink, TranslatePipe, ButtonComponent],
   templateUrl: './check-email.component.html',
   styleUrl: './check-email.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -16,6 +17,7 @@ export class CheckEmailComponent {
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly route = inject(ActivatedRoute);
+  private readonly translate = inject(TranslateService);
   private intervalId: number | null = null;
 
   protected readonly mode = toSignal(
@@ -24,19 +26,21 @@ export class CheckEmailComponent {
   );
 
   protected readonly title = computed(() =>
-    this.mode() === 'reset' ? 'Check your inbox' : 'Confirm your email'
+    this.mode() === 'reset'
+      ? this.translate.instant('auth.checkEmail.titleReset')
+      : this.translate.instant('auth.checkEmail.titleSignup')
   );
 
   protected readonly message = computed(() =>
     this.mode() === 'reset'
-      ? 'We sent a password reset link. Follow the email to set a new password.'
-      : 'We sent a verification link. Follow the email to activate your account.'
+      ? this.translate.instant('auth.checkEmail.messageReset')
+      : this.translate.instant('auth.checkEmail.messageSignup')
   );
 
   protected readonly resendLabel = computed(() => {
-    if (this.cooldown() === 0) return 'Resend email';
-    const seconds = this.cooldown();
-    return `Resend in 0:${seconds.toString().padStart(2, '0')}`;
+    if (this.cooldown() === 0) return this.translate.instant('auth.checkEmail.resend');
+    const seconds = this.cooldown().toString().padStart(2, '0');
+    return this.translate.instant('auth.checkEmail.resendCooldown', { seconds });
   });
 
   constructor() {

@@ -3,61 +3,61 @@
     <div class="w-full max-w-md bg-white border border-zinc-200 p-6 sm:p-8 space-y-6 text-left">
       @if (isMissing()) {
         <header class="space-y-2">
-          <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Invalid link</p>
-          <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Verification failed</h1>
-          <p class="text-sm text-zinc-500">Your verification link is missing or invalid.</p>
+          <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">{{ 'auth.verifyEmail.missing.eyebrow' | translate }}</p>
+          <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">{{ 'auth.verifyEmail.missing.title' | translate }}</h1>
+          <p class="text-sm text-zinc-500">{{ 'auth.verifyEmail.missing.subtitle' | translate }}</p>
         </header>
         <div class="border border-red-200 bg-red-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-red-600">
-          Please request a new verification email.
+          {{ 'auth.verifyEmail.missing.banner' | translate }}
         </div>
-        <shared-button routerLink="/check-email" ariaLabel="Request verification email">
-          Request new email
+        <shared-button routerLink="/check-email" [ariaLabel]="'auth.verifyEmail.missing.requestButtonAriaLabel' | translate">
+          {{ 'auth.verifyEmail.missing.requestButton' | translate }}
         </shared-button>
       } @else if (isExpired()) {
         <header class="space-y-2">
-          <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Link expired</p>
-          <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Verification expired</h1>
-          <p class="text-sm text-zinc-500">Your verification link expired. Request a new one.</p>
+          <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">{{ 'auth.verifyEmail.expired.eyebrow' | translate }}</p>
+          <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">{{ 'auth.verifyEmail.expired.title' | translate }}</h1>
+          <p class="text-sm text-zinc-500">{{ 'auth.verifyEmail.expired.subtitle' | translate }}</p>
         </header>
         <div class="border border-amber-200 bg-amber-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-amber-600">
-          For security, links only work for a limited time.
+          {{ 'auth.verifyEmail.expired.banner' | translate }}
         </div>
-        <shared-button routerLink="/check-email" ariaLabel="Request new verification email">
-          Request new email
+        <shared-button routerLink="/check-email" [ariaLabel]="'auth.verifyEmail.expired.requestButtonAriaLabel' | translate">
+          {{ 'auth.verifyEmail.expired.requestButton' | translate }}
         </shared-button>
       } @else {
         @if (isVerifying()) {
           <header class="space-y-2">
-            <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">Please wait</p>
-            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Verifying email</h1>
-            <p class="text-sm text-zinc-500">We are confirming your email address.</p>
+            <p class="text-[10px] uppercase tracking-[0.35em] text-zinc-400 font-semibold">{{ 'auth.verifyEmail.verifying.eyebrow' | translate }}</p>
+            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">{{ 'auth.verifyEmail.verifying.title' | translate }}</h1>
+            <p class="text-sm text-zinc-500">{{ 'auth.verifyEmail.verifying.subtitle' | translate }}</p>
           </header>
           <div class="border border-zinc-200 bg-zinc-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-zinc-600">
-            This usually takes a few seconds.
+            {{ 'auth.verifyEmail.verifying.banner' | translate }}
           </div>
         } @else if (globalError()) {
           <header class="space-y-2">
-            <p class="text-[10px] uppercase tracking-[0.35em] text-red-500 font-semibold">Verification failed</p>
-            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">We could not verify</h1>
-            <p class="text-sm text-zinc-500">Please request a new verification email.</p>
+            <p class="text-[10px] uppercase tracking-[0.35em] text-red-500 font-semibold">{{ 'auth.verifyEmail.error.eyebrow' | translate }}</p>
+            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">{{ 'auth.verifyEmail.error.title' | translate }}</h1>
+            <p class="text-sm text-zinc-500">{{ 'auth.verifyEmail.error.subtitle' | translate }}</p>
           </header>
           <div class="border border-red-200 bg-red-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-red-600">
             {{ globalError() }}
           </div>
-          <shared-button routerLink="/check-email" ariaLabel="Request new verification email">
-            Request new email
+          <shared-button routerLink="/check-email" [ariaLabel]="'auth.verifyEmail.error.requestButtonAriaLabel' | translate">
+            {{ 'auth.verifyEmail.error.requestButton' | translate }}
           </shared-button>
         } @else if (isVerified()) {
           <header class="space-y-2">
-            <p class="text-[10px] uppercase tracking-[0.35em] text-emerald-500 font-semibold">Success</p>
-            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">Email verified</h1>
-            <p class="text-sm text-zinc-500">Your account is ready to use.</p>
+            <p class="text-[10px] uppercase tracking-[0.35em] text-emerald-500 font-semibold">{{ 'auth.verifyEmail.success.eyebrow' | translate }}</p>
+            <h1 class="text-2xl sm:text-3xl font-bold uppercase tracking-tight">{{ 'auth.verifyEmail.success.title' | translate }}</h1>
+            <p class="text-sm text-zinc-500">{{ 'auth.verifyEmail.success.subtitle' | translate }}</p>
           </header>
           <div class="border border-emerald-200 bg-emerald-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-emerald-600">
-            You can now sign in with your credentials.
+            {{ 'auth.verifyEmail.success.banner' | translate }}
           </div>
-          <shared-button routerLink="/sign-in" ariaLabel="Go to login">
-            Go to login
+          <shared-button routerLink="/sign-in" [ariaLabel]="'auth.verifyEmail.success.goToLoginAriaLabel' | translate">
+            {{ 'auth.verifyEmail.success.goToLogin' | translate }}
           </shared-button>
         }
       }

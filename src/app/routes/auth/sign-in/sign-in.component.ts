@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { Router, RouterLink } from '@angular/router';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { EMPTY, catchError, finalize, map, of, switchMap } from 'rxjs';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
@@ -14,7 +15,7 @@ import { getEmailError, getPasswordMinLengthError } from '../../../core/utils/au
 
 @Component({
   selector: 'auth-sign-in',
-  imports: [RouterLink, ButtonComponent, InputComponent],
+  imports: [RouterLink, TranslatePipe, ButtonComponent, InputComponent],
   templateUrl: './sign-in.component.html',
   styleUrl: './sign-in.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -30,10 +31,17 @@ export class SignInComponent {
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
+  private readonly translate = inject(TranslateService);
 
-  protected readonly emailError = computed(() => getEmailError(this.email()));
+  protected readonly emailError = computed(() => {
+    const raw = getEmailError(this.email());
+    return raw ? this.translate.instant('auth.form.emailError') : '';
+  });
 
-  protected readonly passwordError = computed(() => getPasswordMinLengthError(this.password(), MIN_LENGTH.password));
+  protected readonly passwordError = computed(() => {
+    const raw = getPasswordMinLengthError(this.password(), MIN_LENGTH.password);
+    return raw ? this.translate.instant('auth.form.passwordError', { minLength: MIN_LENGTH.password }) : '';
+  });
 
   protected readonly canSubmit = computed(() =>
     !this.isSubmitting() && !!this.email() && !!this.password() && !this.emailError() && !this.passwordError()
