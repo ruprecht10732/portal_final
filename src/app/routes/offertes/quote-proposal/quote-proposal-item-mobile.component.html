@@ -23,11 +23,13 @@
             [class.line-clamp-3]="!expanded()"
             [innerHTML]="item().description | safeHtml"
           ></div>
-          <button
-            type="button"
-            class="mt-1 text-[12px] font-semibold text-blue-600"
-            (click)="toggleExpand()"
-          >{{ expanded() ? ('offertes.proposal.showLess' | translate) : ('offertes.proposal.showMore' | translate) }}</button>
+          @if (isClamped() || expanded()) {
+            <button
+              type="button"
+              class="mt-1 text-[12px] font-semibold text-blue-600"
+              (click)="toggleExpand()"
+            >{{ expanded() ? ('offertes.proposal.showLess' | translate) : ('offertes.proposal.showMore' | translate) }}</button>
+          }
           @if (item().isOptional) {
             <span class="mt-1 inline-block rounded bg-amber-100 px-2 py-0.5 text-[9px] font-black uppercase tracking-widest text-amber-700">
               {{ 'offertes.optional' | translate }}

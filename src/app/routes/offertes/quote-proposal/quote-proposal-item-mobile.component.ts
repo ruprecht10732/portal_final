@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output, signal } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 
 import type { AnnotationResponse, PublicQuoteItemResponse, PricingMode } from '../../../core/services/quotes.types';
@@ -29,6 +29,12 @@ export class QuoteProposalItemMobileComponent {
   readonly requestRemove = output<AnnotationResponse>();
 
   protected expanded = signal(false);
+  protected isClamped = computed(() => {
+    const desc = this.item().description;
+    if (!desc) return false;
+    const text = desc.replaceAll(/<[^>]*>/g, '');
+    return text.length > 120;
+  });
 
   protected toggleExpand(): void {
     this.expanded.update(v => !v);
