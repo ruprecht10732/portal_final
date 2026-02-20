@@ -381,8 +381,8 @@ export class OrganizationService {
     );
   }
 
-  getLeadWorkflowOverride(leadId: string): Observable<LeadWorkflowOverride> {
-    return this.http.get<LeadWorkflowOverride>(`${this.baseUrl}/me/workflow-engine/leads/${leadId}/override`);
+  getLeadWorkflowOverride(leadId: string): Observable<LeadWorkflowOverride | null> {
+    return this.http.get<LeadWorkflowOverride | null>(`${this.baseUrl}/me/workflow-engine/leads/${leadId}/override`);
   }
 
   upsertLeadWorkflowOverride(leadId: string, payload: UpsertLeadWorkflowOverrideRequest): Observable<LeadWorkflowOverride> {
