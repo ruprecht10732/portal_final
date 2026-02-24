@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, input, OnInit, output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -8,7 +8,7 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
-import type { CreateAppointmentRequest, AppointmentType } from '../../../core/services/appointments.types';
+import type { AppointmentResponse, CreateAppointmentRequest, AppointmentType } from '../../../core/services/appointments.types';
 import { LeadsService } from '../../../core/services/leads.service';
 import type { Lead, LeadService } from '../../../core/services/leads.types';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
@@ -40,6 +40,12 @@ export class AppointmentFormComponent implements OnInit {
 
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
+  readonly isModal = input(false);
+  readonly initialDate = input<string | undefined>(undefined);
+  readonly initialTime = input<number | undefined>(undefined);
+  readonly initialLeadId = input<string | undefined>(undefined);
+  readonly formCreated = output<AppointmentResponse>();
+  readonly formCancelled = output<void>();
 
   protected readonly typeOptions: SelectOption<AppointmentType>[] = [
     { value: 'lead_visit', label: 'Lead Visit' },
@@ -96,10 +102,10 @@ export class AppointmentFormComponent implements OnInit {
 
   ngOnInit(): void {
     // Pre-fill from query params if provided (from calendar slot click)
-    const queryParams = this.route.snapshot.queryParams;
-    if (queryParams['date']) {
-      const date = queryParams['date'];
-      const time = queryParams['time'] ? Number.parseInt(queryParams['time'], 10) : 9 * 60;
+    const date = this.isModal() ? this.initialDate() : this.route.snapshot.queryParams['date'];
+    const timeParam = this.isModal() ? this.initialTime() : this.route.snapshot.queryParams['time'];
+    if (date) {
+      const time = typeof timeParam === 'number' ? timeParam : (timeParam ? Number.parseInt(String(timeParam), 10) : 9 * 60);
       
       const startDate = new Date(date);
       startDate.setHours(Math.floor(time / 60), time % 60, 0, 0);
@@ -121,7 +127,7 @@ export class AppointmentFormComponent implements OnInit {
     }
 
     // Check for leadId in query params (from lead profile page)
-    const leadId = queryParams['leadId'];
+    const leadId = this.isModal() ? this.initialLeadId() : this.route.snapshot.queryParams['leadId'];
     if (leadId) {
       this.type.set('lead_visit');
       this.loadLead(leadId);
@@ -292,6 +298,10 @@ export class AppointmentFormComponent implements OnInit {
 
     this.appointmentsService.create(data).subscribe({
       next: (created) => {
+        if (this.isModal()) {
+          this.formCreated.emit(created);
+          return;
+        }
         this.router.navigate(['/app/appointments', created.id]);
       },
       error: (err) => {
@@ -307,6 +317,10 @@ export class AppointmentFormComponent implements OnInit {
   }
 
   protected goBack(): void {
+    if (this.isModal()) {
+      this.formCancelled.emit();
+      return;
+    }
     this.router.navigate(['/app/appointments']);
   }
 

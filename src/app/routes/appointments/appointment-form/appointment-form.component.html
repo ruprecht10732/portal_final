@@ -1,9 +1,11 @@
 <div class="flex flex-col w-full h-full pb-16 sm:pb-0">
-  <shared-page-header
-    [title]="'appointments.form.title' | translate"
-    [backAriaLabel]="'common.back' | translate"
-    (back)="goBack()"
-  ></shared-page-header>
+  @if (!isModal()) {
+    <shared-page-header
+      [title]="'appointments.form.title' | translate"
+      [backAriaLabel]="'common.back' | translate"
+      (back)="goBack()"
+    ></shared-page-header>
+  }
 
   @if (error()) {
     <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
