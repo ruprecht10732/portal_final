@@ -25,6 +25,7 @@ interface SidebarItem {
     | 'dashboard'
     | 'search'
     | 'leads'
+    | 'inbox'
     | 'partners'
     | 'partnerOffers'
     | 'appointments'
@@ -112,6 +113,7 @@ export class AuthenticatedSidebarComponent {
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
       { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
+      { label: 'navigation.inbox', route: '/app/inbox', icon: 'inbox' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.partnerOffers', route: '/app/offers', icon: 'partnerOffers' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },

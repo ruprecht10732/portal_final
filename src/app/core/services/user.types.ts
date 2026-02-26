@@ -46,3 +46,127 @@ export interface CompleteOnboardingRequest {
   city?: string;
   country?: string;
 }
+
+export interface IMAPAccount {
+  id: string;
+  userId: string;
+  emailAddress: string;
+  imapHost: string;
+  imapPort: number;
+  imapUsername: string;
+  smtpHost?: string | null;
+  smtpPort?: number | null;
+  smtpUsername?: string | null;
+  smtpFromEmail?: string | null;
+  smtpFromName?: string | null;
+  smtpConfigured: boolean;
+  folderName: string;
+  enabled: boolean;
+  lastSyncAt?: string | null;
+  lastError?: string | null;
+  lastErrorAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface CreateIMAPAccountRequest {
+  emailAddress: string;
+  imapHost: string;
+  imapPort: number;
+  imapUsername: string;
+  imapPassword: string;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUsername?: string;
+  smtpPassword?: string;
+  smtpFromEmail?: string;
+  smtpFromName?: string;
+  folderName?: string;
+  enabled?: boolean;
+}
+
+export interface UpdateIMAPAccountRequest {
+  emailAddress?: string;
+  imapHost?: string;
+  imapPort?: number;
+  imapUsername?: string;
+  imapPassword?: string;
+  smtpHost?: string;
+  smtpPort?: number;
+  smtpUsername?: string;
+  smtpPassword?: string;
+  smtpFromEmail?: string;
+  smtpFromName?: string;
+  folderName?: string;
+  enabled?: boolean;
+}
+
+export interface IMAPMessage {
+  id: string;
+  accountId: string;
+  folderName: string;
+  uid: number;
+  messageId?: string | null;
+  fromName?: string | null;
+  fromAddress?: string | null;
+  subject: string;
+  sentAt?: string | null;
+  receivedAt?: string | null;
+  snippet?: string | null;
+  sizeBytes: number;
+  seen: boolean;
+  flagged: boolean;
+  answered: boolean;
+  deleted: boolean;
+  hasAttachments: boolean;
+  syncedAt: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IMAPMessageListResponse {
+  items: IMAPMessage[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+export interface DetectIMAPAccountResponse {
+  detected: boolean;
+  provider?: string;
+  host?: string;
+  port?: number;
+  username?: string;
+  security?: string;
+}
+
+export interface IMAPMessageContent {
+  accountId: string;
+  uid: number;
+  messageId?: string | null;
+  subject: string;
+  fromName?: string | null;
+  fromAddress?: string | null;
+  replyTo?: string[] | null;
+  to?: string[] | null;
+  cc?: string[] | null;
+  sentAt?: string | null;
+  receivedAt?: string | null;
+  bodyHtml?: string | null;
+  bodyText?: string | null;
+}
+
+export interface SendIMAPMessageRequest {
+  to: string[];
+  cc?: string[];
+  subject: string;
+  body: string;
+  isHtml?: boolean;
+  inReplyToUid?: number;
+}
+
+export interface ReplyIMAPMessageRequest {
+  body: string;
+  isHtml?: boolean;
+}

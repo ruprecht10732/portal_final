@@ -14,6 +14,7 @@ type MobileNavIcon =
   | 'dashboard'
   | 'search'
   | 'leads'
+  | 'inbox'
   | 'partners'
   | 'appointments'
   | 'offertes'
@@ -66,6 +67,9 @@ interface MobileNavItem {
                     <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadLeadNotifications() }}</span>
                   }
                 </span>
+              }
+              @case ('inbox') {
+                <lucide-icon name="mail" class="h-5 w-5"></lucide-icon>
               }
               @case ('partners') {
                 <lucide-icon name="briefcase" class="h-5 w-5"></lucide-icon>
@@ -122,6 +126,7 @@ export class AuthenticatedMobileNavComponent {
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
       { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
+      { label: 'navigation.inbox', route: '/app/inbox', icon: 'inbox' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
       { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },

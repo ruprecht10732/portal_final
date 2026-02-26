@@ -2,6 +2,7 @@
   "profile": {
     "personalDetails": "Persoonlijke gegevens",
     "security": "Beveiliging",
+    "emailAccounts": "E-mailaccounts",
     "personal": {
       "title": "Persoonlijke gegevens",
       "subtitle": "Werk je contactgegevens bij.",
@@ -56,6 +57,118 @@
         "minPassword": "Wachtwoord moet minstens {{count}} tekens bevatten",
         "passwordsNoMatch": "Wachtwoorden komen niet overeen",
         "generic": "Er ging iets mis. Probeer het opnieuw."
+      }
+    },
+    "imap": {
+      "title": "IMAP inboxen",
+      "subtitle": "Koppel je mailboxen om metadata te synchroniseren en berichten te beheren.",
+      "connectedAccounts": "Gekoppelde accounts",
+      "messagesTitle": "Berichten",
+      "loadingAccounts": "IMAP-accounts laden...",
+      "loadingMessages": "Berichten laden...",
+      "detectingTitle": "IMAP-instellingen detecteren",
+      "detectingBody": "Providerstandaarden en DNS-records worden gecontroleerd voor deze mailbox.",
+      "detectedTitle": "IMAP-instellingen gedetecteerd",
+      "detectedBody": "Gebruikt {{host}}:{{port}}.",
+      "detectedProvider": "Provider: {{provider}}",
+      "detectFailedTitle": "Automatische detectie onvolledig",
+      "detectFailedBody": "IMAP-instellingen konden niet betrouwbaar worden gedetecteerd. Vul host en poort handmatig in.",
+      "noAccounts": "Nog geen IMAP-accounts gekoppeld.",
+      "noMessages": "Geen berichten beschikbaar voor dit account.",
+      "selectAccountFirst": "Selecteer eerst een account.",
+      "noSubject": "(Geen onderwerp)",
+      "unknownSender": "Onbekende afzender",
+      "smtpNotConfigured": "niet geconfigureerd",
+      "edit": {
+        "title": "Account bewerken",
+        "imapPasswordOptional": "IMAP wachtwoord (leeg laten om huidig te behouden)",
+        "smtpPasswordOptional": "SMTP wachtwoord (leeg laten om huidig te behouden)"
+      },
+      "form": {
+        "emailAddress": "E-mailadres",
+        "host": "IMAP host",
+        "port": "Poort",
+        "username": "Gebruikersnaam",
+        "password": "Wachtwoord",
+        "smtpHost": "SMTP host",
+        "smtpPort": "SMTP poort",
+        "smtpUsername": "SMTP gebruikersnaam",
+        "smtpPassword": "SMTP wachtwoord",
+        "smtpPasswordHint": "Meestal hetzelfde als IMAP wachtwoord. Leeg laten om IMAP wachtwoord te hergebruiken.",
+        "smtpFromEmail": "SMTP afzender e-mail",
+        "smtpFromName": "SMTP afzendernaam",
+        "folder": "Map"
+      },
+      "actions": {
+        "addAccount": "Account toevoegen",
+        "edit": "Bewerken",
+        "save": "Opslaan",
+        "cancel": "Annuleren",
+        "refresh": "Vernieuwen",
+        "test": "Testen",
+        "sync": "Synchroniseren",
+        "delete": "Verwijderen",
+        "deleteMessage": "Bericht verwijderen"
+      },
+      "messages": {
+        "accountSaved": "IMAP-account opgeslagen.",
+        "accountUpdated": "IMAP-account bijgewerkt.",
+        "accountDeleted": "IMAP-account verwijderd.",
+        "testSuccess": "IMAP-verbinding succesvol.",
+        "syncQueued": "IMAP-synchronisatie ingepland.",
+        "messageDeleted": "Bericht verwijderd."
+      },
+      "inbox": {
+        "actions": {
+          "write": "Schrijven",
+          "sync": "Synchroniseren",
+          "syncing": "Synchroniseren...",
+          "archive": "Archief",
+          "settings": "Instellingen",
+          "loadMore": "Meer laden ({{count}})",
+          "reply": "Beantwoorden",
+          "replyAll": "Allen beantwoorden",
+          "markRead": "Markeer gelezen",
+          "markUnread": "Markeer ongelezen",
+          "delete": "Verwijderen",
+          "send": "Verzenden",
+          "sending": "Verzenden..."
+        },
+        "filters": {
+          "unread": "Ongelezen",
+          "all": "Alles"
+        },
+        "labels": {
+          "to": "Aan",
+          "subject": "Onderwerp",
+          "writeReply": "Schrijf je antwoord..."
+        },
+        "states": {
+          "nothingRemains": "Er is niets meer over.",
+          "selectMessage": "Selecteer een bericht om te lezen.",
+          "noPreview": "Geen voorbeeld beschikbaar.",
+          "loadingContent": "Bericht laden..."
+        },
+        "archive": {
+          "findPlaceholder": "Zoeken...",
+          "ariaFind": "Zoek gearchiveerde e-mails"
+        },
+        "messages": {
+          "saved": "Opgeslagen",
+          "sent": "Verzonden"
+        }
+      },
+      "errors": {
+        "loadAccounts": "Laden van IMAP-accounts mislukt.",
+        "saveAccount": "Opslaan van IMAP-account mislukt.",
+        "updateAccount": "Bijwerken van IMAP-account mislukt.",
+        "invalidEditForm": "Vul de verplichte accountvelden in.",
+        "deleteAccount": "Verwijderen van IMAP-account mislukt.",
+        "testAccount": "IMAP-verbindingstest mislukt.",
+        "syncAccount": "Synchroniseren van IMAP-account mislukt.",
+        "loadMessages": "Laden van berichten mislukt.",
+        "sendMessage": "Verzenden van bericht mislukt.",
+        "deleteMessage": "Verwijderen van bericht mislukt."
       }
     }
   }

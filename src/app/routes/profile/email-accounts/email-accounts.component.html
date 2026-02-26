@@ -1,0 +1,197 @@
+<section class="w-full space-y-6 bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm">
+  <div class="space-y-1">
+    <h3 class="text-lg font-semibold text-zinc-900">{{ 'profile.imap.title' | translate }}</h3>
+    <p class="text-sm text-zinc-500">{{ 'profile.imap.subtitle' | translate }}</p>
+  </div>
+
+  <div class="grid gap-4 sm:grid-cols-2">
+    <shared-input [label]="'profile.imap.form.emailAddress' | translate" [value]="formEmailAddress()" (valueChange)="formEmailAddress.set($event)" [required]="true" />
+    <shared-input [label]="'profile.imap.form.host' | translate" [value]="formHost()" (valueChange)="formHost.set($event)" [required]="true" />
+    <shared-input
+      [label]="'profile.imap.form.port' | translate"
+      type="number"
+      [value]="'' + formPort()"
+      (valueChange)="formPort.set(+$event || 0)"
+      [required]="true"
+    />
+    <shared-input [label]="'profile.imap.form.username' | translate" [value]="formUsername()" (valueChange)="formUsername.set($event)" [required]="true" />
+    <shared-input
+      [label]="'profile.imap.form.password' | translate"
+      type="password"
+      [value]="formPassword()"
+      (valueChange)="formPassword.set($event)"
+      [required]="true"
+      [passwordToggle]="true"
+    />
+    <shared-input [label]="'profile.imap.form.smtpHost' | translate" [value]="formSmtpHost()" (valueChange)="formSmtpHost.set($event)" />
+    <shared-input
+      [label]="'profile.imap.form.smtpPort' | translate"
+      type="number"
+      [value]="'' + formSmtpPort()"
+      (valueChange)="formSmtpPort.set(+$event || 0)"
+      [required]="true"
+    />
+    <shared-input [label]="'profile.imap.form.smtpUsername' | translate" [value]="formSmtpUsername()" (valueChange)="formSmtpUsername.set($event)" />
+    <shared-input
+      [label]="'profile.imap.form.smtpPassword' | translate"
+      type="password"
+      [value]="formSmtpPassword()"
+      (valueChange)="formSmtpPassword.set($event)"
+      [hint]="'profile.imap.form.smtpPasswordHint' | translate"
+      [passwordToggle]="true"
+    />
+    <shared-input [label]="'profile.imap.form.smtpFromEmail' | translate" [value]="formSmtpFromEmail()" (valueChange)="formSmtpFromEmail.set($event)" />
+    <shared-input [label]="'profile.imap.form.smtpFromName' | translate" [value]="formSmtpFromName()" (valueChange)="formSmtpFromName.set($event)" />
+    <shared-input [label]="'profile.imap.form.folder' | translate" [value]="formFolder()" (valueChange)="formFolder.set($event)" />
+  </div>
+
+  @if (detectingSettings()) {
+    <div class="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3">
+      <svg class="h-5 w-5 shrink-0 animate-spin text-blue-500" fill="none" viewBox="0 0 24 24">
+        <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
+        <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z"></path>
+      </svg>
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-blue-700">
+          {{ 'profile.imap.detectingTitle' | translate }}
+        </p>
+        <p class="mt-0.5 text-xs text-blue-600">
+          {{ 'profile.imap.detectingBody' | translate }}
+        </p>
+      </div>
+    </div>
+  }
+
+  @if (!detectingSettings() && detectedHost()) {
+    <div class="flex items-start gap-3 rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3">
+      <svg class="h-5 w-5 shrink-0 text-emerald-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+      </svg>
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-emerald-700">
+          {{ 'profile.imap.detectedTitle' | translate }}
+        </p>
+        <p class="mt-0.5 text-xs text-emerald-600">
+          {{ 'profile.imap.detectedBody' | translate:{ host: detectedHost(), port: detectedPort() } }}
+        </p>
+        @if (detectedProvider()) {
+          <p class="mt-0.5 text-xs text-emerald-600">
+            {{ 'profile.imap.detectedProvider' | translate:{ provider: detectedProvider() } }}
+          </p>
+        }
+      </div>
+    </div>
+  }
+
+  @if (!detectingSettings() && detectionFailed()) {
+    <div class="flex items-start gap-3 rounded-lg border border-amber-200 bg-amber-50 px-4 py-3">
+      <svg class="h-5 w-5 shrink-0 text-amber-500 mt-0.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+      </svg>
+      <div>
+        <p class="text-xs font-semibold uppercase tracking-widest text-amber-700">
+          {{ 'profile.imap.detectFailedTitle' | translate }}
+        </p>
+        <p class="mt-0.5 text-xs text-amber-600">
+          {{ 'profile.imap.detectFailedBody' | translate }}
+        </p>
+      </div>
+    </div>
+  }
+
+  <div class="flex justify-end">
+    <shared-button variant="primary" size="compact" [disabled]="!canCreate()" [loading]="saving()" (clicked)="createAccount()">
+      {{ 'profile.imap.actions.addAccount' | translate }}
+    </shared-button>
+  </div>
+</section>
+
+<section class="mt-6 w-full space-y-4 bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm">
+  <div class="flex items-center justify-between">
+    <h4 class="text-base font-semibold text-zinc-900">{{ 'profile.imap.connectedAccounts' | translate }}</h4>
+    <shared-button variant="ghost" size="compact" (clicked)="loadAccounts()">{{ 'profile.imap.actions.refresh' | translate }}</shared-button>
+  </div>
+
+  @if (loadingAccounts()) {
+    <p class="text-sm text-zinc-500">{{ 'profile.imap.loadingAccounts' | translate }}</p>
+  } @else if (accounts().length === 0) {
+    <p class="text-sm text-zinc-500">{{ 'profile.imap.noAccounts' | translate }}</p>
+  } @else {
+    <div class="space-y-3">
+      @for (account of accounts(); track account.id) {
+        <div class="rounded-sm border border-zinc-200 p-3">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <div class="text-left">
+              <p class="text-sm font-semibold text-zinc-900">{{ account.emailAddress }}</p>
+              <p class="text-xs text-zinc-500">{{ account.imapHost }}:{{ account.imapPort }} - {{ account.folderName }}</p>
+              <p class="text-xs text-zinc-500">
+                SMTP:
+                @if (account.smtpConfigured) {
+                  {{ account.smtpHost }}:{{ account.smtpPort }}
+                } @else {
+                  {{ 'profile.imap.smtpNotConfigured' | translate }}
+                }
+              </p>
+            </div>
+            <div class="flex items-center gap-2">
+              <shared-button variant="ghost" size="compact" (clicked)="startEditAccount(account)">
+                {{ 'profile.imap.actions.edit' | translate }}
+              </shared-button>
+              <shared-button variant="ghost" size="compact" [loading]="isTesting(account.id)" (clicked)="testAccount(account.id)">
+                {{ 'profile.imap.actions.test' | translate }}
+              </shared-button>
+              <shared-button variant="ghost" size="compact" [loading]="isSyncing(account.id)" (clicked)="syncAccount(account.id)">
+                {{ 'profile.imap.actions.sync' | translate }}
+              </shared-button>
+              <shared-button variant="danger" size="compact" (clicked)="deleteAccount(account.id)">
+                {{ 'profile.imap.actions.delete' | translate }}
+              </shared-button>
+            </div>
+          </div>
+          @if (account.lastError) {
+            <p class="mt-2 text-xs text-red-600">{{ account.lastError }}</p>
+          }
+          @if (isEditing(account.id)) {
+            <div class="mt-4 rounded-sm border border-zinc-200 bg-zinc-50 p-3">
+              <p class="mb-3 text-sm font-semibold text-zinc-900">{{ 'profile.imap.edit.title' | translate }}</p>
+              <div class="grid gap-3 sm:grid-cols-2">
+                <shared-input [label]="'profile.imap.form.emailAddress' | translate" [value]="editEmailAddress()" (valueChange)="editEmailAddress.set($event)" [required]="true" />
+                <shared-input [label]="'profile.imap.form.host' | translate" [value]="editHost()" (valueChange)="editHost.set($event)" [required]="true" />
+                <shared-input [label]="'profile.imap.form.port' | translate" type="number" [value]="'' + editPort()" (valueChange)="editPort.set(+$event || 0)" [required]="true" />
+                <shared-input [label]="'profile.imap.form.username' | translate" [value]="editUsername()" (valueChange)="editUsername.set($event)" [required]="true" />
+                <shared-input
+                  [label]="'profile.imap.edit.imapPasswordOptional' | translate"
+                  type="password"
+                  [value]="editPassword()"
+                  (valueChange)="editPassword.set($event)"
+                  [passwordToggle]="true"
+                />
+                <shared-input [label]="'profile.imap.form.smtpHost' | translate" [value]="editSmtpHost()" (valueChange)="editSmtpHost.set($event)" />
+                <shared-input [label]="'profile.imap.form.smtpPort' | translate" type="number" [value]="'' + editSmtpPort()" (valueChange)="editSmtpPort.set(+$event || 0)" [required]="true" />
+                <shared-input [label]="'profile.imap.form.smtpUsername' | translate" [value]="editSmtpUsername()" (valueChange)="editSmtpUsername.set($event)" />
+                <shared-input
+                  [label]="'profile.imap.edit.smtpPasswordOptional' | translate"
+                  type="password"
+                  [value]="editSmtpPassword()"
+                  (valueChange)="editSmtpPassword.set($event)"
+                  [passwordToggle]="true"
+                />
+                <shared-input [label]="'profile.imap.form.smtpFromEmail' | translate" [value]="editSmtpFromEmail()" (valueChange)="editSmtpFromEmail.set($event)" />
+                <shared-input [label]="'profile.imap.form.smtpFromName' | translate" [value]="editSmtpFromName()" (valueChange)="editSmtpFromName.set($event)" />
+                <shared-input [label]="'profile.imap.form.folder' | translate" [value]="editFolder()" (valueChange)="editFolder.set($event)" />
+              </div>
+              <div class="mt-3 flex justify-end gap-2">
+                <shared-button variant="ghost" size="compact" (clicked)="cancelEditAccount()">
+                  {{ 'profile.imap.actions.cancel' | translate }}
+                </shared-button>
+                <shared-button variant="primary" size="compact" [loading]="isUpdating(account.id)" (clicked)="saveEditAccount(account)">
+                  {{ 'profile.imap.actions.save' | translate }}
+                </shared-button>
+              </div>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+</section>
