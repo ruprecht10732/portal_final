@@ -22,14 +22,15 @@
   [class.invisible]="!isOpen() && !hasBeenOpened()"
   [style.transform]="transformStyle()"
   [style.max-height.vh]="maxHeight()"
-  (touchstart)="onDragStart()"
-  (touchmove)="onDragMove($event)"
-  (touchend)="onDragEnd()"
 >
   <!-- Drag Handle -->
   <div 
-    class="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing"
-    (mousedown)="onDragStart()"
+    class="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
+    (touchstart)="onDragStart($event)"
+    (touchmove)="onDragMove($event)"
+    (touchend)="onDragEnd()"
+    (touchcancel)="onDragEnd()"
+    (mousedown)="onDragStart($event)"
     (mousemove)="onDragMove($event)"
     (mouseup)="onDragEnd()"
     (mouseleave)="onDragEnd()"

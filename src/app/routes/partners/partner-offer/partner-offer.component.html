@@ -656,7 +656,7 @@
     </div>
   </div>
 
-  <div bottomSheetFooter class="border-t border-zinc-100 bg-white/90 px-6 pb-6 pt-4 backdrop-blur">
+  <div bottomSheetFooter class="border-t border-zinc-100 bg-white/90 px-6 pb-[calc(1.5rem+env(safe-area-inset-bottom))] pt-4 backdrop-blur">
     <div class="flex flex-col gap-3">
       <button type="button" class="h-14 w-full rounded-[18px] bg-red-600 text-base font-extrabold text-white shadow-lg shadow-red-500/20 transition-transform active:scale-[0.98]" (click)="submitReject()" [disabled]="rejecting()">
         @if (rejecting()) {

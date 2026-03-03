@@ -6,13 +6,11 @@
 import {
   ChangeDetectionStrategy,
   Component,
-  ElementRef,
   computed,
   effect,
   input,
   output,
   signal,
-  viewChild,
 } from '@angular/core';
 
 @Component({
@@ -51,21 +49,21 @@ export class BottomSheetComponent {
   /** Emitted when the sheet should close */
   readonly closed = output<void>();
 
-  // ============ View Children ============
-  
-  private readonly sheetRef = viewChild<ElementRef<HTMLDivElement>>('sheet');
-
   // ============ Internal State ============
   
   /** Track drag state for swipe-to-dismiss */
   protected readonly isDragging = signal<boolean>(false);
   protected readonly dragOffset = signal<number>(0);
+  private readonly dragStartClientY = signal<number | null>(null);
   
   /** Animation state */
   protected readonly isAnimating = signal<boolean>(false);
 
   /** Whether the sheet has ever been opened (prevents flash on first render) */
   protected readonly hasBeenOpened = signal<boolean>(false);
+
+  private readonly isBodyScrollLocked = signal<boolean>(false);
+  private lockedScrollY = 0;
 
   // ============ Computed ============
   
@@ -91,11 +89,25 @@ export class BottomSheetComponent {
   constructor() {
     // Lock body scroll when open, and track first open
     effect(() => {
-      if (this.isOpen()) {
+      if (this.isOpen() && !this.isBodyScrollLocked()) {
         this.hasBeenOpened.set(true);
+        this.lockedScrollY = window.scrollY || document.documentElement.scrollTop || 0;
+        document.body.style.position = 'fixed';
+        document.body.style.top = `-${this.lockedScrollY}px`;
+        document.body.style.left = '0';
+        document.body.style.right = '0';
+        document.body.style.width = '100%';
         document.body.style.overflow = 'hidden';
-      } else {
+        this.isBodyScrollLocked.set(true);
+      } else if (!this.isOpen() && this.isBodyScrollLocked()) {
+        document.body.style.position = '';
+        document.body.style.top = '';
+        document.body.style.left = '';
+        document.body.style.right = '';
+        document.body.style.width = '';
         document.body.style.overflow = '';
+        window.scrollTo(0, this.lockedScrollY);
+        this.isBodyScrollLocked.set(false);
       }
     });
   }
@@ -120,27 +132,27 @@ export class BottomSheetComponent {
 
   // ============ Drag/Swipe Handling ============
   
-  protected onDragStart(): void {
+  protected onDragStart(event: TouchEvent | MouseEvent): void {
+    if (!this.isOpen()) return;
+
+    const clientY = this.getClientY(event);
+    if (clientY === null) return;
+
     this.isDragging.set(true);
     this.isAnimating.set(false);
+    this.dragOffset.set(0);
+    this.dragStartClientY.set(clientY);
   }
 
   protected onDragMove(event: TouchEvent | MouseEvent): void {
     if (!this.isDragging()) return;
-    
-    const clientY = 'touches' in event ? (event.touches[0]?.clientY ?? 0) : event.clientY;
-    const sheet = this.sheetRef()?.nativeElement;
-    
-    if (sheet) {
-      const rect = sheet.getBoundingClientRect();
-      const startY = rect.top;
-      const deltaY = clientY - startY;
-      
-      // Only allow dragging down
-      if (deltaY > 0) {
-        this.dragOffset.set(deltaY);
-      }
-    }
+
+    const clientY = this.getClientY(event);
+    const dragStartClientY = this.dragStartClientY();
+    if (clientY === null || dragStartClientY === null) return;
+
+    // Only allow dragging down from the gesture start point.
+    this.dragOffset.set(Math.max(0, clientY - dragStartClientY));
   }
 
   protected onDragEnd(): void {
@@ -156,9 +168,18 @@ export class BottomSheetComponent {
       // Close the sheet
       this.closed.emit();
     }
-    
+
     // Reset drag offset
     this.dragOffset.set(0);
+    this.dragStartClientY.set(null);
+  }
+
+  private getClientY(event: TouchEvent | MouseEvent): number | null {
+    if ('touches' in event) {
+      return event.touches[0]?.clientY ?? null;
+    }
+
+    return event.clientY;
   }
 
   /** Prevent content scroll when at top and trying to scroll up */
