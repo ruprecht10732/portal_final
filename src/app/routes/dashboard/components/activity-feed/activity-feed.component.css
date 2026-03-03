@@ -22,8 +22,3 @@
   border-radius: 9999px;
 }
 
-@media (prefers-color-scheme: dark) {
-  .activity-scroll::-webkit-scrollbar-thumb {
-    background-color: #3f3f46;
-  }
-}

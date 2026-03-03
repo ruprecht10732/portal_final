@@ -6,6 +6,9 @@
 @import "leaflet/dist/leaflet.css";
 @import "quill/dist/quill.snow.css";
 
+/* Force light-only mode: map Tailwind dark variant to a selector that never exists. */
+@custom-variant dark (&:where(.__never_dark__, .__never_dark__ *));
+
 /* Reset for custom select overlays */
 .cdk-overlay-container {
   z-index: 1000;
