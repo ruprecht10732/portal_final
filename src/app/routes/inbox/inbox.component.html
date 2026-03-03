@@ -1,0 +1,266 @@
+<shared-page-layout
+  [title]="'navigation.inbox' | translate"
+  [subtitle]="formatDayHeader(today())"
+  [removeMobilePadding]="true"
+>
+  <shared-button
+    actionsDesktop
+    class="hidden sm:flex"
+    variant="primary"
+    [fullWidth]="false"
+    [ariaLabel]="'profile.imap.inbox.actions.write' | translate"
+    (clicked)="openComposer()"
+  >
+    {{ 'profile.imap.inbox.actions.write' | translate }}
+  </shared-button>
+
+  <main class="h-full bg-[#fdfbf7] px-2 pb-2 sm:-mx-6 sm:px-3 sm:pb-4">
+    @if (viewMode() === 'inbox') {
+      <section class="grid h-full min-h-0 grid-cols-1 gap-2 lg:grid-cols-[minmax(320px,420px)_minmax(0,1fr)] xl:grid-cols-[minmax(360px,460px)_minmax(0,1fr)]">
+        <aside class="border border-zinc-200 bg-white p-3">
+          <div class="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 pb-3">
+            <div class="flex flex-wrap items-center gap-2">
+              <button
+                class="rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide transition-colors"
+                [class.bg-zinc-100]="indexFilter() === 'unread'"
+                [class.text-zinc-900]="indexFilter() === 'unread'"
+                [class.text-zinc-500]="indexFilter() !== 'unread'"
+                [class.hover:bg-zinc-100]="indexFilter() !== 'unread'"
+                [class.hover:text-zinc-900]="indexFilter() !== 'unread'"
+                type="button"
+                (click)="indexFilter.set('unread')"
+              >
+                {{ 'profile.imap.inbox.filters.unread' | translate }}
+              </button>
+              <button
+                class="rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide transition-colors"
+                [class.bg-zinc-100]="indexFilter() === 'all'"
+                [class.text-zinc-900]="indexFilter() === 'all'"
+                [class.text-zinc-500]="indexFilter() !== 'all'"
+                [class.hover:bg-zinc-100]="indexFilter() !== 'all'"
+                [class.hover:text-zinc-900]="indexFilter() !== 'all'"
+                type="button"
+                (click)="indexFilter.set('all')"
+              >
+                {{ 'profile.imap.inbox.filters.all' | translate }}
+              </button>
+            </div>
+            <div class="flex flex-wrap items-center gap-2">
+              @if (selectedAccount()) {
+                <button
+                  class="rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-default disabled:opacity-50"
+                  type="button"
+                  [disabled]="isSyncing(selectedAccount()!.id)"
+                  (click)="syncAccount(selectedAccount()!.id)"
+                >
+                  {{ isSyncing(selectedAccount()!.id) ? ('profile.imap.inbox.actions.syncing' | translate) : ('profile.imap.inbox.actions.sync' | translate) }}
+                </button>
+              }
+              <button class="rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900" type="button" (click)="goToArchive()">
+                {{ 'profile.imap.inbox.actions.archive' | translate }}
+              </button>
+              <a class="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900" routerLink="/app/profile/email-accounts">
+                {{ 'profile.imap.inbox.actions.settings' | translate }}
+              </a>
+            </div>
+          </div>
+
+          @if (loadingMessages() || loadingAccounts()) {
+            <div class="mx-auto my-12 h-px w-24 animate-pulse bg-zinc-900" aria-hidden="true"></div>
+          } @else if (indexMessages().length === 0) {
+            <p class="my-12 text-center text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ 'profile.imap.inbox.states.nothingRemains' | translate }}</p>
+          } @else {
+            <ul class="max-h-[calc(100vh-19rem)] list-none space-y-0 overflow-auto p-0">
+              @for (message of indexMessages(); track message.id) {
+                <li>
+                  <div class="group grid w-full grid-cols-[132px_minmax(0,1fr)_68px_auto] items-center gap-3 border-b border-zinc-200 px-3 py-3 transition-colors hover:bg-zinc-100" [class.bg-zinc-100]="selectedMessageUid() === message.uid">
+                    <button class="truncate text-left text-xs font-medium uppercase tracking-wide text-zinc-500" type="button" (click)="openReading(message)">
+                      {{ senderLabel(message) }}
+                    </button>
+                    <button class="truncate text-left text-sm font-semibold text-zinc-900" type="button" (click)="openReading(message)">
+                      {{ message.subject || ('profile.imap.noSubject' | translate) }}
+                    </button>
+                    <button class="text-right text-xs font-medium tracking-wide text-zinc-500" type="button" (click)="openReading(message)">
+                      {{ formatTime(message) }}
+                    </button>
+                    <button
+                      class="rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 opacity-0 transition hover:bg-zinc-200 hover:text-zinc-900 group-hover:opacity-100"
+                      type="button"
+                      (click)="toggleSeen(message)"
+                    >
+                      {{ message.seen ? ('profile.imap.inbox.actions.markUnread' | translate) : ('profile.imap.inbox.actions.markRead' | translate) }}
+                    </button>
+                  </div>
+                </li>
+              }
+            </ul>
+          }
+
+          @if (hiddenUnreadCount() > 0 && indexFilter() === 'unread') {
+            <div class="mt-3">
+              <button type="button" class="rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-900 transition-colors hover:bg-zinc-100" (click)="loadMoreUnread()">
+                {{ 'profile.imap.inbox.actions.loadMore' | translate:{ count: hiddenUnreadCount() } }}
+              </button>
+            </div>
+          }
+        </aside>
+
+        <section class="min-h-96 border border-zinc-200 bg-white px-4 py-4 sm:px-5">
+          @if (selectedMessage()) {
+            <article class="min-h-[60vh] pb-20">
+              <div class="mb-4 flex items-start gap-2.5">
+                <span class="h-10 w-10 shrink-0 rounded-full bg-zinc-300 grayscale"></span>
+                <div>
+                  <p class="m-0 text-xs font-semibold uppercase tracking-wide text-zinc-900">{{ selectedMessage()!.fromName || selectedMessage()!.fromAddress || ('profile.imap.unknownSender' | translate) }}</p>
+                  <p class="m-0 mt-0.5 text-xs font-medium tracking-wide text-zinc-500">{{ formatFullDate(selectedMessage()!) }}</p>
+                  <p class="m-0 mt-0.5 text-xs font-medium tracking-wide text-zinc-500">{{ 'profile.imap.inbox.labels.to' | translate }}: {{ selectedAccount()?.emailAddress || '-' }}</p>
+                </div>
+              </div>
+              <h2 class="mb-3 text-xl font-bold text-zinc-900">{{ selectedMessage()!.subject || ('profile.imap.noSubject' | translate) }}</h2>
+              <div class="max-h-[calc(100vh-25rem)] overflow-auto">
+                @if (loadingMessageContent()) {
+                  <p class="text-sm text-zinc-600">{{ 'profile.imap.inbox.states.loadingContent' | translate }}</p>
+                } @else if (messageHtmlUrl()) {
+                  <iframe
+                    class="w-full min-h-[60vh] border-0"
+                    sandbox=""
+                    referrerpolicy="no-referrer"
+                    [src]="messageHtmlUrl()"
+                  ></iframe>
+                } @else if (messageContent()?.bodyText) {
+                  <pre class="m-0 whitespace-pre-wrap wrap-break-word text-sm leading-relaxed text-zinc-700">{{ messageContent()!.bodyText }}</pre>
+                } @else {
+                  <p class="text-sm text-zinc-700">{{ selectedMessage()!.snippet || ('profile.imap.inbox.states.noPreview' | translate) }}</p>
+                }
+              </div>
+            </article>
+
+            <footer class="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center divide-x divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200/80 bg-white/90 text-xs font-semibold uppercase tracking-wide text-zinc-500 shadow-lg shadow-zinc-900/5 backdrop-blur-md">
+              <button
+                class="px-4 py-2 text-zinc-900 transition-colors hover:bg-zinc-100 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-inset"
+                type="button"
+                (click)="openComposerFromReading()"
+              >
+                {{ 'profile.imap.inbox.actions.reply' | translate }}
+              </button>
+              <button
+                class="px-4 py-2 text-zinc-900 transition-colors hover:bg-zinc-100 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-inset"
+                type="button"
+                (click)="openReplyAllFromReading()"
+              >
+                {{ 'profile.imap.inbox.actions.replyAll' | translate }}
+              </button>
+              <button
+                class="px-4 py-2 text-zinc-900 transition-colors hover:bg-zinc-100 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-inset"
+                type="button"
+                (click)="archiveCurrent()"
+              >
+                {{ 'profile.imap.inbox.actions.archive' | translate }}
+              </button>
+              <button
+                class="px-4 py-2 text-zinc-900 transition-colors hover:bg-zinc-100 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-inset disabled:opacity-50"
+                type="button"
+                [disabled]="isDeletingMessage(selectedMessage()!.uid)"
+                (click)="deleteMessage(selectedAccount()!.id, selectedMessage()!.uid)"
+              >
+                {{ 'profile.imap.inbox.actions.delete' | translate }}
+              </button>
+            </footer>
+          } @else {
+            <div class="grid min-h-96 place-items-center p-6 text-center">
+              <p>{{ 'profile.imap.inbox.states.selectMessage' | translate }}</p>
+            </div>
+          }
+        </section>
+      </section>
+    }
+
+    @if (viewMode() === 'archive') {
+      <section class="mx-auto max-w-full">
+        <div class="mb-4 flex items-center gap-2.5">
+          <button type="button" class="p-0 text-2xl text-zinc-900" (click)="goToIndex()">←</button>
+          <input
+            type="text"
+            [value]="archiveQuery()"
+            (input)="archiveQuery.set($any($event.target).value)"
+            [placeholder]="'profile.imap.inbox.archive.findPlaceholder' | translate"
+            [attr.aria-label]="'profile.imap.inbox.archive.ariaFind' | translate"
+            class="h-11 w-full border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-900"
+          />
+        </div>
+
+        @if (archiveQuery().trim() === '' && archiveGroups().length === 0) {
+          <p class="my-16 text-center text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ 'profile.imap.inbox.archive.findPlaceholder' | translate }}</p>
+        } @else {
+          <div>
+            @for (group of archiveGroups(); track group.label) {
+              <section>
+                <h3 class="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ monthLabel(group.label) }}</h3>
+                <ul class="list-none border-t border-zinc-200 p-0">
+                  @for (message of group.items; track message.id) {
+                    <li>
+                      <button type="button" class="flex w-full items-center justify-between gap-3 border-b border-zinc-200 px-2 py-3 text-left transition-colors hover:bg-zinc-100" (click)="openReading(message)">
+                        <span class="text-sm font-semibold text-zinc-900">{{ message.subject || ('profile.imap.noSubject' | translate) }}</span>
+                        <small class="text-xs font-medium uppercase tracking-wide text-zinc-500">{{ message.fromName || message.fromAddress || ('profile.imap.unknownSender' | translate) }}</small>
+                      </button>
+                    </li>
+                  }
+                </ul>
+              </section>
+            }
+          </div>
+        }
+      </section>
+    }
+
+    @if (composerOpen()) {
+      <div class="fixed inset-0 z-40 bg-white/95 backdrop-blur-sm" (click)="closeComposer()"></div>
+      <section class="fixed inset-4 z-50 mx-auto flex max-w-4xl flex-col gap-5 border border-zinc-200 bg-white p-6 sm:inset-10" role="dialog" aria-modal="true" aria-label="Compose email">
+        <header class="flex items-center justify-between">
+          <button
+            type="button"
+            class="inline-flex items-center gap-1 rounded border border-zinc-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 transition-colors hover:bg-zinc-100"
+            [attr.aria-label]="'common.close' | translate"
+            (click)="closeComposer()"
+          >
+            <span aria-hidden="true">←</span>
+            <span>{{ 'common.close' | translate }}</span>
+          </button>
+          <button type="button" class="border border-zinc-200 bg-zinc-900 px-3.5 py-2 text-xs font-semibold uppercase tracking-wide text-white disabled:opacity-50" [disabled]="composerSending()" (click)="sendComposer()">
+            {{ composerSending() ? ('profile.imap.inbox.actions.sending' | translate) : ('profile.imap.inbox.actions.send' | translate) }}
+          </button>
+        </header>
+        <div class="grid gap-3">
+          <input
+            type="text"
+            class="h-11 border-0 border-b border-zinc-200 bg-transparent px-0 text-base font-semibold text-zinc-900 outline-none"
+            [placeholder]="'profile.imap.inbox.labels.to' | translate"
+            [value]="composerTo()"
+            (input)="composerTo.set($any($event.target).value)"
+          />
+          <input
+            type="text"
+            class="h-11 border-0 border-b border-zinc-200 bg-transparent px-0 text-base font-semibold text-zinc-900 outline-none"
+            placeholder="Cc"
+            [value]="composerCc()"
+            (input)="composerCc.set($any($event.target).value)"
+          />
+          <input
+            type="text"
+            class="h-11 border-0 border-b border-zinc-200 bg-transparent px-0 text-base font-semibold text-zinc-900 outline-none"
+            [placeholder]="'profile.imap.inbox.labels.subject' | translate"
+            [value]="composerSubject()"
+            (input)="composerSubject.set($any($event.target).value)"
+          />
+        </div>
+        <textarea
+          class="min-h-56 flex-1 resize-none border-0 bg-transparent text-sm leading-relaxed text-zinc-700 outline-none"
+          [placeholder]="'profile.imap.inbox.labels.writeReply' | translate"
+          [value]="composerBody()"
+          (input)="composerBody.set($any($event.target).value)"
+        ></textarea>
+        <p class="m-0 text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ 'profile.imap.inbox.messages.saved' | translate }}</p>
+      </section>
+    }
+  </main>
+</shared-page-layout>

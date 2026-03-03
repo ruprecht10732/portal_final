@@ -2,6 +2,7 @@
   "profile": {
     "personalDetails": "Personal details",
     "security": "Security",
+    "emailAccounts": "Email accounts",
     "personal": {
       "title": "Personal Details",
       "subtitle": "Update your contact information.",
@@ -56,6 +57,118 @@
         "minPassword": "Password must be at least {{count}} characters",
         "passwordsNoMatch": "Passwords do not match",
         "generic": "Something went wrong. Please try again."
+      }
+    },
+    "imap": {
+      "title": "IMAP inboxes",
+      "subtitle": "Connect your email inboxes to sync metadata and manage messages.",
+      "connectedAccounts": "Connected accounts",
+      "messagesTitle": "Messages",
+      "loadingAccounts": "Loading IMAP accounts...",
+      "loadingMessages": "Loading messages...",
+      "detectingTitle": "Detecting IMAP settings",
+      "detectingBody": "Checking provider defaults and DNS records for this mailbox.",
+      "detectedTitle": "IMAP settings detected",
+      "detectedBody": "Using {{host}}:{{port}}.",
+      "detectedProvider": "Provider: {{provider}}",
+      "detectFailedTitle": "Auto-detection incomplete",
+      "detectFailedBody": "Could not confidently detect IMAP settings. You can fill host and port manually.",
+      "noAccounts": "No IMAP accounts connected yet.",
+      "noMessages": "No messages available for this account.",
+      "selectAccountFirst": "Select an account first.",
+      "noSubject": "(No subject)",
+      "unknownSender": "Unknown sender",
+      "smtpNotConfigured": "not configured",
+      "edit": {
+        "title": "Edit account",
+        "imapPasswordOptional": "IMAP password (leave empty to keep current)",
+        "smtpPasswordOptional": "SMTP password (leave empty to keep current)"
+      },
+      "form": {
+        "emailAddress": "Email address",
+        "host": "IMAP host",
+        "port": "Port",
+        "username": "Username",
+        "password": "Password",
+        "smtpHost": "SMTP host",
+        "smtpPort": "SMTP port",
+        "smtpUsername": "SMTP username",
+        "smtpPassword": "SMTP password",
+        "smtpPasswordHint": "Usually same as IMAP password. Leave empty to reuse IMAP password.",
+        "smtpFromEmail": "SMTP from email",
+        "smtpFromName": "SMTP from name",
+        "folder": "Folder"
+      },
+      "actions": {
+        "addAccount": "Add account",
+        "edit": "Edit",
+        "save": "Save",
+        "cancel": "Cancel",
+        "refresh": "Refresh",
+        "test": "Test",
+        "sync": "Sync",
+        "delete": "Delete",
+        "deleteMessage": "Delete message"
+      },
+      "messages": {
+        "accountSaved": "IMAP account saved.",
+        "accountUpdated": "IMAP account updated.",
+        "accountDeleted": "IMAP account deleted.",
+        "testSuccess": "IMAP connection successful.",
+        "syncQueued": "IMAP sync queued.",
+        "messageDeleted": "Message deleted."
+      },
+      "inbox": {
+        "actions": {
+          "write": "Write",
+          "sync": "Sync",
+          "syncing": "Syncing...",
+          "archive": "Archive",
+          "settings": "Settings",
+          "loadMore": "Load More ({{count}})",
+          "reply": "Reply",
+          "replyAll": "Reply all",
+          "markRead": "Mark read",
+          "markUnread": "Mark unread",
+          "delete": "Delete",
+          "send": "Send",
+          "sending": "Sending..."
+        },
+        "filters": {
+          "unread": "Unread",
+          "all": "All"
+        },
+        "labels": {
+          "to": "To",
+          "subject": "Subject",
+          "writeReply": "Write your reply..."
+        },
+        "states": {
+          "nothingRemains": "Nothing remains.",
+          "selectMessage": "Select a message to read.",
+          "noPreview": "No preview available.",
+          "loadingContent": "Loading message..."
+        },
+        "archive": {
+          "findPlaceholder": "Find...",
+          "ariaFind": "Find archived emails"
+        },
+        "messages": {
+          "saved": "Saved",
+          "sent": "Sent"
+        }
+      },
+      "errors": {
+        "loadAccounts": "Failed to load IMAP accounts.",
+        "saveAccount": "Failed to save IMAP account.",
+        "updateAccount": "Failed to update IMAP account.",
+        "invalidEditForm": "Please fill the required account fields.",
+        "deleteAccount": "Failed to delete IMAP account.",
+        "testAccount": "IMAP connection test failed.",
+        "syncAccount": "Failed to sync IMAP account.",
+        "loadMessages": "Failed to load messages.",
+        "sendMessage": "Failed to send message.",
+        "deleteMessage": "Failed to delete message."
       }
     }
   }
