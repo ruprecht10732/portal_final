@@ -120,6 +120,7 @@ export const routes: Routes = [
 					panelItems: [
 						{ label: 'profile.personalDetails', route: '/app/profile/details', icon: 'user', exact: true },
 						{ label: 'profile.security', route: '/app/profile/security', icon: 'lock' },
+						{ label: 'profile.emailAccounts', route: '/app/profile/email-accounts', icon: 'mail' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
@@ -135,6 +136,10 @@ export const routes: Routes = [
 					{
 						path: 'security',
 						loadComponent: () => import('./routes/profile/security/security.component').then(m => m.SecurityComponent),
+					},
+					{
+						path: 'email-accounts',
+						loadComponent: () => import('./routes/profile/email-accounts/email-accounts.component').then(m => m.EmailAccountsComponent),
 					},
 				],
 			},
@@ -293,6 +298,13 @@ export const routes: Routes = [
 						],
 					},
 				],
+			},
+			{
+				path: 'inbox',
+				data: {
+					panelItems: [{ label: 'navigation.inbox', route: '/app/inbox', icon: 'mail', exact: true }],
+				} satisfies SidebarPanelConfig,
+				loadComponent: () => import('./routes/inbox/inbox.component').then(m => m.InboxComponent),
 			},
 			{
 				path: 'leads',
