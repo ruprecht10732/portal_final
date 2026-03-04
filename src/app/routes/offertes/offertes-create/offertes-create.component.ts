@@ -836,7 +836,7 @@ export class OffertesCreateComponent implements OnInit {
    * Returns catalog product suggestions as GhostSuggestion[].
    */
   protected readonly catalogSearchFn = (query: string) =>
-    this.catalogService.searchForAutocomplete(query, 5).pipe(
+    this.catalogService.searchForAutocomplete(query, 10).pipe(
       map(items =>
         items.map(item => ({
           displayText: item.title,

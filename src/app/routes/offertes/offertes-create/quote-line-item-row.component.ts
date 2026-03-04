@@ -50,7 +50,8 @@ export class QuoteLineItemRowComponent {
   readonly optionalChange = output<boolean | null>();
   readonly remove = output<void>();
   readonly ghostAccepted = output<GhostSuggestion>();
-  protected readonly ghostSuggestion = signal<GhostSuggestion | null>(null);
+  protected readonly ghostSuggestions = signal<GhostSuggestion[]>([]);
+  protected readonly ghostSelectedIndex = signal(0);
   protected readonly ghostLoading = signal(false);
 
   private ghostRequestSequence = 0;
@@ -61,19 +62,55 @@ export class QuoteLineItemRowComponent {
   }
 
   protected onDescriptionKeydown(event: KeyboardEvent): void {
-    if (event.key !== 'Tab') return;
-    const suggestion = this.ghostSuggestion();
-    if (!suggestion) return;
+    const suggestions = this.ghostSuggestions();
+    if (suggestions.length === 0) return;
 
-    event.preventDefault();
-    this.ghostAccepted.emit(suggestion);
-    this.ghostSuggestion.set(null);
+    if (event.key === 'Tab') {
+      const suggestion = suggestions[0];
+      if (!suggestion) return;
+      event.preventDefault();
+      this.ghostAccepted.emit(suggestion);
+      this.ghostSuggestions.set([]);
+      this.ghostSelectedIndex.set(0);
+      return;
+    }
+
+    if (event.key === 'ArrowDown') {
+      event.preventDefault();
+      const nextIndex = (this.ghostSelectedIndex() + 1) % suggestions.length;
+      this.ghostSelectedIndex.set(nextIndex);
+      return;
+    }
+
+    if (event.key === 'ArrowUp') {
+      event.preventDefault();
+      const nextIndex = (this.ghostSelectedIndex() - 1 + suggestions.length) % suggestions.length;
+      this.ghostSelectedIndex.set(nextIndex);
+      return;
+    }
+
+    if (event.key === 'Enter') {
+      const suggestion = suggestions[this.ghostSelectedIndex()];
+      if (!suggestion) return;
+      event.preventDefault();
+      this.ghostAccepted.emit(suggestion);
+      this.ghostSuggestions.set([]);
+      this.ghostSelectedIndex.set(0);
+      return;
+    }
+
+    if (event.key === 'Escape') {
+      event.preventDefault();
+      this.ghostSuggestions.set([]);
+      this.ghostSelectedIndex.set(0);
+    }
   }
 
   private async lookupGhostSuggestion(value: string): Promise<void> {
     const query = this.extractPlainText(value);
     if (query.length < 2) {
-      this.ghostSuggestion.set(null);
+      this.ghostSuggestions.set([]);
+      this.ghostSelectedIndex.set(0);
       this.ghostLoading.set(false);
       return;
     }
@@ -84,10 +121,12 @@ export class QuoteLineItemRowComponent {
     try {
       const suggestions = await firstValueFrom(this.ghostSearchFn()(query));
       if (requestId !== this.ghostRequestSequence) return;
-      this.ghostSuggestion.set(suggestions[0] ?? null);
+      this.ghostSuggestions.set(suggestions.slice(0, 10));
+      this.ghostSelectedIndex.set(0);
     } catch {
       if (requestId !== this.ghostRequestSequence) return;
-      this.ghostSuggestion.set(null);
+      this.ghostSuggestions.set([]);
+      this.ghostSelectedIndex.set(0);
     } finally {
       if (requestId === this.ghostRequestSequence) {
         this.ghostLoading.set(false);
