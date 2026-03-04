@@ -78,7 +78,12 @@ interface MobileNavItem {
                 <lucide-icon name="calendar-check" class="h-5 w-5"></lucide-icon>
               }
               @case ('offertes') {
-                <lucide-icon name="file-text" class="h-5 w-5"></lucide-icon>
+                <span class="relative inline-flex">
+                  <lucide-icon name="file-text" class="h-5 w-5"></lucide-icon>
+                  @if (unreadQuoteNotifications() > 0) {
+                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadQuoteNotifications() }}</span>
+                  }
+                </span>
               }
               @case ('catalog') {
                 <lucide-icon name="book-open" class="h-5 w-5"></lucide-icon>
@@ -119,6 +124,7 @@ export class AuthenticatedMobileNavComponent {
   private readonly isAdmin = computed(() => this.user()?.roles?.includes('admin') ?? false);
 
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
+  protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
 
   /** All primary navigation items — mirrors the desktop sidebar. */
   protected readonly items = computed<MobileNavItem[]>(() => {

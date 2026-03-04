@@ -109,6 +109,7 @@ export class AuthenticatedSidebarComponent {
   });
 
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
+  protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
   protected readonly unreadInboxMessages = this.imapUnreadCountService.unreadCount;
 
   protected readonly items = computed<SidebarItem[]>(() => {

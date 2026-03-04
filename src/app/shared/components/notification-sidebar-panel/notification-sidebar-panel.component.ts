@@ -35,6 +35,8 @@ export class NotificationSidebarPanelComponent {
 
       this.notificationsService.loadNotifications(1, 20);
       this.notificationsService.refreshUnreadCount();
+      this.notificationsService.refreshUnreadLeadCount();
+      this.notificationsService.refreshUnreadQuoteCount();
     });
   }
 
@@ -47,6 +49,8 @@ export class NotificationSidebarPanelComponent {
       next: () => {
         this.notificationsService.loadNotifications(1, 20);
         this.notificationsService.refreshUnreadCount();
+        this.notificationsService.refreshUnreadLeadCount();
+        this.notificationsService.refreshUnreadQuoteCount();
       },
     });
   }

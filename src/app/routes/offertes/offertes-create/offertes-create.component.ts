@@ -512,7 +512,7 @@ export class OffertesCreateComponent implements OnInit {
     this.pricingMode.set(quote.pricingMode ?? 'exclusive');
     this.financingDisclaimer.set(quote.financingDisclaimer ?? false);
     const firstItemTaxRate = quote.items.at(0)?.taxRateBps;
-    this.lastUsedTaxRate.set(firstItemTaxRate != null ? taxBpsToDisplay(firstItemTaxRate) : 21);
+    this.lastUsedTaxRate.set(firstItemTaxRate == null ? 21 : taxBpsToDisplay(firstItemTaxRate));
     this.ensureInitialLineItem();
     this.requestCalculation();
     if (quote.leadId) {

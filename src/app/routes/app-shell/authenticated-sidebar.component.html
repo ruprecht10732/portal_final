@@ -61,7 +61,12 @@
                 <lucide-icon name="wrench" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
               }
               @case ('offertes') {
-                <lucide-icon name="file-text" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+                <span class="relative inline-flex">
+                  <lucide-icon name="file-text" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+                  @if (unreadQuoteNotifications() > 0) {
+                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadQuoteNotifications() }}</span>
+                  }
+                </span>
               }
               @case ('catalog') {
                 <lucide-icon name="book-open" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>

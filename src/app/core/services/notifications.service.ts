@@ -22,11 +22,13 @@ export class NotificationsService {
   private readonly notificationsState = signal<InAppNotification[]>([]);
   private readonly unreadCountState = signal(0);
   private readonly unreadLeadCountState = signal(0);
+  private readonly unreadQuoteCountState = signal(0);
   private readonly loadingState = signal(false);
 
   readonly notifications = this.notificationsState.asReadonly();
   readonly unreadCount = this.unreadCountState.asReadonly();
   readonly unreadLeadCount = this.unreadLeadCountState.asReadonly();
+  readonly unreadQuoteCount = this.unreadQuoteCountState.asReadonly();
   readonly loading = this.loadingState.asReadonly();
 
   constructor() {
@@ -41,6 +43,7 @@ export class NotificationsService {
     this.loadNotifications(1, 50);
     this.refreshUnreadCount();
     this.refreshUnreadLeadCount();
+    this.refreshUnreadQuoteCount();
   }
 
   list(page = 1, limit = 20): Observable<NotificationListResponse> {
@@ -78,6 +81,13 @@ export class NotificationsService {
     });
   }
 
+  refreshUnreadQuoteCount(): void {
+    this.getUnreadCountByResourceTypes(['quote']).subscribe({
+      next: response => this.unreadQuoteCountState.set(response.count),
+      error: () => this.unreadQuoteCountState.set(0),
+    });
+  }
+
   loadNotifications(page = 1, limit = 20): void {
     this.loadingState.set(true);
     this.list(page, limit).subscribe({
@@ -96,6 +106,9 @@ export class NotificationsService {
     const wasUnreadLead = this.notificationsState().some(
       item => item.id === id && !item.isRead && (item.resourceType === 'lead' || item.resourceType === 'lead_feed'),
     );
+    const wasUnreadQuote = this.notificationsState().some(
+      item => item.id === id && !item.isRead && item.resourceType === 'quote',
+    );
 
     return this.http.patch<NotificationStatusResponse>(`${this.baseUrl}/${id}/read`, {}).pipe(
       tap(() => {
@@ -106,12 +119,16 @@ export class NotificationsService {
         if (wasUnreadLead) {
           this.unreadLeadCountState.update(count => Math.max(0, count - 1));
         }
+        if (wasUnreadQuote) {
+          this.unreadQuoteCountState.update(count => Math.max(0, count - 1));
+        }
       }),
       catchError(error => {
         this.toast.error('Kon notificatie niet als gelezen markeren');
         this.loadNotifications(1, 20);
         this.refreshUnreadCount();
         this.refreshUnreadLeadCount();
+        this.refreshUnreadQuoteCount();
         return throwError(() => error);
       }),
       map(() => undefined),
@@ -123,6 +140,9 @@ export class NotificationsService {
     const unreadLeadCount = this.notificationsState().filter(
       item => !item.isRead && (item.resourceType === 'lead' || item.resourceType === 'lead_feed'),
     ).length;
+    const unreadQuoteCount = this.notificationsState().filter(
+      item => !item.isRead && item.resourceType === 'quote',
+    ).length;
 
     return this.http.patch<NotificationStatusResponse>(`${this.baseUrl}/read-all`, {}).pipe(
       tap(() => {
@@ -133,12 +153,16 @@ export class NotificationsService {
         if (unreadLeadCount > 0) {
           this.unreadLeadCountState.update(count => Math.max(0, count - unreadLeadCount));
         }
+        if (unreadQuoteCount > 0) {
+          this.unreadQuoteCountState.update(count => Math.max(0, count - unreadQuoteCount));
+        }
       }),
       catchError(error => {
         this.toast.error('Kon notificaties niet als gelezen markeren');
         this.loadNotifications(1, 20);
         this.refreshUnreadCount();
         this.refreshUnreadLeadCount();
+        this.refreshUnreadQuoteCount();
         return throwError(() => error);
       }),
       map(() => undefined),
@@ -157,12 +181,16 @@ export class NotificationsService {
         if (target && !target.isRead && (target.resourceType === 'lead' || target.resourceType === 'lead_feed')) {
           this.unreadLeadCountState.update(count => Math.max(0, count - 1));
         }
+        if (target && !target.isRead && target.resourceType === 'quote') {
+          this.unreadQuoteCountState.update(count => Math.max(0, count - 1));
+        }
       }),
       catchError(error => {
         this.toast.error('Kon notificatie niet verwijderen');
         this.loadNotifications(1, 20);
         this.refreshUnreadCount();
         this.refreshUnreadLeadCount();
+        this.refreshUnreadQuoteCount();
         return throwError(() => error);
       }),
       map(() => undefined),
@@ -181,6 +209,9 @@ export class NotificationsService {
       this.unreadCountState.update(count => count + 1);
       if (notification.resourceType === 'lead' || notification.resourceType === 'lead_feed') {
         this.unreadLeadCountState.update(count => count + 1);
+      }
+      if (notification.resourceType === 'quote') {
+        this.unreadQuoteCountState.update(count => count + 1);
       }
     }
   }
