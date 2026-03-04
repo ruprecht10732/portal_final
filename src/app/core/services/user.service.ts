@@ -8,6 +8,7 @@ import type {
   CreateIMAPAccountRequest,
   DetectIMAPAccountResponse,
   IMAPAccount,
+  IMAPUnreadCountResponse,
   IMAPMessageContent,
   IMAPMessageListResponse,
   ReplyIMAPMessageRequest,
@@ -50,6 +51,10 @@ export class UserService {
 
   listIMAPAccounts(): Observable<IMAPAccount[]> {
     return this.http.get<IMAPAccount[]>(this.imapBaseUrl);
+  }
+
+  getIMAPUnreadCount(): Observable<IMAPUnreadCountResponse> {
+    return this.http.get<IMAPUnreadCountResponse>(`${this.imapBaseUrl}/unread-count`);
   }
 
   createIMAPAccount(data: CreateIMAPAccountRequest): Observable<IMAPAccount> {

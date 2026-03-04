@@ -16,6 +16,7 @@ import { TokenStorageService } from '../../core/services/token-storage.service';
 import { UserService } from '../../core/services/user.service';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-bell.component';
+import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
 import type { UserProfile } from '../../core/services/user.types';
 
 interface SidebarItem {
@@ -57,6 +58,7 @@ export class AuthenticatedSidebarComponent {
   private readonly route = inject(ActivatedRoute);
   private readonly authService = inject(AuthService);
   private readonly notificationsService = inject(NotificationsService);
+  private readonly imapUnreadCountService = inject(IMAPUnreadCountService);
   private readonly tokens = inject(TokenStorageService);
   private readonly userService = inject(UserService);
 
@@ -107,6 +109,7 @@ export class AuthenticatedSidebarComponent {
   });
 
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
+  protected readonly unreadInboxMessages = this.imapUnreadCountService.unreadCount;
 
   protected readonly items = computed<SidebarItem[]>(() => {
     const base: SidebarItem[] = [

@@ -132,6 +132,10 @@ export interface IMAPMessageListResponse {
   totalPages: number;
 }
 
+export interface IMAPUnreadCountResponse {
+  count: number;
+}
+
 export interface DetectIMAPAccountResponse {
   detected: boolean;
   provider?: string;

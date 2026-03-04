@@ -75,18 +75,20 @@ export class NotificationSidebarPanelComponent {
   }
 
   private mapRoute(resourceType?: string, resourceId?: string): string[] | null {
-    if (!resourceType || !resourceId) {
+    if (!resourceType) {
       return null;
     }
 
     switch (resourceType) {
       case 'lead':
       case 'lead_feed':
-        return ['/app/leads', resourceId];
+        return resourceId ? ['/app/leads', resourceId] : null;
       case 'quote':
-        return ['/app/offertes', resourceId];
+        return resourceId ? ['/app/offertes', resourceId] : null;
       case 'appointment':
-        return ['/app/appointments', resourceId];
+        return resourceId ? ['/app/appointments', resourceId] : null;
+      case 'imap_account':
+        return ['/app/inbox'];
       default:
         return null;
     }

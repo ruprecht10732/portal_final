@@ -1,4 +1,10 @@
 export type NotificationCategory = 'info' | 'success' | 'warning' | 'error';
+export type NotificationResourceType =
+  | 'lead'
+  | 'lead_feed'
+  | 'quote'
+  | 'appointment'
+  | 'imap_account';
 
 export interface InAppNotification {
   id: string;
@@ -6,7 +12,7 @@ export interface InAppNotification {
   title: string;
   content: string;
   resourceId?: string;
-  resourceType?: string;
+  resourceType?: NotificationResourceType;
   category: NotificationCategory;
   isRead: boolean;
   createdAt: string;

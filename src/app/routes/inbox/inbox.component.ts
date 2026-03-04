@@ -6,6 +6,7 @@ import { catchError, EMPTY, finalize } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
+import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
 import type { IMAPAccount, IMAPMessage, IMAPMessageContent } from '../../core/services/user.types';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
@@ -22,6 +23,7 @@ export class InboxComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
   private readonly sanitizer = inject(DomSanitizer);
+  private readonly imapUnreadCount = inject(IMAPUnreadCountService);
 
   protected readonly accounts = signal<IMAPAccount[]>([]);
   protected readonly selectedAccountId = signal<string | null>(null);
@@ -177,6 +179,7 @@ export class InboxComponent {
         this.toast.success(this.translate.instant('profile.imap.messages.syncQueued'));
         this.loadMessages(accountId);
         this.loadAccounts();
+        this.imapUnreadCount.refresh();
       });
   }
 
@@ -195,6 +198,7 @@ export class InboxComponent {
       .subscribe(() => {
         this.toast.success(this.translate.instant('profile.imap.messages.messageDeleted'));
         this.messages.set(this.messages().filter(message => message.uid !== uid));
+        this.imapUnreadCount.refresh();
         if (this.selectedMessageUid() === uid) {
           this.selectedMessageUid.set(null);
           this.messageContent.set(null);
@@ -219,7 +223,7 @@ export class InboxComponent {
         catchError(() => EMPTY),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe();
+      .subscribe(() => this.imapUnreadCount.refresh());
   }
 
   protected isSyncing(accountId: string): boolean {
@@ -327,17 +331,21 @@ export class InboxComponent {
     this.composerSending.set(true);
     const mode = this.composerMode();
     const selected = this.selectedMessage();
-    const request$ = mode === 'reply' && selected
-      ? this.userService.replyIMAPMessage(account.id, selected.uid, { body, isHtml: false })
-      : mode === 'replyAll' && selected
-        ? this.userService.replyAllIMAPMessage(account.id, selected.uid, { body, isHtml: false })
-        : this.userService.sendIMAPMessage(account.id, {
-            to,
-            cc,
-            subject: this.composerSubject().trim() || '(No subject)',
-            body,
-            isHtml: false,
-          });
+    const request$ = (() => {
+      if (mode === 'reply' && selected) {
+        return this.userService.replyIMAPMessage(account.id, selected.uid, { body, isHtml: false });
+      }
+      if (mode === 'replyAll' && selected) {
+        return this.userService.replyAllIMAPMessage(account.id, selected.uid, { body, isHtml: false });
+      }
+      return this.userService.sendIMAPMessage(account.id, {
+        to,
+        cc,
+        subject: this.composerSubject().trim() || '(No subject)',
+        body,
+        isHtml: false,
+      });
+    })();
     request$
       .pipe(
         catchError(error => {
@@ -421,16 +429,16 @@ export class InboxComponent {
       .subscribe(response => {
         this.messages.set(response.items);
         this.visibleUnreadCount.set(5);
-        if (!response.items.some(message => message.uid === this.selectedMessageUid())) {
-          this.selectedMessageUid.set(null);
-          this.messageContent.set(null);
-          this.safeMessageHtml.set(null);
-        } else {
+        if (response.items.some(message => message.uid === this.selectedMessageUid())) {
           const selectedUID = this.selectedMessageUid();
           const selectedAccountID = this.selectedAccountId();
           if (selectedUID != null && selectedAccountID) {
             this.loadMessageContent(selectedAccountID, selectedUID);
           }
+        } else {
+          this.selectedMessageUid.set(null);
+          this.messageContent.set(null);
+          this.safeMessageHtml.set(null);
         }
       });
   }
@@ -459,7 +467,7 @@ export class InboxComponent {
       this.messageHtmlObjectUrl = null;
     }
 
-    if (html && html.trim()) {
+    if (html?.trim()) {
       const fullDocument = `
 <!doctype html>
 <html>
@@ -498,7 +506,7 @@ export class InboxComponent {
         catchError(() => EMPTY),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe();
+      .subscribe(() => this.imapUnreadCount.refresh());
   }
 
   private parseAddressList(value: string): string[] {
