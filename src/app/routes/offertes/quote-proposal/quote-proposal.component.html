@@ -21,38 +21,41 @@
       <div class="mx-auto max-w-4xl px-0 pb-8 pt-0 sm:px-6 sm:py-8 lg:px-8">
         <!-- Mobile layout -->
         <div class="block sm:hidden">
-          <div class="relative min-h-screen flex flex-col">
+          <div class="relative min-h-screen flex flex-col bg-slate-50">
             <app-quote-proposal-mobile-header
                 [quoteNumber]="q.quoteNumber"
                 (share)="shareQuote()"
               />
 
-            <main class="flex-1" [class.pb-[calc(11rem+env(safe-area-inset-bottom))]]="!isFinalized() && !isReadOnly()" [class.pb-[calc(2rem+env(safe-area-inset-bottom))]]="isFinalized() || isReadOnly()">
-              <div class="border-b border-gray-100 bg-white px-5 pb-6 pt-6">
+            <!-- Adjusted bottom padding to perfectly fit the new pill footer -->
+            <main class="flex-1" [class.pb-[calc(10rem+env(safe-area-inset-bottom))]]="!isFinalized() && !isReadOnly()" [class.pb-[calc(2rem+env(safe-area-inset-bottom))]]="isFinalized() || isReadOnly()">
+
+              <!-- Hero Card -->
+              <div class="bg-white px-5 pt-6 pb-8 rounded-b-[2.5rem] shadow-sm ring-1 ring-slate-900/5 mb-6">
                 <div class="mb-6 flex items-start justify-between">
                   <div class="flex items-center gap-4">
-                    <div class="h-16 w-16 overflow-hidden rounded-2xl border border-gray-100 bg-gray-50 shadow-[0_4px_20px_-2px_rgba(0,0,0,0.04),0_2px_8px_-2px_rgba(0,0,0,0.02)]">
+                    <div class="h-16 w-16 overflow-hidden rounded-2xl border border-slate-100 bg-white shadow-sm flex-shrink-0">
                       @if (q.logoUrl) {
-                        <img [src]="q.logoUrl" [alt]="q.organizationName" class="h-full w-full object-contain" />
+                        <img [src]="q.logoUrl" [alt]="q.organizationName" class="h-full w-full object-contain p-1" />
                       } @else {
-                        <div class="flex h-full w-full items-center justify-center bg-zinc-100 text-xl font-extrabold text-zinc-700">
+                        <div class="flex h-full w-full items-center justify-center bg-slate-50 text-xl font-extrabold text-slate-400">
                           {{ q.organizationName[0] ?? 'O' }}
                         </div>
                       }
                     </div>
                     <div>
-                      <h1 class="text-xl font-extrabold tracking-tight text-slate-900 line-clamp-2 sm:text-2xl">{{ q.organizationName }}</h1>
+                      <h1 class="text-xl font-extrabold tracking-tight text-slate-900 line-clamp-2">{{ q.organizationName }}</h1>
                       <p class="text-sm font-medium text-slate-500">{{ 'offertes.proposal.customerLabel' | translate }}: {{ q.customerName }}</p>
                     </div>
                   </div>
                 </div>
 
-                <div class="flex items-center gap-2">
-                  <div class="rounded-full px-4 py-1.5 text-[13px] font-bold text-white shadow-lg ring-4" [class]="mobileStatusBadge()">
+                <div class="flex flex-wrap items-center gap-2">
+                  <div class="rounded-full px-4 py-1.5 text-[13px] font-bold text-white shadow-sm" [class]="mobileStatusBadge()">
                     {{ statusLabel(q.status) }}
                   </div>
                   @if (q.validUntil) {
-                    <div class="rounded-full bg-gray-100 px-4 py-1.5 text-[13px] font-semibold text-slate-500">
+                    <div class="rounded-full bg-slate-100 px-4 py-1.5 text-[13px] font-semibold text-slate-600">
                       {{ 'offertes.validUntilLabel' | translate }} {{ q.validUntil | date:'d MMM':'':'nl' }}
                     </div>
                   }
@@ -60,15 +63,15 @@
               </div>
 
               @if (isReadOnly()) {
-                <div class="px-5 pt-4">
-                  <div class="rounded-2xl border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800">
+                <div class="px-4 mb-4">
+                  <div class="rounded-3xl border border-blue-200 bg-blue-50 px-5 py-4 text-sm font-medium text-blue-800 shadow-sm">
                     {{ 'offertes.proposal.readOnlyNotice' | translate }}
                   </div>
                 </div>
               }
 
               @if (q.status === 'Accepted' || q.status === 'Rejected' || q.status === 'Expired') {
-                <div class="px-5 pt-4">
+                <div class="px-4 mb-6">
                   <app-quote-status-banner
                     [status]="q.status"
                     [acceptedAt]="q.acceptedAt ?? null"
@@ -79,13 +82,15 @@
                 </div>
               }
 
-              <div class="mt-4">
-                <div class="flex items-center justify-between px-5 py-4">
+              <!-- Items Section -->
+              <div class="px-4 mb-6">
+                <div class="flex items-center justify-between px-2 mb-3">
                   <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'offertes.proposal.itemsTitle' | translate }}</h3>
-                  <span class="text-[11px] font-bold text-blue-600">{{ 'offertes.itemsCount' | translate:{count: q.items.length} }}</span>
+                  <span class="text-[11px] font-bold text-blue-600 bg-blue-100 px-2 py-0.5 rounded-full">{{ 'offertes.itemsCount' | translate:{count: q.items.length} }}</span>
                 </div>
 
-                <div class="flex flex-col">
+                <!-- Replaced border-b stack with a space-y gap for floating cards -->
+                <div class="flex flex-col space-y-4">
                   @for (item of q.items; track item.id) {
                     <app-quote-proposal-item-mobile
                       [item]="item"
@@ -104,38 +109,44 @@
                 </div>
               </div>
 
-              <app-quote-proposal-totals
-                [subtotalCents]="q.subtotalCents"
-                [discountAmountCents]="q.discountAmountCents"
-                [vatBreakdown]="getVatBreakdown()"
-                [totalCents]="q.totalCents"
-                [status]="q.status"
-                [variant]="'mobile'"
-              />
+              <div class="px-4 mb-6">
+                <app-quote-proposal-totals
+                  [subtotalCents]="q.subtotalCents"
+                  [discountAmountCents]="q.discountAmountCents"
+                  [vatBreakdown]="getVatBreakdown()"
+                  [totalCents]="q.totalCents"
+                  [status]="q.status"
+                  [variant]="'mobile'"
+                />
+              </div>
 
               @if (q.notes) {
-                <div class="border-b border-gray-100 bg-white px-5 py-5">
-                  <h3 class="mb-2 text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'offertes.notes' | translate }}</h3>
-                  <div class="text-sm leading-relaxed text-zinc-700 wrap-break-word rich-text" [innerHTML]="q.notes | safeHtml"></div>
+                <div class="px-4 mb-6">
+                  <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5">
+                    <h3 class="mb-3 text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'offertes.notes' | translate }}</h3>
+                    <div class="text-sm leading-relaxed text-slate-700 wrap-break-word rich-text" [innerHTML]="q.notes | safeHtml"></div>
+                  </div>
                 </div>
               }
             </main>
-              @if (q.financingDisclaimer) {
-                <div class="mx-4 mb-4 rounded-lg border border-amber-200 bg-amber-50 p-3">
-                  <p class="text-xs text-amber-800">{{ 'offertes.proposal.financingDisclaimer' | translate }}</p>
-                </div>
-              }
-              <app-quote-proposal-action-footer
-                [variant]="'mobile'"
-                [isFinalized]="isFinalized()"
-                [isReadOnly]="isReadOnly()"
-                [accepting]="accepting()"
-                [rejecting]="rejecting()"
-                (accept)="openAcceptDialog()"
-                (reject)="openRejectDialog()"
-              />
-            </div>
+
+            @if (q.financingDisclaimer) {
+              <div class="mx-4 mb-[calc(2rem+env(safe-area-inset-bottom))] rounded-2xl border border-amber-200 bg-amber-50 p-4 shadow-sm">
+                <p class="text-xs font-medium text-amber-800 leading-relaxed">{{ 'offertes.proposal.financingDisclaimer' | translate }}</p>
+              </div>
+            }
+
+            <app-quote-proposal-action-footer
+              [variant]="'mobile'"
+              [isFinalized]="isFinalized()"
+              [isReadOnly]="isReadOnly()"
+              [accepting]="accepting()"
+              [rejecting]="rejecting()"
+              (accept)="openAcceptDialog()"
+              (reject)="openRejectDialog()"
+            />
           </div>
+        </div>
 
         <!-- Desktop layout -->
         <div class="hidden sm:block">
@@ -270,7 +281,6 @@
 
   <app-quote-proposal-ask-sheet
     [isOpen]="annotatingItemId() !== null"
-    [itemDescription]="annotationItem()?.description ?? null"
     [organizationName]="quote()?.organizationName ?? ''"
     [text]="annotationText()"
     [submitting]="submittingAnnotation()"

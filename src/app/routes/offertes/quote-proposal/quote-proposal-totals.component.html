@@ -1,24 +1,24 @@
 @if (variant() === 'mobile') {
-  <div class="border-b border-gray-100 bg-white px-5 pb-6 pt-5 mt-4 space-y-4">
+  <div class="rounded-[24px] bg-white p-6 shadow-sm ring-1 ring-slate-900/5 space-y-4">
     <div class="flex items-center justify-between text-[14px]">
-      <span class="font-medium text-slate-500">{{ 'offertes.subtotal' | translate }}</span>
-      <span class="font-semibold text-slate-900">{{ formatCents(subtotalCents()) }}</span>
+      <span class="font-semibold text-slate-500">{{ 'offertes.subtotal' | translate }}</span>
+      <span class="font-bold text-slate-900">{{ formatCents(subtotalCents()) }}</span>
     </div>
     @if (discountAmountCents() > 0) {
       <div class="flex items-center justify-between text-[14px]">
-        <span class="font-medium text-slate-500">{{ 'offertes.discount' | translate }}</span>
-        <span class="font-semibold text-green-600">-{{ formatCents(discountAmountCents()) }}</span>
+        <span class="font-semibold text-slate-500">{{ 'offertes.discount' | translate }}</span>
+        <span class="font-bold text-emerald-600">-{{ formatCents(discountAmountCents()) }}</span>
       </div>
     }
     @for (vat of vatBreakdown(); track vat.rateBps) {
       <div class="flex items-center justify-between text-[14px]">
-        <span class="font-medium text-slate-500">{{ 'offertes.tax' | translate }} {{ formatTaxRate(vat.rateBps) }}</span>
-        <span class="font-semibold text-slate-900">{{ formatCents(vat.amountCents) }}</span>
+        <span class="font-semibold text-slate-500">{{ 'offertes.tax' | translate }} {{ formatTaxRate(vat.rateBps) }}</span>
+        <span class="font-bold text-slate-900">{{ formatCents(vat.amountCents) }}</span>
       </div>
     }
-    <div class="flex items-end justify-between border-t border-gray-100 pt-6">
+    <div class="flex items-end justify-between border-t border-slate-100 pt-5 mt-2">
       <div>
-        <span class="text-xs font-black uppercase tracking-widest text-slate-400">{{ 'offertes.totalAmount' | translate }}</span>
+        <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">{{ 'offertes.totalAmount' | translate }}</span>
         <div class="mt-1 text-4xl font-black tracking-tighter text-slate-900">{{ formatCents(totalCents()) }}</div>
       </div>
     </div>

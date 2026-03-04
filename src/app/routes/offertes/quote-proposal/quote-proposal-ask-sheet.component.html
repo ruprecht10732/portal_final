@@ -5,50 +5,52 @@
   (closed)="requestDismiss.emit()"
 >
   <div class="mx-auto w-full max-w-md">
-    <div class="px-6 pb-8 pt-4 flex flex-col h-full max-h-[90vh]">
-    @if (itemDescription(); as desc) {
+    <div class="px-6 pb-8 pt-6 flex flex-col h-full max-h-[90vh]">
+
+      <!-- Fixed Header, No HTML leakage -->
       <div class="mb-6">
         <p class="text-[10px] uppercase tracking-widest font-black text-blue-600 mb-1">{{ 'offertes.proposal.askSheetTitle' | translate }}</p>
-        <h2 class="text-xl font-extrabold text-slate-900 leading-tight">{{ desc }}</h2>
+        <h2 class="text-2xl font-extrabold text-slate-900 leading-tight">
+          {{ 'offertes.proposal.askQuestion' | translate }}
+        </h2>
       </div>
 
       <div class="flex-1 mb-8">
         <textarea
           id="annotationText"
-          class="w-full h-64 p-5 text-lg font-medium bg-gray-50 border-none rounded-2xl focus:ring-2 focus:ring-blue-600/20 placeholder:text-slate-400 resize-none transition-all"
+          class="w-full h-48 p-5 text-base font-medium bg-slate-50 border border-slate-200 rounded-3xl focus:ring-4 focus:ring-blue-600/10 focus:border-blue-500 placeholder:text-slate-400 resize-none transition-all"
           [placeholder]="'offertes.proposal.askSheetPlaceholder' | translate:{organization: organizationName()}"
           [value]="text()"
           (input)="textChange.emit($any($event.target).value)"
           [disabled]="submitting()"
         ></textarea>
-        <p class="mt-3 text-xs text-slate-400 font-medium px-1">
+        <p class="mt-3 text-xs text-slate-500 font-medium px-2">
           {{ 'offertes.proposal.askSheetHelper' | translate }}
         </p>
       </div>
-    }
 
-    <div class="space-y-3 pb-[calc(env(safe-area-inset-bottom))]">
-      <button
-        type="button"
-        class="w-full h-16 bg-blue-600 active:bg-blue-700 text-white rounded-2xl font-extrabold text-lg flex items-center justify-center gap-2 shadow-xl shadow-blue-500/20 active:scale-[0.98] transition-all"
-        (click)="requestSend.emit()"
-        [disabled]="!text().trim() || submitting()"
-      >
-        @if (submitting()) {
-          <div class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
-        } @else {
-          <lucide-icon name="send" class="h-5 w-5" aria-hidden="true"></lucide-icon>
-          <span>{{ 'offertes.proposal.send' | translate }}</span>
-        }
-      </button>
-      <button
-        type="button"
-        class="w-full h-14 bg-transparent text-slate-500 font-bold text-base active:bg-gray-50 rounded-2xl transition-all"
-        (click)="requestDismiss.emit()"
-      >
-        {{ 'common.cancel' | translate }}
-      </button>
+      <div class="space-y-3 pb-[calc(env(safe-area-inset-bottom))]">
+        <button
+          type="button"
+          class="w-full h-14 bg-blue-600 active:bg-blue-700 text-white rounded-full font-extrabold text-base flex items-center justify-center gap-2 shadow-xl shadow-blue-600/20 active:scale-[0.98] transition-all"
+          (click)="requestSend.emit()"
+          [disabled]="!text().trim() || submitting()"
+        >
+          @if (submitting()) {
+            <div class="h-5 w-5 animate-spin rounded-full border-2 border-white border-t-transparent"></div>
+          } @else {
+            <lucide-icon name="send" class="h-4 w-4" aria-hidden="true"></lucide-icon>
+            <span>{{ 'offertes.proposal.send' | translate }}</span>
+          }
+        </button>
+        <button
+          type="button"
+          class="w-full h-12 bg-transparent text-slate-500 font-bold text-sm active:bg-slate-50 rounded-full transition-all"
+          (click)="requestDismiss.emit()"
+        >
+          {{ 'common.cancel' | translate }}
+        </button>
+      </div>
     </div>
-  </div>
   </div>
 </app-bottom-sheet>

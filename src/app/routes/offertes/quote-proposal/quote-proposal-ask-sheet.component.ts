@@ -13,7 +13,6 @@ import { LucideAngularModule } from 'lucide-angular';
 })
 export class QuoteProposalAskSheetComponent {
   readonly isOpen = input(false);
-  readonly itemDescription = input<string | null>(null);
   readonly organizationName = input('');
   readonly text = input('');
   readonly submitting = input(false);
