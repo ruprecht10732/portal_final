@@ -113,28 +113,44 @@
 :host ::ng-deep .rich-text .ql-align-right { text-align: right; }
 :host ::ng-deep .rich-text .ql-align-justify { text-align: justify; }
 
-/* Prevent long unbroken text/URLs from breaking the mobile layout */
+/* --- Bulletproof Rich Text Layout Constraints --- */
+
 :host ::ng-deep .rich-text {
-	overflow-wrap: break-word;
+	overflow-wrap: anywhere;
 	word-wrap: break-word;
 	word-break: break-word;
 	-webkit-hyphens: auto;
 	hyphens: auto;
+	/* Prevent the container itself from expanding */
 	max-width: 100%;
-	overflow-x: hidden;
 }
 
-/* Ensure images and tables scale down */
+/* Force all descendants to respect the max-width */
+:host ::ng-deep .rich-text * {
+	max-width: 100% !important;
+}
+
+/* Ensure images and videos scale proportionally */
 :host ::ng-deep .rich-text img,
-:host ::ng-deep .rich-text video {
-	max-width: 100%;
-	height: auto;
+:host ::ng-deep .rich-text video,
+:host ::ng-deep .rich-text iframe {
+	height: auto !important;
 	border-radius: 0.5rem;
 }
 
+/* Force tables to become horizontally scrollable rather than breaking the page width */
 :host ::ng-deep .rich-text table {
-	max-width: 100%;
-	display: block;
-	overflow-x: auto;
+	display: block !important;
+	width: 100% !important;
+	overflow-x: auto !important;
 	-webkit-overflow-scrolling: touch;
+	border-collapse: collapse;
+	margin-bottom: 0.5rem;
+}
+
+/* Force preformatted text and code blocks to wrap instead of overflowing */
+:host ::ng-deep .rich-text pre,
+:host ::ng-deep .rich-text code {
+	white-space: pre-wrap !important;
+	word-break: break-word !important;
 }
