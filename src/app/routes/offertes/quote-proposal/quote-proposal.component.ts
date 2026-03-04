@@ -32,6 +32,7 @@ import { QuoteProposalAskSheetComponent } from './quote-proposal-ask-sheet.compo
 import { QuoteProposalAcceptSheetComponent } from './quote-proposal-accept-sheet.component';
 import { QuoteProposalRejectSheetComponent } from './quote-proposal-reject-sheet.component';
 import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
+import { PreventDanglingHyphenPipe } from '../../../shared/pipes/prevent-dangling-hyphen.pipe';
 
 @Component({
   selector: 'app-quote-proposal',
@@ -48,6 +49,7 @@ import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
     QuoteProposalAskSheetComponent,
     QuoteProposalAcceptSheetComponent,
     QuoteProposalRejectSheetComponent,
+    PreventDanglingHyphenPipe,
     SafeHtmlPipe,
   ],
   templateUrl: './quote-proposal.component.html',

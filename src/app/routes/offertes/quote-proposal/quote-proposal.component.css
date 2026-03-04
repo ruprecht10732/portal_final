@@ -116,11 +116,11 @@
 /* --- Bulletproof Rich Text Layout Constraints --- */
 
 :host ::ng-deep .rich-text {
-	overflow-wrap: anywhere;
+	overflow-wrap: break-word;
 	word-wrap: break-word;
-	word-break: break-word;
-	-webkit-hyphens: auto;
-	hyphens: auto;
+	word-break: normal;
+	-webkit-hyphens: none;
+	hyphens: none;
 	/* Prevent the container itself from expanding */
 	max-width: 100%;
 }

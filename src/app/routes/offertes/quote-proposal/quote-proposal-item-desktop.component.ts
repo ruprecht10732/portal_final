@@ -45,7 +45,8 @@ export class QuoteProposalItemDesktopComponent {
   protected renderDescription(value: string | null | undefined): SafeHtml {
     const source = (value ?? '').trim();
     if (!source) return '';
-    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, source) ?? '';
+    const normalized = source.replaceAll(/(^|>|[\r\n]|<br\s*\/?>)\s*-\s+/gi, '$1-&nbsp;');
+    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, normalized) ?? '';
     return this.sanitizer.bypassSecurityTrustHtml(sanitized);
   }
 

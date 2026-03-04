@@ -124,7 +124,7 @@
                 <div class="px-4 mb-6">
                   <div class="rounded-3xl bg-white p-6 shadow-sm ring-1 ring-slate-900/5">
                     <h3 class="mb-3 text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'offertes.notes' | translate }}</h3>
-                    <div class="text-sm leading-relaxed text-slate-700 wrap-break-word rich-text" [innerHTML]="q.notes | safeHtml"></div>
+                    <div class="text-sm leading-relaxed text-slate-700 wrap-break-word rich-text" [innerHTML]="q.notes | preventDanglingHyphen | safeHtml"></div>
                   </div>
                 </div>
               }
@@ -242,7 +242,7 @@
           @if (q.notes) {
             <div class="mb-6 rounded-xl bg-white p-6 shadow-sm">
               <h3 class="mb-2 text-sm font-medium text-zinc-500">{{ 'offertes.notes' | translate }}</h3>
-              <div class="text-sm text-zinc-700 wrap-break-word rich-text" [innerHTML]="q.notes | safeHtml"></div>
+              <div class="text-sm text-zinc-700 wrap-break-word rich-text" [innerHTML]="q.notes | preventDanglingHyphen | safeHtml"></div>
             </div>
           }
 

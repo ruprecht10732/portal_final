@@ -6,6 +6,9 @@
   line-height: 1.25em;
   max-height: calc(3 * 1.25em);
   overflow: hidden;
+  overflow-wrap: break-word;
+  -webkit-hyphens: none;
+  hyphens: none;
 }
 
 /* Remove block margins only in collapsed mode for consistent line count. */
