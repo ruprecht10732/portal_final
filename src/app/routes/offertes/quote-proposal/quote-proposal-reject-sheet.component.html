@@ -3,7 +3,8 @@
   [title]="'offertes.proposal.rejectSheetTitle' | translate"
   (closed)="requestDismiss.emit()"
 >
-  <div class="px-6 pb-6 pt-4">
+  <div class="mx-auto w-full max-w-md">
+    <div class="px-6 pb-6 pt-4">
     <p class="text-sm text-zinc-500">
       {{ 'offertes.proposal.rejectSheetBody' | translate }}
     </p>
@@ -45,5 +46,6 @@
         {{ 'common.cancel' | translate }}
       </button>
     </div>
+  </div>
   </div>
 </app-bottom-sheet>

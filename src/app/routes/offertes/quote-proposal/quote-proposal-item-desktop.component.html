@@ -5,7 +5,7 @@
   [class.hover:bg-zinc-50]="canToggle()"
 >
   <div
-    class="sm:grid sm:grid-cols-12 sm:items-center sm:gap-4"
+    class="sm:grid sm:grid-cols-12 sm:items-center sm:gap-4 outline-none focus-visible:ring-2 focus-visible:ring-blue-500 focus-visible:ring-offset-2 rounded-lg"
     (click)="canToggle() ? toggleItem.emit(item()) : null"
     (keydown.enter)="canToggle() ? toggleItem.emit(item()) : null"
     [attr.tabindex]="canToggle() ? 0 : null"

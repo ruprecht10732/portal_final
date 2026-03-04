@@ -112,3 +112,29 @@
 :host ::ng-deep .rich-text .ql-align-center { text-align: center; }
 :host ::ng-deep .rich-text .ql-align-right { text-align: right; }
 :host ::ng-deep .rich-text .ql-align-justify { text-align: justify; }
+
+/* Prevent long unbroken text/URLs from breaking the mobile layout */
+:host ::ng-deep .rich-text {
+	overflow-wrap: break-word;
+	word-wrap: break-word;
+	word-break: break-word;
+	-webkit-hyphens: auto;
+	hyphens: auto;
+	max-width: 100%;
+	overflow-x: hidden;
+}
+
+/* Ensure images and tables scale down */
+:host ::ng-deep .rich-text img,
+:host ::ng-deep .rich-text video {
+	max-width: 100%;
+	height: auto;
+	border-radius: 0.5rem;
+}
+
+:host ::ng-deep .rich-text table {
+	max-width: 100%;
+	display: block;
+	overflow-x: auto;
+	-webkit-overflow-scrolling: touch;
+}

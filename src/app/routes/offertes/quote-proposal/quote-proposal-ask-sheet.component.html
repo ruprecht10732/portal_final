@@ -4,7 +4,8 @@
   [showCloseButton]="false"
   (closed)="requestDismiss.emit()"
 >
-  <div class="px-6 pb-8 pt-4 flex flex-col h-full max-h-[90vh]">
+  <div class="mx-auto w-full max-w-md">
+    <div class="px-6 pb-8 pt-4 flex flex-col h-full max-h-[90vh]">
     @if (itemDescription(); as desc) {
       <div class="mb-6">
         <p class="text-[10px] uppercase tracking-widest font-black text-blue-600 mb-1">{{ 'offertes.proposal.askSheetTitle' | translate }}</p>
@@ -48,5 +49,6 @@
         {{ 'common.cancel' | translate }}
       </button>
     </div>
+  </div>
   </div>
 </app-bottom-sheet>

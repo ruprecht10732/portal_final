@@ -1,1 +1,8 @@
 /* Signature block styles are handled via utility classes. */
+
+.signature-frame {
+  touch-action: none;
+  /* Prevent text selection while drawing */
+  -webkit-user-select: none;
+  user-select: none;
+}
