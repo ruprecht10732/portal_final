@@ -82,8 +82,22 @@
               <span class="stats-float-bar__dot stats-float-bar__dot--accepted"></span>
               {{ 'offertes.stats.accepted' | translate }}: <strong>{{ formatCurrency(stats.acceptedValue) }}</strong>
               <span class="stats-float-bar__kv--muted">({{ 'offertes.stats.acceptedExclVat' | translate }}: {{ formatCurrency(stats.acceptedExclVat) }})</span>
-              <span class="stats-float-bar__kv--muted">{{ 'offertes.stats.acceptedCountShare' | translate }}: {{ stats.acceptedCountShare }}%</span>
-              <span class="stats-float-bar__kv--muted">{{ 'offertes.stats.acceptedValueShare' | translate }}: {{ stats.acceptedValueShare }}%</span>
+              <span
+                class="stats-float-bar__kpi"
+                [class.stats-float-bar__kpi--high]="stats.acceptedCountShare >= 70"
+                [class.stats-float-bar__kpi--medium]="stats.acceptedCountShare >= 40 && stats.acceptedCountShare < 70"
+                [class.stats-float-bar__kpi--low]="stats.acceptedCountShare < 40"
+              >
+                {{ 'offertes.stats.acceptedCountShare' | translate }}: {{ stats.acceptedCountShare }}%
+              </span>
+              <span
+                class="stats-float-bar__kpi"
+                [class.stats-float-bar__kpi--high]="stats.acceptedValueShare >= 70"
+                [class.stats-float-bar__kpi--medium]="stats.acceptedValueShare >= 40 && stats.acceptedValueShare < 70"
+                [class.stats-float-bar__kpi--low]="stats.acceptedValueShare < 40"
+              >
+                {{ 'offertes.stats.acceptedValueShare' | translate }}: {{ stats.acceptedValueShare }}%
+              </span>
             </span>
           }
           <span class="stats-float-bar__kv">{{ 'offertes.stats.exclVat' | translate }}: <strong>{{ formatCurrency(stats.totalExclVat) }}</strong></span>

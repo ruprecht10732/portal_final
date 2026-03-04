@@ -55,6 +55,35 @@
   color: #9ca3af;
 }
 
+.stats-float-bar__kpi {
+  display: inline-flex;
+  align-items: center;
+  border-radius: 9999px;
+  padding: 0.125rem 0.45rem;
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
+  border: 1px solid transparent;
+}
+
+.stats-float-bar__kpi--high {
+  color: #166534;
+  background: #dcfce7;
+  border-color: #86efac;
+}
+
+.stats-float-bar__kpi--medium {
+  color: #92400e;
+  background: #fef3c7;
+  border-color: #fcd34d;
+}
+
+.stats-float-bar__kpi--low {
+  color: #991b1b;
+  background: #fee2e2;
+  border-color: #fca5a5;
+}
+
 .stats-float-bar__dot {
   display: inline-block;
   width: 8px;
