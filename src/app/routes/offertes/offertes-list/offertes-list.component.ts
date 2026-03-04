@@ -74,11 +74,18 @@ export class OffertesListComponent implements OnInit {
     if (rows.length === 0) return null;
 
     const totalCents = rows.reduce((sum, r) => sum + r.totalCents, 0);
+    const totalVatCents = rows.reduce((sum, r) => sum + r.taxTotalCents, 0);
+    const totalExclVatCents = totalCents - totalVatCents;
     const byStatus: Record<QuoteStatus, number> = { Draft: 0, Sent: 0, Accepted: 0, Rejected: 0, Expired: 0 };
     for (const row of rows) {
       byStatus[row.status] = (byStatus[row.status] ?? 0) + 1;
     }
     const acceptedCents = rows.filter(r => r.status === 'Accepted').reduce((sum, r) => sum + r.totalCents, 0);
+    const acceptedExclVatCents = rows
+      .filter(r => r.status === 'Accepted')
+      .reduce((sum, r) => sum + (r.totalCents - r.taxTotalCents), 0);
+    const acceptedCountShare = Math.round((byStatus.Accepted / rows.length) * 100);
+    const acceptedValueShare = totalCents > 0 ? Math.round((acceptedCents / totalCents) * 100) : 0;
     const labels = this.statusLabels();
     const statusOrder: QuoteStatus[] = ['Draft', 'Sent', 'Accepted', 'Rejected', 'Expired'];
     const segments = statusOrder.map(status => ({
@@ -90,9 +97,14 @@ export class OffertesListComponent implements OnInit {
 
     return {
       count: rows.length,
-      totalValue: centsToEuros(totalCents),
+      totalExclVat: centsToEuros(totalExclVatCents),
+      totalVat: centsToEuros(totalVatCents),
+      totalInclVat: centsToEuros(totalCents),
       avgValue: centsToEuros(Math.round(totalCents / rows.length)),
       acceptedValue: centsToEuros(acceptedCents),
+      acceptedExclVat: centsToEuros(acceptedExclVatCents),
+      acceptedCountShare,
+      acceptedValueShare,
       byStatus,
       segments,
     };
