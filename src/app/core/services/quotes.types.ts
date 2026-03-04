@@ -24,6 +24,7 @@ export type PricingMode = 'exclusive' | 'inclusive';
 
 export interface QuoteItemResponse {
   id: string;
+  title: string;
   description: string;
   quantity: string;
   unitPriceCents: number;
@@ -229,6 +230,7 @@ export interface QuoteCalculationResponse {
 // ── API Request types ─────────────────────────────────────────────────────────
 
 export interface QuoteItemRequest {
+  title?: string;
   description: string;
   quantity: string;
   unitPriceCents: number;
@@ -413,8 +415,8 @@ export interface AcceptQuoteRequest {
 }
 
 export interface RejectQuoteRequest {
-  reason?: string | undefined;
-}
+  reason: string;
+} 
 
 // ── Activity timeline ─────────────────────────────────────────────────────────
 

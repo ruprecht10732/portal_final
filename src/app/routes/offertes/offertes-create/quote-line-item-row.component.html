@@ -31,14 +31,13 @@
       />
 
       @if (ghostSuggestions().length > 0) {
-        <div class="pointer-events-none absolute right-2.5 bottom-2 z-10 w-[min(300px,90%)] overflow-hidden rounded-md border border-zinc-300 bg-white/95 text-[11px] leading-tight text-zinc-600 shadow-sm" role="listbox" aria-label="Catalog suggestions">
+        <div class="pointer-events-none absolute right-2.5 bottom-2 z-10 w-[min(300px,90%)] overflow-hidden rounded-md border border-zinc-300 bg-white/95 text-[11px] leading-tight text-zinc-600 shadow-sm" aria-label="Catalog suggestions">
           @for (suggestion of ghostSuggestions(); track $index; let i = $index) {
             <div
               class="flex items-center gap-1.5 px-2 py-1"
-              role="option"
               [class.bg-zinc-100]="i === ghostSelectedIndex()"
             >
-              @if (i === 0) {
+              @if (i === ghostSelectedIndex()) {
                 <span class="rounded border border-zinc-300 bg-zinc-50 px-1 py-0 text-[10px] text-zinc-500">Tab ↹</span>
               }
               <span class="truncate">{{ suggestion.displayText }}</span>

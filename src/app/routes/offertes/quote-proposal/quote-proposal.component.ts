@@ -368,8 +368,9 @@ export class QuoteProposalComponent implements OnInit {
 
   protected rejectQuote(): void {
     this.rejecting.set(true);
+    const reason = this.rejectReason().trim();
     this.publicQuoteService.reject(this.token(), {
-      reason: this.rejectReason().trim() || undefined,
+      reason,
     }).subscribe({
       next: updated => {
         this.quote.set(updated);

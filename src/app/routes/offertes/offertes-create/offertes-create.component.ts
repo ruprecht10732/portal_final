@@ -43,6 +43,7 @@ import { QuoteLineItemRowComponent } from './quote-line-item-row.component';
 
 interface LineItemDraft {
   id: string;
+  title: string;
   description: string;
   quantity: string; // Free-form: "5 x", "10 m²", "3 uur"
   unitPrice: number;
@@ -457,6 +458,7 @@ export class OffertesCreateComponent implements OnInit {
     this.lineItems.set(
       quote.items.map(item => ({
         id: item.id,
+        title: item.title ?? '',
         description: item.description,
         quantity: item.quantity,
         unitPrice: centsToEuros(item.unitPriceCents),
@@ -509,7 +511,8 @@ export class OffertesCreateComponent implements OnInit {
     this.discountValue.set(discountDisplayValue);
     this.pricingMode.set(quote.pricingMode ?? 'exclusive');
     this.financingDisclaimer.set(quote.financingDisclaimer ?? false);
-    this.lastUsedTaxRate.set(quote.items.at(0) ? taxBpsToDisplay(quote.items.at(0)!.taxRateBps) : 21);
+    const firstItemTaxRate = quote.items.at(0)?.taxRateBps;
+    this.lastUsedTaxRate.set(firstItemTaxRate != null ? taxBpsToDisplay(firstItemTaxRate) : 21);
     this.ensureInitialLineItem();
     this.requestCalculation();
     if (quote.leadId) {
@@ -569,7 +572,7 @@ export class OffertesCreateComponent implements OnInit {
 
   protected updateLineItem(
     id: string,
-    field: 'description' | 'quantity' | 'unitPrice' | 'taxRate' | 'optional',
+    field: 'title' | 'description' | 'quantity' | 'unitPrice' | 'taxRate' | 'optional',
     value: string | number | boolean
   ): void {
     this.lineItems.update(items =>
@@ -687,6 +690,7 @@ export class OffertesCreateComponent implements OnInit {
     const dVal = dType === 'fixed' ? eurosToCents(values.discountValue ?? 0) : (values.discountValue ?? 0);
 
     const items: QuoteItemRequest[] = this.lineItems().map(item => ({
+      ...(item.title ? { title: item.title } : {}),
       description: item.description,
       quantity: item.quantity,
       unitPriceCents: eurosToCents(item.unitPrice),
@@ -865,7 +869,8 @@ export class OffertesCreateComponent implements OnInit {
         if (item.id !== itemId) return item;
         return {
           ...item,
-          description: product.description || product.title,
+          title: product.title,
+          description: this.formatCatalogDescription(product.title, product.description || ''),
           quantity: item.quantity || '1 x',
           unitPrice: centsToEuros(product.unitPriceCents || product.priceCents),
           taxRate: taxBpsToDisplay(product.vatRateBps),
@@ -922,7 +927,7 @@ export class OffertesCreateComponent implements OnInit {
           .map(material => material.title.trim())
           .filter(Boolean);
 
-        const parentDescriptionBase = product.description || product.title;
+        const parentDescriptionBase = this.formatCatalogDescription(product.title, product.description || '');
         const parentDescription = this.formatDescriptionWithIncludedMaterials(parentDescriptionBase, includedTitles);
 
         const generatedRows = this.createGeneratedMaterialRows(itemId, materials, currentParent.taxRate);
@@ -970,7 +975,8 @@ export class OffertesCreateComponent implements OnInit {
     return {
       id: crypto.randomUUID(),
       parentLineItemId,
-      description: material.description || material.title,
+      title: material.title,
+      description: this.formatCatalogDescription(material.title, material.description || ''),
       quantity: '1 x',
       unitPrice: centsToEuros(material.unitPriceCents || material.priceCents),
       taxRate: fallbackTaxRate,
@@ -1043,7 +1049,8 @@ export class OffertesCreateComponent implements OnInit {
     if (pending.length === 0) return;
 
     for (const att of pending) {
-      const file = att.pendingFile!;
+      const file = att.pendingFile;
+      if (!file) continue;
       this.quotesService
         .presignAttachmentUpload(quoteId, {
           fileName: file.name,
@@ -1197,6 +1204,23 @@ export class OffertesCreateComponent implements OnInit {
     }).format(amount);
   }
 
+  private formatCatalogDescription(title: string, descriptionHtml: string): string {
+    const safeTitle = this.escapeHtml(title.trim());
+    const body = descriptionHtml.trim();
+    if (!safeTitle) return body;
+    if (!body) return `<p><strong>${safeTitle}</strong></p>`;
+    return `<p><strong>${safeTitle}</strong></p>${body}`;
+  }
+
+  private escapeHtml(value: string): string {
+    return value
+      .replaceAll('&', '&amp;')
+      .replaceAll('<', '&lt;')
+      .replaceAll('>', '&gt;')
+      .replaceAll('"', '&quot;')
+      .replaceAll("'", '&#39;');
+  }
+
   private formatDescriptionWithIncludedMaterials(baseDescription: string, includedTitles: string[]): string {
     if (includedTitles.length === 0) return baseDescription;
 
@@ -1215,6 +1239,7 @@ export class OffertesCreateComponent implements OnInit {
   private createEmptyLineItem(): LineItemDraft {
     return {
       id: crypto.randomUUID(),
+      title: '',
       description: '',
       quantity: '1 x',
       unitPrice: 0,

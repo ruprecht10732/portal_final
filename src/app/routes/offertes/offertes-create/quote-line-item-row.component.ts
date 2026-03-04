@@ -55,10 +55,25 @@ export class QuoteLineItemRowComponent {
   protected readonly ghostLoading = signal(false);
 
   private ghostRequestSequence = 0;
+  private ghostDebounceTimer: ReturnType<typeof setTimeout> | null = null;
+  private ghostSuppressNext = false;
 
-  protected async onDescriptionInput(value: string): Promise<void> {
+  protected onDescriptionInput(value: string): void {
     this.descriptionChange.emit(value);
-    await this.lookupGhostSuggestion(value);
+    if (this.ghostSuppressNext) {
+      this.ghostSuppressNext = false;
+      if (this.ghostDebounceTimer !== null) {
+        clearTimeout(this.ghostDebounceTimer);
+        this.ghostDebounceTimer = null;
+      }
+      return;
+    }
+    if (this.ghostDebounceTimer !== null) {
+      clearTimeout(this.ghostDebounceTimer);
+    }
+    this.ghostDebounceTimer = setTimeout(() => {
+      void this.lookupGhostSuggestion(value);
+    }, 300);
   }
 
   protected onDescriptionKeydown(event: KeyboardEvent): void {
@@ -66,9 +81,15 @@ export class QuoteLineItemRowComponent {
     if (suggestions.length === 0) return;
 
     if (event.key === 'Tab') {
-      const suggestion = suggestions[0];
+      const suggestion = suggestions[this.ghostSelectedIndex()];
       if (!suggestion) return;
       event.preventDefault();
+      if (this.ghostDebounceTimer !== null) {
+        clearTimeout(this.ghostDebounceTimer);
+        this.ghostDebounceTimer = null;
+      }
+      this.ghostRequestSequence++;
+      this.ghostSuppressNext = true;
       this.ghostAccepted.emit(suggestion);
       this.ghostSuggestions.set([]);
       this.ghostSelectedIndex.set(0);
@@ -93,6 +114,12 @@ export class QuoteLineItemRowComponent {
       const suggestion = suggestions[this.ghostSelectedIndex()];
       if (!suggestion) return;
       event.preventDefault();
+      if (this.ghostDebounceTimer !== null) {
+        clearTimeout(this.ghostDebounceTimer);
+        this.ghostDebounceTimer = null;
+      }
+      this.ghostRequestSequence++;
+      this.ghostSuppressNext = true;
       this.ghostAccepted.emit(suggestion);
       this.ghostSuggestions.set([]);
       this.ghostSelectedIndex.set(0);
