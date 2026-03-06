@@ -120,7 +120,6 @@ export const routes: Routes = [
 					panelItems: [
 						{ label: 'profile.personalDetails', route: '/app/profile/details', icon: 'user', exact: true },
 						{ label: 'profile.security', route: '/app/profile/security', icon: 'lock' },
-						{ label: 'profile.emailAccounts', route: '/app/profile/email-accounts', icon: 'mail' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
@@ -139,7 +138,8 @@ export const routes: Routes = [
 					},
 					{
 						path: 'email-accounts',
-						loadComponent: () => import('./routes/profile/email-accounts/email-accounts.component').then(m => m.EmailAccountsComponent),
+						redirectTo: '/app/inbox/settings',
+						pathMatch: 'full',
 					},
 				],
 			},
@@ -302,9 +302,22 @@ export const routes: Routes = [
 			{
 				path: 'inbox',
 				data: {
-					panelItems: [{ label: 'navigation.inbox', route: '/app/inbox', icon: 'mail', exact: true }],
+					panelItems: [
+						{ label: 'navigation.inbox', route: '/app/inbox', icon: 'mail', exact: true },
+						{ label: 'profile.emailAccounts', route: '/app/inbox/settings', icon: 'settings' },
+					],
 				} satisfies SidebarPanelConfig,
-				loadComponent: () => import('./routes/inbox/inbox.component').then(m => m.InboxComponent),
+				children: [
+					{
+						path: '',
+						pathMatch: 'full',
+						loadComponent: () => import('./routes/inbox/inbox.component').then(m => m.InboxComponent),
+					},
+					{
+						path: 'settings',
+						loadComponent: () => import('./routes/profile/email-accounts/email-accounts.component').then(m => m.EmailAccountsComponent),
+					},
+				],
 			},
 			{
 				path: 'leads',
