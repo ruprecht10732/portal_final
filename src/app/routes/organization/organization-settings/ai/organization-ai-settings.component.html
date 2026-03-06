@@ -33,6 +33,38 @@
             [(checked)]="aiAutoDispatch"
           />
 
+          <shared-checkbox
+            [label]="'organization.settings.ai.confidenceGateEnabled' | translate"
+            [hint]="'organization.settings.ai.confidenceGateEnabledHint' | translate"
+            [(checked)]="aiConfidenceGateEnabled"
+          />
+
+          <shared-checkbox
+            [label]="'organization.settings.ai.adaptiveReasoningEnabled' | translate"
+            [hint]="'organization.settings.ai.adaptiveReasoningEnabledHint' | translate"
+            [(checked)]="aiAdaptiveReasoningEnabled"
+          />
+
+          <shared-checkbox
+            [label]="'organization.settings.ai.experienceMemoryEnabled' | translate"
+            [hint]="'organization.settings.ai.experienceMemoryEnabledHint' | translate"
+            [(checked)]="aiExperienceMemoryEnabled"
+          />
+
+          <shared-checkbox
+            [label]="'organization.settings.ai.councilEnabled' | translate"
+            [hint]="'organization.settings.ai.councilEnabledHint' | translate"
+            [(checked)]="aiCouncilEnabled"
+          />
+
+          <shared-select
+            [label]="'organization.settings.ai.councilConsensusMode' | translate"
+            [hint]="'organization.settings.ai.councilConsensusModeHint' | translate"
+            [options]="councilConsensusModeOptions()"
+            [value]="aiCouncilConsensusMode()"
+            (valueChange)="aiCouncilConsensusMode.set($event ?? 'weighted')"
+          />
+
           <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <shared-number-input
               [label]="'organization.settings.ai.catalogGapThreshold' | translate"

@@ -9,7 +9,15 @@ import { UpcomingScheduleComponent } from './components/upcoming-schedule/upcomi
 
 @Component({
   selector: 'app-dashboard',
-  imports: [DashboardKpiRowComponent, LeadHeatmapComponent, NeedsAttentionComponent, PipelineOverviewComponent, ActivityFeedComponent, UpcomingScheduleComponent, TranslatePipe],
+  imports: [
+    DashboardKpiRowComponent,
+    LeadHeatmapComponent,
+    NeedsAttentionComponent,
+    PipelineOverviewComponent,
+    ActivityFeedComponent,
+    UpcomingScheduleComponent,
+    TranslatePipe,
+  ],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

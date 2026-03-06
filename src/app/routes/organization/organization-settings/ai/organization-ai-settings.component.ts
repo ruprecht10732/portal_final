@@ -8,7 +8,10 @@ import { CardComponent } from '../../../../shared/components/card/card.component
 import { CheckboxComponent } from '../../../../shared/components/checkbox/checkbox.component';
 import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
 import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
+import { SelectComponent, type SelectOption } from '../../../../shared/components/select/select.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
+
+type CouncilConsensusMode = 'weighted' | 'majority' | 'estimator_final';
 
 @Component({
   selector: 'app-organization-ai-settings',
@@ -18,6 +21,7 @@ import { SkeletonComponent } from '../../../../shared/components/skeleton/skelet
     CheckboxComponent,
     NumberInputComponent,
     PageLayoutComponent,
+    SelectComponent,
     SkeletonComponent,
     TranslatePipe,
   ],
@@ -35,6 +39,21 @@ export class OrganizationAiSettingsComponent {
   protected readonly aiAutoEstimate = signal(true);
   private readonly initialAiAutoEstimate = signal(true);
 
+  protected readonly aiConfidenceGateEnabled = signal(false);
+  private readonly initialAiConfidenceGateEnabled = signal(false);
+
+  protected readonly aiAdaptiveReasoningEnabled = signal(true);
+  private readonly initialAiAdaptiveReasoningEnabled = signal(true);
+
+  protected readonly aiExperienceMemoryEnabled = signal(true);
+  private readonly initialAiExperienceMemoryEnabled = signal(true);
+
+  protected readonly aiCouncilEnabled = signal(true);
+  private readonly initialAiCouncilEnabled = signal(true);
+
+  protected readonly aiCouncilConsensusMode = signal<CouncilConsensusMode>('weighted');
+  private readonly initialAiCouncilConsensusMode = signal<CouncilConsensusMode>('weighted');
+
   protected readonly catalogGapThreshold = signal<number | null>(3);
   private readonly initialCatalogGapThreshold = signal(3);
 
@@ -50,10 +69,21 @@ export class OrganizationAiSettingsComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
 
+  protected readonly councilConsensusModeOptions = computed<SelectOption<CouncilConsensusMode>[]>(() => [
+    { label: this.translate.instant('organization.settings.ai.councilConsensusModeWeighted'), value: 'weighted' as const },
+    { label: this.translate.instant('organization.settings.ai.councilConsensusModeMajority'), value: 'majority' as const },
+    { label: this.translate.instant('organization.settings.ai.councilConsensusModeEstimatorFinal'), value: 'estimator_final' as const },
+  ]);
+
   protected readonly hasChanges = computed(() =>
     this.aiAutoDisqualifyJunk() !== this.initialAiAutoDisqualifyJunk() ||
     this.aiAutoDispatch() !== this.initialAiAutoDispatch() ||
     this.aiAutoEstimate() !== this.initialAiAutoEstimate() ||
+    this.aiConfidenceGateEnabled() !== this.initialAiConfidenceGateEnabled() ||
+    this.aiAdaptiveReasoningEnabled() !== this.initialAiAdaptiveReasoningEnabled() ||
+    this.aiExperienceMemoryEnabled() !== this.initialAiExperienceMemoryEnabled() ||
+    this.aiCouncilEnabled() !== this.initialAiCouncilEnabled() ||
+    this.aiCouncilConsensusMode() !== this.initialAiCouncilConsensusMode() ||
     (this.catalogGapThreshold() ?? this.initialCatalogGapThreshold()) !== this.initialCatalogGapThreshold() ||
     (this.catalogGapLookbackDays() ?? this.initialCatalogGapLookbackDays()) !== this.initialCatalogGapLookbackDays()
   );
@@ -93,6 +123,21 @@ export class OrganizationAiSettingsComponent {
         this.aiAutoEstimate.set(settings.aiAutoEstimate);
         this.initialAiAutoEstimate.set(settings.aiAutoEstimate);
 
+        this.aiConfidenceGateEnabled.set(settings.aiConfidenceGateEnabled);
+        this.initialAiConfidenceGateEnabled.set(settings.aiConfidenceGateEnabled);
+
+        this.aiAdaptiveReasoningEnabled.set(settings.aiAdaptiveReasoningEnabled);
+        this.initialAiAdaptiveReasoningEnabled.set(settings.aiAdaptiveReasoningEnabled);
+
+        this.aiExperienceMemoryEnabled.set(settings.aiExperienceMemoryEnabled);
+        this.initialAiExperienceMemoryEnabled.set(settings.aiExperienceMemoryEnabled);
+
+        this.aiCouncilEnabled.set(settings.aiCouncilEnabled);
+        this.initialAiCouncilEnabled.set(settings.aiCouncilEnabled);
+
+        this.aiCouncilConsensusMode.set(settings.aiCouncilConsensusMode);
+        this.initialAiCouncilConsensusMode.set(settings.aiCouncilConsensusMode);
+
         this.catalogGapThreshold.set(settings.catalogGapThreshold);
         this.initialCatalogGapThreshold.set(settings.catalogGapThreshold);
 
@@ -113,6 +158,11 @@ export class OrganizationAiSettingsComponent {
         aiAutoDisqualifyJunk: this.aiAutoDisqualifyJunk(),
         aiAutoDispatch: this.aiAutoDispatch(),
         aiAutoEstimate: this.aiAutoEstimate(),
+        aiConfidenceGateEnabled: this.aiConfidenceGateEnabled(),
+        aiAdaptiveReasoningEnabled: this.aiAdaptiveReasoningEnabled(),
+        aiExperienceMemoryEnabled: this.aiExperienceMemoryEnabled(),
+        aiCouncilEnabled: this.aiCouncilEnabled(),
+        aiCouncilConsensusMode: this.aiCouncilConsensusMode(),
         ...(this.catalogGapThreshold() == null ? {} : { catalogGapThreshold: this.catalogGapThreshold()! }),
         ...(this.catalogGapLookbackDays() == null ? {} : { catalogGapLookbackDays: this.catalogGapLookbackDays()! }),
       })
@@ -133,6 +183,21 @@ export class OrganizationAiSettingsComponent {
 
         this.aiAutoEstimate.set(settings.aiAutoEstimate);
         this.initialAiAutoEstimate.set(settings.aiAutoEstimate);
+
+        this.aiConfidenceGateEnabled.set(settings.aiConfidenceGateEnabled);
+        this.initialAiConfidenceGateEnabled.set(settings.aiConfidenceGateEnabled);
+
+        this.aiAdaptiveReasoningEnabled.set(settings.aiAdaptiveReasoningEnabled);
+        this.initialAiAdaptiveReasoningEnabled.set(settings.aiAdaptiveReasoningEnabled);
+
+        this.aiExperienceMemoryEnabled.set(settings.aiExperienceMemoryEnabled);
+        this.initialAiExperienceMemoryEnabled.set(settings.aiExperienceMemoryEnabled);
+
+        this.aiCouncilEnabled.set(settings.aiCouncilEnabled);
+        this.initialAiCouncilEnabled.set(settings.aiCouncilEnabled);
+
+        this.aiCouncilConsensusMode.set(settings.aiCouncilConsensusMode);
+        this.initialAiCouncilConsensusMode.set(settings.aiCouncilConsensusMode);
 
         this.catalogGapThreshold.set(settings.catalogGapThreshold);
         this.initialCatalogGapThreshold.set(settings.catalogGapThreshold);

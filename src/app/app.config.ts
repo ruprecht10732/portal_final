@@ -3,7 +3,6 @@ import { registerLocaleData } from '@angular/common';
 import localeNl from '@angular/common/locales/nl';
 import { HttpBackend, provideHttpClient, withInterceptors } from '@angular/common/http';
 import { provideRouter } from '@angular/router';
-import { provideAnimations } from '@angular/platform-browser/animations';
 import { ColorPickerModule } from '@iplab/ngx-color-picker';
 import {
   CircleAlert,
@@ -89,7 +88,7 @@ import {
   RefreshCcw,
   KeyRound,
   Copy,
-  AlertTriangle,
+  TriangleAlert,
   Webhook,
   TrendingUp,
   Handshake,
@@ -127,7 +126,6 @@ const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLo
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideAnimations(),
     { provide: ErrorHandler, useClass: GlobalErrorHandler },
     { provide: LOCALE_ID, useValue: 'nl' },
     provideRouter(routes),
@@ -226,7 +224,7 @@ export const appConfig: ApplicationConfig = {
         Activity,
         KeyRound,
         Copy,
-        AlertTriangle,
+        TriangleAlert,
         Webhook,
         TrendingUp,
         Handshake,

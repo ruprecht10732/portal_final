@@ -17,6 +17,8 @@
     "goBack": "Terug",
     "newDraft": "Nieuw concept",
     "errorLabel": "Fout",
+    "aiFeedbackCapturedSingle": "AI-feedback uit 1 offertewijziging is opgeslagen.",
+    "aiFeedbackCapturedMultiple": "AI-feedback uit {{count}} offertewijzigingen is opgeslagen.",
     "loading": "Laden...",
     "selectLead": "Selecteer Lead",
     "changeLead": "Wijzig",

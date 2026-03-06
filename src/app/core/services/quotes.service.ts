@@ -28,6 +28,8 @@ import type {
   QuoteExportStatusResponse,
   BulkQuoteExportRequest,
   BulkQuoteExportResponse,
+  CreateQuoteFeedbackRequest,
+  QuoteFeedbackResponse,
 } from './quotes.types';
 
 /**
@@ -188,6 +190,10 @@ export class QuotesService {
 
   exportQuoteToProvider(quoteId: string, provider: ExternalAccountingProvider): Observable<QuoteExportResponse> {
     return this.http.post<QuoteExportResponse>(`${this.baseUrl}/${quoteId}/export/${provider}`, {});
+  }
+
+  submitFeedback(quoteId: string, data: CreateQuoteFeedbackRequest): Observable<QuoteFeedbackResponse> {
+    return this.http.post<QuoteFeedbackResponse>(`${this.baseUrl}/${quoteId}/feedback`, data);
   }
 
   getQuoteExportStatus(quoteId: string, provider: ExternalAccountingProvider): Observable<QuoteExportStatusResponse> {

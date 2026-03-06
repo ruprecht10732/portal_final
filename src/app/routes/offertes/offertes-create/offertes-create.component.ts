@@ -23,6 +23,7 @@ import type {
   QuoteAttachmentRequest,
   QuoteURLRequest,
   GenerateQuoteRequest,
+  CreateQuoteFeedbackRequest,
 } from '../../../core/services/quotes.types';
 import { TAX_RATE_OPTIONS, DISCOUNT_TYPE_OPTIONS, parseQuantityNumber, eurosToCents, centsToEuros, taxDisplayToBps, taxBpsToDisplay } from '../../../core/services/quotes.types';
 
@@ -51,6 +52,12 @@ interface LineItemDraft {
   optional: boolean;
   catalogProductId?: string;
   parentLineItemId?: string;
+}
+
+interface QuoteFeedbackDiff {
+  fieldChanged: CreateQuoteFeedbackRequest['fieldChanged'];
+  aiValue: Record<string, unknown>;
+  humanValue: Record<string, unknown>;
 }
 
 @Component({
@@ -737,9 +744,11 @@ export class OffertesCreateComponent implements OnInit {
     payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R ? Exclude<R, null> : never,
     status: 'Draft' | 'Sent',
   ): void {
+    const feedbackRequests = this.buildQuoteFeedbackRequests();
     this.quotesService.update(quoteId, payload).subscribe({
       next: updated => {
-        this.navigateAfterSave(updated.id, status);
+        this.submitQuoteFeedbackInBackground(updated.id, feedbackRequests);
+        this.navigateAfterSave(updated.id, status, feedbackRequests.length);
         this.saving.set(false);
       },
       error: () => {
@@ -747,6 +756,108 @@ export class OffertesCreateComponent implements OnInit {
         this.saving.set(false);
       },
     });
+  }
+
+  private buildQuoteFeedbackRequests(): CreateQuoteFeedbackRequest[] {
+    const quote = this.existingQuote();
+    if (!quote) {
+      return [];
+    }
+
+    const originalItems = new Map(quote.items.map(item => [item.id, item]));
+    const leadServiceId = this.selectedLeadServiceId() ?? quote.leadServiceId;
+    const requests: CreateQuoteFeedbackRequest[] = [];
+
+    for (const item of this.lineItems()) {
+      const original = originalItems.get(item.id);
+      if (!original) {
+        continue;
+      }
+
+      for (const diff of this.buildFeedbackDiffs(original, item)) {
+        requests.push({
+          ...(leadServiceId ? { leadServiceId } : {}),
+          fieldChanged: diff.fieldChanged,
+          aiValue: diff.aiValue,
+          humanValue: diff.humanValue,
+        });
+      }
+    }
+
+    return requests;
+  }
+
+  private buildFeedbackDiffs(original: QuoteResponse['items'][number], item: LineItemDraft): QuoteFeedbackDiff[] {
+    const normalizedUnitPrice = eurosToCents(item.unitPrice);
+    const normalizedTaxRate = taxDisplayToBps(item.taxRate);
+    const diffs: QuoteFeedbackDiff[] = [];
+
+    this.appendFeedbackDiff(
+      diffs,
+      original.description !== item.description,
+      'description',
+      { lineItemId: original.id, description: original.description },
+      { lineItemId: original.id, description: item.description },
+    );
+
+    this.appendFeedbackDiff(
+      diffs,
+      original.quantity !== item.quantity,
+      'quantity',
+      { lineItemId: original.id, quantity: original.quantity },
+      { lineItemId: original.id, quantity: item.quantity },
+    );
+
+    this.appendFeedbackDiff(
+      diffs,
+      original.unitPriceCents !== normalizedUnitPrice,
+      'unitPriceCents',
+      { lineItemId: original.id, value: original.unitPriceCents },
+      { lineItemId: original.id, value: normalizedUnitPrice },
+    );
+
+    this.appendFeedbackDiff(
+      diffs,
+      original.taxRateBps !== normalizedTaxRate,
+      'taxRateBps',
+      { lineItemId: original.id, value: original.taxRateBps },
+      { lineItemId: original.id, value: normalizedTaxRate },
+    );
+
+    this.appendFeedbackDiff(
+      diffs,
+      original.isOptional !== item.optional,
+      'isOptional',
+      { lineItemId: original.id, value: original.isOptional },
+      { lineItemId: original.id, value: item.optional },
+    );
+
+    return diffs;
+  }
+
+  private appendFeedbackDiff(
+    diffs: QuoteFeedbackDiff[],
+    condition: boolean,
+    fieldChanged: QuoteFeedbackDiff['fieldChanged'],
+    aiValue: QuoteFeedbackDiff['aiValue'],
+    humanValue: QuoteFeedbackDiff['humanValue'],
+  ): void {
+    if (!condition) {
+      return;
+    }
+
+    diffs.push({ fieldChanged, aiValue, humanValue });
+  }
+
+  private submitQuoteFeedbackInBackground(quoteId: string, requests: CreateQuoteFeedbackRequest[]): void {
+    for (const request of requests) {
+      this.quotesService.submitFeedback(quoteId, request).pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe({
+        next: () => {},
+        error: () => {},
+      });
+    }
   }
 
   private createNewQuote(
@@ -759,7 +870,7 @@ export class OffertesCreateComponent implements OnInit {
         // Upload any pending manual files (deferred from create mode)
         this.uploadPendingFiles(created.id);
 
-        this.navigateAfterSave(created.id, status);
+        this.navigateAfterSave(created.id, status, 0);
         this.saving.set(false);
       },
       error: () => {
@@ -769,15 +880,17 @@ export class OffertesCreateComponent implements OnInit {
     });
   }
 
-  private navigateAfterSave(quoteId: string, status: 'Draft' | 'Sent'): void {
+  private navigateAfterSave(quoteId: string, status: 'Draft' | 'Sent', feedbackCount: number): void {
+    const navigationExtras = feedbackCount > 0 ? { state: { aiFeedbackCount: feedbackCount } } : undefined;
+
     if (status !== 'Sent') {
-      void this.router.navigate(['/app/offertes', quoteId]);
+      void this.router.navigate(['/app/offertes', quoteId], navigationExtras);
       return;
     }
 
     this.quotesService.updateStatus(quoteId, 'Sent').subscribe({
-      next: () => void this.router.navigate(['/app/offertes', quoteId]),
-      error: () => void this.router.navigate(['/app/offertes', quoteId]),
+      next: () => void this.router.navigate(['/app/offertes', quoteId], navigationExtras),
+      error: () => void this.router.navigate(['/app/offertes', quoteId], navigationExtras),
     });
   }
 

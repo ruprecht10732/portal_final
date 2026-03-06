@@ -83,6 +83,23 @@ export interface QuoteURLRequest {
   catalogProductId?: string;
 }
 
+export interface CreateQuoteFeedbackRequest {
+  leadServiceId?: string;
+  fieldChanged: string;
+  aiValue: Record<string, unknown>;
+  humanValue: Record<string, unknown>;
+}
+
+export interface QuoteFeedbackResponse {
+  id: string;
+  quoteId: string;
+  leadServiceId?: string;
+  fieldChanged: string;
+  deltaPercentage?: number;
+  appliedToMemory: boolean;
+  createdAt: string;
+}
+
 export interface PresignAttachmentUploadRequest {
   fileName: string;
   contentType: string;

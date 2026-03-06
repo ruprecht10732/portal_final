@@ -90,6 +90,7 @@ export class OffertesDetailComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.showPostSaveFeedbackToast();
     this.loadMoneybirdConnectionStatus();
     const id = this.route.snapshot.paramMap.get('id');
     if (id) {
@@ -99,6 +100,27 @@ export class OffertesDetailComponent implements OnInit {
     } else {
       this.router.navigate(['/app/offertes']);
     }
+  }
+
+  private showPostSaveFeedbackToast(): void {
+    const state = (this.router.currentNavigation()?.extras.state ?? globalThis.history.state ?? null) as {
+      aiFeedbackCount?: number;
+    } | null;
+
+    const feedbackCount = typeof state?.aiFeedbackCount === 'number' ? state.aiFeedbackCount : 0;
+    if (feedbackCount < 1) {
+      return;
+    }
+
+    const translationKey = feedbackCount === 1
+      ? 'offertes.aiFeedbackCapturedSingle'
+      : 'offertes.aiFeedbackCapturedMultiple';
+    this.toast.success(this.translate.instant(translationKey, { count: feedbackCount }));
+
+    const currentHistoryState = globalThis.history.state as Record<string, unknown> | null;
+    const nextState = currentHistoryState ? { ...currentHistoryState } : {};
+    delete nextState['aiFeedbackCount'];
+    globalThis.history.replaceState(nextState, document.title, this.router.url);
   }
 
   private loadActivityHistory(quoteId: string): void {

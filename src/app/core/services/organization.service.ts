@@ -65,6 +65,11 @@ export interface OrganizationSettings {
   aiAutoDisqualifyJunk: boolean;
   aiAutoDispatch: boolean;
   aiAutoEstimate: boolean;
+  aiConfidenceGateEnabled: boolean;
+  aiAdaptiveReasoningEnabled: boolean;
+  aiExperienceMemoryEnabled: boolean;
+  aiCouncilEnabled: boolean;
+  aiCouncilConsensusMode: 'weighted' | 'majority' | 'estimator_final';
   catalogGapThreshold: number;
   catalogGapLookbackDays: number;
   notificationEmail?: string | null;
@@ -79,6 +84,11 @@ export interface UpdateOrganizationSettingsRequest {
   aiAutoDisqualifyJunk?: boolean;
   aiAutoDispatch?: boolean;
   aiAutoEstimate?: boolean;
+  aiConfidenceGateEnabled?: boolean;
+  aiAdaptiveReasoningEnabled?: boolean;
+  aiExperienceMemoryEnabled?: boolean;
+  aiCouncilEnabled?: boolean;
+  aiCouncilConsensusMode?: 'weighted' | 'majority' | 'estimator_final';
   catalogGapThreshold?: number;
   catalogGapLookbackDays?: number;
 }

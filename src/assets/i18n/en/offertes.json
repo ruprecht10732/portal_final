@@ -17,6 +17,8 @@
     "goBack": "Go back",
     "newDraft": "New draft",
     "errorLabel": "Error",
+    "aiFeedbackCapturedSingle": "AI feedback captured from 1 quote edit.",
+    "aiFeedbackCapturedMultiple": "AI feedback captured from {{count}} quote edits.",
     "loading": "Loading...",
     "selectLead": "Select Lead",
     "changeLead": "Change",
