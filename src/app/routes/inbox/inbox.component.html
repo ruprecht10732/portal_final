@@ -125,6 +125,7 @@
                     class="w-full min-h-[60vh] border-0"
                     sandbox=""
                     referrerpolicy="no-referrer"
+                    [title]="selectedMessage()!.subject || ('profile.imap.noSubject' | translate)"
                     [src]="messageHtmlUrl()"
                   ></iframe>
                 } @else if (messageContent()?.bodyText) {
@@ -214,8 +215,18 @@
     }
 
     @if (composerOpen()) {
-      <div class="fixed inset-0 z-40 bg-white/95 backdrop-blur-sm" (click)="closeComposer()"></div>
-      <section class="fixed inset-4 z-50 mx-auto flex max-w-4xl flex-col gap-5 border border-zinc-200 bg-white p-6 sm:inset-10" role="dialog" aria-modal="true" aria-label="Compose email">
+      <button
+        type="button"
+        class="fixed inset-0 z-40 bg-white/95 backdrop-blur-sm"
+        [attr.aria-label]="'common.close' | translate"
+        (click)="closeComposer()"
+      ></button>
+      <dialog
+        open
+        class="fixed inset-4 z-50 mx-auto flex max-w-4xl flex-col gap-5 border border-zinc-200 bg-white p-6 sm:inset-10"
+        aria-label="Compose email"
+        (cancel)="$event.preventDefault(); closeComposer()"
+      >
         <header class="flex items-center justify-between">
           <button
             type="button"
@@ -260,7 +271,7 @@
           (input)="composerBody.set($any($event.target).value)"
         ></textarea>
         <p class="m-0 text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ 'profile.imap.inbox.messages.saved' | translate }}</p>
-      </section>
+      </dialog>
     }
   </main>
 </shared-page-layout>
