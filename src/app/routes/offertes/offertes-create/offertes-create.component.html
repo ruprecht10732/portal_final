@@ -1,21 +1,22 @@
-<div class="flex flex-col w-full min-h-full pb-16 sm:pb-0 relative">
-  <div class="border-b border-zinc-200 z-10 bg-white sticky top-0">
+<div class="relative flex min-h-full w-full flex-col bg-zinc-50 pb-16 sm:pb-0">
+  
+  <header class="sticky top-0 z-30 border-b border-zinc-200 bg-white">
     <shared-page-header
       [title]="isEditMode() ? ('offertes.editTitle' | translate) : ('offertes.createTitle' | translate)"
       [subtitle]="isEditMode() ? (existingQuote()?.quoteNumber ?? '') : ('offertes.newDraft' | translate)"
       [backAriaLabel]="'offertes.goBack' | translate"
       (back)="cancel()"
     >
-      <div actions class="flex flex-wrap items-center gap-2">
+      <div actions class="flex items-center gap-2">
         <shared-split-action
-          [primaryLabel]="'offertes.save'"
+          [primaryLabel]="'offertes.save' | translate"
           [primaryVariant]="'primary'"
-          [menuVariant]="'secondary'"
+          [menuVariant]="'ghost'"
           [size]="'compact'"
           [primaryDisabled]="!canSave() || saving()"
           [primaryLoading]="saving()"
           [menuSections]="headerActionSections()"
-          [menuTriggerLabel]="'offertes.actions'"
+          [menuTriggerLabel]="'offertes.actions' | translate"
           (primaryClicked)="saveDraft()"
           (actionSelected)="onHeaderAction($event)"
         >
@@ -23,296 +24,260 @@
         </shared-split-action>
       </div>
     </shared-page-header>
-  </div>
+  </header>
 
-  <div class="sm:hidden border-b border-zinc-100 bg-white px-5 py-3">
+  @if (error()) {
+    <div class="border-b border-red-200 bg-red-50/80 px-4 py-3 text-sm text-red-800 shadow-sm">
+      <div class="mx-auto flex max-w-[1600px] items-start gap-3">
+        <lucide-icon name="circle-alert" class="mt-0.5 h-4 w-4 shrink-0"></lucide-icon>
+        <div>
+          <p class="text-[10px] font-black uppercase tracking-[0.18em] text-red-600">{{ 'offertes.errorLabel' | translate }}</p>
+          <p>{{ error() }}</p>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="sm:hidden border-b border-zinc-100 bg-white px-5 py-3 shadow-sm">
     <shared-button variant="primary" size="compact" [fullWidth]="true" [disabled]="!canSave() || saving()" [loading]="saving()" (clicked)="saveDraft()">
-      <lucide-icon name="save" class="h-4 w-4"></lucide-icon>
+      <lucide-icon name="save" class="h-4 w-4 mr-2"></lucide-icon>
       {{ 'offertes.save' | translate }}
     </shared-button>
   </div>
 
-  @if (error()) {
-    <div class="bg-red-50 border-b border-red-500 text-red-900 p-4 text-sm font-medium flex items-start gap-3">
-      <span class="font-bold uppercase text-red-600 shrink-0">{{ 'offertes.errorLabel' | translate }}</span>
-      <span>{{ error() }}</span>
-    </div>
-  }
+  <main class="flex flex-1 flex-col lg:flex-row items-start">
+    
+    <div class="flex-1 min-w-0 w-full p-4 space-y-4 lg:p-6 xl:p-8">
 
-  @if (loading()) {
-    <div class="flex-1 flex flex-col items-center justify-center p-12 gap-4">
-      <div class="animate-spin h-10 w-10 border-4 border-zinc-100 border-t-black"></div>
-      <p class="text-xs font-mono uppercase text-zinc-400">{{ 'offertes.loading' | translate }}</p>
-    </div>
-  } @else {
-    <div class="flex-1 flex flex-col lg:flex-row items-start">
-      <div class="flex-1 flex flex-col min-w-0">
-        <section class="p-4 sm:p-6 border-b border-zinc-200">
-          <div class="flex items-center gap-3 mb-5">
-            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">01</span>
-            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-              {{ 'offertes.selectLead' | translate }}
-            </h2>
-          </div>
-
-          @if (selectedLead(); as lead) {
-            <div class="flex items-start justify-between gap-4 p-5 bg-white border border-zinc-200 rounded-lg shadow-sm hover:shadow transition-shadow duration-150">
-              <div class="flex flex-col gap-1.5">
-                <span class="font-semibold text-zinc-900 text-base">
-                  {{ lead.consumer.firstName }} {{ lead.consumer.lastName }}
-                </span>
-                <span class="text-sm text-zinc-600">
-                  {{ lead.address.street }} {{ lead.address.houseNumber }}, {{ lead.address.zipCode }} {{ lead.address.city }}
-                </span>
-                @if (lead.consumer.phone) {
-                  <span class="text-sm text-zinc-500">{{ lead.consumer.phone }}</span>
-                }
-              </div>
-              <button
-                type="button"
-                (click)="clearLead()"
-                class="text-zinc-400 hover:text-zinc-700 p-1.5 rounded hover:bg-zinc-100 transition-all duration-150"
-                [attr.aria-label]="'offertes.changeLead' | translate"
-              >
-                <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
-              </button>
+      <details class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" [open]="!selectedLead()">
+        <summary class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-5 hover:bg-zinc-50 transition-colors">
+          <div class="flex items-center gap-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full transition-all shrink-0"
+                 [class]="selectedLead() ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/10' : 'bg-zinc-100 text-zinc-400'">
+              <lucide-icon [name]="selectedLead() ? 'user-check' : 'user-plus'" class="h-5 w-5"></lucide-icon>
             </div>
+            <div class="min-w-0">
+              <h2 class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 group-open:text-zinc-900">{{ 'offertes.selectLead' | translate }}</h2>
+              @if (selectedLead()) {
+                <p class="truncate text-sm font-bold text-zinc-900">{{ selectedLead()?.consumer?.firstName }} {{ selectedLead()?.consumer?.lastName }}</p>
+              }
+            </div>
+          </div>
+          <lucide-icon name="chevron-down" class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"></lucide-icon>
+        </summary>
 
-            @if (leadServices().length > 0) {
-              <div class="mt-4 grid grid-cols-1 sm:grid-cols-[1fr_auto] gap-2 items-end">
-                <shared-select
-                  [label]="'offertes.serviceLinkLabel' | translate"
-                  [hint]="'offertes.serviceHint' | translate"
-                  [placeholder]="'common.select' | translate"
-                  [options]="leadServiceOptions()"
-                  [value]="selectedLeadServiceId()"
-                  (valueChange)="selectedLeadServiceId.set($event)"
-                  [disabled]="generating() || isGenerateLocked()"
-                />
-
-                @if (selectedLeadServiceId()) {
-                  <shared-button
-                    variant="ghost"
-                    size="compact"
-                    [fullWidth]="false"
-                    [disabled]="generating() || isGenerateLocked()"
-                    (clicked)="selectedLeadServiceId.set(null)"
-                  >
-                    <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
-                    {{ 'common.reset' | translate }}
-                  </shared-button>
-                }
+        <div class="border-t border-zinc-100 bg-white p-5 sm:p-8">
+          @if (selectedLead(); as lead) {
+            <div class="space-y-5 rounded-xl border border-zinc-200 bg-zinc-50 p-5">
+              <div class="flex items-center justify-between gap-4 group/lead">
+                <div class="flex min-w-0 items-center gap-4">
+                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-900 shadow-sm">
+                    <lucide-icon name="user" class="h-6 w-6 stroke-[1.5]"></lucide-icon>
+                  </div>
+                  <div class="min-w-0 flex flex-col">
+                    <span class="truncate font-bold text-zinc-900">{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</span>
+                    <span class="truncate text-xs font-medium text-zinc-500">{{ lead.address.street }} {{ lead.address.houseNumber }}, {{ lead.address.city }}</span>
+                    @if (lead.consumer.phone) {
+                      <span class="truncate text-xs text-zinc-400">{{ lead.consumer.phone }}</span>
+                    }
+                  </div>
+                </div>
+                <button (click)="clearLead()" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-300 hover:bg-red-50 hover:text-red-600 transition-all" [attr.aria-label]="'offertes.changeLead' | translate">
+                  <lucide-icon name="refresh-cw" class="h-4 w-4"></lucide-icon>
+                </button>
               </div>
-            }
+
+              @if (leadServices().length > 0) {
+                <div class="border-t border-zinc-200/80 pt-4">
+                  <shared-select
+                    class="[&_button]:h-11"
+                    [label]="'offertes.serviceLinkLabel' | translate"
+                    [hint]="'offertes.serviceHint' | translate"
+                    [placeholder]="'common.select' | translate"
+                    [options]="leadServiceOptions()"
+                    [value]="selectedLeadServiceId()"
+                    (valueChange)="selectedLeadServiceId.set($event)"
+                    [disabled]="generating() || isGenerateLocked()"
+                    [hasSuffix]="!!selectedLeadServiceId()"
+                  >
+                    @if (selectedLeadServiceId()) {
+                      <button
+                        selectSuffix
+                        type="button"
+                        class="inline-flex h-6 w-6 items-center justify-center rounded-full text-zinc-400 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+                        [disabled]="generating() || isGenerateLocked()"
+                        [attr.aria-label]="'common.reset' | translate"
+                        (click)="$event.stopPropagation(); selectedLeadServiceId.set(null)"
+                      >
+                        <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
+                      </button>
+                    }
+                  </shared-select>
+                </div>
+              }
+            </div>
           } @else {
             <shared-autocomplete
-              [label]="''"
               [placeholder]="'offertes.searchLeadPlaceholder' | translate"
               [value]="leadSearchQuery()"
               (valueChange)="onLeadSearchChange($event); onLeadSelected($event)"
               [options]="leadOptions()"
-              filterMode="manual"
+              class="[&_input]:h-12 [&_input]:text-base"
             />
           }
 
-          <div class="mt-6">
-            <h3 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">
-              {{ 'offertes.validityNotes' | translate }}
-            </h3>
-            <div class="grid grid-cols-1 gap-4 bg-white border border-zinc-200 rounded-lg p-5 shadow-sm">
-              <shared-input
-                [label]="'offertes.validUntil' | translate"
-                type="date"
-                [value]="summaryForm.controls.validUntil.value ?? ''"
-                (valueChange)="summaryForm.controls.validUntil.setValue($event)"
-              />
-              <shared-rich-text-editor
-                [label]="'offertes.notes' | translate"
-                [minHeight]="140"
-                [placeholder]="'offertes.notesPlaceholder' | translate"
-                [value]="summaryForm.controls.notes.value ?? ''"
-                (valueChange)="summaryForm.controls.notes.setValue($event)"
-              />
-              <shared-checkbox
-                [label]="'offertes.financingDisclaimer' | translate"
-                [checked]="financingDisclaimer()"
-                (checkedChange)="financingDisclaimer.set($event)"
+          <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-zinc-50">
+            <shared-input 
+              [label]="'offertes.validUntil' | translate" 
+              type="date" 
+              [value]="summaryForm.controls.validUntil.value ?? ''" 
+              (valueChange)="summaryForm.controls.validUntil.setValue($event)" 
+            />
+            <div class="flex items-end pb-2">
+              <shared-checkbox 
+                [label]="'offertes.financingDisclaimer' | translate" 
+                [checked]="financingDisclaimer()" 
+                (checkedChange)="financingDisclaimer.set($event)" 
               />
             </div>
           </div>
-        </section>
 
-        @if (selectedLead()) {
-          <section class="p-4 sm:p-6 border-b border-zinc-200 bg-linear-to-r from-zinc-50 to-white">
-            <button
-              type="button"
-              (click)="toggleGeneratePanel()"
-              class="flex items-center gap-2 text-xs font-bold uppercase tracking-widest text-zinc-500 hover:text-zinc-800 transition-colors w-full"
-            >
-              <lucide-icon name="sparkles" class="h-4 w-4"></lucide-icon>
-              {{ 'offertes.generate.title' | translate }}
-              <lucide-icon
-                [name]="showGeneratePanel() ? 'chevron-up' : 'chevron-down'"
-                class="h-4 w-4 ml-auto"
-              ></lucide-icon>
-            </button>
+          <div class="mt-6 border-t border-zinc-100 pt-6">
+            <shared-rich-text-editor
+              [label]="'offertes.notes' | translate"
+              [minHeight]="160"
+              [placeholder]="'offertes.notesPlaceholder' | translate"
+              [value]="summaryForm.controls.notes.value ?? ''"
+              (valueChange)="summaryForm.controls.notes.setValue($event)"
+            />
+          </div>
+        </div>
+      </details>
 
-            @if (showGeneratePanel()) {
-              <div class="mt-4 space-y-4">
-                <p class="text-sm text-zinc-500">
-                  {{ 'offertes.generate.description' | translate }}
-                </p>
-
-                <div class="text-xs text-zinc-600">
-                  <span class="font-bold uppercase tracking-widest text-zinc-400">{{ 'offertes.generate.service' | translate }}</span>
-                  <span class="ml-2 font-medium text-zinc-800">{{ selectedLeadServiceLabel() ?? '-' }}</span>
-                </div>
-
-                <shared-textarea
-                  [label]="'offertes.generate.promptLabel' | translate"
-                  [rows]="3"
-                  [placeholder]="'offertes.generate.promptPlaceholder' | translate"
-                  [value]="generatePrompt()"
-                  (valueChange)="generatePrompt.set($event)"
-                />
-
-                @if (generateError()) {
-                  <div class="text-sm text-red-600 bg-red-50 px-3 py-2 rounded">
-                    {{ generateError() }}
-                  </div>
-                }
-
-                <div>
-                  <shared-button
-                    variant="secondary"
-                    size="compact"
-                    [disabled]="!generatePrompt().trim() || !selectedLeadServiceId() || generating() || isGenerateLocked()"
-                    [loading]="generating()"
-                    (clicked)="generateQuote()"
-                  >
-                    <lucide-icon name="sparkles" class="h-4 w-4"></lucide-icon>
-                    {{ generating() || isGenerateLocked() ? ('offertes.generate.generating' | translate) : ('offertes.generate.submit' | translate) }}
-                  </shared-button>
-                </div>
-
-                @if (currentGenerateJob(); as job) {
-                  <div class="rounded-lg border border-zinc-200 bg-white p-4 space-y-2">
-                    <div class="flex items-center justify-between gap-2">
-                      <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">AI generatie</p>
-                      <span class="text-[11px] font-semibold uppercase"
-                            [class.text-blue-700]="job.status === 'pending' || job.status === 'running'"
-                            [class.text-green-700]="job.status === 'completed'"
-                            [class.text-red-700]="job.status === 'failed'">
-                        {{ job.status }}
-                      </span>
-                    </div>
-                    <p class="text-sm text-zinc-700">{{ job.step }}</p>
-                    <div class="h-1.5 w-full rounded-full bg-zinc-100">
-                      <div class="h-full rounded-full bg-zinc-900 transition-all" [style.width.%]="job.progressPercent"></div>
-                    </div>
-                    @if (job.error) {
-                      <p class="text-xs text-red-600">{{ job.error }}</p>
-                    }
-                    @if (job.quoteId) {
-                      <div class="pt-1">
-                        <shared-button variant="ghost" size="compact" (clicked)="openGeneratedQuote()">
-                          <lucide-icon name="arrow-up-right" class="h-4 w-4"></lucide-icon>
-                          Bekijk offerte
-                        </shared-button>
-                      </div>
-                    }
-                  </div>
-                }
+      <details class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" [open]="selectedLead() ? showGeneratePanel() : true">
+        <summary class="flex list-none items-center justify-between p-4 sm:p-5 transition-colors" [class.cursor-pointer]="!!selectedLead()" [class.hover:bg-zinc-50]="!!selectedLead()" (click)="selectedLead() && toggleGeneratePanel()">
+            <div class="flex items-center gap-4">
+              <div class="flex h-10 w-10 items-center justify-center rounded-full" [class.bg-indigo-50]="!!selectedLead()" [class.text-indigo-600]="!!selectedLead()" [class.bg-zinc-100]="!selectedLead()" [class.text-zinc-400]="!selectedLead()">
+                <lucide-icon name="sparkles" class="h-5 w-5"></lucide-icon>
               </div>
-            }
-          </section>
-        }
+              <div>
+                <h2 class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400" [class.group-open:text-indigo-900]="!!selectedLead()">{{ 'offertes.generate.title' | translate }}</h2>
+                <p class="text-[10px] font-bold uppercase tracking-tighter" [class.text-indigo-400/70]="!!selectedLead()" [class.text-zinc-400]="!selectedLead()">
+                  {{ (selectedLead() ? 'offertes.generate.panelReady' : 'offertes.generate.panelLocked') | translate }}
+                </p>
+              </div>
+            </div>
+            <lucide-icon name="chevron-down" class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"></lucide-icon>
+        </summary>
+        <div class="border-t border-zinc-100 bg-white p-5 sm:p-8">
+          @if (!selectedLead()) {
+            <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+              {{ 'offertes.generate.selectLeadFirstBody' | translate }}
+            </div>
+          }
 
-        <section class="p-4 sm:p-6 border-b border-zinc-200 flex-1">
-          <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div class="flex items-center gap-3">
-              <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">02</span>
-              <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-                {{ 'offertes.lineItems' | translate }}
-              </h2>
-            </div>
-            <div class="flex items-center gap-2">
-              <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-400">
-                {{ 'offertes.pricingMode' | translate }}
-              </span>
-              <shared-select
-                class="w-36"
-                [options]="pricingModeOptions()"
-                [value]="pricingMode()"
-                (valueChange)="setPricingMode($event)"
-              />
-            </div>
+          <shared-textarea 
+            [label]="'offertes.generate.promptLabel' | translate" 
+            [rows]="3" 
+            [placeholder]="selectedLead() ? ('offertes.generate.promptPlaceholder' | translate) : ('offertes.generate.selectLeadFirstPlaceholder' | translate)"
+            [disabled]="!selectedLead()"
+            [value]="generatePrompt()" 
+            (valueChange)="generatePrompt.set($event)" 
+          />
+          <div class="mt-4 flex items-center justify-between gap-3">
+             <div class="text-[10px] font-bold uppercase text-zinc-400">
+               {{ 'offertes.generate.service' | translate }}: <span [class.text-indigo-600]="!!selectedLeadServiceLabel()" [class.text-zinc-400]="!selectedLeadServiceLabel()">{{ selectedLeadServiceLabel() ?? (('offertes.generate.noServiceSelected' | translate)) }}</span>
+             </div>
+             <shared-button variant="secondary" [disabled]="!selectedLead() || !selectedLeadServiceId() || !generatePrompt().trim() || generating()" [loading]="generating()" (clicked)="generateQuote()">
+                <lucide-icon name="sparkles" class="h-4 w-4 mr-2"></lucide-icon>
+                {{ 'offertes.generate.submit' | translate }}
+             </shared-button>
           </div>
 
-          <div class="hidden rounded-lg border border-zinc-200 bg-zinc-50/80 px-4 py-3 lg:grid lg:grid-cols-[24px_minmax(72px,120px)_1fr_minmax(64px,100px)_minmax(72px,108px)_minmax(64px,96px)_48px_36px] lg:items-center lg:gap-x-2">
+          @if (currentGenerateJob(); as job) {
+            <div class="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+              <div class="flex justify-between mb-2">
+                <span class="text-[10px] font-black uppercase text-zinc-700">{{ job.step }}</span>
+                <span class="text-[10px] font-mono font-bold text-zinc-400">{{ job.progressPercent }}%</span>
+              </div>
+              <div class="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+                <div class="h-full bg-zinc-900 transition-all duration-500" [style.width.%]="job.progressPercent"></div>
+              </div>
+            </div>
+          }
+        </div>
+      </details>
+
+      <details class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" [open]="selectedLead()">
+        <summary class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-5 hover:bg-zinc-50 transition-colors">
+          <div class="flex items-center gap-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full transition-all"
+                 [class]="lineItems().length > 0 ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-100 text-zinc-400'">
+              <lucide-icon [name]="lineItems().length > 0 ? 'list-checks' : 'list-plus'" class="h-5 w-5"></lucide-icon>
+            </div>
+            <div>
+              <h2 class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 group-open:text-zinc-900">{{ 'offertes.lineItems' | translate }}</h2>
+              <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">{{ 'offertes.itemsCount' | translate:{ count: lineItems().length } }}</p>
+            </div>
+          </div>
+          <div class="flex items-center gap-4">
+            <div class="hidden sm:flex items-center gap-2 bg-zinc-100 p-1 rounded-md">
+               <span class="text-[9px] font-black uppercase px-2 text-zinc-400">{{ 'offertes.pricingMode' | translate }}</span>
+               <shared-select class="w-32 [&_button]:h-7 [&_button]:text-[10px] [&_button]:font-black" [options]="pricingModeOptions()" [value]="pricingMode()" (valueChange)="setPricingMode($event)" />
+            </div>
+            <lucide-icon name="chevron-down" class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"></lucide-icon>
+          </div>
+        </summary>
+        
+        <div class="border-t border-zinc-100 bg-white p-2 sm:p-6">
+          <div class="hidden rounded-t-lg border border-zinc-200 bg-zinc-50/80 px-4 py-2 
+                      lg:grid lg:grid-cols-[32px_80px_1fr_110px_120px_100px_40px_32px] lg:items-center lg:gap-x-2">
             <span></span>
-            <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.qty' | translate }}</span>
-            <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.description' | translate }}</span>
-            <span class="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.price' | translate }}</span>
-            <span class="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.tax' | translate }}</span>
-            <span class="text-right text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.total' | translate }}</span>
-            <span class="text-center text-[10px] font-bold uppercase tracking-widest text-zinc-600">{{ 'offertes.optional' | translate }}</span>
+            <span class="text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.qty' | translate }}</span>
+            <span class="text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.description' | translate }}</span>
+            <span class="text-right text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.form.unitPrice' | translate }}</span>
+            <span class="text-right text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.tax' | translate }}</span>
+            <span class="text-right text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.total' | translate }}</span>
+            <span class="text-center text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.optional' | translate }}</span>
             <span></span>
           </div>
 
-          <div
-            cdkDropList
-            cdkDropListOrientation="vertical"
-            [cdkDropListData]="lineItems()"
-            (cdkDropListDropped)="onLineItemDrop($event)"
-            class="mt-3 space-y-3"
-          >
+          <div cdkDropList class="space-y-3 pt-4" (cdkDropListDropped)="onLineItemDrop($event)">
             @for (item of lineItems(); track item.id) {
-              <app-quote-line-item-row
-                cdkDrag
-                cdkDragLockAxis="y"
-                [cdkDragDisabled]="lineItems().length < 2"
-                [item]="item"
-                [ghostSearchFn]="catalogSearchFn"
-                [taxRateOptions]="taxRateOptions()"
+              <app-quote-line-item-row 
+                cdkDrag 
+                [item]="item" 
                 [totalDisplay]="formatCurrency(getLineItemTotal(item))"
+                [taxRateOptions]="taxRateOptions()"
+                [ghostSearchFn]="catalogSearchFn"
                 (quantityChange)="updateLineItem(item.id, 'quantity', $event)"
                 (descriptionChange)="updateLineItem(item.id, 'description', $event)"
                 (unitPriceChange)="updateLineItemPrice(item.id, $event)"
                 (taxRateChange)="updateLineItemTaxRate(item.id, $event)"
                 (optionalChange)="updateLineItemOptional(item.id, $event)"
                 (ghostAccepted)="onGhostAccepted(item.id, $event)"
-                (remove)="removeLineItem(item.id)"
-              />
+                (remove)="removeLineItem(item.id)" />
             }
           </div>
 
-          <div class="mt-4">
-            <button
-              type="button"
-              (click)="addLineItem()"
-              class="inline-flex items-center gap-2 px-3 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-600 hover:text-zinc-900 bg-zinc-100 hover:bg-zinc-200 rounded-md transition-colors duration-150"
-            >
-              <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
-              {{ 'offertes.addItem' | translate }}
-            </button>
-          </div>
+          <button (click)="addLineItem()" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-200 py-6 text-xs font-black uppercase tracking-widest text-zinc-400 hover:border-zinc-900 hover:text-zinc-900 transition-all group">
+            <lucide-icon name="plus" class="h-5 w-5 group-hover:scale-110 transition-transform"></lucide-icon>
+            {{ 'offertes.addItem' | translate }}
+          </button>
+        </div>
+      </details>
 
-          @if (lineItems().length === 0) {
-            <div class="text-center py-12 px-4 text-zinc-400 text-sm bg-zinc-50 rounded-lg border border-dashed border-zinc-300">
-              {{ 'offertes.noItemsYet' | translate }}
+      <details class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" open>
+        <summary class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-5 hover:bg-zinc-50 transition-colors">
+          <div class="flex items-center gap-4">
+            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+              <lucide-icon name="paperclip" class="h-5 w-5"></lucide-icon>
             </div>
-          }
-        </section>
-
-        <section class="p-4 sm:p-6 border-b border-zinc-200">
-          <div class="flex items-center gap-3 mb-5">
-            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">03</span>
-            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-              {{ 'offertes.documents' | translate }}
-            </h2>
+            <h2 class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 group-open:text-zinc-900">{{ 'offertes.documents' | translate }}</h2>
           </div>
-
+          <lucide-icon name="chevron-down" class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"></lucide-icon>
+        </summary>
+        <div class="border-t border-zinc-100 bg-white p-5 sm:p-8">
           <app-attachment-panel
             [attachments]="attachmentDrafts()"
             (attachmentsChanged)="onAttachmentsChanged($event)"
@@ -320,29 +285,40 @@
             (previewRequested)="openPreview($event)"
           />
 
-          <div class="mt-6">
-            <h3 class="text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-3">
-              {{ 'offertes.urls' | translate }}
-            </h3>
+          <div class="mt-8 border-t border-zinc-100 pt-8">
+            <div class="mb-4 flex items-center justify-between gap-3">
+              <div>
+                <h3 class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">{{ 'offertes.urls' | translate }}</h3>
+              </div>
+              <div class="rounded-full bg-zinc-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 ring-1 ring-inset ring-zinc-200/70">
+                {{ urlDrafts().length }}
+              </div>
+            </div>
 
             @if (urlDrafts().length > 0) {
-              <div class="space-y-2 mb-4">
+              <div class="mb-4 space-y-2">
                 @for (url of urlDrafts(); track url.uid) {
-                  <div class="flex items-center gap-3 px-4 py-3 bg-white border border-zinc-200 rounded-lg shadow-sm group hover:border-zinc-300 hover:shadow transition-all duration-150">
-                    <lucide-icon name="link-2" class="h-4 w-4 text-zinc-400 shrink-0"></lucide-icon>
-                    <span class="text-sm text-zinc-700 truncate flex-1 font-medium">{{ url.label }}</span>
+                  <div class="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3">
+                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-50 text-zinc-400">
+                      <lucide-icon name="link" class="h-4 w-4"></lucide-icon>
+                    </div>
+                    <div class="min-w-0 flex-1">
+                      <p class="truncate text-sm font-semibold text-zinc-900">{{ url.label }}</p>
+                      <p class="truncate text-xs text-zinc-500">{{ url.href }}</p>
+                    </div>
                     <a
                       [href]="url.href"
                       target="_blank"
                       rel="noopener"
-                      class="text-xs font-semibold text-blue-600 hover:text-blue-700 hover:underline shrink-0 px-2 py-1 rounded hover:bg-blue-50 transition-colors duration-150"
+                      class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-white hover:text-zinc-900"
+                      [attr.aria-label]="'offertes.open' | translate"
                     >
-                      {{ 'offertes.open' | translate }}
+                      <lucide-icon name="external-link" class="h-4 w-4"></lucide-icon>
                     </a>
                     <button
                       type="button"
                       (click)="removeUrl(url.uid)"
-                      class="p-1.5 text-zinc-400 hover:text-red-600 opacity-0 group-hover:opacity-100 rounded hover:bg-red-50 transition-all duration-150"
+                      class="inline-flex h-10 w-10 shrink-0 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
                       [attr.aria-label]="'offertes.remove' | translate"
                     >
                       <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
@@ -352,109 +328,116 @@
               </div>
             }
 
-            <div class="flex flex-col sm:flex-row sm:items-end items-start gap-3">
-              <div class="flex-1 min-w-0 w-full">
-                <label for="urlLabelInput" class="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">{{ 'offertes.urlLabel' | translate }}</label>
-                <input
+            <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+              <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:items-end">
+                <shared-input
                   #urlLabel
-                  id="urlLabelInput"
-                  type="text"
+                  [label]="'offertes.urlLabel' | translate"
                   [placeholder]="'offertes.urlPlaceholder' | translate"
-                  class="w-full rounded-md border border-zinc-200 shadow-sm px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none transition-all duration-150"
                 />
-              </div>
-              <div class="flex-1 min-w-0 w-full">
-                <label for="urlHrefInput" class="block text-[10px] font-bold uppercase tracking-widest text-zinc-400 mb-1.5">{{ 'offertes.urlHref' | translate }}</label>
-                <input
+                <shared-input
                   #urlHref
-                  id="urlHrefInput"
-                  type="url"
+                  [label]="'offertes.urlHref' | translate"
                   [placeholder]="'offertes.urlHrefPlaceholder' | translate"
-                  class="w-full rounded-md border border-zinc-200 shadow-sm px-3 py-2 text-sm text-zinc-800 placeholder:text-zinc-400 focus:border-black focus:ring-2 focus:ring-black/5 focus:outline-none transition-all duration-150"
                 />
+                <shared-button
+                  variant="secondary"
+                  [fullWidth]="false"
+                  [disabled]="!urlLabel.value().trim() || !urlHref.value().trim()"
+                  (clicked)="addUrl(urlLabel.value(), urlHref.value()); urlLabel.value.set(''); urlHref.value.set('')"
+                >
+                  <lucide-icon name="plus" class="mr-2 h-4 w-4"></lucide-icon>
+                  {{ 'offertes.addUrl' | translate }}
+                </shared-button>
               </div>
-              <button
-                type="button"
-                (click)="addUrl(urlLabel.value, urlHref.value); urlLabel.value = ''; urlHref.value = ''"
-                class="inline-flex items-center justify-center gap-2 rounded-md bg-zinc-100 px-4 py-2 text-xs font-semibold uppercase tracking-widest text-zinc-700 hover:bg-zinc-200 hover:text-zinc-900 transition-all duration-150 shadow-sm shrink-0 w-full sm:w-auto mt-2 sm:mt-0"
-              >
-                <lucide-icon name="plus" class="h-4 w-4"></lucide-icon>
-                {{ 'offertes.addUrl' | translate }}
-              </button>
             </div>
           </div>
-        </section>
-      </div>
+        </div>
+      </details>
+    </div>
 
-      <aside class="w-full shrink-0 flex flex-col bg-white border-t border-zinc-200 z-10 lg:w-80 xl:w-96 lg:border-l lg:border-t-0 lg:shadow-lg lg:sticky lg:top-18.25 lg:max-h-[calc(100dvh-73px)] lg:overflow-y-auto">
-        <div class="p-5 sm:p-6 flex-1">
-          <div class="flex items-center gap-3 mb-6">
-            <span class="bg-black text-white text-xs font-bold px-1.5 py-0.5">04</span>
-            <h2 class="text-xs font-bold uppercase tracking-widest text-zinc-500">
-              {{ 'offertes.summary' | translate }}
-            </h2>
-          </div>
+    <aside class="w-full shrink-0 lg:w-80 xl:w-96 lg:sticky lg:top-[73px] lg:h-[calc(100dvh-73px)] lg:overflow-y-auto">
+      <div class="h-full border-t border-zinc-200 bg-white p-6 lg:border-l lg:border-t-0 xl:p-10">
+        <div class="flex items-center gap-3 mb-10">
+          <div class="h-2 w-2 rounded-full bg-zinc-900"></div>
+          <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{{ 'offertes.summary' | translate }}</h2>
+        </div>
 
-          <div class="space-y-5">
-            <div class="flex justify-between text-sm items-center">
-              <span class="text-zinc-600 font-medium">{{ 'offertes.subtotal' | translate }}</span>
-              <span class="font-semibold text-zinc-900 tabular-nums">{{ formatCurrency(totals().subtotal) }}</span>
-            </div>
-
-            <div class="flex items-center gap-3">
-              <span class="text-zinc-600 text-sm font-medium shrink-0">{{ 'offertes.discount' | translate }}</span>
-              <div class="flex-1 flex items-center gap-2 justify-end">
-                <shared-number-input
-                  class="w-24"
-                  [value]="summaryForm.controls.discountValue.value"
-                  (valueChange)="setDiscountValue($event ?? 0)"
-                  [min]="0"
-                  [step]="0.01"
-                  [alignRight]="true"
-                  [prefix]="discountPrefix()"
-                  [suffix]="discountSuffix()"
-                />
-                <shared-select
-                  class="w-16"
-                  [options]="discountTypeOptions()"
-                  [value]="summaryForm.controls.discountType.value"
-                  (valueChange)="setDiscountType($event)"
-                />
+        <div class="space-y-8">
+          <section class="rounded-xl border border-zinc-200 bg-white p-5">
+            <div class="space-y-4">
+              <div class="flex items-baseline justify-between gap-4">
+                <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.subtotal' | translate }}</span>
+                <span class="font-mono text-base font-bold tabular-nums text-zinc-900">{{ formatCurrency(totals().subtotal) }}</span>
               </div>
-            </div>
-            @if (totals().discountAmount > 0) {
-              <div class="flex justify-between text-sm text-green-600 font-medium items-center">
-                <span></span>
-                <span class="tabular-nums">-{{ formatCurrency(totals().discountAmount) }}</span>
-              </div>
-            }
 
-            <div class="flex justify-between text-sm pt-3 border-t border-zinc-200 items-center">
-              <span class="text-zinc-600 font-medium">{{ 'offertes.tax' | translate }}</span>
-              <span class="font-semibold text-zinc-900 tabular-nums">{{ formatCurrency(totals().taxAmount) }}</span>
-            </div>
-            @if (taxBreakdown().length > 0) {
-              <div class="space-y-1.5">
-                @for (entry of taxBreakdown(); track entry.rate) {
-                  <div class="flex justify-between text-xs text-zinc-500">
-                    <span>{{ 'offertes.tax' | translate }} {{ entry.rate }}%</span>
-                    <span class="tabular-nums">{{ formatCurrency(entry.amount) }}</span>
+              <div class="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
+                <div class="flex items-center justify-between">
+                  <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.discount' | translate }}</span>
+                  <lucide-icon name="tag" class="h-4 w-4 text-zinc-300"></lucide-icon>
+                </div>
+                <div class="flex gap-2">
+                  <shared-number-input class="flex-1 [&_input]:h-9 [&_input]:text-xs [&_input]:font-bold" [value]="summaryForm.controls.discountValue.value" (valueChange)="setDiscountValue($event ?? 0)" [prefix]="discountPrefix()" />
+                  <shared-select class="w-20 [&_button]:h-9 [&_button]:text-[10px] [&_button]:font-black" [options]="discountTypeOptions()" [value]="summaryForm.controls.discountType.value" (valueChange)="setDiscountType($event)" />
+                </div>
+                @if (totals().discountAmount > 0) {
+                  <div class="flex items-center justify-between text-emerald-600">
+                    <span class="text-[10px] font-black uppercase tracking-[0.16em]">{{ 'offertes.savings' | translate }}</span>
+                    <span class="font-mono text-sm font-bold tabular-nums">-{{ formatCurrency(totals().discountAmount) }}</span>
                   </div>
                 }
               </div>
-            }
 
-            <div class="flex justify-between pt-5 border-t-2 border-zinc-900 items-baseline">
-              <span class="text-base font-bold uppercase tracking-wide">{{ 'offertes.totalAmount' | translate }}</span>
-              <span class="text-2xl font-bold text-zinc-900 tabular-nums">{{ formatCurrency(totals().total) }}</span>
+              <div class="space-y-2 border-t border-zinc-200 pt-4">
+                <div class="flex items-baseline justify-between gap-4 text-zinc-600">
+                  <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.taxTotal' | translate }}</span>
+                  <span class="font-mono text-sm font-bold tabular-nums text-zinc-800">{{ formatCurrency(totals().taxAmount) }}</span>
+                </div>
+
+                @if (taxBreakdown().length > 0) {
+                  <div class="space-y-1.5 rounded-lg bg-zinc-50 px-3 py-2">
+                    @for (entry of taxBreakdown(); track entry.rate) {
+                      <div class="flex items-center justify-between text-xs text-zinc-500">
+                        <span>{{ 'offertes.tax' | translate }} {{ entry.rate }}%</span>
+                        <span class="font-mono tabular-nums text-zinc-700">{{ formatCurrency(entry.amount) }}</span>
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
             </div>
+          </section>
 
-            <div class="pt-4"></div>
+          <section class="rounded-xl border border-zinc-200 bg-zinc-50 px-5 py-4">
+            <div class="flex items-start justify-between gap-4">
+              <div>
+                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.totalAmount' | translate }}</p>
+                <p class="mt-2 font-mono text-[1.75rem] font-black leading-none tracking-tight tabular-nums text-zinc-900">{{ formatCurrency(totals().total) }}</p>
+              </div>
+              <span class="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+                {{ 'offertes.pricesInclVat' | translate }}
+              </span>
+            </div>
+          </section>
+          
+          <div class="hidden lg:block pt-6">
+            <shared-button 
+              variant="primary" 
+              size="default" 
+              [fullWidth]="true" 
+              [disabled]="!canSave() || saving()" 
+              [loading]="saving()"
+              (clicked)="saveDraft()"
+              class="h-12"
+            >
+              <lucide-icon name="send" class="h-5 w-5 mr-3"></lucide-icon>
+              {{ 'offertes.saveDraft' | translate }}
+            </shared-button>
           </div>
         </div>
-      </aside>
-    </div>
-  }
+      </div>
+    </aside>
+  </main>
 
   <shared-file-preview-dialog
     [isOpen]="previewOpen()"
@@ -466,4 +449,18 @@
     [error]="previewError()"
     (closed)="closePreview()"
   />
+
+  @if (loading()) {
+    <div class="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-white/60 backdrop-blur-sm">
+      <div class="pointer-events-auto rounded-2xl border border-zinc-200 bg-white px-6 py-5 shadow-xl">
+        <div class="flex items-center gap-3">
+          <lucide-icon name="loader-circle" class="h-5 w-5 animate-spin text-zinc-900"></lucide-icon>
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">{{ 'offertes.loading' | translate }}</p>
+            <p class="text-sm text-zinc-600">{{ 'offertes.createHint' | translate }}</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 </div>

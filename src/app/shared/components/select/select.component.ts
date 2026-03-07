@@ -42,6 +42,8 @@ export class SelectComponent<T = unknown> {
   hint = input<string>('');
   /** Error message to display */
   error = input<string>('');
+  /** Whether the field renders projected suffix content inside the control area */
+  hasSuffix = input(false);
 
   protected readonly isOpen = signal(false);
   protected readonly activeIndex = signal(-1);

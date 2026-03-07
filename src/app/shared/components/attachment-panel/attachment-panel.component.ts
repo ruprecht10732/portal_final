@@ -41,7 +41,7 @@ export class AttachmentPanelComponent {
   private readonly translate = inject(TranslateService);
 
   /** Current list of attachment drafts (two-way bound). */
-  attachments = input.required<AttachmentDraft[]>();
+  attachments = input<AttachmentDraft[]>([]);
 
   /** Whether manual upload is allowed. */
   allowManualUpload = input(true);
