@@ -67,7 +67,7 @@ export class LeadDetailTimelineTabComponent {
         : newStage;
       return `${oldLabel} → ${newLabel}`;
     }
-    return this.t('leads.detail.timeline.stageUpdated');
+    return item.title || this.t('leads.detail.timeline.stageUpdated');
   }
 
   protected formatEstimationNotes(value: string): string {

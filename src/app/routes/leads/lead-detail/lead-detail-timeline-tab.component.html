@@ -28,6 +28,7 @@
               class="absolute left-0 top-1.5 z-10 h-4 w-4 rounded-full ring-2 ring-white flex items-center justify-center transition-colors"
               [class.bg-indigo-500]="item.type === 'ai'"
               [class.bg-emerald-500]="item.type === 'stage'"
+              [class.bg-amber-500]="item.type === 'system'"
               [class.bg-slate-400]="item.type === 'user'"
             >
               <div class="h-1.5 w-1.5 rounded-full bg-white"></div>
@@ -47,6 +48,10 @@
                   [class.bg-indigo-50]="item.type === 'ai'"
                   [class.text-indigo-700]="item.type === 'ai'"
                   [class.ring-indigo-200]="item.type === 'ai'"
+
+                  [class.bg-amber-50]="item.type === 'system'"
+                  [class.text-amber-700]="item.type === 'system'"
+                  [class.ring-amber-200]="item.type === 'system'"
 
                   [class.bg-slate-50]="item.type === 'user'"
                   [class.text-slate-600]="item.type === 'user'"

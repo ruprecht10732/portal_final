@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, HostL
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, finalize, firstValueFrom, forkJoin, of, switchMap } from 'rxjs';
+import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, finalize, firstValueFrom, forkJoin, of, switchMap, take, timer } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
@@ -112,6 +112,7 @@ const ANNOUNCEMENT_AI_UPDATED_TRANSLATION_KEY = 'leads.detail.announcements.aiUp
 const ERROR_UNEXPECTED_RESPONSE_TRANSLATION_KEY = 'leads.detail.errors.unexpectedResponse';
 const ERROR_ANALYZE_LEAD_TRANSLATION_KEY = 'leads.detail.errors.analyzeLead';
 const TIMELINE_MESSAGE_COPIED_TRANSLATION_KEY = 'leads.detail.timeline.messageCopied';
+const TIMELINE_SYSTEM_TYPE_LABEL = 'Systeem';
 const ERROR_ADD_SERVICE_TRANSLATION_KEY = 'leads.detail.errors.addService';
 const ERROR_UPDATE_SERVICE_STATUS_TRANSLATION_KEY = 'leads.detail.errors.updateServiceStatus';
 const WORKFLOW_SAVED_TRANSLATION_KEY = 'leads.detail.workflow.saved';
@@ -1233,7 +1234,7 @@ export class LeadDetailComponent implements OnInit {
         this.noteText.set('');
         this.noteType.set('note');
         this.noteSaving.set(false);
-        this.loadTimeline(lead.id, this.selectedService()?.id);
+        this.refreshAutomationState(lead.id, this.selectedService()?.id);
         this.focusNoteBox();
         this.announce(this.translate.instant(ANNOUNCEMENT_NOTE_ADDED_TRANSLATION_KEY));
       },
@@ -1296,6 +1297,34 @@ export class LeadDetailComponent implements OnInit {
 
     // Also load photo analysis
     this.loadPhotoAnalysis(leadId, serviceId);
+  }
+
+  private refreshAutomationState(leadId: string, serviceId?: string): void {
+    this.loadTimeline(leadId, serviceId);
+    if (!serviceId) {
+      return;
+    }
+
+    this.loadAIAnalysis(leadId, serviceId);
+
+    timer(900, 1400)
+      .pipe(
+        take(2),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        const lead = this.lead();
+        const service = this.selectedService();
+        if (!lead || !service) {
+          return;
+        }
+        if (lead.id !== leadId || service.id !== serviceId) {
+          return;
+        }
+
+        this.loadTimeline(leadId, serviceId);
+        this.loadAIAnalysis(leadId, serviceId);
+      });
   }
 
   private loadPhotoAnalysis(leadId: string, serviceId: string): void {
@@ -1366,12 +1395,18 @@ export class LeadDetailComponent implements OnInit {
 
   protected readonly getTimelineTypeLabel = (type: LeadTimelineItem['type']): string => {
     this.lang();
+    if (type === 'system') {
+      return TIMELINE_SYSTEM_TYPE_LABEL;
+    }
     return this.translate.instant(`leads.detail.timeline.types.${type}`);
   };
 
   protected readonly getTimelineTypeBadgeClass = (type: LeadTimelineItem['type']): string => {
     if (type === 'ai') {
       return 'bg-indigo-100 text-indigo-700';
+    }
+    if (type === 'system') {
+      return 'bg-amber-100 text-amber-700';
     }
     if (type === 'stage') {
       return 'bg-emerald-100 text-emerald-700';
@@ -1980,6 +2015,7 @@ export class LeadDetailComponent implements OnInit {
 
   protected saveVisitReport(): void {
     const appointment = this.selectedAppointment();
+    const lead = this.lead();
     if (!appointment || !this.canEditReport()) return;
 
     const measurementsValue = this.reportMeasurements().trim();
@@ -1998,6 +2034,9 @@ export class LeadDetailComponent implements OnInit {
         this.visitReport.set(response);
         this.syncReportFields(response);
         this.reportSaving.set(false);
+        if (lead) {
+          this.refreshAutomationState(lead.id, this.selectedService()?.id);
+        }
         this.toast.success(successMessage);
         this.announce(successMessage);
       },

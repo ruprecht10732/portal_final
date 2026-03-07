@@ -135,7 +135,7 @@ export interface LeadListResponse {
 export interface LeadTimelineItem {
   id: string;
   serviceId?: string;
-  type: 'ai' | 'user' | 'stage';
+  type: 'ai' | 'user' | 'stage' | 'system';
   title: string;
   summary: string;
   timestamp: string;
