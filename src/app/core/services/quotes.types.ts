@@ -324,6 +324,24 @@ export function centsToEuros(cents: number): number {
   return cents / 100;
 }
 
+/**
+ * Formats the free-form quantity as entered and appends the unit price without
+ * forcing an extra multiplier symbol.
+ */
+export function formatQuantityAndPrice(quantity: string, unitPriceCents: number): string {
+  const trimmedQuantity = quantity.trim();
+  const formattedPrice = new Intl.NumberFormat('nl-NL', {
+    style: 'currency',
+    currency: 'EUR',
+  }).format(centsToEuros(unitPriceCents));
+
+  if (!trimmedQuantity) {
+    return formattedPrice;
+  }
+
+  return `${trimmedQuantity} ${formattedPrice}`;
+}
+
 export function formatQuoteCustomerName(quote: QuoteResponse): string {
   const first = quote.customerFirstName ?? '';
   const last = quote.customerLastName ?? '';

@@ -1,5 +1,5 @@
 <div class="group/item relative rounded-xl border border-zinc-200 bg-white p-4 transition-all hover:border-zinc-400 hover:shadow-sm lg:py-3">
-  <div class="flex flex-col gap-4 lg:grid lg:grid-cols-[40px_100px_1fr_120px_140px_110px_60px_40px] lg:items-center lg:gap-x-3">
+  <div class="flex flex-col gap-4 lg:grid lg:grid-cols-[36px_92px_minmax(0,1.6fr)_112px_104px_96px_52px_36px] lg:items-center lg:gap-x-3">
 
     <div class="hidden lg:order-1 lg:flex lg:justify-center">
       <button
@@ -21,7 +21,7 @@
         [label]="''"
         [value]="item().quantity"
         (valueChange)="quantityChange.emit($event)"
-        [placeholder]="'0'"
+        [placeholder]="'1, 10 m2, 1 stuk'"
         [clearable]="false"
         class="[&_input]:h-11 lg:[&_input]:h-10"
       />

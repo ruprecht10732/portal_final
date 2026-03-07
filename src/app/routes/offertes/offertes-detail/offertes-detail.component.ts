@@ -9,7 +9,7 @@ import { QuotesService } from '../../../core/services/quotes.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { SSEService } from '../../../core/services/sse.service';
 import type { QuoteResponse, QuoteStatus, QuoteActivityResponse } from '../../../core/services/quotes.types';
-import { MONEYBIRD_PROVIDER, QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros } from '../../../core/services/quotes.types';
+import { MONEYBIRD_PROVIDER, QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros, formatQuantityAndPrice } from '../../../core/services/quotes.types';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
@@ -506,6 +506,10 @@ export class OffertesDetailComponent implements OnInit {
 
   protected formatCentsCurrency(cents: number): string {
     return this.formatCurrency(centsToEuros(cents));
+  }
+
+  protected formatQuantitySummary(quantity: string, unitPriceCents: number): string {
+    return formatQuantityAndPrice(quantity, unitPriceCents);
   }
 
   protected formatCurrency(amount: number): string {

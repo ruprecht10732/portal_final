@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, input, output, signal } f
 import { TranslatePipe } from '@ngx-translate/core';
 
 import type { AnnotationResponse, PublicQuoteItemResponse, PricingMode } from '../../../core/services/quotes.types';
-import { centsToEuros } from '../../../core/services/quotes.types';
+import { centsToEuros, formatQuantityAndPrice } from '../../../core/services/quotes.types';
 import { QuoteAnnotationListComponent } from './quote-annotation-list.component';
 import { LucideAngularModule } from 'lucide-angular';
 import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
@@ -50,6 +50,10 @@ export class QuoteProposalItemMobileComponent {
 
   protected formatTaxRate(bps: number): string {
     return `${bps / 100}%`;
+  }
+
+  protected formatQuantitySummary(quantity: string, unitPriceCents: number): string {
+    return formatQuantityAndPrice(quantity, unitPriceCents);
   }
 
   protected emitAsk(): void {

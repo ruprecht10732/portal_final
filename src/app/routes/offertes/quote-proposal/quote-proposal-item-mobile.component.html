@@ -50,11 +50,7 @@
   <div class="mt-4 rounded-2xl bg-slate-50 p-4 border border-slate-100 flex flex-wrap items-center justify-between gap-3">
     <div>
       <div class="text-[11px] font-bold uppercase tracking-wider text-slate-500">
-        @if (item().quantity.toLowerCase().includes('x')) {
-          {{ item().quantity }} {{ formatCents(item().unitPriceCents) }}
-        } @else {
-          {{ item().quantity }} × {{ formatCents(item().unitPriceCents) }}
-        }
+        {{ formatQuantitySummary(item().quantity, item().unitPriceCents) }}
       </div>
       <div class="mt-0.5 text-[10px] font-bold text-slate-400 uppercase tracking-widest">
         {{ 'offertes.tax' | translate }} {{ formatTaxRate(item().taxRateBps) }}

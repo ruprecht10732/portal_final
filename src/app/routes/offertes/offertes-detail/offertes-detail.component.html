@@ -285,8 +285,8 @@
                           </div>
                         </div>
 
-                        <div class="flex items-center justify-between text-[11px] font-bold uppercase tracking-wider text-slate-400">
-                          <span>{{ item.quantity }} x {{ formatCentsCurrency(item.unitPriceCents) }}</span>
+                        <div class="flex items-center justify-between gap-3 text-[11px] font-bold uppercase tracking-wider text-slate-400">
+                          <span class="min-w-0 truncate">{{ formatQuantitySummary(item.quantity, item.unitPriceCents) }}</span>
                           <span>{{ 'offertes.tax' | translate }} {{ item.taxRateBps / 100 }}%</span>
                         </div>
 
@@ -686,7 +686,7 @@
                     @for (item of q.items; track item.id) {
                       <tr class="group transition-colors hover:bg-zinc-50/80" [class.opacity-40]="item.isOptional && !item.isSelected">
                         <td class="py-4 px-5">
-                          <span class="text-sm tabular-nums font-medium text-zinc-600">{{ item.quantity }}×</span>
+                          <span class="text-sm tabular-nums font-medium text-zinc-600">{{ item.quantity }}</span>
                         </td>
                         <td class="py-4 px-5">
                           <div class="flex items-start gap-2.5">
