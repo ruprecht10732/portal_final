@@ -1,5 +1,16 @@
-import { ChangeDetectionStrategy, Component, input, output, signal } from '@angular/core';
+import {
+  AfterViewInit,
+  ChangeDetectionStrategy,
+  Component,
+  ElementRef,
+  OnDestroy,
+  input,
+  output,
+  signal,
+  viewChild,
+} from '@angular/core';
 import { DragDropModule } from '@angular/cdk/drag-drop';
+import { ConnectedPosition, OverlayModule } from '@angular/cdk/overlay';
 import { TranslatePipe } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { firstValueFrom } from 'rxjs';
@@ -26,6 +37,7 @@ interface QuoteLineItemRowData {
   selector: 'app-quote-line-item-row',
   imports: [
     DragDropModule,
+    OverlayModule,
     TranslatePipe,
     LucideAngularModule,
     CheckboxComponent,
@@ -38,7 +50,7 @@ interface QuoteLineItemRowData {
   styleUrl: './quote-line-item-row.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class QuoteLineItemRowComponent {
+export class QuoteLineItemRowComponent implements AfterViewInit, OnDestroy {
   readonly item = input.required<QuoteLineItemRowData>();
   readonly totalDisplay = input.required<string>();
   readonly taxRateOptions = input<readonly SelectOption<TaxRateDisplay>[]>([]);
@@ -54,10 +66,45 @@ export class QuoteLineItemRowComponent {
   protected readonly ghostSuggestions = signal<GhostSuggestion[]>([]);
   protected readonly ghostSelectedIndex = signal(0);
   protected readonly ghostLoading = signal(false);
+  protected readonly ghostOverlayWidth = signal(320);
+  protected readonly ghostOverlayPositions: ConnectedPosition[] = [
+    {
+      originX: 'start',
+      originY: 'bottom',
+      overlayX: 'start',
+      overlayY: 'top',
+      offsetY: 4,
+    },
+    {
+      originX: 'start',
+      originY: 'top',
+      overlayX: 'start',
+      overlayY: 'bottom',
+      offsetY: -4,
+    },
+  ];
 
   private ghostRequestSequence = 0;
   private ghostDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private ghostSuppressNext = false;
+  private resizeObserver?: ResizeObserver;
+
+  private readonly ghostOrigin = viewChild.required<ElementRef<HTMLElement>>('ghostOrigin');
+
+  ngAfterViewInit(): void {
+    this.syncGhostOverlayWidth();
+    const origin = this.ghostOrigin().nativeElement;
+    this.resizeObserver = new ResizeObserver(() => this.syncGhostOverlayWidth());
+    this.resizeObserver.observe(origin);
+  }
+
+  ngOnDestroy(): void {
+    this.resizeObserver?.disconnect();
+    if (this.ghostDebounceTimer !== null) {
+      clearTimeout(this.ghostDebounceTimer);
+      this.ghostDebounceTimer = null;
+    }
+  }
 
   protected ghostSourceLabel(suggestion: GhostSuggestion): string {
     const item = suggestion.payload as AutocompleteItemResponse;
@@ -104,15 +151,7 @@ export class QuoteLineItemRowComponent {
       const suggestion = suggestions[this.ghostSelectedIndex()];
       if (!suggestion) return;
       event.preventDefault();
-      if (this.ghostDebounceTimer !== null) {
-        clearTimeout(this.ghostDebounceTimer);
-        this.ghostDebounceTimer = null;
-      }
-      this.ghostRequestSequence++;
-      this.ghostSuppressNext = true;
-      this.ghostAccepted.emit(suggestion);
-      this.ghostSuggestions.set([]);
-      this.ghostSelectedIndex.set(0);
+      this.acceptGhostSuggestion(suggestion);
       return;
     }
 
@@ -134,23 +173,27 @@ export class QuoteLineItemRowComponent {
       const suggestion = suggestions[this.ghostSelectedIndex()];
       if (!suggestion) return;
       event.preventDefault();
-      if (this.ghostDebounceTimer !== null) {
-        clearTimeout(this.ghostDebounceTimer);
-        this.ghostDebounceTimer = null;
-      }
-      this.ghostRequestSequence++;
-      this.ghostSuppressNext = true;
-      this.ghostAccepted.emit(suggestion);
-      this.ghostSuggestions.set([]);
-      this.ghostSelectedIndex.set(0);
+      this.acceptGhostSuggestion(suggestion);
       return;
     }
 
     if (event.key === 'Escape') {
       event.preventDefault();
-      this.ghostSuggestions.set([]);
-      this.ghostSelectedIndex.set(0);
+      this.closeGhostSuggestions();
     }
+  }
+
+  protected onGhostMouseEnter(index: number): void {
+    this.ghostSelectedIndex.set(index);
+  }
+
+  protected onGhostSuggestionClick(suggestion: GhostSuggestion): void {
+    this.acceptGhostSuggestion(suggestion);
+  }
+
+  protected closeGhostSuggestions(): void {
+    this.ghostSuggestions.set([]);
+    this.ghostSelectedIndex.set(0);
   }
 
   private async lookupGhostSuggestion(value: string): Promise<void> {
@@ -179,6 +222,25 @@ export class QuoteLineItemRowComponent {
         this.ghostLoading.set(false);
       }
     }
+  }
+
+  private acceptGhostSuggestion(suggestion: GhostSuggestion): void {
+    if (this.ghostDebounceTimer !== null) {
+      clearTimeout(this.ghostDebounceTimer);
+      this.ghostDebounceTimer = null;
+    }
+    this.ghostRequestSequence++;
+    this.ghostSuppressNext = true;
+    this.ghostAccepted.emit(suggestion);
+    this.closeGhostSuggestions();
+  }
+
+  private syncGhostOverlayWidth(): void {
+    const originWidth = this.ghostOrigin().nativeElement.getBoundingClientRect().width;
+    if (!originWidth) {
+      return;
+    }
+    this.ghostOverlayWidth.set(Math.min(Math.round(originWidth), 448));
   }
 
   private extractPlainText(value: string): string {

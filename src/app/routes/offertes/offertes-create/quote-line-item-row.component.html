@@ -37,7 +37,12 @@
         {{ 'offertes.description' | translate }}
       </div>
       
-      <div class="relative rounded-lg focus-within:ring-2 focus-within:ring-zinc-900/5 transition-all">
+      <div
+        #ghostOrigin
+        cdkOverlayOrigin
+        #ghostOverlayOrigin="cdkOverlayOrigin"
+        class="relative rounded-lg transition-all focus-within:ring-2 focus-within:ring-zinc-900/5"
+      >
         <shared-rich-text-editor
           [label]="''"
           [value]="item().description"
@@ -48,15 +53,28 @@
         />
       </div>
 
-      @if (ghostSuggestions().length > 0) {
-        <div class="absolute top-full left-0 z-50 mt-1 w-full max-w-md overflow-hidden rounded-xl border border-zinc-200 bg-white/98 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+      <ng-template
+        cdkConnectedOverlay
+        [cdkConnectedOverlayOrigin]="ghostOverlayOrigin"
+        [cdkConnectedOverlayOpen]="ghostSuggestions().length > 0"
+        [cdkConnectedOverlayPositions]="ghostOverlayPositions"
+        [cdkConnectedOverlayWidth]="ghostOverlayWidth()"
+        [cdkConnectedOverlayFlexibleDimensions]="true"
+        [cdkConnectedOverlayPush]="true"
+        (overlayOutsideClick)="closeGhostSuggestions()"
+        (detach)="closeGhostSuggestions()"
+      >
+        <div class="z-50 overflow-hidden rounded-xl border border-zinc-200 bg-white/98 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2">
           <div class="max-h-64 overflow-y-auto p-1.5">
             @for (suggestion of ghostSuggestions(); track $index; let i = $index) {
-              <div
-                class="flex items-start gap-3 rounded-lg px-3 py-2 transition-colors cursor-pointer"
+              <button
+                type="button"
+                class="flex w-full cursor-pointer items-start gap-3 rounded-lg px-3 py-2 text-left transition-colors"
                 [class.bg-zinc-900]="i === ghostSelectedIndex()"
                 [class.text-white]="i === ghostSelectedIndex()"
                 [class.text-zinc-600]="i !== ghostSelectedIndex()"
+                (mouseenter)="onGhostMouseEnter(i)"
+                (click)="onGhostSuggestionClick(suggestion)"
               >
                 <lucide-icon name="book-open" class="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-50"></lucide-icon>
                 <div class="min-w-0 flex-1">
@@ -71,7 +89,7 @@
                 @if (i === ghostSelectedIndex()) {
                   <kbd class="rounded bg-white/20 px-1.5 py-0.5 text-[9px] font-bold">TAB</kbd>
                 }
-              </div>
+              </button>
             }
           </div>
           <footer class="flex items-center justify-between border-t border-zinc-100 bg-zinc-50 px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-zinc-400">
@@ -79,7 +97,7 @@
             <span>{{ 'common.select' | translate }} ↵</span>
           </footer>
         </div>
-      }
+      </ng-template>
     </div>
 
     <div class="lg:order-4">
