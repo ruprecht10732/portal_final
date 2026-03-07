@@ -131,6 +131,7 @@
           "markRead": "Mark read",
           "markUnread": "Mark unread",
           "delete": "Delete",
+          "close": "Close",
           "send": "Send",
           "sending": "Sending..."
         },
@@ -141,6 +142,9 @@
         "labels": {
           "to": "To",
           "subject": "Subject",
+          "body": "Message body",
+          "newDraft": "New draft",
+          "startTyping": "Start typing...",
           "writeReply": "Write your reply..."
         },
         "states": {
@@ -155,7 +159,8 @@
         },
         "messages": {
           "saved": "Saved",
-          "sent": "Sent"
+          "sent": "Sent",
+          "draftSaved": "Draft saved"
         }
       },
       "errors": {

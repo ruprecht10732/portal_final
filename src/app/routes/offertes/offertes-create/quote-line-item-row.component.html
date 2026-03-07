@@ -1,109 +1,127 @@
-<div class="rounded-lg border border-zinc-200 bg-white p-4 transition-colors hover:border-zinc-300 lg:py-3">
-  <div class="flex flex-col gap-3 lg:grid lg:grid-cols-[24px_minmax(72px,120px)_1fr_minmax(64px,100px)_minmax(72px,108px)_minmax(64px,96px)_48px_36px] lg:items-center lg:gap-x-2">
+<div class="group/item relative rounded-xl border border-zinc-200 bg-white p-4 transition-all hover:border-zinc-400 hover:shadow-sm lg:py-3">
+  <div class="flex flex-col gap-4 lg:grid lg:grid-cols-[40px_100px_1fr_120px_140px_110px_60px_40px] lg:items-center lg:gap-x-3">
 
-    <!-- Drag handle — desktop grid column only -->
-    <div class="hidden lg:order-1 lg:flex lg:items-center lg:justify-start lg:self-center">
+    <div class="hidden lg:order-1 lg:flex lg:justify-center">
       <button
         type="button"
         cdkDragHandle
-        class="inline-flex h-9 w-9 cursor-grab items-center justify-center rounded-md text-zinc-300 transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-500 active:cursor-grabbing"
+        class="inline-flex h-9 w-9 cursor-grab items-center justify-center rounded-lg text-zinc-300 transition-colors hover:bg-zinc-100 hover:text-zinc-600 active:cursor-grabbing"
         [attr.aria-label]="'offertes.lineItems' | translate"
       >
-        <lucide-icon name="grip-vertical" class="h-4 w-4"></lucide-icon>
+        <lucide-icon name="grip-vertical" class="h-5 w-5 stroke-[1.5]"></lucide-icon>
       </button>
     </div>
 
-    <!-- Description — full width on mobile -->
+    <div class="lg:order-2 [&_input]:text-center">
+      <div class="mb-1.5 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 lg:hidden">
+        <lucide-icon name="hash" class="h-3 w-3"></lucide-icon>
+        {{ 'offertes.qty' | translate }}
+      </div>
+      <shared-input
+        [label]="''"
+        [value]="item().quantity"
+        (valueChange)="quantityChange.emit($event)"
+        [placeholder]="'0'"
+        [clearable]="false"
+        class="[&_input]:h-11 lg:[&_input]:h-10"
+      />
+    </div>
+
     <div
-      class="relative lg:order-3 lg:min-w-45 lg:self-center"
+      class="relative lg:order-3 lg:min-w-0"
       (keydown)="onDescriptionKeydown($event)"
       tabindex="-1"
     >
-      <div class="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
+      <div class="mb-1.5 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 lg:hidden">
+        <lucide-icon name="text-align-start" class="h-3 w-3"></lucide-icon>
         {{ 'offertes.description' | translate }}
       </div>
-      <shared-rich-text-editor
-        [label]="''"
-        [value]="item().description"
-        (valueChange)="onDescriptionInput($event)"
-        [minHeight]="84"
-        [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
-      />
+      
+      <div class="relative rounded-lg focus-within:ring-2 focus-within:ring-zinc-900/5 transition-all">
+        <shared-rich-text-editor
+          [label]="''"
+          [value]="item().description"
+          (valueChange)="onDescriptionInput($event)"
+          [minHeight]="84"
+          [placeholder]="'offertes.catalogSearchPlaceholder' | translate"
+          class="w-full"
+        />
+      </div>
 
       @if (ghostSuggestions().length > 0) {
-        <div class="pointer-events-none absolute right-2.5 bottom-2 z-10 w-[min(300px,90%)] overflow-hidden rounded-md border border-zinc-300 bg-white/95 text-[11px] leading-tight text-zinc-600 shadow-sm" aria-label="Catalog suggestions">
-          @for (suggestion of ghostSuggestions(); track $index; let i = $index) {
-            <div
-              class="flex items-center gap-1.5 px-2 py-1"
-              [class.bg-zinc-100]="i === ghostSelectedIndex()"
-            >
-              @if (i === ghostSelectedIndex()) {
-                <span class="rounded border border-zinc-300 bg-zinc-50 px-1 py-0 text-[10px] text-zinc-500">Tab ↹</span>
-              }
-              <span class="truncate">{{ suggestion.displayText }}</span>
-            </div>
-          }
-          <div class="border-t border-zinc-200 px-2 py-1 text-[10px] text-zinc-500">↕ navigeren · Enter ↵ selecteren</div>
-        </div>
-      } @else if (ghostLoading()) {
-        <div class="pointer-events-none absolute right-2.5 bottom-2 z-10 rounded-md px-1.5 py-0.5 text-[11px] leading-tight text-zinc-400">
-          {{ 'common.loading' | translate }}...
+        <div class="absolute top-full left-0 z-50 mt-1 w-full max-w-md overflow-hidden rounded-xl border border-zinc-200 bg-white/98 shadow-xl backdrop-blur-md animate-in fade-in slide-in-from-top-2">
+          <div class="max-h-64 overflow-y-auto p-1.5">
+            @for (suggestion of ghostSuggestions(); track $index; let i = $index) {
+              <div
+                class="flex items-start gap-3 rounded-lg px-3 py-2 transition-colors cursor-pointer"
+                [class.bg-zinc-900]="i === ghostSelectedIndex()"
+                [class.text-white]="i === ghostSelectedIndex()"
+                [class.text-zinc-600]="i !== ghostSelectedIndex()"
+              >
+                <lucide-icon name="book-open" class="mt-0.5 h-3.5 w-3.5 shrink-0 opacity-50"></lucide-icon>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-center justify-between gap-2">
+                    <span class="truncate font-bold text-xs">{{ suggestion.displayText }}</span>
+                    <span class="text-[9px] font-black uppercase tracking-tighter opacity-60">{{ ghostSourceLabel(suggestion) }}</span>
+                  </div>
+                  @if (ghostDetail(suggestion); as detail) {
+                    <div class="truncate text-[10px] opacity-70">{{ detail }}</div>
+                  }
+                </div>
+                @if (i === ghostSelectedIndex()) {
+                  <kbd class="rounded bg-white/20 px-1.5 py-0.5 text-[9px] font-bold">TAB</kbd>
+                }
+              </div>
+            }
+          </div>
+          <footer class="flex items-center justify-between border-t border-zinc-100 bg-zinc-50 px-3 py-2 text-[9px] font-bold uppercase tracking-widest text-zinc-400">
+            <span>{{ 'common.navigate' | translate }} ↕</span>
+            <span>{{ 'common.select' | translate }} ↵</span>
+          </footer>
         </div>
       }
     </div>
 
-    <!-- Qty + Price — stacked on xs, side-by-side on sm, separate grid cols on lg -->
-    <div class="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:contents">
-      <div class="lg:order-2 lg:self-center [&_input]:whitespace-nowrap [&_input]:lg:min-h-11">
-        <div class="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
-          {{ 'offertes.qty' | translate }}
-        </div>
-        <shared-input
-          [label]="''"
-          [value]="item().quantity"
-          (valueChange)="quantityChange.emit($event)"
-          [placeholder]="'offertes.qtyPlaceholder' | translate"
-          [clearable]="false"
-        />
+    <div class="lg:order-4">
+      <div class="mb-1.5 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 lg:hidden">
+        <lucide-icon name="euro" class="h-3 w-3"></lucide-icon>
+        {{ 'offertes.price' | translate }}
       </div>
-      <div class="lg:order-4 lg:self-center [&_input]:lg:min-h-11">
-        <div class="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
-          {{ 'offertes.price' | translate }}
-        </div>
-        <shared-number-input
-          [label]="''"
-          [value]="item().unitPrice"
-          (valueChange)="unitPriceChange.emit($event)"
-          prefix="€"
-          [alignRight]="true"
-        />
-      </div>
+      <shared-number-input
+        [label]="''"
+        [value]="item().unitPrice"
+        (valueChange)="unitPriceChange.emit($event)"
+        prefix="€"
+        [alignRight]="true"
+        class="[&_input]:h-11 lg:[&_input]:h-10"
+      />
     </div>
 
-    <!-- Tax + Total — always side-by-side, separate grid cols on lg -->
-    <div class="grid grid-cols-2 gap-3 items-end lg:contents">
-      <div class="lg:order-5 lg:self-center [&_button]:lg:min-h-11">
-        <div class="mb-1 text-xs font-semibold uppercase tracking-wider text-zinc-500 lg:hidden">
-          {{ 'offertes.tax' | translate }}
-        </div>
-        <shared-select
-          [label]="''"
-          [options]="taxRateOptions()"
-          [value]="item().taxRate"
-          (valueChange)="taxRateChange.emit($event)"
-        />
+    <div class="lg:order-5">
+      <div class="mb-1.5 flex items-center gap-1.5 text-[10px] font-black uppercase tracking-widest text-zinc-400 lg:hidden">
+        <lucide-icon name="percent" class="h-3 w-3"></lucide-icon>
+        {{ 'offertes.tax' | translate }}
       </div>
-      <div class="lg:order-6 flex items-center justify-between rounded-md bg-zinc-50 px-3 py-2.5 lg:flex-col lg:items-end lg:justify-center lg:self-center lg:bg-transparent lg:px-0 lg:py-0">
-        <span class="text-xs font-medium text-zinc-500 lg:hidden">
-          {{ 'offertes.total' | translate }}
-        </span>
-        <span class="text-sm font-bold tabular-nums text-zinc-900 lg:text-right lg:text-base">{{ totalDisplay() }}</span>
-      </div>
+      <shared-select
+        [label]="''"
+        [options]="taxRateOptions()"
+        [value]="item().taxRate"
+        (valueChange)="taxRateChange.emit($event)"
+        class="[&_button]:h-11 lg:[&_button]:h-10"
+      />
     </div>
 
-    <!-- Optional + Actions — inline row on mobile, separate grid cols on lg -->
-    <div class="flex items-center justify-between border-t border-zinc-100 pt-2 lg:contents">
-      <div class="lg:order-7 flex items-center gap-2 lg:justify-center lg:self-center">
+    <div class="flex items-center justify-between rounded-xl bg-zinc-50 px-4 py-3 border border-zinc-100 lg:order-6 lg:border-none lg:bg-transparent lg:px-0 lg:py-0 lg:flex-col lg:items-end">
+      <span class="text-[10px] font-black uppercase tracking-widest text-zinc-400 lg:hidden">
+        {{ 'offertes.total' | translate }}
+      </span>
+      <span class="font-mono text-sm font-bold tracking-tight text-zinc-900 lg:text-right lg:text-lg">
+        {{ totalDisplay() }}
+      </span>
+    </div>
+
+    <div class="flex items-center gap-3 lg:order-7 lg:justify-center">
+      <div class="flex items-center gap-2 rounded-lg border border-zinc-100 bg-white px-3 py-2 shadow-sm lg:border-none lg:bg-transparent lg:p-0 lg:shadow-none">
         <shared-checkbox
           [dense]="true"
           [label]="''"
@@ -111,26 +129,30 @@
           [ariaLabel]="'offertes.optional' | translate"
           (checkedChange)="optionalChange.emit($event)"
         />
-        <span class="text-xs text-zinc-500 lg:hidden">{{ 'offertes.optional' | translate }}</span>
-      </div>
-      <div class="lg:order-8 flex items-center gap-1 lg:justify-center lg:self-center">
-        <button
-          type="button"
-          cdkDragHandle
-          class="inline-flex h-9 w-9 cursor-grab items-center justify-center rounded-md text-zinc-300 transition-colors duration-150 hover:bg-zinc-100 hover:text-zinc-500 active:cursor-grabbing lg:hidden"
-          [attr.aria-label]="'offertes.lineItems' | translate"
-        >
-          <lucide-icon name="grip-vertical" class="h-4 w-4"></lucide-icon>
-        </button>
-        <button
-          type="button"
-          (click)="remove.emit()"
-          class="inline-flex h-9 w-9 items-center justify-center rounded-md text-zinc-500 transition-colors duration-150 hover:bg-red-50 hover:text-red-600"
-          [attr.aria-label]="'offertes.removeItem' | translate"
-        >
-          <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
-        </button>
+        <span class="text-[10px] font-bold uppercase tracking-widest text-zinc-500 lg:hidden">
+          {{ 'offertes.optional' | translate }}
+        </span>
       </div>
     </div>
+
+    <div class="flex items-center justify-end gap-2 border-t border-zinc-50 pt-4 lg:order-8 lg:border-none lg:pt-0 lg:justify-center">
+      <button
+        type="button"
+        cdkDragHandle
+        class="inline-flex h-10 w-10 items-center justify-center rounded-lg border border-zinc-200 text-zinc-400 hover:bg-zinc-50 lg:hidden"
+      >
+        <lucide-icon name="grip-vertical" class="h-5 w-5"></lucide-icon>
+      </button>
+      
+      <button
+        type="button"
+        (click)="remove.emit()"
+        class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-zinc-400 transition-all hover:bg-red-50 hover:text-red-600 lg:h-9 lg:w-9"
+        [attr.aria-label]="'offertes.removeItem' | translate"
+      >
+        <lucide-icon name="trash-2" class="h-4 w-4 stroke-[2]"></lucide-icon>
+      </button>
+    </div>
+
   </div>
 </div>

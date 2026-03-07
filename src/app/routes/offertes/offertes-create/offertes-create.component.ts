@@ -968,6 +968,7 @@ export class OffertesCreateComponent implements OnInit {
    */
   protected onGhostAccepted(itemId: string, suggestion: GhostSuggestion): void {
     const product = suggestion.payload as AutocompleteItemResponse;
+    const catalogProductId = this.catalogProductId(product);
     const requestSeq = (this.materialExpandRequestSeq.get(itemId) ?? 0) + 1;
     this.materialExpandRequestSeq.set(itemId, requestSeq);
 
@@ -980,15 +981,22 @@ export class OffertesCreateComponent implements OnInit {
       const withoutGenerated = items.filter(item => item.parentLineItemId !== itemId);
       return withoutGenerated.map(item => {
         if (item.id !== itemId) return item;
-        return {
+
+        const updatedItem = {
           ...item,
           title: product.title,
-          description: this.formatCatalogDescription(product.title, product.description || ''),
+          description: this.formatAutocompleteDescription(product),
           quantity: item.quantity || '1 x',
           unitPrice: centsToEuros(product.unitPriceCents || product.priceCents),
           taxRate: taxBpsToDisplay(product.vatRateBps),
-          catalogProductId: product.id,
         };
+
+        if (catalogProductId) {
+          return { ...updatedItem, catalogProductId };
+        }
+
+        const { catalogProductId: _catalogProductId, ...withoutCatalogProductId } = updatedItem;
+        return withoutCatalogProductId;
       });
     });
     this.descriptionEditState.update(state => ({ ...state, [itemId]: false }));
@@ -1001,13 +1009,13 @@ export class OffertesCreateComponent implements OnInit {
     }
 
     // Collect documents from the catalog product
-    if (product.documents?.length) {
+    if (catalogProductId && product.documents?.length) {
       const newAttachments: AttachmentDraft[] = product.documents.map((doc, i) => ({
         uid: crypto.randomUUID(),
         filename: doc.filename,
         fileKey: doc.fileKey,
         source: 'catalog' as const,
-        catalogProductId: product.id,
+        catalogProductId,
         catalogAssetId: doc.id,
         enabled: true,
         sortOrder: this.attachmentDrafts().length + i,
@@ -1016,24 +1024,30 @@ export class OffertesCreateComponent implements OnInit {
     }
 
     // Collect URLs (terms & conditions)
-    if (product.urls?.length) {
+    if (catalogProductId && product.urls?.length) {
       const newUrls = product.urls.map(url => ({
         uid: crypto.randomUUID(),
         label: url.label,
         href: url.href,
-        catalogProductId: product.id,
+        catalogProductId,
       }));
       this.urlDrafts.update(existing => [...existing, ...newUrls]);
     }
 
-    this.catalogService.listProductMaterials(product.id).pipe(
+    if (!catalogProductId) {
+
+      this.requestCalculation();
+      return;
+    }
+
+    this.catalogService.listProductMaterials(catalogProductId).pipe(
       takeUntilDestroyed(this.destroyRef),
     ).subscribe({
       next: materials => {
         if (this.materialExpandRequestSeq.get(itemId) !== requestSeq) return;
 
         const currentParent = this.lineItems().find(item => item.id === itemId);
-        if (currentParent?.catalogProductId !== product.id) return;
+        if (currentParent?.catalogProductId !== catalogProductId) return;
 
         const includedTitles = materials
           .filter(material => material.pricingMode === 'included')
@@ -1317,12 +1331,39 @@ export class OffertesCreateComponent implements OnInit {
     }).format(amount);
   }
 
+  private catalogProductId(item: AutocompleteItemResponse): string | undefined {
+    if (item.sourceType !== 'catalog') {
+      return undefined;
+    }
+    return item.catalogProductId ?? item.id;
+  }
+
+  private formatAutocompleteDescription(item: AutocompleteItemResponse): string {
+    if (item.sourceType === 'catalog') {
+      return this.formatCatalogDescription(item.title, item.description ?? '');
+    }
+
+    return this.formatReferenceDescription(item.title, item.description ?? '');
+  }
+
   private formatCatalogDescription(title: string, descriptionHtml: string): string {
     const safeTitle = this.escapeHtml(title.trim());
     const body = descriptionHtml.trim();
     if (!safeTitle) return body;
     if (!body) return `<p><strong>${safeTitle}</strong></p>`;
     return `<p><strong>${safeTitle}</strong></p>${body}`;
+  }
+
+  private formatReferenceDescription(title: string, description: string): string {
+    const safeTitle = this.escapeHtml(title.trim());
+    const safeBody = this.escapeHtml(description.trim()).replaceAll('\n', '<br>');
+    if (!safeTitle) {
+      return safeBody;
+    }
+    if (!safeBody) {
+      return `<p><strong>${safeTitle}</strong></p>`;
+    }
+    return `<p><strong>${safeTitle}</strong></p><p>${safeBody}</p>`;
   }
 
   private escapeHtml(value: string): string {

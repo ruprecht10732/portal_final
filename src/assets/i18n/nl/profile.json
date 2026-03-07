@@ -131,6 +131,7 @@
           "markRead": "Markeer gelezen",
           "markUnread": "Markeer ongelezen",
           "delete": "Verwijderen",
+          "close": "Sluiten",
           "send": "Verzenden",
           "sending": "Verzenden..."
         },
@@ -141,6 +142,9 @@
         "labels": {
           "to": "Aan",
           "subject": "Onderwerp",
+          "body": "Berichttekst",
+          "newDraft": "Nieuw concept",
+          "startTyping": "Begin met typen...",
           "writeReply": "Schrijf je antwoord..."
         },
         "states": {
@@ -155,7 +159,8 @@
         },
         "messages": {
           "saved": "Opgeslagen",
-          "sent": "Verzonden"
+          "sent": "Verzonden",
+          "draftSaved": "Concept opgeslagen"
         }
       },
       "errors": {

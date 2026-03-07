@@ -4,6 +4,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { firstValueFrom } from 'rxjs';
 
+import type { AutocompleteItemResponse } from '../../../core/services/catalog.service';
 import type { TaxRateDisplay } from '../../../core/services/quotes.types';
 import type { GhostSuggestion } from '../../../shared/components/ghost-text/ghost-text.directive';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
@@ -57,6 +58,25 @@ export class QuoteLineItemRowComponent {
   private ghostRequestSequence = 0;
   private ghostDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private ghostSuppressNext = false;
+
+  protected ghostSourceLabel(suggestion: GhostSuggestion): string {
+    const item = suggestion.payload as AutocompleteItemResponse;
+    return item.sourceLabel?.trim() || (item.sourceType === 'catalog' ? 'Catalog' : 'Referentie');
+  }
+
+  protected ghostDetail(suggestion: GhostSuggestion): string {
+    const item = suggestion.payload as AutocompleteItemResponse;
+    const details: string[] = [];
+    const description = this.stripHtml(item.description ?? '');
+    if (description) {
+      details.push(description);
+    }
+    const priceCents = item.unitPriceCents || item.priceCents;
+    if (priceCents > 0) {
+      details.push(this.formatCurrency(priceCents / 100));
+    }
+    return details.join(' · ');
+  }
 
   protected onDescriptionInput(value: string): void {
     this.descriptionChange.emit(value);
@@ -167,5 +187,20 @@ export class QuoteLineItemRowComponent {
     const tmp = document.createElement('div');
     tmp.innerHTML = source;
     return (tmp.textContent ?? '').replaceAll(/\s+/g, ' ').trim();
+  }
+
+  private stripHtml(value: string): string {
+    const source = value.trim();
+    if (!source) return '';
+    const tmp = document.createElement('div');
+    tmp.innerHTML = source;
+    return (tmp.textContent ?? '').replaceAll(/\s+/g, ' ').trim();
+  }
+
+  private formatCurrency(amount: number): string {
+    return new Intl.NumberFormat('nl-NL', {
+      style: 'currency',
+      currency: 'EUR',
+    }).format(amount);
   }
 }

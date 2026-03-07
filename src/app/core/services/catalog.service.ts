@@ -188,17 +188,25 @@ export interface AutocompleteURLResponse {
   href: string;
 }
 
+export type AutocompleteSourceType = 'catalog' | 'reference';
+
 export interface AutocompleteItemResponse {
   id: string;
+  catalogProductId?: string;
   title: string;
-  description: string;
+  description?: string;
   priceCents: number;
   unitPriceCents: number;
-  unitLabel: string;
-  vatRateId: string;
+  unitLabel?: string;
+  vatRateId?: string;
   vatRateBps: number;
   documents: AutocompleteDocumentResponse[];
   urls: AutocompleteURLResponse[];
+  sourceType: AutocompleteSourceType;
+  sourceCollection?: string;
+  sourceLabel?: string;
+  sourceUrl?: string;
+  score?: number;
 }
 
 // ============================================================================

@@ -11,165 +11,188 @@
     [ariaLabel]="'profile.imap.inbox.actions.write' | translate"
     (clicked)="openComposer()"
   >
+    <lucide-icon name="square-pen" class="mr-2 h-4 w-4"></lucide-icon>
     {{ 'profile.imap.inbox.actions.write' | translate }}
   </shared-button>
 
   <main class="h-full bg-[#fdfbf7] px-2 pb-2 sm:-mx-6 sm:px-3 sm:pb-4">
     @if (viewMode() === 'inbox') {
-      <section class="grid h-full min-h-0 grid-cols-1 gap-2 lg:grid-cols-[minmax(320px,420px)_minmax(0,1fr)] xl:grid-cols-[minmax(360px,460px)_minmax(0,1fr)]">
-        <aside class="border border-zinc-200 bg-white p-3">
-          <div class="mb-3 flex flex-wrap items-center justify-between gap-3 border-b border-zinc-200 pb-3">
-            <div class="flex flex-wrap items-center gap-2">
-              <button
-                class="rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide transition-colors"
-                [class.bg-zinc-100]="indexFilter() === 'unread'"
-                [class.text-zinc-900]="indexFilter() === 'unread'"
-                [class.text-zinc-500]="indexFilter() !== 'unread'"
-                [class.hover:bg-zinc-100]="indexFilter() !== 'unread'"
-                [class.hover:text-zinc-900]="indexFilter() !== 'unread'"
-                type="button"
-                (click)="indexFilter.set('unread')"
-              >
-                {{ 'profile.imap.inbox.filters.unread' | translate }}
-              </button>
-              <button
-                class="rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide transition-colors"
-                [class.bg-zinc-100]="indexFilter() === 'all'"
-                [class.text-zinc-900]="indexFilter() === 'all'"
-                [class.text-zinc-500]="indexFilter() !== 'all'"
-                [class.hover:bg-zinc-100]="indexFilter() !== 'all'"
-                [class.hover:text-zinc-900]="indexFilter() !== 'all'"
-                type="button"
-                (click)="indexFilter.set('all')"
-              >
-                {{ 'profile.imap.inbox.filters.all' | translate }}
-              </button>
-            </div>
-            <div class="flex flex-wrap items-center gap-2">
-              @if (selectedAccount()) {
+      <section class="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(340px,420px)_1fr]">
+        
+        <aside class="flex flex-col border border-zinc-200 bg-white shadow-sm transition-all overflow-hidden rounded-sm">
+          <header class="flex flex-col gap-3 border-b border-zinc-200 p-4 bg-white/80 backdrop-blur-sm">
+            <div class="flex items-center justify-between gap-4">
+              <nav class="flex items-center bg-zinc-100 p-1 rounded-lg">
                 <button
-                  class="rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900 disabled:cursor-default disabled:opacity-50"
+                  class="rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all"
+                  [class]="indexFilter() === 'unread' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'"
                   type="button"
-                  [disabled]="isSyncing(selectedAccount()!.id)"
-                  (click)="syncAccount(selectedAccount()!.id)"
+                  (click)="indexFilter.set('unread')"
                 >
-                  {{ isSyncing(selectedAccount()!.id) ? ('profile.imap.inbox.actions.syncing' | translate) : ('profile.imap.inbox.actions.sync' | translate) }}
+                  {{ 'profile.imap.inbox.filters.unread' | translate }}
                 </button>
-              }
-              <button class="rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900" type="button" (click)="goToArchive()">
-                {{ 'profile.imap.inbox.actions.archive' | translate }}
-              </button>
-              <a class="inline-flex items-center rounded-md px-2 py-1 text-xs font-semibold uppercase tracking-wide text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900" routerLink="/app/inbox/settings">
-                {{ 'profile.imap.inbox.actions.settings' | translate }}
-              </a>
-            </div>
-          </div>
+                <button
+                  class="rounded-md px-3 py-1.5 text-[10px] font-bold uppercase tracking-wider transition-all"
+                  [class]="indexFilter() === 'all' ? 'bg-white text-zinc-900 shadow-sm' : 'text-zinc-500 hover:text-zinc-900'"
+                  type="button"
+                  (click)="indexFilter.set('all')"
+                >
+                  {{ 'profile.imap.inbox.filters.all' | translate }}
+                </button>
+              </nav>
 
-          @if (loadingMessages() || loadingAccounts()) {
-            <div class="mx-auto my-12 h-px w-24 animate-pulse bg-zinc-900" aria-hidden="true"></div>
-          } @else if (indexMessages().length === 0) {
-            <p class="my-12 text-center text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ 'profile.imap.inbox.states.nothingRemains' | translate }}</p>
-          } @else {
-            <ul class="max-h-[calc(100vh-19rem)] list-none space-y-0 overflow-auto p-0">
-              @for (message of indexMessages(); track message.id) {
-                <li>
-                  <div class="group grid w-full grid-cols-[132px_minmax(0,1fr)_68px_auto] items-center gap-3 border-b border-zinc-200 px-3 py-3 transition-colors hover:bg-zinc-100" [class.bg-zinc-100]="selectedMessageUid() === message.uid">
-                    <button class="truncate text-left text-xs font-medium uppercase tracking-wide text-zinc-500" type="button" (click)="openReading(message)">
-                      {{ senderLabel(message) }}
-                    </button>
-                    <button class="truncate text-left text-sm font-semibold text-zinc-900" type="button" (click)="openReading(message)">
-                      {{ message.subject || ('profile.imap.noSubject' | translate) }}
-                    </button>
-                    <button class="text-right text-xs font-medium tracking-wide text-zinc-500" type="button" (click)="openReading(message)">
-                      {{ formatTime(message) }}
-                    </button>
+              <div class="flex items-center gap-1">
+                @if (selectedAccount()) {
+                  <button
+                    class="p-2 text-zinc-500 hover:bg-zinc-100 rounded-full transition-colors disabled:opacity-30"
+                    type="button"
+                    [disabled]="isSyncing(selectedAccount()!.id)"
+                    (click)="syncAccount(selectedAccount()!.id)"
+                  >
+                    <lucide-icon 
+                      name="refresh-cw" 
+                      [class.animate-spin]="isSyncing(selectedAccount()!.id)" 
+                      class="h-4 w-4">
+                    </lucide-icon>
+                  </button>
+                }
+                <a class="p-2 text-zinc-500 hover:bg-zinc-100 rounded-full transition-colors" routerLink="/app/inbox/settings">
+                  <lucide-icon name="settings" class="h-4 w-4"></lucide-icon>
+                </a>
+              </div>
+            </div>
+          </header>
+
+          <div class="flex-1 overflow-y-auto overscroll-contain h-[60dvh] lg:h-[calc(100dvh-220px)]">
+            @if (loadingMessages() || loadingAccounts()) {
+              <div class="flex flex-col items-center justify-center py-20 gap-4">
+                <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin text-zinc-400"></lucide-icon>
+              </div>
+            } @else if (indexMessages().length === 0) {
+              <div class="flex flex-col items-center py-20 px-6 text-center">
+                <lucide-icon name="inbox" class="h-10 w-10 text-zinc-200 mb-4"></lucide-icon>
+                <p class="text-xs font-bold uppercase tracking-widest text-zinc-400 leading-relaxed">
+                  {{ 'profile.imap.inbox.states.nothingRemains' | translate }}
+                </p>
+              </div>
+            } @else {
+              <ul class="divide-y divide-zinc-100">
+                @for (message of indexMessages(); track message.id) {
+                  <li class="relative group">
                     <button
-                      class="rounded px-2 py-1 text-[10px] font-semibold uppercase tracking-wide text-zinc-500 opacity-0 transition hover:bg-zinc-200 hover:text-zinc-900 group-hover:opacity-100"
+                      type="button"
+                      class="flex w-full flex-col gap-1 px-4 py-4 text-left transition-all hover:bg-zinc-50 active:bg-zinc-100"
+                      [class.bg-zinc-50]="selectedMessageUid() === message.uid"
+                      [class.border-l-4]="!message.seen"
+                      [class.border-l-zinc-900]="!message.seen"
+                      [class.border-l-transparent]="message.seen"
+                      [attr.aria-label]="message.subject || ('profile.imap.noSubject' | translate)"
+                      (click)="openReading(message)"
+                    >
+                      <div class="flex items-center justify-between gap-2">
+                        <span class="truncate text-[10px] font-bold uppercase tracking-tight text-zinc-500">
+                          {{ senderLabel(message) }}
+                        </span>
+                        <span class="shrink-0 text-[10px] font-medium text-zinc-400">
+                          {{ formatTime(message) }}
+                        </span>
+                      </div>
+                      <h4 class="truncate text-sm font-semibold text-zinc-900" [class.font-black]="!message.seen">
+                        {{ message.subject || ('profile.imap.noSubject' | translate) }}
+                      </h4>
+                      
+                    </button>
+
+                    <button
+                      class="absolute right-4 bottom-4 opacity-0 group-hover:opacity-100 transition-opacity rounded bg-white border border-zinc-200 p-1.5 shadow-sm hover:bg-zinc-900 hover:text-white"
                       type="button"
                       (click)="toggleSeen(message)"
+                      [title]="message.seen ? ('profile.imap.inbox.actions.markUnread' | translate) : ('profile.imap.inbox.actions.markRead' | translate)"
+                      [attr.aria-label]="message.seen ? ('profile.imap.inbox.actions.markUnread' | translate) : ('profile.imap.inbox.actions.markRead' | translate)"
                     >
-                      {{ message.seen ? ('profile.imap.inbox.actions.markUnread' | translate) : ('profile.imap.inbox.actions.markRead' | translate) }}
+                      <lucide-icon [name]="message.seen ? 'mail' : 'mail-open'" class="h-3.5 w-3.5"></lucide-icon>
                     </button>
-                  </div>
-                </li>
-              }
-            </ul>
-          }
+                  </li>
+                }
+              </ul>
+            }
+          </div>
 
           @if (hiddenUnreadCount() > 0 && indexFilter() === 'unread') {
-            <div class="mt-3">
-              <button type="button" class="rounded-md border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-900 transition-colors hover:bg-zinc-100" (click)="loadMoreUnread()">
-                {{ 'profile.imap.inbox.actions.loadMore' | translate:{ count: hiddenUnreadCount() } }}
+            <footer class="p-3 border-t border-zinc-100 bg-zinc-50/50">
+              <button type="button" class="flex items-center justify-center gap-2 w-full rounded border border-zinc-200 bg-white py-2 text-[10px] font-bold uppercase tracking-widest text-zinc-900 hover:shadow-sm active:scale-[0.98] transition-all" (click)="loadMoreUnread()">
+                <lucide-icon name="chevron-down" class="h-3 w-3"></lucide-icon>
+                {{ 'profile.imap.inbox.actions.loadMore' | translate: { count: hiddenUnreadCount() } }}
               </button>
-            </div>
+            </footer>
           }
         </aside>
 
-        <section class="min-h-96 border border-zinc-200 bg-white px-4 py-4 sm:px-5">
+        <section class="flex flex-col border border-zinc-200 bg-white shadow-sm overflow-hidden min-h-[500px] rounded-sm">
           @if (selectedMessage()) {
-            <article class="min-h-[60vh] pb-20">
-              <div class="mb-4 flex items-start gap-2.5">
-                <span class="h-10 w-10 shrink-0 rounded-full bg-zinc-300 grayscale"></span>
-                <div>
-                  <p class="m-0 text-xs font-semibold uppercase tracking-wide text-zinc-900">{{ selectedMessage()!.fromName || selectedMessage()!.fromAddress || ('profile.imap.unknownSender' | translate) }}</p>
-                  <p class="m-0 mt-0.5 text-xs font-medium tracking-wide text-zinc-500">{{ formatFullDate(selectedMessage()!) }}</p>
-                  <p class="m-0 mt-0.5 text-xs font-medium tracking-wide text-zinc-500">{{ 'profile.imap.inbox.labels.to' | translate }}: {{ selectedAccount()?.emailAddress || '-' }}</p>
+            <article class="flex-1 overflow-y-auto p-6 lg:p-10 pb-32">
+              <header class="mb-10 flex flex-col gap-6">
+                <div class="flex items-center justify-between border-b border-zinc-100 pb-6">
+                  <div class="flex items-center gap-4">
+                    <div class="h-12 w-12 rounded-full bg-zinc-100 border border-zinc-200 flex items-center justify-center text-zinc-900">
+                       <lucide-icon name="user" class="h-6 w-6"></lucide-icon>
+                    </div>
+                    <div>
+                      <p class="text-xs font-black uppercase tracking-widest text-zinc-900">
+                        {{ selectedMessage()!.fromName || selectedMessage()!.fromAddress }}
+                      </p>
+                      <p class="text-[11px] font-medium text-zinc-500">{{ formatFullDate(selectedMessage()!) }}</p>
+                    </div>
+                  </div>
+                  <div class="flex gap-2">
+                     <button (click)="archiveCurrent()" class="p-2 hover:bg-zinc-100 rounded-md text-zinc-500 transition-colors">
+                        <lucide-icon name="archive" class="h-4 w-4"></lucide-icon>
+                     </button>
+                  </div>
                 </div>
-              </div>
-              <h2 class="mb-3 text-xl font-bold text-zinc-900">{{ selectedMessage()!.subject || ('profile.imap.noSubject' | translate) }}</h2>
-              <div class="max-h-[calc(100vh-25rem)] overflow-auto">
+                <h2 class="text-2xl lg:text-3xl font-black tracking-tight text-zinc-900 leading-tight">
+                  {{ selectedMessage()!.subject || ('profile.imap.noSubject' | translate) }}
+                </h2>
+              </header>
+
+              <div class="prose prose-zinc max-w-none">
                 @if (loadingMessageContent()) {
-                  <p class="text-sm text-zinc-600">{{ 'profile.imap.inbox.states.loadingContent' | translate }}</p>
+                  <div class="flex items-center gap-3 text-zinc-400">
+                    <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin"></lucide-icon>
+                    <span class="text-[10px] font-bold uppercase tracking-widest">{{ 'profile.imap.inbox.states.loadingContent' | translate }}</span>
+                  </div>
                 } @else if (messageHtmlUrl()) {
                   <iframe
-                    class="w-full min-h-[60vh] border-0"
+                    class="w-full min-h-[60dvh] border-0"
+                    [title]="selectedMessage()!.subject || ('profile.imap.noSubject' | translate)"
                     sandbox=""
                     referrerpolicy="no-referrer"
-                    [title]="selectedMessage()!.subject || ('profile.imap.noSubject' | translate)"
                     [src]="messageHtmlUrl()"
                   ></iframe>
-                } @else if (messageContent()?.bodyText) {
-                  <pre class="m-0 whitespace-pre-wrap wrap-break-word text-sm leading-relaxed text-zinc-700">{{ messageContent()!.bodyText }}</pre>
                 } @else {
-                  <p class="text-sm text-zinc-700">{{ selectedMessage()!.snippet || ('profile.imap.inbox.states.noPreview' | translate) }}</p>
+                  <pre class="whitespace-pre-wrap font-sans text-sm leading-relaxed text-zinc-700">{{ messageContent()?.bodyText || selectedMessage()!.snippet }}</pre>
                 }
               </div>
             </article>
 
-            <footer class="fixed bottom-6 left-1/2 z-30 flex -translate-x-1/2 items-center divide-x divide-zinc-200 overflow-hidden rounded-xl border border-zinc-200/80 bg-white/90 text-xs font-semibold uppercase tracking-wide text-zinc-500 shadow-lg shadow-zinc-900/5 backdrop-blur-md">
-              <button
-                class="px-4 py-2 text-zinc-900 transition-colors hover:bg-zinc-100 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-inset"
-                type="button"
-                (click)="openComposerFromReading()"
-              >
+            <footer class="fixed bottom-8 left-1/2 z-30 flex -translate-x-1/2 items-center divide-x divide-zinc-200 overflow-hidden rounded-2xl border border-zinc-200/80 bg-white/90 p-1 shadow-2xl backdrop-blur-md">
+              <button class="flex items-center gap-2 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-900 hover:bg-zinc-100 transition-colors" (click)="openComposerFromReading()">
+                <lucide-icon name="reply" class="h-3.5 w-3.5"></lucide-icon>
                 {{ 'profile.imap.inbox.actions.reply' | translate }}
               </button>
-              <button
-                class="px-4 py-2 text-zinc-900 transition-colors hover:bg-zinc-100 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-inset"
-                type="button"
-                (click)="openReplyAllFromReading()"
-              >
-                {{ 'profile.imap.inbox.actions.replyAll' | translate }}
-              </button>
-              <button
-                class="px-4 py-2 text-zinc-900 transition-colors hover:bg-zinc-100 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-inset"
-                type="button"
-                (click)="archiveCurrent()"
-              >
+              <button class="flex items-center gap-2 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-zinc-900 hover:bg-zinc-100 transition-colors" (click)="archiveCurrent()">
+                <lucide-icon name="archive" class="h-3.5 w-3.5"></lucide-icon>
                 {{ 'profile.imap.inbox.actions.archive' | translate }}
               </button>
-              <button
-                class="px-4 py-2 text-zinc-900 transition-colors hover:bg-zinc-100 hover:text-zinc-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900/20 focus-visible:ring-inset disabled:opacity-50"
-                type="button"
-                [disabled]="isDeletingMessage(selectedMessage()!.uid)"
-                (click)="deleteMessage(selectedAccount()!.id, selectedMessage()!.uid)"
-              >
+              <button class="flex items-center gap-2 px-5 py-3 text-[10px] font-black uppercase tracking-widest text-red-600 hover:bg-red-50 transition-colors disabled:opacity-30" [disabled]="isDeletingMessage(selectedMessage()!.uid)" (click)="deleteMessage(selectedAccount()!.id, selectedMessage()!.uid)">
+                <lucide-icon name="trash-2" class="h-3.5 w-3.5"></lucide-icon>
                 {{ 'profile.imap.inbox.actions.delete' | translate }}
               </button>
             </footer>
           } @else {
-            <div class="grid min-h-96 place-items-center p-6 text-center">
-              <p>{{ 'profile.imap.inbox.states.selectMessage' | translate }}</p>
+            <div class="flex h-full flex-col items-center justify-center p-10 text-center bg-zinc-50/30">
+              <lucide-icon name="mail-search" class="h-12 w-12 text-zinc-200 mb-4 stroke-[1px]"></lucide-icon>
+              <p class="text-xs font-bold uppercase tracking-widest text-zinc-400">{{ 'profile.imap.inbox.states.selectMessage' | translate }}</p>
             </div>
           }
         </section>
@@ -177,101 +200,100 @@
     }
 
     @if (viewMode() === 'archive') {
-      <section class="mx-auto max-w-full">
-        <div class="mb-4 flex items-center gap-2.5">
-          <button type="button" class="p-0 text-2xl text-zinc-900" (click)="goToIndex()">←</button>
-          <input
-            type="text"
-            [value]="archiveQuery()"
-            (input)="archiveQuery.set($any($event.target).value)"
-            [placeholder]="'profile.imap.inbox.archive.findPlaceholder' | translate"
-            [attr.aria-label]="'profile.imap.inbox.archive.ariaFind' | translate"
-            class="h-11 w-full border border-zinc-200 bg-white px-3 text-sm text-zinc-900 outline-none focus:border-zinc-900"
-          />
-        </div>
-
-        @if (archiveQuery().trim() === '' && archiveGroups().length === 0) {
-          <p class="my-16 text-center text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ 'profile.imap.inbox.archive.findPlaceholder' | translate }}</p>
-        } @else {
-          <div>
-            @for (group of archiveGroups(); track group.label) {
-              <section>
-                <h3 class="mb-2 mt-5 text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ monthLabel(group.label) }}</h3>
-                <ul class="list-none border-t border-zinc-200 p-0">
-                  @for (message of group.items; track message.id) {
-                    <li>
-                      <button type="button" class="flex w-full items-center justify-between gap-3 border-b border-zinc-200 px-2 py-3 text-left transition-colors hover:bg-zinc-100" (click)="openReading(message)">
-                        <span class="text-sm font-semibold text-zinc-900">{{ message.subject || ('profile.imap.noSubject' | translate) }}</span>
-                        <small class="text-xs font-medium uppercase tracking-wide text-zinc-500">{{ message.fromName || message.fromAddress || ('profile.imap.unknownSender' | translate) }}</small>
-                      </button>
-                    </li>
-                  }
-                </ul>
-              </section>
-            }
+      <section class="mx-auto max-w-4xl pt-6 px-2">
+        <header class="mb-8 flex items-center gap-4">
+          <button (click)="goToIndex()" class="p-2 hover:bg-white rounded-full border border-zinc-200 transition-all shadow-sm">
+            <lucide-icon name="arrow-left" class="h-5 w-5"></lucide-icon>
+          </button>
+          <div class="relative flex-1">
+            <lucide-icon name="search" class="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-400"></lucide-icon>
+            <input
+              type="text"
+              [value]="archiveQuery()"
+              (input)="archiveQuery.set($any($event.target).value)"
+              class="h-12 w-full rounded-xl border border-zinc-200 bg-white pl-11 pr-4 text-sm font-medium shadow-sm outline-none focus:ring-2 focus:ring-zinc-900/5 transition-all"
+              [placeholder]="'profile.imap.inbox.archive.findPlaceholder' | translate"
+            />
           </div>
-        }
+        </header>
+
+        <div class="space-y-10">
+          @for (group of archiveGroups(); track group.label) {
+            <section>
+              <h3 class="sticky top-0 z-10 bg-[#fdfbf7] py-2 text-[10px] font-black uppercase tracking-[0.2em] text-zinc-400 border-b border-zinc-100">{{ monthLabel(group.label) }}</h3>
+              <ul class="mt-4 divide-y divide-zinc-200">
+                @for (message of group.items; track message.id) {
+                  <li>
+                    <button (click)="openReading(message)" class="flex w-full items-center justify-between py-4 text-left hover:px-2 transition-all group">
+                      <div class="min-w-0">
+                        <p class="truncate text-sm font-bold text-zinc-900 group-hover:text-zinc-600">{{ message.subject || ('profile.imap.noSubject' | translate) }}</p>
+                        <p class="text-[10px] font-medium text-zinc-500 uppercase tracking-tighter">{{ message.fromName || message.fromAddress }}</p>
+                      </div>
+                      <lucide-icon name="chevron-right" class="h-4 w-4 text-zinc-300 group-hover:text-zinc-900 transition-colors"></lucide-icon>
+                    </button>
+                  </li>
+                }
+              </ul>
+            </section>
+          }
+        </div>
       </section>
     }
 
     @if (composerOpen()) {
-      <button
-        type="button"
-        class="fixed inset-0 z-40 bg-white/95 backdrop-blur-sm"
-        [attr.aria-label]="'common.close' | translate"
-        (click)="closeComposer()"
-      ></button>
-      <dialog
-        open
-        class="fixed inset-4 z-50 mx-auto flex max-w-4xl flex-col gap-5 border border-zinc-200 bg-white p-6 sm:inset-10"
-        aria-label="Compose email"
-        (cancel)="$event.preventDefault(); closeComposer()"
-      >
-        <header class="flex items-center justify-between">
-          <button
-            type="button"
-            class="inline-flex items-center gap-1 rounded border border-zinc-200 px-3 py-2 text-xs font-semibold uppercase tracking-wide text-zinc-700 transition-colors hover:bg-zinc-100"
-            [attr.aria-label]="'common.close' | translate"
-            (click)="closeComposer()"
-          >
-            <span aria-hidden="true">←</span>
-            <span>{{ 'common.close' | translate }}</span>
-          </button>
-          <button type="button" class="border border-zinc-200 bg-zinc-900 px-3.5 py-2 text-xs font-semibold uppercase tracking-wide text-white disabled:opacity-50" [disabled]="composerSending()" (click)="sendComposer()">
-            {{ composerSending() ? ('profile.imap.inbox.actions.sending' | translate) : ('profile.imap.inbox.actions.send' | translate) }}
-          </button>
-        </header>
-        <div class="grid gap-3">
-          <input
-            type="text"
-            class="h-11 border-0 border-b border-zinc-200 bg-transparent px-0 text-base font-semibold text-zinc-900 outline-none"
-            [placeholder]="'profile.imap.inbox.labels.to' | translate"
-            [value]="composerTo()"
-            (input)="composerTo.set($any($event.target).value)"
-          />
-          <input
-            type="text"
-            class="h-11 border-0 border-b border-zinc-200 bg-transparent px-0 text-base font-semibold text-zinc-900 outline-none"
-            placeholder="Cc"
-            [value]="composerCc()"
-            (input)="composerCc.set($any($event.target).value)"
-          />
-          <input
-            type="text"
-            class="h-11 border-0 border-b border-zinc-200 bg-transparent px-0 text-base font-semibold text-zinc-900 outline-none"
-            [placeholder]="'profile.imap.inbox.labels.subject' | translate"
-            [value]="composerSubject()"
-            (input)="composerSubject.set($any($event.target).value)"
-          />
-        </div>
-        <textarea
-          class="min-h-56 flex-1 resize-none border-0 bg-transparent text-sm leading-relaxed text-zinc-700 outline-none"
-          [placeholder]="'profile.imap.inbox.labels.writeReply' | translate"
-          [value]="composerBody()"
-          (input)="composerBody.set($any($event.target).value)"
-        ></textarea>
-        <p class="m-0 text-xs font-semibold uppercase tracking-wide text-zinc-500">{{ 'profile.imap.inbox.messages.saved' | translate }}</p>
-      </dialog>
+      <div class="fixed inset-0 z-50 flex flex-col bg-zinc-900/60 backdrop-blur-sm sm:items-center sm:justify-center p-0 sm:p-4">
+        <dialog
+          open
+          class="flex h-full w-full flex-col overflow-hidden bg-white shadow-2xl sm:h-[85dvh] sm:max-w-3xl sm:rounded-2xl border-none"
+          (cancel)="$event.preventDefault(); closeComposer()"
+        >
+          <header class="flex items-center justify-between border-b border-zinc-100 bg-white px-6 py-4">
+            <button (click)="closeComposer()" class="flex items-center gap-1 text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-zinc-900">
+              <lucide-icon name="x" class="h-3 w-3"></lucide-icon>
+              {{ 'profile.imap.inbox.actions.close' | translate }}
+            </button>
+            <h3 class="text-[10px] font-black uppercase tracking-widest text-zinc-900">{{ 'profile.imap.inbox.labels.newDraft' | translate }}</h3>
+            <button 
+              (click)="sendComposer()" 
+              [disabled]="composerSending()"
+              class="flex items-center gap-2 rounded-full bg-zinc-900 px-6 py-2 text-[10px] font-black uppercase tracking-widest text-white shadow-lg active:scale-95 disabled:opacity-50"
+            >
+              @if (!composerSending()) {
+                <lucide-icon name="send" class="h-3 w-3"></lucide-icon>
+              }
+              {{ composerSending() ? ('profile.imap.inbox.actions.sending' | translate) : ('profile.imap.inbox.actions.send' | translate) }}
+            </button>
+          </header>
+          
+          <div class="flex flex-col flex-1 p-8 gap-6 overflow-y-auto">
+            <div class="flex items-center gap-4 border-b border-zinc-100 pb-2">
+              <label for="inbox-composer-to" class="w-12 text-[10px] font-black uppercase text-zinc-400">{{ 'profile.imap.inbox.labels.to' | translate }}</label>
+              <input id="inbox-composer-to" type="text" [value]="composerTo()" (input)="composerTo.set($any($event.target).value)" class="flex-1 bg-transparent text-sm font-bold outline-none" />
+            </div>
+            <div class="flex items-center gap-4 border-b border-zinc-100 pb-2">
+              <label for="inbox-composer-subject" class="w-12 text-[10px] font-black uppercase text-zinc-400">{{ 'profile.imap.inbox.labels.subject' | translate }}</label>
+              <input id="inbox-composer-subject" type="text" [value]="composerSubject()" (input)="composerSubject.set($any($event.target).value)" class="flex-1 bg-transparent text-sm font-bold outline-none" />
+            </div>
+            <textarea
+              [attr.aria-label]="'profile.imap.inbox.labels.body' | translate"
+              [value]="composerBody()"
+              (input)="composerBody.set($any($event.target).value)"
+              class="mt-4 flex-1 resize-none bg-transparent text-sm leading-relaxed outline-none min-h-[300px]"
+              [placeholder]="'profile.imap.inbox.labels.startTyping' | translate"
+            ></textarea>
+          </div>
+          <footer class="bg-zinc-50 px-8 py-4 border-t border-zinc-100 flex items-center justify-between">
+            <div class="flex gap-4">
+              <lucide-icon name="paperclip" class="h-4 w-4 text-zinc-400 hover:text-zinc-900 cursor-pointer"></lucide-icon>
+              <lucide-icon name="image" class="h-4 w-4 text-zinc-400 hover:text-zinc-900 cursor-pointer"></lucide-icon>
+            </div>
+            <p class="text-[9px] font-bold uppercase tracking-widest text-zinc-400 flex items-center gap-1">
+              <lucide-icon name="cloud-check" class="h-3 w-3"></lucide-icon>
+              {{ 'profile.imap.inbox.messages.draftSaved' | translate }}
+            </p>
+          </footer>
+        </dialog>
+      </div>
     }
   </main>
 </shared-page-layout>

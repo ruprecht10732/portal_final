@@ -4,6 +4,7 @@ import { DomSanitizer, SafeHtml, SafeResourceUrl } from '@angular/platform-brows
 import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
 import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
@@ -13,7 +14,7 @@ import { PageLayoutComponent } from '../../shared/components/page-layout/page-la
 
 @Component({
   selector: 'app-inbox',
-  imports: [TranslateModule, RouterLink, ButtonComponent, PageLayoutComponent],
+  imports: [TranslateModule, RouterLink, ButtonComponent, PageLayoutComponent, LucideAngularModule],
   templateUrl: './inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
