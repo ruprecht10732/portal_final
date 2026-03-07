@@ -51,6 +51,7 @@ export class InboxComponent {
   protected readonly messageContent = signal<IMAPMessageContent | null>(null);
   protected readonly safeMessageHtml = signal<SafeHtml | null>(null);
   protected readonly messageHtmlUrl = signal<SafeResourceUrl | null>(null);
+  protected readonly isMobileViewport = signal(false);
 
   private messageHtmlObjectUrl: string | null = null;
 
@@ -123,7 +124,19 @@ export class InboxComponent {
     return Array.from(groups.entries()).map(([label, items]) => ({ label, items }));
   });
 
+  protected readonly showListPane = computed(() => !this.isMobileViewport() || this.selectedMessage() == null);
+
+  protected readonly showReaderPane = computed(() => !this.isMobileViewport() || this.selectedMessage() != null);
+
   constructor() {
+    if (globalThis.window !== undefined) {
+      const mediaQuery = globalThis.window.matchMedia('(max-width: 1023px)');
+      const syncViewport = () => this.isMobileViewport.set(mediaQuery.matches);
+      syncViewport();
+      mediaQuery.addEventListener('change', syncViewport);
+      this.destroyRef.onDestroy(() => mediaQuery.removeEventListener('change', syncViewport));
+    }
+
     this.loadAccounts();
   }
 
@@ -241,6 +254,13 @@ export class InboxComponent {
 
   protected goToArchive(): void {
     this.viewMode.set('archive');
+  }
+
+  protected closeReading(): void {
+    this.selectedMessageUid.set(null);
+    this.messageContent.set(null);
+    this.safeMessageHtml.set(null);
+    this.setMessageHtmlUrl(null);
   }
 
   protected openReading(message: IMAPMessage): void {
