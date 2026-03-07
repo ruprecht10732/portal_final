@@ -33,7 +33,22 @@
             }
           </button>
 
-          @if (job.status === 'completed' || job.status === 'failed') {
+          @if (job.status === 'pending' || job.status === 'running') {
+            <div class="mt-3 flex justify-end">
+              <shared-button
+                variant="danger"
+                size="compact"
+                [fullWidth]="false"
+                [loading]="cancellingJobId() === job.jobId"
+                ariaLabel="Annuleer AI taak"
+                (clicked)="onCancelJob($event, job)"
+              >
+                Annuleren
+              </shared-button>
+            </div>
+          }
+
+          @if (job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled') {
             <button
               type="button"
               class="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"

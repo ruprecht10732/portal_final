@@ -140,13 +140,34 @@ export class AIJobService {
     );
   }
 
+  cancel(jobId: string): Observable<void> {
+    const target = this.jobsState()[jobId];
+    if (!target) {
+      return new Observable<void>(subscriber => {
+        subscriber.next();
+        subscriber.complete();
+      });
+    }
+
+    return this.quotesService.cancelGenerateJob(jobId).pipe(
+      tap(job => {
+        this.upsertJob(this.mapJob(job));
+      }),
+      catchError(error => {
+        this.toast.error('Kon AI taak niet annuleren');
+        return throwError(() => error);
+      }),
+      map(() => undefined),
+    );
+  }
+
   clearCompleted(): Observable<void> {
     return this.quotesService.clearCompletedGenerateJobs().pipe(
       tap(() => {
         this.jobsState.update(current => {
           const next: Record<string, AIJobState> = {};
           for (const [id, job] of Object.entries(current)) {
-            if (job.status !== 'completed') {
+            if (job.status !== 'completed' && job.status !== 'cancelled') {
               next[id] = job;
             }
           }

@@ -171,6 +171,13 @@ export class QuotesService {
     return this.http.delete<{ status: string }>(`${this.baseUrl}/generate-jobs/${jobId}`);
   }
 
+  /** Cancel an active async quote generation job */
+  cancelGenerateJob(jobId: string): Observable<GenerateQuoteJobResponse> {
+    return this.http.post<unknown>(`${this.baseUrl}/generate-jobs/${jobId}/cancel`, {}).pipe(
+      map((response) => this.normalizeGenerateJobResponse(response)),
+    );
+  }
+
   /** Clear all completed async quote generation jobs for the current user */
   clearCompletedGenerateJobs(): Observable<{ status: string; deleted: number }> {
     return this.http.delete<{ status: string; deleted: number }>(`${this.baseUrl}/generate-jobs/completed`);

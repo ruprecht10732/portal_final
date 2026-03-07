@@ -1,6 +1,7 @@
-import { ChangeDetectionStrategy, Component, computed, effect, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
+import { finalize } from 'rxjs';
 import { AIJobService } from '../../../core/services/ai-job.service';
 import { NotificationSidebarStateService } from '../../../core/services/notification-sidebar-state.service';
 import type { AIJobState } from '../../../core/services/ai-job.service';
@@ -23,6 +24,7 @@ export class AIJobSidebarPanelComponent {
   protected readonly jobs = this.aiJobs.jobs;
   protected readonly loading = this.aiJobs.loading;
   protected readonly hasCompleted = computed(() => this.jobs().some(job => job.status === 'completed'));
+  protected readonly cancellingJobId = signal<string | null>(null);
 
   constructor() {
     effect(() => {
@@ -41,11 +43,24 @@ export class AIJobSidebarPanelComponent {
   protected onDeleteJob(event: MouseEvent, job: AIJobState): void {
     event.stopPropagation();
 
-    if (job.status !== 'completed' && job.status !== 'failed') {
+    if (job.status !== 'completed' && job.status !== 'failed' && job.status !== 'cancelled') {
       return;
     }
 
     this.aiJobs.delete(job.jobId).subscribe();
+  }
+
+  protected onCancelJob(event: MouseEvent, job: AIJobState): void {
+    event.stopPropagation();
+
+    if (job.status !== 'pending' && job.status !== 'running') {
+      return;
+    }
+
+    this.cancellingJobId.set(job.jobId);
+    this.aiJobs.cancel(job.jobId).pipe(
+      finalize(() => this.cancellingJobId.set(null)),
+    ).subscribe();
   }
 
   protected onClearCompleted(): void {
