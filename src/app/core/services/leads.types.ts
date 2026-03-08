@@ -141,6 +141,7 @@ export interface LeadTimelineItem {
   timestamp: string;
   actor: string;
   metadata: LeadTimelineMetadata;
+  visibility?: 'public' | 'internal' | 'debug';
 }
 
 export type WhatsAppMessageStatus = 'sent' | 'draft' | 'failed';

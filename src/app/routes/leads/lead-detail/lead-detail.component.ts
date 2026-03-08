@@ -1415,7 +1415,7 @@ export class LeadDetailComponent implements OnInit {
   };
 
   protected readonly getTimelineMissingInformation = (item: LeadTimelineItem): string[] => {
-    const metadata = item.metadata;
+    const metadata = this.getTimelineMetadataSource(item, 'analysis');
     const value = metadata['missingInformation'];
     if (!Array.isArray(value)) {
       return [];
@@ -1424,7 +1424,7 @@ export class LeadDetailComponent implements OnInit {
   };
 
   protected readonly getTimelineContactMessage = (item: LeadTimelineItem): TimelineContactMessage | null => {
-    const metadata = item.metadata as Record<string, unknown>;
+    const metadata = this.getTimelineMetadataSource(item, 'analysis');
     return (
       this.buildWhatsAppSentMessage(metadata) ||
       this.buildWhatsAppDraftMessage(metadata) ||
@@ -1433,7 +1433,7 @@ export class LeadDetailComponent implements OnInit {
   };
 
   protected readonly getTimelineRecommendedAction = (item: LeadTimelineItem): string | null => {
-    const metadata = item.metadata;
+    const metadata = this.getTimelineMetadataSource(item, 'analysis');
     const action = metadata['recommendedAction'];
     return typeof action === 'string' && action.trim() !== '' ? action.trim() : null;
   };
@@ -1463,7 +1463,7 @@ export class LeadDetailComponent implements OnInit {
   };
 
   protected readonly getTimelineEstimation = (item: LeadTimelineItem): { priceRange?: string; scope?: string; notes?: string } | null => {
-    const metadata = item.metadata;
+    const metadata = this.getTimelineMetadataSource(item, 'estimation');
     const priceRange = this.readTimelineText(metadata['priceRange']);
     const scope = this.readTimelineText(metadata['scope']);
     const notes = this.readTimelineText(metadata['notes']);
@@ -1532,7 +1532,7 @@ export class LeadDetailComponent implements OnInit {
   };
 
   protected readonly getTimelineDraftedQuote = (item: LeadTimelineItem): { quoteId: string; quoteNumber: string; itemCount: number; catalogItems: number; adHocItems: number } | null => {
-    const metadata = item.metadata;
+    const metadata = this.getTimelineMetadataSource(item, 'draftQuote');
     const quoteId = metadata['quoteId'];
     const quoteNumber = metadata['quoteNumber'];
     if (typeof quoteId !== 'string' || typeof quoteNumber !== 'string') {
@@ -1541,9 +1541,9 @@ export class LeadDetailComponent implements OnInit {
     return {
       quoteId,
       quoteNumber,
-      itemCount: typeof metadata['itemCount'] === 'number' ? metadata['itemCount'] : 0,
-      catalogItems: typeof metadata['catalogItems'] === 'number' ? metadata['catalogItems'] : 0,
-      adHocItems: typeof metadata['adHocItems'] === 'number' ? metadata['adHocItems'] : 0,
+      itemCount: this.parseTimelineNumber(metadata['itemCount']) ?? 0,
+      catalogItems: this.parseTimelineNumber(metadata['catalogItems']) ?? 0,
+      adHocItems: this.parseTimelineNumber(metadata['adHocItems']) ?? 0,
     };
   };
 
@@ -1729,6 +1729,19 @@ export class LeadDetailComponent implements OnInit {
     }
     const trimmed = value.trim();
     return trimmed || null;
+  }
+
+  private getTimelineMetadataSource(item: LeadTimelineItem, nestedKey: string): Record<string, unknown> {
+    const metadata = item.metadata as Record<string, unknown>;
+    const nested = this.readTimelineRecord(metadata[nestedKey]);
+    return nested ?? metadata;
+  }
+
+  private readTimelineRecord(value: unknown): Record<string, unknown> | null {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return null;
+    }
+    return value as Record<string, unknown>;
   }
 
   private parsePartnerMatch(value: unknown): { name: string; distanceKm?: number } | null {
