@@ -129,6 +129,11 @@ interface TimelineContactMessage {
   phone?: string;
 }
 
+interface TimelineExtractedFact {
+  key: string;
+  value: string;
+}
+
 @Component({
   selector: 'app-lead-detail',
   templateUrl: './lead-detail.component.html',
@@ -267,21 +272,10 @@ export class LeadDetailComponent implements OnInit {
     if (apiAnalysis) {
       return apiAnalysis;
     }
-    // Fallback to timeline metadata if no API analysis
     for (const item of this.timelineItems()) {
-      const metadata = item.metadata;
-      const action = metadata['recommendedAction'];
-      const urgency = metadata['urgencyLevel'];
-      if (typeof action === 'string' && typeof urgency === 'string') {
-        // Found analysis data in timeline, construct a minimal analysis object
-        return {
-          recommendedAction: action,
-          urgencyLevel: urgency,
-          summary: typeof metadata['summary'] === 'string' ? metadata['summary'] : item.summary,
-          missingInformation: Array.isArray(metadata['missingInformation']) ? metadata['missingInformation'] as string[] : [],
-          preferredContactChannel: (metadata['preferredContactChannel'] as 'WhatsApp' | 'Email') || undefined,
-          suggestedContactMessage: typeof metadata['suggestedContactMessage'] === 'string' ? metadata['suggestedContactMessage'] : undefined,
-        } as LeadAIAnalysis;
+      const timelineAnalysis = this.buildTimelineFallbackAnalysis(item);
+      if (timelineAnalysis) {
+        return timelineAnalysis;
       }
     }
     return null;
@@ -1423,6 +1417,24 @@ export class LeadDetailComponent implements OnInit {
     return value.filter((entry): entry is string => typeof entry === 'string' && entry.trim() !== '');
   };
 
+  protected readonly getTimelineResolvedInformation = (item: LeadTimelineItem): string[] => {
+    const metadata = this.getTimelineMetadataSource(item, 'analysis');
+    const value = metadata['resolvedInformation'];
+    if (!Array.isArray(value)) {
+      return [];
+    }
+    return value
+      .filter((entry): entry is string => typeof entry === 'string' && entry.trim() !== '')
+      .map((entry) => entry.trim());
+  };
+
+  protected readonly getTimelineExtractedFacts = (item: LeadTimelineItem): TimelineExtractedFact[] => {
+    const metadata = this.getTimelineMetadataSource(item, 'analysis');
+    return Object.entries(this.readTimelineExtractedFacts(metadata['extractedFacts']))
+      .map(([key, value]) => ({ key, value }))
+      .sort((left, right) => left.key.localeCompare(right.key));
+  };
+
   protected readonly getTimelineContactMessage = (item: LeadTimelineItem): TimelineContactMessage | null => {
     const metadata = this.getTimelineMetadataSource(item, 'analysis');
     return (
@@ -1437,6 +1449,43 @@ export class LeadDetailComponent implements OnInit {
     const action = metadata['recommendedAction'];
     return typeof action === 'string' && action.trim() !== '' ? action.trim() : null;
   };
+
+  private buildTimelineFallbackAnalysis(item: LeadTimelineItem): LeadAIAnalysis | null {
+    const metadata = item.metadata;
+    const action = metadata['recommendedAction'];
+    const urgency = metadata['urgencyLevel'];
+    if (typeof action !== 'string' || typeof urgency !== 'string') {
+      return null;
+    }
+    return {
+      recommendedAction: action,
+      urgencyLevel: urgency,
+      summary: typeof metadata['summary'] === 'string' ? metadata['summary'] : item.summary,
+      missingInformation: Array.isArray(metadata['missingInformation']) ? metadata['missingInformation'] as string[] : [],
+      resolvedInformation: Array.isArray(metadata['resolvedInformation']) ? metadata['resolvedInformation'] as string[] : [],
+      extractedFacts: this.readTimelineExtractedFacts(metadata['extractedFacts']),
+      preferredContactChannel: (metadata['preferredContactChannel'] as 'WhatsApp' | 'Email') || undefined,
+      suggestedContactMessage: typeof metadata['suggestedContactMessage'] === 'string' ? metadata['suggestedContactMessage'] : undefined,
+    } as LeadAIAnalysis;
+  }
+
+  private readTimelineExtractedFacts(value: unknown): Record<string, string> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) {
+      return {};
+    }
+    return Object.entries(value as Record<string, unknown>).reduce<Record<string, string>>((result, [key, entry]) => {
+      if (typeof entry !== 'string') {
+        return result;
+      }
+      const trimmedKey = key.trim();
+      const trimmedValue = entry.trim();
+      if (!trimmedKey || !trimmedValue) {
+        return result;
+      }
+      result[trimmedKey] = trimmedValue;
+      return result;
+    }, {});
+  }
 
   protected readonly getTimelinePartnerSummary = (item: LeadTimelineItem): string | null => {
     const metadata = item.metadata;

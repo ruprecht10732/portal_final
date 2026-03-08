@@ -31,6 +31,8 @@ export class LeadDetailTimelineTabComponent {
   getTimelineRecommendedAction = input<(item: LeadTimelineItem) => string | null>(() => null);
   getTimelineContactMessage = input<(item: LeadTimelineItem) => { channel: 'WhatsApp' | 'Email'; message: string; status?: 'sent' | 'draft' | 'failed'; phone?: string } | null>(() => null);
   getTimelineMissingInformation = input<(item: LeadTimelineItem) => string[]>(() => []);
+  getTimelineResolvedInformation = input<(item: LeadTimelineItem) => string[]>(() => []);
+  getTimelineExtractedFacts = input<(item: LeadTimelineItem) => { key: string; value: string }[]>(() => []);
   getTimelineScore = input<(item: LeadTimelineItem) => { score: number; preAi?: number; version?: string } | null>(() => null);
   getTimelineDraftedQuote = input<(item: LeadTimelineItem) => { quoteId: string; quoteNumber: string; itemCount: number; catalogItems: number; adHocItems: number } | null>(() => null);
   getTimelineAppointmentApproval = input<(item: LeadTimelineItem) => { appointmentId: string } | null>(() => null);
@@ -62,6 +64,19 @@ export class LeadDetailTimelineTabComponent {
     const escaped = this.escapeHtml(value);
     const bolded = escaped.replaceAll(/\*\*(.+?)\*\*/g, '<strong>$1</strong>');
     return bolded.replaceAll(/\r?\n/g, '<br />');
+  }
+
+  protected getFactLabel(key: string): string {
+    const translationKey = `leads.detail.timeline.factLabels.${key}`;
+    const translated = this.translate.instant(translationKey);
+    if (translated !== translationKey) {
+      return translated;
+    }
+    return key
+      .split('_')
+      .filter((segment) => segment.trim() !== '')
+      .map((segment) => segment.charAt(0).toUpperCase() + segment.slice(1))
+      .join(' ');
   }
 
   private escapeHtml(value: string): string {

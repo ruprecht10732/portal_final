@@ -443,6 +443,8 @@ export interface LeadAIAnalysis {
   leadQuality: LeadQuality;
   recommendedAction: RecommendedAction;
   missingInformation: string[];
+  resolvedInformation: string[];
+  extractedFacts: Record<string, string>;
   preferredContactChannel: PreferredContactChannel;
   suggestedContactMessage: string;
   summary: string;

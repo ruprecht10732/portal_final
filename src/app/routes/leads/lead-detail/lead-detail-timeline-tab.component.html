@@ -137,6 +137,42 @@
               }
             }
 
+            @if (getTimelineResolvedInformation()(item); as resolvedInformation) {
+              @if (resolvedInformation.length > 0) {
+                <div class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50/60 p-3 text-xs">
+                  <div class="mb-1.5 text-[10px] font-bold uppercase tracking-wide text-emerald-700">
+                    {{ t('leads.detail.timeline.resolvedInfo') }}
+                  </div>
+                  <ul class="space-y-1 text-emerald-950">
+                    @for (resolvedItem of resolvedInformation; track resolvedItem) {
+                      <li class="flex items-start gap-1.5">
+                        <span class="mt-px text-emerald-500">•</span>
+                        <span>{{ resolvedItem }}</span>
+                      </li>
+                    }
+                  </ul>
+                </div>
+              }
+            }
+
+            @if (getTimelineExtractedFacts()(item); as extractedFacts) {
+              @if (extractedFacts.length > 0) {
+                <div class="mt-3 rounded-lg border border-sky-200 bg-sky-50/60 p-3 text-xs">
+                  <div class="mb-2 text-[10px] font-bold uppercase tracking-wide text-sky-700">
+                    {{ t('leads.detail.timeline.extractedFacts') }}
+                  </div>
+                  <dl class="grid gap-2 md:grid-cols-2">
+                    @for (fact of extractedFacts; track fact.key) {
+                      <div class="rounded-md border border-sky-100 bg-white/80 px-2.5 py-2">
+                        <dt class="text-[10px] font-bold uppercase tracking-wide text-sky-700">{{ getFactLabel(fact.key) }}</dt>
+                        <dd class="mt-1 whitespace-pre-wrap break-words text-slate-800">{{ fact.value }}</dd>
+                      </div>
+                    }
+                  </dl>
+                </div>
+              }
+            }
+
             @if (getTimelineDraftedQuote()(item); as draftQuote) {
               <div class="mt-3 flex flex-col gap-3 rounded-xl border border-indigo-200 bg-indigo-50/60 p-4">
                 <div class="flex gap-3">
