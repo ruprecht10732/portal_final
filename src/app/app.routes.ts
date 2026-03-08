@@ -444,6 +444,14 @@ export const routes: Routes = [
 						loadComponent: () => import('./routes/offertes/offertes-create/offertes-create.component').then(m => m.OffertesCreateComponent),
 					},
 					{
+						path: 'pricing-intelligence',
+						loadComponent: () =>
+							import('./routes/offertes/offertes-pricing-intelligence/offertes-pricing-intelligence.component').then(
+								m => m.OffertesPricingIntelligenceComponent,
+							),
+						canActivate: [adminGuard],
+					},
+					{
 						path: ':id',
 						loadComponent: () => import('./routes/offertes/offertes-detail/offertes-detail.component').then(m => m.OffertesDetailComponent),
 					},

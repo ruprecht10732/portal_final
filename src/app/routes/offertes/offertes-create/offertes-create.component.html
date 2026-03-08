@@ -418,6 +418,15 @@
                 {{ 'offertes.pricesInclVat' | translate }}
               </span>
             </div>
+
+            @if (isAdmin()) {
+              <div class="mt-5 border-t border-zinc-200 pt-5">
+                <app-quote-pricing-intelligence-panel
+                  [serviceType]="pricingIntelligenceServiceType()"
+                  [postcodePrefix]="pricingIntelligencePostcodePrefix()"
+                />
+              </div>
+            }
           </section>
           
           <div class="hidden lg:block pt-6">

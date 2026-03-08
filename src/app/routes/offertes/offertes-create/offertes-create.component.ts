@@ -1,11 +1,11 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Subject, debounceTime, switchMap, map } from 'rxjs';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { Subject, debounceTime, switchMap, map, catchError, of } from 'rxjs';
 
 import { LeadsService } from '../../../core/services/leads.service';
 import { QuotesService } from '../../../core/services/quotes.service';
@@ -25,7 +25,17 @@ import type {
   GenerateQuoteRequest,
   CreateQuoteFeedbackRequest,
 } from '../../../core/services/quotes.types';
-import { TAX_RATE_OPTIONS, DISCOUNT_TYPE_OPTIONS, parseQuantityNumber, eurosToCents, centsToEuros, taxDisplayToBps, taxBpsToDisplay } from '../../../core/services/quotes.types';
+import {
+  TAX_RATE_OPTIONS,
+  DISCOUNT_TYPE_OPTIONS,
+  parseQuantityNumber,
+  eurosToCents,
+  centsToEuros,
+  taxDisplayToBps,
+  taxBpsToDisplay,
+  derivePostcodePrefixZip4,
+} from '../../../core/services/quotes.types';
+import { UserService } from '../../../core/services/user.service';
 
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -41,6 +51,7 @@ import { type GhostSuggestion } from '../../../shared/components/ghost-text/ghos
 import { AttachmentPanelComponent, type AttachmentDraft } from '../../../shared/components/attachment-panel/attachment-panel.component';
 import { FilePreviewDialogComponent } from '../../../shared/components/file-preview-dialog/file-preview-dialog.component';
 import { QuoteLineItemRowComponent } from './quote-line-item-row.component';
+import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
 
 interface LineItemDraft {
   id: string;
@@ -80,6 +91,7 @@ interface QuoteFeedbackDiff {
     AttachmentPanelComponent,
     FilePreviewDialogComponent,
     QuoteLineItemRowComponent,
+    QuotePricingIntelligencePanelComponent,
   ],
   templateUrl: './offertes-create.component.html',
   styleUrl: './offertes-create.component.css',
@@ -96,7 +108,13 @@ export class OffertesCreateComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly userService = inject(UserService);
   private readonly materialExpandRequestSeq = new Map<string, number>();
+
+  private readonly currentUser = toSignal(
+    this.userService.getProfile().pipe(catchError(() => of(null))),
+    { initialValue: null },
+  );
 
   // Server-side calculation trigger
   private readonly calcTrigger$ = new Subject<void>();
@@ -135,6 +153,11 @@ export class OffertesCreateComponent implements OnInit {
     if (!id) return null;
     return this.leadServices().find(s => s.id === id)?.serviceType ?? null;
   });
+  protected readonly isAdmin = computed(() => this.currentUser()?.roles?.includes('admin') ?? false);
+  protected readonly pricingIntelligenceServiceType = computed(() => this.selectedLeadServiceLabel());
+  protected readonly pricingIntelligencePostcodePrefix = computed(() =>
+    derivePostcodePrefixZip4(this.selectedLead()?.address.zipCode),
+  );
 
   // Lead selection
   protected readonly selectedLead = signal<Lead | null>(null);

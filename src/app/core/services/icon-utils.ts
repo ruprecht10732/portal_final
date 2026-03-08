@@ -5,6 +5,7 @@ const ICON_ALIASES: Record<string, string> = {
   windows: 'app-window',
   tool: 'toolbox',
   tools: 'toolbox',
+  'alert-triangle': 'triangle-alert',
 };
 
 /**

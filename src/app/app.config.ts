@@ -111,6 +111,7 @@ import {
   TrendingUp,
   Handshake,
   TextAlignStart,
+  ChartColumn,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -266,6 +267,7 @@ export const appConfig: ApplicationConfig = {
         TrendingUp,
         Handshake,
         TextAlignStart,
+        ChartColumn,
       }),
     ),
   ]

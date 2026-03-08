@@ -1,0 +1,108 @@
+<section class="rounded-xl border border-zinc-200 bg-linear-to-br from-white via-white to-emerald-50/50 p-4 shadow-sm">
+  <div class="flex items-start justify-between gap-4">
+    <div class="min-w-0">
+      <p class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">
+        {{ 'offertes.pricingIntelligence.panelEyebrow' | translate }}
+      </p>
+      <h3 class="mt-2 text-sm font-semibold text-zinc-900">
+        {{ 'offertes.pricingIntelligence.panelTitle' | translate }}
+      </h3>
+      <p class="mt-1 text-xs leading-relaxed text-zinc-600">
+        {{ 'offertes.pricingIntelligence.panelDescription' | translate }}
+      </p>
+    </div>
+
+    <shared-button
+      variant="secondary"
+      size="compact"
+      [fullWidth]="false"
+      [disabled]="!canInspect()"
+      (clicked)="openInspector()"
+    >
+      <lucide-icon name="chart-column" class="h-4 w-4"></lucide-icon>
+      {{ 'offertes.pricingIntelligence.openInspector' | translate }}
+    </shared-button>
+  </div>
+
+  <div class="mt-4 flex flex-wrap gap-2">
+    <span class="inline-flex items-center rounded-full border border-zinc-200 bg-white px-3 py-1 text-[11px] font-semibold text-zinc-700">
+      {{ 'offertes.pricingIntelligence.serviceLabel' | translate }}:
+      <span class="ml-1 text-zinc-900">{{ serviceType() || ('offertes.pricingIntelligence.noService' | translate) }}</span>
+    </span>
+
+    <span class="inline-flex items-center rounded-full border border-zinc-200 bg-white px-3 py-1 text-[11px] font-semibold text-zinc-700">
+      {{ 'offertes.pricingIntelligence.regionLabel' | translate }}:
+      <span class="ml-1 text-zinc-900">
+        {{ hasRegionContext() ? activeRegionPrefix() : ('offertes.pricingIntelligence.allRegions' | translate) }}
+      </span>
+    </span>
+  </div>
+
+  @if (!canInspect()) {
+    <div class="mt-4 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+      {{ 'offertes.pricingIntelligence.noServiceContext' | translate }}
+    </div>
+  } @else if (loading()) {
+    <div class="mt-4 grid gap-3 sm:grid-cols-3">
+      @for (_ of [1, 2, 3]; track $index) {
+        <div class="h-20 animate-pulse rounded-xl border border-zinc-200 bg-zinc-100"></div>
+      }
+    </div>
+  } @else if (error()) {
+    <div class="mt-4 rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+      {{ error() }}
+    </div>
+  } @else if (!(summary()?.aggregates?.length)) {
+    <div class="mt-4 rounded-lg border border-dashed border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+      {{ 'offertes.pricingIntelligence.noData' | translate }}
+    </div>
+  } @else {
+    <div class="mt-4 grid gap-3 sm:grid-cols-3">
+      <div class="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+        <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+          {{ 'offertes.pricingIntelligence.sampleCount' | translate }}
+        </p>
+        <p class="mt-2 text-2xl font-black tracking-tight text-zinc-900">{{ totalSamples() }}</p>
+      </div>
+
+      <div class="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+        <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+          {{ 'offertes.pricingIntelligence.conversionRate' | translate }}
+        </p>
+        <p class="mt-2 text-2xl font-black tracking-tight text-zinc-900">{{ formatPercent(weightedConversionRate()) }}</p>
+      </div>
+
+      <div class="rounded-xl border border-zinc-200 bg-white px-4 py-3">
+        <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+          {{ 'offertes.pricingIntelligence.averageQuoted' | translate }}
+        </p>
+        <p class="mt-2 text-2xl font-black tracking-tight text-zinc-900">{{ formatCurrency(averageQuotedCents()) }}</p>
+      </div>
+    </div>
+
+    <div class="mt-4 overflow-hidden rounded-xl border border-zinc-200 bg-white">
+      <div class="grid grid-cols-[minmax(0,1fr)_88px_92px_120px] gap-3 border-b border-zinc-100 bg-zinc-50 px-4 py-2 text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+        <span>{{ 'offertes.pricingIntelligence.priceBand' | translate }}</span>
+        <span class="text-right">{{ 'offertes.pricingIntelligence.sampleCount' | translate }}</span>
+        <span class="text-right">{{ 'offertes.pricingIntelligence.conversionRate' | translate }}</span>
+        <span class="text-right">{{ 'offertes.pricingIntelligence.averageQuoted' | translate }}</span>
+      </div>
+
+      @for (aggregate of visibleAggregates(); track trackAggregate($index, aggregate)) {
+        <div class="grid grid-cols-[minmax(0,1fr)_88px_92px_120px] gap-3 border-b border-zinc-100 px-4 py-3 text-sm last:border-b-0">
+          <div class="min-w-0">
+            <p class="font-semibold text-zinc-900">{{ aggregate.priceBand }}</p>
+            <p class="mt-1 text-xs text-zinc-500">
+              {{ aggregate.acceptedCount }} {{ 'offertes.pricingIntelligence.acceptedCount' | translate }}
+              ·
+              {{ aggregate.rejectedCount }} {{ 'offertes.pricingIntelligence.rejectedCount' | translate }}
+            </p>
+          </div>
+          <span class="text-right font-medium tabular-nums text-zinc-700">{{ aggregate.sampleCount }}</span>
+          <span class="text-right font-medium tabular-nums text-zinc-700">{{ formatPercent(aggregate.conversionRate) }}</span>
+          <span class="text-right font-medium tabular-nums text-zinc-700">{{ formatCurrency(aggregate.averageQuotedCents) }}</span>
+        </div>
+      }
+    </div>
+  }
+</section>

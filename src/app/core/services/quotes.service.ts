@@ -30,6 +30,9 @@ import type {
   BulkQuoteExportResponse,
   CreateQuoteFeedbackRequest,
   QuoteFeedbackResponse,
+  PricingIntelligenceQuery,
+  PricingIntelligenceSummaryResponse,
+  PricingIntelligenceRecordsResponse,
 } from './quotes.types';
 
 /**
@@ -209,6 +212,24 @@ export class QuotesService {
 
   bulkExportQuotesToProvider(provider: ExternalAccountingProvider, data: BulkQuoteExportRequest): Observable<BulkQuoteExportResponse> {
     return this.http.post<BulkQuoteExportResponse>(`${this.baseUrl}/export/${provider}/bulk`, data);
+  }
+
+  getPricingIntelligenceSummary(query: PricingIntelligenceQuery): Observable<PricingIntelligenceSummaryResponse> {
+    return this.http.get<PricingIntelligenceSummaryResponse>(`${this.baseUrl}/debug/pricing-intelligence/summary`, {
+      params: toHttpParams({
+        serviceType: query.serviceType,
+        postcodePrefix: query.postcodePrefix,
+      }),
+    });
+  }
+
+  getPricingIntelligenceRecords(query: PricingIntelligenceQuery): Observable<PricingIntelligenceRecordsResponse> {
+    return this.http.get<PricingIntelligenceRecordsResponse>(`${this.baseUrl}/debug/pricing-intelligence/records`, {
+      params: toHttpParams({
+        serviceType: query.serviceType,
+        postcodePrefix: query.postcodePrefix,
+      }),
+    });
   }
 
   private normalizeGenerateAcceptedResponse(input: unknown): GenerateQuoteAcceptedResponse {

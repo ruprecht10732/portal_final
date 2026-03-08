@@ -237,6 +237,15 @@
             </div>
           }
 
+          @if (isAdmin()) {
+            <div class="border-b border-gray-100 bg-white px-5 py-4">
+              <app-quote-pricing-intelligence-panel
+                [serviceType]="pricingIntelligenceServiceType()"
+                [postcodePrefix]="pricingIntelligencePostcodePrefix()"
+              />
+            </div>
+          }
+
           @if (q.items.length > 0) {
             <div class="mt-6">
               <div class="flex items-center justify-between px-5 py-4">
@@ -659,6 +668,13 @@
               </div>
             </div>
           }
+
+          @if (isAdmin()) {
+            <app-quote-pricing-intelligence-panel
+              [serviceType]="pricingIntelligenceServiceType()"
+              [postcodePrefix]="pricingIntelligencePostcodePrefix()"
+            />
+          } 
 
           <!-- Line items card -->
           @if (q.items.length > 0) {

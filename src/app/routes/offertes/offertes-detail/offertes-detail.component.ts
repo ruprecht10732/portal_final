@@ -1,32 +1,50 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, OnInit, signal, computed } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
-import { finalize } from 'rxjs';
+import { catchError, finalize, of } from 'rxjs';
 
 import { QuotesService } from '../../../core/services/quotes.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { SSEService } from '../../../core/services/sse.service';
 import type { QuoteResponse, QuoteStatus, QuoteActivityResponse } from '../../../core/services/quotes.types';
-import { MONEYBIRD_PROVIDER, QUOTE_STATUS_COLORS, QUOTE_STATUS_LABELS, centsToEuros, formatQuantityAndPrice } from '../../../core/services/quotes.types';
+import {
+  MONEYBIRD_PROVIDER,
+  QUOTE_STATUS_COLORS,
+  QUOTE_STATUS_LABELS,
+  centsToEuros,
+  formatQuantityAndPrice,
+  derivePostcodePrefixZip4,
+} from '../../../core/services/quotes.types';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { formatDateValue } from '../../../core/utils/date-utils';
 import type { Lead } from '../../../core/services/leads.types';
+import { UserService } from '../../../core/services/user.service';
 
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/components/menu/menu.component';
 import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
+import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
 
 type LeadServiceOption = { label: string; value: string };
 
 @Component({
   selector: 'app-offertes-detail',
-  imports: [TranslatePipe, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, PageHeaderComponent, MenuComponent, SafeHtmlPipe],
+  imports: [
+    TranslatePipe,
+    LucideAngularModule,
+    ButtonComponent,
+    ConfirmDialogComponent,
+    PageHeaderComponent,
+    MenuComponent,
+    SafeHtmlPipe,
+    QuotePricingIntelligencePanelComponent,
+  ],
   templateUrl: './offertes-detail.component.html',
   styleUrl: './offertes-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -41,6 +59,12 @@ export class OffertesDetailComponent implements OnInit {
   private readonly reporter = inject(ErrorReportingService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly userService = inject(UserService);
+
+  private readonly currentUser = toSignal(
+    this.userService.getProfile().pipe(catchError(() => of(null))),
+    { initialValue: null },
+  );
 
   protected readonly loading = signal(true);
   protected readonly quote = signal<QuoteResponse | null>(null);
@@ -60,10 +84,23 @@ export class OffertesDetailComponent implements OnInit {
   // Lead service linking (for Accepted quotes with missing leadServiceId)
   protected readonly selectedLeadServiceId = signal<string | null>(null);
   protected readonly savingLeadService = signal(false);
+  protected readonly isAdmin = computed(() => this.currentUser()?.roles?.includes('admin') ?? false);
   protected readonly leadServiceOptions = computed<LeadServiceOption[]>(() => {
     const services = this.lead()?.services ?? [];
     return services.map(s => ({ label: s.serviceType, value: s.id }));
   });
+  protected readonly pricingIntelligenceServiceType = computed(() => {
+    const lead = this.lead();
+    const leadServiceId = this.selectedLeadServiceId();
+    if (!lead || !leadServiceId) {
+      return null;
+    }
+
+    return lead.services.find(service => service.id === leadServiceId)?.serviceType ?? null;
+  });
+  protected readonly pricingIntelligencePostcodePrefix = computed(() =>
+    derivePostcodePrefixZip4(this.lead()?.address.zipCode ?? this.quote()?.customerAddressZipCode),
+  );
 
   // Reply text per item (keyed by item ID)
   protected readonly replyTexts = signal<Record<string, string>>({});

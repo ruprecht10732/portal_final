@@ -100,6 +100,68 @@ export interface QuoteFeedbackResponse {
   createdAt: string;
 }
 
+export interface PricingIntelligenceQuery {
+  serviceType: string;
+  postcodePrefix?: string;
+}
+
+export interface PricingIntelligenceAggregateResponse {
+  regionPrefix: string;
+  priceBand: string;
+  sampleCount: number;
+  acceptedCount: number;
+  rejectedCount: number;
+  conversionRate: number;
+  averageQuotedCents: number;
+  averageOutcomeCents?: number;
+}
+
+export interface PricingIntelligenceSnapshotResponse {
+  quoteId: string;
+  regionPrefix: string;
+  priceBand: string;
+  sourceType: string;
+  quoteRevision: number;
+  totalCents: number;
+  createdAt: string;
+}
+
+export interface PricingIntelligenceOutcomeResponse {
+  quoteId: string;
+  regionPrefix: string;
+  priceBand: string;
+  outcomeType: string;
+  finalTotalCents?: number;
+  reason?: string;
+  createdAt: string;
+}
+
+export interface PricingIntelligenceCorrectionResponse {
+  quoteId: string;
+  regionPrefix: string;
+  priceBand: string;
+  fieldName: string;
+  deltaCents?: number;
+  deltaPercentage?: number;
+  reason?: string;
+  aiFindingCode?: string;
+  createdAt: string;
+}
+
+export interface PricingIntelligenceSummaryResponse {
+  serviceType: string;
+  regionPrefix: string;
+  aggregates: PricingIntelligenceAggregateResponse[];
+}
+
+export interface PricingIntelligenceRecordsResponse {
+  serviceType: string;
+  regionPrefix: string;
+  snapshots: PricingIntelligenceSnapshotResponse[];
+  outcomes: PricingIntelligenceOutcomeResponse[];
+  corrections: PricingIntelligenceCorrectionResponse[];
+}
+
 export interface PresignAttachmentUploadRequest {
   fileName: string;
   contentType: string;
@@ -354,6 +416,16 @@ export function formatQuoteCreatedBy(quote: QuoteResponse): string {
   const fullName = `${first} ${last}`.trim();
   if (fullName) return fullName;
   return quote.createdByEmail ?? '';
+}
+
+export function derivePostcodePrefixZip4(raw: string | null | undefined): string {
+  const trimmed = raw?.trim() ?? '';
+  if (!trimmed) {
+    return '';
+  }
+
+  const digits = trimmed.replaceAll(/\D/g, '').slice(0, 4);
+  return digits.length === 4 ? digits : '';
 }
 
 // Status display helpers — keys match backend PascalCase enum
