@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import type { LeadTimelineItem, PipelineStage } from '../../../core/services/leads.types';
+import type { LeadTimelineItem, PipelineStage, TimelinePhotoAnalysisSummary } from '../../../core/services/leads.types';
 import { PIPELINE_STAGE_I18N_KEYS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PhoneFormatPipe } from '../../../shared/pipes/phone-format.pipe';
@@ -34,19 +34,7 @@ export class LeadDetailTimelineTabComponent {
   getTimelineScore = input<(item: LeadTimelineItem) => { score: number; preAi?: number; version?: string } | null>(() => null);
   getTimelineDraftedQuote = input<(item: LeadTimelineItem) => { quoteId: string; quoteNumber: string; itemCount: number; catalogItems: number; adHocItems: number } | null>(() => null);
   getTimelineAppointmentApproval = input<(item: LeadTimelineItem) => { appointmentId: string } | null>(() => null);
-  getTimelinePhotoAnalysis = input<(item: LeadTimelineItem) => {
-    photoCount: number;
-    confidenceLevel: string;
-    observations: string[];
-    scopeAssessment: string;
-    costIndicators: string;
-    safetyConcerns: string[];
-    measurements: { description: string; value: number; unit: string; type: string; confidence: string }[];
-    needsOnsiteMeasurement: string[];
-    discrepancies: string[];
-    extractedText: string[];
-    suggestedSearchTerms: string[];
-  } | null>(() => null);
+  getTimelinePhotoAnalysis = input<(item: LeadTimelineItem) => TimelinePhotoAnalysisSummary | null>(() => null);
 
   openCallLogger = output<void>();
   openWhatsApp = output<{ phone: string; message: string }>();

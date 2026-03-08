@@ -12,7 +12,7 @@ import { OrganizationService, type WorkflowEngineWorkflow } from '../../../core/
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem, TimelinePhotoAnalysisSummary } from '../../../core/services/leads.types';
 import { ALLOWED_STATUS_TRANSITIONS, buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
 import { PartnersService } from '../../../core/services/partners.service';
 import type { OfferResponse, Partner } from '../../../core/services/partners.types';
@@ -1591,23 +1591,13 @@ export class LeadDetailComponent implements OnInit {
     return null;
   };
 
-  protected readonly getTimelinePhotoAnalysis = (item: LeadTimelineItem): {
-    photoCount: number;
-    confidenceLevel: string;
-    observations: string[];
-    scopeAssessment: string;
-    costIndicators: string;
-    safetyConcerns: string[];
-    measurements: { description: string; value: number; unit: string; type: string; confidence: string }[];
-    needsOnsiteMeasurement: string[];
-    discrepancies: string[];
-    extractedText: string[];
-    suggestedSearchTerms: string[];
-  } | null => {
+  protected readonly getTimelinePhotoAnalysis = (item: LeadTimelineItem): TimelinePhotoAnalysisSummary | null => {
     const m = item.metadata;
     if (m['photoCount'] === undefined || !Array.isArray(m['observations'])) {
       return null;
     }
+    const extractedText = Array.isArray(m['extractedText']) ? (m['extractedText'] as string[]) : [];
+    const needsOnsiteMeasurement = Array.isArray(m['needsOnsiteMeasurement']) ? (m['needsOnsiteMeasurement'] as string[]) : [];
     return {
       photoCount: typeof m['photoCount'] === 'number' ? m['photoCount'] : 0,
       confidenceLevel: typeof m['confidenceLevel'] === 'string' ? m['confidenceLevel'] : '',
@@ -1616,10 +1606,12 @@ export class LeadDetailComponent implements OnInit {
       costIndicators: typeof m['costIndicators'] === 'string' ? m['costIndicators'] : '',
       safetyConcerns: Array.isArray(m['safetyConcerns']) ? (m['safetyConcerns'] as string[]) : [],
       measurements: Array.isArray(m['measurements']) ? (m['measurements'] as { description: string; value: number; unit: string; type: string; confidence: string }[]) : [],
-      needsOnsiteMeasurement: Array.isArray(m['needsOnsiteMeasurement']) ? (m['needsOnsiteMeasurement'] as string[]) : [],
+      needsOnsiteMeasurement,
       discrepancies: Array.isArray(m['discrepancies']) ? (m['discrepancies'] as string[]) : [],
-      extractedText: Array.isArray(m['extractedText']) ? (m['extractedText'] as string[]) : [],
+      extractedText,
       suggestedSearchTerms: Array.isArray(m['suggestedSearchTerms']) ? (m['suggestedSearchTerms'] as string[]) : [],
+      hasOcrEvidence: extractedText.length > 0,
+      hasOnsiteRequirement: needsOnsiteMeasurement.length > 0,
     };
   };
 

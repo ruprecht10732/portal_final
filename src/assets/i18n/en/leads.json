@@ -382,6 +382,10 @@
         "photoDiscrepancies": "Discrepancies",
         "photoExtractedText": "Extracted Text",
         "photoSearchTerms": "Suggested Products",
+        "photoBadgeOcr": "OCR-backed",
+        "photoBadgeOcrHint": "This analysis includes text or labels read directly from the image.",
+        "photoBadgeOnsite": "On-site required",
+        "photoBadgeOnsiteHint": "This analysis still contains findings that require physical verification on site.",
         "types": {
           "ai": "AI",
           "user": "User",

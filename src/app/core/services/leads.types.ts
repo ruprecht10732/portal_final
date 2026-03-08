@@ -497,6 +497,22 @@ export interface PhotoAnalysis {
   createdAt: string;
 }
 
+export interface TimelinePhotoAnalysisSummary {
+  photoCount: number;
+  confidenceLevel: string;
+  observations: string[];
+  scopeAssessment: string;
+  costIndicators: string;
+  safetyConcerns: string[];
+  measurements: { description: string; value: number; unit: string; type: string; confidence: string }[];
+  needsOnsiteMeasurement: string[];
+  discrepancies: string[];
+  extractedText: string[];
+  suggestedSearchTerms: string[];
+  hasOcrEvidence: boolean;
+  hasOnsiteRequirement: boolean;
+}
+
 export interface PhotoAnalysisResponse {
   analysis: PhotoAnalysis | null;
 }

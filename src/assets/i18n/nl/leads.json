@@ -381,6 +381,10 @@
         "photoDiscrepancies": "Tegenstrijdigheden",
         "photoExtractedText": "Geëxtraheerde tekst",
         "photoSearchTerms": "Voorgestelde producten",
+        "photoBadgeOcr": "OCR bevestigd",
+        "photoBadgeOcrHint": "Deze analyse bevat tekst of labels die direct uit de foto zijn gelezen.",
+        "photoBadgeOnsite": "Ter plaatse meten",
+        "photoBadgeOnsiteHint": "Deze analyse bevat onderdelen die nog op locatie geverifieerd moeten worden.",
         "types": {
           "ai": "AI",
           "user": "Gebruiker",

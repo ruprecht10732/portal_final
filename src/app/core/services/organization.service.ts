@@ -72,6 +72,13 @@ export interface OrganizationSettings {
   aiCouncilConsensusMode: 'weighted' | 'majority' | 'estimator_final';
   catalogGapThreshold: number;
   catalogGapLookbackDays: number;
+  photoAnalysisPreprocessingEnabled: boolean;
+  photoAnalysisOcrAssistEnabled: boolean;
+  photoAnalysisOcrAssistServiceTypes: string[];
+  photoAnalysisLensCorrectionEnabled: boolean;
+  photoAnalysisLensCorrectionServiceTypes: string[];
+  photoAnalysisPerspectiveNormalizationEnabled: boolean;
+  photoAnalysisPerspectiveNormalizationServiceTypes: string[];
   notificationEmail?: string | null;
   whatsAppDeviceId?: string | null;
 }
@@ -91,6 +98,13 @@ export interface UpdateOrganizationSettingsRequest {
   aiCouncilConsensusMode?: 'weighted' | 'majority' | 'estimator_final';
   catalogGapThreshold?: number;
   catalogGapLookbackDays?: number;
+  photoAnalysisPreprocessingEnabled?: boolean;
+  photoAnalysisOcrAssistEnabled?: boolean;
+  photoAnalysisOcrAssistServiceTypes?: string[];
+  photoAnalysisLensCorrectionEnabled?: boolean;
+  photoAnalysisLensCorrectionServiceTypes?: string[];
+  photoAnalysisPerspectiveNormalizationEnabled?: boolean;
+  photoAnalysisPerspectiveNormalizationServiceTypes?: string[];
 }
 
 export interface WhatsAppStatus {

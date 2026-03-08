@@ -189,6 +189,31 @@
                   </div>
                 </div>
 
+                @if (pa.hasOcrEvidence || pa.hasOnsiteRequirement) {
+                  <div class="flex flex-wrap gap-2">
+                    @if (pa.hasOcrEvidence) {
+                      <span
+                        class="inline-flex items-center gap-1 rounded-full border border-emerald-200 bg-emerald-50 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-emerald-800"
+                        [attr.aria-label]="t('leads.detail.timeline.photoBadgeOcrHint')"
+                        [attr.title]="t('leads.detail.timeline.photoBadgeOcrHint')"
+                      >
+                        <span class="h-1.5 w-1.5 rounded-full bg-emerald-500"></span>
+                        {{ t('leads.detail.timeline.photoBadgeOcr') }}
+                      </span>
+                    }
+                    @if (pa.hasOnsiteRequirement) {
+                      <span
+                        class="inline-flex items-center gap-1 rounded-full border border-sky-200 bg-sky-50 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.08em] text-sky-800"
+                        [attr.aria-label]="t('leads.detail.timeline.photoBadgeOnsiteHint')"
+                        [attr.title]="t('leads.detail.timeline.photoBadgeOnsiteHint')"
+                      >
+                        <span class="h-1.5 w-1.5 rounded-full bg-sky-500"></span>
+                        {{ t('leads.detail.timeline.photoBadgeOnsite') }}
+                      </span>
+                    }
+                  </div>
+                }
+
                 <!-- Observations -->
                 @if (pa.observations.length > 0) {
                   <div>
