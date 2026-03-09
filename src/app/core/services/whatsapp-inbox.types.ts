@@ -12,6 +12,33 @@ export interface WhatsAppConversation {
   updatedAt: string;
 }
 
+export interface WhatsAppPortalMutationAudit {
+  actorJid?: string;
+  actorName?: string;
+  eventMessageId?: string;
+  occurredAt?: string;
+  isFromMe?: boolean;
+}
+
+export interface WhatsAppPortalReaction extends WhatsAppPortalMutationAudit {
+  reaction?: string;
+}
+
+export interface WhatsAppPortalMetadata {
+  originalBody?: string;
+  edited?: WhatsAppPortalMutationAudit;
+  deleted?: WhatsAppPortalMutationAudit;
+  revoked?: WhatsAppPortalMutationAudit;
+  reactions?: WhatsAppPortalReaction[];
+}
+
+export interface WhatsAppMessageMetadata {
+  portal?: WhatsAppPortalMetadata;
+  lastMutationEvent?: string;
+  lastMutationPayload?: unknown;
+  [key: string]: unknown;
+}
+
 export interface WhatsAppMessage {
   id: string;
   conversationId: string;
@@ -21,7 +48,7 @@ export interface WhatsAppMessage {
   status: 'received' | 'sent' | 'delivered' | 'read' | 'failed';
   phoneNumber: string;
   body: string;
-  metadata?: Record<string, unknown> | null;
+  metadata?: WhatsAppMessageMetadata | null;
   sentAt?: string | null;
   readAt?: string | null;
   failedAt?: string | null;

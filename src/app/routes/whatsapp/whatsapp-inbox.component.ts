@@ -8,7 +8,12 @@ import { SSEService, type SSEEvent } from '../../core/services/sse.service';
 import { WhatsAppDeviceStatusService } from '../../core/services/whatsapp-device-status.service';
 import { WhatsAppInboxService } from '../../core/services/whatsapp-inbox.service';
 import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
-import type { WhatsAppConversation, WhatsAppMessage } from '../../core/services/whatsapp-inbox.types';
+import type {
+  WhatsAppConversation,
+  WhatsAppMessage,
+  WhatsAppPortalMetadata,
+  WhatsAppPresenceType,
+} from '../../core/services/whatsapp-inbox.types';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
 
@@ -16,6 +21,18 @@ type WhatsAppConversationEventPayload = { conversation?: Partial<WhatsAppConvers
 type WhatsAppMessageEventPayload = {
   conversation?: Partial<WhatsAppConversation>;
   message?: Partial<WhatsAppMessage>;
+};
+
+type MessageMutationBadge = {
+  key: string;
+  label: string;
+};
+
+type MessageReactionSummary = {
+  key: string;
+  reaction: string;
+  count: number;
+  tooltip: string;
 };
 
 @Component({
@@ -40,6 +57,8 @@ export class WhatsAppInboxComponent {
   protected readonly loadingConversations = signal(false);
   protected readonly loadingMessages = signal(false);
   protected readonly sendingMessage = signal(false);
+  protected readonly sendingPresence = signal<WhatsAppPresenceType | null>(null);
+  protected readonly selectedPresence = signal<WhatsAppPresenceType>('available');
   protected readonly composerBody = signal('');
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isMobileViewport = signal(false);
@@ -177,6 +196,27 @@ export class WhatsAppInboxComponent {
       });
   }
 
+  protected setPresence(type: WhatsAppPresenceType): void {
+    if (!this.canSend() || this.sendingPresence() !== null || this.selectedPresence() === type) {
+      return;
+    }
+
+    this.sendingPresence.set(type);
+    this.inbox.sendPresence({ type })
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.sendingPresence.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.selectedPresence.set(type);
+        this.deviceStatus.refresh();
+      });
+  }
+
   protected relativeTime(timestamp: string): string {
     const language = this.translate.getCurrentLang() || this.translate.getFallbackLang() || 'en';
     const diff = Date.now() - new Date(timestamp).getTime();
@@ -214,6 +254,85 @@ export class WhatsAppInboxComponent {
       return name;
     }
     return conversation.phoneNumber;
+  }
+
+  protected deviceStateLabel(): string {
+    const status = this.deviceStatus.status();
+    if (!status) {
+      return 'Status wordt geladen';
+    }
+
+    const state = status.state.trim();
+    if (state === '') {
+      return status.message || 'Onbekend';
+    }
+
+    return status.message ? `${state} · ${status.message}` : state;
+  }
+
+  protected isPresenceSelected(type: WhatsAppPresenceType): boolean {
+    return this.selectedPresence() === type;
+  }
+
+  protected messageMutationBadges(message: WhatsAppMessage): MessageMutationBadge[] {
+    const portal = this.messagePortalMetadata(message);
+    if (!portal) {
+      return [];
+    }
+
+    const badges: MessageMutationBadge[] = [];
+    if (portal.deleted) {
+      badges.push({ key: 'deleted', label: 'Verwijderd' });
+    }
+    if (portal.revoked) {
+      badges.push({ key: 'revoked', label: 'Ingetrokken' });
+    }
+    if (portal.edited) {
+      badges.push({ key: 'edited', label: 'Bewerkt' });
+    }
+    return badges;
+  }
+
+  protected messageReactionSummaries(message: WhatsAppMessage): MessageReactionSummary[] {
+    const reactions = this.messagePortalMetadata(message)?.reactions ?? [];
+    const grouped = new Map<string, { count: number; actors: string[] }>();
+
+    for (const reaction of reactions) {
+      const emoji = reaction.reaction?.trim();
+      if (!emoji) {
+        continue;
+      }
+
+      const actor = reaction.actorName?.trim() || reaction.actorJid?.trim() || 'Onbekend';
+      const current = grouped.get(emoji);
+      if (current) {
+        current.count += 1;
+        current.actors.push(actor);
+      } else {
+        grouped.set(emoji, { count: 1, actors: [actor] });
+      }
+    }
+
+    return Array.from(grouped.entries()).map(([reaction, entry]) => ({
+      key: reaction,
+      reaction,
+      count: entry.count,
+      tooltip: entry.actors.join(', '),
+    }));
+  }
+
+  protected isMessageRemoved(message: WhatsAppMessage): boolean {
+    const portal = this.messagePortalMetadata(message);
+    return !!portal?.deleted || !!portal?.revoked;
+  }
+
+  protected originalMessageBody(message: WhatsAppMessage): string | null {
+    const originalBody = this.messagePortalMetadata(message)?.originalBody?.trim();
+    if (!originalBody || originalBody === message.body.trim()) {
+      return null;
+    }
+
+    return originalBody;
   }
 
   private loadMessages(conversationId: string): void {
@@ -334,6 +453,10 @@ export class WhatsAppInboxComponent {
       default:
         return 'check';
     }
+  }
+
+  private messagePortalMetadata(message: WhatsAppMessage): WhatsAppPortalMetadata | null {
+    return message.metadata?.portal ?? null;
   }
 
   private isConversationLike(value: Partial<WhatsAppConversation>): value is WhatsAppConversation {

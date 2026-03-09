@@ -26,6 +26,45 @@
       </section>
     }
 
+    <section class="mb-3 flex flex-col gap-3 rounded-sm border border-zinc-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+      <div class="min-w-0">
+        <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Apparaatstatus</p>
+        <p class="mt-1 truncate text-sm font-medium text-zinc-800">{{ deviceStateLabel() }}</p>
+      </div>
+      <div class="flex flex-wrap items-center gap-2">
+        <button
+          type="button"
+          class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+          [class.border-emerald-700]="isPresenceSelected('available')"
+          [class.bg-emerald-700]="isPresenceSelected('available')"
+          [class.text-white]="isPresenceSelected('available')"
+          [class.border-zinc-300]="!isPresenceSelected('available')"
+          [class.bg-white]="!isPresenceSelected('available')"
+          [class.text-zinc-700]="!isPresenceSelected('available')"
+          [disabled]="!canSend() || sendingPresence() !== null"
+          [attr.aria-pressed]="isPresenceSelected('available')"
+          (click)="setPresence('available')"
+        >
+          Online
+        </button>
+        <button
+          type="button"
+          class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+          [class.border-zinc-900]="isPresenceSelected('unavailable')"
+          [class.bg-zinc-900]="isPresenceSelected('unavailable')"
+          [class.text-white]="isPresenceSelected('unavailable')"
+          [class.border-zinc-300]="!isPresenceSelected('unavailable')"
+          [class.bg-white]="!isPresenceSelected('unavailable')"
+          [class.text-zinc-700]="!isPresenceSelected('unavailable')"
+          [disabled]="!canSend() || sendingPresence() !== null"
+          [attr.aria-pressed]="isPresenceSelected('unavailable')"
+          (click)="setPresence('unavailable')"
+        >
+          Afwezig
+        </button>
+      </div>
+    </section>
+
     <section class="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(340px,420px)_1fr]">
       @if (showListPane()) {
         <aside class="flex min-h-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm">
@@ -138,7 +177,56 @@
                         [class.bg-white]="message.direction === 'inbound'"
                         [class.text-zinc-900]="message.direction === 'inbound'"
                       >
-                        <p class="whitespace-pre-wrap text-sm leading-relaxed">{{ message.body }}</p>
+                        @if (messageMutationBadges(message); as mutationBadges) {
+                          @if (mutationBadges.length > 0) {
+                            <div class="mb-2 flex flex-wrap items-center gap-1.5">
+                              @for (badge of mutationBadges; track badge.key) {
+                                <span
+                                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em]"
+                                  [class.bg-emerald-500/20]="message.direction === 'outbound'"
+                                  [class.text-emerald-50]="message.direction === 'outbound'"
+                                  [class.bg-zinc-100]="message.direction === 'inbound'"
+                                  [class.text-zinc-500]="message.direction === 'inbound'"
+                                >
+                                  {{ badge.label }}
+                                </span>
+                              }
+                            </div>
+                          }
+                        }
+
+                        <p class="whitespace-pre-wrap text-sm leading-relaxed" [class.italic]="isMessageRemoved(message)" [class.opacity-80]="isMessageRemoved(message)">
+                          {{ message.body }}
+                        </p>
+
+                        @if (originalMessageBody(message); as originalBody) {
+                          <p class="mt-2 text-xs leading-relaxed" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">
+                            Oorspronkelijk: {{ originalBody }}
+                          </p>
+                        }
+
+                        @if (messageReactionSummaries(message); as reactions) {
+                          @if (reactions.length > 0) {
+                            <div class="mt-3 flex flex-wrap gap-1.5">
+                              @for (reaction of reactions; track reaction.key) {
+                                <span
+                                  class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold"
+                                  [class.bg-emerald-500/20]="message.direction === 'outbound'"
+                                  [class.text-emerald-50]="message.direction === 'outbound'"
+                                  [class.bg-zinc-100]="message.direction === 'inbound'"
+                                  [class.text-zinc-700]="message.direction === 'inbound'"
+                                  [attr.title]="reaction.tooltip"
+                                >
+                                  <span>{{ reaction.reaction }}</span>
+                                  @if (reaction.count > 1) {
+                                    <span>{{ reaction.count }}</span>
+                                  }
+                                </span>
+                              }
+                            </div>
+                          }
+                        }
+
                         <div class="mt-2 flex items-center justify-end gap-1 text-[10px]" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-400]="message.direction === 'inbound'">
                           <span>{{ relativeTime(message.createdAt) }}</span>
                           @if (message.direction === 'outbound') {
