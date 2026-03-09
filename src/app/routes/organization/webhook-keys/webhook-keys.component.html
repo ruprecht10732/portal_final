@@ -179,10 +179,10 @@
       </div>
 
       <div class="space-y-2">
-        <p class="block text-xs font-medium text-zinc-700">{{ 'webhook.whatsapp.endpoint' | translate }}</p>
+        <p class="block text-xs font-medium text-zinc-700">{{ 'webhook.whatsapp.providerEndpoint' | translate }}</p>
         <div class="flex items-center gap-2">
           <code class="flex-1 rounded bg-white border border-zinc-200 px-3 py-2 text-sm font-mono text-zinc-900 break-all select-all">
-            {{ whatsAppWebhookUrl() }}
+            {{ whatsAppProviderWebhookUrl() }}
           </code>
           <shared-button
             variant="secondary"
@@ -200,6 +200,7 @@
             }
           </shared-button>
         </div>
+        <p class="text-xs text-zinc-500">{{ 'webhook.whatsapp.providerHint' | translate }}</p>
       </div>
 
       <!-- SDK Snippet -->

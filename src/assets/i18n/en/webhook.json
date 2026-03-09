@@ -39,10 +39,12 @@
     },
     "whatsapp": {
       "title": "WhatsApp webhook endpoint",
-      "subtitle": "Use the URL below with the X-Webhook-API-Key header to deliver inbound messages and receipt callbacks from your WhatsApp provider.",
+      "subtitle": "Use this endpoint for WhatsApp providers. After you create a key below, copy the authenticated URL and paste it directly into go-whatsapp-web-multidevice or a similar provider.",
       "endpoint": "WhatsApp webhook URL",
+      "providerEndpoint": "Authenticated provider URL",
       "copyUrl": "Copy URL",
-      "headerHint": "Authenticate requests with the X-Webhook-API-Key header. The same key can be rotated below.",
+      "headerHint": "The provider-ready URL is shown after you create a key. It embeds the key as an api_key query parameter so providers that only support a URL can still authenticate.",
+      "providerHint": "Paste this exact URL into the provider webhook setting. Use a dedicated key and rotate it if the URL leaks.",
       "exampleRequest": "Example request",
       "copyExample": "Copy example"
     },

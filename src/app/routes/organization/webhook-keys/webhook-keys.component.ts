@@ -75,6 +75,12 @@ export class WebhookKeysComponent {
     return `${base}/webhook/whatsapp`;
   });
 
+  protected readonly whatsAppProviderWebhookUrl = computed(() => {
+    const created = this.createdKey();
+    if (!created) return '';
+    return `${this.whatsAppWebhookUrl()}?api_key=${encodeURIComponent(created.key)}`;
+  });
+
   protected readonly sdkSnippet = computed(() => {
     const created = this.createdKey();
     if (!created) return '';
@@ -82,12 +88,11 @@ export class WebhookKeysComponent {
   });
 
   protected readonly whatsAppCurlSnippet = computed(() => {
-    const created = this.createdKey();
-    if (!created) return '';
+    const providerUrl = this.whatsAppProviderWebhookUrl();
+    if (!providerUrl) return '';
     return [
-      `curl -X POST '${this.whatsAppWebhookUrl()}' \\`,
+      `curl -X POST '${providerUrl}' \\`,
       `  -H 'Content-Type: application/json' \\`,
-      `  -H 'X-Webhook-API-Key: ${created.key}' \\`,
       `  -d '{`,
       `    "event": "message",`,
       `    "payload": {`,
@@ -314,7 +319,8 @@ export class WebhookKeysComponent {
   }
 
   protected async copyWebhookUrl(): Promise<void> {
-    await navigator.clipboard.writeText(this.whatsAppWebhookUrl());
+    const url = this.whatsAppProviderWebhookUrl() || this.whatsAppWebhookUrl();
+    await navigator.clipboard.writeText(url);
     this.urlCopied.set(true);
     setTimeout(() => this.urlCopied.set(false), 3000);
   }
