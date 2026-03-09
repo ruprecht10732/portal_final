@@ -3,8 +3,13 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type {
+  MarkWhatsAppConversationReadResponse,
+  SendWhatsAppChatPresenceRequest,
+  SendWhatsAppChatPresenceResponse,
   SendWhatsAppConversationMessageRequest,
   SendWhatsAppConversationMessageResponse,
+  SendWhatsAppPresenceRequest,
+  SendWhatsAppPresenceResponse,
   WhatsAppConversationListResponse,
   WhatsAppConversationMessagesResponse,
   WhatsAppUnreadConversationCountResponse,
@@ -22,7 +27,7 @@ export class WhatsAppInboxService {
   }
 
   getUnreadConversationCount(): Observable<WhatsAppUnreadConversationCountResponse> {
-	return this.http.get<WhatsAppUnreadConversationCountResponse>(`${this.baseUrl}/unread-count`);
+    return this.http.get<WhatsAppUnreadConversationCountResponse>(`${this.baseUrl}/unread-count`);
   }
 
   getConversationMessages(conversationId: string, limit = 200): Observable<WhatsAppConversationMessagesResponse> {
@@ -38,7 +43,18 @@ export class WhatsAppInboxService {
     return this.http.post<SendWhatsAppConversationMessageResponse>(`${this.baseUrl}/${conversationId}/messages`, payload);
   }
 
-  markConversationRead(conversationId: string): Observable<{ status: string }> {
-    return this.http.post<{ status: string }>(`${this.baseUrl}/${conversationId}/read`, {});
+  markConversationRead(conversationId: string): Observable<MarkWhatsAppConversationReadResponse> {
+    return this.http.post<MarkWhatsAppConversationReadResponse>(`${this.baseUrl}/${conversationId}/read`, {});
+  }
+
+  sendPresence(payload: SendWhatsAppPresenceRequest): Observable<SendWhatsAppPresenceResponse> {
+    return this.http.post<SendWhatsAppPresenceResponse>(`${environment.apiBaseUrl}/whatsapp/presence`, payload);
+  }
+
+  sendChatPresence(
+    conversationId: string,
+    payload: SendWhatsAppChatPresenceRequest,
+  ): Observable<SendWhatsAppChatPresenceResponse> {
+    return this.http.post<SendWhatsAppChatPresenceResponse>(`${this.baseUrl}/${conversationId}/chat-presence`, payload);
   }
 }

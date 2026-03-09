@@ -161,6 +161,8 @@
                   [disabled]="sendingMessage() || !canSend()"
                   placeholder="Typ je antwoord..."
                   (input)="composerBody.set($any($event.target).value)"
+                  (focus)="startTypingPresence()"
+                  (blur)="stopTypingPresence()"
                 ></textarea>
                 <div class="flex items-center justify-between gap-3">
                   <p class="text-xs text-zinc-500">

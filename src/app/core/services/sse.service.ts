@@ -15,6 +15,7 @@ export type SSEEventType =
   | 'whatsapp_conversation_updated'
   | 'whatsapp_message_received'
   | 'whatsapp_message_sent'
+  | 'whatsapp_message_updated'
   | 'lead_preferences_updated'
   | 'lead_attachment_uploaded'
   | 'lead_attachment_deleted'
@@ -173,7 +174,7 @@ export class SSEService {
           });
         });
 
-        for (const evtType of ['whatsapp_conversation_updated', 'whatsapp_message_received', 'whatsapp_message_sent'] as const) {
+        for (const evtType of ['whatsapp_conversation_updated', 'whatsapp_message_received', 'whatsapp_message_sent', 'whatsapp_message_updated'] as const) {
           this.eventSource.addEventListener(evtType, (event) => {
             this.zone.run(() => {
               this.handleEventMessage(event, evtType);

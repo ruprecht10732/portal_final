@@ -1600,7 +1600,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected openWhatsAppDeviceSettings(): void {
-    void this.router.navigate(['/app/organization/settings/whatsapp']);
+    void this.router.navigate(['/app/whatsapp/settings']);
   }
 
   protected composeEmail(email: string | undefined, message: string): void {

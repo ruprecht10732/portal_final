@@ -145,7 +145,6 @@ export class AuthenticatedMobileNavComponent {
       { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
       { label: 'navigation.inbox', route: '/app/inbox', icon: 'inbox' },
-      { label: 'navigation.whatsapp', route: '/app/whatsapp', icon: 'whatsapp' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
       { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },
@@ -153,6 +152,7 @@ export class AuthenticatedMobileNavComponent {
     ];
     if (this.isAdmin()) {
       base.splice(4, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
+      base.splice(5, 0, { label: 'navigation.whatsapp', route: '/app/whatsapp/inbox', icon: 'whatsapp' });
       base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
     }
     base.push({ label: 'navigation.profile', route: '/app/profile', icon: 'profile' });

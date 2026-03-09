@@ -122,7 +122,6 @@ export class AuthenticatedSidebarComponent {
       { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
       { label: 'navigation.inbox', route: '/app/inbox', icon: 'inbox' },
-      { label: 'navigation.whatsapp', route: '/app/whatsapp', icon: 'whatsapp' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.partnerOffers', route: '/app/offers', icon: 'partnerOffers' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
@@ -131,6 +130,7 @@ export class AuthenticatedSidebarComponent {
     ];
     if (this.isAdmin()) {
       base.splice(4, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
+      base.splice(5, 0, { label: 'navigation.whatsapp', route: '/app/whatsapp/inbox', icon: 'whatsapp' });
       base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
     }
     return base;
@@ -147,14 +147,17 @@ export class AuthenticatedSidebarComponent {
   ];
 
   protected readonly activeTitle = computed(() => {
+    const panelItem = this.getActivePanelItem();
+    if (panelItem) {
+      return panelItem.label;
+    }
+
     const item = this.items().find((i) => this.isNavItemActive(i));
     return item?.label ?? '';
   });
 
   protected isNavItemActive(item: SidebarItem): boolean {
-    const url = this.currentUrl();
-
-    return url.startsWith(item.route);
+    return this.isRouteActive(item.route, false);
   }
 
   protected readonly panelItems = toSignal(
@@ -166,6 +169,17 @@ export class AuthenticatedSidebarComponent {
   );
 
   protected readonly hasPanelItems = computed(() => this.panelItems().length > 0);
+
+  private getActivePanelItem(): SidebarPanelItem | undefined {
+    return this.panelItems()
+      .filter((item) => this.isRouteActive(item.route, item.exact ?? false))
+      .sort((left, right) => right.route.length - left.route.length)[0];
+  }
+
+  private isRouteActive(route: string, exact: boolean): boolean {
+    const url = this.currentUrl();
+    return exact ? url === route : url.startsWith(route);
+  }
 
   private getPanelItemsFromRoute(): SidebarPanelItem[] {
     let currentRoute: ActivatedRoute | null = this.route.root;

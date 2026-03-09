@@ -45,6 +45,7 @@ export class WhatsAppInboxComponent {
   protected readonly isMobileViewport = signal(false);
 
   private readonly rtfCache = new Map<string, Intl.RelativeTimeFormat>();
+  private typingPresenceConversationId: string | null = null;
 
   protected readonly selectedConversation = computed(() => {
     const conversationId = this.selectedConversationId();
@@ -107,13 +108,48 @@ export class WhatsAppInboxComponent {
       return;
     }
 
+    this.stopTypingPresence();
     this.selectedConversationId.set(conversationId);
     this.loadMessages(conversationId);
   }
 
   protected closeConversation(): void {
+    this.stopTypingPresence();
     this.selectedConversationId.set(null);
     this.messages.set([]);
+  }
+
+  protected startTypingPresence(): void {
+    const conversation = this.selectedConversation();
+    if (!conversation || !this.canSend() || this.typingPresenceConversationId === conversation.id) {
+      return;
+    }
+
+    this.typingPresenceConversationId = conversation.id;
+    this.inbox.sendChatPresence(conversation.id, { action: 'start' })
+      .pipe(
+        catchError(() => {
+          this.typingPresenceConversationId = null;
+          return EMPTY;
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
+  }
+
+  protected stopTypingPresence(): void {
+    const conversationId = this.typingPresenceConversationId;
+    if (!conversationId) {
+      return;
+    }
+
+    this.typingPresenceConversationId = null;
+    this.inbox.sendChatPresence(conversationId, { action: 'stop' })
+      .pipe(
+        catchError(() => EMPTY),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe();
   }
 
   protected sendMessage(): void {
@@ -123,6 +159,7 @@ export class WhatsAppInboxComponent {
       return;
     }
 
+    this.stopTypingPresence();
     this.sendingMessage.set(true);
     this.inbox.sendConversationMessage(conversation.id, { body })
       .pipe(
@@ -218,7 +255,7 @@ export class WhatsAppInboxComponent {
   }
 
   private handleRealtimeEvent(event: SSEEvent): void {
-    if (event.type !== 'whatsapp_message_sent' && event.type !== 'whatsapp_message_received' && event.type !== 'whatsapp_conversation_updated') {
+    if (event.type !== 'whatsapp_message_sent' && event.type !== 'whatsapp_message_received' && event.type !== 'whatsapp_message_updated' && event.type !== 'whatsapp_conversation_updated') {
       return;
     }
 

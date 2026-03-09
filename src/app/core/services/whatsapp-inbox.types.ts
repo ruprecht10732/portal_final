@@ -41,12 +41,37 @@ export interface SendWhatsAppConversationMessageRequest {
   body: string;
 }
 
+export type WhatsAppPresenceType = 'available' | 'unavailable';
+
+export type WhatsAppChatPresenceAction = 'start' | 'stop';
+
+export interface SendWhatsAppPresenceRequest {
+  type: WhatsAppPresenceType;
+}
+
+export interface SendWhatsAppChatPresenceRequest {
+  action: WhatsAppChatPresenceAction;
+}
+
 export interface SendWhatsAppConversationMessageResponse {
   status: string;
   conversation: WhatsAppConversation;
   message: WhatsAppMessage;
 }
 
+export interface MarkWhatsAppConversationReadResponse {
+  status: string;
+  providerSynced: boolean;
+}
+
+export interface SendWhatsAppPresenceResponse {
+  status: string;
+}
+
+export interface SendWhatsAppChatPresenceResponse {
+  status: string;
+}
+
 export interface WhatsAppUnreadConversationCountResponse {
-	count: number;
+  count: number;
 }
