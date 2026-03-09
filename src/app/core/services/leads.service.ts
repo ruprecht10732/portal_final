@@ -33,6 +33,7 @@ import type {
   PresignedDownloadResponse,
   PhotoAnalysisResponse,
   LeadTimelineResponse,
+  TimelineWhatsAppSendResponse,
 } from './leads.types';
 
 @Injectable({ providedIn: 'root' })
@@ -87,6 +88,10 @@ export class LeadsService extends BaseCrudService<
       params['serviceId'] = serviceId;
     }
     return this.http.get<LeadTimelineResponse>(`${this.baseUrl}/${id}/timeline`, { params });
+  }
+
+  sendTimelineWhatsApp(leadId: string, eventId: string): Observable<TimelineWhatsAppSendResponse> {
+    return this.http.post<TimelineWhatsAppSendResponse>(`${this.baseUrl}/${leadId}/timeline/${eventId}/send-whatsapp`, {});
   }
 
   create(data: CreateLeadRequest): Observable<Lead> {

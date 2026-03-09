@@ -121,12 +121,16 @@ const WORKFLOW_CLEARED_TRANSLATION_KEY = 'leads.detail.workflow.cleared';
 const WORKFLOW_CLEAR_FAILED_TRANSLATION_KEY = 'leads.detail.workflow.clearFailed';
 const WORKFLOW_LOAD_FAILED_TRANSLATION_KEY = 'leads.detail.workflow.loadFailed';
 const FILES_UPLOADED_TRANSLATION_KEY = 'leads.detail.files.uploaded';
+const TIMELINE_WHATSAPP_SENT_TRANSLATION_KEY = 'leads.detail.timeline.whatsappSentSuccess';
+const TIMELINE_WHATSAPP_SEND_FAILED_TRANSLATION_KEY = 'leads.detail.timeline.whatsappSendFailed';
 
 interface TimelineContactMessage {
+  itemId: string;
   channel: 'WhatsApp' | 'Email';
   message: string;
   status?: WhatsAppMessageStatus;
   phone?: string;
+  canSend?: boolean;
 }
 
 interface TimelineExtractedFact {
@@ -296,6 +300,17 @@ export class LeadDetailComponent implements OnInit {
   protected readonly timelineItems = signal<LeadTimelineItem[]>([]);
   protected readonly timelineLoading = signal(false);
   protected readonly timelineError = signal<string | null>(null);
+  protected readonly timelineWhatsAppSendingItemId = signal<string | null>(null);
+  protected readonly sentTimelineWhatsAppSourceIds = computed(() => {
+    const sentIds = new Set<string>();
+    for (const item of this.timelineItems()) {
+      const sourceTimelineEventId = item.metadata['sourceTimelineEventId'];
+      if (typeof sourceTimelineEventId === 'string' && sourceTimelineEventId.trim() !== '') {
+        sentIds.add(sourceTimelineEventId.trim());
+      }
+    }
+    return sentIds;
+  });
 
   // ARIA live region for announcements
   protected readonly announcement = signal<string>('');
@@ -1438,9 +1453,9 @@ export class LeadDetailComponent implements OnInit {
   protected readonly getTimelineContactMessage = (item: LeadTimelineItem): TimelineContactMessage | null => {
     const metadata = this.getTimelineMetadataSource(item, 'analysis');
     return (
-      this.buildWhatsAppSentMessage(metadata) ||
-      this.buildWhatsAppDraftMessage(metadata) ||
-      this.buildPreferredContactMessage(metadata)
+      this.buildWhatsAppSentMessage(item, metadata) ||
+      this.buildWhatsAppDraftMessage(item, metadata) ||
+      this.buildPreferredContactMessage(item, metadata)
     );
   };
 
@@ -1548,11 +1563,29 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
-  protected openWhatsApp(phone: string, message: string): void {
-    if (!phone) return;
-    const encodedMessage = encodeURIComponent(message);
-    const cleanPhone = phone.replaceAll(/[^0-9+]/g, '');
-    globalThis.open?.(`https://wa.me/${cleanPhone}?text=${encodedMessage}`, '_blank');
+  protected sendTimelineWhatsApp(itemId: string): void {
+    const lead = this.lead();
+    if (!lead || this.timelineWhatsAppSendingItemId()) {
+      return;
+    }
+
+    this.timelineWhatsAppSendingItemId.set(itemId);
+    this.leadsService.sendTimelineWhatsApp(lead.id, itemId)
+      .pipe(
+        finalize(() => this.timelineWhatsAppSendingItemId.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: () => {
+          this.toast.success(this.translate.instant(TIMELINE_WHATSAPP_SENT_TRANSLATION_KEY));
+          this.loadTimeline(lead.id, this.selectedService()?.id);
+        },
+        error: (err) => {
+          const message = extractErrorMessage(err, this.translate.instant(TIMELINE_WHATSAPP_SEND_FAILED_TRANSLATION_KEY));
+          this.toast.error(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        },
+      });
   }
 
   protected composeEmail(email: string | undefined, message: string): void {
@@ -1683,7 +1716,7 @@ export class LeadDetailComponent implements OnInit {
     return cleaned || undefined;
   }
 
-  private buildWhatsAppSentMessage(metadata: Record<string, unknown>): TimelineContactMessage | null {
+  private buildWhatsAppSentMessage(item: LeadTimelineItem, metadata: Record<string, unknown>): TimelineContactMessage | null {
     const messageContent = metadata['messageContent'];
     if (typeof messageContent !== 'string') {
       return null;
@@ -1695,14 +1728,16 @@ export class LeadDetailComponent implements OnInit {
     const statusValue = typeof metadata['status'] === 'string' ? metadata['status'] : 'sent';
     const phoneValue = typeof metadata['phoneNumber'] === 'string' ? metadata['phoneNumber'] : undefined;
     return {
+      itemId: item.id,
       channel: 'WhatsApp',
       message: trimmed,
       status: statusValue as WhatsAppMessageStatus,
       ...(phoneValue ? { phone: phoneValue } : {}),
+      canSend: false,
     };
   }
 
-  private buildWhatsAppDraftMessage(metadata: Record<string, unknown>): TimelineContactMessage | null {
+  private buildWhatsAppDraftMessage(item: LeadTimelineItem, metadata: Record<string, unknown>): TimelineContactMessage | null {
     const drafts = metadata['drafts'];
     if (!drafts || typeof drafts !== 'object') {
       return null;
@@ -1717,16 +1752,21 @@ export class LeadDetailComponent implements OnInit {
     }
     const statusValue = (drafts as Record<string, unknown>)['status'];
     const status = typeof statusValue === 'string' ? statusValue : 'draft';
-    const phone = this.extractPhoneFromWhatsAppUrl(metadata['whatsappUrl']);
+    const audienceValue = (drafts as Record<string, unknown>)['messageAudience'];
+    const audience = typeof audienceValue === 'string' ? audienceValue.trim().toLowerCase() : '';
+    const phoneValue = typeof metadata['phoneNumber'] === 'string' ? metadata['phoneNumber'] : undefined;
+    const phone = phoneValue?.trim() || this.extractPhoneFromWhatsAppUrl(metadata['whatsappUrl']);
     return {
+      itemId: item.id,
       channel: 'WhatsApp',
       message: trimmed,
       status: status as WhatsAppMessageStatus,
       ...(phone ? { phone } : {}),
+      canSend: audience !== 'internal' && !this.sentTimelineWhatsAppSourceIds().has(item.id),
     };
   }
 
-  private buildPreferredContactMessage(metadata: Record<string, unknown>): TimelineContactMessage | null {
+  private buildPreferredContactMessage(item: LeadTimelineItem, metadata: Record<string, unknown>): TimelineContactMessage | null {
     const channel = metadata['preferredContactChannel'];
     const message = metadata['suggestedContactMessage'];
     if ((channel !== 'WhatsApp' && channel !== 'Email') || typeof message !== 'string') {
@@ -1738,11 +1778,15 @@ export class LeadDetailComponent implements OnInit {
     }
     const status = channel === 'WhatsApp' ? 'draft' : undefined;
     const phone = channel === 'WhatsApp' && typeof metadata['phoneNumber'] === 'string' ? metadata['phoneNumber'] : undefined;
+    const audienceValue = typeof metadata['messageAudience'] === 'string' ? metadata['messageAudience'] : undefined;
+    const audience = audienceValue?.trim().toLowerCase() ?? '';
     return {
+      itemId: item.id,
       channel,
       message: trimmed,
       ...(status ? { status } : {}),
       ...(phone ? { phone } : {}),
+      ...(channel === 'WhatsApp' ? { canSend: audience !== 'internal' && !this.sentTimelineWhatsAppSourceIds().has(item.id) } : {}),
     };
   }
 

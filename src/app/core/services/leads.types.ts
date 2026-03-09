@@ -164,6 +164,8 @@ export interface WhatsAppTimelineMetadata {
   phoneNumber?: string;
   messageContent?: string;
   sentAt?: string;
+  sourceTimelineEventId?: string;
+  sourceTimelineEventTitle?: string;
   drafts?: WhatsAppTimelineDrafts;
   whatsappUrl?: string;
   preferredContactChannel?: 'WhatsApp' | 'Email';
@@ -174,6 +176,11 @@ export type LeadTimelineMetadata = Record<string, unknown> & WhatsAppTimelineMet
 
 export interface LeadTimelineResponse {
   items: LeadTimelineItem[];
+}
+
+export interface TimelineWhatsAppSendResponse {
+  status: string;
+  eventId: string;
 }
 
 export interface CreateLeadRequest {

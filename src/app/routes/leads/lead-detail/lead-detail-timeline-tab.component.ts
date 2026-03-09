@@ -19,6 +19,7 @@ export class LeadDetailTimelineTabComponent {
   timelineLoading = input<boolean>(false);
   timelineError = input<string | null>(null);
   copiedContactMessage = input<string | null>(null);
+  sendingWhatsAppItemId = input<string | null>(null);
   leadPhone = input<string>('');
   leadEmail = input<string | null>(null);
   approvingAppointmentId = input<string | null>(null);
@@ -29,7 +30,7 @@ export class LeadDetailTimelineTabComponent {
   getTimelinePartnerSummary = input<(item: LeadTimelineItem) => string | null>(() => null);
   getTimelineEstimation = input<(item: LeadTimelineItem) => { priceRange?: string; scope?: string; notes?: string } | null>(() => null);
   getTimelineRecommendedAction = input<(item: LeadTimelineItem) => string | null>(() => null);
-  getTimelineContactMessage = input<(item: LeadTimelineItem) => { channel: 'WhatsApp' | 'Email'; message: string; status?: 'sent' | 'draft' | 'failed'; phone?: string } | null>(() => null);
+  getTimelineContactMessage = input<(item: LeadTimelineItem) => { itemId: string; channel: 'WhatsApp' | 'Email'; message: string; status?: 'sent' | 'draft' | 'failed'; phone?: string; canSend?: boolean } | null>(() => null);
   getTimelineMissingInformation = input<(item: LeadTimelineItem) => string[]>(() => []);
   getTimelineResolvedInformation = input<(item: LeadTimelineItem) => string[]>(() => []);
   getTimelineExtractedFacts = input<(item: LeadTimelineItem) => { key: string; value: string }[]>(() => []);
@@ -39,7 +40,7 @@ export class LeadDetailTimelineTabComponent {
   getTimelinePhotoAnalysis = input<(item: LeadTimelineItem) => TimelinePhotoAnalysisSummary | null>(() => null);
 
   openCallLogger = output<void>();
-  openWhatsApp = output<{ phone: string; message: string }>();
+  sendWhatsApp = output<{ itemId: string }>();
   composeEmail = output<{ email: string | undefined; message: string }>();
   copyContactMessage = output<{ itemId: string; message: string }>();
   viewDraftQuote = output<string>();
