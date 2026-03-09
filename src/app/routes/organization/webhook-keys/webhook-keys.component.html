@@ -36,6 +36,39 @@
   <!-- GTM Config -->
   <div class="border border-zinc-200 rounded-sm p-4 sm:p-6 space-y-4 bg-white">
     <div class="space-y-1">
+      <h4 class="text-sm font-semibold text-zinc-900">{{ 'webhook.whatsapp.title' | translate }}</h4>
+      <p class="text-xs text-zinc-500">{{ 'webhook.whatsapp.subtitle' | translate }}</p>
+    </div>
+
+    <div class="space-y-2">
+      <p class="block text-xs font-medium text-zinc-700">{{ 'webhook.whatsapp.endpoint' | translate }}</p>
+      <div class="flex items-center gap-2">
+        <code class="flex-1 rounded bg-zinc-50 border border-zinc-200 px-3 py-2 text-sm font-mono text-zinc-900 break-all select-all">
+          {{ whatsAppWebhookUrl() }}
+        </code>
+        <shared-button
+          variant="secondary"
+          size="compact"
+          [iconOnly]="true"
+          shape="square"
+          [fullWidth]="false"
+          [ariaLabel]="'webhook.whatsapp.copyUrl' | translate"
+          (clicked)="copyWebhookUrl()"
+        >
+          @if (urlCopied()) {
+            <lucide-icon name="check" class="h-4 w-4 text-emerald-600"></lucide-icon>
+          } @else {
+            <lucide-icon name="copy" class="h-4 w-4"></lucide-icon>
+          }
+        </shared-button>
+      </div>
+      <p class="text-xs text-zinc-500">{{ 'webhook.whatsapp.headerHint' | translate }}</p>
+    </div>
+  </div>
+
+  <!-- GTM Config -->
+  <div class="border border-zinc-200 rounded-sm p-4 sm:p-6 space-y-4 bg-white">
+    <div class="space-y-1">
       <h4 class="text-sm font-semibold text-zinc-900">{{ 'webhook.gtm.title' | translate }}</h4>
       <p class="text-xs text-zinc-500">{{ 'webhook.gtm.subtitle' | translate }}</p>
     </div>
@@ -145,6 +178,30 @@
         </div>
       </div>
 
+      <div class="space-y-2">
+        <p class="block text-xs font-medium text-zinc-700">{{ 'webhook.whatsapp.endpoint' | translate }}</p>
+        <div class="flex items-center gap-2">
+          <code class="flex-1 rounded bg-white border border-zinc-200 px-3 py-2 text-sm font-mono text-zinc-900 break-all select-all">
+            {{ whatsAppWebhookUrl() }}
+          </code>
+          <shared-button
+            variant="secondary"
+            size="compact"
+            [iconOnly]="true"
+            shape="square"
+            [fullWidth]="false"
+            [ariaLabel]="'webhook.whatsapp.copyUrl' | translate"
+            (clicked)="copyWebhookUrl()"
+          >
+            @if (urlCopied()) {
+              <lucide-icon name="check" class="h-4 w-4 text-emerald-600"></lucide-icon>
+            } @else {
+              <lucide-icon name="copy" class="h-4 w-4"></lucide-icon>
+            }
+          </shared-button>
+        </div>
+      </div>
+
       <!-- SDK Snippet -->
       <div class="space-y-2">
         <p class="block text-xs font-medium text-zinc-700">{{ 'webhook.fields.snippet' | translate }}</p>
@@ -160,6 +217,28 @@
             (clicked)="copySnippet()"
           >
             @if (snippetCopied()) {
+              <lucide-icon name="check" class="h-4 w-4 text-emerald-600"></lucide-icon>
+            } @else {
+              <lucide-icon name="copy" class="h-4 w-4"></lucide-icon>
+            }
+          </shared-button>
+        </div>
+      </div>
+
+      <div class="space-y-2">
+        <p class="block text-xs font-medium text-zinc-700">{{ 'webhook.whatsapp.exampleRequest' | translate }}</p>
+        <div class="flex items-start gap-2">
+          <pre class="flex-1 rounded bg-zinc-900 text-sky-300 px-4 py-3 text-xs font-mono overflow-x-auto whitespace-pre-wrap break-all select-all"><code>{{ whatsAppCurlSnippet() }}</code></pre>
+          <shared-button
+            variant="secondary"
+            size="compact"
+            [iconOnly]="true"
+            shape="square"
+            [fullWidth]="false"
+            [ariaLabel]="'webhook.whatsapp.copyExample' | translate"
+            (clicked)="copyWhatsAppCurl()"
+          >
+            @if (curlCopied()) {
               <lucide-icon name="check" class="h-4 w-4 text-emerald-600"></lucide-icon>
             } @else {
               <lucide-icon name="copy" class="h-4 w-4"></lucide-icon>
@@ -187,9 +266,16 @@
       </div>
 
       <div class="flex justify-end">
-        <shared-button variant="secondary" size="compact" (clicked)="dismissCreatedKey()">
-          {{ 'webhook.dismiss' | translate }}
-        </shared-button>
+        <div class="flex gap-2">
+          @if (rotateSourceKey(); as rotating) {
+            <shared-button variant="danger" size="compact" (clicked)="confirmRevoke(rotating)">
+              {{ 'webhook.rotate.revokePrevious' | translate }}
+            </shared-button>
+          }
+          <shared-button variant="secondary" size="compact" (clicked)="dismissCreatedKey()">
+            {{ 'webhook.dismiss' | translate }}
+          </shared-button>
+        </div>
       </div>
     </div>
   }
@@ -235,6 +321,16 @@
                 }
               </div>
             }
+
+            <shared-button
+              variant="secondary"
+              size="compact"
+              [fullWidth]="false"
+              [disabled]="isSaving()"
+              (clicked)="rotateKey(key)"
+            >
+              {{ 'webhook.rotate.action' | translate }}
+            </shared-button>
 
             <shared-button
               variant="danger"

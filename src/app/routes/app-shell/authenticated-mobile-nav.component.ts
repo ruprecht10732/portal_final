@@ -6,6 +6,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
 import { NotificationsService } from '../../core/services/notifications.service';
 import { UserService } from '../../core/services/user.service';
+import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
 import type { UserProfile } from '../../core/services/user.types';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-bell.component';
@@ -15,6 +16,7 @@ type MobileNavIcon =
   | 'search'
   | 'leads'
   | 'inbox'
+  | 'whatsapp'
   | 'partners'
   | 'appointments'
   | 'offertes'
@@ -71,6 +73,14 @@ interface MobileNavItem {
               @case ('inbox') {
                 <lucide-icon name="mail" class="h-5 w-5"></lucide-icon>
               }
+              @case ('whatsapp') {
+                <span class="relative inline-flex">
+                  <lucide-icon name="message-circle" class="h-5 w-5"></lucide-icon>
+                  @if (unreadWhatsAppConversations() > 0) {
+                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadWhatsAppConversations() }}</span>
+                  }
+                </span>
+              }
               @case ('partners') {
                 <lucide-icon name="briefcase" class="h-5 w-5"></lucide-icon>
               }
@@ -115,6 +125,7 @@ interface MobileNavItem {
 export class AuthenticatedMobileNavComponent {
   private readonly notificationsService = inject(NotificationsService);
   private readonly userService = inject(UserService);
+  private readonly whatsappUnreadCountService = inject(WhatsAppUnreadCountService);
 
   private readonly user = toSignal(
     this.userService.getProfile().pipe(catchError(() => of(null))),
@@ -125,6 +136,7 @@ export class AuthenticatedMobileNavComponent {
 
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
   protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
+  protected readonly unreadWhatsAppConversations = this.whatsappUnreadCountService.unreadCount;
 
   /** All primary navigation items — mirrors the desktop sidebar. */
   protected readonly items = computed<MobileNavItem[]>(() => {
@@ -133,6 +145,7 @@ export class AuthenticatedMobileNavComponent {
       { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
       { label: 'navigation.inbox', route: '/app/inbox', icon: 'inbox' },
+      { label: 'navigation.whatsapp', route: '/app/whatsapp', icon: 'whatsapp' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
       { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },

@@ -17,6 +17,7 @@ import { UserService } from '../../core/services/user.service';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-bell.component';
 import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
+import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
 import type { UserProfile } from '../../core/services/user.types';
 
 interface SidebarItem {
@@ -27,6 +28,7 @@ interface SidebarItem {
     | 'search'
     | 'leads'
     | 'inbox'
+    | 'whatsapp'
     | 'partners'
     | 'partnerOffers'
     | 'appointments'
@@ -59,6 +61,7 @@ export class AuthenticatedSidebarComponent {
   private readonly authService = inject(AuthService);
   private readonly notificationsService = inject(NotificationsService);
   private readonly imapUnreadCountService = inject(IMAPUnreadCountService);
+  private readonly whatsappUnreadCountService = inject(WhatsAppUnreadCountService);
   private readonly tokens = inject(TokenStorageService);
   private readonly userService = inject(UserService);
 
@@ -111,6 +114,7 @@ export class AuthenticatedSidebarComponent {
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
   protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
   protected readonly unreadInboxMessages = this.imapUnreadCountService.unreadCount;
+  protected readonly unreadWhatsAppConversations = this.whatsappUnreadCountService.unreadCount;
 
   protected readonly items = computed<SidebarItem[]>(() => {
     const base: SidebarItem[] = [
@@ -118,6 +122,7 @@ export class AuthenticatedSidebarComponent {
       { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
       { label: 'navigation.inbox', route: '/app/inbox', icon: 'inbox' },
+      { label: 'navigation.whatsapp', route: '/app/whatsapp', icon: 'whatsapp' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.partnerOffers', route: '/app/offers', icon: 'partnerOffers' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },

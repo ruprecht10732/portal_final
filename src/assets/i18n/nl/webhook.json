@@ -2,7 +2,7 @@
   "webhook": {
     "title": "Webhook API Keys",
     "navLabel": "Webhooks",
-    "subtitle": "Beheer API-sleutels voor het automatisch vastleggen van formulieren op externe websites.",
+    "subtitle": "Beheer webhook API-sleutels voor formulieropvang, WhatsApp callbacks en andere externe integraties.",
     "createKey": "Nieuwe sleutel",
     "cancel": "Annuleren",
     "newKey": "Nieuwe API-sleutel aanmaken",
@@ -36,6 +36,21 @@
       "optionSelector": "Alleen formulieren vastleggen die voldoen aan een CSS-selector (bijv. \"#contact-form\").",
       "optionSuccess": "Doorverwijzen naar een URL na succesvolle verzending.",
       "optionIgnore": "Voeg dit toe aan een formulier om het over te slaan."
+    },
+    "whatsapp": {
+      "title": "WhatsApp webhook endpoint",
+      "subtitle": "Gebruik onderstaande URL met de X-Webhook-API-Key header om inkomende berichten en receipt callbacks van uw WhatsApp-provider af te leveren.",
+      "endpoint": "WhatsApp webhook URL",
+      "copyUrl": "URL kopiëren",
+      "headerHint": "Authenticeer requests met de X-Webhook-API-Key header. Dezelfde sleutel kunt u hieronder roteren.",
+      "exampleRequest": "Voorbeeldrequest",
+      "copyExample": "Voorbeeld kopiëren"
+    },
+    "rotate": {
+      "action": "Roteer",
+      "suffix": "geroteerd",
+      "created": "Nieuwe webhook sleutel aangemaakt. Werk eerst de provider bij en trek daarna de vorige sleutel in.",
+      "revokePrevious": "Vorige sleutel intrekken"
     },
     "gtm": {
       "title": "Google Tag Manager (GTM)",

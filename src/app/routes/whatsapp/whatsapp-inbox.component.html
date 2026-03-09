@@ -1,0 +1,196 @@
+<shared-page-layout
+  [title]="'navigation.whatsapp' | translate"
+  subtitle="Live inbox"
+  [removeMobilePadding]="true"
+>
+  <shared-button
+    actionsDesktop
+    class="hidden sm:flex"
+    variant="secondary"
+    [fullWidth]="false"
+    [ariaLabel]="'Ververs gesprekken'"
+    (clicked)="loadConversations()"
+  >
+    <lucide-icon name="refresh-cw" class="mr-2 h-4 w-4"></lucide-icon>
+    Ververs
+  </shared-button>
+
+  <main class="flex h-full min-h-0 flex-col bg-[#fdfbf7] px-2 pb-2 sm:-mx-6 sm:px-3 sm:pb-4">
+    @if (deviceStatus.needsReconnectBanner() || deviceStatus.needsDeviceConnection()) {
+      <section class="mb-3 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+        <div class="flex items-center gap-2 font-semibold">
+          <lucide-icon name="circle-alert" class="h-4 w-4"></lucide-icon>
+          WhatsApp-apparaat heeft aandacht nodig
+        </div>
+        <p class="mt-1 text-xs text-amber-800">{{ deviceStatus.status()?.message }}</p>
+      </section>
+    }
+
+    <section class="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(340px,420px)_1fr]">
+      @if (showListPane()) {
+        <aside class="flex min-h-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm">
+          <header class="border-b border-zinc-200 px-4 py-3">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <h2 class="text-sm font-black uppercase tracking-widest text-zinc-900">Gesprekken</h2>
+                <p class="text-xs text-zinc-500">{{ conversations().length }} actief</p>
+              </div>
+              <button
+                type="button"
+                class="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100"
+                (click)="loadConversations()"
+                aria-label="Ververs gesprekken"
+              >
+                <lucide-icon name="refresh-cw" class="h-4 w-4"></lucide-icon>
+              </button>
+            </div>
+          </header>
+
+          <div class="flex-1 overflow-y-auto">
+            @if (loadingConversations()) {
+              <div class="flex h-full items-center justify-center py-12 text-zinc-400">
+                <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
+              </div>
+            } @else if (conversations().length === 0) {
+              <div class="flex h-full flex-col items-center justify-center px-6 py-20 text-center">
+                <lucide-icon name="message-circle" class="mb-4 h-10 w-10 text-zinc-200"></lucide-icon>
+                <p class="text-sm font-semibold text-zinc-700">Nog geen WhatsApp-gesprekken</p>
+                <p class="mt-2 max-w-xs text-xs text-zinc-500">
+                  Nieuwe gesprekken verschijnen hier zodra er vanuit de portal een WhatsApp-bericht is verstuurd.
+                </p>
+              </div>
+            } @else {
+              <ul class="divide-y divide-zinc-100">
+                @for (conversation of conversations(); track conversation.id) {
+                  <li>
+                    <button
+                      type="button"
+                      class="flex w-full flex-col gap-1 px-4 py-4 text-left transition-colors hover:bg-zinc-50"
+                      [class.bg-zinc-50]="selectedConversationId() === conversation.id"
+                      (click)="selectConversation(conversation.id)"
+                    >
+                      <div class="flex items-center justify-between gap-3">
+                        <div class="min-w-0">
+                          <p class="truncate text-sm font-semibold text-zinc-900">{{ displayName(conversation) }}</p>
+                          <p class="truncate text-[11px] text-zinc-500">{{ conversation.phoneNumber }}</p>
+                        </div>
+                        <div class="flex shrink-0 items-center gap-2">
+                          @if (conversation.unreadCount > 0) {
+                            <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                              {{ conversation.unreadCount }}
+                            </span>
+                          }
+                          <span class="text-[10px] font-medium text-zinc-400">{{ relativeTime(conversation.lastMessageAt) }}</span>
+                        </div>
+                      </div>
+                      <p class="truncate text-xs" [class.text-zinc-700]="conversation.unreadCount > 0" [class.font-medium]="conversation.unreadCount > 0" [class.text-zinc-500]="conversation.unreadCount === 0">
+                        {{ conversation.lastMessagePreview || 'Geen berichtinhoud' }}
+                      </p>
+                    </button>
+                  </li>
+                }
+              </ul>
+            }
+          </div>
+        </aside>
+      }
+
+      @if (showThreadPane()) {
+        <section class="flex min-h-[520px] flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm">
+          @if (selectedConversation()) {
+            <header class="border-b border-zinc-100 px-4 py-4 sm:px-6">
+              <div class="flex items-center gap-3">
+                <button
+                  type="button"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-100 lg:hidden"
+                  aria-label="Terug naar lijst"
+                  (click)="closeConversation()"
+                >
+                  <lucide-icon name="arrow-left" class="h-4 w-4"></lucide-icon>
+                </button>
+                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                  <lucide-icon name="message-circle" class="h-5 w-5"></lucide-icon>
+                </div>
+                <div class="min-w-0">
+                  <h2 class="truncate text-lg font-bold text-zinc-900">{{ displayName(selectedConversation()!) }}</h2>
+                  <p class="truncate text-xs text-zinc-500">{{ selectedConversation()!.phoneNumber }}</p>
+                </div>
+              </div>
+            </header>
+
+            <div class="flex-1 overflow-y-auto bg-zinc-50/60 px-4 py-5 sm:px-6">
+              @if (loadingMessages()) {
+                <div class="flex h-full items-center justify-center text-zinc-400">
+                  <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
+                </div>
+              } @else if (messages().length === 0) {
+                <div class="flex h-full items-center justify-center text-center text-sm text-zinc-500">
+                  Nog geen berichten in dit gesprek.
+                </div>
+              } @else {
+                <div class="mx-auto flex max-w-3xl flex-col gap-3">
+                  @for (message of messages(); track message.id) {
+                    <div class="flex" [class.justify-end]="message.direction === 'outbound'" [class.justify-start]="message.direction === 'inbound'">
+                      <article
+                        class="max-w-[85%] rounded-2xl px-4 py-3 shadow-sm"
+                        [class.bg-emerald-600]="message.direction === 'outbound'"
+                        [class.text-white]="message.direction === 'outbound'"
+                        [class.bg-white]="message.direction === 'inbound'"
+                        [class.text-zinc-900]="message.direction === 'inbound'"
+                      >
+                        <p class="whitespace-pre-wrap text-sm leading-relaxed">{{ message.body }}</p>
+                        <div class="mt-2 flex items-center justify-end gap-1 text-[10px]" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-400]="message.direction === 'inbound'">
+                          <span>{{ relativeTime(message.createdAt) }}</span>
+                          @if (message.direction === 'outbound') {
+                            <lucide-icon [name]="messageStatusIcon(message)" class="h-3 w-3"></lucide-icon>
+                            <span>{{ messageStatusLabel(message) }}</span>
+                          }
+                        </div>
+                      </article>
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+
+            <footer class="border-t border-zinc-100 bg-white px-4 py-4 sm:px-6">
+              <div class="mx-auto flex max-w-3xl flex-col gap-3">
+                <textarea
+                  class="min-h-28 w-full rounded-2xl border border-zinc-200 px-4 py-3 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
+                  [value]="composerBody()"
+                  [disabled]="sendingMessage() || !canSend()"
+                  placeholder="Typ je antwoord..."
+                  (input)="composerBody.set($any($event.target).value)"
+                ></textarea>
+                <div class="flex items-center justify-between gap-3">
+                  <p class="text-xs text-zinc-500">
+                    @if (!canSend()) {
+                      Berichten verzenden is tijdelijk niet beschikbaar.
+                    } @else {
+                      Verstuurt direct via het gekoppelde WhatsApp-apparaat.
+                    }
+                  </p>
+                  <shared-button
+                    variant="primary"
+                    [fullWidth]="false"
+                    [disabled]="sendingMessage() || composerBody().trim() === '' || !canSend()"
+                    (clicked)="sendMessage()"
+                  >
+                    <lucide-icon name="send" class="mr-2 h-4 w-4"></lucide-icon>
+                    {{ sendingMessage() ? 'Versturen...' : 'Verstuur' }}
+                  </shared-button>
+                </div>
+              </div>
+            </footer>
+          } @else {
+            <div class="hidden h-full flex-col items-center justify-center bg-zinc-50/30 p-10 text-center lg:flex">
+              <lucide-icon name="message-circle" class="mb-4 h-12 w-12 text-zinc-200"></lucide-icon>
+              <p class="text-sm font-semibold text-zinc-700">Kies een gesprek</p>
+              <p class="mt-2 text-xs text-zinc-500">Open een gesprek links om de thread en composer te zien.</p>
+            </div>
+          }
+        </section>
+      }
+    </section>
+  </main>
+</shared-page-layout>

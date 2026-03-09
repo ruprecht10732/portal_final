@@ -2,7 +2,7 @@
   "webhook": {
     "title": "Webhook API Keys",
     "navLabel": "Webhooks",
-    "subtitle": "Manage API keys to automatically capture form submissions from external websites.",
+    "subtitle": "Manage webhook API keys for form capture, WhatsApp delivery callbacks, and other external integrations.",
     "createKey": "New key",
     "cancel": "Cancel",
     "newKey": "Create new API key",
@@ -36,6 +36,21 @@
       "optionSelector": "Only capture forms matching a CSS selector (e.g. \"#contact-form\").",
       "optionSuccess": "Redirect to a URL after a successful submission.",
       "optionIgnore": "Add this to a form element to skip it."
+    },
+    "whatsapp": {
+      "title": "WhatsApp webhook endpoint",
+      "subtitle": "Use the URL below with the X-Webhook-API-Key header to deliver inbound messages and receipt callbacks from your WhatsApp provider.",
+      "endpoint": "WhatsApp webhook URL",
+      "copyUrl": "Copy URL",
+      "headerHint": "Authenticate requests with the X-Webhook-API-Key header. The same key can be rotated below.",
+      "exampleRequest": "Example request",
+      "copyExample": "Copy example"
+    },
+    "rotate": {
+      "action": "Rotate",
+      "suffix": "rotated",
+      "created": "New webhook key created. Update the provider first, then revoke the previous key.",
+      "revokePrevious": "Revoke previous key"
     },
     "gtm": {
       "title": "Google Tag Manager (GTM)",

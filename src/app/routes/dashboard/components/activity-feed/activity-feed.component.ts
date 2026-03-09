@@ -49,7 +49,7 @@ export class ActivityFeedComponent {
     const hours = Math.floor(minutes / 60);
     const days = Math.floor(hours / 24);
 
-    const language = this.translateService.currentLang || this.translateService.getDefaultLang() || 'en';
+    const language = this.translateService.getCurrentLang() || this.translateService.getFallbackLang() || 'en';
     const locale = language === 'nl' ? 'nl-NL' : 'en-US';
     let formatter = this.rtfCache.get(locale);
     if (!formatter) {

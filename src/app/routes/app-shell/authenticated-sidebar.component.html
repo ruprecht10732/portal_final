@@ -48,6 +48,14 @@
                   }
                 </span>
               }
+              @case ('whatsapp') {
+                <span class="relative inline-flex">
+                  <lucide-icon name="message-circle" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+                  @if (unreadWhatsAppConversations() > 0) {
+                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadWhatsAppConversations() }}</span>
+                  }
+                </span>
+              }
               @case ('partners') {
                 <lucide-icon name="briefcase" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
               }

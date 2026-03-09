@@ -12,6 +12,9 @@ export type SSEEventType =
   | 'analysis_complete'
   | 'photo_analysis_complete'
   | 'lead_updated'
+  | 'whatsapp_conversation_updated'
+  | 'whatsapp_message_received'
+  | 'whatsapp_message_sent'
   | 'lead_preferences_updated'
   | 'lead_attachment_uploaded'
   | 'lead_attachment_deleted'
@@ -169,6 +172,14 @@ export class SSEService {
             this.handleEventMessage(event, 'lead_updated');
           });
         });
+
+        for (const evtType of ['whatsapp_conversation_updated', 'whatsapp_message_received', 'whatsapp_message_sent'] as const) {
+          this.eventSource.addEventListener(evtType, (event) => {
+            this.zone.run(() => {
+              this.handleEventMessage(event, evtType);
+            });
+          });
+        }
 
         // Quote events
         for (const evtType of ['quote_sent', 'quote_viewed', 'quote_item_toggled', 'quote_annotated', 'quote_accepted', 'quote_rejected'] as const) {

@@ -47,6 +47,9 @@ export class WebhookKeysComponent {
   protected readonly createdKey = signal<CreateWebhookAPIKeyResponse | null>(null);
   protected readonly keyCopied = signal(false);
   protected readonly snippetCopied = signal(false);
+  protected readonly urlCopied = signal(false);
+  protected readonly curlCopied = signal(false);
+  protected readonly rotateSourceKey = signal<WebhookAPIKey | null>(null);
 
   // Revoke confirm dialog
   protected readonly revokeTarget = signal<WebhookAPIKey | null>(null);
@@ -67,10 +70,36 @@ export class WebhookKeysComponent {
     return `${base}/webhook/sdk.js`;
   });
 
+  protected readonly whatsAppWebhookUrl = computed(() => {
+    const base = environment.apiBaseUrl;
+    return `${base}/webhook/whatsapp`;
+  });
+
   protected readonly sdkSnippet = computed(() => {
     const created = this.createdKey();
     if (!created) return '';
     return `<script src="${this.sdkBaseUrl()}" data-api-key="${created.key}" defer></script>`;
+  });
+
+  protected readonly whatsAppCurlSnippet = computed(() => {
+    const created = this.createdKey();
+    if (!created) return '';
+    return [
+      `curl -X POST '${this.whatsAppWebhookUrl()}' \\`,
+      `  -H 'Content-Type: application/json' \\`,
+      `  -H 'X-Webhook-API-Key: ${created.key}' \\`,
+      `  -d '{`,
+      `    "event": "message",`,
+      `    "payload": {`,
+      `      "id": "MSG-123",`,
+      `      "from": "31612345678@s.whatsapp.net",`,
+      `      "chat_id": "31612345678@s.whatsapp.net",`,
+      `      "from_name": "Customer",`,
+      `      "is_from_me": false,`,
+      `      "body": "Hallo"`,
+      `    }`,
+      `  }'`,
+    ].join('\n');
   });
 
   private readonly gtmContainerIdRegex = /^GTM-[A-Z0-9]+$/;
@@ -188,6 +217,8 @@ export class WebhookKeysComponent {
     this.createdKey.set(null);
     this.keyCopied.set(false);
     this.snippetCopied.set(false);
+    this.urlCopied.set(false);
+    this.curlCopied.set(false);
 
     const domains = this.newKeyDomains()
       .split(',')
@@ -209,8 +240,25 @@ export class WebhookKeysComponent {
         this.showCreateForm.set(false);
         this.newKeyName.set('');
         this.newKeyDomains.set('');
+        if (this.rotateSourceKey()) {
+          this.successMessage.set(this.translate.instant('webhook.rotate.created'));
+        }
         this.loadKeys();
       });
+  }
+
+  protected rotateKey(key: WebhookAPIKey): void {
+    this.rotateSourceKey.set(key);
+    this.showCreateForm.set(true);
+    this.newKeyName.set(`${key.name} ${this.translate.instant('webhook.rotate.suffix')}`.trim());
+    this.newKeyDomains.set(key.allowedDomains.join(', '));
+    this.createdKey.set(null);
+    this.errorMessage.set('');
+    this.successMessage.set('');
+  }
+
+  protected clearRotateSource(): void {
+    this.rotateSourceKey.set(null);
   }
 
   // ---- Revoke ----
@@ -265,6 +313,20 @@ export class WebhookKeysComponent {
     setTimeout(() => this.snippetCopied.set(false), 3000);
   }
 
+  protected async copyWebhookUrl(): Promise<void> {
+    await navigator.clipboard.writeText(this.whatsAppWebhookUrl());
+    this.urlCopied.set(true);
+    setTimeout(() => this.urlCopied.set(false), 3000);
+  }
+
+  protected async copyWhatsAppCurl(): Promise<void> {
+    const snippet = this.whatsAppCurlSnippet();
+    if (!snippet) return;
+    await navigator.clipboard.writeText(snippet);
+    this.curlCopied.set(true);
+    setTimeout(() => this.curlCopied.set(false), 3000);
+  }
+
   // ---- Helpers ----
 
   protected formatDate(value: string): string {
@@ -274,6 +336,7 @@ export class WebhookKeysComponent {
 
   protected dismissCreatedKey(): void {
     this.createdKey.set(null);
+    this.clearRotateSource();
   }
 
   private normalizeError(error: unknown): string {

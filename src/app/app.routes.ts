@@ -320,6 +320,19 @@ export const routes: Routes = [
 				],
 			},
 			{
+				path: 'whatsapp',
+				data: {
+					panelItems: [{ label: 'navigation.whatsapp', route: '/app/whatsapp', icon: 'mail', exact: true }],
+				} satisfies SidebarPanelConfig,
+				children: [
+					{
+						path: '',
+						pathMatch: 'full',
+						loadComponent: () => import('./routes/whatsapp/whatsapp-inbox.component').then(m => m.WhatsAppInboxComponent),
+					},
+				],
+			},
+			{
 				path: 'leads',
 				loadComponent: () => import('./routes/leads/leads-layout/leads-layout.component').then(m => m.LeadsLayoutComponent),
 				data: {
