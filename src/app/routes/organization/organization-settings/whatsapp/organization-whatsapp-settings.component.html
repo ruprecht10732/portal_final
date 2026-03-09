@@ -82,6 +82,40 @@
             }
           </div>
 
+          @if (!isWhatsAppUnregistered()) {
+            <div class="grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:grid-cols-2">
+              <div class="flex flex-col gap-1 min-w-0">
+                <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-zinc-500">
+                  {{ 'organization.settings.whatsapp.providerDeviceIdLabel' | translate }}
+                </p>
+                <p class="break-all font-mono text-sm text-zinc-900">
+                  {{ providerDeviceId() }}
+                </p>
+                <p class="text-xs text-zinc-500">
+                  {{ 'organization.settings.whatsapp.providerDeviceIdHint' | translate }}
+                </p>
+              </div>
+
+              <div class="flex flex-col gap-1 min-w-0">
+                <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-zinc-500">
+                  {{ 'organization.settings.whatsapp.accountJidLabel' | translate }}
+                </p>
+                @if (pairedAccountJid()) {
+                  <p class="break-all font-mono text-sm text-zinc-900">
+                    {{ pairedAccountJid() }}
+                  </p>
+                } @else {
+                  <p class="text-sm font-semibold text-amber-700">
+                    {{ 'organization.settings.whatsapp.accountJidPending' | translate }}
+                  </p>
+                }
+                <p class="text-xs text-zinc-500">
+                  {{ 'organization.settings.whatsapp.accountJidHint' | translate }}
+                </p>
+              </div>
+            </div>
+          }
+
           <div class="border-t border-zinc-200 pt-4 mt-4 flex flex-col gap-3">
             <div class="flex flex-col gap-1">
               <p class="text-sm font-semibold text-zinc-900">

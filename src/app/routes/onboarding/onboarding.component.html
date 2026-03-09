@@ -341,6 +341,40 @@
               </div>
 
               @if (!isWhatsAppUnregistered()) {
+                <div class="grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:grid-cols-2">
+                  <div class="flex flex-col gap-1 min-w-0">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-zinc-500">
+                      {{ 'onboarding.whatsapp.providerDeviceIdLabel' | translate }}
+                    </p>
+                    <p class="break-all font-mono text-sm text-zinc-900">
+                      {{ whatsAppProviderDeviceId() }}
+                    </p>
+                    <p class="text-xs text-zinc-500">
+                      {{ 'onboarding.whatsapp.providerDeviceIdHint' | translate }}
+                    </p>
+                  </div>
+
+                  <div class="flex flex-col gap-1 min-w-0">
+                    <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-zinc-500">
+                      {{ 'onboarding.whatsapp.accountJidLabel' | translate }}
+                    </p>
+                    @if (whatsAppPairedAccountJid()) {
+                      <p class="break-all font-mono text-sm text-zinc-900">
+                        {{ whatsAppPairedAccountJid() }}
+                      </p>
+                    } @else {
+                      <p class="text-sm font-semibold text-amber-700">
+                        {{ 'onboarding.whatsapp.accountJidPending' | translate }}
+                      </p>
+                    }
+                    <p class="text-xs text-zinc-500">
+                      {{ 'onboarding.whatsapp.accountJidHint' | translate }}
+                    </p>
+                  </div>
+                </div>
+              }
+
+              @if (!isWhatsAppUnregistered()) {
                 <div class="mt-2 grid gap-4 sm:grid-cols-[minmax(0,1fr)_220px] items-start">
                   <div class="flex flex-col gap-2">
                     <p class="text-sm font-semibold text-zinc-900">{{ 'onboarding.whatsapp.qrTitle' | translate }}</p>

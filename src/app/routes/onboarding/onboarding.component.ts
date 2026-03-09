@@ -95,6 +95,7 @@ export class OnboardingComponent {
 
   protected readonly whatsAppSkipped = signal(false);
   protected readonly whatsAppDeviceId = signal<string | null>(null);
+  protected readonly whatsAppAccountJid = signal<string | null>(null);
   protected readonly whatsAppStatus = signal<WhatsAppStatus | null>(null);
   protected readonly isWhatsAppLoading = signal(false);
   protected readonly isWhatsAppAction = signal(false);
@@ -740,6 +741,12 @@ export class OnboardingComponent {
   protected readonly isWhatsAppConnected = computed(() => this.whatsAppStatus()?.state === 'CONNECTED');
   protected readonly isWhatsAppUnregistered = computed(() => !this.whatsAppDeviceId());
   protected readonly qrUrl = computed(() => this.qrBlobUrl() ?? '');
+  protected readonly whatsAppProviderDeviceId = computed(() => {
+    return this.whatsAppStatus()?.deviceId?.trim() || this.whatsAppDeviceId()?.trim() || '';
+  });
+  protected readonly whatsAppPairedAccountJid = computed(() => {
+    return this.whatsAppStatus()?.accountJid?.trim() || this.whatsAppAccountJid()?.trim() || '';
+  });
   protected readonly whatsAppStateLabel = computed(() => {
     const state = this.whatsAppStatus()?.state;
     switch (state) {
@@ -816,6 +823,7 @@ export class OnboardingComponent {
       )
       .subscribe(settings => {
         this.whatsAppDeviceId.set(settings.whatsAppDeviceId ?? null);
+        this.whatsAppAccountJid.set(settings.whatsAppAccountJid ?? null);
         this.loadWhatsAppStatus();
         this.startStatusPolling();
       });
@@ -850,6 +858,8 @@ export class OnboardingComponent {
       .subscribe(status => {
         const prev = this.whatsAppStatus();
         this.whatsAppStatus.set(status);
+        this.whatsAppDeviceId.set(status.deviceId?.trim() || this.whatsAppDeviceId());
+        this.whatsAppAccountJid.set(status.accountJid?.trim() || this.whatsAppAccountJid());
 
         if (status.state === 'CONNECTED') {
           this.stopQrRefreshCycle();
@@ -882,6 +892,7 @@ export class OnboardingComponent {
       )
       .subscribe(response => {
         this.whatsAppDeviceId.set(response.deviceId);
+        this.whatsAppAccountJid.set(null);
         this.whatsAppSuccessMessage.set(this.t('onboarding.whatsapp.registered'));
         this.refreshQr();
         this.loadWhatsAppStatus();

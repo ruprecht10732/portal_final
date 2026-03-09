@@ -234,6 +234,11 @@
         "title": "WhatsApp",
         "statusLabel": "Verbindingsstatus",
         "statusHint": "Koppel een apparaat om WhatsApp updates te versturen.",
+        "providerDeviceIdLabel": "Provider apparaat-ID",
+        "providerDeviceIdHint": "Gebruikt voor provider REST-acties zoals opnieuw verbinden en apparaatgegevens ophalen.",
+        "accountJidLabel": "Gekoppeld WhatsApp-account",
+        "accountJidHint": "Gebruikt door inkomende webhooks zodra de telefoon volledig aan dit apparaat is gekoppeld.",
+        "accountJidPending": "Verschijnt zodra de telefoon klaar is met koppelen.",
         "banner": {
           "title": "WhatsApp vereist actie",
           "action": "WhatsApp-apparaat koppelen",

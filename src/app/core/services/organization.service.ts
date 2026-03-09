@@ -81,6 +81,7 @@ export interface OrganizationSettings {
   photoAnalysisPerspectiveNormalizationServiceTypes: string[];
   notificationEmail?: string | null;
   whatsAppDeviceId?: string | null;
+  whatsAppAccountJid?: string | null;
   whatsAppPresence?: 'available' | 'unavailable';
 }
 
@@ -115,6 +116,8 @@ export interface WhatsAppStatus {
   canSend: boolean;
   needsReauth: boolean;
   presence: 'available' | 'unavailable';
+  deviceId?: string;
+  accountJid?: string;
 }
 
 export interface RegisterWhatsAppResponse {

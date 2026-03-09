@@ -234,6 +234,11 @@
         "title": "WhatsApp",
         "statusLabel": "Connection status",
         "statusHint": "Connect a device to start sending WhatsApp updates.",
+        "providerDeviceIdLabel": "Provider device ID",
+        "providerDeviceIdHint": "Used for provider REST operations such as reconnecting and loading device details.",
+        "accountJidLabel": "Paired WhatsApp account",
+        "accountJidHint": "Used by inbound webhooks once the phone finishes linking to this device.",
+        "accountJidPending": "Will appear after the phone completes linking.",
         "banner": {
           "title": "WhatsApp needs attention",
           "action": "Connect WhatsApp device",

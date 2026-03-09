@@ -22,6 +22,7 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly errorMessage = signal('');
 
   protected readonly whatsAppDeviceId = signal<string | null>(null);
+  protected readonly whatsAppAccountJid = signal<string | null>(null);
   protected readonly whatsAppStatus = signal<WhatsAppStatus | null>(null);
   protected readonly isWhatsAppLoading = signal(false);
   protected readonly isWhatsAppAction = signal(false);
@@ -42,6 +43,13 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly isWhatsAppConnected = computed(() => this.whatsAppStatus()?.state === 'CONNECTED');
   protected readonly isWhatsAppUnregistered = computed(() => !this.whatsAppDeviceId());
   protected readonly qrUrl = computed(() => this.qrBlobUrl() ?? '');
+  protected readonly providerDeviceId = computed(() => {
+    return this.whatsAppStatus()?.deviceId?.trim() || this.whatsAppDeviceId()?.trim() || '';
+  });
+  protected readonly pairedAccountJid = computed(() => {
+    return this.whatsAppStatus()?.accountJid?.trim() || this.whatsAppAccountJid()?.trim() || '';
+  });
+  protected readonly pairedAccountJidPending = computed(() => !this.isWhatsAppUnregistered() && !this.pairedAccountJid());
   protected readonly whatsAppStatusMessage = computed(() => {
     return localizeWhatsAppStatusMessage(this.whatsAppStatus()?.message, this.translate);
   });
@@ -71,6 +79,7 @@ export class OrganizationWhatsAppSettingsComponent {
       )
       .subscribe(settings => {
         this.whatsAppDeviceId.set(settings.whatsAppDeviceId ?? null);
+        this.whatsAppAccountJid.set(settings.whatsAppAccountJid ?? null);
 
         this.startStatusPolling();
       });
@@ -115,6 +124,8 @@ export class OrganizationWhatsAppSettingsComponent {
       .subscribe(status => {
         const prev = this.whatsAppStatus();
         this.whatsAppStatus.set(status);
+        this.whatsAppDeviceId.set(status.deviceId?.trim() || this.whatsAppDeviceId());
+        this.whatsAppAccountJid.set(status.accountJid?.trim() || this.whatsAppAccountJid());
 
         if (status.state === 'CONNECTED') {
           this.stopQrRefreshCycle();
@@ -191,6 +202,7 @@ export class OrganizationWhatsAppSettingsComponent {
       )
       .subscribe(response => {
         this.whatsAppDeviceId.set(response.deviceId);
+        this.whatsAppAccountJid.set(null);
         this.whatsAppSuccessMessage.set(this.translate.instant('organization.settings.whatsapp.connected'));
         this.refreshQr();
         this.loadWhatsAppStatus();
@@ -240,6 +252,7 @@ export class OrganizationWhatsAppSettingsComponent {
       )
       .subscribe(() => {
         this.whatsAppDeviceId.set(null);
+        this.whatsAppAccountJid.set(null);
         this.whatsAppStatus.set({ state: 'UNREGISTERED', message: '', canSend: false, needsReauth: false, presence: 'available' });
         this.whatsAppSuccessMessage.set(this.translate.instant('organization.settings.whatsapp.disconnected'));
         this.revokeQrUrl();
