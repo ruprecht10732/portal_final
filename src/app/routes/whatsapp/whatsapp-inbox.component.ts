@@ -9,8 +9,10 @@ import { WhatsAppDeviceStatusService } from '../../core/services/whatsapp-device
 import { WhatsAppInboxService } from '../../core/services/whatsapp-inbox.service';
 import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
 import type {
+  SendWhatsAppConversationMessageRequest,
   WhatsAppConversation,
   WhatsAppMessage,
+  WhatsAppMessageComposerType,
   WhatsAppPortalMetadata,
   WhatsAppPresenceType,
 } from '../../core/services/whatsapp-inbox.types';
@@ -37,6 +39,24 @@ type MessageReactionSummary = {
   tooltip: string;
 };
 
+type ComposerTypeOption = {
+  value: WhatsAppMessageComposerType;
+  label: string;
+  icon: string;
+};
+
+const composerTypeOptions: ComposerTypeOption[] = [
+  { value: 'text', label: 'Tekst', icon: 'text' },
+  { value: 'image', label: 'Afbeelding', icon: 'image' },
+  { value: 'video', label: 'Video', icon: 'video' },
+  { value: 'audio', label: 'Audio', icon: 'mic' },
+  { value: 'file', label: 'Bestand', icon: 'paperclip' },
+  { value: 'sticker', label: 'Sticker', icon: 'sticker' },
+  { value: 'contact', label: 'Contact', icon: 'contact-round' },
+  { value: 'location', label: 'Locatie', icon: 'map-pinned' },
+  { value: 'poll', label: 'Poll', icon: 'list-checks' },
+];
+
 @Component({
   selector: 'app-whatsapp-inbox',
   imports: [TranslateModule, LucideAngularModule, ButtonComponent, PageLayoutComponent],
@@ -60,9 +80,28 @@ export class WhatsAppInboxComponent {
   protected readonly loadingMessages = signal(false);
   protected readonly sendingMessage = signal(false);
   protected readonly sendingPresence = signal<WhatsAppPresenceType | null>(null);
+  protected readonly composerType = signal<WhatsAppMessageComposerType>('text');
   protected readonly composerBody = signal('');
+  protected readonly composerCaption = signal('');
+  protected readonly composerAttachmentName = signal<string | null>(null);
+  protected readonly composerAttachmentBase64 = signal<string | null>(null);
+  protected readonly composerIsEncodingAttachment = signal(false);
+  protected readonly composerViewOnce = signal(false);
+  protected readonly composerCompress = signal(false);
+  protected readonly composerPushToTalk = signal(false);
+  protected readonly composerContactName = signal('');
+  protected readonly composerContactPhone = signal('');
+  protected readonly composerLatitude = signal('');
+  protected readonly composerLongitude = signal('');
+  protected readonly composerPollQuestion = signal('');
+  protected readonly composerPollOptionOne = signal('');
+  protected readonly composerPollOptionTwo = signal('');
+  protected readonly composerPollOptionThree = signal('');
+  protected readonly composerPollOptionFour = signal('');
+  protected readonly composerPollMaxAnswer = signal(1);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isMobileViewport = signal(false);
+  protected readonly composerTypes = composerTypeOptions;
 
   private readonly rtfCache = new Map<string, Intl.RelativeTimeFormat>();
   private typingPresenceConversationId: string | null = null;
@@ -78,6 +117,15 @@ export class WhatsAppInboxComponent {
   protected readonly showListPane = computed(() => !this.isMobileViewport() || this.selectedConversation() == null);
   protected readonly showThreadPane = computed(() => !this.isMobileViewport() || this.selectedConversation() != null);
   protected readonly canSend = computed(() => this.deviceStatus.canSend());
+  protected readonly isUploadComposer = computed(() => this.isUploadType(this.composerType()));
+  protected readonly showCaptionComposer = computed(() => {
+    const type = this.composerType();
+    return type === 'image' || type === 'video' || type === 'file';
+  });
+  protected readonly composerValidationMessage = computed(() => this.getComposerValidationMessage());
+  protected readonly canSubmitComposer = computed(() => {
+    return this.canSend() && !this.sendingMessage() && !this.composerIsEncodingAttachment() && this.composerValidationMessage() === null;
+  });
 
   constructor() {
     if (globalThis.window !== undefined) {
@@ -174,14 +222,25 @@ export class WhatsAppInboxComponent {
 
   protected sendMessage(): void {
     const conversation = this.selectedConversation();
-    const body = this.composerBody().trim();
-    if (!conversation || body === '' || this.sendingMessage() || !this.canSend()) {
+    if (!conversation || this.sendingMessage() || !this.canSend() || this.composerIsEncodingAttachment()) {
+      return;
+    }
+
+    const validationMessage = this.composerValidationMessage();
+    if (validationMessage) {
+      this.toast.error(validationMessage);
+      return;
+    }
+
+    const payload = this.buildComposerPayload();
+    if (!payload) {
+      this.toast.error('WhatsApp-bericht kon niet worden opgebouwd.');
       return;
     }
 
     this.stopTypingPresence();
     this.sendingMessage.set(true);
-    this.inbox.sendConversationMessage(conversation.id, { body })
+    this.inbox.sendConversationMessage(conversation.id, payload)
       .pipe(
         catchError(error => {
           this.toast.error(this.normalizeError(error));
@@ -191,10 +250,90 @@ export class WhatsAppInboxComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(({ conversation: updatedConversation, message }) => {
-        this.composerBody.set('');
+        this.resetComposerState();
         this.upsertConversation(updatedConversation);
         this.upsertMessage(message);
       });
+  }
+
+  protected setComposerType(type: WhatsAppMessageComposerType): void {
+    if (this.composerType() === type) {
+      return;
+    }
+
+    this.stopTypingPresence();
+    this.resetComposerState(type);
+  }
+
+  protected async handleAttachmentSelected(event: Event): Promise<void> {
+    const input = event.target as HTMLInputElement | null;
+    const file = input?.files?.item(0);
+    if (!file) {
+      this.clearComposerAttachment();
+      return;
+    }
+
+    this.composerIsEncodingAttachment.set(true);
+    try {
+      const base64Data = await this.readFileAsBase64(file);
+      this.composerAttachmentName.set(file.name);
+      this.composerAttachmentBase64.set(base64Data);
+    } catch {
+      this.clearComposerAttachment();
+      this.toast.error('Bestand kon niet worden ingelezen.');
+    } finally {
+      this.composerIsEncodingAttachment.set(false);
+      if (input) {
+        input.value = '';
+      }
+    }
+  }
+
+  protected clearComposerAttachment(): void {
+    this.composerAttachmentName.set(null);
+    this.composerAttachmentBase64.set(null);
+  }
+
+  protected uploadAccept(): string {
+    switch (this.composerType()) {
+      case 'image':
+        return 'image/*';
+      case 'video':
+        return 'video/*';
+      case 'audio':
+        return 'audio/*';
+      case 'sticker':
+        return 'image/webp,image/*';
+      default:
+        return '*/*';
+    }
+  }
+
+  protected composerHelperText(): string {
+    if (!this.canSend()) {
+      return 'Berichten verzenden is tijdelijk niet beschikbaar.';
+    }
+    if (this.composerIsEncodingAttachment()) {
+      return 'Bestand wordt voorbereid voor verzending.';
+    }
+    return this.composerValidationMessage() ?? 'Verstuurt direct via het gekoppelde WhatsApp-apparaat.';
+  }
+
+  protected sendButtonLabel(): string {
+    if (this.sendingMessage()) {
+      return 'Versturen...';
+    }
+
+    switch (this.composerType()) {
+      case 'poll':
+        return 'Verstuur poll';
+      case 'contact':
+        return 'Verstuur contact';
+      case 'location':
+        return 'Verstuur locatie';
+      default:
+        return 'Verstuur';
+    }
   }
 
   protected setPresence(type: WhatsAppPresenceType): void {
@@ -497,6 +636,176 @@ export class WhatsAppInboxComponent {
 
   private isMessageLike(value: Partial<WhatsAppMessage>): value is WhatsAppMessage {
     return typeof value.id === 'string' && typeof value.conversationId === 'string' && typeof value.createdAt === 'string';
+  }
+
+  private resetComposerState(type: WhatsAppMessageComposerType = 'text'): void {
+    this.composerType.set(type);
+    this.composerBody.set('');
+    this.composerCaption.set('');
+    this.clearComposerAttachment();
+    this.composerViewOnce.set(false);
+    this.composerCompress.set(false);
+    this.composerPushToTalk.set(false);
+    this.composerContactName.set('');
+    this.composerContactPhone.set('');
+    this.composerLatitude.set('');
+    this.composerLongitude.set('');
+    this.composerPollQuestion.set('');
+    this.composerPollOptionOne.set('');
+    this.composerPollOptionTwo.set('');
+    this.composerPollOptionThree.set('');
+    this.composerPollOptionFour.set('');
+    this.composerPollMaxAnswer.set(1);
+  }
+
+  private isUploadType(type: WhatsAppMessageComposerType): boolean {
+    return type === 'image' || type === 'video' || type === 'audio' || type === 'file' || type === 'sticker';
+  }
+
+  private getComposerValidationMessage(): string | null {
+    const type = this.composerType();
+    if (type === 'text') {
+      return this.validateTextComposer();
+    }
+    if (this.isUploadType(type)) {
+      return this.validateUploadComposer();
+    }
+    if (type === 'contact') {
+      return this.validateContactComposer();
+    }
+    if (type === 'location') {
+      return this.validateLocationComposer();
+    }
+    if (type === 'poll') {
+      return this.validatePollComposer();
+    }
+    return null;
+  }
+
+  private validateTextComposer(): string | null {
+    return this.composerBody().trim() === '' ? 'Voer een bericht in.' : null;
+  }
+
+  private validateUploadComposer(): string | null {
+    return this.composerAttachmentBase64() ? null : 'Kies een bestand om te uploaden.';
+  }
+
+  private validateContactComposer(): string | null {
+    if (this.composerContactName().trim() === '') {
+      return 'Vul een contactnaam in.';
+    }
+    return this.composerContactPhone().trim() === '' ? 'Vul een contacttelefoon in.' : null;
+  }
+
+  private validateLocationComposer(): string | null {
+    if (this.composerLatitude().trim() === '') {
+      return 'Vul een latitude in.';
+    }
+    return this.composerLongitude().trim() === '' ? 'Vul een longitude in.' : null;
+  }
+
+  private validatePollComposer(): string | null {
+    if (this.composerPollQuestion().trim() === '') {
+      return 'Vul een poll-vraag in.';
+    }
+    const options = this.pollOptions();
+    if (options.length < 2) {
+      return 'Een poll heeft minimaal twee opties nodig.';
+    }
+    const maxAnswer = this.composerPollMaxAnswer();
+    if (maxAnswer < 1 || maxAnswer > options.length) {
+      return 'Kies een geldig maximaal aantal antwoorden.';
+    }
+    return null;
+  }
+
+  private buildComposerPayload(): SendWhatsAppConversationMessageRequest | null {
+    const type = this.composerType();
+    switch (type) {
+      case 'text':
+        return { body: this.composerBody().trim() };
+      case 'image':
+      case 'video':
+      case 'audio':
+      case 'file':
+      case 'sticker':
+        return this.buildUploadComposerPayload(type);
+      case 'contact':
+        return {
+          type,
+          contactName: this.composerContactName().trim(),
+          contactPhone: this.composerContactPhone().trim(),
+        };
+      case 'location':
+        return {
+          type,
+          latitude: this.composerLatitude().trim(),
+          longitude: this.composerLongitude().trim(),
+        };
+      case 'poll':
+        return {
+          type,
+          question: this.composerPollQuestion().trim(),
+          options: this.pollOptions(),
+          maxAnswer: this.composerPollMaxAnswer(),
+        };
+      default:
+        return null;
+    }
+  }
+
+  private buildUploadComposerPayload(type: 'image' | 'video' | 'audio' | 'file' | 'sticker'): SendWhatsAppConversationMessageRequest {
+    const payload: SendWhatsAppConversationMessageRequest = { type };
+    const caption = this.composerCaption().trim();
+    const attachment: NonNullable<SendWhatsAppConversationMessageRequest['attachment']> = {};
+    const attachmentName = this.composerAttachmentName();
+    const attachmentBase64 = this.composerAttachmentBase64();
+
+    if (attachmentName) {
+      attachment.filename = attachmentName;
+    }
+    if (attachmentBase64) {
+      attachment.base64Data = attachmentBase64;
+    }
+    if (Object.keys(attachment).length > 0) {
+      payload.attachment = attachment;
+    }
+    if ((type === 'image' || type === 'video' || type === 'file') && caption !== '') {
+      payload.caption = caption;
+    }
+    if (type === 'image' || type === 'video') {
+      payload.viewOnce = this.composerViewOnce();
+      payload.compress = this.composerCompress();
+    }
+    if (type === 'audio') {
+      payload.pushToTalk = this.composerPushToTalk();
+    }
+
+    return payload;
+  }
+
+  private pollOptions(): string[] {
+    return [
+      this.composerPollOptionOne(),
+      this.composerPollOptionTwo(),
+      this.composerPollOptionThree(),
+      this.composerPollOptionFour(),
+    ]
+      .map(option => option.trim())
+      .filter(option => option !== '');
+  }
+
+  private readFileAsBase64(file: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onerror = () => reject(reader.error ?? new Error('FileReader error'));
+      reader.onload = () => {
+        const result = typeof reader.result === 'string' ? reader.result : '';
+        const commaIndex = result.indexOf(',');
+        resolve(commaIndex >= 0 ? result.slice(commaIndex + 1) : result);
+      };
+      reader.readAsDataURL(file);
+    });
   }
 
   private normalizeError(error: unknown): string {

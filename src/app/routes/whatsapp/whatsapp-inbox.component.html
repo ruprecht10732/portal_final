@@ -240,31 +240,156 @@
 
             <footer class="border-t border-zinc-100 bg-white px-4 py-4 sm:px-6">
               <div class="mx-auto flex max-w-3xl flex-col gap-3">
-                <textarea
-                  class="min-h-28 w-full rounded-2xl border border-zinc-200 px-4 py-3 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
-                  [value]="composerBody()"
-                  [disabled]="sendingMessage() || !canSend()"
-                  placeholder="Typ je antwoord..."
-                  (input)="composerBody.set($any($event.target).value)"
-                  (focus)="startTypingPresence()"
-                  (blur)="stopTypingPresence()"
-                ></textarea>
+                <div class="flex flex-wrap gap-2">
+                  @for (type of composerTypes; track type.value) {
+                    <button
+                      type="button"
+                      class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+                      [class.border-emerald-700]="composerType() === type.value"
+                      [class.bg-emerald-700]="composerType() === type.value"
+                      [class.text-white]="composerType() === type.value"
+                      [class.border-zinc-300]="composerType() !== type.value"
+                      [class.bg-white]="composerType() !== type.value"
+                      [class.text-zinc-700]="composerType() !== type.value"
+                      [disabled]="sendingMessage() || !canSend()"
+                      [attr.aria-pressed]="composerType() === type.value"
+                      (click)="setComposerType(type.value)"
+                    >
+                      <lucide-icon [name]="type.icon" class="mr-1.5 h-3.5 w-3.5"></lucide-icon>
+                      {{ type.label }}
+                    </button>
+                  }
+                </div>
+
+                @if (composerType() === 'text') {
+                  <textarea
+                    class="min-h-28 w-full rounded-2xl border border-zinc-200 px-4 py-3 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
+                    [value]="composerBody()"
+                    [disabled]="sendingMessage() || !canSend()"
+                    placeholder="Typ je antwoord..."
+                    (input)="composerBody.set($any($event.target).value)"
+                    (focus)="startTypingPresence()"
+                    (blur)="stopTypingPresence()"
+                  ></textarea>
+                }
+
+                @if (isUploadComposer()) {
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <label class="flex flex-col gap-2 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Upload</span>
+                      <input type="file" class="text-sm" [accept]="uploadAccept()" [disabled]="sendingMessage() || !canSend()" (change)="handleAttachmentSelected($event)" />
+                      @if (composerAttachmentName(); as attachmentName) {
+                        <span class="inline-flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-xs font-medium text-zinc-700">
+                          <span class="truncate">{{ attachmentName }}</span>
+                          <button type="button" class="shrink-0 text-zinc-500 hover:text-zinc-900" (click)="clearComposerAttachment()">Verwijder</button>
+                        </span>
+                      }
+                    </label>
+
+                    @if (showCaptionComposer()) {
+                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Caption</span>
+                        <textarea
+                          class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
+                          [value]="composerCaption()"
+                          [disabled]="sendingMessage() || !canSend()"
+                          placeholder="Optionele toelichting"
+                          (input)="composerCaption.set($any($event.target).value)"
+                        ></textarea>
+                      </label>
+                    }
+                  </div>
+
+                  @if (composerType() === 'image' || composerType() === 'video') {
+                    <div class="flex flex-wrap gap-3">
+                      <label class="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700">
+                        <input type="checkbox" [checked]="composerViewOnce()" [disabled]="sendingMessage() || !canSend()" (change)="composerViewOnce.set($any($event.target).checked)" />
+                        View once
+                      </label>
+                      <label class="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700">
+                        <input type="checkbox" [checked]="composerCompress()" [disabled]="sendingMessage() || !canSend()" (change)="composerCompress.set($any($event.target).checked)" />
+                        Comprimeren
+                      </label>
+                    </div>
+                  }
+
+                  @if (composerType() === 'audio') {
+                    <label class="inline-flex items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700">
+                      <input type="checkbox" [checked]="composerPushToTalk()" [disabled]="sendingMessage() || !canSend()" (change)="composerPushToTalk.set($any($event.target).checked)" />
+                      Verstuur als spraakbericht
+                    </label>
+                  }
+                }
+
+                @if (composerType() === 'contact') {
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Naam</span>
+                      <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactName()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactName.set($any($event.target).value)" />
+                    </label>
+                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Telefoon</span>
+                      <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactPhone()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactPhone.set($any($event.target).value)" />
+                    </label>
+                  </div>
+                }
+
+                @if (composerType() === 'location') {
+                  <div class="grid gap-3 md:grid-cols-2">
+                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Latitude</span>
+                      <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLatitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLatitude.set($any($event.target).value)" />
+                    </label>
+                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Longitude</span>
+                      <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLongitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLongitude.set($any($event.target).value)" />
+                    </label>
+                  </div>
+                }
+
+                @if (composerType() === 'poll') {
+                  <div class="grid gap-3">
+                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Vraag</span>
+                      <textarea class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollQuestion()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollQuestion.set($any($event.target).value)"></textarea>
+                    </label>
+                    <div class="grid gap-3 md:grid-cols-2">
+                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 1</span>
+                        <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionOne()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionOne.set($any($event.target).value)" />
+                      </label>
+                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 2</span>
+                        <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionTwo()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionTwo.set($any($event.target).value)" />
+                      </label>
+                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 3</span>
+                        <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionThree()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionThree.set($any($event.target).value)" />
+                      </label>
+                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 4</span>
+                        <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionFour()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionFour.set($any($event.target).value)" />
+                      </label>
+                    </div>
+                    <label class="flex max-w-48 flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Max. antwoorden</span>
+                      <input type="number" min="1" class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollMaxAnswer()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollMaxAnswer.set(+$any($event.target).value || 1)" />
+                    </label>
+                  </div>
+                }
+
                 <div class="flex items-center justify-between gap-3">
                   <p class="text-xs text-zinc-500">
-                    @if (!canSend()) {
-                      Berichten verzenden is tijdelijk niet beschikbaar.
-                    } @else {
-                      Verstuurt direct via het gekoppelde WhatsApp-apparaat.
-                    }
+                    {{ composerHelperText() }}
                   </p>
                   <shared-button
                     variant="primary"
                     [fullWidth]="false"
-                    [disabled]="sendingMessage() || composerBody().trim() === '' || !canSend()"
+                    [disabled]="!canSubmitComposer()"
                     (clicked)="sendMessage()"
                   >
                     <lucide-icon name="send" class="mr-2 h-4 w-4"></lucide-icon>
-                    {{ sendingMessage() ? 'Versturen...' : 'Verstuur' }}
+                    {{ sendButtonLabel() }}
                   </shared-button>
                 </div>
               </div>
