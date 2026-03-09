@@ -1,5 +1,6 @@
 FROM node:22-alpine AS build
 WORKDIR /app
+RUN npm install -g npm@11.4.1
 ARG BUILD_CONFIGURATION=production
 COPY package*.json ./
 RUN npm ci

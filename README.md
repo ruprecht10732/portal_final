@@ -2,6 +2,13 @@
 
 This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.1.
 
+## Requirements
+
+- Node.js 22.12.0 or newer
+- npm 11.4.1 or newer
+
+The Docker build installs npm 11.4.1 explicitly so `npm ci` matches the version declared in `package.json`.
+
 ## Development server
 
 To start a local development server, run:
