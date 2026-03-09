@@ -1,6 +1,7 @@
 import { Injectable, computed, inject, signal } from '@angular/core';
 import { EMPTY, Subscription, catchError, take } from 'rxjs';
 import { OrganizationService, type WhatsAppStatus } from './organization.service';
+import type { WhatsAppPresenceType } from './whatsapp-inbox.types';
 
 @Injectable({ providedIn: 'root' })
 export class WhatsAppDeviceStatusService {
@@ -22,6 +23,7 @@ export class WhatsAppDeviceStatusService {
     const currentStatus = this.status();
     return !!currentStatus && !currentStatus.canSend;
   });
+  readonly currentPresence = computed<WhatsAppPresenceType>(() => this.status()?.presence === 'unavailable' ? 'unavailable' : 'available');
 
   startPolling(intervalMs = 30000): void {
     if (this.pollingSubscription) {

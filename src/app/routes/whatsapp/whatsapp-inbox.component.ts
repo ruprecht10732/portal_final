@@ -25,6 +25,8 @@ type WhatsAppMessageEventPayload = {
 
 type MessageMutationBadge = {
   key: string;
+  icon: string;
+  kind: 'edited' | 'deleted' | 'revoked';
   label: string;
 };
 
@@ -58,7 +60,6 @@ export class WhatsAppInboxComponent {
   protected readonly loadingMessages = signal(false);
   protected readonly sendingMessage = signal(false);
   protected readonly sendingPresence = signal<WhatsAppPresenceType | null>(null);
-  protected readonly selectedPresence = signal<WhatsAppPresenceType>('available');
   protected readonly composerBody = signal('');
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isMobileViewport = signal(false);
@@ -197,7 +198,7 @@ export class WhatsAppInboxComponent {
   }
 
   protected setPresence(type: WhatsAppPresenceType): void {
-    if (!this.canSend() || this.sendingPresence() !== null || this.selectedPresence() === type) {
+    if (!this.canSend() || this.sendingPresence() !== null || this.isPresenceSelected(type)) {
       return;
     }
 
@@ -212,7 +213,6 @@ export class WhatsAppInboxComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => {
-        this.selectedPresence.set(type);
         this.deviceStatus.refresh();
       });
   }
@@ -271,7 +271,7 @@ export class WhatsAppInboxComponent {
   }
 
   protected isPresenceSelected(type: WhatsAppPresenceType): boolean {
-    return this.selectedPresence() === type;
+    return this.deviceStatus.currentPresence() === type;
   }
 
   protected messageMutationBadges(message: WhatsAppMessage): MessageMutationBadge[] {
@@ -282,13 +282,13 @@ export class WhatsAppInboxComponent {
 
     const badges: MessageMutationBadge[] = [];
     if (portal.deleted) {
-      badges.push({ key: 'deleted', label: 'Verwijderd' });
+      badges.push({ key: 'deleted', kind: 'deleted', icon: 'trash-2', label: 'Verwijderd' });
     }
     if (portal.revoked) {
-      badges.push({ key: 'revoked', label: 'Ingetrokken' });
+      badges.push({ key: 'revoked', kind: 'revoked', icon: 'rotate-ccw', label: 'Ingetrokken' });
     }
     if (portal.edited) {
-      badges.push({ key: 'edited', label: 'Bewerkt' });
+      badges.push({ key: 'edited', kind: 'edited', icon: 'pencil', label: 'Bewerkt' });
     }
     return badges;
   }
@@ -324,6 +324,38 @@ export class WhatsAppInboxComponent {
   protected isMessageRemoved(message: WhatsAppMessage): boolean {
     const portal = this.messagePortalMetadata(message);
     return !!portal?.deleted || !!portal?.revoked;
+  }
+
+  protected mutationBadgeClass(message: WhatsAppMessage, badge: MessageMutationBadge): string {
+    const outbound = message.direction === 'outbound';
+    switch (badge.kind) {
+      case 'deleted':
+        return outbound ? 'bg-rose-500/25 text-rose-50' : 'bg-rose-100 text-rose-700';
+      case 'revoked':
+        return outbound ? 'bg-orange-500/25 text-orange-50' : 'bg-orange-100 text-orange-700';
+      default:
+        return outbound ? 'bg-sky-500/25 text-sky-50' : 'bg-sky-100 text-sky-700';
+    }
+  }
+
+  protected messageBodyClass(message: WhatsAppMessage): string {
+    const portal = this.messagePortalMetadata(message);
+    if (portal?.deleted) {
+      return message.direction === 'outbound' ? 'italic text-rose-50/90' : 'italic text-rose-700';
+    }
+    if (portal?.revoked) {
+      return message.direction === 'outbound' ? 'italic text-orange-50/90' : 'italic text-orange-700';
+    }
+    if (portal?.edited) {
+      return message.direction === 'outbound' ? 'text-white' : 'text-zinc-900';
+    }
+    return message.direction === 'outbound' ? 'text-white' : 'text-zinc-900';
+  }
+
+  protected reactionChipClass(message: WhatsAppMessage): string {
+    return message.direction === 'outbound'
+      ? 'bg-white/12 text-white ring-1 ring-inset ring-white/20'
+      : 'bg-white text-zinc-700 ring-1 ring-inset ring-zinc-200';
   }
 
   protected originalMessageBody(message: WhatsAppMessage): string | null {

@@ -293,6 +293,7 @@ export class PartnersCreateComponent implements OnInit {
       message: '',
       canSend: false,
       needsReauth: false,
+      presence: 'available',
     };
 
     this.orgService.getWhatsAppStatus().pipe(

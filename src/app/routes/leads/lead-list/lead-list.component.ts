@@ -450,6 +450,7 @@ export class LeadListComponent implements OnInit {
       message: '',
       canSend: false,
       needsReauth: false,
+      presence: 'available',
     };
 
     this.orgService.getWhatsAppStatus().pipe(

@@ -45,6 +45,7 @@
           [attr.aria-pressed]="isPresenceSelected('available')"
           (click)="setPresence('available')"
         >
+          <lucide-icon name="radio" class="mr-1 h-3.5 w-3.5"></lucide-icon>
           Online
         </button>
         <button
@@ -60,6 +61,7 @@
           [attr.aria-pressed]="isPresenceSelected('unavailable')"
           (click)="setPresence('unavailable')"
         >
+          <lucide-icon name="moon-star" class="mr-1 h-3.5 w-3.5"></lucide-icon>
           Afwezig
         </button>
       </div>
@@ -182,12 +184,10 @@
                             <div class="mb-2 flex flex-wrap items-center gap-1.5">
                               @for (badge of mutationBadges; track badge.key) {
                                 <span
-                                  class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em]"
-                                  [class.bg-emerald-500/20]="message.direction === 'outbound'"
-                                  [class.text-emerald-50]="message.direction === 'outbound'"
-                                  [class.bg-zinc-100]="message.direction === 'inbound'"
-                                  [class.text-zinc-500]="message.direction === 'inbound'"
+                                  class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em]"
+                                  [class]="mutationBadgeClass(message, badge)"
                                 >
+                                  <lucide-icon [name]="badge.icon" class="h-3 w-3"></lucide-icon>
                                   {{ badge.label }}
                                 </span>
                               }
@@ -195,7 +195,7 @@
                           }
                         }
 
-                        <p class="whitespace-pre-wrap text-sm leading-relaxed" [class.italic]="isMessageRemoved(message)" [class.opacity-80]="isMessageRemoved(message)">
+                        <p class="whitespace-pre-wrap text-sm leading-relaxed" [class]="messageBodyClass(message)">
                           {{ message.body }}
                         </p>
 
@@ -211,10 +211,7 @@
                               @for (reaction of reactions; track reaction.key) {
                                 <span
                                   class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold"
-                                  [class.bg-emerald-500/20]="message.direction === 'outbound'"
-                                  [class.text-emerald-50]="message.direction === 'outbound'"
-                                  [class.bg-zinc-100]="message.direction === 'inbound'"
-                                  [class.text-zinc-700]="message.direction === 'inbound'"
+                                  [class]="reactionChipClass(message)"
                                   [attr.title]="reaction.tooltip"
                                 >
                                   <span>{{ reaction.reaction }}</span>

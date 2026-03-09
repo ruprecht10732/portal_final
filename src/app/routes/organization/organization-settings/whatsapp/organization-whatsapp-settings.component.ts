@@ -240,7 +240,7 @@ export class OrganizationWhatsAppSettingsComponent {
       )
       .subscribe(() => {
         this.whatsAppDeviceId.set(null);
-        this.whatsAppStatus.set({ state: 'UNREGISTERED', message: '', canSend: false, needsReauth: false });
+        this.whatsAppStatus.set({ state: 'UNREGISTERED', message: '', canSend: false, needsReauth: false, presence: 'available' });
         this.whatsAppSuccessMessage.set(this.translate.instant('organization.settings.whatsapp.disconnected'));
         this.revokeQrUrl();
       });
