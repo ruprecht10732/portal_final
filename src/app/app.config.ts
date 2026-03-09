@@ -7,6 +7,7 @@ import { ColorPickerModule } from '@iplab/ngx-color-picker';
 import {
   CircleAlert,
   Bell,
+  ArrowDownLeft,
   ArrowLeft,
   ArrowUpRight,
   ArrowLeftRight,
@@ -173,6 +174,7 @@ export const appConfig: ApplicationConfig = {
       LucideAngularModule.pick({
         CircleAlert,
         Bell,
+        ArrowDownLeft,
         ArrowLeft,
         ArrowUpRight,
         ArrowLeftRight,
