@@ -15,6 +15,11 @@ export interface AIJobState {
   quoteId?: string;
   quoteNumber?: string;
   itemCount?: number;
+  feedbackRating?: -1 | 1;
+  feedbackComment?: string;
+  feedbackAt?: string;
+  cancellationReason?: string;
+  viewedAt?: string;
   leadId: string;
   leadServiceId: string;
   startedAt: string;
@@ -140,7 +145,7 @@ export class AIJobService {
     );
   }
 
-  cancel(jobId: string): Observable<void> {
+  cancel(jobId: string, reason?: string): Observable<void> {
     const target = this.jobsState()[jobId];
     if (!target) {
       return new Observable<void>(subscriber => {
@@ -149,12 +154,46 @@ export class AIJobService {
       });
     }
 
-    return this.quotesService.cancelGenerateJob(jobId).pipe(
+    return this.quotesService.cancelGenerateJob(jobId, reason).pipe(
       tap(job => {
         this.upsertJob(this.mapJob(job));
       }),
       catchError(error => {
         this.toast.error('Kon AI taak niet annuleren');
+        return throwError(() => error);
+      }),
+      map(() => undefined),
+    );
+  }
+
+  submitFeedback(jobId: string, rating: -1 | 1, comment?: string): Observable<void> {
+    const payload = comment ? { rating, comment } : { rating };
+    return this.quotesService.submitGenerateJobFeedback(jobId, payload).pipe(
+      tap(job => {
+        this.upsertJob(this.mapJob(job));
+      }),
+      catchError(error => {
+        this.toast.error('Kon AI feedback niet opslaan');
+        return throwError(() => error);
+      }),
+      map(() => undefined),
+    );
+  }
+
+  markViewed(jobId: string): Observable<void> {
+    const target = this.jobsState()[jobId];
+    if (!target || target.viewedAt) {
+      return new Observable<void>(subscriber => {
+        subscriber.next();
+        subscriber.complete();
+      });
+    }
+
+    return this.quotesService.markGenerateJobViewed(jobId).pipe(
+      tap(job => {
+        this.upsertJob(this.mapJob(job));
+      }),
+      catchError(error => {
         return throwError(() => error);
       }),
       map(() => undefined),
@@ -332,6 +371,11 @@ export class AIJobService {
       ...(job.quoteId ? { quoteId: job.quoteId } : {}),
       ...(job.quoteNumber ? { quoteNumber: job.quoteNumber } : {}),
       ...(typeof job.itemCount === 'number' ? { itemCount: job.itemCount } : {}),
+      ...(job.feedbackRating ? { feedbackRating: job.feedbackRating } : {}),
+      ...(job.feedbackComment ? { feedbackComment: job.feedbackComment } : {}),
+      ...(job.feedbackAt ? { feedbackAt: job.feedbackAt } : {}),
+      ...(job.cancellationReason ? { cancellationReason: job.cancellationReason } : {}),
+      ...(job.viewedAt ? { viewedAt: job.viewedAt } : {}),
       leadId: job.leadId,
       leadServiceId: job.leadServiceId,
       startedAt: job.startedAt,

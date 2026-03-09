@@ -551,6 +551,11 @@ export interface GenerateQuoteAcceptedResponse {
   status: GenerateQuoteJobStatus;
 }
 
+export interface GenerateQuoteJobFeedbackRequest {
+  rating: -1 | 1;
+  comment?: string;
+}
+
 export interface GenerateQuoteJobResponse {
   jobId: string;
   status: GenerateQuoteJobStatus;
@@ -560,6 +565,11 @@ export interface GenerateQuoteJobResponse {
   quoteId?: string;
   quoteNumber?: string;
   itemCount?: number;
+  feedbackRating?: -1 | 1;
+  feedbackComment?: string;
+  feedbackAt?: string;
+  cancellationReason?: string;
+  viewedAt?: string;
   leadId: string;
   leadServiceId: string;
   startedAt: string;

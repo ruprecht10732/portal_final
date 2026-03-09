@@ -25,6 +25,8 @@ export class AIJobSidebarPanelComponent {
   protected readonly loading = this.aiJobs.loading;
   protected readonly hasCompleted = computed(() => this.jobs().some(job => job.status === 'completed'));
   protected readonly cancellingJobId = signal<string | null>(null);
+  protected readonly feedbackJobId = signal<string | null>(null);
+  protected readonly unviewedJobIds = computed(() => new Set(this.jobs().filter(job => !job.viewedAt && this.isTerminal(job)).map(job => job.jobId)));
 
   constructor() {
     effect(() => {
@@ -57,9 +59,25 @@ export class AIJobSidebarPanelComponent {
       return;
     }
 
+    const reason = globalThis.window?.prompt('Waarom annuleer je deze AI taak? (optioneel)')?.trim();
     this.cancellingJobId.set(job.jobId);
-    this.aiJobs.cancel(job.jobId).pipe(
+    this.aiJobs.cancel(job.jobId, reason).pipe(
       finalize(() => this.cancellingJobId.set(null)),
+    ).subscribe();
+  }
+
+  protected onSubmitFeedback(event: MouseEvent, job: AIJobState, rating: -1 | 1): void {
+    event.stopPropagation();
+
+    if (job.status !== 'completed' && job.status !== 'failed') {
+      return;
+    }
+
+    const promptLabel = rating === 1 ? 'Wat werkte goed? (optioneel)' : 'Wat ging er mis? (optioneel)';
+    const comment = globalThis.window?.prompt(promptLabel, job.feedbackComment ?? '')?.trim();
+    this.feedbackJobId.set(job.jobId);
+    this.aiJobs.submitFeedback(job.jobId, rating, comment).pipe(
+      finalize(() => this.feedbackJobId.set(null)),
     ).subscribe();
   }
 
@@ -72,6 +90,10 @@ export class AIJobSidebarPanelComponent {
       return;
     }
 
+    if (jobId) {
+      this.aiJobs.markViewed(jobId).subscribe();
+    }
+
     if (quoteId) {
       void this.router.navigate(['/app/offertes', quoteId]);
       this.close();
@@ -79,5 +101,9 @@ export class AIJobSidebarPanelComponent {
     }
 
     this.close();
+  }
+
+  protected isTerminal(job: AIJobState): boolean {
+    return job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled';
   }
 }

@@ -19,6 +19,7 @@ import type {
   PresignedDownloadResponse,
   GenerateQuoteRequest,
   GenerateQuoteAcceptedResponse,
+  GenerateQuoteJobFeedbackRequest,
   GenerateQuoteJobResponse,
   GenerateQuoteJobsListResponse,
   ExternalAccountingProvider,
@@ -175,8 +176,21 @@ export class QuotesService {
   }
 
   /** Cancel an active async quote generation job */
-  cancelGenerateJob(jobId: string): Observable<GenerateQuoteJobResponse> {
-    return this.http.post<unknown>(`${this.baseUrl}/generate-jobs/${jobId}/cancel`, {}).pipe(
+  cancelGenerateJob(jobId: string, reason?: string): Observable<GenerateQuoteJobResponse> {
+    const body = reason && reason.trim().length > 0 ? { reason: reason.trim() } : {};
+    return this.http.post<unknown>(`${this.baseUrl}/generate-jobs/${jobId}/cancel`, body).pipe(
+      map((response) => this.normalizeGenerateJobResponse(response)),
+    );
+  }
+
+  submitGenerateJobFeedback(jobId: string, data: GenerateQuoteJobFeedbackRequest): Observable<GenerateQuoteJobResponse> {
+    return this.http.post<unknown>(`${this.baseUrl}/generate-jobs/${jobId}/feedback`, data).pipe(
+      map((response) => this.normalizeGenerateJobResponse(response)),
+    );
+  }
+
+  markGenerateJobViewed(jobId: string): Observable<GenerateQuoteJobResponse> {
+    return this.http.post<unknown>(`${this.baseUrl}/generate-jobs/${jobId}/viewed`, {}).pipe(
       map((response) => this.normalizeGenerateJobResponse(response)),
     );
   }
@@ -257,6 +271,11 @@ export class QuotesService {
     const quoteNumber = readString('quoteNumber', 'quote_number');
     const itemCount = readNumber('itemCount', 'item_count');
     const finishedAt = readString('finishedAt', 'finished_at');
+    const feedbackComment = readString('feedbackComment', 'feedback_comment');
+    const feedbackAt = readString('feedbackAt', 'feedback_at') ?? readString('feedbackSubmittedAt', 'feedback_submitted_at');
+    const cancellationReason = readString('cancellationReason', 'cancellation_reason');
+    const viewedAt = readString('viewedAt', 'viewed_at');
+    const feedbackRating = readNumber('feedbackRating', 'feedback_rating');
 
     const normalized: GenerateQuoteJobResponse = {
       jobId: readString('jobId', 'job_id') ?? '',
@@ -273,6 +292,11 @@ export class QuotesService {
     if (quoteId !== undefined) normalized.quoteId = quoteId;
     if (quoteNumber !== undefined) normalized.quoteNumber = quoteNumber;
     if (typeof itemCount === 'number') normalized.itemCount = itemCount;
+    if (feedbackRating === 1 || feedbackRating === -1) normalized.feedbackRating = feedbackRating;
+    if (feedbackComment !== undefined) normalized.feedbackComment = feedbackComment;
+    if (feedbackAt !== undefined) normalized.feedbackAt = feedbackAt;
+    if (cancellationReason !== undefined) normalized.cancellationReason = cancellationReason;
+    if (viewedAt !== undefined) normalized.viewedAt = viewedAt;
     if (finishedAt !== undefined) normalized.finishedAt = finishedAt;
 
     return normalized;
