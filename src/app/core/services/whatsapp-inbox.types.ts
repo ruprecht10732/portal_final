@@ -26,6 +26,33 @@ export interface WhatsAppPortalReaction extends WhatsAppPortalMutationAudit {
 
 export interface WhatsAppPortalMetadata {
   originalBody?: string;
+  messageType?: string;
+  text?: string;
+  caption?: string;
+  attachment?: {
+    filename?: string;
+    remoteUrl?: string;
+    hasInlineData?: boolean;
+  };
+  contact?: {
+    name?: string;
+    phone?: string;
+  };
+  link?: string;
+  location?: {
+    latitude?: string;
+    longitude?: string;
+  };
+  poll?: {
+    question?: string;
+    options?: string[];
+    maxAnswer?: number;
+  };
+  viewOnce?: boolean;
+  compress?: boolean;
+  isForwarded?: boolean;
+  pushToTalk?: boolean;
+  durationSeconds?: number;
   edited?: WhatsAppPortalMutationAudit;
   deleted?: WhatsAppPortalMutationAudit;
   revoked?: WhatsAppPortalMutationAudit;
@@ -64,8 +91,42 @@ export interface WhatsAppConversationMessagesResponse {
   messages: WhatsAppMessage[];
 }
 
+export type WhatsAppMessageComposerType =
+  | 'text'
+  | 'image'
+  | 'video'
+  | 'audio'
+  | 'file'
+  | 'sticker'
+  | 'contact'
+  | 'link'
+  | 'location'
+  | 'poll';
+
+export interface SendWhatsAppConversationAttachmentRequest {
+  filename?: string;
+  base64Data?: string;
+  remoteUrl?: string;
+}
+
 export interface SendWhatsAppConversationMessageRequest {
-  body: string;
+  type?: WhatsAppMessageComposerType;
+  body?: string;
+  caption?: string;
+  viewOnce?: boolean;
+  compress?: boolean;
+  isForwarded?: boolean;
+  pushToTalk?: boolean;
+  attachment?: SendWhatsAppConversationAttachmentRequest;
+  contactName?: string;
+  contactPhone?: string;
+  link?: string;
+  latitude?: string;
+  longitude?: string;
+  question?: string;
+  options?: string[];
+  maxAnswer?: number;
+  durationSeconds?: number;
 }
 
 export type WhatsAppPresenceType = 'available' | 'unavailable';
