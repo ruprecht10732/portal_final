@@ -79,6 +79,7 @@ export class WhatsAppInboxComponent {
   protected readonly loadingConversations = signal(false);
   protected readonly loadingMessages = signal(false);
   protected readonly sendingMessage = signal(false);
+  protected readonly suggestingReply = signal(false);
   protected readonly sendingPresence = signal<WhatsAppPresenceType | null>(null);
   protected readonly composerType = signal<WhatsAppMessageComposerType>('text');
   protected readonly composerBody = signal('');
@@ -117,6 +118,10 @@ export class WhatsAppInboxComponent {
   protected readonly showListPane = computed(() => !this.isMobileViewport() || this.selectedConversation() == null);
   protected readonly showThreadPane = computed(() => !this.isMobileViewport() || this.selectedConversation() != null);
   protected readonly canSend = computed(() => this.deviceStatus.canSend());
+  protected readonly canSuggestReply = computed(() => {
+    const conversation = this.selectedConversation();
+    return !!conversation?.leadId && !this.loadingMessages() && !this.sendingMessage() && !this.suggestingReply();
+  });
   protected readonly isUploadComposer = computed(() => this.isUploadType(this.composerType()));
   protected readonly showCaptionComposer = computed(() => {
     const type = this.composerType();
@@ -256,6 +261,28 @@ export class WhatsAppInboxComponent {
       });
   }
 
+  protected suggestReply(): void {
+    const conversation = this.selectedConversation();
+    if (!conversation?.leadId || this.suggestingReply()) {
+      return;
+    }
+
+    this.suggestingReply.set(true);
+    this.inbox.suggestReply(conversation.id)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.suggestingReply.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(({ suggestion }) => {
+        this.resetComposerState('text');
+        this.composerBody.set(suggestion);
+      });
+  }
+
   protected setComposerType(type: WhatsAppMessageComposerType): void {
     if (this.composerType() === type) {
       return;
@@ -310,6 +337,9 @@ export class WhatsAppInboxComponent {
   }
 
   protected composerHelperText(): string {
+    if (this.suggestingReply()) {
+      return 'AI-suggestie wordt gegenereerd.';
+    }
     if (!this.canSend()) {
       return 'Berichten verzenden is tijdelijk niet beschikbaar.';
     }

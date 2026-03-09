@@ -382,15 +382,29 @@
                   <p class="text-xs text-zinc-500">
                     {{ composerHelperText() }}
                   </p>
-                  <shared-button
-                    variant="primary"
-                    [fullWidth]="false"
-                    [disabled]="!canSubmitComposer()"
-                    (clicked)="sendMessage()"
-                  >
-                    <lucide-icon name="send" class="mr-2 h-4 w-4"></lucide-icon>
-                    {{ sendButtonLabel() }}
-                  </shared-button>
+                  <div class="flex items-center gap-2">
+                    @if (selectedConversation()?.leadId) {
+                      <shared-button
+                        variant="secondary"
+                        [fullWidth]="false"
+                        [loading]="suggestingReply()"
+                        [disabled]="!canSuggestReply()"
+                        (clicked)="suggestReply()"
+                      >
+                        <lucide-icon name="sparkles" class="mr-2 h-4 w-4"></lucide-icon>
+                        Suggest reply
+                      </shared-button>
+                    }
+                    <shared-button
+                      variant="primary"
+                      [fullWidth]="false"
+                      [disabled]="!canSubmitComposer()"
+                      (clicked)="sendMessage()"
+                    >
+                      <lucide-icon name="send" class="mr-2 h-4 w-4"></lucide-icon>
+                      {{ sendButtonLabel() }}
+                    </shared-button>
+                  </div>
                 </div>
               </div>
             </footer>

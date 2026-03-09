@@ -147,6 +147,10 @@ export interface SendWhatsAppConversationMessageResponse {
   message: WhatsAppMessage;
 }
 
+export interface SuggestWhatsAppReplyResponse {
+  suggestion: string;
+}
+
 export interface MarkWhatsAppConversationReadResponse {
   status: string;
   providerSynced: boolean;
