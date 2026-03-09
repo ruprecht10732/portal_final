@@ -234,6 +234,14 @@
         "title": "WhatsApp",
         "statusLabel": "Verbindingsstatus",
         "statusHint": "Koppel een apparaat om WhatsApp updates te versturen.",
+        "banner": {
+          "title": "WhatsApp vereist actie",
+          "action": "WhatsApp-apparaat koppelen",
+          "dismiss": "Sluiten"
+        },
+        "messages": {
+          "deviceConfigLostUpstream": "De WhatsApp-configuratie is verloren gegaan. Registreer WhatsApp opnieuw."
+        },
         "connect": "WhatsApp koppelen",
         "reconnect": "Opnieuw verbinden",
         "disconnect": "Ontkoppelen",

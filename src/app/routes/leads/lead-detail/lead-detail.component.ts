@@ -5,6 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, finalize, firstValueFrom, forkJoin, of, switchMap, take, timer } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
+import { WhatsAppDeviceStatusService } from '../../../core/services/whatsapp-device-status.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { formatFullAddress } from '../../../core/utils/address.util';
 import { LeadsService } from '../../../core/services/leads.service';
@@ -159,6 +160,7 @@ export class LeadDetailComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly whatsAppDeviceStatus = inject(WhatsAppDeviceStatusService);
 
   private readonly partnerSearch$ = new Subject<string>();
   private readonly lang = toSignal(this.translate.onLangChange, {
@@ -575,11 +577,14 @@ export class LeadDetailComponent implements OnInit {
     const today = new Date();
     return today.toISOString().split('T')[0] ?? '';
   });
+  protected readonly canUseWhatsAppDevice = computed(() => this.whatsAppDeviceStatus.status()?.canSend ?? true);
 
   // Track which service ID we have analysis loaded for
   private loadedAnalysisServiceId: string | null = null;
 
   constructor() {
+    this.whatsAppDeviceStatus.startPolling();
+
     this.partnerSearch$
       .pipe(
         debounceTime(350),
@@ -1569,6 +1574,12 @@ export class LeadDetailComponent implements OnInit {
       return;
     }
 
+    const whatsAppStatus = this.whatsAppDeviceStatus.status();
+    if (whatsAppStatus && !whatsAppStatus.canSend) {
+      this.openWhatsAppDeviceSettings();
+      return;
+    }
+
     this.timelineWhatsAppSendingItemId.set(itemId);
     this.leadsService.sendTimelineWhatsApp(lead.id, itemId)
       .pipe(
@@ -1586,6 +1597,10 @@ export class LeadDetailComponent implements OnInit {
           this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         },
       });
+  }
+
+  protected openWhatsAppDeviceSettings(): void {
+    void this.router.navigate(['/app/organization/settings/whatsapp']);
   }
 
   protected composeEmail(email: string | undefined, message: string): void {

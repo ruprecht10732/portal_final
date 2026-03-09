@@ -355,6 +355,7 @@
         "copyLabel": "Copy",
         "copiedLabel": "Copied",
         "sendWhatsApp": "Send via WhatsApp",
+        "connectWhatsAppDevice": "Connect WhatsApp device",
         "sendingWhatsApp": "Sending...",
         "replyWhatsApp": "Reply via WhatsApp",
         "replyEmail": "Reply via Email",

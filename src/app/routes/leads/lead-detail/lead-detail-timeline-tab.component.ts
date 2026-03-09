@@ -20,6 +20,7 @@ export class LeadDetailTimelineTabComponent {
   timelineError = input<string | null>(null);
   copiedContactMessage = input<string | null>(null);
   sendingWhatsAppItemId = input<string | null>(null);
+  whatsAppDeviceAvailable = input<boolean>(true);
   leadPhone = input<string>('');
   leadEmail = input<string | null>(null);
   approvingAppointmentId = input<string | null>(null);
@@ -41,6 +42,7 @@ export class LeadDetailTimelineTabComponent {
 
   openCallLogger = output<void>();
   sendWhatsApp = output<{ itemId: string }>();
+  connectWhatsAppDevice = output<void>();
   composeEmail = output<{ email: string | undefined; message: string }>();
   copyContactMessage = output<{ itemId: string; message: string }>();
   viewDraftQuote = output<string>();

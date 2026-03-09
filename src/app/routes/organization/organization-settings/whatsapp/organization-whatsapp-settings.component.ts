@@ -3,6 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize, Subscription, timer } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { OrganizationService, WhatsAppStatus } from '../../../../core/services/organization.service';
+import { localizeWhatsAppStatusMessage } from '../../../../core/utils/whatsapp-status.util';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
 import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
@@ -41,6 +42,9 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly isWhatsAppConnected = computed(() => this.whatsAppStatus()?.state === 'CONNECTED');
   protected readonly isWhatsAppUnregistered = computed(() => !this.whatsAppDeviceId());
   protected readonly qrUrl = computed(() => this.qrBlobUrl() ?? '');
+  protected readonly whatsAppStatusMessage = computed(() => {
+    return localizeWhatsAppStatusMessage(this.whatsAppStatus()?.message, this.translate);
+  });
 
   constructor() {
     this.destroyRef.onDestroy(() => {

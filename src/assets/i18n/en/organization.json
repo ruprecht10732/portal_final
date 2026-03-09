@@ -234,6 +234,14 @@
         "title": "WhatsApp",
         "statusLabel": "Connection status",
         "statusHint": "Connect a device to start sending WhatsApp updates.",
+        "banner": {
+          "title": "WhatsApp needs attention",
+          "action": "Connect WhatsApp device",
+          "dismiss": "Dismiss"
+        },
+        "messages": {
+          "deviceConfigLostUpstream": "Device configuration was lost. Please register WhatsApp again."
+        },
         "connect": "Connect WhatsApp",
         "reconnect": "Reconnect",
         "disconnect": "Disconnect",

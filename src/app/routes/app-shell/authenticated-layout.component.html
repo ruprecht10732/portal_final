@@ -1,5 +1,36 @@
-<main class="h-screen overflow-hidden bg-zinc-50">
-  <div class="flex h-full">
+<main class="flex h-screen flex-col overflow-hidden bg-zinc-50">
+  @if (showWhatsAppReconnectBanner()) {
+    <div class="w-full border-b border-amber-200 bg-amber-50 px-4 py-3 text-amber-950">
+      <div class="flex w-full flex-col gap-3 md:flex-row md:items-start md:justify-between">
+        <div class="space-y-1">
+          <p class="text-sm font-semibold">
+            {{ 'organization.settings.whatsapp.banner.title' | translate }}
+          </p>
+          <p class="text-sm text-amber-800">
+            {{ whatsAppBannerMessage() ?? ('organization.settings.whatsapp.statusHint' | translate) }}
+          </p>
+        </div>
+
+        <div class="flex items-center gap-2 self-start">
+          <a
+            routerLink="/app/organization/settings/whatsapp"
+            class="inline-flex min-h-10 items-center justify-center rounded-lg bg-amber-900 px-3 py-2 text-sm font-medium text-white transition hover:bg-amber-950"
+          >
+            {{ 'organization.settings.whatsapp.banner.action' | translate }}
+          </a>
+          <button
+            type="button"
+            class="inline-flex min-h-10 items-center justify-center rounded-lg px-3 py-2 text-sm font-medium text-amber-900 transition hover:bg-amber-100"
+            (click)="dismissWhatsAppBanner()"
+          >
+            {{ 'organization.settings.whatsapp.banner.dismiss' | translate }}
+          </button>
+        </div>
+      </div>
+    </div>
+  }
+
+  <div class="flex min-h-0 flex-1">
     <!-- Desktop sidebar -->
     <div class="hidden lg:flex">
       <app-authenticated-sidebar></app-authenticated-sidebar>
@@ -10,6 +41,7 @@
       <div class="flex min-h-0 flex-1 flex-col min-w-0">
         <section class="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
           <app-mobile-section-tabs></app-mobile-section-tabs>
+
           <router-outlet />
         </section>
       </div>
