@@ -67,66 +67,159 @@
       </div>
     </section>
 
-    <section class="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(340px,420px)_1fr]">
+    <section class="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(360px,430px)_1fr]">
       @if (showListPane()) {
         <aside class="flex min-h-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm">
-          <header class="border-b border-zinc-200 px-4 py-3">
-            <div class="flex items-center justify-between gap-4">
+          <header class="border-b border-zinc-200 bg-white/95 px-4 py-4 backdrop-blur-sm">
+            <div class="flex items-start justify-between gap-4">
               <div>
-                <h2 class="text-sm font-black uppercase tracking-widest text-zinc-900">Gesprekken</h2>
-                <p class="text-xs text-zinc-500">{{ conversations().length }} actief</p>
+                <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Inbox</p>
+                <h2 class="mt-1 text-lg font-black tracking-tight text-zinc-950">Gesprekken</h2>
+                <p class="mt-1 text-xs text-zinc-500">
+                  {{ filteredConversations().length }} van {{ conversations().length }} zichtbaar
+                </p>
               </div>
               <button
                 type="button"
-                class="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100"
+                class="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
                 (click)="loadConversations()"
                 aria-label="Ververs gesprekken"
               >
-                <lucide-icon name="refresh-cw" class="h-4 w-4"></lucide-icon>
+                <lucide-icon name="refresh-cw" class="h-4 w-4" [class.animate-spin]="loadingConversations()"></lucide-icon>
               </button>
             </div>
+
+            <div class="mt-4 flex flex-wrap items-center gap-2 rounded-2xl bg-zinc-100 p-1">
+              <button
+                type="button"
+                class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+                [class.bg-white]="conversationListFilter() === 'all'"
+                [class.text-zinc-900]="conversationListFilter() === 'all'"
+                [class.shadow-sm]="conversationListFilter() === 'all'"
+                [class.text-zinc-500]="conversationListFilter() !== 'all'"
+                [attr.aria-pressed]="conversationListFilter() === 'all'"
+                (click)="conversationListFilter.set('all')"
+              >
+                Alles
+              </button>
+              <button
+                type="button"
+                class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+                [class.bg-white]="conversationListFilter() === 'unread'"
+                [class.text-zinc-900]="conversationListFilter() === 'unread'"
+                [class.shadow-sm]="conversationListFilter() === 'unread'"
+                [class.text-zinc-500]="conversationListFilter() !== 'unread'"
+                [attr.aria-pressed]="conversationListFilter() === 'unread'"
+                (click)="conversationListFilter.set('unread')"
+              >
+                Ongelezen
+                @if (unreadConversationCount() > 0) {
+                  <span class="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                    {{ unreadConversationCount() }}
+                  </span>
+                }
+              </button>
+            </div>
+
+            <div class="relative mt-3">
+              <lucide-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"></lucide-icon>
+              <input
+                type="search"
+                class="conversation-search-input h-11 w-full rounded-2xl border border-zinc-200 bg-white pl-10 pr-10 text-sm text-zinc-900 outline-none transition-shadow placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-900/10"
+                placeholder="Zoek op naam, nummer of preview"
+                [value]="conversationSearchQuery()"
+                (input)="conversationSearchQuery.set($any($event.target).value)"
+              />
+              @if (hasConversationSearch()) {
+                <button
+                  type="button"
+                  class="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+                  aria-label="Wis zoekopdracht"
+                  (click)="clearConversationSearch()"
+                >
+                  <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+                </button>
+              }
+            </div>
+
+            @if (errorMessage()) {
+              <div class="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
+                {{ errorMessage() }}
+              </div>
+            }
           </header>
 
           <div class="flex-1 overflow-y-auto">
-            @if (loadingConversations()) {
-              <div class="flex h-full items-center justify-center py-12 text-zinc-400">
+            @if (loadingConversations() && conversations().length === 0) {
+              <div class="flex h-full flex-col items-center justify-center gap-3 px-6 py-20 text-center text-zinc-400">
                 <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Gesprekken worden geladen</p>
               </div>
             } @else if (conversations().length === 0) {
               <div class="flex h-full flex-col items-center justify-center px-6 py-20 text-center">
                 <lucide-icon name="message-circle" class="mb-4 h-10 w-10 text-zinc-200"></lucide-icon>
                 <p class="text-sm font-semibold text-zinc-700">Nog geen WhatsApp-gesprekken</p>
-                <p class="mt-2 max-w-xs text-xs text-zinc-500">
+                <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-500">
                   Nieuwe gesprekken verschijnen hier zodra er vanuit de portal een WhatsApp-bericht is verstuurd.
+                </p>
+              </div>
+            } @else if (filteredConversations().length === 0) {
+              <div class="flex h-full flex-col items-center justify-center px-6 py-20 text-center">
+                <lucide-icon name="search-x" class="mb-4 h-10 w-10 text-zinc-200"></lucide-icon>
+                <p class="text-sm font-semibold text-zinc-700">Geen gesprekken gevonden</p>
+                <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-500">
+                  Pas je zoekopdracht of filter aan om weer gesprekken te tonen.
                 </p>
               </div>
             } @else {
               <ul class="divide-y divide-zinc-100">
-                @for (conversation of conversations(); track conversation.id) {
+                @for (conversation of filteredConversations(); track conversation.id) {
                   <li>
                     <button
                       type="button"
-                      class="flex w-full flex-col gap-1 px-4 py-4 text-left transition-colors hover:bg-zinc-50"
-                      [class.bg-zinc-50]="selectedConversationId() === conversation.id"
+                      class="group flex w-full items-start gap-3 border-l-4 border-l-transparent px-4 py-4 text-left transition-all hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900"
+                      [class.bg-emerald-50]="selectedConversationId() === conversation.id"
+                      [class.border-l-emerald-600]="selectedConversationId() === conversation.id"
                       (click)="selectConversation(conversation.id)"
                     >
-                      <div class="flex items-center justify-between gap-3">
-                        <div class="min-w-0">
-                          <p class="truncate text-sm font-semibold text-zinc-900">{{ displayName(conversation) }}</p>
-                          <p class="truncate text-[11px] text-zinc-500">{{ conversation.phoneNumber }}</p>
-                        </div>
-                        <div class="flex shrink-0 items-center gap-2">
-                          @if (conversation.unreadCount > 0) {
-                            <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                              {{ conversation.unreadCount }}
-                            </span>
-                          }
-                          <span class="text-[10px] font-medium text-zinc-400">{{ relativeTime(conversation.lastMessageAt) }}</span>
-                        </div>
+                      <div class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-black text-zinc-700" [class.bg-emerald-100]="conversation.unreadCount > 0" [class.text-emerald-700]="conversation.unreadCount > 0">
+                        {{ conversationInitial(conversation) }}
+                        @if (conversation.unreadCount > 0) {
+                          <span class="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500"></span>
+                        }
                       </div>
-                      <p class="truncate text-xs" [class.text-zinc-700]="conversation.unreadCount > 0" [class.font-medium]="conversation.unreadCount > 0" [class.text-zinc-500]="conversation.unreadCount === 0">
-                        {{ conversation.lastMessagePreview || 'Geen berichtinhoud' }}
-                      </p>
+
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-3">
+                          <div class="min-w-0">
+                            <div class="flex items-center gap-2">
+                              <p class="truncate text-sm text-zinc-900" [class.font-black]="conversation.unreadCount > 0" [class.font-semibold]="conversation.unreadCount === 0">
+                                {{ displayName(conversation) }}
+                              </p>
+                              @if (conversation.unreadCount > 0) {
+                                <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                                  {{ conversation.unreadCount }}
+                                </span>
+                              }
+                            </div>
+                            <p class="mt-0.5 truncate text-[11px] text-zinc-500">{{ conversation.phoneNumber }}</p>
+                          </div>
+
+                          <div class="flex shrink-0 flex-col items-end gap-1">
+                            <span class="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-400">
+                              {{ relativeTime(conversation.lastMessageAt) }}
+                            </span>
+                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em]" [class.bg-zinc-100]="conversation.lastMessageDirection === 'inbound'" [class.text-zinc-600]="conversation.lastMessageDirection === 'inbound'" [class.bg-emerald-100]="conversation.lastMessageDirection === 'outbound'" [class.text-emerald-700]="conversation.lastMessageDirection === 'outbound'">
+                              <lucide-icon [name]="conversationDirectionIcon(conversation)" class="h-3 w-3"></lucide-icon>
+                              {{ conversationDirectionLabel(conversation) }}
+                            </span>
+                          </div>
+                        </div>
+
+                        <p class="conversation-preview mt-2 text-xs leading-5" [class.font-medium]="conversation.unreadCount > 0" [class.text-zinc-700]="conversation.unreadCount > 0" [class.text-zinc-500]="conversation.unreadCount === 0">
+                          {{ conversationPreview(conversation) }}
+                        </p>
+                      </div>
                     </button>
                   </li>
                 }
@@ -139,7 +232,7 @@
       @if (showThreadPane()) {
         <section class="flex min-h-[520px] flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm">
           @if (selectedConversation()) {
-            <header class="border-b border-zinc-100 px-4 py-4 sm:px-6">
+            <header class="border-b border-zinc-100 bg-white/95 px-4 py-4 backdrop-blur-sm sm:px-6">
               <div class="flex items-center gap-3">
                 <button
                   type="button"
@@ -149,33 +242,41 @@
                 >
                   <lucide-icon name="arrow-left" class="h-4 w-4"></lucide-icon>
                 </button>
-                <div class="flex h-11 w-11 items-center justify-center rounded-full bg-emerald-100 text-emerald-700">
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
                   <lucide-icon name="message-circle" class="h-5 w-5"></lucide-icon>
                 </div>
-                <div class="min-w-0">
+                <div class="min-w-0 flex-1">
+                  <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Actief gesprek</p>
                   <h2 class="truncate text-lg font-bold text-zinc-900">{{ displayName(selectedConversation()!) }}</h2>
                   <p class="truncate text-xs text-zinc-500">{{ selectedConversation()!.phoneNumber }}</p>
                 </div>
               </div>
             </header>
 
-            <div class="flex-1 overflow-y-auto bg-zinc-50/60 px-4 py-5 sm:px-6">
+            <div class="whatsapp-thread-surface flex-1 overflow-y-auto px-4 py-5 sm:px-6">
               @if (loadingMessages()) {
-                <div class="flex h-full items-center justify-center text-zinc-400">
+                <div class="flex h-full flex-col items-center justify-center gap-3 text-zinc-400">
                   <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
+                  <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Berichten worden geladen</p>
                 </div>
               } @else if (messages().length === 0) {
-                <div class="flex h-full items-center justify-center text-center text-sm text-zinc-500">
-                  Nog geen berichten in dit gesprek.
+                <div class="flex h-full flex-col items-center justify-center px-6 text-center">
+                  <lucide-icon name="message-circle-off" class="mb-4 h-10 w-10 text-zinc-300"></lucide-icon>
+                  <p class="text-sm font-semibold text-zinc-700">Nog geen berichten in dit gesprek</p>
+                  <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-500">
+                    Gebruik de composer hieronder om het gesprek te starten.
+                  </p>
                 </div>
               } @else {
-                <div class="mx-auto flex max-w-3xl flex-col gap-3">
+                <div class="mx-auto flex max-w-3xl flex-col gap-4">
                   @for (message of messages(); track message.id) {
                     <div class="flex" [class.justify-end]="message.direction === 'outbound'" [class.justify-start]="message.direction === 'inbound'">
                       <article
-                        class="max-w-[85%] rounded-2xl px-4 py-3 shadow-sm"
+                        class="max-w-[88%] rounded-[1.4rem] border px-4 py-3 shadow-sm"
+                        [class.border-emerald-600]="message.direction === 'outbound'"
                         [class.bg-emerald-600]="message.direction === 'outbound'"
                         [class.text-white]="message.direction === 'outbound'"
+                        [class.border-zinc-200]="message.direction === 'inbound'"
                         [class.bg-white]="message.direction === 'inbound'"
                         [class.text-zinc-900]="message.direction === 'inbound'"
                       >
@@ -224,7 +325,7 @@
                           }
                         }
 
-                        <div class="mt-2 flex items-center justify-end gap-1 text-[10px]" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-400]="message.direction === 'inbound'">
+                        <div class="mt-3 flex items-center justify-end gap-1 text-[10px] font-medium uppercase tracking-[0.14em]" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-400]="message.direction === 'inbound'">
                           <span>{{ relativeTime(message.createdAt) }}</span>
                           @if (message.direction === 'outbound') {
                             <lucide-icon [name]="messageStatusIcon(message)" class="h-3 w-3"></lucide-icon>
@@ -239,31 +340,74 @@
             </div>
 
             <footer class="border-t border-zinc-100 bg-white px-4 py-4 sm:px-6">
-              <div class="mx-auto flex max-w-3xl flex-col gap-3">
-                <div class="flex flex-wrap gap-2">
-                  @for (type of composerTypes; track type.value) {
+              <div class="mx-auto flex max-w-3xl flex-col gap-4">
+                <section class="rounded-3xl border border-zinc-200 bg-zinc-50/80 p-3">
+                  <div class="flex items-start justify-between gap-3">
+                    <div>
+                      <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Berichttype</p>
+                      <p class="mt-1 text-sm font-semibold text-zinc-900">{{ composerTypeLabel() }}</p>
+                    </div>
                     <button
                       type="button"
-                      class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                      [class.border-emerald-700]="composerType() === type.value"
-                      [class.bg-emerald-700]="composerType() === type.value"
-                      [class.text-white]="composerType() === type.value"
-                      [class.border-zinc-300]="composerType() !== type.value"
-                      [class.bg-white]="composerType() !== type.value"
-                      [class.text-zinc-700]="composerType() !== type.value"
-                      [disabled]="sendingMessage() || !canSend()"
-                      [attr.aria-pressed]="composerType() === type.value"
-                      (click)="setComposerType(type.value)"
+                      class="inline-flex min-h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+                      [attr.aria-expanded]="showAdvancedComposerOptions()"
+                      (click)="toggleComposerOptions()"
                     >
-                      <lucide-icon [name]="type.icon" class="mr-1.5 h-3.5 w-3.5"></lucide-icon>
-                      {{ type.label }}
+                      <lucide-icon [name]="showAdvancedComposerOptions() ? 'chevron-up' : 'chevron-down'" class="mr-1.5 h-3.5 w-3.5"></lucide-icon>
+                      {{ composerOptionsToggleLabel() }}
                     </button>
+                  </div>
+
+                  <div class="mt-3 flex flex-wrap gap-2">
+                    @for (type of primaryComposerTypes; track type.value) {
+                      <button
+                        type="button"
+                        class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+                        [class.border-emerald-700]="composerType() === type.value"
+                        [class.bg-emerald-700]="composerType() === type.value"
+                        [class.text-white]="composerType() === type.value"
+                        [class.border-zinc-300]="composerType() !== type.value"
+                        [class.bg-white]="composerType() !== type.value"
+                        [class.text-zinc-700]="composerType() !== type.value"
+                        [disabled]="sendingMessage() || !canSend()"
+                        [attr.aria-pressed]="composerType() === type.value"
+                        (click)="setComposerType(type.value)"
+                      >
+                        <lucide-icon [name]="type.icon" class="mr-1.5 h-3.5 w-3.5"></lucide-icon>
+                        {{ type.label }}
+                      </button>
+                    }
+                  </div>
+
+                  @if (showAdvancedComposerOptions()) {
+                    <div class="mt-3 border-t border-zinc-200 pt-3">
+                      <div class="flex flex-wrap gap-2">
+                        @for (type of advancedComposerTypes; track type.value) {
+                          <button
+                            type="button"
+                            class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+                            [class.border-emerald-700]="composerType() === type.value"
+                            [class.bg-emerald-700]="composerType() === type.value"
+                            [class.text-white]="composerType() === type.value"
+                            [class.border-zinc-300]="composerType() !== type.value"
+                            [class.bg-white]="composerType() !== type.value"
+                            [class.text-zinc-700]="composerType() !== type.value"
+                            [disabled]="sendingMessage() || !canSend()"
+                            [attr.aria-pressed]="composerType() === type.value"
+                            (click)="setComposerType(type.value)"
+                          >
+                            <lucide-icon [name]="type.icon" class="mr-1.5 h-3.5 w-3.5"></lucide-icon>
+                            {{ type.label }}
+                          </button>
+                        }
+                      </div>
+                    </div>
                   }
-                </div>
+                </section>
 
                 @if (composerType() === 'text') {
                   <textarea
-                    class="min-h-28 w-full rounded-2xl border border-zinc-200 px-4 py-3 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
+                    class="min-h-28 w-full rounded-3xl border border-zinc-200 px-4 py-3 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
                     [value]="composerBody()"
                     [disabled]="sendingMessage() || !canSend()"
                     placeholder="Typ je antwoord..."
@@ -275,7 +419,7 @@
 
                 @if (isUploadComposer()) {
                   <div class="grid gap-3 md:grid-cols-2">
-                    <label class="flex flex-col gap-2 rounded-2xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
+                    <label class="flex flex-col gap-2 rounded-3xl border border-dashed border-zinc-300 bg-zinc-50 px-4 py-3 text-sm text-zinc-700">
                       <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Upload</span>
                       <input type="file" class="text-sm" [accept]="uploadAccept()" [disabled]="sendingMessage() || !canSend()" (change)="handleAttachmentSelected($event)" />
                       @if (composerAttachmentName(); as attachmentName) {
@@ -287,7 +431,7 @@
                     </label>
 
                     @if (showCaptionComposer()) {
-                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                         <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Caption</span>
                         <textarea
                           class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
@@ -323,11 +467,11 @@
 
                 @if (composerType() === 'contact') {
                   <div class="grid gap-3 md:grid-cols-2">
-                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                    <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                       <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Naam</span>
                       <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactName()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactName.set($any($event.target).value)" />
                     </label>
-                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                    <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                       <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Telefoon</span>
                       <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactPhone()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactPhone.set($any($event.target).value)" />
                     </label>
@@ -336,11 +480,11 @@
 
                 @if (composerType() === 'location') {
                   <div class="grid gap-3 md:grid-cols-2">
-                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                    <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                       <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Latitude</span>
                       <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLatitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLatitude.set($any($event.target).value)" />
                     </label>
-                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                    <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                       <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Longitude</span>
                       <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLongitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLongitude.set($any($event.target).value)" />
                     </label>
@@ -349,40 +493,40 @@
 
                 @if (composerType() === 'poll') {
                   <div class="grid gap-3">
-                    <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                    <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                       <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Vraag</span>
                       <textarea class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollQuestion()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollQuestion.set($any($event.target).value)"></textarea>
                     </label>
                     <div class="grid gap-3 md:grid-cols-2">
-                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                         <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 1</span>
                         <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionOne()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionOne.set($any($event.target).value)" />
                       </label>
-                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                         <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 2</span>
                         <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionTwo()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionTwo.set($any($event.target).value)" />
                       </label>
-                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                         <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 3</span>
                         <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionThree()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionThree.set($any($event.target).value)" />
                       </label>
-                      <label class="flex flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                      <label class="flex flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                         <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 4</span>
                         <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionFour()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionFour.set($any($event.target).value)" />
                       </label>
                     </div>
-                    <label class="flex max-w-48 flex-col gap-2 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
+                    <label class="flex max-w-48 flex-col gap-2 rounded-3xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-700">
                       <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Max. antwoorden</span>
                       <input type="number" min="1" class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollMaxAnswer()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollMaxAnswer.set(+$any($event.target).value || 1)" />
                     </label>
                   </div>
                 }
 
-                <div class="flex items-center justify-between gap-3">
-                  <p class="text-xs text-zinc-500">
+                <div class="flex flex-col gap-3 rounded-3xl border border-zinc-200 bg-white px-4 py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p class="text-xs leading-relaxed text-zinc-500">
                     {{ composerHelperText() }}
                   </p>
-                  <div class="flex items-center gap-2">
+                  <div class="flex flex-wrap items-center gap-2 sm:justify-end">
                     @if (selectedConversation()?.leadId) {
                       <shared-button
                         variant="secondary"

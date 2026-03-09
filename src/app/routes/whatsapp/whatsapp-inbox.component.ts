@@ -39,6 +39,8 @@ type MessageReactionSummary = {
   tooltip: string;
 };
 
+type ConversationListFilter = 'all' | 'unread';
+
 type ComposerTypeOption = {
   value: WhatsAppMessageComposerType;
   label: string;
@@ -81,6 +83,9 @@ export class WhatsAppInboxComponent {
   protected readonly sendingMessage = signal(false);
   protected readonly suggestingReply = signal(false);
   protected readonly sendingPresence = signal<WhatsAppPresenceType | null>(null);
+  protected readonly conversationSearchQuery = signal('');
+  protected readonly conversationListFilter = signal<ConversationListFilter>('all');
+  protected readonly composerOptionsExpanded = signal(false);
   protected readonly composerType = signal<WhatsAppMessageComposerType>('text');
   protected readonly composerBody = signal('');
   protected readonly composerCaption = signal('');
@@ -103,6 +108,12 @@ export class WhatsAppInboxComponent {
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isMobileViewport = signal(false);
   protected readonly composerTypes = composerTypeOptions;
+  protected readonly primaryComposerTypes = composerTypeOptions.filter(option =>
+    option.value === 'text' || option.value === 'image' || option.value === 'file' || option.value === 'contact'
+  );
+  protected readonly advancedComposerTypes = composerTypeOptions.filter(option =>
+    option.value !== 'text' && option.value !== 'image' && option.value !== 'file' && option.value !== 'contact'
+  );
 
   private readonly rtfCache = new Map<string, Intl.RelativeTimeFormat>();
   private typingPresenceConversationId: string | null = null;
@@ -118,6 +129,32 @@ export class WhatsAppInboxComponent {
   protected readonly showListPane = computed(() => !this.isMobileViewport() || this.selectedConversation() == null);
   protected readonly showThreadPane = computed(() => !this.isMobileViewport() || this.selectedConversation() != null);
   protected readonly canSend = computed(() => this.deviceStatus.canSend());
+  protected readonly unreadConversationCount = computed(() => this.conversations().filter(item => item.unreadCount > 0).length);
+  protected readonly hasConversationSearch = computed(() => this.conversationSearchQuery().trim() !== '');
+  protected readonly filteredConversations = computed(() => {
+    const filter = this.conversationListFilter();
+    const query = this.conversationSearchQuery().trim().toLowerCase();
+
+    return this.conversations().filter(conversation => {
+      if (filter === 'unread' && conversation.unreadCount === 0) {
+        return false;
+      }
+
+      if (query === '') {
+        return true;
+      }
+
+      const haystack = [
+        this.displayName(conversation),
+        conversation.phoneNumber,
+        conversation.lastMessagePreview,
+      ]
+        .join(' ')
+        .toLowerCase();
+
+      return haystack.includes(query);
+    });
+  });
   protected readonly canSuggestReply = computed(() => {
     const conversation = this.selectedConversation();
     return !!conversation?.leadId && !this.loadingMessages() && !this.sendingMessage() && !this.suggestingReply();
@@ -126,6 +163,10 @@ export class WhatsAppInboxComponent {
   protected readonly showCaptionComposer = computed(() => {
     const type = this.composerType();
     return type === 'image' || type === 'video' || type === 'file';
+  });
+  protected readonly showAdvancedComposerOptions = computed(() => {
+    const activeType = this.composerType();
+    return this.composerOptionsExpanded() || this.advancedComposerTypes.some(option => option.value === activeType);
   });
   protected readonly composerValidationMessage = computed(() => this.getComposerValidationMessage());
   protected readonly canSubmitComposer = computed(() => {
@@ -289,7 +330,18 @@ export class WhatsAppInboxComponent {
     }
 
     this.stopTypingPresence();
+    if (this.advancedComposerTypes.some(option => option.value === type)) {
+      this.composerOptionsExpanded.set(true);
+    }
     this.resetComposerState(type);
+  }
+
+  protected toggleComposerOptions(): void {
+    this.composerOptionsExpanded.update(expanded => !expanded);
+  }
+
+  protected clearConversationSearch(): void {
+    this.conversationSearchQuery.set('');
   }
 
   protected async handleAttachmentSelected(event: Event): Promise<void> {
@@ -423,6 +475,33 @@ export class WhatsAppInboxComponent {
       return name;
     }
     return conversation.phoneNumber;
+  }
+
+  protected conversationInitial(conversation: WhatsAppConversation): string {
+    const label = this.displayName(conversation).trim();
+    const character = Array.from(label).find(value => /[\p{L}\p{N}]/u.test(value));
+    return (character ?? '#').toUpperCase();
+  }
+
+  protected conversationPreview(conversation: WhatsAppConversation): string {
+    const preview = conversation.lastMessagePreview.trim();
+    return preview === '' ? 'Geen berichtinhoud' : preview;
+  }
+
+  protected conversationDirectionLabel(conversation: WhatsAppConversation): string {
+    return conversation.lastMessageDirection === 'outbound' ? 'Uitgaand' : 'Inkomend';
+  }
+
+  protected conversationDirectionIcon(conversation: WhatsAppConversation): string {
+    return conversation.lastMessageDirection === 'outbound' ? 'arrow-up-right' : 'arrow-down-left';
+  }
+
+  protected composerTypeLabel(): string {
+    return this.composerTypes.find(option => option.value === this.composerType())?.label ?? 'Bericht';
+  }
+
+  protected composerOptionsToggleLabel(): string {
+    return this.showAdvancedComposerOptions() ? 'Minder opties' : 'Meer opties';
   }
 
   protected deviceStateLabel(): string {
