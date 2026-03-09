@@ -14,7 +14,12 @@ import type {
   WhatsAppMessage,
   WhatsAppMessageComposerType,
   WhatsAppPortalMetadata,
+  WhatsAppPortalContact,
+  WhatsAppPortalLocation,
+  WhatsAppPortalPoll,
+  WhatsAppPortalReply,
   WhatsAppPresenceType,
+  WhatsAppWebhookPayload,
 } from '../../core/services/whatsapp-inbox.types';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
@@ -37,6 +42,40 @@ type MessageReactionSummary = {
   reaction: string;
   count: number;
   tooltip: string;
+};
+
+type MessageReplyContext = {
+  messageId?: string;
+  body: string;
+};
+
+type MessageMediaContent = {
+  kind: 'image' | 'video' | 'audio' | 'file' | 'sticker' | 'video_note';
+  label: string;
+  url: string | null;
+  caption: string | null;
+  filename: string | null;
+  placeholder: string;
+};
+
+type MessageContactCard = {
+  name: string;
+  phone?: string;
+};
+
+type MessageLocationCard = {
+  latitude?: string;
+  longitude?: string;
+  name?: string;
+  address?: string;
+  live?: boolean;
+};
+
+type MessagePollCard = {
+  question?: string;
+  options: string[];
+  selectedOptions: string[];
+  maxAnswer?: string;
 };
 
 type ConversationListFilter = 'all' | 'unread';
@@ -63,7 +102,6 @@ const composerTypeOptions: ComposerTypeOption[] = [
   selector: 'app-whatsapp-inbox',
   imports: [TranslateModule, LucideAngularModule, ButtonComponent, PageLayoutComponent],
   templateUrl: './whatsapp-inbox.component.html',
-  styleUrl: './whatsapp-inbox.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WhatsAppInboxComponent {
@@ -493,7 +531,7 @@ export class WhatsAppInboxComponent {
   }
 
   protected conversationDirectionIcon(conversation: WhatsAppConversation): string {
-    return conversation.lastMessageDirection === 'outbound' ? 'arrow-up-right' : 'arrow-down-left';
+    return conversation.lastMessageDirection === 'outbound' ? 'arrow-up-right' : 'arrow-down-right';
   }
 
   protected composerTypeLabel(): string {
@@ -613,6 +651,165 @@ export class WhatsAppInboxComponent {
     }
 
     return originalBody;
+  }
+
+  protected messageReplyContext(message: WhatsAppMessage): MessageReplyContext | null {
+  const portalReply = this.messagePortalMetadata(message)?.reply;
+  const reply = this.normalizeReplyContext(portalReply);
+  if (reply) {
+    return reply;
+  }
+
+  const providerPayload = this.messageProviderPayload(message);
+  const body = providerPayload?.quoted_body?.trim();
+  if (!body) {
+    return null;
+  }
+
+  return {
+    body,
+    ...(providerPayload?.replied_to_id?.trim() ? { messageId: providerPayload.replied_to_id.trim() } : {}),
+  };
+  }
+
+  protected messageMedia(message: WhatsAppMessage): MessageMediaContent | null {
+  const portal = this.messagePortalMetadata(message);
+  const providerPayload = this.messageProviderPayload(message);
+  const portalType = portal?.messageType?.trim();
+  const messageType = portalType || this.providerMediaKind(providerPayload);
+  if (!messageType || !this.isMediaMessageType(messageType)) {
+    return null;
+  }
+
+  const attachment = portal?.attachment;
+  const providerMedia = providerPayload ? this.providerMediaValue(providerPayload, messageType) : null;
+  const filename = attachment?.filename?.trim() || this.providerMediaFilename(providerMedia);
+  const url = this.normalizeMediaUrl(attachment?.remoteUrl || attachment?.path || this.providerMediaUrl(providerMedia));
+  const caption = portal?.caption?.trim() || this.providerMediaCaption(providerMedia);
+  const label = this.mediaLabel(messageType);
+  return {
+    kind: messageType,
+    label,
+    url,
+    caption,
+    filename,
+    placeholder: filename ? `${label} ${filename}` : label,
+  };
+  }
+
+  protected messageContacts(message: WhatsAppMessage): MessageContactCard[] {
+  const portal = this.messagePortalMetadata(message);
+  const portalContacts = this.normalizePortalContacts(portal);
+  if (portalContacts.length > 0) {
+    return portalContacts;
+  }
+
+  const payload = this.messageProviderPayload(message);
+  const contacts: MessageContactCard[] = [];
+  const singleContact = payload?.contact;
+  if (singleContact) {
+    const normalized = this.normalizeProviderContact(singleContact.displayName, singleContact.vcard);
+    if (normalized) {
+    contacts.push(normalized);
+    }
+  }
+  for (const contact of payload?.contacts_array ?? []) {
+    const normalized = this.normalizeProviderContact(contact.displayName, contact.vcard);
+    if (normalized) {
+    contacts.push(normalized);
+    }
+  }
+  return contacts;
+  }
+
+  protected messageLocation(message: WhatsAppMessage): MessageLocationCard | null {
+  const portalLocation = this.normalizePortalLocation(this.messagePortalMetadata(message)?.location);
+  if (portalLocation) {
+    return portalLocation;
+  }
+
+  const payload = this.messageProviderPayload(message);
+  if (!payload?.location && !payload?.live_location) {
+    return null;
+  }
+  const source = payload.live_location ?? payload.location;
+  if (!source) {
+    return null;
+  }
+  return {
+    ...(this.stringifyValue(source.degreesLatitude) ? { latitude: this.stringifyValue(source.degreesLatitude) } : {}),
+    ...(this.stringifyValue(source.degreesLongitude) ? { longitude: this.stringifyValue(source.degreesLongitude) } : {}),
+    ...(source.name?.trim() ? { name: source.name.trim() } : {}),
+    ...(source.address?.trim() ? { address: source.address.trim() } : {}),
+    ...(payload.live_location ? { live: true } : {}),
+  };
+  }
+
+  protected messagePoll(message: WhatsAppMessage): MessagePollCard | null {
+  const portalPoll = this.normalizePortalPoll(this.messagePortalMetadata(message)?.poll);
+  if (portalPoll) {
+    return portalPoll;
+  }
+
+  const payload = this.messageProviderPayload(message);
+  if (!payload) {
+    return null;
+  }
+  const question = payload.question?.trim() || this.recordString(payload.poll, 'question') || this.recordString(payload.poll_update, 'question');
+  const options = this.normalizeStringList(payload.options);
+  const selectedOptions = this.normalizeStringList(
+    payload.selectedOptions ?? payload.selected_options ?? payload.selectedOptionNames ?? payload.selected_option_names
+  );
+  const maxAnswer = this.stringifyValue(payload.max_answer);
+  if (!question && options.length === 0 && selectedOptions.length === 0 && !maxAnswer) {
+    return null;
+  }
+  return {
+    ...(question ? { question } : {}),
+    options,
+    selectedOptions,
+    ...(maxAnswer ? { maxAnswer } : {}),
+  };
+  }
+
+  protected messagePrimaryBody(message: WhatsAppMessage): string | null {
+  const body = message.body.trim();
+  if (!body) {
+    return null;
+  }
+
+  const media = this.messageMedia(message);
+  if (media && (body === media.placeholder || (media.caption && body === media.caption))) {
+    return null;
+  }
+
+  const contacts = this.messageContacts(message);
+  if (contacts.length > 0 && (body === '[Contact]' || body.startsWith('[Contact] ') || body === '[Contacten]' || body.startsWith('[Contacten] '))) {
+    return null;
+  }
+
+  const location = this.messageLocation(message);
+  if (location && (body === '[Locatie]' || body.startsWith('[Locatie] '))) {
+    return null;
+  }
+
+  const poll = this.messagePoll(message);
+  if (poll) {
+    const normalizedQuestion = poll.question?.trim();
+    if (body === '[Poll]' || (normalizedQuestion && (body === normalizedQuestion || body === `[Poll] ${normalizedQuestion}`))) {
+    return null;
+    }
+  }
+
+  return body;
+  }
+
+  protected locationMapsUrl(location: MessageLocationCard): string | null {
+  if (!location.latitude || !location.longitude) {
+    return null;
+  }
+  const coordinates = `${location.latitude},${location.longitude}`;
+  return `https://www.google.com/maps?q=${encodeURIComponent(coordinates)}`;
   }
 
   private loadMessages(conversationId: string): void {
@@ -737,6 +934,231 @@ export class WhatsAppInboxComponent {
 
   private messagePortalMetadata(message: WhatsAppMessage): WhatsAppPortalMetadata | null {
     return message.metadata?.portal ?? null;
+  }
+
+  private messageProviderPayload(message: WhatsAppMessage): WhatsAppWebhookPayload | null {
+  return message.metadata?.payload ?? null;
+  }
+
+  private normalizeReplyContext(reply: WhatsAppPortalReply | undefined): MessageReplyContext | null {
+  const body = reply?.body?.trim();
+  if (!body) {
+    return null;
+  }
+  return {
+    body,
+    ...(reply?.messageId?.trim() ? { messageId: reply.messageId.trim() } : {}),
+  };
+  }
+
+  private normalizePortalContacts(portal: WhatsAppPortalMetadata | null): MessageContactCard[] {
+  const contacts: MessageContactCard[] = [];
+  const append = (contact: WhatsAppPortalContact | undefined) => {
+    const normalized = this.normalizeContactCard(contact?.name, contact?.phone);
+    if (normalized) {
+    contacts.push(normalized);
+    }
+  };
+  append(portal?.contact);
+  for (const contact of portal?.contacts ?? []) {
+    append(contact);
+  }
+  return contacts;
+  }
+
+  private normalizePortalLocation(location: WhatsAppPortalLocation | undefined): MessageLocationCard | null {
+  if (!location) {
+    return null;
+  }
+  const normalized: MessageLocationCard = {
+    ...(location.latitude?.trim() ? { latitude: location.latitude.trim() } : {}),
+    ...(location.longitude?.trim() ? { longitude: location.longitude.trim() } : {}),
+    ...(location.name?.trim() ? { name: location.name.trim() } : {}),
+    ...(location.address?.trim() ? { address: location.address.trim() } : {}),
+    ...(location.live ? { live: true } : {}),
+  };
+  return normalized.latitude || normalized.longitude || normalized.name || normalized.address || normalized.live ? normalized : null;
+  }
+
+  private normalizePortalPoll(poll: WhatsAppPortalPoll | undefined): MessagePollCard | null {
+  if (!poll) {
+    return null;
+  }
+  const question = poll.question?.trim() || undefined;
+  const options = this.normalizeStringList(poll.options);
+  const selectedOptions = this.normalizeStringList(poll.selectedOptions);
+  const maxAnswer = this.stringifyValue(poll.maxAnswer);
+  if (!question && options.length === 0 && selectedOptions.length === 0 && !maxAnswer) {
+    return null;
+  }
+  return {
+    ...(question ? { question } : {}),
+    options,
+    selectedOptions,
+    ...(maxAnswer ? { maxAnswer } : {}),
+  };
+  }
+
+  private normalizeContactCard(name?: string, phone?: string): MessageContactCard | null {
+  const trimmedName = name?.trim() || '';
+  const trimmedPhone = phone?.trim() || '';
+  if (!trimmedName && !trimmedPhone) {
+    return null;
+  }
+  return {
+    name: trimmedName || trimmedPhone,
+    ...(trimmedPhone ? { phone: trimmedPhone } : {}),
+  };
+  }
+
+  private normalizeProviderContact(name?: string, vcard?: string): MessageContactCard | null {
+  const phone = this.extractPhoneFromVCard(vcard);
+  return this.normalizeContactCard(name, phone);
+  }
+
+  private extractPhoneFromVCard(vcard?: string): string | undefined {
+  if (!vcard) {
+    return undefined;
+  }
+  for (const line of vcard.split('\n')) {
+    const trimmed = line.trim();
+    if (!trimmed.toUpperCase().startsWith('TEL')) {
+    continue;
+    }
+    const value = trimmed.split(':', 2)[1]?.trim();
+    if (value) {
+    return value;
+    }
+  }
+  return undefined;
+  }
+
+  private providerMediaKind(payload: WhatsAppWebhookPayload | null): MessageMediaContent['kind'] | null {
+  if (!payload) {
+    return null;
+  }
+  if (payload.image) {
+    return 'image';
+  }
+  if (payload.video) {
+    return 'video';
+  }
+  if (payload.audio) {
+    return 'audio';
+  }
+  if (payload.document) {
+    return 'file';
+  }
+  if (payload.sticker) {
+    return 'sticker';
+  }
+  if (payload.video_note) {
+    return 'video_note';
+  }
+  return null;
+  }
+
+  private providerMediaValue(payload: WhatsAppWebhookPayload, kind: MessageMediaContent['kind']): unknown {
+  switch (kind) {
+    case 'image':
+    return payload.image;
+    case 'video':
+    return payload.video;
+    case 'audio':
+    return payload.audio;
+    case 'file':
+    return payload.document;
+    case 'sticker':
+    return payload.sticker;
+    case 'video_note':
+    return payload.video_note;
+  }
+  }
+
+  private providerMediaUrl(value: unknown): string | null {
+  if (typeof value === 'string') {
+    return value.trim() || null;
+  }
+  if (!this.isRecord(value)) {
+    return null;
+  }
+  return this.stringifyValue(value['url'] ?? value['path']) || null;
+  }
+
+  private providerMediaCaption(value: unknown): string | null {
+  if (!this.isRecord(value)) {
+    return null;
+  }
+  return this.stringifyValue(value['caption']) || null;
+  }
+
+  private providerMediaFilename(value: unknown): string | null {
+  if (!this.isRecord(value)) {
+    return null;
+  }
+  return this.stringifyValue(value['filename']) || null;
+  }
+
+  private normalizeMediaUrl(value: string | null | undefined): string | null {
+  const trimmed = value?.trim();
+  if (!trimmed) {
+    return null;
+  }
+  if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || trimmed.startsWith('/')) {
+    return trimmed;
+  }
+  return `/${trimmed}`;
+  }
+
+  private mediaLabel(kind: MessageMediaContent['kind']): string {
+  switch (kind) {
+    case 'image':
+    return '[Afbeelding]';
+    case 'video':
+    return '[Video]';
+    case 'audio':
+    return '[Audio]';
+    case 'file':
+    return '[Bestand]';
+    case 'sticker':
+    return '[Sticker]';
+    default:
+    return '[Videonotitie]';
+  }
+  }
+
+  private isMediaMessageType(value: string): value is MessageMediaContent['kind'] {
+  return value === 'image' || value === 'video' || value === 'audio' || value === 'file' || value === 'sticker' || value === 'video_note';
+  }
+
+  private normalizeStringList(values: unknown): string[] {
+  if (!Array.isArray(values)) {
+    return [];
+  }
+  return values
+    .map(value => this.stringifyValue(value))
+    .filter((value): value is string => !!value);
+  }
+
+  private recordString(value: unknown, key: string): string | undefined {
+  if (!this.isRecord(value)) {
+    return undefined;
+  }
+  return this.stringifyValue(value[key]) || undefined;
+  }
+
+  private stringifyValue(value: unknown): string {
+  if (typeof value === 'string') {
+    return value.trim();
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return String(value);
+  }
+  return '';
+  }
+
+  private isRecord(value: unknown): value is Record<string, unknown> {
+  return typeof value === 'object' && value !== null;
   }
 
   private isConversationLike(value: Partial<WhatsAppConversation>): value is WhatsAppConversation {

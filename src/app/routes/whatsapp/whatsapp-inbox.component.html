@@ -15,7 +15,7 @@
     Ververs
   </shared-button>
 
-  <main class="flex h-full min-h-0 flex-col bg-[#fdfbf7] px-2 pb-2 sm:-mx-6 sm:px-3 sm:pb-4">
+  <main class="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#fdfbf7] px-2 pb-2 sm:-mx-6 sm:px-3 sm:pb-4">
     @if (deviceStatus.needsReconnectBanner() || deviceStatus.needsDeviceConnection()) {
       <section class="mb-3 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
         <div class="flex items-center gap-2 font-semibold">
@@ -67,10 +67,10 @@
       </div>
     </section>
 
-    <section class="grid h-full min-h-0 grid-cols-1 gap-4 lg:grid-cols-[minmax(360px,430px)_1fr]">
+    <section class="grid min-h-0 flex-1 grid-cols-1 gap-4 xl:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)]">
       @if (showListPane()) {
-        <aside class="flex min-h-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm">
-          <header class="border-b border-zinc-200 bg-white/95 px-4 py-4 backdrop-blur-sm">
+        <aside class="flex min-h-[45dvh] min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm xl:min-h-0">
+          <header class="shrink-0 border-b border-zinc-200 bg-white/95 px-4 py-4 backdrop-blur-sm">
             <div class="flex items-start justify-between gap-4">
               <div>
                 <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Inbox</p>
@@ -125,7 +125,7 @@
               <lucide-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"></lucide-icon>
               <input
                 type="search"
-                class="conversation-search-input h-11 w-full rounded-2xl border border-zinc-200 bg-white pl-10 pr-10 text-sm text-zinc-900 outline-none transition-shadow placeholder:text-zinc-400 focus:ring-2 focus:ring-zinc-900/10"
+                class="h-11 w-full rounded-2xl border border-zinc-200 bg-white pl-10 pr-10 text-sm text-zinc-900 outline-none transition-shadow placeholder:text-zinc-400 [-webkit-appearance:none] focus:ring-2 focus:ring-zinc-900/10"
                 placeholder="Zoek op naam, nummer of preview"
                 [value]="conversationSearchQuery()"
                 (input)="conversationSearchQuery.set($any($event.target).value)"
@@ -149,7 +149,7 @@
             }
           </header>
 
-          <div class="flex-1 overflow-y-auto">
+          <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
             @if (loadingConversations() && conversations().length === 0) {
               <div class="flex h-full flex-col items-center justify-center gap-3 px-6 py-20 text-center text-zinc-400">
                 <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
@@ -177,7 +177,7 @@
                   <li>
                     <button
                       type="button"
-                      class="group flex w-full items-start gap-3 border-l-4 border-l-transparent px-4 py-4 text-left transition-all hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900"
+                      class="group flex w-full items-start gap-3 border-l-4 border-l-transparent px-3 py-4 text-left transition-all hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900 sm:px-4"
                       [class.bg-emerald-50]="selectedConversationId() === conversation.id"
                       [class.border-l-emerald-600]="selectedConversationId() === conversation.id"
                       (click)="selectConversation(conversation.id)"
@@ -216,7 +216,7 @@
                           </div>
                         </div>
 
-                        <p class="conversation-preview mt-2 text-xs leading-5" [class.font-medium]="conversation.unreadCount > 0" [class.text-zinc-700]="conversation.unreadCount > 0" [class.text-zinc-500]="conversation.unreadCount === 0">
+                        <p class="mt-2 line-clamp-2 break-words text-xs leading-5" [class.font-medium]="conversation.unreadCount > 0" [class.text-zinc-700]="conversation.unreadCount > 0" [class.text-zinc-500]="conversation.unreadCount === 0">
                           {{ conversationPreview(conversation) }}
                         </p>
                       </div>
@@ -230,9 +230,9 @@
       }
 
       @if (showThreadPane()) {
-        <section class="flex min-h-[520px] flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm">
+        <section class="flex min-h-[55dvh] min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm xl:min-h-0">
           @if (selectedConversation()) {
-            <header class="border-b border-zinc-100 bg-white/95 px-4 py-4 backdrop-blur-sm sm:px-6">
+            <header class="shrink-0 border-b border-zinc-100 bg-white/95 px-4 py-4 backdrop-blur-sm sm:px-6">
               <div class="flex items-center gap-3">
                 <button
                   type="button"
@@ -253,7 +253,7 @@
               </div>
             </header>
 
-            <div class="whatsapp-thread-surface flex-1 overflow-y-auto px-4 py-5 sm:px-6">
+            <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#f4f1ea] bg-[image:linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.28)),radial-gradient(circle_at_1px_1px,rgba(39,39,42,0.06)_1px,transparent_0)] bg-[length:auto,18px_18px] px-4 py-5 sm:px-6">
               @if (loadingMessages()) {
                 <div class="flex h-full flex-col items-center justify-center gap-3 text-zinc-400">
                   <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
@@ -296,9 +296,119 @@
                           }
                         }
 
-                        <p class="whitespace-pre-wrap text-sm leading-relaxed" [class]="messageBodyClass(message)">
-                          {{ message.body }}
-                        </p>
+                        @if (messageReplyContext(message); as reply) {
+                          <div class="mb-3 rounded-2xl border px-3 py-2 text-xs leading-relaxed" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
+                            <p class="font-semibold uppercase tracking-[0.14em]">Antwoord op</p>
+                            <p class="mt-1 whitespace-pre-wrap">{{ reply.body }}</p>
+                            @if (reply.messageId) {
+                              <p class="mt-1 text-[10px] uppercase tracking-[0.14em] opacity-70">{{ reply.messageId }}</p>
+                            }
+                          </div>
+                        }
+
+                        @if (messageMedia(message); as media) {
+                          <div class="mb-3 rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
+                            <div class="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">
+                              <span>{{ media.label }}</span>
+                              @if (media.url) {
+                                <a class="underline underline-offset-2" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'" [href]="media.url" target="_blank" rel="noreferrer">Open</a>
+                              }
+                            </div>
+
+                            @if (media.url && (media.kind === 'image' || media.kind === 'sticker')) {
+                              <img [src]="media.url" [alt]="media.filename || media.label" class="mt-3 max-h-72 rounded-2xl object-contain" />
+                            }
+
+                            @if (media.url && (media.kind === 'video' || media.kind === 'video_note')) {
+                              <div class="mt-3 rounded-2xl border border-dashed px-3 py-4 text-sm" [class.border-white/20]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-300]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
+                                Video kan extern worden geopend.
+                              </div>
+                            }
+
+                            @if (media.url && media.kind === 'audio') {
+                              <audio controls class="mt-3 w-full" [src]="media.url"></audio>
+                            }
+
+                            @if (media.caption) {
+                              <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed" [class]="messageBodyClass(message)">{{ media.caption }}</p>
+                            }
+
+                            @if (media.filename) {
+                              <p class="mt-2 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">{{ media.filename }}</p>
+                            }
+                          </div>
+                        }
+
+                        @if (messageContacts(message); as contacts) {
+                          @if (contacts.length > 0) {
+                            <div class="mb-3 grid gap-2">
+                              @for (contact of contacts; track contact.name + (contact.phone ?? '')) {
+                                <div class="rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
+                                  <p class="text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">Contact</p>
+                                  <p class="mt-2 text-sm font-semibold" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-900]="message.direction === 'inbound'">{{ contact.name }}</p>
+                                  @if (contact.phone) {
+                                    <p class="mt-1 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">{{ contact.phone }}</p>
+                                  }
+                                </div>
+                              }
+                            </div>
+                          }
+                        }
+
+                        @if (messageLocation(message); as location) {
+                          <div class="mb-3 rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
+                            <div class="flex items-center justify-between gap-3">
+                              <div>
+                                <p class="text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">{{ location.live ? 'Live locatie' : 'Locatie' }}</p>
+                                @if (location.name) {
+                                  <p class="mt-2 text-sm font-semibold" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-900]="message.direction === 'inbound'">{{ location.name }}</p>
+                                }
+                                @if (location.address) {
+                                  <p class="mt-1 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">{{ location.address }}</p>
+                                }
+                                @if (location.latitude && location.longitude) {
+                                  <p class="mt-1 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">{{ location.latitude }}, {{ location.longitude }}</p>
+                                }
+                              </div>
+                              @if (locationMapsUrl(location); as mapsUrl) {
+                                <a class="text-xs font-semibold underline underline-offset-2" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'" [href]="mapsUrl" target="_blank" rel="noreferrer">Kaart</a>
+                              }
+                            </div>
+                          </div>
+                        }
+
+                        @if (messagePoll(message); as poll) {
+                          <div class="mb-3 rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
+                            <p class="text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">Poll</p>
+                            @if (poll.question) {
+                              <p class="mt-2 text-sm font-semibold" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-900]="message.direction === 'inbound'">{{ poll.question }}</p>
+                            }
+                            @if (poll.options.length > 0) {
+                              <div class="mt-3 flex flex-wrap gap-2">
+                                @for (option of poll.options; track option) {
+                                  <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium" [class.bg-white/15]="message.direction === 'outbound'" [class.text-white]="message.direction === 'outbound'" [class.bg-white]="message.direction === 'inbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ option }}</span>
+                                }
+                              </div>
+                            }
+                            @if (poll.selectedOptions.length > 0) {
+                              <p class="mt-3 text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">Gekozen</p>
+                              <div class="mt-2 flex flex-wrap gap-2">
+                                @for (option of poll.selectedOptions; track option) {
+                                  <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" [class.bg-emerald-500/25]="message.direction === 'outbound'" [class.text-white]="message.direction === 'outbound'" [class.bg-emerald-100]="message.direction === 'inbound'" [class.text-emerald-700]="message.direction === 'inbound'">{{ option }}</span>
+                                }
+                              </div>
+                            }
+                            @if (poll.maxAnswer) {
+                              <p class="mt-3 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">Max. antwoorden: {{ poll.maxAnswer }}</p>
+                            }
+                          </div>
+                        }
+
+                        @if (messagePrimaryBody(message); as primaryBody) {
+                          <p class="whitespace-pre-wrap text-sm leading-relaxed" [class]="messageBodyClass(message)">
+                            {{ primaryBody }}
+                          </p>
+                        }
 
                         @if (originalMessageBody(message); as originalBody) {
                           <p class="mt-2 text-xs leading-relaxed" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">
@@ -339,7 +449,7 @@
               }
             </div>
 
-            <footer class="border-t border-zinc-100 bg-white px-4 py-4 sm:px-6">
+            <footer class="shrink-0 border-t border-zinc-100 bg-white px-4 py-4 sm:px-6">
               <div class="mx-auto flex max-w-3xl flex-col gap-4">
                 <section class="rounded-3xl border border-zinc-200 bg-zinc-50/80 p-3">
                   <div class="flex items-start justify-between gap-3">
