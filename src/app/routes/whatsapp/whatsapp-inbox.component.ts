@@ -46,7 +46,7 @@ type ComposerTypeOption = {
 };
 
 const composerTypeOptions: ComposerTypeOption[] = [
-  { value: 'text', label: 'Tekst', icon: 'text' },
+  { value: 'text', label: 'Tekst', icon: 'message-square-text' },
   { value: 'image', label: 'Afbeelding', icon: 'image' },
   { value: 'video', label: 'Video', icon: 'video' },
   { value: 'audio', label: 'Audio', icon: 'mic' },

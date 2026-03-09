@@ -188,6 +188,243 @@
           }
         </div>
       </shared-card>
+
+      <shared-card>
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between">
+            <div class="flex flex-col gap-1">
+              <h4 class="text-xs font-bold uppercase tracking-widest text-zinc-400">
+                {{ 'webhook.whatsapp.title' | translate }}
+              </h4>
+              <p class="text-sm text-zinc-500">
+                {{ 'webhook.whatsapp.subtitle' | translate }}
+              </p>
+            </div>
+
+            <shared-button
+              variant="secondary"
+              [fullWidth]="false"
+              [disabled]="isWebhookKeySaving()"
+              (clicked)="toggleWebhookCreateForm()"
+            >
+              @if (showWebhookCreateForm()) {
+                {{ 'webhook.cancel' | translate }}
+              } @else {
+                {{ 'webhook.createKey' | translate }}
+              }
+            </shared-button>
+          </div>
+
+          <div class="space-y-2">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
+              {{ 'webhook.whatsapp.endpoint' | translate }}
+            </p>
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <code class="block flex-1 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-900">
+                {{ whatsAppWebhookUrl() }}
+              </code>
+              <shared-button
+                variant="secondary"
+                size="compact"
+                [fullWidth]="false"
+                (clicked)="copyWhatsAppWebhookUrl()"
+              >
+                @if (webhookUrlCopied()) {
+                  {{ 'webhook.copyKey' | translate }}
+                } @else {
+                  {{ 'webhook.whatsapp.copyUrl' | translate }}
+                }
+              </shared-button>
+            </div>
+            <p class="text-xs text-zinc-500">
+              {{ 'webhook.whatsapp.headerHint' | translate }}
+            </p>
+          </div>
+
+          @if (whatsAppWebhookSuccessMessage()) {
+            <p class="text-sm font-semibold text-emerald-600">
+              {{ whatsAppWebhookSuccessMessage() }}
+            </p>
+          }
+
+          @if (whatsAppWebhookErrorMessage()) {
+            <p class="text-sm font-semibold text-rose-600">
+              {{ whatsAppWebhookErrorMessage() }}
+            </p>
+          }
+
+          @if (showWebhookCreateForm()) {
+            <div class="grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4">
+              <shared-input
+                [label]="'webhook.fields.name' | translate"
+                [placeholder]="'webhook.fields.namePlaceholder' | translate"
+                [(value)]="webhookKeyName"
+                [required]="true"
+              />
+
+              <shared-input
+                [label]="'webhook.fields.domains' | translate"
+                [placeholder]="'webhook.fields.domainsPlaceholder' | translate"
+                [hint]="'webhook.fields.domainsHint' | translate"
+                [(value)]="webhookKeyDomains"
+              />
+
+              <div class="flex justify-end">
+                <shared-button
+                  variant="primary"
+                  size="compact"
+                  [fullWidth]="false"
+                  [loading]="isWebhookKeySaving()"
+                  [disabled]="!webhookKeyName().trim()"
+                  (clicked)="createWhatsAppWebhookKey()"
+                >
+                  {{ 'webhook.generate' | translate }}
+                </shared-button>
+              </div>
+            </div>
+          }
+
+          @if (createdWebhookKey(); as created) {
+            <div class="space-y-4 rounded-2xl border border-amber-300 bg-amber-50 p-4">
+              <div>
+                <p class="text-sm font-semibold text-amber-900">{{ 'webhook.keyCreated' | translate }}</p>
+                <p class="mt-1 text-xs text-amber-700">{{ 'webhook.keyCreatedWarning' | translate }}</p>
+              </div>
+
+              <div class="space-y-2">
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
+                  {{ 'webhook.fields.apiKey' | translate }}
+                </p>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <code class="block flex-1 overflow-x-auto rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900">
+                    {{ created.key }}
+                  </code>
+                  <shared-button
+                    variant="secondary"
+                    size="compact"
+                    [fullWidth]="false"
+                    (clicked)="copyCreatedWebhookKey()"
+                  >
+                    @if (webhookKeyCopied()) {
+                      {{ 'webhook.copyKey' | translate }}
+                    } @else {
+                      {{ 'webhook.copyKey' | translate }}
+                    }
+                  </shared-button>
+                </div>
+              </div>
+
+              <div class="space-y-2">
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
+                  {{ 'webhook.whatsapp.providerEndpoint' | translate }}
+                </p>
+                <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                  <code class="block flex-1 overflow-x-auto rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs text-zinc-900">
+                    {{ whatsAppProviderWebhookUrl() }}
+                  </code>
+                  <shared-button
+                    variant="secondary"
+                    size="compact"
+                    [fullWidth]="false"
+                    (clicked)="copyWhatsAppWebhookUrl()"
+                  >
+                    {{ 'webhook.whatsapp.copyUrl' | translate }}
+                  </shared-button>
+                </div>
+                <p class="text-xs text-zinc-500">{{ 'webhook.whatsapp.providerHint' | translate }}</p>
+              </div>
+
+              <div class="flex flex-col gap-2 sm:flex-row sm:justify-end">
+                @if (rotateWebhookSource(); as rotatingKey) {
+                  <shared-button
+                    variant="danger"
+                    size="compact"
+                    [fullWidth]="false"
+                    [disabled]="isWebhookKeySaving()"
+                    (clicked)="confirmRevokeWhatsAppWebhookKey(rotatingKey)"
+                  >
+                    {{ 'webhook.rotate.revokePrevious' | translate }}
+                  </shared-button>
+                }
+                <shared-button
+                  variant="secondary"
+                  size="compact"
+                  [fullWidth]="false"
+                  (clicked)="dismissCreatedWebhookKey()"
+                >
+                  {{ 'webhook.dismiss' | translate }}
+                </shared-button>
+              </div>
+            </div>
+          }
+
+          @if (isWebhookKeysLoading()) {
+            <div class="flex items-center gap-2 text-sm text-zinc-500">
+              <span class="h-4 w-4 animate-spin rounded-full border-2 border-zinc-300 border-t-zinc-900"></span>
+              {{ 'organization.settings.whatsapp.statusHint' | translate }}
+            </div>
+          } @else if (activeWebhookKeys().length === 0) {
+            <div class="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-5 text-sm text-zinc-500">
+              {{ 'webhook.empty' | translate }}
+            </div>
+          } @else {
+            <div class="space-y-3">
+              @for (key of activeWebhookKeys(); track key.id) {
+                <div class="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white px-4 py-4 sm:flex-row sm:items-center sm:justify-between">
+                  <div class="min-w-0">
+                    <p class="truncate text-sm font-semibold text-zinc-900">{{ key.name }}</p>
+                    <p class="mt-1 text-xs text-zinc-500">
+                      <span class="font-mono">{{ key.keyPrefix }}•••</span>
+                    </p>
+                    @if (key.allowedDomains.length > 0) {
+                      <div class="mt-2 flex flex-wrap gap-1.5">
+                        @for (domain of key.allowedDomains; track domain) {
+                          <span class="inline-flex items-center rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600">
+                            {{ domain }}
+                          </span>
+                        }
+                      </div>
+                    }
+                  </div>
+
+                  <div class="flex flex-wrap gap-2">
+                    <shared-button
+                      variant="secondary"
+                      size="compact"
+                      [fullWidth]="false"
+                      [disabled]="isWebhookKeySaving()"
+                      (clicked)="rotateWhatsAppWebhookKey(key)"
+                    >
+                      {{ 'webhook.rotate.action' | translate }}
+                    </shared-button>
+                    <shared-button
+                      variant="danger"
+                      size="compact"
+                      [fullWidth]="false"
+                      [disabled]="isWebhookKeySaving()"
+                      (clicked)="confirmRevokeWhatsAppWebhookKey(key)"
+                    >
+                      {{ 'webhook.revoke' | translate }}
+                    </shared-button>
+                  </div>
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </shared-card>
     </div>
   }
+
+  <shared-confirm-dialog
+    [isOpen]="showWebhookRevokeDialog()"
+    [title]="'webhook.revokeConfirm.title' | translate"
+    [message]="'webhook.revokeConfirm.message' | translate"
+    [confirmText]="'webhook.revokeConfirm.confirm' | translate"
+    [cancelText]="'webhook.revokeConfirm.cancel' | translate"
+    [confirmDisabled]="isWebhookKeySaving()"
+    confirmVariant="danger"
+    (cancelled)="cancelRevokeWhatsAppWebhookKey()"
+    (confirm)="revokeWhatsAppWebhookKey()"
+  />
 </shared-page-layout>
