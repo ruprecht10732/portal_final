@@ -126,6 +126,7 @@ export interface WhatsAppPortalMetadata {
   edited?: WhatsAppPortalMutationAudit;
   deleted?: WhatsAppPortalMutationAudit;
   revoked?: WhatsAppPortalMutationAudit;
+  starred?: boolean;
   reactions?: WhatsAppPortalReaction[];
 }
 
@@ -216,6 +217,26 @@ export interface SendWhatsAppChatPresenceRequest {
   action: WhatsAppChatPresenceAction;
 }
 
+export interface ToggleWhatsAppConversationStateRequest {
+  value: boolean;
+}
+
+export interface ToggleWhatsAppMessageStateRequest {
+  value: boolean;
+}
+
+export interface SetWhatsAppDisappearingTimerRequest {
+  timerSeconds: number;
+}
+
+export interface EditWhatsAppMessageRequest {
+  body: string;
+}
+
+export interface ReactWhatsAppMessageRequest {
+  emoji: string;
+}
+
 export interface SendWhatsAppConversationMessageResponse {
   status: string;
   conversation: WhatsAppConversation;
@@ -231,12 +252,28 @@ export interface MarkWhatsAppConversationReadResponse {
   providerSynced: boolean;
 }
 
+export interface WhatsAppConversationActionResponse {
+  status: string;
+  conversation?: WhatsAppConversation;
+  message?: WhatsAppMessage;
+}
+
 export interface SendWhatsAppPresenceResponse {
   status: string;
 }
 
 export interface SendWhatsAppChatPresenceResponse {
   status: string;
+}
+
+export interface WhatsAppMediaDownloadResponse {
+  status: string;
+  messageId: string;
+  mediaType: string;
+  filename: string;
+  filePath: string;
+  fileSize: number;
+  downloadUrl?: string;
 }
 
 export interface WhatsAppUnreadConversationCountResponse {

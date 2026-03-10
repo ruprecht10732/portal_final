@@ -249,7 +249,39 @@
                   <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Actief gesprek</p>
                   <h2 class="truncate text-lg font-bold text-zinc-900">{{ displayName(selectedConversation()!) }}</h2>
                   <p class="truncate text-xs text-zinc-500">{{ selectedConversation()!.phoneNumber }}</p>
+                  @if (threadStateBadges(); as badges) {
+                    @if (badges.length > 0) {
+                      <div class="mt-2 flex flex-wrap gap-1.5">
+                        @for (badge of badges; track badge.key) {
+                          <span class="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-700">
+                            <lucide-icon [name]="badge.icon" class="h-3 w-3"></lucide-icon>
+                            {{ badge.label }}
+                          </span>
+                        }
+                      </div>
+                    }
+                  }
                 </div>
+                <shared-menu
+                  class="shrink-0"
+                  triggerLabel="Threadacties"
+                  [ariaLabel]="'Threadacties'"
+                  triggerVariant="ghost"
+                  triggerShape="round"
+                  [triggerSize]="'compact'"
+                  [iconOnly]="true"
+                  [showChevron]="false"
+                  [fullWidth]="false"
+                  [disabled]="isConversationActionBusy()"
+                  [sections]="threadMenuSections()"
+                  (itemSelected)="onThreadMenuItemSelected($event)"
+                >
+                  @if (isConversationActionBusy()) {
+                    <lucide-icon menuTrigger name="loader-circle" class="h-4 w-4 animate-spin"></lucide-icon>
+                  } @else {
+                    <lucide-icon menuTrigger name="ellipsis-vertical" class="h-4 w-4"></lucide-icon>
+                  }
+                </shared-menu>
               </div>
             </header>
 
@@ -280,6 +312,48 @@
                         [class.bg-white]="message.direction === 'inbound'"
                         [class.text-zinc-900]="message.direction === 'inbound'"
                       >
+                        @if (shouldShowMessageActions(message)) {
+                          <div class="mb-2 flex flex-wrap items-center justify-end gap-2">
+                            @if (!isMobileViewport() && !isReactionDisabled(message)) {
+                              <div class="flex flex-wrap items-center gap-1">
+                                @for (emoji of quickReactionChoices; track emoji) {
+                                  <button
+                                    type="button"
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/10 text-sm transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-1"
+                                    [class.border-zinc-200]="message.direction === 'inbound'"
+                                    [class.bg-white]="message.direction === 'inbound'"
+                                    [class.hover:bg-zinc-100]="message.direction === 'inbound'"
+                                    [disabled]="isReactingMessage(message)"
+                                    [attr.aria-label]="'Reageer met ' + emoji"
+                                    (click)="quickReact(message, emoji)"
+                                  >
+                                    {{ emoji }}
+                                  </button>
+                                }
+                              </div>
+                            }
+                            <shared-menu
+                              triggerLabel="Berichtacties"
+                              [ariaLabel]="'Berichtacties'"
+                              triggerVariant="ghost"
+                              triggerShape="round"
+                              [triggerSize]="'compact'"
+                              [iconOnly]="true"
+                              [showChevron]="false"
+                              [fullWidth]="false"
+                              [disabled]="isReactingMessage(message) || isEditingMessage(message) || isDeletingMessage(message) || isRevokingMessage(message) || isStarringMessage(message) || isDownloadingMessage(message)"
+                              [sections]="messageMenuSections(message)"
+                              (itemSelected)="onMessageMenuItemSelected(message, $event)"
+                            >
+                              @if (isReactingMessage(message) || isEditingMessage(message) || isDeletingMessage(message) || isRevokingMessage(message) || isStarringMessage(message) || isDownloadingMessage(message)) {
+                                <lucide-icon menuTrigger name="loader-circle" class="h-4 w-4 animate-spin"></lucide-icon>
+                              } @else {
+                                <lucide-icon menuTrigger name="ellipsis-vertical" class="h-4 w-4"></lucide-icon>
+                              }
+                            </shared-menu>
+                          </div>
+                        }
+
                         @if (messageMutationBadges(message); as mutationBadges) {
                           @if (mutationBadges.length > 0) {
                             <div class="mb-2 flex flex-wrap items-center gap-1.5">
@@ -433,6 +507,15 @@
                               }
                             </div>
                           }
+                        }
+
+                        @if (isMessageStarred(message)) {
+                          <div class="mt-3 flex justify-end">
+                            <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-700">
+                              <lucide-icon name="star" class="h-3 w-3"></lucide-icon>
+                              Ster
+                            </span>
+                          </div>
                         }
 
                         <div class="mt-3 flex items-center justify-end gap-1 text-[10px] font-medium uppercase tracking-[0.14em]" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-400]="message.direction === 'inbound'">
@@ -787,4 +870,129 @@
       }
     </section>
   </main>
+
+  <shared-confirm-dialog
+    [isOpen]="showDisappearingTimerDialog()"
+    title="Verdwijnende berichten"
+    message=""
+    confirmText="Opslaan"
+    cancelText="Annuleren"
+    confirmVariant="primary"
+    [confirmDisabled]="!canConfirmDisappearingTimer()"
+    (confirm)="confirmDisappearingTimer()"
+    (cancelled)="cancelDisappearingTimer()"
+  >
+    <div class="space-y-3">
+      <p class="text-sm leading-relaxed text-zinc-500">
+        Kies na hoeveel tijd nieuwe berichten automatisch verdwijnen in deze chat.
+      </p>
+      <div class="grid gap-2">
+        @for (option of disappearingTimerOptions; track option.value) {
+          <label class="flex items-center gap-3 rounded-2xl border border-zinc-200 px-3 py-2 text-sm text-zinc-700">
+            <input
+              type="radio"
+              name="whatsapp-disappearing-timer"
+              [checked]="disappearingTimerDraft() === option.value"
+              [disabled]="!canConfirmDisappearingTimer()"
+              (change)="updateDisappearingTimerDraft(option.value)"
+            />
+            <span>{{ option.label }}</span>
+          </label>
+        }
+      </div>
+    </div>
+  </shared-confirm-dialog>
+
+  <shared-confirm-dialog
+    [isOpen]="showReactionDialog()"
+    title="Reactie toevoegen"
+    message=""
+    confirmText="Opslaan"
+    cancelText="Annuleren"
+    confirmVariant="primary"
+    [confirmDisabled]="!canConfirmReaction()"
+    (confirm)="confirmReaction()"
+    (cancelled)="cancelReaction()"
+  >
+    <div class="space-y-3">
+      <p class="text-sm leading-relaxed text-zinc-500">
+        Kies een snelle reactie of vul een emoji handmatig in.
+      </p>
+
+      <div class="flex flex-wrap gap-2">
+        @for (emoji of reactionChoices; track emoji) {
+          <button
+            type="button"
+            class="inline-flex h-11 w-11 items-center justify-center rounded-2xl border text-xl transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+            [class.border-emerald-600]="reactionDraft() === emoji"
+            [class.bg-emerald-50]="reactionDraft() === emoji"
+            [class.border-zinc-200]="reactionDraft() !== emoji"
+            [class.bg-white]="reactionDraft() !== emoji"
+            [disabled]="reactingMessageId() !== null"
+            [attr.aria-pressed]="reactionDraft() === emoji"
+            (click)="selectReaction(emoji)"
+          >
+            {{ emoji }}
+          </button>
+        }
+      </div>
+
+      <input
+        class="w-full rounded-2xl border border-zinc-200 px-3 py-2 text-sm text-zinc-900 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
+        [value]="reactionDraft()"
+        [disabled]="reactingMessageId() !== null"
+        placeholder="Emoji"
+        (input)="updateReactionDraft($any($event.target).value)"
+      />
+    </div>
+  </shared-confirm-dialog>
+
+  <shared-confirm-dialog
+    [isOpen]="showEditMessageDialog()"
+    title="Bericht bewerken"
+    message=""
+    confirmText="Opslaan"
+    cancelText="Annuleren"
+    confirmVariant="primary"
+    [confirmDisabled]="!canConfirmEditMessage()"
+    (confirm)="confirmEditMessage()"
+    (cancelled)="cancelEditMessage()"
+  >
+    <div class="space-y-3">
+      <p class="text-sm leading-relaxed text-zinc-500">
+        Pas het bericht aan en sla de wijziging direct door naar WhatsApp.
+      </p>
+      <textarea
+        class="min-h-32 w-full rounded-2xl border border-zinc-200 px-3 py-2 text-sm text-zinc-900 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
+        [value]="editMessageDraft()"
+        [disabled]="editingMessageId() !== null"
+        placeholder="Werk je bericht bij..."
+        (input)="updateEditMessageDraft($any($event.target).value)"
+      ></textarea>
+    </div>
+  </shared-confirm-dialog>
+
+  <shared-confirm-dialog
+    [isOpen]="showDeleteMessageDialog()"
+    title="Bericht verwijderen"
+    [message]="deleteMessageDialogDescription()"
+    confirmText="Verwijder"
+    cancelText="Annuleren"
+    confirmVariant="danger"
+    [confirmDisabled]="deletingMessageId() !== null"
+    (confirm)="confirmDeleteMessage()"
+    (cancelled)="cancelDeleteMessage()"
+  />
+
+  <shared-confirm-dialog
+    [isOpen]="showRevokeMessageDialog()"
+    title="Bericht intrekken"
+    [message]="revokeMessageDialogDescription()"
+    confirmText="Trek in"
+    cancelText="Annuleren"
+    confirmVariant="danger"
+    [confirmDisabled]="revokingMessageId() !== null"
+    (confirm)="confirmRevokeMessage()"
+    (cancelled)="cancelRevokeMessage()"
+  />
 </shared-page-layout>

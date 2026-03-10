@@ -3,7 +3,10 @@ import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type {
+  EditWhatsAppMessageRequest,
   MarkWhatsAppConversationReadResponse,
+  ReactWhatsAppMessageRequest,
+  SetWhatsAppDisappearingTimerRequest,
   SendWhatsAppChatPresenceRequest,
   SendWhatsAppChatPresenceResponse,
   SendWhatsAppConversationMessageRequest,
@@ -11,8 +14,12 @@ import type {
   SendWhatsAppPresenceRequest,
   SendWhatsAppPresenceResponse,
   SuggestWhatsAppReplyResponse,
+  ToggleWhatsAppConversationStateRequest,
+  ToggleWhatsAppMessageStateRequest,
+  WhatsAppConversationActionResponse,
   WhatsAppConversationListResponse,
   WhatsAppConversationMessagesResponse,
+  WhatsAppMediaDownloadResponse,
   WhatsAppUnreadConversationCountResponse,
 } from './whatsapp-inbox.types';
 
@@ -50,6 +57,75 @@ export class WhatsAppInboxService {
 
   markConversationRead(conversationId: string): Observable<MarkWhatsAppConversationReadResponse> {
     return this.http.post<MarkWhatsAppConversationReadResponse>(`${this.baseUrl}/${conversationId}/read`, {});
+  }
+
+  deleteMessage(conversationId: string, messageId: string): Observable<WhatsAppConversationActionResponse> {
+    return this.http.post<WhatsAppConversationActionResponse>(
+      `${this.baseUrl}/${conversationId}/messages/${messageId}/delete`,
+      {},
+    );
+  }
+
+  revokeMessage(conversationId: string, messageId: string): Observable<WhatsAppConversationActionResponse> {
+    return this.http.post<WhatsAppConversationActionResponse>(
+      `${this.baseUrl}/${conversationId}/messages/${messageId}/revoke`,
+      {},
+    );
+  }
+
+  editMessage(
+    conversationId: string,
+    messageId: string,
+    payload: EditWhatsAppMessageRequest,
+  ): Observable<WhatsAppConversationActionResponse> {
+    return this.http.post<WhatsAppConversationActionResponse>(
+      `${this.baseUrl}/${conversationId}/messages/${messageId}/edit`,
+      payload,
+    );
+  }
+
+  reactToMessage(
+    conversationId: string,
+    messageId: string,
+    payload: ReactWhatsAppMessageRequest,
+  ): Observable<WhatsAppConversationActionResponse> {
+    return this.http.post<WhatsAppConversationActionResponse>(
+      `${this.baseUrl}/${conversationId}/messages/${messageId}/reaction`,
+      payload,
+    );
+  }
+
+  setConversationArchived(
+    conversationId: string,
+    payload: ToggleWhatsAppConversationStateRequest,
+  ): Observable<WhatsAppConversationActionResponse> {
+    return this.http.post<WhatsAppConversationActionResponse>(`${this.baseUrl}/${conversationId}/archive`, payload);
+  }
+
+  setConversationPinned(
+    conversationId: string,
+    payload: ToggleWhatsAppConversationStateRequest,
+  ): Observable<WhatsAppConversationActionResponse> {
+    return this.http.post<WhatsAppConversationActionResponse>(`${this.baseUrl}/${conversationId}/pin`, payload);
+  }
+
+  setConversationDisappearingTimer(
+    conversationId: string,
+    payload: SetWhatsAppDisappearingTimerRequest,
+  ): Observable<WhatsAppConversationActionResponse> {
+    return this.http.post<WhatsAppConversationActionResponse>(`${this.baseUrl}/${conversationId}/disappearing-timer`, payload);
+  }
+
+  setMessageStarred(
+    conversationId: string,
+    messageId: string,
+    payload: ToggleWhatsAppMessageStateRequest,
+  ): Observable<WhatsAppConversationActionResponse> {
+    return this.http.post<WhatsAppConversationActionResponse>(`${this.baseUrl}/${conversationId}/messages/${messageId}/star`, payload);
+  }
+
+  downloadMessageMedia(conversationId: string, messageId: string): Observable<WhatsAppMediaDownloadResponse> {
+    return this.http.get<WhatsAppMediaDownloadResponse>(`${this.baseUrl}/${conversationId}/messages/${messageId}/download`);
   }
 
   sendPresence(payload: SendWhatsAppPresenceRequest): Observable<SendWhatsAppPresenceResponse> {

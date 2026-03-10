@@ -40,6 +40,10 @@
     cdkConnectedOverlay
     [cdkConnectedOverlayOrigin]="origin"
     [cdkConnectedOverlayOpen]="isOpen()"
+    [cdkConnectedOverlayPositions]="overlayPositions"
+    [cdkConnectedOverlayPush]="true"
+    [cdkConnectedOverlayViewportMargin]="12"
+    [cdkConnectedOverlayFlexibleDimensions]="false"
     [cdkConnectedOverlayHasBackdrop]="true"
     [cdkConnectedOverlayBackdropClass]="'cdk-overlay-transparent-backdrop'"
     (backdropClick)="close()"
@@ -51,7 +55,7 @@
       role="menu"
       tabindex="-1"
       (keydown)="onMenuKeydown($event)"
-      class="w-72 max-w-[90vw] rounded-xl border border-zinc-200 bg-white shadow-xl ring-1 ring-zinc-900/5 outline-none focus:outline-none"
+      class="menu-panel w-72 max-w-[90vw] rounded-xl border border-zinc-200 bg-white shadow-xl ring-1 ring-zinc-900/5 outline-none focus:outline-none"
     >
       @if (sections().length) {
         <div class="divide-y divide-zinc-100">
