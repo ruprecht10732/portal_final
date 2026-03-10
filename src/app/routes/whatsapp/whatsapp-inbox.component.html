@@ -711,6 +711,26 @@
                   </div>
                 }
 
+                @if (hasActiveAISuggestion()) {
+                  <div
+                    class="flex flex-col gap-1 rounded-[1.25rem] border px-3 py-2.5 sm:rounded-3xl sm:px-4 sm:py-3"
+                    [class.border-emerald-200]="willLearnEditedAISuggestion()"
+                    [class.bg-emerald-50]="willLearnEditedAISuggestion()"
+                    [class.border-sky-200]="!willLearnEditedAISuggestion()"
+                    [class.bg-sky-50]="!willLearnEditedAISuggestion()"
+                  >
+                    <div class="flex items-center gap-2">
+                      <lucide-icon [name]="willLearnEditedAISuggestion() ? 'sparkles' : 'info'" class="h-4 w-4" [class.text-emerald-700]="willLearnEditedAISuggestion()" [class.text-sky-700]="!willLearnEditedAISuggestion()"></lucide-icon>
+                      <p class="text-[11px] font-black uppercase tracking-[0.2em]" [class.text-emerald-800]="willLearnEditedAISuggestion()" [class.text-sky-800]="!willLearnEditedAISuggestion()">
+                        {{ willLearnEditedAISuggestion() ? 'Leert Na Verzenden' : 'AI-Draft Actief' }}
+                      </p>
+                    </div>
+                    <p class="text-xs leading-relaxed" [class.text-emerald-800]="willLearnEditedAISuggestion()" [class.text-sky-800]="!willLearnEditedAISuggestion()">
+                      {{ aiLearningIndicatorText() }}
+                    </p>
+                  </div>
+                }
+
                 <div class="flex flex-col gap-2 rounded-[1.25rem] border border-zinc-200/80 bg-white/90 px-3 py-2.5 sm:gap-3 sm:rounded-3xl sm:border-zinc-200 sm:bg-white sm:px-4 sm:py-3 sm:flex-row sm:items-center sm:justify-between">
                   <p class="text-xs leading-relaxed text-zinc-500">
                     {{ composerHelperText() }}

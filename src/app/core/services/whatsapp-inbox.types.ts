@@ -186,6 +186,7 @@ export interface SendWhatsAppConversationAttachmentRequest {
 export interface SendWhatsAppConversationMessageRequest {
   type?: WhatsAppMessageComposerType;
   body?: string;
+  aiSuggestion?: string;
   caption?: string;
   viewOnce?: boolean;
   compress?: boolean;

@@ -144,6 +144,8 @@ export class WhatsAppInboxComponent {
   protected readonly composerPollOptionThree = signal('');
   protected readonly composerPollOptionFour = signal('');
   protected readonly composerPollMaxAnswer = signal(1);
+  protected readonly aiSuggestionSeed = signal<string | null>(null);
+  protected readonly aiSuggestionConversationId = signal<string | null>(null);
   protected readonly errorMessage = signal<string | null>(null);
   protected readonly isMobileViewport = signal(false);
   protected readonly composerTypes = composerTypeOptions;
@@ -216,6 +218,22 @@ export class WhatsAppInboxComponent {
   protected readonly showAdvancedComposerOptions = computed(() => {
     const activeType = this.composerType();
     return this.composerOptionsExpanded() || this.advancedComposerTypes.some(option => option.value === activeType);
+  });
+  protected readonly hasActiveAISuggestion = computed(() => {
+    const conversationId = this.selectedConversationId();
+    const aiSuggestion = this.aiSuggestionSeed();
+    return this.composerType() === 'text'
+      && conversationId !== null
+      && aiSuggestion !== null
+      && this.aiSuggestionConversationId() === conversationId;
+  });
+  protected readonly willLearnEditedAISuggestion = computed(() => {
+    if (!this.hasActiveAISuggestion()) {
+      return false;
+    }
+    const aiSuggestion = this.aiSuggestionSeed()?.trim() ?? '';
+    const currentBody = this.composerBody().trim();
+    return currentBody !== '' && currentBody !== aiSuggestion;
   });
   protected readonly composerValidationMessage = computed(() => this.getComposerValidationMessage());
   protected readonly canSubmitComposer = computed(() => {
@@ -370,6 +388,8 @@ export class WhatsAppInboxComponent {
       .subscribe(({ suggestion }) => {
         this.resetComposerState('text');
         this.composerBody.set(suggestion);
+        this.aiSuggestionSeed.set(suggestion);
+        this.aiSuggestionConversationId.set(conversation.id);
       });
   }
 
@@ -457,6 +477,16 @@ export class WhatsAppInboxComponent {
       return 'Bestand wordt voorbereid voor verzending.';
     }
     return this.composerValidationMessage() ?? 'Verstuurt direct via het gekoppelde WhatsApp-apparaat.';
+  }
+
+  protected aiLearningIndicatorText(): string {
+    if (!this.hasActiveAISuggestion()) {
+      return '';
+    }
+    if (this.willLearnEditedAISuggestion()) {
+      return 'Deze aangepaste AI-reply wordt na verzenden meegenomen als feedback voor volgende suggesties.';
+    }
+    return 'AI-suggestie geladen. Pas het bericht aan als je wilt dat jouw correctie wordt meegenomen in volgende suggesties.';
   }
 
   protected sendButtonLabel(): string {
@@ -551,7 +581,7 @@ export class WhatsAppInboxComponent {
   }
 
   protected conversationDirectionIcon(conversation: WhatsAppConversation): string {
-    return conversation.lastMessageDirection === 'outbound' ? 'arrow-up-right' : 'arrow-down-right';
+    return conversation.lastMessageDirection === 'outbound' ? 'arrow-up-right' : 'arrow-down-left';
   }
 
   protected composerTypeLabel(): string {
@@ -1205,6 +1235,8 @@ export class WhatsAppInboxComponent {
   private resetComposerState(type: WhatsAppMessageComposerType = 'text'): void {
     this.composerType.set(type);
     this.composerBody.set('');
+    this.aiSuggestionSeed.set(null);
+    this.aiSuggestionConversationId.set(null);
     this.composerCaption.set('');
     this.clearComposerAttachment();
     this.composerViewOnce.set(false);
@@ -1287,7 +1319,7 @@ export class WhatsAppInboxComponent {
     const type = this.composerType();
     switch (type) {
       case 'text':
-        return { body: this.composerBody().trim() };
+        return this.buildTextComposerPayload();
       case 'image':
       case 'video':
       case 'audio':
@@ -1316,6 +1348,16 @@ export class WhatsAppInboxComponent {
       default:
         return null;
     }
+  }
+
+  private buildTextComposerPayload(): SendWhatsAppConversationMessageRequest {
+    const payload: SendWhatsAppConversationMessageRequest = { body: this.composerBody().trim() };
+    const conversationId = this.selectedConversationId();
+    const aiSuggestion = this.aiSuggestionSeed();
+    if (conversationId && aiSuggestion && this.aiSuggestionConversationId() === conversationId) {
+      payload.aiSuggestion = aiSuggestion;
+    }
+    return payload;
   }
 
   private buildUploadComposerPayload(type: 'image' | 'video' | 'audio' | 'file' | 'sticker'): SendWhatsAppConversationMessageRequest {

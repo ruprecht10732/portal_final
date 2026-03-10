@@ -12,10 +12,11 @@ import { ConfirmDialogComponent } from '../../../../shared/components/confirm-di
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
+import { TextareaComponent } from '../../../../shared/components/textarea/textarea.component';
 
 @Component({
   selector: 'app-organization-whatsapp-settings',
-  imports: [ButtonComponent, CardComponent, ConfirmDialogComponent, InputComponent, PageLayoutComponent, SkeletonComponent, TranslatePipe],
+  imports: [ButtonComponent, CardComponent, ConfirmDialogComponent, InputComponent, PageLayoutComponent, SkeletonComponent, TextareaComponent, TranslatePipe],
   templateUrl: './organization-whatsapp-settings.component.html',
   styleUrl: './organization-whatsapp-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -34,6 +35,11 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly whatsAppSuccessMessage = signal('');
   protected readonly isWhatsAppTesting = signal(false);
   protected readonly whatsAppTestMessage = signal('');
+  protected readonly whatsAppToneOfVoice = signal('');
+  private readonly initialWhatsAppToneOfVoice = signal('');
+  protected readonly isToneSaving = signal(false);
+  protected readonly whatsAppToneErrorMessage = signal('');
+  protected readonly whatsAppToneSuccessMessage = signal('');
   protected readonly qrBlobUrl = signal<string | null>(null);
   protected readonly webhookKeys = signal<WebhookAPIKey[]>([]);
   protected readonly isWebhookKeysLoading = signal(true);
@@ -70,6 +76,8 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly pairedAccountJidPending = computed(() => !this.isWhatsAppUnregistered() && !this.pairedAccountJid());
   protected readonly activeWebhookKeys = computed(() => this.webhookKeys().filter(key => key.isActive));
   protected readonly showWebhookRevokeDialog = computed(() => this.revokeWebhookTarget() !== null);
+  protected readonly hasToneChanges = computed(() => this.whatsAppToneOfVoice().trim() !== this.initialWhatsAppToneOfVoice().trim());
+  protected readonly canSaveTone = computed(() => !this.isToneSaving() && this.hasToneChanges() && this.whatsAppToneOfVoice().trim().length >= 3);
   protected readonly whatsAppWebhookUrl = computed(() => `${environment.apiBaseUrl}/webhook/whatsapp`);
   protected readonly whatsAppProviderWebhookUrl = computed(() => {
     const created = this.createdWebhookKey();
@@ -81,6 +89,7 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly whatsAppStatusMessage = computed(() => {
     return localizeWhatsAppStatusMessage(this.whatsAppStatus()?.message, this.translate);
   });
+  protected readonly isWebhookRotateMode = computed(() => this.rotateWebhookSource() !== null);
 
   constructor() {
     this.destroyRef.onDestroy(() => {
@@ -109,6 +118,8 @@ export class OrganizationWhatsAppSettingsComponent {
       .subscribe(settings => {
         this.whatsAppDeviceId.set(settings.whatsAppDeviceId ?? null);
         this.whatsAppAccountJid.set(settings.whatsAppAccountJid ?? null);
+        this.whatsAppToneOfVoice.set(settings.whatsAppToneOfVoice ?? '');
+        this.initialWhatsAppToneOfVoice.set(settings.whatsAppToneOfVoice ?? '');
 
         this.startStatusPolling();
       });
@@ -316,66 +327,101 @@ export class OrganizationWhatsAppSettingsComponent {
       });
   }
 
-  protected toggleWebhookCreateForm(): void {
-  this.showWebhookCreateForm.update(value => !value);
-  if (!this.showWebhookCreateForm()) {
-    this.webhookKeyName.set('');
-    this.webhookKeyDomains.set('');
-    this.rotateWebhookSource.set(null);
+  protected saveWhatsAppToneOfVoice(): void {
+    const tone = this.whatsAppToneOfVoice().trim();
+    if (tone.length < 3) {
+      this.whatsAppToneErrorMessage.set(this.translate.instant('organization.settings.whatsapp.toneInvalid'));
+      return;
+    }
+
+    this.isToneSaving.set(true);
+    this.whatsAppToneErrorMessage.set('');
+    this.whatsAppToneSuccessMessage.set('');
+
+    this.orgService
+      .updateSettings({ whatsAppToneOfVoice: tone })
+      .pipe(
+        catchError(() => {
+          this.whatsAppToneErrorMessage.set(this.translate.instant('organization.settings.whatsapp.toneSaveFailed'));
+          return EMPTY;
+        }),
+        finalize(() => this.isToneSaving.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(settings => {
+        const savedTone = settings.whatsAppToneOfVoice ?? tone;
+        this.whatsAppToneOfVoice.set(savedTone);
+        this.initialWhatsAppToneOfVoice.set(savedTone);
+        this.whatsAppToneSuccessMessage.set(this.translate.instant('organization.settings.whatsapp.toneSaved'));
+      });
   }
-  this.whatsAppWebhookErrorMessage.set('');
-  this.whatsAppWebhookSuccessMessage.set('');
+
+  protected toggleWebhookCreateForm(): void {
+    this.showWebhookCreateForm.update(value => !value);
+    if (!this.showWebhookCreateForm()) {
+      this.webhookKeyName.set('');
+      this.webhookKeyDomains.set('');
+      this.rotateWebhookSource.set(null);
+    }
+    this.whatsAppWebhookErrorMessage.set('');
+    this.whatsAppWebhookSuccessMessage.set('');
   }
 
   protected createWhatsAppWebhookKey(): void {
-  const name = this.webhookKeyName().trim();
-  if (!name) {
-    this.whatsAppWebhookErrorMessage.set(this.translate.instant('webhook.errors.nameRequired'));
-    return;
-  }
+    const name = this.webhookKeyName().trim();
+    if (!name) {
+      this.whatsAppWebhookErrorMessage.set(this.translate.instant('webhook.errors.nameRequired'));
+      return;
+    }
 
-  const domains = this.webhookKeyDomains()
-    .split(',')
-    .map(domain => domain.trim())
-    .filter(domain => domain !== '');
+    const domains = this.webhookKeyDomains()
+      .split(',')
+      .map(domain => domain.trim())
+      .filter(domain => domain !== '');
 
-  this.isWebhookKeySaving.set(true);
-  this.whatsAppWebhookErrorMessage.set('');
-  this.whatsAppWebhookSuccessMessage.set('');
-  this.createdWebhookKey.set(null);
-  this.webhookKeyCopied.set(false);
-  this.webhookUrlCopied.set(false);
+    const rotateSource = this.rotateWebhookSource();
 
-  this.webhookService
-    .create({ name, allowedDomains: domains })
-    .pipe(
-      catchError(error => {
-        this.whatsAppWebhookErrorMessage.set(this.normalizeApiError(error, 'webhook.errors.generic'));
-        return EMPTY;
-      }),
-      finalize(() => this.isWebhookKeySaving.set(false)),
-      takeUntilDestroyed(this.destroyRef),
-    )
-    .subscribe(response => {
-      this.createdWebhookKey.set(response);
-      this.showWebhookCreateForm.set(false);
-      this.webhookKeyName.set('');
-      this.webhookKeyDomains.set('');
-      if (this.rotateWebhookSource()) {
-        this.whatsAppWebhookSuccessMessage.set(this.translate.instant('webhook.rotate.created'));
-      }
-      this.loadWhatsAppWebhookKeys();
-    });
+    this.isWebhookKeySaving.set(true);
+    this.whatsAppWebhookErrorMessage.set('');
+    this.whatsAppWebhookSuccessMessage.set('');
+    this.createdWebhookKey.set(null);
+    this.webhookKeyCopied.set(false);
+    this.webhookUrlCopied.set(false);
+
+    const request$ = rotateSource
+      ? this.webhookService.rotate(rotateSource.id, { name, allowedDomains: domains })
+      : this.webhookService.create({ name, allowedDomains: domains });
+
+    request$
+      .pipe(
+        catchError(error => {
+          this.whatsAppWebhookErrorMessage.set(this.normalizeApiError(error, 'webhook.errors.generic'));
+          return EMPTY;
+        }),
+        finalize(() => this.isWebhookKeySaving.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => {
+        this.createdWebhookKey.set(response);
+        this.showWebhookCreateForm.set(false);
+        this.webhookKeyName.set('');
+        this.webhookKeyDomains.set('');
+        this.rotateWebhookSource.set(null);
+        if (rotateSource) {
+          this.whatsAppWebhookSuccessMessage.set(this.translate.instant('webhook.rotate.completed'));
+        }
+        this.loadWhatsAppWebhookKeys();
+      });
   }
 
   protected rotateWhatsAppWebhookKey(key: WebhookAPIKey): void {
-  this.rotateWebhookSource.set(key);
-  this.showWebhookCreateForm.set(true);
-  this.webhookKeyName.set(`${key.name} ${this.translate.instant('webhook.rotate.suffix')}`.trim());
-  this.webhookKeyDomains.set(key.allowedDomains.join(', '));
-  this.createdWebhookKey.set(null);
-  this.whatsAppWebhookErrorMessage.set('');
-  this.whatsAppWebhookSuccessMessage.set('');
+    this.rotateWebhookSource.set(key);
+    this.showWebhookCreateForm.set(true);
+    this.webhookKeyName.set(`${key.name} ${this.translate.instant('webhook.rotate.suffix')}`.trim());
+    this.webhookKeyDomains.set(key.allowedDomains.join(', '));
+    this.createdWebhookKey.set(null);
+    this.whatsAppWebhookErrorMessage.set('');
+    this.whatsAppWebhookSuccessMessage.set('');
   }
 
   protected confirmRevokeWhatsAppWebhookKey(key: WebhookAPIKey): void {
@@ -417,10 +463,10 @@ export class OrganizationWhatsAppSettingsComponent {
   }
 
   protected dismissCreatedWebhookKey(): void {
-  this.createdWebhookKey.set(null);
-  this.rotateWebhookSource.set(null);
-  this.webhookKeyCopied.set(false);
-  this.webhookUrlCopied.set(false);
+    this.createdWebhookKey.set(null);
+    this.rotateWebhookSource.set(null);
+    this.webhookKeyCopied.set(false);
+    this.webhookUrlCopied.set(false);
   }
 
   protected async copyCreatedWebhookKey(): Promise<void> {

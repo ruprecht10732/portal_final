@@ -82,6 +82,7 @@ export interface OrganizationSettings {
   notificationEmail?: string | null;
   whatsAppDeviceId?: string | null;
   whatsAppAccountJid?: string | null;
+  whatsAppToneOfVoice: string;
   whatsAppPresence?: 'available' | 'unavailable';
 }
 
@@ -107,6 +108,7 @@ export interface UpdateOrganizationSettingsRequest {
   photoAnalysisLensCorrectionServiceTypes?: string[];
   photoAnalysisPerspectiveNormalizationEnabled?: boolean;
   photoAnalysisPerspectiveNormalizationServiceTypes?: string[];
+  whatsAppToneOfVoice?: string;
   whatsAppPresence?: 'available' | 'unavailable';
 }
 

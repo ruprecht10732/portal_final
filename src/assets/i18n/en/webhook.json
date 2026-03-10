@@ -39,19 +39,21 @@
     },
     "whatsapp": {
       "title": "WhatsApp webhook endpoint",
-      "subtitle": "Use this endpoint for WhatsApp providers. After you create a key below, copy the authenticated URL and paste it directly into go-whatsapp-web-multidevice or a similar provider.",
+      "subtitle": "Optional. Use this only when an external WhatsApp provider needs to send delivery, read, or inbound webhook callbacks to this backend.",
+      "optionalUsage": "You can ignore this section if WhatsApp already works through the built-in device connection in the portal. The API key is only for external callback providers that POST to /api/v1/webhook/whatsapp.",
       "endpoint": "WhatsApp webhook URL",
       "providerEndpoint": "Authenticated provider URL",
       "copyUrl": "Copy URL",
-      "headerHint": "The provider-ready URL is shown after you create a key. It embeds the key as an api_key query parameter so providers that only support a URL can still authenticate.",
-      "providerHint": "Paste this exact URL into the provider webhook setting. Use a dedicated key and rotate it if the URL leaks.",
+      "headerHint": "The provider-ready URL is shown after you create or rotate a key. It embeds the key as an api_key query parameter so providers that only support a URL can still authenticate.",
+      "providerHint": "Paste this exact URL into the external provider webhook setting. Use a dedicated key and rotate it if the URL leaks.",
       "exampleRequest": "Example request",
       "copyExample": "Copy example"
     },
     "rotate": {
       "action": "Rotate",
       "suffix": "rotated",
-      "created": "New webhook key created. Update the provider first, then revoke the previous key.",
+      "created": "New webhook key created.",
+      "completed": "Webhook key rotated. The previous key has already been revoked.",
       "revokePrevious": "Revoke previous key"
     },
     "gtm": {

@@ -39,19 +39,21 @@
     },
     "whatsapp": {
       "title": "WhatsApp webhook endpoint",
-      "subtitle": "Gebruik dit endpoint voor WhatsApp-providers. Nadat u hieronder een sleutel maakt, kopieert u de geauthenticeerde URL en plakt u die direct in go-whatsapp-web-multidevice of een vergelijkbare provider.",
+      "subtitle": "Optioneel. Gebruik dit alleen wanneer een externe WhatsApp-provider delivery-, read- of inbound-callbacks naar deze backend moet sturen.",
+      "optionalUsage": "U kunt dit onderdeel negeren als WhatsApp al werkt via de ingebouwde apparaatkoppeling in het portaal. De API-sleutel is alleen bedoeld voor externe callback-providers die POST-verzoeken naar /api/v1/webhook/whatsapp sturen.",
       "endpoint": "WhatsApp webhook URL",
       "providerEndpoint": "Geauthenticeerde provider-URL",
       "copyUrl": "URL kopiëren",
-      "headerHint": "De providerklare URL wordt getoond nadat u een sleutel heeft gemaakt. Daarin zit de sleutel als api_key queryparameter, zodat providers die alleen een URL ondersteunen toch kunnen authenticeren.",
-      "providerHint": "Plak exact deze URL in de webhook-instelling van de provider. Gebruik hiervoor een aparte sleutel en roteer die als de URL uitlekt.",
+      "headerHint": "De providerklare URL wordt getoond nadat u een sleutel heeft gemaakt of geroteerd. Daarin zit de sleutel als api_key queryparameter, zodat providers die alleen een URL ondersteunen toch kunnen authenticeren.",
+      "providerHint": "Plak exact deze URL in de webhook-instelling van de externe provider. Gebruik hiervoor een aparte sleutel en roteer die als de URL uitlekt.",
       "exampleRequest": "Voorbeeldrequest",
       "copyExample": "Voorbeeld kopiëren"
     },
     "rotate": {
       "action": "Roteer",
       "suffix": "geroteerd",
-      "created": "Nieuwe webhook sleutel aangemaakt. Werk eerst de provider bij en trek daarna de vorige sleutel in.",
+      "created": "Nieuwe webhook sleutel aangemaakt.",
+      "completed": "Webhook sleutel geroteerd. De vorige sleutel is al ingetrokken.",
       "revokePrevious": "Vorige sleutel intrekken"
     },
     "gtm": {

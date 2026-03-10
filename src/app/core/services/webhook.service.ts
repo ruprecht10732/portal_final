@@ -17,6 +17,8 @@ export interface CreateWebhookAPIKeyRequest {
   allowedDomains: string[];
 }
 
+export type RotateWebhookAPIKeyRequest = CreateWebhookAPIKeyRequest;
+
 export interface CreateWebhookAPIKeyResponse extends WebhookAPIKey {
   key: string; // plaintext, shown only once
 }
@@ -65,6 +67,10 @@ export class WebhookService {
 
   create(payload: CreateWebhookAPIKeyRequest): Observable<CreateWebhookAPIKeyResponse> {
     return this.http.post<CreateWebhookAPIKeyResponse>(this.baseUrl, payload);
+  }
+
+  rotate(keyId: string, payload: RotateWebhookAPIKeyRequest): Observable<CreateWebhookAPIKeyResponse> {
+    return this.http.post<CreateWebhookAPIKeyResponse>(`${this.baseUrl}/${keyId}/rotate`, payload);
   }
 
   revoke(keyId: string): Observable<void> {

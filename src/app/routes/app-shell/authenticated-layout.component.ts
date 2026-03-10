@@ -11,6 +11,8 @@ import { ToastContainerComponent } from '../../shared/components/toast-container
 import { AuthenticatedMobileNavComponent } from './authenticated-mobile-nav.component';
 import { AuthenticatedSidebarComponent } from './authenticated-sidebar.component';
 import { MobileSectionTabsComponent } from './mobile-section-tabs.component';
+import { BrowserNotificationService } from '../../core/services/browser-notification.service';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-authenticated-layout',
@@ -18,6 +20,7 @@ import { MobileSectionTabsComponent } from './mobile-section-tabs.component';
     RouterLink,
     RouterOutlet,
     TranslatePipe,
+    LucideAngularModule,
     AIJobSidebarPanelComponent,
     ButtonComponent,
     NotificationSidebarPanelComponent,
@@ -35,9 +38,11 @@ export class AuthenticatedLayoutComponent {
   protected readonly _ = inject(SSEService);
   protected readonly whatsAppDeviceStatus = inject(WhatsAppDeviceStatusService);
   private readonly translate = inject(TranslateService);
+  private readonly browserNotifications = inject(BrowserNotificationService);
 
   protected readonly showTimeoutWarning = signal(false);
   protected readonly mobileMenuOpen = signal(false);
+  protected readonly showNotificationBanner = signal(false);
   protected readonly dismissedWhatsAppBannerKey = signal<string | null>(null);
   protected readonly whatsAppBannerKey = computed(() => {
     const status = this.whatsAppDeviceStatus.status();
@@ -62,6 +67,11 @@ export class AuthenticatedLayoutComponent {
 
   constructor() {
     this.whatsAppDeviceStatus.startPolling();
+    this.browserNotifications.init();
+
+    if (this.browserNotifications.canPrompt) {
+      this.showNotificationBanner.set(true);
+    }
   }
 
   protected toggleMobileMenu(): void {
@@ -87,5 +97,16 @@ export class AuthenticatedLayoutComponent {
     }
 
     this.dismissedWhatsAppBannerKey.set(bannerKey);
+  }
+
+  protected async enableNotifications(): Promise<void> {
+    await this.browserNotifications.requestPermission();
+    this.showNotificationBanner.set(false);
+    this.browserNotifications.markDismissed();
+  }
+
+  protected dismissNotificationBanner(): void {
+    this.showNotificationBanner.set(false);
+    this.browserNotifications.markDismissed();
   }
 }
