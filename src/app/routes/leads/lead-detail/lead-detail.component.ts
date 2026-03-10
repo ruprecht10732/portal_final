@@ -86,7 +86,6 @@ const STATUS_NO_SERVICE_TRANSLATION_KEY = 'leads.detail.status.noService';
 const ACTIVITY_SYSTEM_TRANSLATION_KEY = 'leads.detail.activity.system';
 const ACTIVITY_LEAD_CREATED_TRANSLATION_KEY = 'leads.detail.activity.leadCreated';
 const ACTIVITY_LEAD_UPDATED_TRANSLATION_KEY = 'leads.detail.activity.leadUpdated';
-const ACTIVITY_LEAD_VIEWED_TRANSLATION_KEY = 'leads.detail.activity.leadViewed';
 const ERROR_LOAD_LEAD_TRANSLATION_KEY = 'leads.detail.errors.loadLead';
 const ERROR_LOAD_PROFILE_TRANSLATION_KEY = 'leads.detail.errors.loadProfile';
 const UNASSIGNED_TRANSLATION_KEY = 'leads.detail.unassigned';
@@ -528,15 +527,6 @@ export class LeadDetailComponent implements OnInit {
           message: this.translate.instant(ACTIVITY_LEAD_UPDATED_TRANSLATION_KEY),
         });
       }
-      if (lead.viewedAt) {
-        entries.push({
-          id: `viewed-${lead.id}`,
-          type: 'audit',
-          timestamp: lead.viewedAt,
-          user: this.translate.instant(ACTIVITY_SYSTEM_TRANSLATION_KEY),
-          message: this.translate.instant(ACTIVITY_LEAD_VIEWED_TRANSLATION_KEY),
-        });
-      }
     }
 
     return [...noteEntries, ...entries].sort((a, b) => {
@@ -902,18 +892,6 @@ export class LeadDetailComponent implements OnInit {
         metadata: { timelineKind: 'lead_created' },
       },
     ];
-
-    if (lead.viewedAt) {
-      items.push({
-        id: `audit-viewed-${lead.id}`,
-        type: 'system',
-        title: this.translate.instant(ACTIVITY_LEAD_VIEWED_TRANSLATION_KEY),
-        summary: this.translate.instant(ACTIVITY_LEAD_VIEWED_TRANSLATION_KEY),
-        timestamp: lead.viewedAt,
-        actor: this.translate.instant(ACTIVITY_SYSTEM_TRANSLATION_KEY),
-        metadata: { timelineKind: 'lead_viewed' },
-      });
-    }
 
     return items;
   }
