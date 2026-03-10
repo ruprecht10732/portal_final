@@ -247,74 +247,50 @@
           } @else {
             <div class="mt-3 flex flex-col gap-2">
               @for (attachment of attachments(); track attachment.id) {
-                <div class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-2 text-xs">
+                <div class="flex items-center justify-between gap-3 rounded-lg bg-zinc-50 px-3 py-2 text-xs">
                   <div>
                     <p class="font-semibold">{{ attachment.fileName }}</p>
-                    <p class="text-zinc-500">{{ attachment.fileKey }}</p>
+                    <p class="text-zinc-500">{{ formatHumanDateTime()(attachment.createdAt) }}</p>
                   </div>
-                  <div class="text-zinc-500">
-                    {{ attachment.sizeBytes ?? 0 }} bytes
+                  <div class="flex items-center gap-3">
+                    <div class="text-zinc-500">
+                      {{ attachment.sizeBytes ?? 0 }} bytes
+                    </div>
+                    <button
+                      type="button"
+                      class="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-zinc-300 hover:bg-white"
+                      (click)="downloadAttachment.emit(attachment)"
+                    >
+                      Download
+                    </button>
                   </div>
                 </div>
               }
             </div>
           }
 
-          <div class="mt-4 grid gap-3">
-            <div class="grid gap-3 md:grid-cols-2">
-              <label class="flex flex-col gap-2 text-sm font-medium">
-                {{ 'leads.detail.appointments.fileKey' | translate }}
-                <input
-                  type="text"
-                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                  [value]="attachmentFileKey()"
-                  (input)="setAttachmentFileKey.emit($any($event.target).value)"
-                />
-              </label>
-              <label class="flex flex-col gap-2 text-sm font-medium">
-                {{ 'leads.detail.appointments.fileName' | translate }}
-                <input
-                  type="text"
-                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                  [value]="attachmentFileName()"
-                  (input)="setAttachmentFileName.emit($any($event.target).value)"
-                />
-              </label>
-            </div>
-            <div class="grid gap-3 md:grid-cols-2">
-              <label class="flex flex-col gap-2 text-sm font-medium">
-                {{ 'leads.detail.appointments.contentType' | translate }}
-                <input
-                  type="text"
-                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                  [placeholder]="'leads.detail.appointments.contentTypePlaceholder' | translate"
-                  [value]="attachmentContentType()"
-                  (input)="setAttachmentContentType.emit($any($event.target).value)"
-                />
-              </label>
-              <label class="flex flex-col gap-2 text-sm font-medium">
-                {{ 'leads.detail.appointments.sizeBytes' | translate }}
-                <input
-                  type="number"
-                  min="0"
-                  class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
-                  [value]="attachmentSizeBytes()"
-                  (input)="setAttachmentSizeBytes.emit($any($event.target).value)"
-                />
-              </label>
-            </div>
-            <div class="flex justify-end">
-              <shared-button
-                variant="primary"
-                size="compact"
-                [uppercase]="false"
-                [fullWidth]="false"
-                [disabled]="!canAddAttachment()"
-                (clicked)="addAttachment.emit()"
-              >
-                {{ attachmentSaving() ? ('leads.detail.appointments.saving' | translate) : ('leads.detail.appointments.addAttachment' | translate) }}
-              </shared-button>
-            </div>
+          @if (attachmentUploadError()) {
+            <p class="mt-3 text-sm text-red-600">{{ attachmentUploadError() }}</p>
+          }
+
+          <div class="mt-4 rounded-xl border border-dashed border-zinc-200 bg-zinc-50/60 p-4">
+            <app-file-uploader
+              [label]="'leads.detail.files.selectFile' | translate"
+              [dropLabel]="'common.upload.dropHint' | translate"
+              [accept]="'image/*,application/pdf,video/*,.doc,.docx,.xls,.xlsx'"
+              [multiple]="true"
+              [maxSizeBytes]="maxAttachmentSizeBytes()"
+              [maxSizeError]="'common.upload.sizeError' | translate"
+              [buttonLabel]="'leads.detail.files.uploadButton' | translate"
+              [uploadingLabel]="'leads.detail.files.uploading' | translate"
+              [errorFallback]="'leads.detail.appointments.attachmentError' | translate"
+              [disabled]="attachmentSaving()"
+              [presign]="presignAttachment()"
+              [finalize]="finalizeAttachment()"
+              (uploadingChange)="attachmentUploadingChange.emit($event)"
+              (uploadError)="attachmentUploadErrorChange.emit($event)"
+              (uploaded)="attachmentUploaded.emit($any($event))"
+            />
           </div>
         </div>
       }

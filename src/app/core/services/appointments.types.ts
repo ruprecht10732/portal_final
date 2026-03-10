@@ -90,6 +90,23 @@ export interface AppointmentAttachmentResponse {
   createdAt: string;
 }
 
+export interface PresignAppointmentAttachmentUploadRequest {
+  fileName: string;
+  contentType: string;
+  sizeBytes: number;
+}
+
+export interface PresignedAppointmentUploadResponse {
+  uploadUrl: string;
+  fileKey: string;
+  expiresAt: number;
+}
+
+export interface PresignedAppointmentDownloadResponse {
+  downloadUrl: string;
+  expiresAt: number;
+}
+
 export interface CreateAppointmentAttachmentRequest {
   fileKey: string;
   fileName: string;

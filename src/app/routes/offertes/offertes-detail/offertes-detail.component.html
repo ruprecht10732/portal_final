@@ -96,6 +96,27 @@
               <span class="text-[11px] font-black uppercase tracking-widest text-slate-400">{{ 'offertes.totalAmount' | translate }}</span>
               <span class="text-2xl font-extrabold tracking-tight text-slate-900">{{ formatCentsCurrency(q.totalCents) }}</span>
             </div>
+
+            @if (lineageSummary(); as lineage) {
+              <div
+                class="mt-4 rounded-2xl border px-4 py-3"
+                [class]="lineage.kind === 'version' ? 'border-sky-200 bg-sky-50 text-sky-950' : 'border-violet-200 bg-violet-50 text-violet-950'"
+              >
+                <div class="flex items-start justify-between gap-3">
+                  <div>
+                    <p class="text-xs font-black uppercase tracking-[0.14em]" [class]="lineage.kind === 'version' ? 'text-sky-700' : 'text-violet-700'">{{ lineage.title }}</p>
+                    <p class="mt-1 text-sm leading-relaxed" [class]="lineage.kind === 'version' ? 'text-sky-900' : 'text-violet-900'">{{ lineage.body }}</p>
+                  </div>
+                  <button
+                    type="button"
+                    class="shrink-0 rounded-lg border border-current/15 px-3 py-1.5 text-xs font-bold transition hover:bg-white/60"
+                    (click)="openLineageSource()"
+                  >
+                    {{ 'offertes.lineage.openSource' | translate }}
+                  </button>
+                </div>
+              </div>
+            }
           </div>
 
           <div class="border-b border-gray-100 bg-white px-5 py-4">
@@ -166,6 +187,30 @@
                   >
                     <lucide-icon name="pencil" class="h-4 w-4"></lucide-icon>
                     {{ 'offertes.edit' | translate }}
+                  </shared-button>
+                }
+
+                <shared-button
+                  variant="secondary"
+                  size="compact"
+                  [fullWidth]="true"
+                  [loading]="duplicating()"
+                  (clicked)="duplicateQuote()"
+                >
+                  <lucide-icon name="copy" class="h-4 w-4"></lucide-icon>
+                  {{ 'offertes.duplicate' | translate }}
+                </shared-button>
+
+                @if (canCreateVersion()) {
+                  <shared-button
+                    variant="secondary"
+                    size="compact"
+                    [fullWidth]="true"
+                    [loading]="creatingVersion()"
+                    (clicked)="createNewVersion()"
+                  >
+                    <lucide-icon name="git-branch" class="h-4 w-4"></lucide-icon>
+                    {{ 'offertes.newVersion' | translate }}
                   </shared-button>
                 }
 
@@ -506,6 +551,30 @@
                     </shared-button>
                   }
 
+                  <shared-button
+                    variant="secondary"
+                    size="compact"
+                    [fullWidth]="false"
+                    [loading]="duplicating()"
+                    (clicked)="duplicateQuote()"
+                  >
+                    <lucide-icon name="copy" class="h-4 w-4"></lucide-icon>
+                    {{ 'offertes.duplicate' | translate }}
+                  </shared-button>
+
+                  @if (canCreateVersion()) {
+                    <shared-button
+                      variant="secondary"
+                      size="compact"
+                      [fullWidth]="false"
+                      [loading]="creatingVersion()"
+                      (clicked)="createNewVersion()"
+                    >
+                      <lucide-icon name="git-branch" class="h-4 w-4"></lucide-icon>
+                      {{ 'offertes.newVersion' | translate }}
+                    </shared-button>
+                  }
+
                   @if (q.status === 'Draft') {
                     <shared-button
                       variant="secondary"
@@ -627,6 +696,29 @@
 
           @if (q.status === 'Accepted' && leadServiceOptions().length > 0) {
             <div class="rounded-xl border border-zinc-200 bg-white p-5 sm:p-6">
+
+            @if (lineageSummary(); as lineage) {
+              <div
+                class="mt-5 rounded-xl border px-4 py-3"
+                [class]="lineage.kind === 'version' ? 'border-sky-200 bg-sky-50/80' : 'border-violet-200 bg-violet-50/80'"
+              >
+                <div class="flex items-start justify-between gap-4">
+                  <div>
+                    <p class="text-[10px] font-black uppercase tracking-[0.16em]" [class]="lineage.kind === 'version' ? 'text-sky-700' : 'text-violet-700'">{{ lineage.title }}</p>
+                    <p class="mt-1 text-sm leading-relaxed" [class]="lineage.kind === 'version' ? 'text-sky-950' : 'text-violet-950'">{{ lineage.body }}</p>
+                  </div>
+                  <shared-button
+                    variant="ghost"
+                    size="compact"
+                    [fullWidth]="false"
+                    (clicked)="openLineageSource()"
+                  >
+                    <lucide-icon name="arrow-up-right" class="h-4 w-4"></lucide-icon>
+                    {{ 'offertes.lineage.openSource' | translate }}
+                  </shared-button>
+                </div>
+              </div>
+            }
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                   <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">

@@ -64,6 +64,10 @@
     "validUntil": "Geldig tot",
     "validUntilLabel": "Geldig tot",
     "edit": "Bewerken",
+    "duplicate": "Dupliceren",
+    "newVersion": "Nieuwe versie",
+    "duplicateSuccess": "Offerte {{quoteNumber}} staat klaar als nieuw concept.",
+    "newVersionSuccess": "Nieuwe versie {{quoteNumber}} staat klaar als concept.",
     "print": "Afdrukken",
     "markSent": "Markeer als verzonden",
     "markAccepted": "Markeer als geaccepteerd",
@@ -97,6 +101,13 @@
     "save": "Opslaan",
     "actions": "Acties",
     "activity": "Activiteit",
+    "lineage": {
+      "duplicateTitle": "Gedupliceerd concept",
+      "duplicateBody": "Deze offerte is gekopieerd van offerte {{quoteNumber}}. Wijzigingen hier hebben geen effect op de bronofferte.",
+      "versionTitle": "Versie {{version}}",
+      "versionBody": "Dit concept is de volgende versie die is gemaakt vanuit offerte {{quoteNumber}}.",
+      "openSource": "Bronofferte openen"
+    },
     "cancel": "Annuleren",
     "delete": "Verwijderen",
     "pricingIntelligence": {
@@ -141,6 +152,8 @@
     "errors": {
       "save": "Offerte opslaan mislukt. Probeer het opnieuw.",
       "load": "Offertes laden mislukt. Probeer het opnieuw.",
+      "duplicate": "Offerte dupliceren mislukt.",
+      "newVersion": "Nieuwe offerteversie maken mislukt.",
       "delete": "{{failed}} offerte(s) verwijderen mislukt.",
       "loadPreview": "Bestandsvoorbeeld laden mislukt.",
       "moneybirdStatusLoad": "Moneybird status laden mislukt.",

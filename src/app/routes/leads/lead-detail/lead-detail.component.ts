@@ -11,6 +11,7 @@ import { formatFullAddress } from '../../../core/utils/address.util';
 import { LeadsService } from '../../../core/services/leads.service';
 import { OrganizationService, type WorkflowEngineWorkflow } from '../../../core/services/organization.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
+import { SSEService, type SSEEvent } from '../../../core/services/sse.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
 import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem, TimelinePhotoAnalysisSummary } from '../../../core/services/leads.types';
@@ -73,7 +74,6 @@ const APPOINTMENT_LOAD_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.loadEr
 const APPOINTMENT_REPORT_LOAD_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.reportLoadError';
 const APPOINTMENT_ATTACHMENTS_LOAD_ERROR_TRANSLATION_KEY = 'leads.detail.appointments.attachmentsLoadError';
 const WORKFLOW_DEFAULT_OPTION_TRANSLATION_KEY = 'leads.detail.workflow.defaultOption';
-const TAB_ACTIVITY_TRANSLATION_KEY = 'leads.detail.tabs.activity';
 const TAB_PREFERENCES_TRANSLATION_KEY = 'leads.detail.tabs.preferences';
 const TAB_APPOINTMENTS_TRANSLATION_KEY = 'leads.detail.tabs.appointments';
 const TAB_TIMELINE_TRANSLATION_KEY = 'leads.detail.tabs.timeline';
@@ -161,8 +161,10 @@ export class LeadDetailComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly whatsAppDeviceStatus = inject(WhatsAppDeviceStatusService);
+  private readonly sse = inject(SSEService);
 
   private readonly partnerSearch$ = new Subject<string>();
+  private readonly liveRefresh$ = new Subject<void>();
   private readonly lang = toSignal(this.translate.onLangChange, {
     initialValue: { lang: 'en', translations: {} },
   });
@@ -180,7 +182,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly newStatus = signal<LeadStatus | null>(null);
 
   protected readonly statusMenuOpen = signal(false);
-  protected readonly activeTab = signal<'activity' | 'appointments' | 'timeline' | 'files' | 'preferences'>('activity');
+  protected readonly activeTab = signal<'activity' | 'appointments' | 'files' | 'preferences'>('activity');
 
   protected readonly workflowProfiles = signal<WorkflowEngineWorkflow[]>([]);
   protected readonly selectedLeadWorkflowId = signal<string | null>(null);
@@ -197,10 +199,9 @@ export class LeadDetailComponent implements OnInit {
     // Read lang to trigger recomputation on language change
     this.lang();
     return [
-      { id: 'activity', label: this.translate.instant(TAB_ACTIVITY_TRANSLATION_KEY) },
+      { id: 'activity', label: this.translate.instant(TAB_TIMELINE_TRANSLATION_KEY) },
       { id: 'preferences', label: this.translate.instant(TAB_PREFERENCES_TRANSLATION_KEY) },
       { id: 'appointments', label: this.translate.instant(TAB_APPOINTMENTS_TRANSLATION_KEY) },
-      { id: 'timeline', label: this.translate.instant(TAB_TIMELINE_TRANSLATION_KEY) },
       { id: 'files', label: this.translate.instant(TAB_FILES_TRANSLATION_KEY) },
     ];
   });
@@ -229,6 +230,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly attachments = signal<AppointmentAttachmentResponse[]>([]);
   protected readonly attachmentsLoading = signal(false);
   protected readonly attachmentSaving = signal(false);
+  protected readonly attachmentUploadError = signal<string | null>(null);
   protected readonly attachmentFileKey = signal('');
   protected readonly attachmentFileName = signal('');
   protected readonly attachmentContentType = signal('');
@@ -550,6 +552,32 @@ export class LeadDetailComponent implements OnInit {
     });
   });
 
+  protected readonly historyTimelineItems = computed<LeadTimelineItem[]>(() => {
+    const merged = [...this.timelineItems()];
+    const existingNoteIds = new Set(
+      merged
+        .map(item => this.readTimelineText(item.metadata['noteId']))
+        .filter((value): value is string => Boolean(value)),
+    );
+
+    for (const note of this.leadNotes()) {
+      if (existingNoteIds.has(note.id)) {
+        continue;
+      }
+      merged.push(this.mapNoteToTimelineItem(note));
+    }
+
+    merged.push(...this.buildLeadAuditTimelineItems());
+
+    return merged.sort((left, right) => {
+      const timeDiff = this.parseTimestamp(right.timestamp) - this.parseTimestamp(left.timestamp);
+      if (timeDiff !== 0) {
+        return timeDiff;
+      }
+      return left.id.localeCompare(right.id);
+    });
+  });
+
   protected readonly canSubmitNote = computed(() => {
     return this.noteText().trim().length > 0 && !this.noteSaving();
   });
@@ -577,6 +605,7 @@ export class LeadDetailComponent implements OnInit {
     const today = new Date();
     return today.toISOString().split('T')[0] ?? '';
   });
+  protected readonly selectedAppointmentTitle = computed(() => this.selectedAppointment()?.title ?? null);
   protected readonly canUseWhatsAppDevice = computed(() => this.whatsAppDeviceStatus.status()?.canSend ?? true);
 
   // Track which service ID we have analysis loaded for
@@ -616,6 +645,29 @@ export class LeadDetailComponent implements OnInit {
           this.partnerSearchLoading.set(false);
         },
       });
+
+    this.sse.leadUpdated
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (this.isCurrentLeadEvent(event)) {
+          this.liveRefresh$.next();
+        }
+      });
+
+    this.sse.appointmentEvent
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (this.isCurrentLeadEvent(event)) {
+          this.liveRefresh$.next();
+        }
+      });
+
+    this.liveRefresh$
+      .pipe(
+        debounceTime(250),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.refreshFromLiveEvent());
 
     // Effect to reload AI analysis when selected service changes
     effect(() => {
@@ -702,6 +754,19 @@ export class LeadDetailComponent implements OnInit {
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
+      },
+    });
+  }
+
+  private refreshLeadSnapshot(id: string): void {
+    this.leadsService.getById(id).subscribe({
+      next: (lead) => {
+        this.lead.set(lead);
+        this.newStatus.set(lead.currentService?.status ?? null);
+        this.selectedAssignee.set(lead.assignedAgentId ?? null);
+      },
+      error: (err) => {
+        this.reporter.report(err, { source: 'http', silent: true });
       },
     });
   }
@@ -801,6 +866,56 @@ export class LeadDetailComponent implements OnInit {
     if (!value) return Number.NEGATIVE_INFINITY;
     const parsed = Date.parse(value);
     return Number.isNaN(parsed) ? Number.NEGATIVE_INFINITY : parsed;
+  }
+
+  private mapNoteToTimelineItem(note: LeadNote): LeadTimelineItem {
+    const typeLabel = this.translate.instant(`leads.detail.notes.type.${note.type}`);
+    return {
+      id: `note-${note.id}`,
+      type: note.type === 'system' ? 'system' : 'user',
+      title: typeLabel,
+      summary: note.body,
+      timestamp: note.createdAt,
+      actor: note.authorEmail,
+      metadata: {
+        noteId: note.id,
+        noteType: note.type,
+        timelineKind: 'note_fallback',
+      },
+    };
+  }
+
+  private buildLeadAuditTimelineItems(): LeadTimelineItem[] {
+    const lead = this.lead();
+    if (!lead) {
+      return [];
+    }
+
+    const items: LeadTimelineItem[] = [
+      {
+        id: `audit-created-${lead.id}`,
+        type: 'system',
+        title: this.translate.instant(ACTIVITY_LEAD_CREATED_TRANSLATION_KEY),
+        summary: this.translate.instant(ACTIVITY_LEAD_CREATED_TRANSLATION_KEY),
+        timestamp: lead.createdAt,
+        actor: this.translate.instant(ACTIVITY_SYSTEM_TRANSLATION_KEY),
+        metadata: { timelineKind: 'lead_created' },
+      },
+    ];
+
+    if (lead.viewedAt) {
+      items.push({
+        id: `audit-viewed-${lead.id}`,
+        type: 'system',
+        title: this.translate.instant(ACTIVITY_LEAD_VIEWED_TRANSLATION_KEY),
+        summary: this.translate.instant(ACTIVITY_LEAD_VIEWED_TRANSLATION_KEY),
+        timestamp: lead.viewedAt,
+        actor: this.translate.instant(ACTIVITY_SYSTEM_TRANSLATION_KEY),
+        metadata: { timelineKind: 'lead_viewed' },
+      });
+    }
+
+    return items;
   }
 
   protected getStatusLabel(status: LeadStatus): string {
@@ -916,9 +1031,56 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected onTabChange(tabId: string): void {
-    const validTabs = ['activity', 'appointments', 'timeline', 'files', 'preferences'] as const;
+    const validTabs = ['activity', 'appointments', 'files', 'preferences'] as const;
     if (validTabs.includes(tabId as typeof validTabs[number])) {
-      this.activeTab.set(tabId as 'activity' | 'appointments' | 'timeline' | 'files' | 'preferences');
+      this.activeTab.set(tabId as 'activity' | 'appointments' | 'files' | 'preferences');
+    }
+  }
+
+  private isCurrentLeadEvent(event: SSEEvent): boolean {
+    const currentLeadId = this.lead()?.id;
+    if (!currentLeadId) {
+      return false;
+    }
+    return this.extractLeadIdFromEvent(event) === currentLeadId;
+  }
+
+  private extractLeadIdFromEvent(event: SSEEvent): string | null {
+    if (typeof event.leadId === 'string' && event.leadId.trim() !== '') {
+      return event.leadId.trim();
+    }
+    const dataLeadId = event.data?.['leadId'];
+    if (typeof dataLeadId === 'string' && dataLeadId.trim() !== '') {
+      return dataLeadId.trim();
+    }
+    const leadData = event.data?.['lead'];
+    if (leadData && typeof leadData === 'object' && !Array.isArray(leadData)) {
+      const nestedLeadId = (leadData as Record<string, unknown>)['id'];
+      if (typeof nestedLeadId === 'string' && nestedLeadId.trim() !== '') {
+        return nestedLeadId.trim();
+      }
+    }
+    return null;
+  }
+
+  private refreshFromLiveEvent(): void {
+    const leadId = this.lead()?.id;
+    if (!leadId) {
+      return;
+    }
+
+    this.refreshLeadSnapshot(leadId);
+    this.loadNotes(leadId);
+    this.loadTimeline(leadId, this.selectedService()?.id);
+    this.loadAppointments(leadId);
+
+    const selectedAppointmentId = this.selectedAppointmentId();
+    if (selectedAppointmentId) {
+      this.loadAppointmentDetails(selectedAppointmentId);
+    }
+
+    if (this.activeTab() === 'files' && this.selectedService()) {
+      this.loadServiceAttachments();
     }
   }
 
@@ -2272,6 +2434,7 @@ export class LeadDetailComponent implements OnInit {
     this.appointmentsService.listAttachments(appointmentId).subscribe({
       next: (items) => {
         this.attachments.set(items ?? []);
+        this.attachmentUploadError.set(null);
         this.attachmentsLoading.set(false);
       },
       error: (err) => {
@@ -2279,6 +2442,66 @@ export class LeadDetailComponent implements OnInit {
         this.appointmentsError.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.attachmentsLoading.set(false);
+      },
+    });
+  }
+
+  protected handleAppointmentAttachmentUploadError(event: FileUploadError | null): void {
+    if (!event) {
+      this.attachmentUploadError.set(null);
+      return;
+    }
+    this.attachmentUploadError.set(event.message);
+    this.appointmentsError.set(event.message);
+    this.reporter.report(event.error, { source: 'http', silent: true, userMessage: event.message });
+  }
+
+  protected handleAppointmentAttachmentUploaded(attachment: AppointmentAttachmentResponse): void {
+    this.attachmentUploadError.set(null);
+    this.attachments.update(items => [attachment, ...items.filter(item => item.id !== attachment.id)]);
+    this.announce(this.translate.instant(APPOINTMENT_ATTACHMENT_SAVED_TRANSLATION_KEY));
+    this.liveRefresh$.next();
+  }
+
+  protected readonly presignAppointmentAttachment = async (file: File): Promise<PresignedUpload> => {
+    const appointment = this.selectedAppointment();
+    if (!appointment) {
+      throw new Error('Missing appointment');
+    }
+    return firstValueFrom(this.appointmentsService.presignAttachmentUpload(appointment.id, {
+      fileName: file.name,
+      contentType: file.type || 'application/octet-stream',
+      sizeBytes: file.size,
+    }));
+  };
+
+  protected readonly finalizeAppointmentAttachment = async (file: File, presigned: PresignedUpload): Promise<AppointmentAttachmentResponse> => {
+    const appointment = this.selectedAppointment();
+    if (!appointment) {
+      throw new Error('Missing appointment');
+    }
+    return firstValueFrom(this.appointmentsService.createAttachment(appointment.id, {
+      fileKey: presigned.fileKey,
+      fileName: file.name,
+      contentType: file.type || 'application/octet-stream',
+      sizeBytes: file.size,
+    }));
+  };
+
+  protected downloadAppointmentAttachment(attachment: AppointmentAttachmentResponse): void {
+    const appointment = this.selectedAppointment();
+    if (!appointment) {
+      return;
+    }
+    this.appointmentsService.getAttachmentDownloadUrl(appointment.id, attachment.id).subscribe({
+      next: (response) => {
+        window.open(response.downloadUrl, '_blank', 'noopener');
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant(APPOINTMENT_ATTACHMENT_ERROR_TRANSLATION_KEY));
+        this.attachmentUploadError.set(message);
+        this.appointmentsError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
     });
   }
@@ -2499,6 +2722,10 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected maxServiceAttachmentSizeBytes(): number {
+    return 100 * 1024 * 1024;
+  }
+
+  protected maxAppointmentAttachmentSizeBytes(): number {
     return 100 * 1024 * 1024;
   }
 

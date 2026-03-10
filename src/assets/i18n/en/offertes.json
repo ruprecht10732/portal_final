@@ -64,6 +64,10 @@
     "validUntil": "Valid until",
     "validUntilLabel": "Valid until",
     "edit": "Edit",
+    "duplicate": "Duplicate",
+    "newVersion": "New version",
+    "duplicateSuccess": "Quote {{quoteNumber}} is ready as a new draft.",
+    "newVersionSuccess": "New version {{quoteNumber}} is ready as a draft.",
     "print": "Print",
     "markSent": "Mark as Sent",
     "markAccepted": "Mark as Accepted",
@@ -97,6 +101,13 @@
     "save": "Save",
     "actions": "Actions",
     "activity": "Activity",
+    "lineage": {
+      "duplicateTitle": "Duplicated draft",
+      "duplicateBody": "This quote was copied from quote {{quoteNumber}}. Changes here do not affect the source quote.",
+      "versionTitle": "Version {{version}}",
+      "versionBody": "This draft is the next version created from quote {{quoteNumber}}.",
+      "openSource": "Open source quote"
+    },
     "cancel": "Cancel",
     "delete": "Delete",
     "pricingIntelligence": {
@@ -141,6 +152,8 @@
     "errors": {
       "save": "Failed to save quote. Please try again.",
       "load": "Failed to load quotes. Please try again.",
+      "duplicate": "Failed to duplicate quote.",
+      "newVersion": "Failed to create a new quote version.",
       "delete": "Failed to delete {{failed}} quote(s).",
       "loadPreview": "Failed to load file preview.",
       "moneybirdStatusLoad": "Failed to load Moneybird status.",

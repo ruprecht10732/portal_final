@@ -1,5 +1,5 @@
 import { DatePipe } from '@angular/common';
-import { ChangeDetectionStrategy, Component, computed, effect, HostListener, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { AppointmentsService } from '../../../core/services/appointments.service';
@@ -16,6 +16,9 @@ import { AppointmentFormComponent } from '../appointment-form/appointment-form.c
   templateUrl: './appointments-calendar.component.html',
   styleUrl: './appointments-calendar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(window:resize)': 'onWindowResize()',
+  },
 })
 export class AppointmentsCalendarComponent {
   private readonly appointmentsService = inject(AppointmentsService);
@@ -109,7 +112,6 @@ export class AppointmentsCalendarComponent {
     this.router.navigate(['/app/appointments', appointment.id]);
   }
 
-  @HostListener('window:resize')
   protected onWindowResize(): void {
     const nextIsMobile = this.checkIsMobileViewport();
     const currentIsMobile = this.isMobileViewport();
@@ -130,6 +132,6 @@ export class AppointmentsCalendarComponent {
   }
 
   private checkIsMobileViewport(): boolean {
-    return window.matchMedia('(max-width: 639px)').matches;
+    return globalThis.matchMedia('(max-width: 639px)').matches;
   }
 }

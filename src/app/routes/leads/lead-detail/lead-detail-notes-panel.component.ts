@@ -18,6 +18,7 @@ export class LeadDetailNotesPanelComponent {
   activityFeed = input<ActivityNoteEntry[]>([]);
   formatTimestamp = input<(value: string) => string>((value) => value);
   showHeader = input<boolean>(true);
+  showActivityFeed = input<boolean>(true);
 
   noteTextChange = output<string>();
   noteTypeChange = output<LeadNoteType>();

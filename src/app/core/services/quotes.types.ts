@@ -182,6 +182,12 @@ export interface PresignedDownloadResponse {
 export interface QuoteResponse {
   id: string;
   quoteNumber: string;
+  duplicatedFromQuoteId?: string;
+  duplicatedFromQuoteNumber?: string;
+  previousVersionQuoteId?: string;
+  previousVersionQuoteNumber?: string;
+  versionRootQuoteId?: string;
+  versionNumber: number;
   leadId: string;
   leadServiceId?: string;
   createdById?: string;

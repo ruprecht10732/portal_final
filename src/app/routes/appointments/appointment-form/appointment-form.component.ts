@@ -105,7 +105,12 @@ export class AppointmentFormComponent implements OnInit {
     const date = this.isModal() ? this.initialDate() : this.route.snapshot.queryParams['date'];
     const timeParam = this.isModal() ? this.initialTime() : this.route.snapshot.queryParams['time'];
     if (date) {
-      const time = typeof timeParam === 'number' ? timeParam : (timeParam ? Number.parseInt(String(timeParam), 10) : 9 * 60);
+      let time = 9 * 60;
+      if (typeof timeParam === 'number') {
+        time = timeParam;
+      } else if (timeParam) {
+        time = Number.parseInt(String(timeParam), 10);
+      }
       
       const startDate = new Date(date);
       startDate.setHours(Math.floor(time / 60), time % 60, 0, 0);

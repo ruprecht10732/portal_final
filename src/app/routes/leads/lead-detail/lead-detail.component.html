@@ -250,8 +250,8 @@
 
         <shared-card padding="none">
           <details>
-            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.notesActivity' | translate }}</summary>
-            <div class="px-4 pb-4">
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.timeline' | translate }}</summary>
+            <div class="px-4 pb-4 space-y-4">
               <app-lead-detail-notes-panel
                 #notePanelMobile
                 [noteId]="'note-input-mobile'"
@@ -259,12 +259,45 @@
                 [noteType]="noteType()"
                 [canSubmit]="canSubmitNote()"
                 [isSaving]="noteSaving()"
-                [activityFeed]="activityFeed()"
+                [activityFeed]="[]"
                 [formatTimestamp]="formatHumanDateTime"
                 [showHeader]="false"
+                [showActivityFeed]="false"
                 (noteTextChange)="noteText.set($event)"
                 (noteTypeChange)="noteType.set($event)"
                 (addNote)="addNote()"
+              />
+              <app-lead-detail-timeline-tab
+                [timelineItems]="historyTimelineItems()"
+                [timelineLoading]="timelineLoading()"
+                [timelineError]="timelineError()"
+                [copiedContactMessage]="copiedContactMessage()"
+                [sendingWhatsAppItemId]="timelineWhatsAppSendingItemId()"
+                [whatsAppDeviceAvailable]="canUseWhatsAppDevice()"
+                [leadPhone]="lead()!.consumer.phone"
+                [leadEmail]="lead()!.consumer.email ?? null"
+                [approvingAppointmentId]="approvingAppointmentId()"
+                [formatHumanDateTime]="formatHumanDateTime"
+                [getTimelineTypeLabel]="getTimelineTypeLabel"
+                [getTimelineTypeBadgeClass]="getTimelineTypeBadgeClass"
+                [getTimelinePartnerSummary]="getTimelinePartnerSummary"
+                [getTimelineEstimation]="getTimelineEstimation"
+                [getTimelineRecommendedAction]="getTimelineRecommendedAction"
+                [getTimelineContactMessage]="getTimelineContactMessage"
+                [getTimelineMissingInformation]="getTimelineMissingInformation"
+                [getTimelineResolvedInformation]="getTimelineResolvedInformation"
+                [getTimelineExtractedFacts]="getTimelineExtractedFacts"
+                [getTimelineScore]="getTimelineScore"
+                [getTimelineDraftedQuote]="getTimelineDraftedQuote"
+                [getTimelinePhotoAnalysis]="getTimelinePhotoAnalysis"
+                [getTimelineAppointmentApproval]="getTimelineAppointmentApproval"
+                (openCallLogger)="openCallLogger()"
+                (sendWhatsApp)="sendTimelineWhatsApp($event.itemId)"
+                (connectWhatsAppDevice)="openWhatsAppDeviceSettings()"
+                (composeEmail)="composeEmail($event.email, $event.message)"
+                (copyContactMessage)="copyContactMessage($event.itemId, $event.message)"
+                (viewDraftQuote)="viewDraftQuote($event)"
+                (approveAppointment)="approveAppointment($event)"
               />
             </div>
           </details>
@@ -322,46 +355,6 @@
 
         <shared-card padding="none">
           <details>
-            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.timeline' | translate }}</summary>
-            <div class="px-4 pb-4">
-              <app-lead-detail-timeline-tab
-                [timelineItems]="timelineItems()"
-                [timelineLoading]="timelineLoading()"
-                [timelineError]="timelineError()"
-                [copiedContactMessage]="copiedContactMessage()"
-                [sendingWhatsAppItemId]="timelineWhatsAppSendingItemId()"
-                [whatsAppDeviceAvailable]="canUseWhatsAppDevice()"
-                [leadPhone]="lead()!.consumer.phone"
-                [leadEmail]="lead()!.consumer.email ?? null"
-                [approvingAppointmentId]="approvingAppointmentId()"
-                [formatHumanDateTime]="formatHumanDateTime"
-                [getTimelineTypeLabel]="getTimelineTypeLabel"
-                [getTimelineTypeBadgeClass]="getTimelineTypeBadgeClass"
-                [getTimelinePartnerSummary]="getTimelinePartnerSummary"
-                [getTimelineEstimation]="getTimelineEstimation"
-                [getTimelineRecommendedAction]="getTimelineRecommendedAction"
-                [getTimelineContactMessage]="getTimelineContactMessage"
-                [getTimelineMissingInformation]="getTimelineMissingInformation"
-                [getTimelineResolvedInformation]="getTimelineResolvedInformation"
-                [getTimelineExtractedFacts]="getTimelineExtractedFacts"
-                [getTimelineScore]="getTimelineScore"
-                [getTimelineDraftedQuote]="getTimelineDraftedQuote"
-                [getTimelinePhotoAnalysis]="getTimelinePhotoAnalysis"
-                [getTimelineAppointmentApproval]="getTimelineAppointmentApproval"
-                (openCallLogger)="openCallLogger()"
-                (sendWhatsApp)="sendTimelineWhatsApp($event.itemId)"
-                (connectWhatsAppDevice)="openWhatsAppDeviceSettings()"
-                (composeEmail)="composeEmail($event.email, $event.message)"
-                (copyContactMessage)="copyContactMessage($event.itemId, $event.message)"
-                (viewDraftQuote)="viewDraftQuote($event)"
-                (approveAppointment)="approveAppointment($event)"
-              />
-            </div>
-          </details>
-        </shared-card>
-
-        <shared-card padding="none">
-          <details>
             <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.appointments' | translate }}</summary>
             <div class="px-4 pb-4">
               <app-lead-detail-appointments-tab
@@ -388,12 +381,11 @@
                 [accessDifficultyOptions]="accessDifficultyOptions()"
                 [attachmentsLoading]="attachmentsLoading()"
                 [attachments]="attachments()"
-                [attachmentFileKey]="attachmentFileKey()"
-                [attachmentFileName]="attachmentFileName()"
-                [attachmentContentType]="attachmentContentType()"
-                [attachmentSizeBytes]="attachmentSizeBytes()"
                 [attachmentSaving]="attachmentSaving()"
-                [canAddAttachment]="canAddAttachment()"
+                [maxAttachmentSizeBytes]="maxAppointmentAttachmentSizeBytes()"
+                [attachmentUploadError]="attachmentUploadError()"
+                [presignAttachment]="presignAppointmentAttachment"
+                [finalizeAttachment]="finalizeAppointmentAttachment"
                 [approvingAppointmentId]="approvingAppointmentId()"
                 [formatHumanDateTime]="formatHumanDateTime"
                 (approveAppointment)="approveAppointment($event)"
@@ -410,11 +402,10 @@
                 (setAccessDifficulty)="setAccessDifficulty($event)"
                 (setReportNotes)="setReportNotes($event)"
                 (saveVisitReport)="saveVisitReport()"
-                (setAttachmentFileKey)="setAttachmentFileKey($event)"
-                (setAttachmentFileName)="setAttachmentFileName($event)"
-                (setAttachmentContentType)="setAttachmentContentType($event)"
-                (setAttachmentSizeBytes)="setAttachmentSizeBytes($event)"
-                (addAttachment)="addAttachment()"
+                (attachmentUploadingChange)="attachmentSaving.set($event)"
+                (attachmentUploadErrorChange)="handleAppointmentAttachmentUploadError($event)"
+                (attachmentUploaded)="handleAppointmentAttachmentUploaded($event)"
+                (downloadAttachment)="downloadAppointmentAttachment($event)"
               />
             </div>
           </details>
@@ -671,19 +662,66 @@
             (tabChange)="onTabChange($event)"
           >
             @if (activeTab() === 'activity') {
-              <app-lead-detail-notes-panel
-                #notePanelDesktop
-                [noteId]="'note-input-desktop'"
-                [noteText]="noteText()"
-                [noteType]="noteType()"
-                [canSubmit]="canSubmitNote()"
-                [isSaving]="noteSaving()"
-                [activityFeed]="activityFeed()"
-                [formatTimestamp]="formatHumanDateTime"
-                (noteTextChange)="noteText.set($event)"
-                (noteTypeChange)="noteType.set($event)"
-                (addNote)="addNote()"
-              />
+              <div class="grid gap-4">
+                <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                  <app-lead-detail-notes-panel
+                    #notePanelDesktop
+                    [noteId]="'note-input-desktop'"
+                    [noteText]="noteText()"
+                    [noteType]="noteType()"
+                    [canSubmit]="canSubmitNote()"
+                    [isSaving]="noteSaving()"
+                    [activityFeed]="[]"
+                    [formatTimestamp]="formatHumanDateTime"
+                    [showActivityFeed]="false"
+                    (noteTextChange)="noteText.set($event)"
+                    (noteTypeChange)="noteType.set($event)"
+                    (addNote)="addNote()"
+                  />
+                </div>
+
+                <div class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+                  <div class="mb-4 flex items-center justify-between gap-3 border-b border-zinc-100 pb-3">
+                    <div>
+                      <h2 class="text-base font-semibold text-slate-950">{{ 'leads.detail.tabs.timeline' | translate }}</h2>
+                      <p class="text-sm text-zinc-500">{{ 'leads.detail.notesActivity' | translate }}</p>
+                    </div>
+                  </div>
+
+                  <app-lead-detail-timeline-tab
+                    [timelineItems]="historyTimelineItems()"
+                    [timelineLoading]="timelineLoading()"
+                    [timelineError]="timelineError()"
+                    [copiedContactMessage]="copiedContactMessage()"
+                    [sendingWhatsAppItemId]="timelineWhatsAppSendingItemId()"
+                    [whatsAppDeviceAvailable]="canUseWhatsAppDevice()"
+                    [leadPhone]="lead()!.consumer.phone"
+                    [leadEmail]="lead()!.consumer.email ?? null"
+                    [approvingAppointmentId]="approvingAppointmentId()"
+                    [formatHumanDateTime]="formatHumanDateTime"
+                    [getTimelineTypeLabel]="getTimelineTypeLabel"
+                    [getTimelineTypeBadgeClass]="getTimelineTypeBadgeClass"
+                    [getTimelinePartnerSummary]="getTimelinePartnerSummary"
+                    [getTimelineEstimation]="getTimelineEstimation"
+                    [getTimelineRecommendedAction]="getTimelineRecommendedAction"
+                    [getTimelineContactMessage]="getTimelineContactMessage"
+                    [getTimelineMissingInformation]="getTimelineMissingInformation"
+                    [getTimelineResolvedInformation]="getTimelineResolvedInformation"
+                    [getTimelineExtractedFacts]="getTimelineExtractedFacts"
+                    [getTimelineScore]="getTimelineScore"
+                    [getTimelineDraftedQuote]="getTimelineDraftedQuote"
+                    [getTimelinePhotoAnalysis]="getTimelinePhotoAnalysis"
+                    [getTimelineAppointmentApproval]="getTimelineAppointmentApproval"
+                    (openCallLogger)="openCallLogger()"
+                    (sendWhatsApp)="sendTimelineWhatsApp($event.itemId)"
+                    (connectWhatsAppDevice)="openWhatsAppDeviceSettings()"
+                    (composeEmail)="composeEmail($event.email, $event.message)"
+                    (copyContactMessage)="copyContactMessage($event.itemId, $event.message)"
+                    (viewDraftQuote)="viewDraftQuote($event)"
+                    (approveAppointment)="approveAppointment($event)"
+                  />
+                </div>
+              </div>
             } @else if (activeTab() === 'appointments') {
               <app-lead-detail-appointments-tab
                 [appointments]="appointments()"
@@ -709,12 +747,11 @@
                 [accessDifficultyOptions]="accessDifficultyOptions()"
                 [attachmentsLoading]="attachmentsLoading()"
                 [attachments]="attachments()"
-                [attachmentFileKey]="attachmentFileKey()"
-                [attachmentFileName]="attachmentFileName()"
-                [attachmentContentType]="attachmentContentType()"
-                [attachmentSizeBytes]="attachmentSizeBytes()"
                 [attachmentSaving]="attachmentSaving()"
-                [canAddAttachment]="canAddAttachment()"
+                [maxAttachmentSizeBytes]="maxAppointmentAttachmentSizeBytes()"
+                [attachmentUploadError]="attachmentUploadError()"
+                [presignAttachment]="presignAppointmentAttachment"
+                [finalizeAttachment]="finalizeAppointmentAttachment"
                 [approvingAppointmentId]="approvingAppointmentId()"
                 [formatHumanDateTime]="formatHumanDateTime"
                 (approveAppointment)="approveAppointment($event)"
@@ -731,11 +768,10 @@
                 (setAccessDifficulty)="setAccessDifficulty($event)"
                 (setReportNotes)="setReportNotes($event)"
                 (saveVisitReport)="saveVisitReport()"
-                (setAttachmentFileKey)="setAttachmentFileKey($event)"
-                (setAttachmentFileName)="setAttachmentFileName($event)"
-                (setAttachmentContentType)="setAttachmentContentType($event)"
-                (setAttachmentSizeBytes)="setAttachmentSizeBytes($event)"
-                (addAttachment)="addAttachment()"
+                (attachmentUploadingChange)="attachmentSaving.set($event)"
+                (attachmentUploadErrorChange)="handleAppointmentAttachmentUploadError($event)"
+                (attachmentUploaded)="handleAppointmentAttachmentUploaded($event)"
+                (downloadAttachment)="downloadAppointmentAttachment($event)"
               />
             } @else if (activeTab() === 'preferences') {
               <div class="mb-4 rounded-lg border border-zinc-200 p-4">
@@ -780,36 +816,6 @@
               <app-lead-detail-preferences-tab
                 [preferences]="selectedService()?.preferences ?? null"
               />
-            } @else if (activeTab() === 'timeline') {
-              <app-lead-detail-timeline-tab
-                [timelineItems]="timelineItems()"
-                [timelineLoading]="timelineLoading()"
-                [timelineError]="timelineError()"
-                [copiedContactMessage]="copiedContactMessage()"
-                [sendingWhatsAppItemId]="timelineWhatsAppSendingItemId()"
-                [whatsAppDeviceAvailable]="canUseWhatsAppDevice()"
-                [leadPhone]="lead()!.consumer.phone"
-                [leadEmail]="lead()!.consumer.email ?? null"
-                [formatHumanDateTime]="formatHumanDateTime"
-                [getTimelineTypeLabel]="getTimelineTypeLabel"
-                [getTimelineTypeBadgeClass]="getTimelineTypeBadgeClass"
-                [getTimelinePartnerSummary]="getTimelinePartnerSummary"
-                [getTimelineEstimation]="getTimelineEstimation"
-                [getTimelineRecommendedAction]="getTimelineRecommendedAction"
-                [getTimelineContactMessage]="getTimelineContactMessage"
-                [getTimelineMissingInformation]="getTimelineMissingInformation"
-                [getTimelineResolvedInformation]="getTimelineResolvedInformation"
-                [getTimelineExtractedFacts]="getTimelineExtractedFacts"
-                [getTimelineScore]="getTimelineScore"
-                [getTimelineDraftedQuote]="getTimelineDraftedQuote"
-                [getTimelinePhotoAnalysis]="getTimelinePhotoAnalysis"
-                (openCallLogger)="openCallLogger()"
-                (sendWhatsApp)="sendTimelineWhatsApp($event.itemId)"
-                (connectWhatsAppDevice)="openWhatsAppDeviceSettings()"
-                (composeEmail)="composeEmail($event.email, $event.message)"
-                (copyContactMessage)="copyContactMessage($event.itemId, $event.message)"
-                (viewDraftQuote)="viewDraftQuote($event)"
-              />
             } @else if (activeTab() === 'files') {
               <app-lead-detail-files-tab
                 [hasSelectedService]="!!selectedService()"
@@ -820,6 +826,9 @@
                 [serviceAttachmentDeleting]="serviceAttachmentDeleting()"
                 [maxServiceAttachmentSizeBytes]="maxServiceAttachmentSizeBytes()"
                 [formatFileSize]="formatFileSize"
+                [selectedAppointmentTitle]="selectedAppointmentTitle()"
+                [appointmentAttachmentsLoading]="attachmentsLoading()"
+                [appointmentAttachments]="attachments()"
                 [presign]="presignServiceAttachment"
                 [finalize]="finalizeServiceAttachment"
                 (uploaded)="handleServiceAttachmentUploaded($any($event))"
@@ -827,6 +836,7 @@
                 (uploadingChange)="serviceAttachmentUploading.set($event)"
                 (downloadAttachment)="downloadServiceAttachment($event)"
                 (deleteAttachment)="deleteServiceAttachment($event)"
+                (downloadAppointmentAttachment)="downloadAppointmentAttachment($event)"
               />
             }
           </app-lead-detail-tabs-shell>

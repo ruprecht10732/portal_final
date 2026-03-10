@@ -32,6 +32,13 @@ import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
 
 type LeadServiceOption = { label: string; value: string };
+type QuoteLineageSummary = {
+  kind: 'duplicate' | 'version';
+  title: string;
+  body: string;
+  sourceQuoteId: string;
+  sourceQuoteNumber: string;
+};
 
 @Component({
   selector: 'app-offertes-detail',
@@ -73,6 +80,8 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly showDeleteConfirm = signal(false);
   protected readonly updating = signal(false);
   protected readonly sending = signal(false);
+  protected readonly duplicating = signal(false);
+  protected readonly creatingVersion = signal(false);
   protected readonly downloadingPdf = signal(false);
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly loadingPreview = signal(false);
@@ -80,6 +89,33 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly exportingToMoneybird = signal(false);
   protected readonly moneybirdExported = signal(false);
   protected readonly moneybirdExternalUrl = signal<string | null>(null);
+  protected readonly canCreateVersion = computed(() => {
+    const status = this.quote()?.status;
+    return status === 'Accepted' || status === 'Rejected';
+  });
+  protected readonly lineageSummary = computed<QuoteLineageSummary | null>(() => {
+    const q = this.quote();
+    if (!q) return null;
+    if (q.previousVersionQuoteId && q.previousVersionQuoteNumber) {
+      return {
+        kind: 'version',
+        title: this.translate.instant('offertes.lineage.versionTitle', { version: q.versionNumber }),
+        body: this.translate.instant('offertes.lineage.versionBody', { quoteNumber: q.previousVersionQuoteNumber }),
+        sourceQuoteId: q.previousVersionQuoteId,
+        sourceQuoteNumber: q.previousVersionQuoteNumber,
+      };
+    }
+    if (q.duplicatedFromQuoteId && q.duplicatedFromQuoteNumber) {
+      return {
+        kind: 'duplicate',
+        title: this.translate.instant('offertes.lineage.duplicateTitle'),
+        body: this.translate.instant('offertes.lineage.duplicateBody', { quoteNumber: q.duplicatedFromQuoteNumber }),
+        sourceQuoteId: q.duplicatedFromQuoteId,
+        sourceQuoteNumber: q.duplicatedFromQuoteNumber,
+      };
+    }
+    return null;
+  });
 
   // Lead service linking (for Accepted quotes with missing leadServiceId)
   protected readonly selectedLeadServiceId = signal<string | null>(null);
@@ -114,9 +150,12 @@ export class OffertesDetailComponent implements OnInit {
     const previewAvailable = !!this.previewUrl();
     const pdfAvailable = !!q?.pdfFileKey;
     const canOpenPartnerOffer = q?.status === 'Accepted' && !!q?.leadServiceId;
+    const canCreateVersion = q?.status === 'Accepted' || q?.status === 'Rejected';
     return [
       {
         items: [
+          { label: 'offertes.duplicate' },
+          { label: 'offertes.newVersion', disabled: !canCreateVersion },
           { label: 'offertes.preview', disabled: !previewAvailable },
           { label: 'offertes.downloadPdf', disabled: !pdfAvailable },
           { label: 'offertes.partnerOffer.title', disabled: !canOpenPartnerOffer },
@@ -287,6 +326,12 @@ export class OffertesDetailComponent implements OnInit {
 
   protected handleMobileMenuSelection(item: MenuItem): void {
     switch (item.label) {
+      case 'offertes.duplicate':
+        this.duplicateQuote();
+        break;
+      case 'offertes.newVersion':
+        this.createNewVersion();
+        break;
       case 'offertes.preview':
         this.openPreview();
         break;
@@ -347,6 +392,48 @@ export class OffertesDetailComponent implements OnInit {
     if (q) {
       this.router.navigate(['/app/offertes', q.id, 'edit']);
     }
+  }
+
+  protected openLineageSource(): void {
+    const lineage = this.lineageSummary();
+    if (!lineage) return;
+    this.router.navigate(['/app/offertes', lineage.sourceQuoteId]);
+  }
+
+  protected duplicateQuote(): void {
+    const q = this.quote();
+    if (!q || this.duplicating()) return;
+
+    this.duplicating.set(true);
+    this.quotesService.duplicate(q.id).subscribe({
+      next: duplicated => {
+        this.duplicating.set(false);
+        this.toast.success(this.translate.instant('offertes.duplicateSuccess', { quoteNumber: duplicated.quoteNumber }));
+        this.router.navigate(['/app/offertes', duplicated.id, 'edit']);
+      },
+      error: err => {
+        this.duplicating.set(false);
+        this.handleCloneError(err, 'offertes.errors.duplicate');
+      },
+    });
+  }
+
+  protected createNewVersion(): void {
+    const q = this.quote();
+    if (!q || !this.canCreateVersion() || this.creatingVersion()) return;
+
+    this.creatingVersion.set(true);
+    this.quotesService.createVersion(q.id).subscribe({
+      next: created => {
+        this.creatingVersion.set(false);
+        this.toast.success(this.translate.instant('offertes.newVersionSuccess', { quoteNumber: created.quoteNumber }));
+        this.router.navigate(['/app/offertes', created.id, 'edit']);
+      },
+      error: err => {
+        this.creatingVersion.set(false);
+        this.handleCloneError(err, 'offertes.errors.newVersion');
+      },
+    });
   }
 
   protected updateStatus(status: QuoteStatus): void {
@@ -524,6 +611,15 @@ export class OffertesDetailComponent implements OnInit {
     const url = this.moneybirdExternalUrl();
     if (!url) return;
     globalThis.open(url, '_blank', 'noopener');
+  }
+
+  private handleCloneError(err: unknown, fallbackKey: string): void {
+    const message = extractErrorMessage(err, this.translate.instant(fallbackKey), {
+      allowErrorMessage: true,
+      allowMessageField: true,
+    });
+    this.toast.error(message);
+    this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
   }
 
   private buildPreviewUrl(token: string): string {

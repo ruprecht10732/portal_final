@@ -85,6 +85,16 @@ export class QuotesService {
     return this.http.patch<QuoteResponse>(`${this.baseUrl}/${id}/status`, { status });
   }
 
+  /** Create a new draft quote by duplicating an existing quote. */
+  duplicate(id: string): Observable<QuoteResponse> {
+    return this.http.post<QuoteResponse>(`${this.baseUrl}/${id}/duplicate`, {});
+  }
+
+  /** Create a new draft version from an accepted or rejected quote. */
+  createVersion(id: string): Observable<QuoteResponse> {
+    return this.http.post<QuoteResponse>(`${this.baseUrl}/${id}/version`, {});
+  }
+
   /** Link/replace the lead service for a quote (used for Accepted quotes that are otherwise immutable). */
   setLeadServiceId(id: string, leadServiceId: string): Observable<QuoteResponse> {
     return this.http.patch<QuoteResponse>(`${this.baseUrl}/${id}/lead-service`, { leadServiceId });

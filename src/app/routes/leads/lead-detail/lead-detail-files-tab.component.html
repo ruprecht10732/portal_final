@@ -107,5 +107,41 @@
         </div>
       }
     </div>
+
+    <div class="rounded-xl border border-zinc-200 p-4">
+      <div class="mb-3">
+        <h4 class="text-sm font-semibold">{{ 'leads.detail.appointments.attachments' | translate }}</h4>
+        @if (selectedAppointmentTitle()) {
+          <p class="text-sm text-zinc-500">{{ selectedAppointmentTitle() }}</p>
+        }
+      </div>
+
+      @if (appointmentAttachmentsLoading()) {
+        <div class="flex items-center gap-2 text-sm text-zinc-500">
+          <div class="animate-spin rounded-full h-4 w-4 border-b-2 border-black" aria-hidden="true"></div>
+          {{ 'leads.detail.appointments.loadingAttachments' | translate }}
+        </div>
+      } @else if (appointmentAttachments().length === 0) {
+        <p class="text-sm text-zinc-500">{{ 'leads.detail.appointments.noAttachments' | translate }}</p>
+      } @else {
+        <div class="flex flex-col gap-2">
+          @for (attachment of appointmentAttachments(); track attachment.id) {
+            <div class="flex items-center justify-between rounded-lg bg-zinc-50 px-3 py-3">
+              <div class="min-w-0">
+                <p class="text-sm font-medium truncate">{{ attachment.fileName }}</p>
+                <p class="text-xs text-zinc-500">{{ formatFileSize()(attachment.sizeBytes ?? 0) }}</p>
+              </div>
+              <button
+                type="button"
+                class="rounded-lg border border-zinc-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-zinc-300 hover:bg-white"
+                (click)="downloadAppointmentAttachment.emit(attachment)"
+              >
+                Download
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
   }
 </div>

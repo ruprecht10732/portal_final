@@ -43,6 +43,7 @@ export class ActivityNotesComponent {
   canSubmit = input<boolean>(false);
   isSaving = input<boolean>(false);
   showHeader = input<boolean>(true);
+  showFeed = input<boolean>(true);
   activityFeed = input<ActivityNoteEntry[]>([]);
   formatTimestamp = input<(value: string) => string>((value) => value);
 

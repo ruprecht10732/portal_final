@@ -17,6 +17,9 @@ import type {
   CreateAvailabilityRuleRequest,
   GetAvailableSlotsParams,
   ListAppointmentsParams,
+  PresignAppointmentAttachmentUploadRequest,
+  PresignedAppointmentDownloadResponse,
+  PresignedAppointmentUploadResponse,
   UpdateAppointmentRequest,
   UpdateAppointmentStatusRequest,
   UpsertVisitReportRequest,
@@ -63,8 +66,16 @@ export class AppointmentsService {
     return this.http.get<AppointmentAttachmentResponse[]>(`${this.baseUrl}/${id}/attachments`);
   }
 
+  presignAttachmentUpload(id: string, data: PresignAppointmentAttachmentUploadRequest): Observable<PresignedAppointmentUploadResponse> {
+    return this.http.post<PresignedAppointmentUploadResponse>(`${this.baseUrl}/${id}/attachments/presign`, data);
+  }
+
   createAttachment(id: string, data: CreateAppointmentAttachmentRequest): Observable<AppointmentAttachmentResponse> {
     return this.http.post<AppointmentAttachmentResponse>(`${this.baseUrl}/${id}/attachments`, data);
+  }
+
+  getAttachmentDownloadUrl(id: string, attachmentId: string): Observable<PresignedAppointmentDownloadResponse> {
+    return this.http.get<PresignedAppointmentDownloadResponse>(`${this.baseUrl}/${id}/attachments/${attachmentId}/download`);
   }
 
   listAvailabilityRules(userId?: string): Observable<AvailabilityRuleResponse[]> {

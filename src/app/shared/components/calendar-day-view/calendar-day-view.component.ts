@@ -36,15 +36,16 @@ export interface CalendarDayEvent {
 })
 export class CalendarDayViewComponent {
   private readonly translate = inject(TranslateService);
+  private readonly fallbackLocale = 'en';
   private readonly lang = toSignal(this.translate.onLangChange, {
     initialValue: {
-      lang: this.translate.currentLang || this.translate.getDefaultLang() || 'en',
+      lang: this.resolveLocale(),
       translations: {},
     },
   });
   protected readonly locale = computed(() => {
     this.lang();
-    return this.translate.currentLang || this.translate.getDefaultLang() || 'en';
+    return this.resolveLocale();
   });
   readonly day = input<CalendarDayViewModel | null>(null);
   readonly isUnavailable = input(false);
@@ -79,6 +80,10 @@ export class CalendarDayViewComponent {
       year: 'numeric',
     }).format(new Date(day.iso));
   });
+
+  private resolveLocale(): string {
+    return this.translate.getCurrentLang() || this.translate.getFallbackLang() || this.fallbackLocale;
+  }
 
   protected readonly hours = computed(() => {
     const startMinutes = Math.max(0, Math.min(23, this.startHour())) * 60;

@@ -42,15 +42,16 @@ interface CalendarDay {
 })
 export class CalendarGridComponent {
   private readonly translate = inject(TranslateService);
+  private readonly fallbackLocale = 'en';
   private readonly lang = toSignal(this.translate.onLangChange, {
     initialValue: {
-      lang: this.translate.currentLang || this.translate.getDefaultLang() || 'en',
+      lang: this.resolveLocale(),
       translations: {},
     },
   });
   protected readonly locale = computed(() => {
     this.lang();
-    return this.translate.currentLang || this.translate.getDefaultLang() || 'en';
+    return this.resolveLocale();
   });
   private readonly dayButtons = viewChildren(GridCellWidget);
   protected readonly currentMonth = signal(new Date());
@@ -147,6 +148,10 @@ export class CalendarGridComponent {
     }
     return this.monthLabel();
   });
+
+  private resolveLocale(): string {
+    return this.translate.getCurrentLang() || this.translate.getFallbackLang() || this.fallbackLocale;
+  }
 
   private readonly firstWeekOffset = computed(() => {
     const date = this.currentMonth();

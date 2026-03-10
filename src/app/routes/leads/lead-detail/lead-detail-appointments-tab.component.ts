@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { FileUploaderComponent, type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 import type { AccessDifficulty, AppointmentAttachmentResponse, AppointmentResponse } from '../../../core/services/appointments.types';
 import type { SelectOption } from '../../../shared/components/select/select.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -9,7 +10,7 @@ import { TranslatePipe } from '@ngx-translate/core';
   templateUrl: './lead-detail-appointments-tab.component.html',
   styleUrl: './lead-detail-appointments-tab.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ButtonComponent, TranslatePipe],
+  imports: [ButtonComponent, FileUploaderComponent, TranslatePipe],
 })
 export class LeadDetailAppointmentsTabComponent {
   appointments = input<AppointmentResponse[]>([]);
@@ -35,12 +36,11 @@ export class LeadDetailAppointmentsTabComponent {
   accessDifficultyOptions = input<SelectOption<AccessDifficulty>[]>([]);
   attachmentsLoading = input<boolean>(false);
   attachments = input<AppointmentAttachmentResponse[]>([]);
-  attachmentFileKey = input<string>('');
-  attachmentFileName = input<string>('');
-  attachmentContentType = input<string>('');
-  attachmentSizeBytes = input<string>('');
   attachmentSaving = input<boolean>(false);
-  canAddAttachment = input<boolean>(false);
+  maxAttachmentSizeBytes = input<number>(0);
+  attachmentUploadError = input<string | null>(null);
+  presignAttachment = input<((file: File) => Promise<PresignedUpload>) | null>(null);
+  finalizeAttachment = input<((file: File, presigned: PresignedUpload) => Promise<AppointmentAttachmentResponse>) | null>(null);
   approvingAppointmentId = input<string | null>(null);
   formatHumanDateTime = input<(value: string | undefined) => string>((value) => value ?? '-');
 
@@ -58,9 +58,8 @@ export class LeadDetailAppointmentsTabComponent {
   setAccessDifficulty = output<string>();
   setReportNotes = output<string>();
   saveVisitReport = output<void>();
-  setAttachmentFileKey = output<string>();
-  setAttachmentFileName = output<string>();
-  setAttachmentContentType = output<string>();
-  setAttachmentSizeBytes = output<string>();
-  addAttachment = output<void>();
+  attachmentUploadingChange = output<boolean>();
+  attachmentUploadErrorChange = output<FileUploadError | null>();
+  attachmentUploaded = output<AppointmentAttachmentResponse>();
+  downloadAttachment = output<AppointmentAttachmentResponse>();
 }
