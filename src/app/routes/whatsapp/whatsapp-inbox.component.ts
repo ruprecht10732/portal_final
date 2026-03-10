@@ -22,6 +22,7 @@ import type {
   WhatsAppWebhookPayload,
 } from '../../core/services/whatsapp-inbox.types';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { MenuComponent, type MenuItem, type MenuSection } from '../../shared/components/menu/menu.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
 
 type WhatsAppConversationEventPayload = { conversation?: Partial<WhatsAppConversation> };
@@ -100,7 +101,7 @@ const composerTypeOptions: ComposerTypeOption[] = [
 
 @Component({
   selector: 'app-whatsapp-inbox',
-  imports: [TranslateModule, LucideAngularModule, ButtonComponent, PageLayoutComponent],
+  imports: [TranslateModule, LucideAngularModule, ButtonComponent, MenuComponent, PageLayoutComponent],
   templateUrl: './whatsapp-inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -152,6 +153,16 @@ export class WhatsAppInboxComponent {
   protected readonly advancedComposerTypes = composerTypeOptions.filter(option =>
     option.value !== 'text' && option.value !== 'image' && option.value !== 'file' && option.value !== 'contact'
   );
+  protected readonly mobileComposerMenuSections = computed<readonly MenuSection[]>(() => [
+    {
+      items: this.composerTypes.map(option => ({
+        label: option.label,
+        icon: option.icon,
+        value: option.value,
+        disabled: this.composerType() === option.value,
+      })),
+    },
+  ]);
 
   private readonly rtfCache = new Map<string, Intl.RelativeTimeFormat>();
   private typingPresenceConversationId: string | null = null;
@@ -378,6 +389,15 @@ export class WhatsAppInboxComponent {
     this.composerOptionsExpanded.update(expanded => !expanded);
   }
 
+  protected onComposerMenuItemSelected(item: MenuItem): void {
+    const type = this.composerMenuItemValue(item);
+    if (!type) {
+      return;
+    }
+
+    this.setComposerType(type);
+  }
+
   protected clearConversationSearch(): void {
     this.conversationSearchQuery.set('');
   }
@@ -536,6 +556,10 @@ export class WhatsAppInboxComponent {
 
   protected composerTypeLabel(): string {
     return this.composerTypes.find(option => option.value === this.composerType())?.label ?? 'Bericht';
+  }
+
+  protected mobileComposerMenuLabel(): string {
+    return this.composerType() === 'text' ? 'Meer berichtopties' : `${this.composerTypeLabel()} kiezen`;
   }
 
   protected composerOptionsToggleLabel(): string {
@@ -938,6 +962,15 @@ export class WhatsAppInboxComponent {
 
   private messageProviderPayload(message: WhatsAppMessage): WhatsAppWebhookPayload | null {
   return message.metadata?.payload ?? null;
+  }
+
+  private composerMenuItemValue(item: MenuItem): WhatsAppMessageComposerType | null {
+    const value = item.value;
+    return this.isComposerType(value) ? value : null;
+  }
+
+  private isComposerType(value: string | undefined): value is WhatsAppMessageComposerType {
+    return composerTypeOptions.some(option => option.value === value);
   }
 
   private normalizeReplyContext(reply: WhatsAppPortalReply | undefined): MessageReplyContext | null {

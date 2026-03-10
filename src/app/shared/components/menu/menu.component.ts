@@ -10,10 +10,13 @@ import {
 import { OverlayModule } from '@angular/cdk/overlay';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
+import { LucideAngularModule } from 'lucide-angular';
 import { ButtonComponent } from '../button/button.component';
 
 export interface MenuItem {
   label: string;
+  icon?: string;
+  value?: string;
   route?: string;
   href?: string;
   disabled?: boolean;
@@ -27,7 +30,7 @@ export interface MenuSection {
 
 @Component({
   selector: 'shared-menu',
-  imports: [OverlayModule, RouterLink, ButtonComponent, TranslatePipe],
+  imports: [OverlayModule, RouterLink, ButtonComponent, TranslatePipe, LucideAngularModule],
   templateUrl: './menu.component.html',
   styleUrl: './menu.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
