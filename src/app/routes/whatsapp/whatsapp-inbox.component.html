@@ -26,15 +26,15 @@
       </section>
     }
 
-    <section class="mb-3 flex flex-col gap-3 rounded-sm border border-zinc-200 bg-white px-4 py-3 shadow-sm sm:flex-row sm:items-center sm:justify-between">
+    <section class="mb-3 flex flex-col gap-2 rounded-2xl border border-zinc-200/80 bg-white/90 px-3 py-2.5 sm:gap-3 sm:rounded-sm sm:bg-white sm:px-4 sm:py-3 sm:shadow-sm sm:flex-row sm:items-center sm:justify-between">
       <div class="min-w-0">
         <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Apparaatstatus</p>
-        <p class="mt-1 truncate text-sm font-medium text-zinc-800">{{ deviceStateLabel() }}</p>
+        <p class="mt-0.5 truncate text-sm font-medium text-zinc-800 sm:mt-1">{{ deviceStateLabel() }}</p>
       </div>
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
         <button
           type="button"
-          class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+          class="inline-flex min-h-9 items-center justify-center rounded-full border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 sm:min-h-10 sm:px-3 sm:py-2 sm:text-xs sm:tracking-wide"
           [class.border-emerald-700]="isPresenceSelected('available')"
           [class.bg-emerald-700]="isPresenceSelected('available')"
           [class.text-white]="isPresenceSelected('available')"
@@ -45,12 +45,12 @@
           [attr.aria-pressed]="isPresenceSelected('available')"
           (click)="setPresence('available')"
         >
-          <lucide-icon name="radio" class="mr-1 h-3.5 w-3.5"></lucide-icon>
+          <lucide-icon name="radio" class="mr-1 h-3 w-3 sm:h-3.5 sm:w-3.5"></lucide-icon>
           Online
         </button>
         <button
           type="button"
-          class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+          class="inline-flex min-h-9 items-center justify-center rounded-full border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 sm:min-h-10 sm:px-3 sm:py-2 sm:text-xs sm:tracking-wide"
           [class.border-zinc-900]="isPresenceSelected('unavailable')"
           [class.bg-zinc-900]="isPresenceSelected('unavailable')"
           [class.text-white]="isPresenceSelected('unavailable')"
@@ -61,7 +61,7 @@
           [attr.aria-pressed]="isPresenceSelected('unavailable')"
           (click)="setPresence('unavailable')"
         >
-          <lucide-icon name="moon-star" class="mr-1 h-3.5 w-3.5"></lucide-icon>
+          <lucide-icon name="moon-star" class="mr-1 h-3 w-3 sm:h-3.5 sm:w-3.5"></lucide-icon>
           Afwezig
         </button>
       </div>
@@ -517,9 +517,9 @@
 
                 <section class="lg:hidden">
                   @if (composerType() === 'text') {
-                    <div class="flex items-end gap-2 rounded-[1.75rem] border border-zinc-200 bg-white px-2 py-2 shadow-sm">
+                    <div class="flex items-center gap-2 rounded-[1.75rem] border border-zinc-200 bg-white px-2 py-2 shadow-sm">
                       <shared-menu
-                        class="shrink-0"
+                        class="shrink-0 self-center"
                         triggerLabel="Meer berichtopties"
                         [ariaLabel]="mobileComposerMenuLabel()"
                         triggerVariant="ghost"
@@ -547,7 +547,7 @@
 
                       <button
                         type="button"
-                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-zinc-300"
+                        class="inline-flex h-11 w-11 shrink-0 self-center items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-zinc-300"
                         [disabled]="!canSubmitComposer()"
                         aria-label="Verstuur bericht"
                         (click)="sendMessage()"
@@ -711,22 +711,35 @@
                   </div>
                 }
 
-                <div class="flex flex-col gap-3 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-3 sm:rounded-3xl sm:flex-row sm:items-center sm:justify-between">
+                <div class="flex flex-col gap-2 rounded-[1.25rem] border border-zinc-200/80 bg-white/90 px-3 py-2.5 sm:gap-3 sm:rounded-3xl sm:border-zinc-200 sm:bg-white sm:px-4 sm:py-3 sm:flex-row sm:items-center sm:justify-between">
                   <p class="text-xs leading-relaxed text-zinc-500">
                     {{ composerHelperText() }}
                   </p>
                   <div class="flex flex-wrap items-center gap-2 sm:justify-end">
                     @if (selectedConversation()?.leadId) {
-                      <shared-button
-                        variant="secondary"
-                        [fullWidth]="false"
-                        [loading]="suggestingReply()"
-                        [disabled]="!canSuggestReply()"
-                        (clicked)="suggestReply()"
-                      >
-                        <lucide-icon name="sparkles" class="mr-2 h-4 w-4"></lucide-icon>
-                        Suggest reply
-                      </shared-button>
+                      @if (isMobileViewport()) {
+                        <button
+                          type="button"
+                          class="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-600 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                          [disabled]="!canSuggestReply() || suggestingReply()"
+                          (click)="suggestReply()"
+                        >
+                          <lucide-icon name="sparkles" class="h-3.5 w-3.5"></lucide-icon>
+                          <span>{{ suggestingReply() ? 'Bezig' : 'Suggest' }}</span>
+                        </button>
+                      } @else {
+                        <shared-button
+                          variant="secondary"
+                          size="compact"
+                          [fullWidth]="false"
+                          [loading]="suggestingReply()"
+                          [disabled]="!canSuggestReply()"
+                          (clicked)="suggestReply()"
+                        >
+                          <lucide-icon name="sparkles" class="mr-2 h-4 w-4"></lucide-icon>
+                          Suggest reply
+                        </shared-button>
+                      }
                     }
                     @if (!isMobileViewport()) {
                       <shared-button
