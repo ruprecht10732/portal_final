@@ -17,3 +17,14 @@
 body {
   font-family: Manrope, sans-serif;
 }
+
+/* XL+: routed page components fill the content viewport and manage internal scrolling */
+@media (min-width: 1280px) {
+  .app-page-viewport > :not(router-outlet) {
+    display: flex;
+    flex-direction: column;
+    flex: 1 1 0%;
+    min-height: 0;
+    overflow: hidden;
+  }
+}
