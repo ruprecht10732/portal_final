@@ -15,6 +15,7 @@ import type {
   IMAPMessageListResponse,
   LinkIMAPMessageLeadRequest,
   ReplyIMAPMessageRequest,
+  SuggestIMAPReplyRequest,
   SendIMAPMessageRequest,
   SuggestIMAPReplyResponse,
   UpdateIMAPAccountRequest,
@@ -122,8 +123,8 @@ export class UserService {
     return this.http.post<IMAPMessageLeadLinkResponse>(`${this.imapBaseUrl}/${accountId}/messages/${uid}/create-lead`, payload);
   }
 
-  suggestIMAPReply(accountId: string, uid: number): Observable<SuggestIMAPReplyResponse> {
-    return this.http.post<SuggestIMAPReplyResponse>(`${this.imapBaseUrl}/${accountId}/messages/${uid}/suggest-reply`, {});
+  suggestIMAPReply(accountId: string, uid: number, payload: SuggestIMAPReplyRequest = {}): Observable<SuggestIMAPReplyResponse> {
+    return this.http.post<SuggestIMAPReplyResponse>(`${this.imapBaseUrl}/${accountId}/messages/${uid}/suggest-reply`, payload);
   }
 
   sendIMAPMessage(accountId: string, payload: SendIMAPMessageRequest): Observable<{ message: string }> {

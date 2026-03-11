@@ -1,3 +1,5 @@
+import type { SuggestReplyRequest } from './reply-suggestion.types';
+
 export interface UserProfile {
   id: string;
   email: string;
@@ -181,6 +183,8 @@ export interface ReplyIMAPMessageRequest {
 export interface SuggestIMAPReplyResponse {
   suggestion: string;
 }
+
+export type SuggestIMAPReplyRequest = SuggestReplyRequest;
 
 export interface InboxLeadSummary {
   id: string;

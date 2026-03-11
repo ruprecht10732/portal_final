@@ -12,6 +12,11 @@ import type { ServiceTypeItem } from '../../core/services/service-types.types';
 import { WhatsAppDeviceStatusService } from '../../core/services/whatsapp-device-status.service';
 import { WhatsAppInboxService } from '../../core/services/whatsapp-inbox.service';
 import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
+import {
+  REPLY_SUGGESTION_SCENARIO_OPTIONS,
+  isNonGenericReplyScenario,
+  type ReplySuggestionScenario,
+} from '../../core/services/reply-suggestion.types';
 import type {
   AttachWhatsAppMessageToLeadRequest,
   EditWhatsAppMessageRequest,
@@ -189,6 +194,8 @@ export class WhatsAppInboxComponent {
   protected readonly composerPollOptionThree = signal('');
   protected readonly composerPollOptionFour = signal('');
   protected readonly composerPollMaxAnswer = signal(1);
+  protected readonly suggestionScenario = signal<ReplySuggestionScenario>('generic');
+  protected readonly suggestionScenarioNotes = signal('');
   protected readonly aiSuggestionSeed = signal<string | null>(null);
   protected readonly aiSuggestionConversationId = signal<string | null>(null);
   protected readonly errorMessage = signal<string | null>(null);
@@ -237,6 +244,13 @@ export class WhatsAppInboxComponent {
   protected readonly quickReactionChoices = quickReactionOptions;
   protected readonly disappearingTimerOptions = disappearingTimerChoices;
   protected readonly composerTypes = composerTypeOptions;
+  protected readonly suggestionScenarioOptions = REPLY_SUGGESTION_SCENARIO_OPTIONS.map(option => ({
+    label: option.label,
+    value: option.value,
+  }));
+  protected readonly selectedSuggestionScenarioDescription = computed(() => {
+    return REPLY_SUGGESTION_SCENARIO_OPTIONS.find(option => option.value === this.suggestionScenario())?.description ?? '';
+  });
   protected readonly primaryComposerTypes = composerTypeOptions.filter(option =>
     option.value === 'text' || option.value === 'image' || option.value === 'file' || option.value === 'contact'
   );
@@ -317,6 +331,7 @@ export class WhatsAppInboxComponent {
     const conversation = this.selectedConversation();
     return !!conversation?.leadId && !this.loadingMessages() && !this.sendingMessage() && !this.suggestingReply();
   });
+  protected readonly showSuggestionScenarioNotes = computed(() => isNonGenericReplyScenario(this.suggestionScenario()));
   protected readonly conversationLinkedLead = computed(() => this.selectedConversation()?.linkedLead ?? null);
   protected readonly conversationSuggestedLead = computed(() => this.conversationLinkedLead() ? null : (this.selectedConversation()?.suggestedLead ?? null));
   protected readonly canUseLeadActions = computed(() => !!this.selectedConversation()?.leadId);
@@ -709,7 +724,11 @@ export class WhatsAppInboxComponent {
     }
 
     this.suggestingReply.set(true);
-    this.inbox.suggestReply(conversation.id)
+    const scenarioNotes = this.suggestionScenarioNotes().trim();
+    const request = scenarioNotes
+      ? { scenario: this.suggestionScenario(), scenarioNotes }
+      : { scenario: this.suggestionScenario() };
+    this.inbox.suggestReply(conversation.id, request)
       .pipe(
         catchError(error => {
           this.toast.error(this.normalizeError(error));
@@ -2581,6 +2600,8 @@ export class WhatsAppInboxComponent {
     this.composerBody.set('');
     this.aiSuggestionSeed.set(null);
     this.aiSuggestionConversationId.set(null);
+    this.suggestionScenario.set('generic');
+    this.suggestionScenarioNotes.set('');
     this.composerCaption.set('');
     this.clearComposerAttachment();
     this.composerViewOnce.set(false);

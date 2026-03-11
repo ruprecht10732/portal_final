@@ -4,7 +4,7 @@
     [backAriaLabel]="'leads.detail.backToList' | translate"
     (back)="back.emit()"
   >
-    <div title-suffix class="title-suffix hidden sm:flex items-center gap-1.5 shrink-0">
+    <div title-suffix-desktop class="title-suffix-desktop hidden sm:flex items-center gap-1.5 shrink-0">
       @if (lead() && phone()) {
         <shared-button
           variant="ghost"

@@ -19,6 +19,7 @@ import type {
   SendWhatsAppConversationMessageResponse,
   SendWhatsAppPresenceRequest,
   SendWhatsAppPresenceResponse,
+  SuggestWhatsAppReplyRequest,
   SuggestWhatsAppReplyResponse,
   ToggleWhatsAppConversationStateRequest,
   ToggleWhatsAppMessageStateRequest,
@@ -70,8 +71,8 @@ export class WhatsAppInboxService {
     return this.http.post<SendWhatsAppConversationMessageResponse>(`${this.baseUrl}/${conversationId}/messages`, payload);
   }
 
-  suggestReply(conversationId: string): Observable<SuggestWhatsAppReplyResponse> {
-    return this.http.post<SuggestWhatsAppReplyResponse>(`${this.baseUrl}/${conversationId}/suggest-reply`, {});
+  suggestReply(conversationId: string, payload: SuggestWhatsAppReplyRequest = {}): Observable<SuggestWhatsAppReplyResponse> {
+    return this.http.post<SuggestWhatsAppReplyResponse>(`${this.baseUrl}/${conversationId}/suggest-reply`, payload);
   }
 
   markConversationRead(conversationId: string): Observable<MarkWhatsAppConversationReadResponse> {

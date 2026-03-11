@@ -19,7 +19,7 @@
     }
     <div class="flex items-center justify-center gap-2 overflow-hidden">
       <h1 class="text-sm font-extrabold tracking-tight truncate max-w-55">{{ title() }}</h1>
-      <ng-content select="[titleSuffix], [title-suffix], .title-suffix"></ng-content>
+      <ng-content select="[titleSuffixMobile], [title-suffix-mobile], .title-suffix-mobile"></ng-content>
     </div>
   </div>
 
@@ -50,7 +50,7 @@
       <h1 class="truncate text-lg sm:text-xl font-bold uppercase tracking-tight leading-none">
         {{ title() }}
       </h1>
-      <ng-content select="[titleSuffix], [title-suffix], .title-suffix"></ng-content>
+      <ng-content select="[titleSuffixDesktop], [title-suffix-desktop], .title-suffix-desktop, [titleSuffix], [title-suffix], .title-suffix"></ng-content>
     </div>
     <ng-content select="[subtitle]"></ng-content>
     @if (subtitle()) {

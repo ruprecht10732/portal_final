@@ -1,3 +1,5 @@
+import type { SuggestReplyRequest } from './reply-suggestion.types';
+
 export interface WhatsAppConversation {
   id: string;
   leadId?: string | null;
@@ -250,6 +252,8 @@ export interface SendWhatsAppConversationMessageResponse {
 export interface SuggestWhatsAppReplyResponse {
   suggestion: string;
 }
+
+export type SuggestWhatsAppReplyRequest = SuggestReplyRequest;
 
 export interface MarkWhatsAppConversationReadResponse {
   status: string;

@@ -9,16 +9,22 @@ import { LeadsService } from '../../core/services/leads.service';
 import type { CreateLeadRequest, Lead } from '../../core/services/leads.types';
 import { ServiceTypesService } from '../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../core/services/service-types.types';
+import {
+  REPLY_SUGGESTION_SCENARIO_OPTIONS,
+  isNonGenericReplyScenario,
+  type ReplySuggestionScenario,
+} from '../../core/services/reply-suggestion.types';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
 import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
 import type { IMAPAccount, IMAPMessage, IMAPMessageContent } from '../../core/services/user.types';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
+import { SelectComponent, type SelectOption } from '../../shared/components/select/select.component';
 
 @Component({
   selector: 'app-inbox',
-  imports: [TranslateModule, RouterLink, ButtonComponent, PageLayoutComponent, LucideAngularModule],
+  imports: [TranslateModule, RouterLink, ButtonComponent, PageLayoutComponent, LucideAngularModule, SelectComponent],
   templateUrl: './inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
@@ -53,6 +59,8 @@ export class InboxComponent {
   protected readonly composerSending = signal(false);
   protected readonly suggestingReply = signal(false);
   protected readonly composerMode = signal<'new' | 'reply' | 'replyAll'>('new');
+  protected readonly suggestionScenario = signal<ReplySuggestionScenario>('generic');
+  protected readonly suggestionScenarioNotes = signal('');
   protected readonly aiSuggestionSeed = signal<string | null>(null);
   protected readonly aiSuggestionUid = signal<number | null>(null);
   protected readonly today = signal(new Date());
@@ -176,6 +184,14 @@ export class InboxComponent {
       && !this.composerSending()
       && !this.suggestingReply();
   });
+  protected readonly suggestionScenarioOptions = REPLY_SUGGESTION_SCENARIO_OPTIONS.map<SelectOption<ReplySuggestionScenario>>(option => ({
+    label: option.label,
+    value: option.value,
+  }));
+  protected readonly selectedSuggestionScenarioDescription = computed(() => {
+    return REPLY_SUGGESTION_SCENARIO_OPTIONS.find(option => option.value === this.suggestionScenario())?.description ?? '';
+  });
+  protected readonly showSuggestionScenarioNotes = computed(() => isNonGenericReplyScenario(this.suggestionScenario()));
 
   protected readonly hasActiveAISuggestion = computed(() => {
     const selectedMessage = this.selectedMessage();
@@ -427,8 +443,12 @@ export class InboxComponent {
     }
 
     this.suggestingReply.set(true);
+    const scenarioNotes = this.suggestionScenarioNotes().trim();
+    const request = scenarioNotes
+      ? { scenario: this.suggestionScenario(), scenarioNotes }
+      : { scenario: this.suggestionScenario() };
     this.userService
-      .suggestIMAPReply(account.id, selectedMessage.uid)
+      .suggestIMAPReply(account.id, selectedMessage.uid, request)
       .pipe(
         catchError(error => {
           this.toast.error(this.normalizeError(error, 'profile.imap.errors.sendMessage'));
@@ -874,6 +894,8 @@ export class InboxComponent {
     this.composerCc.set('');
     this.composerSubject.set('');
     this.composerBody.set('');
+    this.suggestionScenario.set('generic');
+    this.suggestionScenarioNotes.set('');
     this.clearAISuggestion();
   }
 
