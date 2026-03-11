@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import type { LeadTimelineItem, PipelineStage, TimelinePhotoAnalysisSummary } from '../../../core/services/leads.types';
+import type { LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadTimelineItem, PipelineStage, TimelinePhotoAnalysisSummary } from '../../../core/services/leads.types';
 import { PIPELINE_STAGE_I18N_KEYS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PhoneFormatPipe } from '../../../shared/pipes/phone-format.pipe';
@@ -18,6 +18,9 @@ export class LeadDetailTimelineTabComponent {
   timelineItems = input<LeadTimelineItem[]>([]);
   timelineLoading = input<boolean>(false);
   timelineError = input<string | null>(null);
+  linkedWhatsAppConversations = input<LeadLinkedWhatsAppConversation[]>([]);
+  linkedEmailMessages = input<LeadLinkedEmailMessage[]>([]);
+  inboxCommunicationsLoading = input<boolean>(false);
   copiedContactMessage = input<string | null>(null);
   sendingWhatsAppItemId = input<string | null>(null);
   whatsAppDeviceAvailable = input<boolean>(true);
@@ -91,5 +94,36 @@ export class LeadDetailTimelineTabComponent {
 
   protected t(key: string, params?: Record<string, unknown>): string {
     return this.translate.instant(key, params);
+  }
+
+  protected hasLinkedCommunications(): boolean {
+	return this.linkedWhatsAppConversations().length > 0 || this.linkedEmailMessages().length > 0;
+  }
+
+  protected whatsappCaptureContext(item: LeadTimelineItem): { sourceLabel: string; detailLabel: string | null } | null {
+    const metadata = item.metadata as Record<string, unknown>;
+    const source = typeof metadata['source'] === 'string' ? metadata['source'].trim().toLowerCase() : '';
+    if (source !== 'whatsapp') {
+      return null;
+    }
+
+    const displayName = typeof metadata['displayName'] === 'string' ? metadata['displayName'].trim() : '';
+    const phoneNumber = typeof metadata['phoneNumber'] === 'string' ? metadata['phoneNumber'].trim() : '';
+    const messageIds = Array.isArray(metadata['messageIds']) ? metadata['messageIds'].filter((value): value is string => typeof value === 'string' && value.trim() !== '') : [];
+
+    const detailParts: string[] = [];
+    if (displayName) {
+      detailParts.push(displayName);
+    } else if (phoneNumber) {
+      detailParts.push(phoneNumber);
+    }
+    if (messageIds.length > 0) {
+      detailParts.push(`${messageIds.length} bericht${messageIds.length === 1 ? '' : 'en'}`);
+    }
+
+    return {
+      sourceLabel: 'WhatsApp inbox',
+      detailLabel: detailParts.length > 0 ? detailParts.join(' · ') : null,
+    };
   }
 }

@@ -1,6 +1,8 @@
 export interface WhatsAppConversation {
   id: string;
   leadId?: string | null;
+  linkedLead?: LeadInboxSummary | null;
+  suggestedLead?: LeadInboxSummary | null;
   phoneNumber: string;
   displayName: string;
   lastMessagePreview: string;
@@ -8,6 +10,8 @@ export interface WhatsAppConversation {
   lastMessageDirection: 'inbound' | 'outbound';
   lastMessageStatus: 'received' | 'sent' | 'delivered' | 'read' | 'failed';
   unreadCount: number;
+  archivedAt?: string | null;
+  deletedAt?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -256,6 +260,49 @@ export interface WhatsAppConversationActionResponse {
   status: string;
   conversation?: WhatsAppConversation;
   message?: WhatsAppMessage;
+}
+
+export interface LeadInboxSummary {
+  id: string;
+  fullName: string;
+  phone: string;
+  email?: string | null;
+  city?: string | null;
+}
+
+export interface LinkWhatsAppConversationLeadRequest {
+  leadId: string;
+}
+
+export interface WhatsAppConversationLeadResponse {
+  status: string;
+  conversation: WhatsAppConversation;
+}
+
+export interface AttachWhatsAppMessageToLeadRequest {
+  serviceId?: string;
+}
+
+export interface AttachWhatsAppMessageToLeadResponse {
+  status: string;
+  attachmentId: string;
+  leadId: string;
+  serviceId: string;
+  photoAnalysisQueued: boolean;
+}
+
+export interface SaveWhatsAppMessagesToLeadRequest {
+  messageIds: string[];
+  serviceId?: string;
+}
+
+export interface SaveWhatsAppMessagesToLeadResponse {
+  status: string;
+  noteId: string;
+  leadId: string;
+  serviceId?: string | null;
+  savedCount: number;
+  conversationId: string;
 }
 
 export interface SendWhatsAppPresenceResponse {

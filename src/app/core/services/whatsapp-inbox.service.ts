@@ -2,10 +2,16 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import type { CreateLeadRequest } from './leads.types';
 import type {
+  AttachWhatsAppMessageToLeadRequest,
+  AttachWhatsAppMessageToLeadResponse,
   EditWhatsAppMessageRequest,
+  LinkWhatsAppConversationLeadRequest,
   MarkWhatsAppConversationReadResponse,
   ReactWhatsAppMessageRequest,
+  SaveWhatsAppMessagesToLeadRequest,
+  SaveWhatsAppMessagesToLeadResponse,
   SetWhatsAppDisappearingTimerRequest,
   SendWhatsAppChatPresenceRequest,
   SendWhatsAppChatPresenceResponse,
@@ -17,6 +23,7 @@ import type {
   ToggleWhatsAppConversationStateRequest,
   ToggleWhatsAppMessageStateRequest,
   WhatsAppConversationActionResponse,
+  WhatsAppConversationLeadResponse,
   WhatsAppConversationListResponse,
   WhatsAppConversationMessagesResponse,
   WhatsAppMediaDownloadResponse,
@@ -42,6 +49,18 @@ export class WhatsAppInboxService {
     return this.http.get<WhatsAppConversationMessagesResponse>(`${this.baseUrl}/${conversationId}/messages`, {
       params: { limit: String(limit) },
     });
+  }
+
+  linkConversationLead(conversationId: string, payload: LinkWhatsAppConversationLeadRequest): Observable<WhatsAppConversationLeadResponse> {
+    return this.http.post<WhatsAppConversationLeadResponse>(`${this.baseUrl}/${conversationId}/lead`, payload);
+  }
+
+  unlinkConversationLead(conversationId: string): Observable<WhatsAppConversationLeadResponse> {
+    return this.http.delete<WhatsAppConversationLeadResponse>(`${this.baseUrl}/${conversationId}/lead`);
+  }
+
+  createLeadFromConversation(conversationId: string, payload: CreateLeadRequest): Observable<WhatsAppConversationLeadResponse> {
+    return this.http.post<WhatsAppConversationLeadResponse>(`${this.baseUrl}/${conversationId}/create-lead`, payload);
   }
 
   sendConversationMessage(
@@ -126,6 +145,28 @@ export class WhatsAppInboxService {
 
   downloadMessageMedia(conversationId: string, messageId: string): Observable<WhatsAppMediaDownloadResponse> {
     return this.http.get<WhatsAppMediaDownloadResponse>(`${this.baseUrl}/${conversationId}/messages/${messageId}/download`);
+  }
+
+  deleteConversation(conversationId: string): Observable<WhatsAppConversationActionResponse> {
+    return this.http.post<WhatsAppConversationActionResponse>(`${this.baseUrl}/${conversationId}/delete`, {});
+  }
+
+  attachMessageToLead(
+    conversationId: string,
+    messageId: string,
+    payload: AttachWhatsAppMessageToLeadRequest = {},
+  ): Observable<AttachWhatsAppMessageToLeadResponse> {
+    return this.http.post<AttachWhatsAppMessageToLeadResponse>(
+      `${this.baseUrl}/${conversationId}/messages/${messageId}/attach-to-lead`,
+      payload,
+    );
+  }
+
+  saveMessagesToLead(
+    conversationId: string,
+    payload: SaveWhatsAppMessagesToLeadRequest,
+  ): Observable<SaveWhatsAppMessagesToLeadResponse> {
+    return this.http.post<SaveWhatsAppMessagesToLeadResponse>(`${this.baseUrl}/${conversationId}/messages/save-to-lead`, payload);
   }
 
   sendPresence(payload: SendWhatsAppPresenceRequest): Observable<SendWhatsAppPresenceResponse> {

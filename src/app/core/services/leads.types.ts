@@ -183,6 +183,33 @@ export interface TimelineWhatsAppSendResponse {
   eventId: string;
 }
 
+export interface LeadLinkedWhatsAppConversation {
+  conversationId: string;
+  phoneNumber: string;
+  displayName: string;
+  lastMessagePreview: string;
+  lastMessageAt?: string | null;
+  lastMessageDirection: string;
+  lastMessageStatus: string;
+  relationshipUpdatedAt: string;
+}
+
+export interface LeadLinkedEmailMessage {
+  accountId: string;
+  messageUid: number;
+  subject: string;
+  fromName?: string | null;
+  fromAddress?: string | null;
+  sentAt?: string | null;
+  receivedAt?: string | null;
+  relationshipUpdatedAt: string;
+}
+
+export interface LeadInboxCommunicationsResponse {
+  whatsAppConversations: LeadLinkedWhatsAppConversation[];
+  emailMessages: LeadLinkedEmailMessage[];
+}
+
 export interface CreateLeadRequest {
   firstName: string;
   lastName: string;

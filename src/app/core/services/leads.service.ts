@@ -32,6 +32,7 @@ import type {
   AttachmentListResponse,
   PresignedDownloadResponse,
   PhotoAnalysisResponse,
+  LeadInboxCommunicationsResponse,
   LeadTimelineResponse,
   TimelineWhatsAppSendResponse,
 } from './leads.types';
@@ -88,6 +89,10 @@ export class LeadsService extends BaseCrudService<
       params['serviceId'] = serviceId;
     }
     return this.http.get<LeadTimelineResponse>(`${this.baseUrl}/${id}/timeline`, { params });
+  }
+
+  getInboxCommunications(id: string): Observable<LeadInboxCommunicationsResponse> {
+    return this.http.get<LeadInboxCommunicationsResponse>(`${this.baseUrl}/${id}/communications`);
   }
 
   sendTimelineWhatsApp(leadId: string, eventId: string): Observable<TimelineWhatsAppSendResponse> {

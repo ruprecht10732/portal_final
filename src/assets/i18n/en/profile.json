@@ -132,6 +132,8 @@
           "markUnread": "Mark unread",
           "delete": "Delete",
           "close": "Close",
+          "suggestReply": "Suggest reply",
+          "suggestingReply": "Generating...",
           "send": "Send",
           "sending": "Sending..."
         },
@@ -161,6 +163,14 @@
           "saved": "Saved",
           "sent": "Sent",
           "draftSaved": "Draft saved"
+        },
+        "aiDraft": {
+          "label": "AI draft",
+          "description": "Generate a draft reply based on the selected email.",
+          "activeTitle": "AI draft active",
+          "active": "AI draft loaded. Edit it if you want your corrections to be used as feedback for future suggestions.",
+          "learningTitle": "Learning after send",
+          "learningEdited": "This edited AI draft will be used as feedback after sending to improve future suggestions."
         }
       },
       "errors": {

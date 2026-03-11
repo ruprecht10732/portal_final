@@ -132,6 +132,8 @@
           "markUnread": "Markeer ongelezen",
           "delete": "Verwijderen",
           "close": "Sluiten",
+          "suggestReply": "Antwoord voorstellen",
+          "suggestingReply": "Genereren...",
           "send": "Verzenden",
           "sending": "Verzenden..."
         },
@@ -161,6 +163,14 @@
           "saved": "Opgeslagen",
           "sent": "Verzonden",
           "draftSaved": "Concept opgeslagen"
+        },
+        "aiDraft": {
+          "label": "AI-concept",
+          "description": "Genereer een conceptantwoord op basis van de geselecteerde e-mail.",
+          "activeTitle": "AI-concept actief",
+          "active": "AI-concept geladen. Pas het bericht aan als je wilt dat jouw correcties worden gebruikt als feedback voor volgende suggesties.",
+          "learningTitle": "Leert na verzenden",
+          "learningEdited": "Dit aangepaste AI-concept wordt na verzenden gebruikt als feedback om volgende suggesties te verbeteren."
         }
       },
       "errors": {

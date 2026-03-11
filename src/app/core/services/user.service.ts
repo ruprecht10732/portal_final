@@ -2,6 +2,7 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import type { CreateLeadRequest } from './leads.types';
 import type {
   ChangePasswordRequest,
   CompleteOnboardingRequest,
@@ -10,9 +11,12 @@ import type {
   IMAPAccount,
   IMAPUnreadCountResponse,
   IMAPMessageContent,
+  IMAPMessageLeadLinkResponse,
   IMAPMessageListResponse,
+  LinkIMAPMessageLeadRequest,
   ReplyIMAPMessageRequest,
   SendIMAPMessageRequest,
+  SuggestIMAPReplyResponse,
   UpdateIMAPAccountRequest,
   UpdateProfileRequest,
   UserProfile,
@@ -104,6 +108,22 @@ export class UserService {
 
   getIMAPMessageContent(accountId: string, uid: number): Observable<IMAPMessageContent> {
     return this.http.get<IMAPMessageContent>(`${this.imapBaseUrl}/${accountId}/messages/${uid}/content`);
+  }
+
+  linkIMAPMessageLead(accountId: string, uid: number, payload: LinkIMAPMessageLeadRequest): Observable<IMAPMessageLeadLinkResponse> {
+    return this.http.post<IMAPMessageLeadLinkResponse>(`${this.imapBaseUrl}/${accountId}/messages/${uid}/lead`, payload);
+  }
+
+  unlinkIMAPMessageLead(accountId: string, uid: number): Observable<IMAPMessageLeadLinkResponse> {
+    return this.http.delete<IMAPMessageLeadLinkResponse>(`${this.imapBaseUrl}/${accountId}/messages/${uid}/lead`);
+  }
+
+  createLeadFromIMAPMessage(accountId: string, uid: number, payload: CreateLeadRequest): Observable<IMAPMessageLeadLinkResponse> {
+    return this.http.post<IMAPMessageLeadLinkResponse>(`${this.imapBaseUrl}/${accountId}/messages/${uid}/create-lead`, payload);
+  }
+
+  suggestIMAPReply(accountId: string, uid: number): Observable<SuggestIMAPReplyResponse> {
+    return this.http.post<SuggestIMAPReplyResponse>(`${this.imapBaseUrl}/${accountId}/messages/${uid}/suggest-reply`, {});
   }
 
   sendIMAPMessage(accountId: string, payload: SendIMAPMessageRequest): Observable<{ message: string }> {

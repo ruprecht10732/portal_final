@@ -5,12 +5,19 @@ import { LucideAngularModule } from 'lucide-angular';
 import { EMPTY, catchError, finalize } from 'rxjs';
 import { ToastService } from '../../core/services/toast.service';
 import { SSEService, type SSEEvent } from '../../core/services/sse.service';
+import { LeadsService } from '../../core/services/leads.service';
+import type { CreateLeadRequest, Lead, LeadService } from '../../core/services/leads.types';
+import { ServiceTypesService } from '../../core/services/service-types.service';
+import type { ServiceTypeItem } from '../../core/services/service-types.types';
 import { WhatsAppDeviceStatusService } from '../../core/services/whatsapp-device-status.service';
 import { WhatsAppInboxService } from '../../core/services/whatsapp-inbox.service';
 import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
 import type {
+  AttachWhatsAppMessageToLeadRequest,
   EditWhatsAppMessageRequest,
+  LinkWhatsAppConversationLeadRequest,
   ReactWhatsAppMessageRequest,
+  SaveWhatsAppMessagesToLeadRequest,
   SetWhatsAppDisappearingTimerRequest,
   SendWhatsAppConversationMessageRequest,
   ToggleWhatsAppConversationStateRequest,
@@ -32,6 +39,7 @@ import { ButtonComponent } from '../../shared/components/button/button.component
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { MenuComponent, type MenuItem, type MenuSection } from '../../shared/components/menu/menu.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
+import { SelectComponent, type SelectOption } from '../../shared/components/select/select.component';
 
 type WhatsAppConversationEventPayload = { conversation?: Partial<WhatsAppConversation> };
 type WhatsAppMessageEventPayload = {
@@ -87,7 +95,7 @@ type MessagePollCard = {
   maxAnswer?: string;
 };
 
-type ConversationListFilter = 'all' | 'unread';
+type ConversationListFilter = 'all' | 'unread' | 'archived';
 
 type ThreadActionState = {
   archived?: boolean;
@@ -124,12 +132,14 @@ const disappearingTimerChoices = [
 
 @Component({
   selector: 'app-whatsapp-inbox',
-  imports: [TranslateModule, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, MenuComponent, PageLayoutComponent],
+  imports: [TranslateModule, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, MenuComponent, PageLayoutComponent, SelectComponent],
   templateUrl: './whatsapp-inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WhatsAppInboxComponent {
   private readonly inbox = inject(WhatsAppInboxService);
+  private readonly leads = inject(LeadsService);
+  private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly sse = inject(SSEService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
@@ -176,6 +186,7 @@ export class WhatsAppInboxComponent {
   protected readonly pendingDeleteMessage = signal<WhatsAppMessage | null>(null);
   protected readonly pendingRevokeMessage = signal<WhatsAppMessage | null>(null);
   protected readonly pendingDisappearingTimerConversationId = signal<string | null>(null);
+  protected readonly pendingDeleteConversationId = signal<string | null>(null);
   protected readonly reactionDraft = signal('');
   protected readonly editMessageDraft = signal('');
   protected readonly disappearingTimerDraft = signal(0);
@@ -186,6 +197,29 @@ export class WhatsAppInboxComponent {
   protected readonly togglingConversationAction = signal<string | null>(null);
   protected readonly starringMessageId = signal<string | null>(null);
   protected readonly downloadingMessageId = signal<string | null>(null);
+  protected readonly attachingMessageId = signal<string | null>(null);
+  protected readonly savingImportantMessages = signal(false);
+  protected readonly importantSelectionMode = signal(false);
+  protected readonly selectedImportantMessageIds = signal<string[]>([]);
+  protected readonly linkedLead = signal<Lead | null>(null);
+  protected readonly linkedLeadLoading = signal(false);
+  protected readonly linkedLeadServiceId = signal<string | null>(null);
+  protected readonly availableServiceTypes = signal<ServiceTypeItem[]>([]);
+  protected readonly leadSearchQuery = signal('');
+  protected readonly leadSearchResults = signal<Lead[]>([]);
+  protected readonly leadSearchLoading = signal(false);
+  protected readonly leadRelationshipBusy = signal<'link' | 'unlink' | 'create' | null>(null);
+  protected readonly showLeadSearchPanel = signal(false);
+  protected readonly showCreateLeadPanel = signal(false);
+  protected readonly createLeadFirstName = signal('');
+  protected readonly createLeadLastName = signal('');
+  protected readonly createLeadEmail = signal('');
+  protected readonly createLeadStreet = signal('');
+  protected readonly createLeadHouseNumber = signal('');
+  protected readonly createLeadZipCode = signal('');
+  protected readonly createLeadCity = signal('');
+  protected readonly createLeadServiceType = signal('');
+  protected readonly createLeadConsumerRole = signal<'Owner' | 'Tenant' | 'Landlord'>('Owner');
   protected readonly isMobileViewport = signal(false);
   protected readonly reactionChoices = reactionOptions;
   protected readonly quickReactionChoices = quickReactionOptions;
@@ -226,14 +260,28 @@ export class WhatsAppInboxComponent {
   protected readonly showDeleteMessageDialog = computed(() => this.pendingDeleteMessage() !== null);
   protected readonly showRevokeMessageDialog = computed(() => this.pendingRevokeMessage() !== null);
   protected readonly showDisappearingTimerDialog = computed(() => this.pendingDisappearingTimerConversationId() !== null);
+  protected readonly showDeleteConversationDialog = computed(() => this.pendingDeleteConversationId() !== null);
   protected readonly canSend = computed(() => this.deviceStatus.canSend());
-  protected readonly unreadConversationCount = computed(() => this.conversations().filter(item => item.unreadCount > 0).length);
+  protected readonly unreadConversationCount = computed(() => this.conversations().filter(item => this.isConversationVisibleInActiveList(item) && item.unreadCount > 0).length);
+  protected readonly archivedConversationCount = computed(() => this.conversations().filter(item => this.isConversationArchived(item) && !this.isConversationDeleted(item)).length);
   protected readonly hasConversationSearch = computed(() => this.conversationSearchQuery().trim() !== '');
   protected readonly filteredConversations = computed(() => {
     const filter = this.conversationListFilter();
     const query = this.conversationSearchQuery().trim().toLowerCase();
 
     return this.conversations().filter(conversation => {
+      if (this.isConversationDeleted(conversation)) {
+        return false;
+      }
+
+      if (filter === 'archived') {
+        if (!this.isConversationArchived(conversation)) {
+          return false;
+        }
+      } else if (this.isConversationArchived(conversation)) {
+        return false;
+      }
+
       if (filter === 'unread' && conversation.unreadCount === 0) {
         return false;
       }
@@ -257,6 +305,32 @@ export class WhatsAppInboxComponent {
     const conversation = this.selectedConversation();
     return !!conversation?.leadId && !this.loadingMessages() && !this.sendingMessage() && !this.suggestingReply();
   });
+  protected readonly conversationLinkedLead = computed(() => this.selectedConversation()?.linkedLead ?? null);
+  protected readonly conversationSuggestedLead = computed(() => this.conversationLinkedLead() ? null : (this.selectedConversation()?.suggestedLead ?? null));
+  protected readonly canUseLeadActions = computed(() => !!this.selectedConversation()?.leadId);
+  protected readonly canCreateConversationLead = computed(() => {
+    return !!this.selectedConversation()
+      && this.createLeadFirstName().trim() !== ''
+      && this.createLeadLastName().trim() !== ''
+      && this.createLeadStreet().trim() !== ''
+      && this.createLeadHouseNumber().trim() !== ''
+      && this.createLeadZipCode().trim() !== ''
+      && this.createLeadCity().trim() !== ''
+      && this.createLeadServiceType().trim() !== ''
+      && this.leadRelationshipBusy() !== 'create';
+  });
+  protected readonly selectedImportantCount = computed(() => this.selectedImportantMessageIds().length);
+  protected readonly linkedLeadServiceOptions = computed<SelectOption<string>[]>(() => {
+    const lead = this.linkedLead();
+    if (!lead?.services?.length) {
+      return [];
+    }
+    return lead.services.map((service: LeadService) => ({
+      label: this.describeLinkedLeadService(service),
+      value: service.id,
+    }));
+  });
+  protected readonly showLinkedLeadServicePicker = computed(() => this.linkedLeadServiceOptions().length > 1);
   protected readonly isUploadComposer = computed(() => this.isUploadType(this.composerType()));
   protected readonly showCaptionComposer = computed(() => {
     const type = this.composerType();
@@ -335,8 +409,24 @@ export class WhatsAppInboxComponent {
     }
 
     this.deviceStatus.startPolling();
+    this.loadServiceTypes();
     this.loadConversations();
     this.subscribeToRealtimeEvents();
+  }
+
+  protected loadServiceTypes(): void {
+    this.serviceTypesService.listActive()
+      .pipe(
+        catchError(() => EMPTY),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.availableServiceTypes.set(response.items ?? []);
+        const firstItem = response.items[0];
+        if (!this.createLeadServiceType() && firstItem) {
+          this.createLeadServiceType.set(firstItem.name);
+        }
+      });
   }
 
   protected loadConversations(): void {
@@ -355,11 +445,11 @@ export class WhatsAppInboxComponent {
         this.conversations.set(conversations);
         this.unreadCount.refresh();
         const selectedConversationId = this.selectedConversationId();
-        if (selectedConversationId && conversations.some(item => item.id === selectedConversationId)) {
+        if (selectedConversationId && conversations.some(item => item.id === selectedConversationId && !this.isConversationDeleted(item))) {
           return;
         }
 
-        const firstConversation = conversations[0];
+        const firstConversation = conversations.find(item => this.isConversationVisibleInActiveList(item));
         if (firstConversation) {
           this.selectConversation(firstConversation.id);
         } else {
@@ -375,14 +465,160 @@ export class WhatsAppInboxComponent {
     }
 
     this.stopTypingPresence();
+    this.importantSelectionMode.set(false);
+    this.selectedImportantMessageIds.set([]);
+    this.resetConversationLeadPanels();
+    this.resetLinkedLeadState();
     this.selectedConversationId.set(conversationId);
     this.loadMessages(conversationId);
   }
 
   protected closeConversation(): void {
     this.stopTypingPresence();
+    this.importantSelectionMode.set(false);
+    this.selectedImportantMessageIds.set([]);
+    this.resetConversationLeadPanels();
+    this.resetLinkedLeadState();
     this.selectedConversationId.set(null);
     this.messages.set([]);
+  }
+
+  protected toggleLeadSearchPanel(): void {
+    const nextValue = !this.showLeadSearchPanel();
+    this.showLeadSearchPanel.set(nextValue);
+    if (nextValue) {
+      this.showCreateLeadPanel.set(false);
+    }
+  }
+
+  protected openCreateLeadPanel(): void {
+    this.prefillCreateLeadFromConversation();
+    this.showCreateLeadPanel.set(true);
+    this.showLeadSearchPanel.set(false);
+  }
+
+  protected closeCreateLeadPanel(): void {
+    this.showCreateLeadPanel.set(false);
+  }
+
+  protected searchExistingLeads(): void {
+    const query = this.leadSearchQuery().trim();
+    if (query.length < 2) {
+      this.leadSearchResults.set([]);
+      return;
+    }
+
+    this.leadSearchLoading.set(true);
+    this.leads.list({ search: query, pageSize: 6 })
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.leadSearchLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => this.leadSearchResults.set(response.items ?? []));
+  }
+
+  protected linkSuggestedLead(): void {
+    const suggestedLead = this.conversationSuggestedLead();
+    if (!suggestedLead) {
+      return;
+    }
+    this.linkConversationLead(suggestedLead.id);
+  }
+
+  protected linkConversationLead(leadId: string): void {
+    const conversation = this.selectedConversation();
+    if (!conversation || !leadId || this.leadRelationshipBusy()) {
+      return;
+    }
+
+    const payload: LinkWhatsAppConversationLeadRequest = { leadId };
+    this.leadRelationshipBusy.set('link');
+    this.inbox.linkConversationLead(conversation.id, payload)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.leadRelationshipBusy.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.applyConversationActionResponse(response);
+        this.loadLinkedLead(response.conversation.leadId ?? null);
+        this.showLeadSearchPanel.set(false);
+        this.leadSearchResults.set([]);
+        this.toast.success('WhatsApp-gesprek gekoppeld aan lead.');
+      });
+  }
+
+  protected unlinkConversationLead(): void {
+    const conversation = this.selectedConversation();
+    if (!conversation?.leadId || this.leadRelationshipBusy()) {
+      return;
+    }
+
+    this.leadRelationshipBusy.set('unlink');
+    this.inbox.unlinkConversationLead(conversation.id)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.leadRelationshipBusy.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.applyConversationActionResponse(response);
+        this.resetLinkedLeadState();
+        this.toast.success('WhatsApp-gesprek ontkoppeld van lead.');
+      });
+  }
+
+  protected createLeadFromConversation(): void {
+    const conversation = this.selectedConversation();
+    if (!conversation || !this.canCreateConversationLead()) {
+      return;
+    }
+
+    const payload: CreateLeadRequest = {
+      firstName: this.createLeadFirstName().trim(),
+      lastName: this.createLeadLastName().trim(),
+      phone: conversation.phoneNumber,
+      consumerRole: this.createLeadConsumerRole(),
+      street: this.createLeadStreet().trim(),
+      houseNumber: this.createLeadHouseNumber().trim(),
+      zipCode: this.createLeadZipCode().trim(),
+      city: this.createLeadCity().trim(),
+      serviceType: this.createLeadServiceType().trim(),
+      source: 'whatsapp_inbox',
+      whatsappOptedIn: true,
+      ...(this.createLeadEmail().trim() ? { email: this.createLeadEmail().trim() } : {}),
+    };
+
+    this.leadRelationshipBusy.set('create');
+    this.inbox.createLeadFromConversation(conversation.id, payload)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.leadRelationshipBusy.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.applyConversationActionResponse(response);
+        this.loadLinkedLead(response.conversation.leadId ?? null);
+        this.showCreateLeadPanel.set(false);
+        this.toast.success('Lead aangemaakt vanuit WhatsApp inbox.');
+      });
+  }
+
+  protected updateLinkedLeadServiceId(value: string | null): void {
+    this.linkedLeadServiceId.set(value || null);
   }
 
   protected startTypingPresence(): void {
@@ -509,6 +745,13 @@ export class WhatsAppInboxComponent {
 
   protected messageMenuSections(message: WhatsAppMessage): readonly MenuSection[] {
     const items: MenuItem[] = [];
+    if (this.canAttachMessageToLead(message)) {
+      items.push({
+        label: 'Koppel foto aan lead',
+        icon: 'paperclip',
+        value: 'attach-to-lead',
+      });
+    }
     if (!this.isReactionDisabled(message)) {
       items.push({
         label: 'Reageer',
@@ -586,6 +829,10 @@ export class WhatsAppInboxComponent {
     }
     if (item.value === 'download') {
       this.downloadMessageMedia(message);
+      return;
+    }
+    if (item.value === 'attach-to-lead') {
+      this.attachMessageToLead(message);
     }
   }
 
@@ -596,19 +843,25 @@ export class WhatsAppInboxComponent {
     }
 
     const state = this.threadState(conversation.id);
-    return [
+    const sections: MenuSection[] = [
       {
         items: [
           {
-            label: state.archived ? 'Haal uit archief' : 'Archiveer gesprek',
+            label: this.isConversationArchived(conversation) ? 'Haal uit archief' : 'Archiveer gesprek',
             icon: 'archive',
-            value: state.archived ? 'unarchive' : 'archive',
+            value: this.isConversationArchived(conversation) ? 'unarchive' : 'archive',
             disabled: this.isConversationActionBusy(),
           },
           {
             label: state.pinned ? 'Maak los' : 'Zet vast',
             icon: 'pin',
             value: state.pinned ? 'unpin' : 'pin',
+            disabled: this.isConversationActionBusy(),
+          },
+          {
+            label: 'Verwijder chat',
+            icon: 'trash-2',
+            value: 'delete-chat',
             disabled: this.isConversationActionBusy(),
           },
         ],
@@ -623,6 +876,27 @@ export class WhatsAppInboxComponent {
         })),
       },
     ];
+
+    if (conversation.leadId) {
+      sections.unshift({
+        items: [
+          {
+            label: this.importantSelectionMode() ? 'Stop selectie belangrijke berichten' : 'Selecteer belangrijke berichten',
+            icon: this.importantSelectionMode() ? 'x' : 'check-check',
+            value: 'toggle-important-selection',
+            disabled: this.savingImportantMessages(),
+          },
+          {
+            label: 'Sla geselecteerde berichten op',
+            icon: 'bookmark-plus',
+            value: 'save-important-messages',
+            disabled: !this.importantSelectionMode() || this.selectedImportantCount() === 0 || this.savingImportantMessages(),
+          },
+        ],
+      });
+    }
+
+    return sections;
   }
 
   protected onThreadMenuItemSelected(item: MenuItem): void {
@@ -645,6 +919,18 @@ export class WhatsAppInboxComponent {
     }
     if (item.value === 'unpin') {
       this.setConversationPinned(conversation.id, false);
+      return;
+    }
+    if (item.value === 'delete-chat') {
+      this.requestDeleteConversation(conversation.id);
+      return;
+    }
+    if (item.value === 'toggle-important-selection') {
+      this.toggleImportantSelectionMode();
+      return;
+    }
+    if (item.value === 'save-important-messages') {
+      this.saveSelectedMessagesToLead();
       return;
     }
     if (item.value?.startsWith('timer:')) {
@@ -670,6 +956,41 @@ export class WhatsAppInboxComponent {
     }
 
     this.pendingDisappearingTimerConversationId.set(null);
+  }
+
+  protected requestDeleteConversation(conversationId: string): void {
+    this.pendingDeleteConversationId.set(conversationId);
+  }
+
+  protected cancelDeleteConversation(): void {
+    if (this.isConversationActionBusy()) {
+      return;
+    }
+
+    this.pendingDeleteConversationId.set(null);
+  }
+
+  protected confirmDeleteConversation(): void {
+    const conversationId = this.pendingDeleteConversationId();
+    if (!conversationId || this.isConversationActionBusy()) {
+      return;
+    }
+
+    this.togglingConversationAction.set(conversationId);
+    this.inbox.deleteConversation(conversationId)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.togglingConversationAction.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response: WhatsAppConversationActionResponse) => {
+        this.pendingDeleteConversationId.set(null);
+        this.applyConversationActionResponse(response);
+        this.toast.success('Chat verwijderd uit de inbox.');
+      });
   }
 
   protected confirmDisappearingTimer(): void {
@@ -1151,6 +1472,79 @@ export class WhatsAppInboxComponent {
     return this.messageMenuSections(message).some(section => section.items.length > 0);
   }
 
+  protected isAttachingMessage(message: WhatsAppMessage): boolean {
+    return this.attachingMessageId() === message.id;
+  }
+
+  protected isImportantSelectionEnabled(): boolean {
+    return this.importantSelectionMode();
+  }
+
+  protected isMessageSelectedAsImportant(message: WhatsAppMessage): boolean {
+    return this.selectedImportantMessageIds().includes(message.id);
+  }
+
+  protected canToggleImportantSelection(message: WhatsAppMessage): boolean {
+    return !!this.selectedConversation()?.leadId && this.actionMessageTarget(message) !== null;
+  }
+
+  protected toggleImportantSelectionMode(): void {
+    const nextValue = !this.importantSelectionMode();
+    this.importantSelectionMode.set(nextValue);
+    if (!nextValue) {
+      this.selectedImportantMessageIds.set([]);
+    }
+  }
+
+  protected toggleMessageImportantSelection(message: WhatsAppMessage): void {
+    if (!this.importantSelectionMode() || !this.canToggleImportantSelection(message) || this.savingImportantMessages()) {
+      return;
+    }
+
+    this.selectedImportantMessageIds.update(items => items.includes(message.id)
+      ? items.filter(item => item !== message.id)
+      : [...items, message.id]);
+  }
+
+  protected saveSelectedMessagesToLead(): void {
+    const conversation = this.selectedConversation();
+    if (!conversation?.leadId || this.savingImportantMessages() || this.selectedImportantCount() === 0) {
+      return;
+    }
+
+    const payload: SaveWhatsAppMessagesToLeadRequest = {
+      messageIds: this.selectedImportantMessageIds()
+        .map(messageId => this.messages().find(item => item.id === messageId))
+        .filter((message): message is WhatsAppMessage => !!message)
+        .map(message => this.actionMessageTarget(message))
+        .filter((messageId): messageId is string => !!messageId),
+    };
+    const selectedServiceId = this.selectedLinkedLeadServiceId();
+    if (selectedServiceId) {
+      payload.serviceId = selectedServiceId;
+    }
+    if (payload.messageIds.length === 0) {
+      this.toast.error('Geen geldige WhatsApp-berichten geselecteerd.');
+      return;
+    }
+
+    this.savingImportantMessages.set(true);
+    this.inbox.saveMessagesToLead(conversation.id, payload)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.savingImportantMessages.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => {
+        this.selectedImportantMessageIds.set([]);
+        this.importantSelectionMode.set(false);
+        this.toast.success(`${response.savedCount} bericht${response.savedCount === 1 ? '' : 'en'} opgeslagen bij de lead.`);
+      });
+  }
+
   protected isReactingMessage(message: WhatsAppMessage): boolean {
     return this.reactingMessageId() === message.id;
   }
@@ -1357,10 +1751,54 @@ export class WhatsAppInboxComponent {
       .subscribe(({ conversation, messages }) => {
         this.upsertConversation(conversation);
         this.messages.set(messages);
+        this.loadLinkedLead(conversation.leadId ?? null);
         if (conversation.unreadCount > 0) {
           this.markConversationRead(conversation.id);
         }
       });
+  }
+
+  private loadLinkedLead(leadId: string | null | undefined): void {
+    const normalizedLeadId = leadId?.trim() || null;
+    if (!normalizedLeadId) {
+      this.resetLinkedLeadState();
+      return;
+    }
+    if (this.linkedLead()?.id === normalizedLeadId) {
+      return;
+    }
+
+    this.linkedLeadLoading.set(true);
+    this.leads.getById(normalizedLeadId)
+      .pipe(
+        catchError(error => {
+          this.resetLinkedLeadState();
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.linkedLeadLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(lead => {
+        this.linkedLead.set(lead);
+        this.linkedLeadServiceId.set(lead.currentService?.id ?? lead.services[0]?.id ?? null);
+      });
+  }
+
+  private resetLinkedLeadState(): void {
+    this.linkedLead.set(null);
+    this.linkedLeadLoading.set(false);
+    this.linkedLeadServiceId.set(null);
+  }
+
+  private selectedLinkedLeadServiceId(): string | undefined {
+    const serviceId = this.linkedLeadServiceId()?.trim();
+    return serviceId || undefined;
+  }
+
+  private describeLinkedLeadService(service: LeadService): string {
+    const parts = [service.serviceType, service.pipelineStage.replaceAll('_', ' ')];
+    return parts.filter(Boolean).join(' · ');
   }
 
   private markConversationRead(conversationId: string): void {
@@ -1400,6 +1838,10 @@ export class WhatsAppInboxComponent {
 
   private upsertConversation(conversation: WhatsAppConversation): void {
     this.conversations.update(items => {
+      if (conversation.deletedAt) {
+        return items.filter(item => item.id !== conversation.id);
+      }
+
       const next = [...items];
       const index = next.findIndex(item => item.id === conversation.id);
       if (index >= 0) {
@@ -1431,6 +1873,9 @@ export class WhatsAppInboxComponent {
 
   private applyConversationActionResponse(response: WhatsAppConversationActionResponse): void {
     if (response.conversation) {
+      if (response.conversation.id === this.selectedConversationId() && !this.isConversationVisibleInCurrentFilter(response.conversation)) {
+        this.closeConversation();
+      }
       this.upsertConversation(response.conversation);
     }
     if (response.message) {
@@ -1456,10 +1901,6 @@ export class WhatsAppInboxComponent {
       )
       .subscribe(response => {
         this.applyConversationActionResponse(response);
-        this.threadActionState.update(current => ({
-          ...current,
-          [conversationId]: { ...current[conversationId], archived: value },
-        }));
         this.toast.success(value ? 'Gesprek gearchiveerd.' : 'Gesprek uit archief gehaald.');
       });
   }
@@ -1593,6 +2034,33 @@ export class WhatsAppInboxComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(response => this.openDownloadedMedia(response));
+  }
+
+  private attachMessageToLead(message: WhatsAppMessage): void {
+    const conversation = this.selectedConversation();
+    const messageTarget = this.actionMessageTarget(message);
+    if (!conversation?.leadId || !messageTarget || !this.canAttachMessageToLead(message)) {
+      return;
+    }
+
+    this.attachingMessageId.set(message.id);
+    const payload: AttachWhatsAppMessageToLeadRequest = {};
+    const selectedServiceId = this.selectedLinkedLeadServiceId();
+    if (selectedServiceId) {
+      payload.serviceId = selectedServiceId;
+    }
+    this.inbox.attachMessageToLead(conversation.id, messageTarget, payload)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.attachingMessageId.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.toast.success('WhatsApp-foto gekoppeld aan de lead en foto-analyse gestart.');
+      });
   }
 
   private openDownloadedMedia(response: WhatsAppMediaDownloadResponse): void {
@@ -1908,8 +2376,22 @@ export class WhatsAppInboxComponent {
     return this.actionMessageTarget(message) === null || this.messageMedia(message) === null || this.hasMessageActionInFlight();
   }
 
+  private canAttachMessageToLead(message: WhatsAppMessage): boolean {
+    return !!this.selectedConversation()?.leadId
+      && message.direction === 'inbound'
+      && this.actionMessageTarget(message) !== null
+      && this.messageMedia(message)?.kind === 'image'
+      && !this.hasMessageActionInFlight();
+  }
+
   private hasMessageActionInFlight(): boolean {
-    return this.reactingMessageId() !== null || this.editingMessageId() !== null || this.deletingMessageId() !== null || this.revokingMessageId() !== null || this.starringMessageId() !== null || this.downloadingMessageId() !== null;
+    return this.reactingMessageId() !== null
+      || this.editingMessageId() !== null
+      || this.deletingMessageId() !== null
+      || this.revokingMessageId() !== null
+      || this.starringMessageId() !== null
+      || this.downloadingMessageId() !== null
+      || this.attachingMessageId() !== null;
   }
 
   protected isConversationActionBusy(): boolean {
@@ -1942,7 +2424,7 @@ export class WhatsAppInboxComponent {
     }
     const state = this.threadState(conversation.id);
     const badges: { key: string; icon: string; label: string }[] = [];
-    if (state.archived) {
+    if (this.isConversationArchived(conversation)) {
       badges.push({ key: 'archived', icon: 'archive', label: 'Gearchiveerd' });
     }
     if (state.pinned) {
@@ -1962,6 +2444,20 @@ export class WhatsAppInboxComponent {
     return `Verdwijnt: ${timerSeconds}s`;
   }
 
+  protected deleteConversationDialogDescription(): string {
+    const conversationId = this.pendingDeleteConversationId();
+    if (!conversationId) {
+      return 'Deze chat wordt uit de inbox verwijderd.';
+    }
+
+    const conversation = this.conversations().find(item => item.id === conversationId) ?? this.selectedConversation();
+    if (!conversation) {
+      return 'Deze chat wordt uit de inbox verwijderd.';
+    }
+
+    return `Deze chat met ${this.displayName(conversation)} wordt uit de inbox verwijderd.`;
+  }
+
   private editableMessageBody(message: WhatsAppMessage): string | null {
     if (this.messageMedia(message) || this.messageContacts(message).length > 0 || this.messageLocation(message) || this.messagePoll(message)) {
       return null;
@@ -1969,6 +2465,76 @@ export class WhatsAppInboxComponent {
 
     const body = this.messagePrimaryBody(message)?.trim();
     return body || null;
+  }
+
+  private isConversationArchived(conversation: WhatsAppConversation): boolean {
+    return !!conversation.archivedAt;
+  }
+
+  private isConversationDeleted(conversation: WhatsAppConversation): boolean {
+    return !!conversation.deletedAt;
+  }
+
+  private isConversationVisibleInActiveList(conversation: WhatsAppConversation): boolean {
+    return !this.isConversationArchived(conversation) && !this.isConversationDeleted(conversation);
+  }
+
+  private isConversationVisibleInCurrentFilter(conversation: WhatsAppConversation): boolean {
+    if (this.isConversationDeleted(conversation)) {
+      return false;
+    }
+
+    const filter = this.conversationListFilter();
+    if (filter === 'archived') {
+      return this.isConversationArchived(conversation);
+    }
+    if (this.isConversationArchived(conversation)) {
+      return false;
+    }
+    if (filter === 'unread') {
+      return conversation.unreadCount > 0;
+    }
+    return true;
+  }
+
+  private prefillCreateLeadFromConversation(): void {
+    const conversation = this.selectedConversation();
+    if (!conversation) {
+      return;
+    }
+    const [firstName, lastName] = this.splitName(this.displayName(conversation));
+    this.createLeadFirstName.set(firstName);
+    this.createLeadLastName.set(lastName);
+    this.createLeadEmail.set(this.conversationLinkedLead()?.email ?? this.conversationSuggestedLead()?.email ?? '');
+    this.createLeadStreet.set('');
+    this.createLeadHouseNumber.set('');
+    this.createLeadZipCode.set('');
+    this.createLeadCity.set(this.conversationSuggestedLead()?.city ?? '');
+    const firstServiceType = this.availableServiceTypes()[0];
+    if (!this.createLeadServiceType() && firstServiceType) {
+	      this.createLeadServiceType.set(firstServiceType.name);
+    }
+  }
+
+  private splitName(value: string): [string, string] {
+    const trimmed = value.trim();
+    if (!trimmed || trimmed === this.selectedConversation()?.phoneNumber) {
+      return ['', ''];
+    }
+    const parts = trimmed.split(/\s+/).filter(Boolean);
+    if (parts.length <= 1) {
+      return [trimmed, ''];
+    }
+    return [parts[0] ?? '', parts.slice(1).join(' ')];
+  }
+
+  private resetConversationLeadPanels(): void {
+    this.showLeadSearchPanel.set(false);
+    this.showCreateLeadPanel.set(false);
+    this.leadSearchQuery.set('');
+    this.leadSearchResults.set([]);
+    this.leadSearchLoading.set(false);
+    this.leadRelationshipBusy.set(null);
   }
 
   private deleteMessagePreview(message: WhatsAppMessage): string {

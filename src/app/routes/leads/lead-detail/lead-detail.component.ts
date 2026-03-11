@@ -14,7 +14,7 @@ import { AppointmentsService } from '../../../core/services/appointments.service
 import { SSEService, type SSEEvent } from '../../../core/services/sse.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { Lead, LeadAIAnalysis, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem, TimelinePhotoAnalysisSummary } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem, TimelinePhotoAnalysisSummary } from '../../../core/services/leads.types';
 import { ALLOWED_STATUS_TRANSITIONS, buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
 import { PartnersService } from '../../../core/services/partners.service';
 import type { OfferResponse, Partner } from '../../../core/services/partners.types';
@@ -303,6 +303,9 @@ export class LeadDetailComponent implements OnInit {
   protected readonly timelineItems = signal<LeadTimelineItem[]>([]);
   protected readonly timelineLoading = signal(false);
   protected readonly timelineError = signal<string | null>(null);
+  protected readonly linkedWhatsAppConversations = signal<LeadLinkedWhatsAppConversation[]>([]);
+  protected readonly linkedEmailMessages = signal<LeadLinkedEmailMessage[]>([]);
+  protected readonly inboxCommunicationsLoading = signal(false);
   protected readonly timelineWhatsAppSendingItemId = signal<string | null>(null);
   protected readonly sentTimelineWhatsAppSourceIds = computed(() => {
     const sentIds = new Set<string>();
@@ -734,6 +737,7 @@ export class LeadDetailComponent implements OnInit {
         this.loadNotes(lead.id);
         this.loadAppointments(lead.id);
         this.loadTimeline(lead.id, this.selectedService()?.id);
+        this.loadInboxCommunications(lead.id);
         this.loadLeadWorkflowData(lead.id);
         // AI Analysis is loaded automatically by effect when selectedService changes
         // Mark as viewed
@@ -754,6 +758,7 @@ export class LeadDetailComponent implements OnInit {
         this.lead.set(lead);
         this.newStatus.set(lead.currentService?.status ?? null);
         this.selectedAssignee.set(lead.assignedAgentId ?? null);
+        this.loadInboxCommunications(lead.id);
       },
       error: (err) => {
         this.reporter.report(err, { source: 'http', silent: true });
@@ -1429,6 +1434,25 @@ export class LeadDetailComponent implements OnInit {
         this.timelineLoading.set(false);
       },
     });
+  }
+
+  private loadInboxCommunications(id: string): void {
+    this.inboxCommunicationsLoading.set(true);
+    this.leadsService.getInboxCommunications(id)
+      .pipe(
+        catchError((err) => {
+          this.reporter.report(err, { source: 'http', silent: true });
+          this.linkedWhatsAppConversations.set([]);
+          this.linkedEmailMessages.set([]);
+          return of({ whatsAppConversations: [], emailMessages: [] });
+        }),
+        finalize(() => this.inboxCommunicationsLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.linkedWhatsAppConversations.set(response.whatsAppConversations ?? []);
+        this.linkedEmailMessages.set(response.emailMessages ?? []);
+      });
   }
 
   private loadAIAnalysis(leadId: string, serviceId: string): void {

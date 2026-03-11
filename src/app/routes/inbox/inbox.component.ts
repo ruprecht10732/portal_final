@@ -5,6 +5,10 @@ import { RouterLink } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
+import { LeadsService } from '../../core/services/leads.service';
+import type { CreateLeadRequest, Lead } from '../../core/services/leads.types';
+import { ServiceTypesService } from '../../core/services/service-types.service';
+import type { ServiceTypeItem } from '../../core/services/service-types.types';
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
 import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
@@ -20,6 +24,8 @@ import { PageLayoutComponent } from '../../shared/components/page-layout/page-la
 })
 export class InboxComponent {
   private readonly userService = inject(UserService);
+  private readonly leadsService = inject(LeadsService);
+  private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
@@ -45,12 +51,31 @@ export class InboxComponent {
   protected readonly composerSubject = signal('');
   protected readonly composerBody = signal('');
   protected readonly composerSending = signal(false);
+  protected readonly suggestingReply = signal(false);
   protected readonly composerMode = signal<'new' | 'reply' | 'replyAll'>('new');
+  protected readonly aiSuggestionSeed = signal<string | null>(null);
+  protected readonly aiSuggestionUid = signal<number | null>(null);
   protected readonly today = signal(new Date());
   protected readonly loadingMessageContent = signal(false);
   protected readonly messageContent = signal<IMAPMessageContent | null>(null);
   protected readonly safeMessageHtml = signal<SafeHtml | null>(null);
   protected readonly messageHtmlUrl = signal<SafeResourceUrl | null>(null);
+  protected readonly availableServiceTypes = signal<ServiceTypeItem[]>([]);
+  protected readonly leadSearchQuery = signal('');
+  protected readonly leadSearchResults = signal<Lead[]>([]);
+  protected readonly leadSearchLoading = signal(false);
+  protected readonly leadRelationshipBusy = signal<'link' | 'unlink' | 'create' | null>(null);
+  protected readonly showLeadSearchPanel = signal(false);
+  protected readonly showCreateLeadPanel = signal(false);
+  protected readonly createLeadFirstName = signal('');
+  protected readonly createLeadLastName = signal('');
+  protected readonly createLeadPhone = signal('');
+  protected readonly createLeadStreet = signal('');
+  protected readonly createLeadHouseNumber = signal('');
+  protected readonly createLeadZipCode = signal('');
+  protected readonly createLeadCity = signal('');
+  protected readonly createLeadServiceType = signal('');
+  protected readonly createLeadConsumerRole = signal<'Owner' | 'Tenant' | 'Landlord'>('Owner');
   protected readonly isMobileViewport = signal(false);
 
   private messageHtmlObjectUrl: string | null = null;
@@ -127,6 +152,48 @@ export class InboxComponent {
   protected readonly showListPane = computed(() => !this.isMobileViewport() || this.selectedMessage() == null);
 
   protected readonly showReaderPane = computed(() => !this.isMobileViewport() || this.selectedMessage() != null);
+  protected readonly linkedLeadSummary = computed(() => this.messageContent()?.linkedLead ?? null);
+  protected readonly suggestedLeadSummary = computed(() => this.linkedLeadSummary() ? null : (this.messageContent()?.suggestedLead ?? null));
+  protected readonly canCreateMessageLead = computed(() => {
+    return !!this.selectedMessage()
+      && this.createLeadFirstName().trim() !== ''
+      && this.createLeadLastName().trim() !== ''
+      && this.createLeadPhone().trim() !== ''
+      && this.createLeadStreet().trim() !== ''
+      && this.createLeadHouseNumber().trim() !== ''
+      && this.createLeadZipCode().trim() !== ''
+      && this.createLeadCity().trim() !== ''
+      && this.createLeadServiceType().trim() !== ''
+      && this.leadRelationshipBusy() !== 'create';
+  });
+
+  protected readonly canSuggestReply = computed(() => {
+    const selectedMessage = this.selectedMessage();
+    const mode = this.composerMode();
+    return this.composerOpen()
+      && selectedMessage !== null
+      && (mode === 'reply' || mode === 'replyAll')
+      && !this.composerSending()
+      && !this.suggestingReply();
+  });
+
+  protected readonly hasActiveAISuggestion = computed(() => {
+    const selectedMessage = this.selectedMessage();
+    const aiSuggestion = this.aiSuggestionSeed();
+    return this.composerOpen()
+      && selectedMessage !== null
+      && aiSuggestion !== null
+      && this.aiSuggestionUid() === selectedMessage.uid;
+  });
+
+  protected readonly willLearnEditedAISuggestion = computed(() => {
+    if (!this.hasActiveAISuggestion()) {
+      return false;
+    }
+    const aiSuggestion = this.aiSuggestionSeed()?.trim() ?? '';
+    const currentBody = this.composerBody().trim();
+    return currentBody !== '' && currentBody !== aiSuggestion;
+  });
 
   constructor() {
     if (globalThis.window !== undefined) {
@@ -138,6 +205,22 @@ export class InboxComponent {
     }
 
     this.loadAccounts();
+    this.loadServiceTypes();
+  }
+
+  protected loadServiceTypes(): void {
+    this.serviceTypesService.listActive()
+      .pipe(
+        catchError(() => EMPTY),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.availableServiceTypes.set(response.items ?? []);
+        const firstItem = response.items[0];
+        if (!this.createLeadServiceType() && firstItem) {
+          this.createLeadServiceType.set(firstItem.name);
+        }
+      });
   }
 
   protected loadAccounts(): void {
@@ -261,11 +344,13 @@ export class InboxComponent {
     this.messageContent.set(null);
     this.safeMessageHtml.set(null);
     this.setMessageHtmlUrl(null);
+    this.resetLeadPanels();
   }
 
   protected openReading(message: IMAPMessage): void {
     this.selectedMessageUid.set(message.uid);
     this.viewMode.set('inbox');
+    this.resetLeadPanels();
     const account = this.selectedAccount();
     if (!account) return;
     if (!message.seen) {
@@ -295,6 +380,7 @@ export class InboxComponent {
       this.openComposer();
       return;
     }
+    this.clearAISuggestion();
     this.composerMode.set('reply');
     this.composerTo.set(current.fromAddress ?? '');
     this.composerCc.set('');
@@ -310,6 +396,7 @@ export class InboxComponent {
       this.openComposerFromReading();
       return;
     }
+    this.clearAISuggestion();
     this.composerMode.set('replyAll');
     const toList = content.replyTo?.length ? content.replyTo : [current.fromAddress ?? ''];
     const ccList = [...(content.to ?? []), ...(content.cc ?? [])]
@@ -322,16 +409,39 @@ export class InboxComponent {
   }
 
   protected openComposer(): void {
-    this.composerMode.set('new');
-    this.composerTo.set('');
-    this.composerCc.set('');
-    this.composerSubject.set('');
-    this.composerBody.set('');
+    this.resetComposerState('new');
     this.composerOpen.set(true);
   }
 
   protected closeComposer(): void {
+    this.resetComposerState();
     this.composerOpen.set(false);
+  }
+
+  protected suggestReply(): void {
+    const account = this.selectedAccount();
+    const selectedMessage = this.selectedMessage();
+    const mode = this.composerMode();
+    if (!account || !selectedMessage || this.suggestingReply() || (mode !== 'reply' && mode !== 'replyAll')) {
+      return;
+    }
+
+    this.suggestingReply.set(true);
+    this.userService
+      .suggestIMAPReply(account.id, selectedMessage.uid)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error, 'profile.imap.errors.sendMessage'));
+          return EMPTY;
+        }),
+        finalize(() => this.suggestingReply.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(({ suggestion }) => {
+        this.composerBody.set(suggestion);
+        this.aiSuggestionSeed.set(suggestion);
+        this.aiSuggestionUid.set(selectedMessage.uid);
+      });
   }
 
   protected sendComposer(): void {
@@ -352,12 +462,27 @@ export class InboxComponent {
     this.composerSending.set(true);
     const mode = this.composerMode();
     const selected = this.selectedMessage();
+    const aiSuggestion = this.activeAISuggestion();
     const request$ = (() => {
       if (mode === 'reply' && selected) {
-        return this.userService.replyIMAPMessage(account.id, selected.uid, { body, isHtml: false });
+        const payload = {
+          body,
+          isHtml: false,
+          ...(aiSuggestion ? { aiSuggestion } : {}),
+        };
+        return this.userService.replyIMAPMessage(account.id, selected.uid, {
+          ...payload,
+        });
       }
       if (mode === 'replyAll' && selected) {
-        return this.userService.replyAllIMAPMessage(account.id, selected.uid, { body, isHtml: false });
+        const payload = {
+          body,
+          isHtml: false,
+          ...(aiSuggestion ? { aiSuggestion } : {}),
+        };
+        return this.userService.replyAllIMAPMessage(account.id, selected.uid, {
+          ...payload,
+        });
       }
       return this.userService.sendIMAPMessage(account.id, {
         to,
@@ -379,10 +504,19 @@ export class InboxComponent {
       .subscribe(() => {
         this.composerOpen.set(false);
         this.toast.success(this.translate.instant('profile.imap.inbox.messages.sent'));
-        this.composerBody.set('');
-        this.composerCc.set('');
+        this.resetComposerState();
         this.loadMessages(account.id);
       });
+  }
+
+  protected aiLearningIndicatorText(): string {
+    if (!this.hasActiveAISuggestion()) {
+      return '';
+    }
+    if (this.willLearnEditedAISuggestion()) {
+      return this.translate.instant('profile.imap.inbox.aiDraft.learningEdited');
+    }
+    return this.translate.instant('profile.imap.inbox.aiDraft.active');
   }
 
   protected formatDayHeader(date: Date): string {
@@ -460,6 +594,7 @@ export class InboxComponent {
           this.selectedMessageUid.set(null);
           this.messageContent.set(null);
           this.safeMessageHtml.set(null);
+          this.clearAISuggestion();
         }
       });
   }
@@ -479,6 +614,139 @@ export class InboxComponent {
       .subscribe(content => {
         this.messageContent.set(content);
         this.setMessageHtmlUrl(content.bodyHtml ?? null);
+      });
+  }
+
+  protected toggleLeadSearchPanel(): void {
+    const nextValue = !this.showLeadSearchPanel();
+    this.showLeadSearchPanel.set(nextValue);
+    if (nextValue) {
+      this.showCreateLeadPanel.set(false);
+    }
+  }
+
+  protected openCreateLeadPanel(): void {
+    this.prefillCreateLeadFromMessage();
+    this.showCreateLeadPanel.set(true);
+    this.showLeadSearchPanel.set(false);
+  }
+
+  protected closeCreateLeadPanel(): void {
+    this.showCreateLeadPanel.set(false);
+  }
+
+  protected searchExistingLeads(): void {
+    const query = this.leadSearchQuery().trim();
+    if (query.length < 2) {
+      this.leadSearchResults.set([]);
+      return;
+    }
+
+    this.leadSearchLoading.set(true);
+    this.leadsService.list({ search: query, pageSize: 6 })
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error, 'profile.imap.errors.loadMessages'));
+          return EMPTY;
+        }),
+        finalize(() => this.leadSearchLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => this.leadSearchResults.set(response.items ?? []));
+  }
+
+  protected linkSuggestedLead(): void {
+    const suggestedLead = this.suggestedLeadSummary();
+    if (!suggestedLead) {
+      return;
+    }
+    this.linkMessageLead(suggestedLead.id);
+  }
+
+  protected linkMessageLead(leadId: string): void {
+    const account = this.selectedAccount();
+    const message = this.selectedMessage();
+    if (!account || !message || !leadId || this.leadRelationshipBusy()) {
+      return;
+    }
+
+    this.leadRelationshipBusy.set('link');
+    this.userService.linkIMAPMessageLead(account.id, message.uid, { leadId })
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error, 'profile.imap.errors.loadMessages'));
+          return EMPTY;
+        }),
+        finalize(() => this.leadRelationshipBusy.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.applyLeadLinkResponse(response.linkedLead ?? null, response.suggestedLead ?? null);
+        this.showLeadSearchPanel.set(false);
+        this.leadSearchResults.set([]);
+        this.toast.success('E-mail gekoppeld aan lead.');
+      });
+  }
+
+  protected unlinkMessageLead(): void {
+    const account = this.selectedAccount();
+    const message = this.selectedMessage();
+    if (!account || !message || this.leadRelationshipBusy()) {
+      return;
+    }
+
+    this.leadRelationshipBusy.set('unlink');
+    this.userService.unlinkIMAPMessageLead(account.id, message.uid)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error, 'profile.imap.errors.loadMessages'));
+          return EMPTY;
+        }),
+        finalize(() => this.leadRelationshipBusy.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.loadMessageContent(account.id, message.uid);
+        this.toast.success('E-mail ontkoppeld van lead.');
+      });
+  }
+
+  protected createLeadFromMessage(): void {
+    const account = this.selectedAccount();
+    const message = this.selectedMessage();
+    const content = this.messageContent();
+    if (!account || !message || !content || !this.canCreateMessageLead()) {
+      return;
+    }
+
+    const payload: CreateLeadRequest = {
+      firstName: this.createLeadFirstName().trim(),
+      lastName: this.createLeadLastName().trim(),
+      phone: this.createLeadPhone().trim(),
+      consumerRole: this.createLeadConsumerRole(),
+      street: this.createLeadStreet().trim(),
+      houseNumber: this.createLeadHouseNumber().trim(),
+      zipCode: this.createLeadZipCode().trim(),
+      city: this.createLeadCity().trim(),
+      serviceType: this.createLeadServiceType().trim(),
+      source: 'email_inbox',
+      ...(content.fromAddress ? { email: content.fromAddress } : {}),
+    };
+
+    this.leadRelationshipBusy.set('create');
+    this.userService.createLeadFromIMAPMessage(account.id, message.uid, payload)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error, 'profile.imap.errors.loadMessages'));
+          return EMPTY;
+        }),
+        finalize(() => this.leadRelationshipBusy.set(null)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        this.applyLeadLinkResponse(response.linkedLead ?? null, null);
+        this.showCreateLeadPanel.set(false);
+        this.toast.success('Lead aangemaakt vanuit e-mail inbox.');
       });
   }
 
@@ -535,6 +803,78 @@ export class InboxComponent {
       .split(/[;,]/)
       .map(part => part.trim())
       .filter(part => part.length > 0);
+  }
+
+  private applyLeadLinkResponse(linkedLead: IMAPMessageContent['linkedLead'], suggestedLead: IMAPMessageContent['suggestedLead']): void {
+    const current = this.messageContent();
+    if (!current) {
+      return;
+    }
+    this.messageContent.set({
+      ...current,
+	      linkedLead: linkedLead ?? null,
+	      suggestedLead: suggestedLead ?? null,
+    });
+  }
+
+  private prefillCreateLeadFromMessage(): void {
+    const current = this.selectedMessage();
+    const content = this.messageContent();
+    const sourceName = (current?.fromName ?? content?.fromName ?? '').trim();
+    const [firstName, lastName] = this.splitName(sourceName);
+    this.createLeadFirstName.set(firstName);
+    this.createLeadLastName.set(lastName);
+    this.createLeadPhone.set(this.suggestedLeadSummary()?.phone ?? '');
+    this.createLeadStreet.set('');
+    this.createLeadHouseNumber.set('');
+    this.createLeadZipCode.set('');
+    this.createLeadCity.set(this.suggestedLeadSummary()?.city ?? '');
+    const firstServiceType = this.availableServiceTypes()[0];
+    if (!this.createLeadServiceType() && firstServiceType) {
+	      this.createLeadServiceType.set(firstServiceType.name);
+    }
+  }
+
+  private splitName(value: string): [string, string] {
+    const trimmed = value.trim();
+    if (!trimmed) {
+      return ['', ''];
+    }
+    const parts = trimmed.split(/\s+/).filter(Boolean);
+    if (parts.length <= 1) {
+      return [trimmed, ''];
+    }
+    return [parts[0] ?? '', parts.slice(1).join(' ')];
+  }
+
+  private resetLeadPanels(): void {
+    this.showLeadSearchPanel.set(false);
+    this.showCreateLeadPanel.set(false);
+    this.leadSearchQuery.set('');
+    this.leadSearchResults.set([]);
+    this.leadSearchLoading.set(false);
+    this.leadRelationshipBusy.set(null);
+  }
+
+  private activeAISuggestion(): string | null {
+    if (!this.hasActiveAISuggestion()) {
+      return null;
+    }
+    return this.aiSuggestionSeed();
+  }
+
+  private clearAISuggestion(): void {
+    this.aiSuggestionSeed.set(null);
+    this.aiSuggestionUid.set(null);
+  }
+
+  private resetComposerState(mode: 'new' | 'reply' | 'replyAll' = 'new'): void {
+    this.composerMode.set(mode);
+    this.composerTo.set('');
+    this.composerCc.set('');
+    this.composerSubject.set('');
+    this.composerBody.set('');
+    this.clearAISuggestion();
   }
 
   private normalizeError(error: unknown, fallbackKey: string): string {

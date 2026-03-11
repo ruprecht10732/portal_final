@@ -149,6 +149,8 @@ export interface IMAPMessageContent {
   accountId: string;
   uid: number;
   messageId?: string | null;
+  linkedLead?: InboxLeadSummary | null;
+  suggestedLead?: InboxLeadSummary | null;
   subject: string;
   fromName?: string | null;
   fromAddress?: string | null;
@@ -172,5 +174,28 @@ export interface SendIMAPMessageRequest {
 
 export interface ReplyIMAPMessageRequest {
   body: string;
+  aiSuggestion?: string;
   isHtml?: boolean;
+}
+
+export interface SuggestIMAPReplyResponse {
+  suggestion: string;
+}
+
+export interface InboxLeadSummary {
+  id: string;
+  fullName: string;
+  phone: string;
+  email?: string | null;
+  city?: string | null;
+}
+
+export interface LinkIMAPMessageLeadRequest {
+  leadId: string;
+}
+
+export interface IMAPMessageLeadLinkResponse {
+  status: string;
+  linkedLead?: InboxLeadSummary | null;
+  suggestedLead?: InboxLeadSummary | null;
 }
