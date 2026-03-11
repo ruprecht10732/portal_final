@@ -45,7 +45,6 @@ export class App {
           const lang = profile.preferredLanguage === 'en' ? 'en' : 'nl';
           this.translate.use(lang);
         });
-      return;
     }
   }
 }

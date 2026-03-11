@@ -1,4 +1,4 @@
-<div class="flex flex-col gap-4">
+<div class="flex flex-col gap-4 lg:h-full lg:min-h-0 lg:overflow-hidden">
   <!-- ARIA Live Region for screen reader announcements -->
   <div aria-live="polite" aria-atomic="true" class="sr-only">
     {{ announcement() }}
@@ -39,6 +39,7 @@
   />
 
   <app-lead-detail-top-section
+    class="shrink-0"
     [lead]="lead()"
     [fullName]="getFullName()"
     [serviceTypeLabel]="headerServiceTypeLabel()"
@@ -78,7 +79,7 @@
   }
 
   @if (lead(); as l) {
-    <div class="px-4">
+    <div class="px-4 lg:flex lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden">
       <div class="lg:hidden mb-4">
         <a
           class="flex w-full items-center justify-center gap-2 rounded-lg bg-black px-4 py-4 text-white font-semibold"
@@ -470,8 +471,8 @@
         />
       </div>
 
-      <div class="hidden lg:grid lg:grid-cols-[1fr_2fr] gap-4">
-        <aside class="flex flex-col gap-4">
+      <div class="hidden gap-4 lg:grid lg:h-full lg:min-h-0 lg:flex-1 lg:grid-cols-[minmax(0,1fr)_minmax(0,2fr)]">
+        <aside class="flex flex-col gap-4 lg:min-h-0 lg:overflow-y-auto">
           <app-lead-detail-sidebar-info
             [fullAddress]="getFullAddress()"
             [mapUrl]="getMapUrl()"
@@ -657,8 +658,9 @@
           />
         </aside>
 
-        <main class="flex flex-col gap-4">
+        <main class="flex h-full min-h-0 flex-col gap-4 overflow-hidden">
           <app-lead-detail-tabs-shell
+            class="h-full min-h-0 flex-1"
             [tabs]="tabs()"
             [activeTab]="activeTab()"
             variant="pills"

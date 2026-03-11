@@ -143,6 +143,9 @@ interface TimelineExtractedFact {
   templateUrl: './lead-detail.component.html',
   styleUrl: './lead-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block min-h-full lg:flex lg:h-full lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden',
+  },
   imports: [ButtonComponent, CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, AutocompleteComponent, NumberInputComponent, SelectComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {

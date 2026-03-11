@@ -8,6 +8,9 @@ import { TabBarComponent } from '../../../shared/components/tab-bar/tab-bar.comp
   templateUrl: './lead-detail-tabs-shell.component.html',
   styleUrl: './lead-detail-tabs-shell.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'flex min-h-0 flex-1 flex-col',
+  },
   imports: [CardComponent, TabBarComponent],
 })
 export class LeadDetailTabsShellComponent {

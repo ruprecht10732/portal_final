@@ -72,10 +72,12 @@
     <!-- Main content area -->
     <div class="flex h-full flex-1 flex-col pb-16 lg:py-4 lg:pr-4 lg:pb-4 min-w-0">
       <div class="flex min-h-0 flex-1 flex-col min-w-0">
-        <section class="flex-1 overflow-y-auto overflow-x-hidden min-w-0">
-          <app-mobile-section-tabs></app-mobile-section-tabs>
+        <section class="flex min-h-0 flex-1 flex-col overflow-hidden min-w-0">
+          <app-mobile-section-tabs class="shrink-0"></app-mobile-section-tabs>
 
-          <router-outlet />
+          <div class="flex min-h-0 flex-1 flex-col overflow-y-auto overflow-x-hidden">
+            <router-outlet />
+          </div>
         </section>
       </div>
     </div>

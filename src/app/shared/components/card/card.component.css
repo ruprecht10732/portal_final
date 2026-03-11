@@ -5,6 +5,10 @@
   transition: box-shadow 200ms ease, transform 200ms ease;
 }
 
+:host(.flex) {
+  display: flex;
+}
+
 /* Interactive card variant (when clickable) */
 :host(.interactive) {
   cursor: pointer;

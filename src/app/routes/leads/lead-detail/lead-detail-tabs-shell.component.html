@@ -1,5 +1,5 @@
-<shared-card>
-  <div class="mb-4">
+<shared-card [className]="'flex h-full min-h-0 flex-col'">
+  <div class="mb-4 shrink-0">
     <shared-tab-bar
       [tabs]="tabs()"
       [activeTab]="activeTab()"
@@ -8,5 +8,7 @@
     />
   </div>
 
-  <ng-content></ng-content>
+  <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+    <ng-content></ng-content>
+  </div>
 </shared-card>
