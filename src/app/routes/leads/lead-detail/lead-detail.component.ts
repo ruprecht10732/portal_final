@@ -42,12 +42,15 @@ import { CallLoggerDialogComponent, type CallLoggerSubmitEvent } from '../../../
 import { type TabItem } from '../../../shared/components/tab-bar/tab-bar.component';
 import { LeadDetailSkeletonComponent } from './lead-detail-skeleton.component';
 import { LeadDetailAppointmentsTabComponent } from './lead-detail-appointments-tab.component';
+import { LeadDetailChatsTabComponent } from './lead-detail-chats-tab.component';
+import { LeadDetailEmailsTabComponent } from './lead-detail-emails-tab.component';
 import { LeadDetailFilesTabComponent } from './lead-detail-files-tab.component';
 import { LeadDetailInfoCardsComponent } from './lead-detail-info-cards.component';
 import { LeadInquiryCardComponent } from './lead-inquiry-card.component';
 import { LeadDetailMobileConsumerCardComponent } from './lead-detail-mobile-consumer-card.component';
 import { LeadDetailNotesPanelComponent } from './lead-detail-notes-panel.component';
 import { LeadDetailPreferencesTabComponent } from './lead-detail-preferences-tab.component';
+import { LeadDetailQuotesTabComponent } from './lead-detail-quotes-tab.component';
 import { LeadDetailServicesPanelComponent } from './lead-detail-services-panel.component';
 import { LeadDetailSidebarInfoComponent } from './lead-detail-sidebar-info.component';
 import { LeadDetailTabsShellComponent } from './lead-detail-tabs-shell.component';
@@ -77,6 +80,9 @@ const TAB_PREFERENCES_TRANSLATION_KEY = 'leads.detail.tabs.preferences';
 const TAB_APPOINTMENTS_TRANSLATION_KEY = 'leads.detail.tabs.appointments';
 const TAB_TIMELINE_TRANSLATION_KEY = 'leads.detail.tabs.timeline';
 const TAB_FILES_TRANSLATION_KEY = 'leads.detail.tabs.files';
+const TAB_QUOTES_TRANSLATION_KEY = 'leads.detail.tabs.quotes';
+const TAB_EMAILS_TRANSLATION_KEY = 'leads.detail.tabs.emails';
+const TAB_CHATS_TRANSLATION_KEY = 'leads.detail.tabs.chats';
 const ADD_SERVICE_CONSUMER_NOTE_TOO_LONG_TRANSLATION_KEY = 'leads.detail.addService.consumerNoteTooLong';
 const ACCESS_DIFFICULTY_LOW_TRANSLATION_KEY = 'appointments.accessDifficulty.low';
 const ACCESS_DIFFICULTY_MEDIUM_TRANSLATION_KEY = 'appointments.accessDifficulty.medium';
@@ -105,6 +111,8 @@ const ANNOUNCEMENT_NOTE_ADDED_TRANSLATION_KEY = 'leads.detail.announcements.note
 const ERROR_ADD_NOTE_TRANSLATION_KEY = 'leads.detail.errors.addNote';
 const ERROR_LOAD_NOTES_TRANSLATION_KEY = 'leads.detail.errors.loadNotes';
 const ERROR_LOAD_TIMELINE_TRANSLATION_KEY = 'leads.detail.errors.loadTimeline';
+const ERROR_LOAD_QUOTES_TRANSLATION_KEY = 'leads.detail.errors.loadQuotes';
+const ERROR_LOAD_COMMUNICATIONS_TRANSLATION_KEY = 'leads.detail.errors.loadCommunications';
 const ERROR_LOAD_AI_ANALYSIS_TRANSLATION_KEY = 'leads.detail.errors.loadAIAnalysis';
 const ANNOUNCEMENT_AI_NO_NEW_INFO_TRANSLATION_KEY = 'leads.detail.announcements.aiNoNewInfo';
 const ANNOUNCEMENT_AI_UPDATED_TRANSLATION_KEY = 'leads.detail.announcements.aiUpdated';
@@ -147,7 +155,7 @@ interface TimelineExtractedFact {
     '(document:click)': 'handleDocumentClick($event)',
     '(document:keydown)': 'handleKeydown($event)',
   },
-  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailManualPartnerPanelComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadDetailWorkflowPanelComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailChatsTabComponent, LeadDetailEmailsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailManualPartnerPanelComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailQuotesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadDetailWorkflowPanelComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -185,7 +193,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly newStatus = signal<LeadStatus | null>(null);
 
   protected readonly statusMenuOpen = signal(false);
-  protected readonly activeTab = signal<'activity' | 'appointments' | 'files' | 'preferences'>('activity');
+  protected readonly activeTab = signal<'activity' | 'appointments' | 'files' | 'preferences' | 'quotes' | 'emails' | 'chats'>('activity');
 
   protected readonly workflowProfiles = signal<WorkflowEngineWorkflow[]>([]);
   protected readonly selectedLeadWorkflowId = signal<string | null>(null);
@@ -206,6 +214,9 @@ export class LeadDetailComponent implements OnInit {
       { id: 'preferences', label: this.translate.instant(TAB_PREFERENCES_TRANSLATION_KEY) },
       { id: 'appointments', label: this.translate.instant(TAB_APPOINTMENTS_TRANSLATION_KEY) },
       { id: 'files', label: this.translate.instant(TAB_FILES_TRANSLATION_KEY) },
+      { id: 'quotes', label: this.translate.instant(TAB_QUOTES_TRANSLATION_KEY) },
+      { id: 'emails', label: this.translate.instant(TAB_EMAILS_TRANSLATION_KEY) },
+      { id: 'chats', label: this.translate.instant(TAB_CHATS_TRANSLATION_KEY) },
     ];
   });
 
@@ -307,9 +318,13 @@ export class LeadDetailComponent implements OnInit {
   protected readonly timelineItems = signal<LeadTimelineItem[]>([]);
   protected readonly timelineLoading = signal(false);
   protected readonly timelineError = signal<string | null>(null);
+  protected readonly quotes = signal<QuoteResponse[]>([]);
+  protected readonly quotesLoading = signal(false);
+  protected readonly quotesError = signal<string | null>(null);
   protected readonly linkedWhatsAppConversations = signal<LeadLinkedWhatsAppConversation[]>([]);
   protected readonly linkedEmailMessages = signal<LeadLinkedEmailMessage[]>([]);
   protected readonly inboxCommunicationsLoading = signal(false);
+  protected readonly inboxCommunicationsError = signal<string | null>(null);
   protected readonly timelineWhatsAppSendingItemId = signal<string | null>(null);
   protected readonly sentTimelineWhatsAppSourceIds = computed(() => {
     const sentIds = new Set<string>();
@@ -741,6 +756,7 @@ export class LeadDetailComponent implements OnInit {
         this.loadNotes(lead.id);
         this.loadAppointments(lead.id);
         this.loadTimeline(lead.id, this.selectedService()?.id);
+        this.loadQuotes(lead.id);
         this.loadInboxCommunications(lead.id);
         this.loadLeadWorkflowData(lead.id);
         // AI Analysis is loaded automatically by effect when selectedService changes
@@ -762,6 +778,7 @@ export class LeadDetailComponent implements OnInit {
         this.lead.set(lead);
         this.newStatus.set(lead.currentService?.status ?? null);
         this.selectedAssignee.set(lead.assignedAgentId ?? null);
+        this.loadQuotes(lead.id);
         this.loadInboxCommunications(lead.id);
       },
       error: (err) => {
@@ -836,7 +853,7 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
-  protected formatHumanDateTime = (dateStr: string | undefined): string => {
+  protected formatHumanDateTime = (dateStr: string | null | undefined): string => {
     if (!dateStr) return '-';
     const date = new Date(dateStr);
     const now = new Date();
@@ -1029,15 +1046,26 @@ export class LeadDetailComponent implements OnInit {
     }
   }
 
+  protected openLeadWhatsApp(): void {
+    const phone = this.lead()?.consumer.phone?.trim();
+    if (!phone) return;
+
+    const sanitized = phone.replaceAll(/[^0-9+]/g, '');
+    const number = sanitized.startsWith('+') ? sanitized.slice(1) : sanitized;
+    if (!number) return;
+
+    globalThis.open(`https://wa.me/${number}`, '_blank', 'noopener');
+  }
+
   protected navigateToLead(): void {
     const url = this.getMapUrl();
     globalThis.open(url, '_blank', 'noopener');
   }
 
   protected onTabChange(tabId: string): void {
-    const validTabs = ['activity', 'appointments', 'files', 'preferences'] as const;
+    const validTabs = ['activity', 'appointments', 'files', 'preferences', 'quotes', 'emails', 'chats'] as const;
     if (validTabs.includes(tabId as typeof validTabs[number])) {
-      this.activeTab.set(tabId as 'activity' | 'appointments' | 'files' | 'preferences');
+      this.activeTab.set(tabId as 'activity' | 'appointments' | 'files' | 'preferences' | 'quotes' | 'emails' | 'chats');
     }
   }
 
@@ -1077,6 +1105,8 @@ export class LeadDetailComponent implements OnInit {
     this.loadNotes(leadId);
     this.loadTimeline(leadId, this.selectedService()?.id);
     this.loadAppointments(leadId);
+    this.loadQuotes(leadId);
+    this.loadInboxCommunications(leadId);
 
     const selectedAppointmentId = this.selectedAppointmentId();
     if (selectedAppointmentId) {
@@ -1317,10 +1347,61 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
-  protected formatEuroCents(cents: number): string {
+  protected formatEuroCents = (cents: number): string => {
     const lang = this.lang().lang;
     const locale = lang === 'nl' ? 'nl-NL' : 'en-US';
     return (cents / 100).toLocaleString(locale, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
+  };
+
+  protected quoteStatusLabelKey(status: QuoteResponse['status']): string {
+    switch (status) {
+      case 'Draft':
+        return 'offertes.status.draft';
+      case 'Sent':
+        return 'offertes.status.sent';
+      case 'Accepted':
+        return 'offertes.status.accepted';
+      case 'Rejected':
+        return 'offertes.status.rejected';
+      case 'Expired':
+        return 'offertes.status.expired';
+    }
+  }
+
+  protected quoteStatusClass(status: QuoteResponse['status']): string {
+    switch (status) {
+      case 'Draft':
+        return 'bg-zinc-100 text-zinc-600';
+      case 'Sent':
+        return 'bg-blue-100 text-blue-700';
+      case 'Accepted':
+        return 'bg-green-100 text-green-700';
+      case 'Rejected':
+        return 'bg-red-100 text-red-700';
+      case 'Expired':
+        return 'bg-orange-100 text-orange-700';
+    }
+  }
+
+  protected openQuote(quoteId: string): void {
+    void this.router.navigate(['/app/offertes', quoteId]);
+  }
+
+  protected openInboxMessage(accountId: string, messageUid: number): void {
+    void this.router.navigate(['/app/inbox'], {
+      queryParams: {
+        accountId,
+        messageUid,
+      },
+    });
+  }
+
+  protected openWhatsAppConversation(conversationId: string): void {
+    void this.router.navigate(['/app/whatsapp'], {
+      queryParams: {
+        conversationId,
+      },
+    });
   }
 
   private loadAcceptedQuoteForService(leadId: string, serviceId: string): void {
@@ -1457,11 +1538,31 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
+  private loadQuotes(id: string): void {
+    this.quotesLoading.set(true);
+    this.quotesError.set(null);
+    this.quotesService.list({ leadId: id, page: 1, pageSize: 100, sortBy: 'createdAt', sortOrder: 'desc' }).subscribe({
+      next: (response) => {
+        this.quotes.set(response.items ?? []);
+        this.quotesLoading.set(false);
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_QUOTES_TRANSLATION_KEY));
+        this.quotesError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.quotesLoading.set(false);
+      },
+    });
+  }
+
   private loadInboxCommunications(id: string): void {
     this.inboxCommunicationsLoading.set(true);
+    this.inboxCommunicationsError.set(null);
     this.leadsService.getInboxCommunications(id)
       .pipe(
         catchError((err) => {
+          const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_COMMUNICATIONS_TRANSLATION_KEY));
+          this.inboxCommunicationsError.set(message);
           this.reporter.report(err, { source: 'http', silent: true });
           this.linkedWhatsAppConversations.set([]);
           this.linkedEmailMessages.set([]);
@@ -1473,6 +1574,7 @@ export class LeadDetailComponent implements OnInit {
       .subscribe((response) => {
         this.linkedWhatsAppConversations.set(response.whatsAppConversations ?? []);
         this.linkedEmailMessages.set(response.emailMessages ?? []);
+        this.inboxCommunicationsError.set(null);
       });
   }
 
@@ -1898,7 +2000,7 @@ export class LeadDetailComponent implements OnInit {
   };
 
   protected viewDraftQuote(quoteId: string): void {
-    this.router.navigate(['/app/offertes', quoteId]);
+    this.openQuote(quoteId);
   }
 
   private extractPhoneFromWhatsAppUrl(value: unknown): string | undefined {

@@ -103,7 +103,43 @@
         "preferences": "Preferences",
         "appointments": "Appointments",
         "timeline": "Timeline",
-        "files": "Files"
+        "files": "Files",
+        "quotes": "Quotes",
+        "emails": "Emails",
+        "chats": "Chats"
+      },
+      "quotes": {
+        "title": "Associated quotes",
+        "subtitle": "Quotes created for this lead across all services.",
+        "loading": "Loading quotes...",
+        "emptyTitle": "No quotes yet",
+        "emptySubtitle": "This lead does not have any associated quotes yet.",
+        "totalLabel": "Total",
+        "createdLabel": "Created",
+        "validUntilLabel": "Valid until",
+        "noValidity": "No expiry date",
+        "viewAction": "View quote"
+      },
+      "emails": {
+        "title": "Associated emails",
+        "subtitle": "Email messages linked to this lead from the inbox.",
+        "loading": "Loading emails...",
+        "emptyTitle": "No emails linked",
+        "emptySubtitle": "No inbox messages are currently linked to this lead.",
+        "fromLabel": "From",
+        "dateLabel": "Date",
+        "openAction": "Open inbox"
+      },
+      "chats": {
+        "title": "Associated chats",
+        "subtitle": "WhatsApp conversations linked to this lead.",
+        "loading": "Loading chats...",
+        "emptyTitle": "No chats linked",
+        "emptySubtitle": "No WhatsApp conversations are currently linked to this lead.",
+        "updatedLabel": "Last activity",
+        "statusLabel": "Status",
+        "noPreview": "No recent message preview available.",
+        "openAction": "Open WhatsApp"
       },
       "preferences": {
         "budget": "Budget",
@@ -130,6 +166,7 @@
       "quickActions": {
         "call": "Call",
         "email": "Email",
+        "whatsapp": "WhatsApp",
         "navigate": "Navigate",
         "logCall": "Log Call",
         "quote": "Quote"
@@ -445,6 +482,8 @@
         "loadNotes": "Failed to load notes",
         "loadVisitHistory": "Failed to load visit history",
         "loadTimeline": "Failed to load timeline",
+        "loadQuotes": "Failed to load quotes",
+        "loadCommunications": "Failed to load linked communications",
         "loadAIAnalysis": "Failed to load AI analysis",
         "analyzeLead": "Failed to analyze lead",
         "unexpectedResponse": "Unexpected response from server",

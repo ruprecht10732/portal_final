@@ -1,57 +1,56 @@
-<div class="sticky top-0 z-20 bg-white/90 backdrop-blur-sm">
-  <div class="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-    <div class="flex min-w-0 items-center gap-3">
-      <button
-        type="button"
-        class="touch-target rounded-lg hover:bg-zinc-100 transition-colors"
-        (click)="back.emit()"
-        [attr.aria-label]="'leads.detail.backToList' | translate"
-      >
-        <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
-          <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
-        </svg>
-      </button>
-      <div class="flex min-w-0 flex-col">
-        @if (lead(); as l) {
-          <h1 class="text-lg font-semibold leading-tight text-zinc-950 sm:text-xl">
-            <span class="block break-words">{{ fullName() }}</span>
-            @if (serviceTypeLabel()) {
-              <span class="mt-0.5 block text-sm font-normal text-zinc-500 sm:inline sm:mt-0 sm:text-base">({{ serviceTypeLabel() }})</span>
-            }
-          </h1>
-          <div class="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
-            <span>{{ 'leads.detail.statusLabel' | translate }}</span>
-            <shared-status-badge
-              [status]="status()"
-              type="lead"
-              size="sm"
-              [emptyLabel]="noServiceLabel()"
-            ></shared-status-badge>
-            @if (pipelineStage()) {
-              <span class="hidden sm:inline text-zinc-300">•</span>
-              <span>{{ 'leads.detail.pipelineLabel' | translate }}</span>
-              <shared-status-badge
-                [status]="pipelineStage()"
-                type="pipeline"
-                size="sm"
-                [emptyLabel]="noServiceLabel()"
-              ></shared-status-badge>
-            }
-            @if (energyLabelClass()) {
-              <span class="hidden sm:inline text-zinc-300">•</span>
-              <shared-chip [variant]="energyLabelVariant()">
-                {{ 'leads.detail.energyLabel.headerLabel' | translate }} {{ energyLabelClass() }}
-              </shared-chip>
-            }
-          </div>
-        } @else {
-          <h1 class="text-xl font-semibold">{{ 'leads.detail.title' | translate }}</h1>
-        }
-      </div>
+<div class="sticky top-0 z-20 border-b border-zinc-200 bg-white/90 backdrop-blur-sm">
+  <shared-page-header
+    [title]="fullName() || ('leads.detail.title' | translate)"
+    [backAriaLabel]="'leads.detail.backToList' | translate"
+    (back)="back.emit()"
+  >
+    <div title-suffix class="title-suffix hidden sm:flex items-center gap-1.5 shrink-0">
+      @if (lead() && phone()) {
+        <shared-button
+          variant="ghost"
+          size="compact"
+          [iconOnly]="true"
+          [fullWidth]="false"
+          [uppercase]="false"
+          [ariaLabel]="'leads.detail.quickActions.call' | translate"
+          (clicked)="callClicked.emit()"
+        >
+          <lucide-icon name="phone" class="h-4 w-4 text-zinc-600" aria-hidden="true"></lucide-icon>
+        </shared-button>
+      }
+
+      @if (lead() && email()) {
+        <shared-button
+          variant="ghost"
+          size="compact"
+          [iconOnly]="true"
+          [fullWidth]="false"
+          [uppercase]="false"
+          [ariaLabel]="'leads.detail.quickActions.email' | translate"
+          (clicked)="emailClicked.emit()"
+        >
+          <lucide-icon name="mail" class="h-4 w-4 text-zinc-600" aria-hidden="true"></lucide-icon>
+        </shared-button>
+      }
+
+      @if (lead() && phone()) {
+        <shared-button
+          variant="ghost"
+          size="compact"
+          [iconOnly]="true"
+          [fullWidth]="false"
+          [uppercase]="false"
+          [ariaLabel]="'leads.detail.quickActions.whatsapp' | translate"
+          (clicked)="whatsappClicked.emit()"
+        >
+          <lucide-icon name="message-circle" class="h-4 w-4 text-zinc-600" aria-hidden="true"></lucide-icon>
+        </shared-button>
+      }
     </div>
 
-    @if (lead(); as l) {
-      <div class="flex flex-wrap items-center gap-2 lg:justify-end">
+    <ng-container actions>
+      @if (lead()) {
+        <div class="hidden sm:flex items-center gap-2">
         <shared-button
           variant="secondary"
           size="compact"
@@ -63,7 +62,7 @@
         </shared-button>
         @if (hasSelectedService()) {
           <shared-button
-            variant="secondary"
+            variant="primary"
             size="compact"
             [uppercase]="false"
             [fullWidth]="false"
@@ -72,11 +71,64 @@
             {{ 'leads.detail.createQuote' | translate }}
           </shared-button>
         }
-        <div class="relative">
+        @if (desktopMenuSections().length) {
+          <shared-menu
+            [triggerLabel]="'offertes.actions'"
+            [triggerVariant]="'ghost'"
+            [triggerShape]="'square'"
+            [triggerSize]="'compact'"
+            [iconOnly]="true"
+            [showChevron]="false"
+            [sections]="desktopMenuSections()"
+            [ariaLabel]="'offertes.actions'"
+            (itemSelected)="handleDesktopMenuSelection($event)"
+          >
+            <lucide-icon menuTrigger name="ellipsis-vertical" class="h-4 w-4 text-slate-700" aria-hidden="true"></lucide-icon>
+          </shared-menu>
+        }
+        </div>
+      }
+    </ng-container>
+
+    <ng-container mobileActions>
+      @if (lead()) {
+        <shared-menu
+          class="sm:hidden"
+          [triggerLabel]="'offertes.actions'"
+          [triggerVariant]="'ghost'"
+          [triggerShape]="'square'"
+          [triggerSize]="'compact'"
+          [iconOnly]="true"
+          [showChevron]="false"
+          [sections]="mobileMenuSections()"
+          [ariaLabel]="'offertes.actions'"
+          (itemSelected)="handleMobileMenuSelection($event)"
+        >
+          <lucide-icon menuTrigger name="ellipsis-vertical" class="h-5 w-5 text-slate-700" aria-hidden="true"></lucide-icon>
+        </shared-menu>
+      }
+    </ng-container>
+  </shared-page-header>
+
+  @if (lead()) {
+    <div class="px-4 pb-4 sm:px-6">
+      <div class="min-w-0">
+        <div class="flex flex-wrap items-center gap-x-2 gap-y-2 text-sm text-zinc-500">
+          @if (serviceTypeLabel()) {
+            <span class="font-medium text-zinc-800">{{ serviceTypeLabel() }}</span>
+          }
+
+          @if (serviceTypeLabel()) {
+            <span class="text-zinc-300">•</span>
+          }
+
+          <span>{{ 'leads.detail.statusLabel' | translate }}</span>
+
+          <div class="relative inline-flex items-center">
           <button
             type="button"
             id="status-toggle"
-            class="inline-flex min-h-11 items-center gap-2 rounded-lg px-2"
+            class="inline-flex items-center gap-1 rounded-lg px-1.5 py-1 text-sm font-medium text-zinc-700 transition-colors hover:bg-zinc-100"
             (click)="toggleStatusMenu.emit()"
             (keydown.escape)="closeStatusMenu.emit()"
             aria-haspopup="true"
@@ -85,13 +137,14 @@
             <shared-status-badge
               [status]="status()"
               type="lead"
-              size="md"
+              size="sm"
               [emptyLabel]="noServiceLabel()"
             ></shared-status-badge>
-            <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
+            <svg class="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor" aria-hidden="true">
               <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
             </svg>
           </button>
+
           @if (statusMenuOpen()) {
             <button type="button" class="dropdown-backdrop" (click)="closeStatusMenu.emit()" [attr.aria-label]="'leads.detail.cancel' | translate"></button>
             <div
@@ -101,7 +154,7 @@
               @for (option of statusOptions(); track option.value) {
                 <button
                   type="button"
-                  class="flex w-full items-center justify-between px-3 py-2 text-sm hover:bg-zinc-50 cursor-pointer min-h-11"
+                  class="flex min-h-11 w-full items-center justify-between px-3 py-2 text-sm hover:bg-zinc-50"
                   [class.bg-zinc-50]="option.value === selectedStatus()"
                   (click)="selectStatus.emit(option.value)"
                 >
@@ -115,8 +168,27 @@
               }
             </div>
           }
+          </div>
+
+          @if (pipelineStage()) {
+            <span class="text-zinc-300">•</span>
+            <span>{{ 'leads.detail.pipelineLabel' | translate }}</span>
+            <shared-status-badge
+              [status]="pipelineStage()"
+              type="pipeline"
+              size="sm"
+              [emptyLabel]="noServiceLabel()"
+            ></shared-status-badge>
+          }
+
+          @if (energyLabelClass()) {
+            <span class="text-zinc-300">•</span>
+            <shared-chip [variant]="energyLabelVariant()">
+              {{ 'leads.detail.energyLabel.headerLabel' | translate }} {{ energyLabelClass() }}
+            </shared-chip>
+          }
         </div>
       </div>
-    }
-  </div>
+    </div>
+  }
 </div>

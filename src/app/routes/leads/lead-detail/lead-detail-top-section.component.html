@@ -3,6 +3,8 @@
   [fullName]="fullName()"
   [serviceTypeLabel]="serviceTypeLabel()"
   [hasSelectedService]="hasSelectedService()"
+  [phone]="phone()"
+  [email]="email()"
   [status]="status()"
   [pipelineStage]="pipelineStage()"
   [noServiceLabel]="noServiceLabel()"
@@ -18,18 +20,9 @@
   (selectStatus)="selectStatus.emit($event)"
   (createQuote)="createQuote.emit()"
   (editLead)="editLead.emit()"
+  (callClicked)="callClicked.emit()"
+  (emailClicked)="emailClicked.emit()"
+  (whatsappClicked)="whatsappClicked.emit()"
+  (navigateClicked)="navigateClicked.emit()"
+  (logCallClicked)="logCallClicked.emit()"
 ></app-lead-detail-header>
-
-<div class="px-4">
-  <!-- Quick Actions Bar -->
-  <app-lead-quick-actions
-    [phone]="phone()"
-    [email]="email()"
-    [hasSelectedService]="hasSelectedService()"
-    (callClicked)="callClicked.emit()"
-    (emailClicked)="emailClicked.emit()"
-    (navigateClicked)="navigateClicked.emit()"
-    (logCallClicked)="logCallClicked.emit()"
-    (quoteClicked)="quoteClicked.emit()"
-  />
-</div>

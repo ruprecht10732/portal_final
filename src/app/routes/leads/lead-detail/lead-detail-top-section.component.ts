@@ -3,14 +3,13 @@ import type { Lead, LeadStatus, PipelineStage } from '../../../core/services/lea
 import type { SelectOption } from '../../../shared/components/select/select.component';
 import type { ChipVariant } from '../../../shared/components/chip/chip.component';
 import { LeadDetailHeaderComponent } from './lead-detail-header.component';
-import { LeadQuickActionsComponent } from './lead-quick-actions.component';
 
 @Component({
   selector: 'app-lead-detail-top-section',
   templateUrl: './lead-detail-top-section.component.html',
   styleUrl: './lead-detail-top-section.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [LeadDetailHeaderComponent, LeadQuickActionsComponent],
+  imports: [LeadDetailHeaderComponent],
 })
 export class LeadDetailTopSectionComponent {
   lead = input<Lead | null>(null);
@@ -37,7 +36,7 @@ export class LeadDetailTopSectionComponent {
   editLead = output<void>();
   callClicked = output<void>();
   emailClicked = output<void>();
+  whatsappClicked = output<void>();
   navigateClicked = output<void>();
   logCallClicked = output<void>();
-  quoteClicked = output<void>();
 }

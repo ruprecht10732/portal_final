@@ -1,0 +1,65 @@
+<div class="grid gap-4">
+  <section class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+    <div class="mb-4 flex items-start justify-between gap-3 border-b border-zinc-100 pb-3">
+      <div>
+        <h2 class="text-base font-semibold text-slate-950">{{ 'leads.detail.emails.title' | translate }}</h2>
+        <p class="text-sm text-zinc-500">{{ 'leads.detail.emails.subtitle' | translate }}</p>
+      </div>
+    </div>
+
+    @if (error()) {
+      <div class="rounded-2xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800">
+        {{ error() }}
+      </div>
+    } @else if (loading()) {
+      <div class="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-8 text-sm text-zinc-500">
+        {{ 'leads.detail.emails.loading' | translate }}
+      </div>
+    } @else if (emails().length === 0) {
+      <div class="rounded-2xl border border-dashed border-zinc-200 bg-zinc-50 px-4 py-8 text-center">
+        <p class="text-sm font-semibold text-zinc-900">{{ 'leads.detail.emails.emptyTitle' | translate }}</p>
+        <p class="mt-1 text-sm text-zinc-500">{{ 'leads.detail.emails.emptySubtitle' | translate }}</p>
+      </div>
+    } @else {
+      <div class="grid gap-3">
+        @for (email of emails(); track trackByEmail($index, email)) {
+          <article class="rounded-2xl border border-zinc-200 px-4 py-4">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div class="min-w-0 flex-1">
+                <p class="text-sm font-semibold text-zinc-950">
+                  @if (emailSubject(email) === 'leads.detail.timeline.noSubject') {
+                    {{ 'leads.detail.timeline.noSubject' | translate }}
+                  } @else {
+                    {{ emailSubject(email) }}
+                  }
+                </p>
+                <p class="mt-1 truncate text-sm text-zinc-600">{{ emailSender(email) }}</p>
+
+                <dl class="mt-3 grid gap-3 text-sm text-zinc-600 sm:grid-cols-2">
+                  <div>
+                    <dt class="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400">{{ 'leads.detail.emails.fromLabel' | translate }}</dt>
+                    <dd class="mt-1 break-all">{{ email.fromAddress || '-' }}</dd>
+                  </div>
+                  <div>
+                    <dt class="text-[11px] font-semibold uppercase tracking-[0.18em] text-zinc-400">{{ 'leads.detail.emails.dateLabel' | translate }}</dt>
+                    <dd class="mt-1">{{ formatHumanDateTime()(emailTimestamp(email)) }}</dd>
+                  </div>
+                </dl>
+              </div>
+
+              <div class="flex shrink-0 items-center">
+                <button
+                  type="button"
+                  class="inline-flex items-center justify-center rounded-xl border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-900 transition hover:border-zinc-400 hover:bg-zinc-50"
+                  (click)="openEmail.emit(email)"
+                >
+                  {{ 'leads.detail.emails.openAction' | translate }}
+                </button>
+              </div>
+            </div>
+          </article>
+        }
+      </div>
+    }
+  </section>
+</div>

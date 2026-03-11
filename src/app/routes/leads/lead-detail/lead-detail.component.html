@@ -63,9 +63,9 @@
       (editLead)="editLead()"
       (callClicked)="callLead()"
     (emailClicked)="emailLead()"
+    (whatsappClicked)="openLeadWhatsApp()"
     (navigateClicked)="navigateToLead()"
     (logCallClicked)="openCallLogger()"
-    (quoteClicked)="createQuote()"
   />
 
   @if (error()) {
@@ -91,7 +91,7 @@
         </a>
       </div>
 
-      <div class="lg:hidden flex flex-col gap-4 pb-24">
+      <div class="lg:hidden flex flex-col gap-4 pb-6">
         <app-lead-detail-info-cards
           [energyLabel]="energyLabel()"
           [leadEnrichment]="leadEnrichment()"
@@ -314,6 +314,54 @@
                 (uploadingChange)="serviceAttachmentUploading.set($event)"
                 (downloadAttachment)="downloadServiceAttachment($event)"
                 (deleteAttachment)="deleteServiceAttachment($event)"
+              />
+            </div>
+          </details>
+        </shared-card>
+
+        <shared-card padding="none">
+          <details>
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.quotes' | translate }}</summary>
+            <div class="px-4 pb-4">
+              <app-lead-detail-quotes-tab
+                [quotes]="quotes()"
+                [quotesLoading]="quotesLoading()"
+                [quotesError]="quotesError()"
+                [formatHumanDateTime]="formatHumanDateTime"
+                [formatEuroCents]="formatEuroCents"
+                [quoteStatusLabelKey]="quoteStatusLabelKey"
+                [quoteStatusClass]="quoteStatusClass"
+                (viewQuote)="openQuote($event)"
+              />
+            </div>
+          </details>
+        </shared-card>
+
+        <shared-card padding="none">
+          <details>
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.emails' | translate }}</summary>
+            <div class="px-4 pb-4">
+              <app-lead-detail-emails-tab
+                [emails]="linkedEmailMessages()"
+                [loading]="inboxCommunicationsLoading()"
+                [error]="inboxCommunicationsError()"
+                [formatHumanDateTime]="formatHumanDateTime"
+                (openEmail)="openInboxMessage($event.accountId, $event.messageUid)"
+              />
+            </div>
+          </details>
+        </shared-card>
+
+        <shared-card padding="none">
+          <details>
+            <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">{{ 'leads.detail.tabs.chats' | translate }}</summary>
+            <div class="px-4 pb-4">
+              <app-lead-detail-chats-tab
+                [conversations]="linkedWhatsAppConversations()"
+                [loading]="inboxCommunicationsLoading()"
+                [error]="inboxCommunicationsError()"
+                [formatHumanDateTime]="formatHumanDateTime"
+                (openConversation)="openWhatsAppConversation($event.conversationId)"
               />
             </div>
           </details>
@@ -601,6 +649,33 @@
                 (downloadAttachment)="downloadServiceAttachment($event)"
                 (deleteAttachment)="deleteServiceAttachment($event)"
                 (downloadAppointmentAttachment)="downloadAppointmentAttachment($event)"
+              />
+            } @else if (activeTab() === 'quotes') {
+              <app-lead-detail-quotes-tab
+                [quotes]="quotes()"
+                [quotesLoading]="quotesLoading()"
+                [quotesError]="quotesError()"
+                [formatHumanDateTime]="formatHumanDateTime"
+                [formatEuroCents]="formatEuroCents"
+                [quoteStatusLabelKey]="quoteStatusLabelKey"
+                [quoteStatusClass]="quoteStatusClass"
+                (viewQuote)="openQuote($event)"
+              />
+            } @else if (activeTab() === 'emails') {
+              <app-lead-detail-emails-tab
+                [emails]="linkedEmailMessages()"
+                [loading]="inboxCommunicationsLoading()"
+                [error]="inboxCommunicationsError()"
+                [formatHumanDateTime]="formatHumanDateTime"
+                (openEmail)="openInboxMessage($event.accountId, $event.messageUid)"
+              />
+            } @else if (activeTab() === 'chats') {
+              <app-lead-detail-chats-tab
+                [conversations]="linkedWhatsAppConversations()"
+                [loading]="inboxCommunicationsLoading()"
+                [error]="inboxCommunicationsError()"
+                [formatHumanDateTime]="formatHumanDateTime"
+                (openConversation)="openWhatsAppConversation($event.conversationId)"
               />
             }
           </app-lead-detail-tabs-shell>

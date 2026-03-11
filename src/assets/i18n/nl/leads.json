@@ -103,7 +103,43 @@
         "preferences": "Voorkeuren",
         "appointments": "Afspraken",
         "timeline": "Tijdlijn",
-        "files": "Bestanden"
+        "files": "Bestanden",
+        "quotes": "Offertes",
+        "emails": "E-mails",
+        "chats": "Chats"
+      },
+      "quotes": {
+        "title": "Gekoppelde offertes",
+        "subtitle": "Offertes die voor deze lead zijn aangemaakt over alle diensten heen.",
+        "loading": "Offertes laden...",
+        "emptyTitle": "Nog geen offertes",
+        "emptySubtitle": "Voor deze lead zijn nog geen gekoppelde offertes beschikbaar.",
+        "totalLabel": "Totaal",
+        "createdLabel": "Aangemaakt",
+        "validUntilLabel": "Geldig tot",
+        "noValidity": "Geen vervaldatum",
+        "viewAction": "Bekijk offerte"
+      },
+      "emails": {
+        "title": "Gekoppelde e-mails",
+        "subtitle": "Inboxberichten die aan deze lead zijn gekoppeld.",
+        "loading": "E-mails laden...",
+        "emptyTitle": "Geen e-mails gekoppeld",
+        "emptySubtitle": "Er zijn momenteel geen inboxberichten gekoppeld aan deze lead.",
+        "fromLabel": "Van",
+        "dateLabel": "Datum",
+        "openAction": "Open inbox"
+      },
+      "chats": {
+        "title": "Gekoppelde chats",
+        "subtitle": "WhatsApp-conversaties die aan deze lead zijn gekoppeld.",
+        "loading": "Chats laden...",
+        "emptyTitle": "Geen chats gekoppeld",
+        "emptySubtitle": "Er zijn momenteel geen WhatsApp-conversaties gekoppeld aan deze lead.",
+        "updatedLabel": "Laatste activiteit",
+        "statusLabel": "Status",
+        "noPreview": "Geen recente voorbeeldtekst beschikbaar.",
+        "openAction": "Open WhatsApp"
       },
       "preferences": {
         "budget": "Budget",
@@ -130,6 +166,7 @@
       "quickActions": {
         "call": "Bellen",
         "email": "E-mail",
+        "whatsapp": "WhatsApp",
         "navigate": "Navigeren",
         "logCall": "Log gesprek",
         "quote": "Offerte"
@@ -444,6 +481,8 @@
         "loadNotes": "Kon notities niet laden",
         "loadVisitHistory": "Kon bezoekgeschiedenis niet laden",
         "loadTimeline": "Kon tijdlijn niet laden",
+        "loadQuotes": "Kon offertes niet laden",
+        "loadCommunications": "Kon gekoppelde communicatie niet laden",
         "loadAIAnalysis": "Kon AI-analyse niet laden",
         "analyzeLead": "Kon lead niet analyseren",
         "unexpectedResponse": "Onverwacht antwoord van de server",

@@ -1,23 +1,30 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import type { Lead, LeadStatus, PipelineStage } from '../../../core/services/leads.types';
 import type { SelectOption } from '../../../shared/components/select/select.component';
 import { ChipComponent, type ChipVariant } from '../../../shared/components/chip/chip.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/components/menu/menu.component';
+import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
+import { LucideAngularModule } from 'lucide-angular';
+
+type LeadHeaderAction = 'edit' | 'quote' | 'call' | 'email' | 'whatsapp' | 'navigate' | 'log-call';
 
 @Component({
   selector: 'app-lead-detail-header',
   templateUrl: './lead-detail-header.component.html',
   styleUrl: './lead-detail-header.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [ChipComponent, TranslatePipe, ButtonComponent, StatusBadgeComponent],
+  imports: [ChipComponent, TranslatePipe, ButtonComponent, MenuComponent, PageHeaderComponent, StatusBadgeComponent, LucideAngularModule],
 })
 export class LeadDetailHeaderComponent {
   lead = input<Lead | null>(null);
   fullName = input<string>('');
   serviceTypeLabel = input<string | null>(null);
   hasSelectedService = input(false);
+  phone = input<string | null>(null);
+  email = input<string | null>(null);
   status = input<LeadStatus | null>(null);
   pipelineStage = input<PipelineStage | null>(null);
   noServiceLabel = input<string>('');
@@ -33,4 +40,88 @@ export class LeadDetailHeaderComponent {
   selectStatus = output<LeadStatus>();
   createQuote = output<void>();
   editLead = output<void>();
+  callClicked = output<void>();
+  emailClicked = output<void>();
+  whatsappClicked = output<void>();
+  navigateClicked = output<void>();
+  logCallClicked = output<void>();
+
+  protected readonly desktopMenuSections = computed<readonly MenuSection[]>(() => {
+    const items: MenuItem[] = [];
+
+    items.push({ label: 'leads.detail.quickActions.navigate', value: 'navigate' });
+
+    if (this.hasSelectedService()) {
+      items.push({ label: 'leads.detail.quickActions.logCall', value: 'log-call' });
+    }
+
+    return items.length ? [{ items }] : [];
+  });
+
+  protected readonly mobileMenuSections = computed<readonly MenuSection[]>(() => {
+    const primaryItems: MenuItem[] = [{ label: 'leads.detail.editLead', value: 'edit' }];
+    const secondaryItems: MenuItem[] = [];
+
+    if (this.hasSelectedService()) {
+      primaryItems.push({ label: 'leads.detail.createQuote', value: 'quote' });
+      secondaryItems.push({ label: 'leads.detail.quickActions.logCall', value: 'log-call' });
+    }
+
+    if (this.phone()) {
+      secondaryItems.push({ label: 'leads.detail.quickActions.call', value: 'call' });
+    }
+
+    if (this.email()) {
+      secondaryItems.push({ label: 'leads.detail.quickActions.email', value: 'email' });
+    }
+
+    if (this.phone()) {
+      secondaryItems.push({ label: 'leads.detail.quickActions.whatsapp', value: 'whatsapp' });
+    }
+
+    secondaryItems.push({ label: 'leads.detail.quickActions.navigate', value: 'navigate' });
+
+    const sections: MenuSection[] = [{ items: primaryItems }];
+    if (secondaryItems.length) {
+      sections.push({ items: secondaryItems });
+    }
+
+    return sections;
+  });
+
+  protected handleDesktopMenuSelection(item: MenuItem): void {
+    this.handleAction(item.value);
+  }
+
+  protected handleMobileMenuSelection(item: MenuItem): void {
+    this.handleAction(item.value);
+  }
+
+  private handleAction(value: string | undefined): void {
+    switch (value as LeadHeaderAction | undefined) {
+      case 'edit':
+        this.editLead.emit();
+        return;
+      case 'quote':
+        this.createQuote.emit();
+        return;
+      case 'call':
+        this.callClicked.emit();
+        return;
+      case 'email':
+        this.emailClicked.emit();
+        return;
+      case 'whatsapp':
+        this.whatsappClicked.emit();
+        return;
+      case 'navigate':
+        this.navigateClicked.emit();
+        return;
+      case 'log-call':
+        this.logCallClicked.emit();
+        return;
+      default:
+        return;
+    }
+  }
 }
