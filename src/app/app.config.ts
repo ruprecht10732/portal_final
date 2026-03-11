@@ -129,6 +129,7 @@ import {
   Sticker,
   TextAlignStart,
   Undo2,
+  Unlink2,
   ChartColumn,
 } from 'lucide-angular';
 
@@ -229,6 +230,7 @@ export const appConfig: ApplicationConfig = {
         List,
         Lock,
         LoaderCircle,
+        Unlink2,
         Mail,
         MailOpen,
         MailSearch,
