@@ -1308,6 +1308,24 @@ export class WhatsAppInboxComponent {
       });
   }
 
+  protected togglePresence(): void {
+    this.setPresence(this.isPresenceSelected('available') ? 'unavailable' : 'available');
+  }
+
+  protected presenceToggleIcon(): string {
+    return this.isPresenceSelected('available') ? 'radio' : 'moon-star';
+  }
+
+  protected presenceToggleTitle(): string {
+    return this.isPresenceSelected('available') ? 'Online' : 'Afwezig';
+  }
+
+  protected presenceToggleAriaLabel(): string {
+    return this.isPresenceSelected('available')
+      ? 'WhatsApp staat op Online. Zet op Afwezig'
+      : 'WhatsApp staat op Afwezig. Zet op Online';
+  }
+
   protected relativeTime(timestamp: string): string {
     const language = this.translate.getCurrentLang() || this.translate.getFallbackLang() || 'en';
     const diff = Date.now() - new Date(timestamp).getTime();
@@ -1376,20 +1394,6 @@ export class WhatsAppInboxComponent {
 
   protected composerOptionsToggleLabel(): string {
     return this.showAdvancedComposerOptions() ? 'Minder opties' : 'Meer opties';
-  }
-
-  protected deviceStateLabel(): string {
-    const status = this.deviceStatus.status();
-    if (!status) {
-      return 'Status wordt geladen';
-    }
-
-    const state = status.state.trim();
-    if (state === '') {
-      return status.message || 'Onbekend';
-    }
-
-    return status.message ? `${state} · ${status.message}` : state;
   }
 
   protected isPresenceSelected(type: WhatsAppPresenceType): boolean {

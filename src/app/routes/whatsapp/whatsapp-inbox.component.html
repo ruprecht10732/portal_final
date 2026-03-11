@@ -26,47 +26,6 @@
       </section>
     }
 
-    <section class="mb-3 flex flex-col gap-2 rounded-2xl border border-zinc-200/80 bg-white/90 px-3 py-2.5 sm:gap-3 sm:rounded-sm sm:bg-white sm:px-4 sm:py-3 sm:shadow-sm sm:flex-row sm:items-center sm:justify-between">
-      <div class="min-w-0">
-        <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Apparaatstatus</p>
-        <p class="mt-0.5 truncate text-sm font-medium text-zinc-800 sm:mt-1">{{ deviceStateLabel() }}</p>
-      </div>
-      <div class="flex flex-wrap items-center gap-1.5 sm:gap-2">
-        <button
-          type="button"
-          class="inline-flex min-h-9 items-center justify-center rounded-full border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 sm:min-h-10 sm:px-3 sm:py-2 sm:text-xs sm:tracking-wide"
-          [class.border-emerald-700]="isPresenceSelected('available')"
-          [class.bg-emerald-700]="isPresenceSelected('available')"
-          [class.text-white]="isPresenceSelected('available')"
-          [class.border-zinc-300]="!isPresenceSelected('available')"
-          [class.bg-white]="!isPresenceSelected('available')"
-          [class.text-zinc-700]="!isPresenceSelected('available')"
-          [disabled]="!canSend() || sendingPresence() !== null"
-          [attr.aria-pressed]="isPresenceSelected('available')"
-          (click)="setPresence('available')"
-        >
-          <lucide-icon name="radio" class="mr-1 h-3 w-3 sm:h-3.5 sm:w-3.5"></lucide-icon>
-          Online
-        </button>
-        <button
-          type="button"
-          class="inline-flex min-h-9 items-center justify-center rounded-full border px-2.5 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 sm:min-h-10 sm:px-3 sm:py-2 sm:text-xs sm:tracking-wide"
-          [class.border-zinc-900]="isPresenceSelected('unavailable')"
-          [class.bg-zinc-900]="isPresenceSelected('unavailable')"
-          [class.text-white]="isPresenceSelected('unavailable')"
-          [class.border-zinc-300]="!isPresenceSelected('unavailable')"
-          [class.bg-white]="!isPresenceSelected('unavailable')"
-          [class.text-zinc-700]="!isPresenceSelected('unavailable')"
-          [disabled]="!canSend() || sendingPresence() !== null"
-          [attr.aria-pressed]="isPresenceSelected('unavailable')"
-          (click)="setPresence('unavailable')"
-        >
-          <lucide-icon name="moon-star" class="mr-1 h-3 w-3 sm:h-3.5 sm:w-3.5"></lucide-icon>
-          Afwezig
-        </button>
-      </div>
-    </section>
-
     <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:gap-4 xl:h-[min(70dvh,52rem)] xl:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)]">
       @if (showListPane()) {
         <aside class="flex min-h-[45dvh] min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm xl:min-h-0">
@@ -79,14 +38,37 @@
                   {{ filteredConversations().length }} van {{ conversations().length }} zichtbaar
                 </p>
               </div>
-              <button
-                type="button"
-                class="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                (click)="loadConversations()"
-                aria-label="Ververs gesprekken"
-              >
-                <lucide-icon name="refresh-cw" class="h-4 w-4" [class.animate-spin]="loadingConversations()"></lucide-icon>
-              </button>
+              <div class="flex items-center gap-2">
+                <button
+                  type="button"
+                  class="rounded-full border p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                  [class.border-emerald-700]="isPresenceSelected('available')"
+                  [class.bg-emerald-50]="isPresenceSelected('available')"
+                  [class.text-emerald-700]="isPresenceSelected('available')"
+                  [class.border-zinc-300]="!isPresenceSelected('available')"
+                  [class.bg-white]="!isPresenceSelected('available')"
+                  [class.text-zinc-600]="!isPresenceSelected('available')"
+                  [disabled]="!canSend() || sendingPresence() !== null"
+                  [attr.aria-label]="presenceToggleAriaLabel()"
+                  [attr.aria-pressed]="isPresenceSelected('available')"
+                  [attr.title]="presenceToggleTitle()"
+                  (click)="togglePresence()"
+                >
+                  @if (sendingPresence() !== null) {
+                    <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin"></lucide-icon>
+                  } @else {
+                    <lucide-icon [name]="presenceToggleIcon()" class="h-4 w-4"></lucide-icon>
+                  }
+                </button>
+                <button
+                  type="button"
+                  class="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+                  (click)="loadConversations()"
+                  aria-label="Ververs gesprekken"
+                >
+                  <lucide-icon name="refresh-cw" class="h-4 w-4" [class.animate-spin]="loadingConversations()"></lucide-icon>
+                </button>
+              </div>
             </div>
 
             <div class="mt-4 flex flex-wrap items-center gap-2 rounded-2xl bg-zinc-100 p-1">
