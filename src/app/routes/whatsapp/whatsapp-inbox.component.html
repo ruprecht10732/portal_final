@@ -15,7 +15,7 @@
     Ververs
   </shared-button>
 
-  <main class="flex min-h-0 flex-1 flex-col overflow-hidden bg-[#fdfbf7] px-0 pb-0 sm:-mx-6 sm:px-3 sm:pb-4">
+  <main class="flex min-h-0 flex-1 flex-col overflow-hidden bg-transparent px-0 pb-0 sm:-mx-6 sm:px-3 sm:pb-4">
     @if (deviceStatus.needsReconnectBanner() || deviceStatus.needsDeviceConnection()) {
       <section class="mb-3 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
         <div class="flex items-center gap-2 font-semibold">
@@ -26,22 +26,22 @@
       </section>
     }
 
-    <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:gap-4 xl:overflow-hidden xl:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)]">
+    <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:gap-4 xl:overflow-hidden xl:grid-cols-[minmax(23rem,27rem)_minmax(0,1fr)]">
       @if (showListPane()) {
-        <aside class="flex min-h-[45dvh] min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm xl:min-h-0">
-          <header class="shrink-0 border-b border-zinc-200 bg-white/95 px-4 py-4 backdrop-blur-sm">
+        <aside aria-label="Conversatielijst" class="flex min-h-[45dvh] min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white xl:min-h-0">
+          <header class="shrink-0 border-b border-zinc-200 bg-white px-4 py-4 sm:px-5">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Inbox</p>
-                <h2 class="mt-1 text-lg font-black tracking-tight text-zinc-950">Gesprekken</h2>
-                <p class="mt-1 text-xs text-zinc-500">
+                <p class="text-[11px] font-black uppercase tracking-[0.24em] text-emerald-600">Inbox</p>
+                <h2 class="mt-1 text-xl font-black tracking-tight text-zinc-950">WhatsApp Inbox</h2>
+                <p class="mt-1 text-xs text-zinc-700">
                   {{ filteredConversations().length }} van {{ conversations().length }} zichtbaar
                 </p>
               </div>
               <div class="flex items-center gap-2">
                 <button
                   type="button"
-                  class="rounded-full border p-2 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
+                  class="rounded-2xl border p-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
                   [class.border-emerald-700]="isPresenceSelected('available')"
                   [class.bg-emerald-50]="isPresenceSelected('available')"
                   [class.text-emerald-700]="isPresenceSelected('available')"
@@ -62,7 +62,7 @@
                 </button>
                 <button
                   type="button"
-                  class="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
+                  class="rounded-2xl p-2.5 text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
                   (click)="loadConversations()"
                   aria-label="Ververs gesprekken"
                 >
@@ -71,14 +71,13 @@
               </div>
             </div>
 
-            <div class="mt-4 flex flex-wrap items-center gap-2 rounded-2xl bg-zinc-100 p-1">
+            <div class="mt-4 flex flex-wrap items-center gap-2 rounded-2xl bg-zinc-100/90 p-1.5">
               <button
                 type="button"
                 class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                [class.bg-white]="conversationListFilter() === 'all'"
-                [class.text-zinc-900]="conversationListFilter() === 'all'"
-                [class.shadow-sm]="conversationListFilter() === 'all'"
-                [class.text-zinc-500]="conversationListFilter() !== 'all'"
+                [class.bg-emerald-600]="conversationListFilter() === 'all'"
+                [class.text-white]="conversationListFilter() === 'all'"
+                [class.text-zinc-900]="conversationListFilter() !== 'all'"
                 [attr.aria-pressed]="conversationListFilter() === 'all'"
                 (click)="conversationListFilter.set('all')"
               >
@@ -87,16 +86,15 @@
               <button
                 type="button"
                 class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                [class.bg-white]="conversationListFilter() === 'unread'"
-                [class.text-zinc-900]="conversationListFilter() === 'unread'"
-                [class.shadow-sm]="conversationListFilter() === 'unread'"
-                [class.text-zinc-500]="conversationListFilter() !== 'unread'"
+                [class.bg-emerald-600]="conversationListFilter() === 'unread'"
+                [class.text-white]="conversationListFilter() === 'unread'"
+                [class.text-zinc-900]="conversationListFilter() !== 'unread'"
                 [attr.aria-pressed]="conversationListFilter() === 'unread'"
                 (click)="conversationListFilter.set('unread')"
               >
                 Ongelezen
                 @if (unreadConversationCount() > 0) {
-                  <span class="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  <span class="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1.5 py-0.5 text-[10px] font-bold" [class.text-white]="conversationListFilter() !== 'unread'" [class.text-emerald-600]="conversationListFilter() === 'unread'" [class.bg-white]="conversationListFilter() === 'unread'" [class.bg-zinc-900]="conversationListFilter() !== 'unread'">
                     {{ unreadConversationCount() }}
                   </span>
                 }
@@ -104,16 +102,15 @@
               <button
                 type="button"
                 class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                [class.bg-white]="conversationListFilter() === 'archived'"
-                [class.text-zinc-900]="conversationListFilter() === 'archived'"
-                [class.shadow-sm]="conversationListFilter() === 'archived'"
-                [class.text-zinc-500]="conversationListFilter() !== 'archived'"
+                [class.bg-emerald-600]="conversationListFilter() === 'archived'"
+                [class.text-white]="conversationListFilter() === 'archived'"
+                [class.text-zinc-900]="conversationListFilter() !== 'archived'"
                 [attr.aria-pressed]="conversationListFilter() === 'archived'"
                 (click)="conversationListFilter.set('archived')"
               >
                 Archief
                 @if (archivedConversationCount() > 0) {
-                  <span class="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                  <span class="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1.5 py-0.5 text-[10px] font-bold" [class.text-white]="conversationListFilter() !== 'archived'" [class.text-emerald-600]="conversationListFilter() === 'archived'" [class.bg-white]="conversationListFilter() === 'archived'" [class.bg-zinc-900]="conversationListFilter() !== 'archived'">
                     {{ archivedConversationCount() }}
                   </span>
                 }
@@ -121,10 +118,10 @@
             </div>
 
             <div class="relative mt-3">
-              <lucide-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-400"></lucide-icon>
+              <lucide-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600"></lucide-icon>
               <input
                 type="search"
-                class="h-11 w-full rounded-2xl border border-zinc-200 bg-white pl-10 pr-10 text-sm text-zinc-900 outline-none transition-shadow placeholder:text-zinc-400 [-webkit-appearance:none] focus:ring-2 focus:ring-zinc-900/10"
+                class="h-11 w-full rounded-2xl border border-zinc-300 bg-white pl-10 pr-10 text-sm text-zinc-900 outline-none transition-shadow placeholder:text-zinc-600 [-webkit-appearance:none] focus:ring-2 focus:ring-emerald-500/20"
                 placeholder="Zoek op naam, nummer of preview"
                 [value]="conversationSearchQuery()"
                 (input)="conversationSearchQuery.set($any($event.target).value)"
@@ -132,7 +129,7 @@
               @if (hasConversationSearch()) {
                 <button
                   type="button"
-                  class="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-500 transition-colors hover:bg-zinc-100 hover:text-zinc-900"
+                  class="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
                   aria-label="Wis zoekopdracht"
                   (click)="clearConversationSearch()"
                 >
@@ -148,17 +145,17 @@
             }
           </header>
 
-          <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain">
+          <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2 pt-1 sm:px-3 sm:pb-3">
             @if (loadingConversations() && conversations().length === 0) {
-              <div class="flex h-full flex-col items-center justify-center gap-3 px-6 py-20 text-center text-zinc-400">
+              <div class="flex h-full flex-col items-center justify-center gap-3 px-6 py-20 text-center text-zinc-600">
                 <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
-                <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Gesprekken worden geladen</p>
+                <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Gesprekken worden geladen</p>
               </div>
             } @else if (conversations().length === 0) {
               <div class="flex h-full flex-col items-center justify-center px-6 py-20 text-center">
                 <lucide-icon name="message-circle" class="mb-4 h-10 w-10 text-zinc-200"></lucide-icon>
                 <p class="text-sm font-semibold text-zinc-700">Nog geen WhatsApp-gesprekken</p>
-                <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-500">
+                <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-700">
                   Nieuwe gesprekken verschijnen hier zodra er vanuit de portal een WhatsApp-bericht is verstuurd.
                 </p>
               </div>
@@ -166,22 +163,22 @@
               <div class="flex h-full flex-col items-center justify-center px-6 py-20 text-center">
                 <lucide-icon name="search-x" class="mb-4 h-10 w-10 text-zinc-200"></lucide-icon>
                 <p class="text-sm font-semibold text-zinc-700">Geen gesprekken gevonden</p>
-                <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-500">
+                <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-700">
                   Pas je zoekopdracht of filter aan om weer gesprekken te tonen.
                 </p>
               </div>
             } @else {
-              <ul class="divide-y divide-zinc-100">
+              <ul class="space-y-2">
                 @for (conversation of filteredConversations(); track conversation.id) {
                   <li>
                     <button
                       type="button"
-                      class="group flex w-full items-start gap-3 border-l-4 border-l-transparent px-3 py-4 text-left transition-all hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900 sm:px-4"
+                      class="group flex w-full items-start gap-3 rounded-[1.4rem] border border-transparent px-3 py-4 text-left transition-all hover:border-zinc-200 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900 sm:px-4"
                       [class.bg-emerald-50]="selectedConversationId() === conversation.id"
-                      [class.border-l-emerald-600]="selectedConversationId() === conversation.id"
+                      [class.border-emerald-200]="selectedConversationId() === conversation.id"
                       (click)="selectConversation(conversation.id)"
                     >
-                      <div class="relative flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-black text-zinc-700" [class.bg-emerald-100]="conversation.unreadCount > 0" [class.text-emerald-700]="conversation.unreadCount > 0">
+                      <div class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-black text-zinc-700" [class.bg-emerald-100]="conversation.unreadCount > 0 || selectedConversationId() === conversation.id" [class.text-emerald-700]="conversation.unreadCount > 0 || selectedConversationId() === conversation.id">
                         {{ conversationInitial(conversation) }}
                         @if (conversation.unreadCount > 0) {
                           <span class="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500"></span>
@@ -192,7 +189,7 @@
                         <div class="flex items-start justify-between gap-3">
                           <div class="min-w-0">
                             <div class="flex items-center gap-2">
-                              <p class="truncate text-sm text-zinc-900" [class.font-black]="conversation.unreadCount > 0" [class.font-semibold]="conversation.unreadCount === 0">
+                              <p class="truncate text-sm text-zinc-900" [class.font-black]="conversation.unreadCount > 0 || selectedConversationId() === conversation.id" [class.font-semibold]="conversation.unreadCount === 0 && selectedConversationId() !== conversation.id">
                                 {{ displayName(conversation) }}
                               </p>
                               @if (conversation.unreadCount > 0) {
@@ -201,11 +198,11 @@
                                 </span>
                               }
                             </div>
-                            <p class="mt-0.5 truncate text-[11px] text-zinc-500">{{ conversation.phoneNumber }}</p>
+                            <p class="mt-0.5 truncate text-[11px] text-zinc-700">{{ conversation.phoneNumber }}</p>
                           </div>
 
                           <div class="flex shrink-0 flex-col items-end gap-1">
-                            <span class="text-[10px] font-medium uppercase tracking-[0.16em] text-zinc-400">
+                            <span class="text-[10px] font-medium uppercase tracking-[0.16em]" [class.text-emerald-700]="selectedConversationId() === conversation.id" [class.text-zinc-700]="selectedConversationId() !== conversation.id">
                               {{ relativeTime(conversation.lastMessageAt) }}
                             </span>
                             <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em]" [class.bg-zinc-100]="conversation.lastMessageDirection === 'inbound'" [class.text-zinc-600]="conversation.lastMessageDirection === 'inbound'" [class.bg-emerald-100]="conversation.lastMessageDirection === 'outbound'" [class.text-emerald-700]="conversation.lastMessageDirection === 'outbound'">
@@ -215,7 +212,7 @@
                           </div>
                         </div>
 
-                        <p class="mt-2 line-clamp-2 break-words text-xs leading-5" [class.font-medium]="conversation.unreadCount > 0" [class.text-zinc-700]="conversation.unreadCount > 0" [class.text-zinc-500]="conversation.unreadCount === 0">
+                        <p class="mt-2 line-clamp-2 break-words text-xs leading-5" [class.font-medium]="conversation.unreadCount > 0" [class.text-zinc-800]="conversation.unreadCount > 0 || selectedConversationId() === conversation.id" [class.text-zinc-700]="conversation.unreadCount === 0 && selectedConversationId() !== conversation.id">
                           {{ conversationPreview(conversation) }}
                         </p>
                       </div>
@@ -229,30 +226,34 @@
       }
 
       @if (showThreadPane()) {
-        <section class="flex h-[65dvh] min-h-[24rem] min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm xl:h-full xl:min-h-0">
+        <section class="flex h-[65dvh] min-h-[24rem] min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white xl:h-full xl:min-h-0">
           @if (selectedConversation()) {
-            <header class="shrink-0 border-b border-zinc-100 bg-white/95 px-4 py-4 backdrop-blur-sm sm:px-6">
-              <div class="flex items-center gap-3">
+            <header class="shrink-0 border-b border-zinc-200/70 bg-white/95 px-4 py-4 backdrop-blur-sm sm:px-6">
+              <div class="flex items-start gap-3">
                 <button
                   type="button"
-                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-full border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-100 lg:hidden"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-100 lg:hidden"
                   aria-label="Terug naar lijst"
                   (click)="closeConversation()"
                 >
                   <lucide-icon name="arrow-left" class="h-4 w-4"></lucide-icon>
                 </button>
-                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-700">
-                  <lucide-icon name="message-circle" class="h-5 w-5"></lucide-icon>
+                <div class="flex h-11 w-11 shrink-0 items-center justify-center rounded-2xl bg-emerald-100 text-emerald-800">
+                  {{ conversationInitial(selectedConversation()!) }}
                 </div>
                 <div class="min-w-0 flex-1">
-                  <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Actief gesprek</p>
-                  <h2 class="truncate text-lg font-bold text-zinc-900">{{ displayName(selectedConversation()!) }}</h2>
-                  <p class="truncate text-xs text-zinc-500">{{ selectedConversation()!.phoneNumber }}</p>
+                  <div class="flex flex-wrap items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <p class="text-[11px] font-black uppercase tracking-[0.24em] text-emerald-600">Actief gesprek</p>
+                      <h2 class="truncate text-lg font-bold text-zinc-900">{{ displayName(selectedConversation()!) }}</h2>
+                      <p class="truncate text-xs text-zinc-700">{{ selectedConversation()!.phoneNumber }}</p>
+                    </div>
+                  </div>
                   @if (threadStateBadges(); as badges) {
                     @if (badges.length > 0) {
-                      <div class="mt-2 flex flex-wrap gap-1.5">
+                      <div class="mt-3 flex flex-wrap gap-1.5">
                         @for (badge of badges; track badge.key) {
-                          <span class="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-700">
+                          <span class="inline-flex items-center gap-1 rounded-full bg-zinc-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-700">
                             <lucide-icon [name]="badge.icon" class="h-3 w-3"></lucide-icon>
                             {{ badge.label }}
                           </span>
@@ -262,7 +263,7 @@
                   }
                 </div>
                 <shared-menu
-                  class="shrink-0"
+                  class="ml-auto shrink-0"
                   triggerLabel="Threadacties"
                   [ariaLabel]="'Threadacties'"
                   triggerVariant="ghost"
@@ -282,260 +283,265 @@
                   }
                 </shared-menu>
               </div>
-              <div class="mt-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-3">
-                @if (conversationLinkedLead(); as linkedLeadSummary) {
-                  <div class="flex flex-wrap items-center justify-between gap-3">
-                    <div>
-                      <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Gekoppelde lead</p>
-                      <p class="mt-1 text-sm font-semibold text-zinc-900">{{ linkedLeadSummary.fullName }}</p>
-                      <p class="mt-1 text-xs text-zinc-600">{{ linkedLeadSummary.phone }} @if (linkedLeadSummary.city) { · {{ linkedLeadSummary.city }} }</p>
+              <div class="mt-4 space-y-3 xl:hidden">
+                <div class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 px-3 py-3">
+                  @if (conversationLinkedLead(); as linkedLeadSummary) {
+                    <div class="flex flex-wrap items-center justify-between gap-3">
+                      <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Gekoppelde lead</p>
+                        <p class="mt-1 text-sm font-semibold text-zinc-900">{{ linkedLeadSummary.fullName }}</p>
+                        <p class="mt-1 text-xs text-zinc-700">{{ linkedLeadSummary.phone }} @if (linkedLeadSummary.city) { · {{ linkedLeadSummary.city }} }</p>
+                      </div>
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white disabled:opacity-50"
+                        [disabled]="leadRelationshipBusy() !== null"
+                        (click)="unlinkConversationLead()"
+                      >
+                        @if (leadRelationshipBusy() === 'unlink') {
+                          <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                        } @else {
+                          <lucide-icon name="unlink-2" class="h-3.5 w-3.5"></lucide-icon>
+                        }
+                        Ontkoppelen
+                      </button>
                     </div>
-                    <button
-                      type="button"
-                      class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white disabled:opacity-50"
-                      [disabled]="leadRelationshipBusy() !== null"
-                      (click)="unlinkConversationLead()"
-                    >
-                      @if (leadRelationshipBusy() === 'unlink') {
-                        <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-                      } @else {
-                        <lucide-icon name="unlink-2" class="h-3.5 w-3.5"></lucide-icon>
-                      }
-                      Ontkoppelen
-                    </button>
-                  </div>
-                } @else {
-                  <div class="flex flex-col gap-3">
-                    @if (conversationSuggestedLead(); as suggestedLead) {
-                      <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2.5">
-                        <div>
-                          <p class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Voorgestelde lead</p>
-                          <p class="mt-1 text-sm font-semibold text-emerald-950">{{ suggestedLead.fullName }}</p>
-                          <p class="mt-1 text-xs text-emerald-800">{{ suggestedLead.phone }} @if (suggestedLead.city) { · {{ suggestedLead.city }} }</p>
+                  } @else {
+                    <div class="flex flex-col gap-3">
+                      @if (conversationSuggestedLead(); as suggestedLead) {
+                        <div class="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-3 py-2.5">
+                          <div>
+                            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Voorgestelde lead</p>
+                            <p class="mt-1 text-sm font-semibold text-emerald-950">{{ suggestedLead.fullName }}</p>
+                            <p class="mt-1 text-xs text-emerald-800">{{ suggestedLead.phone }} @if (suggestedLead.city) { · {{ suggestedLead.city }} }</p>
+                          </div>
+                          <button
+                            type="button"
+                            class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                            [disabled]="leadRelationshipBusy() !== null"
+                            (click)="linkSuggestedLead()"
+                          >
+                            @if (leadRelationshipBusy() === 'link') {
+                              <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                            } @else {
+                              <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
+                            }
+                            Koppel suggestie
+                          </button>
                         </div>
+                      }
+
+                      <div class="flex flex-wrap gap-2">
                         <button
                           type="button"
-                          class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
-                          [disabled]="leadRelationshipBusy() !== null"
-                          (click)="linkSuggestedLead()"
+                          class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white"
+                          (click)="toggleLeadSearchPanel()"
                         >
-                          @if (leadRelationshipBusy() === 'link') {
-                            <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-                          } @else {
-                            <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
-                          }
-                          Koppel suggestie
+                          <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
+                          Bestaande lead koppelen
+                        </button>
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white"
+                          (click)="openCreateLeadPanel()"
+                        >
+                          <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
+                          Nieuwe lead aanmaken
                         </button>
                       </div>
-                    }
 
-                    <div class="flex flex-wrap gap-2">
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white"
-                        (click)="toggleLeadSearchPanel()"
-                      >
-                        <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
-                        Bestaande lead koppelen
-                      </button>
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white"
-                        (click)="openCreateLeadPanel()"
-                      >
-                        <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
-                        Nieuwe lead aanmaken
-                      </button>
-                    </div>
-
-                    @if (showLeadSearchPanel()) {
-                      <div class="rounded-2xl border border-zinc-200 bg-white px-3 py-3">
-                        <div class="flex flex-col gap-2 sm:flex-row">
-                          <input
-                            type="search"
-                            class="h-10 flex-1 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10"
-                            placeholder="Zoek op naam, telefoon of e-mail"
-                            [value]="leadSearchQuery()"
-                            (input)="leadSearchQuery.set($any($event.target).value)"
-                          />
-                          <button
-                            type="button"
-                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
-                            [disabled]="leadSearchLoading()"
-                            (click)="searchExistingLeads()"
-                          >
-                            @if (leadSearchLoading()) {
-                              <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-                            } @else {
-                              <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
-                            }
-                            Zoeken
-                          </button>
-                        </div>
-
-                        @if (leadSearchResults().length > 0) {
-                          <div class="mt-3 grid gap-2">
-                            @for (lead of leadSearchResults(); track lead.id) {
-                              <div class="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 px-3 py-2">
-                                <div class="min-w-0">
-                                  <p class="truncate text-sm font-semibold text-zinc-900">{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</p>
-                                  <p class="mt-1 text-xs text-zinc-500">{{ lead.consumer.phone }} @if (lead.address.city) { · {{ lead.address.city }} }</p>
-                                </div>
-                                <button
-                                  type="button"
-                                  class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-50"
-                                  [disabled]="leadRelationshipBusy() !== null"
-                                  (click)="linkConversationLead(lead.id)"
-                                >
-                                  <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
-                                  Koppel
-                                </button>
-                              </div>
-                            }
-                          </div>
-                        }
-                      </div>
-                    }
-
-                    @if (showCreateLeadPanel()) {
-                      <div class="rounded-2xl border border-zinc-200 bg-white px-3 py-3">
-                        <div class="grid gap-3 sm:grid-cols-2">
-                          <label class="text-xs font-semibold text-zinc-700">
-                            Voornaam
-                            <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadFirstName()" (input)="createLeadFirstName.set($any($event.target).value)" />
-                          </label>
-                          <label class="text-xs font-semibold text-zinc-700">
-                            Achternaam
-                            <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadLastName()" (input)="createLeadLastName.set($any($event.target).value)" />
-                          </label>
-                          <label class="text-xs font-semibold text-zinc-700 sm:col-span-2">
-                            E-mail
-                            <input type="email" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadEmail()" (input)="createLeadEmail.set($any($event.target).value)" />
-                          </label>
-                          <label class="text-xs font-semibold text-zinc-700 sm:col-span-2">
-                            Straat
-                            <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadStreet()" (input)="createLeadStreet.set($any($event.target).value)" />
-                          </label>
-                          <label class="text-xs font-semibold text-zinc-700">
-                            Huisnummer
-                            <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadHouseNumber()" (input)="createLeadHouseNumber.set($any($event.target).value)" />
-                          </label>
-                          <label class="text-xs font-semibold text-zinc-700">
-                            Postcode
-                            <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadZipCode()" (input)="createLeadZipCode.set($any($event.target).value)" />
-                          </label>
-                          <label class="text-xs font-semibold text-zinc-700 sm:col-span-2">
-                            Plaats
-                            <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadCity()" (input)="createLeadCity.set($any($event.target).value)" />
-                          </label>
-                          <label class="text-xs font-semibold text-zinc-700">
-                            Rol
-                            <select class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadConsumerRole()" (change)="createLeadConsumerRole.set($any($event.target).value)">
-                              <option value="Owner">Eigenaar</option>
-                              <option value="Tenant">Huurder</option>
-                              <option value="Landlord">Verhuurder</option>
-                            </select>
-                          </label>
-                          <label class="text-xs font-semibold text-zinc-700">
-                            Diensttype
-                            <select class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadServiceType()" (change)="createLeadServiceType.set($any($event.target).value)">
-                              @for (item of availableServiceTypes(); track item.id) {
-                                <option [value]="item.name">{{ item.name }}</option>
+                      @if (showLeadSearchPanel()) {
+                        <div class="rounded-2xl border border-zinc-200 bg-white px-3 py-3">
+                          <div class="flex flex-col gap-2 sm:flex-row">
+                            <input
+                              type="search"
+                              class="h-10 flex-1 rounded-xl border border-zinc-300 px-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-600 focus:ring-2 focus:ring-zinc-900/10"
+                              placeholder="Zoek op naam, telefoon of e-mail"
+                              [value]="leadSearchQuery()"
+                              (input)="leadSearchQuery.set($any($event.target).value)"
+                            />
+                            <button
+                              type="button"
+                              class="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
+                              [disabled]="leadSearchLoading()"
+                              (click)="searchExistingLeads()"
+                            >
+                              @if (leadSearchLoading()) {
+                                <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                              } @else {
+                                <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
                               }
-                            </select>
-                          </label>
+                              Zoeken
+                            </button>
+                          </div>
+
+                          @if (leadSearchResults().length > 0) {
+                            <div class="mt-3 grid gap-2">
+                              @for (lead of leadSearchResults(); track lead.id) {
+                                <div class="flex items-center justify-between gap-3 rounded-xl border border-zinc-200 px-3 py-2">
+                                  <div class="min-w-0">
+                                    <p class="truncate text-sm font-semibold text-zinc-900">{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</p>
+                                    <p class="mt-1 text-xs text-zinc-700">{{ lead.consumer.phone }} @if (lead.address.city) { · {{ lead.address.city }} }</p>
+                                  </div>
+                                  <button
+                                    type="button"
+                                    class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-50"
+                                    [disabled]="leadRelationshipBusy() !== null"
+                                    (click)="linkConversationLead(lead.id)"
+                                  >
+                                    <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
+                                    Koppel
+                                  </button>
+                                </div>
+                              }
+                            </div>
+                          }
                         </div>
-                        <div class="mt-3 flex flex-wrap gap-2">
-                          <button
-                            type="button"
-                            class="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
-                            [disabled]="!canCreateConversationLead()"
-                            (click)="createLeadFromConversation()"
-                          >
-                            @if (leadRelationshipBusy() === 'create') {
-                              <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-                            } @else {
-                              <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
-                            }
-                            Lead aanmaken
-                          </button>
-                          <button type="button" class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50" (click)="closeCreateLeadPanel()">
-                            <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
-                            Sluiten
-                          </button>
+                      }
+
+                      @if (showCreateLeadPanel()) {
+                        <div class="rounded-2xl border border-zinc-200 bg-white px-3 py-3">
+                          <div class="grid gap-3 sm:grid-cols-2">
+                            <label class="text-xs font-semibold text-zinc-700">
+                              Voornaam
+                              <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadFirstName()" (input)="createLeadFirstName.set($any($event.target).value)" />
+                            </label>
+                            <label class="text-xs font-semibold text-zinc-700">
+                              Achternaam
+                              <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadLastName()" (input)="createLeadLastName.set($any($event.target).value)" />
+                            </label>
+                            <label class="text-xs font-semibold text-zinc-700 sm:col-span-2">
+                              E-mail
+                              <input type="email" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadEmail()" (input)="createLeadEmail.set($any($event.target).value)" />
+                            </label>
+                            <label class="text-xs font-semibold text-zinc-700 sm:col-span-2">
+                              Straat
+                              <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadStreet()" (input)="createLeadStreet.set($any($event.target).value)" />
+                            </label>
+                            <label class="text-xs font-semibold text-zinc-700">
+                              Huisnummer
+                              <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadHouseNumber()" (input)="createLeadHouseNumber.set($any($event.target).value)" />
+                            </label>
+                            <label class="text-xs font-semibold text-zinc-700">
+                              Postcode
+                              <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadZipCode()" (input)="createLeadZipCode.set($any($event.target).value)" />
+                            </label>
+                            <label class="text-xs font-semibold text-zinc-700 sm:col-span-2">
+                              Plaats
+                              <input type="text" class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadCity()" (input)="createLeadCity.set($any($event.target).value)" />
+                            </label>
+                            <label class="text-xs font-semibold text-zinc-700">
+                              Rol
+                              <select class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadConsumerRole()" (change)="createLeadConsumerRole.set($any($event.target).value)">
+                                <option value="Owner">Eigenaar</option>
+                                <option value="Tenant">Huurder</option>
+                                <option value="Landlord">Verhuurder</option>
+                              </select>
+                            </label>
+                            <label class="text-xs font-semibold text-zinc-700">
+                              Diensttype
+                              <select class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadServiceType()" (change)="createLeadServiceType.set($any($event.target).value)">
+                                @for (item of availableServiceTypes(); track item.id) {
+                                  <option [value]="item.name">{{ item.name }}</option>
+                                }
+                              </select>
+                            </label>
+                          </div>
+                          <div class="mt-3 flex flex-wrap gap-2">
+                            <button
+                              type="button"
+                              class="inline-flex items-center gap-2 rounded-full bg-zinc-900 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
+                              [disabled]="!canCreateConversationLead()"
+                              (click)="createLeadFromConversation()"
+                            >
+                              @if (leadRelationshipBusy() === 'create') {
+                                <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                              } @else {
+                                <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
+                              }
+                              Lead aanmaken
+                            </button>
+                            <button type="button" class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50" (click)="closeCreateLeadPanel()">
+                              <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
+                              Sluiten
+                            </button>
+                          </div>
                         </div>
+                      }
+                    </div>
+                  }
+                </div>
+
+                @if (canUseLeadActions()) {
+                  <div class="mx-auto flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-[1.5rem] border border-zinc-200 bg-zinc-50 px-3 py-2.5">
+                    @if (showLinkedLeadServicePicker()) {
+                      <div class="min-w-[18rem] flex-1">
+                        <shared-select
+                          [label]="'Leadservice voor opslaan'"
+                          [options]="linkedLeadServiceOptions()"
+                          [value]="linkedLeadServiceId()"
+                          (valueChange)="updateLinkedLeadServiceId($event)"
+                          [disabled]="linkedLeadLoading() || savingImportantMessages() || attachingMessageId() !== null"
+                        />
                       </div>
+                    }
+                    @if (isImportantSelectionEnabled()) {
+                      <p class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-600">
+                        {{ selectedImportantCount() }} bericht{{ selectedImportantCount() === 1 ? '' : 'en' }} geselecteerd
+                      </p>
+                      <div class="flex items-center gap-2">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300"
+                          [disabled]="selectedImportantCount() === 0 || savingImportantMessages()"
+                          (click)="saveSelectedMessagesToLead()"
+                        >
+                          @if (savingImportantMessages()) {
+                            <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                          } @else {
+                            <lucide-icon name="bookmark-plus" class="h-3.5 w-3.5"></lucide-icon>
+                          }
+                          Opslaan bij lead
+                        </button>
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white"
+                          [disabled]="savingImportantMessages()"
+                          (click)="toggleImportantSelectionMode()"
+                        >
+                          <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
+                          Stop selectie
+                        </button>
+                      </div>
+                    } @else {
+                      <p class="text-xs font-semibold text-zinc-600">Selecteer belangrijke berichten om ze als leadcontext op te slaan.</p>
+                      <button
+                        type="button"
+                        class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white"
+                        (click)="toggleImportantSelectionMode()"
+                      >
+                        <lucide-icon name="check-check" class="h-3.5 w-3.5"></lucide-icon>
+                        Berichten selecteren
+                      </button>
                     }
                   </div>
                 }
               </div>
-              @if (canUseLeadActions()) {
-                <div class="mx-auto mt-3 flex max-w-3xl flex-wrap items-center justify-between gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 px-3 py-2">
-                  @if (showLinkedLeadServicePicker()) {
-                    <div class="min-w-[18rem] flex-1">
-                      <shared-select
-                        [label]="'Leadservice voor opslaan'"
-                        [options]="linkedLeadServiceOptions()"
-                        [value]="linkedLeadServiceId()"
-                        (valueChange)="updateLinkedLeadServiceId($event)"
-                        [disabled]="linkedLeadLoading() || savingImportantMessages() || attachingMessageId() !== null"
-                      />
-                    </div>
-                  }
-                  @if (isImportantSelectionEnabled()) {
-                    <p class="text-xs font-semibold uppercase tracking-[0.16em] text-zinc-600">
-                      {{ selectedImportantCount() }} bericht{{ selectedImportantCount() === 1 ? '' : 'en' }} geselecteerd
-                    </p>
-                    <div class="flex items-center gap-2">
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300"
-                        [disabled]="selectedImportantCount() === 0 || savingImportantMessages()"
-                        (click)="saveSelectedMessagesToLead()"
-                      >
-                        @if (savingImportantMessages()) {
-                          <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-                        } @else {
-                          <lucide-icon name="bookmark-plus" class="h-3.5 w-3.5"></lucide-icon>
-                        }
-                        Opslaan bij lead
-                      </button>
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white"
-                        [disabled]="savingImportantMessages()"
-                        (click)="toggleImportantSelectionMode()"
-                      >
-                        <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
-                        Stop selectie
-                      </button>
-                    </div>
-                  } @else {
-                    <p class="text-xs font-semibold text-zinc-600">Selecteer belangrijke berichten om ze als leadcontext op te slaan.</p>
-                    <button
-                      type="button"
-                      class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-white"
-                      (click)="toggleImportantSelectionMode()"
-                    >
-                      <lucide-icon name="check-check" class="h-3.5 w-3.5"></lucide-icon>
-                      Berichten selecteren
-                    </button>
-                  }
-                </div>
-              }
             </header>
 
-            <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain bg-[#f4f1ea] bg-[image:linear-gradient(180deg,rgba(255,255,255,0.72),rgba(255,255,255,0.28)),radial-gradient(circle_at_1px_1px,rgba(39,39,42,0.06)_1px,transparent_0)] bg-[length:auto,18px_18px] px-3 py-4 sm:px-6 sm:py-5">
+            <div class="min-h-0 flex-1 overflow-hidden">
+              <div class="grid h-full min-h-0 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_19rem]">
+                <div class="min-h-0 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6 sm:py-5">
               @if (loadingMessages()) {
-                <div class="flex h-full flex-col items-center justify-center gap-3 text-zinc-400">
+                <div class="flex h-full flex-col items-center justify-center gap-3 text-zinc-600">
                   <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
-                  <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Berichten worden geladen</p>
+                  <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Berichten worden geladen</p>
                 </div>
               } @else if (messages().length === 0) {
                 <div class="flex h-full flex-col items-center justify-center px-6 text-center">
                   <lucide-icon name="message-circle-off" class="mb-4 h-10 w-10 text-zinc-300"></lucide-icon>
                   <p class="text-sm font-semibold text-zinc-700">Nog geen berichten in dit gesprek</p>
-                  <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-500">
+                  <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-700">
                     Gebruik de composer hieronder om het gesprek te starten.
                   </p>
                 </div>
@@ -544,7 +550,7 @@
                   @for (message of messages(); track message.id) {
                     <div class="flex" [class.justify-end]="message.direction === 'outbound'" [class.justify-start]="message.direction === 'inbound'">
                       @if (isImportantSelectionEnabled() && canToggleImportantSelection(message)) {
-                        <label class="mr-3 mt-4 inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center self-start rounded-full border border-zinc-300 bg-white text-zinc-700 shadow-sm">
+                        <label class="mr-3 mt-4 inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center self-start rounded-full border border-zinc-400 bg-white text-zinc-800">
                           <input
                             type="checkbox"
                             class="sr-only"
@@ -558,7 +564,7 @@
                         </label>
                       }
                       <article
-                        class="max-w-[92%] rounded-[1.25rem] border px-3.5 py-3 shadow-sm sm:max-w-[88%] sm:rounded-[1.4rem] sm:px-4"
+                        class="max-w-[92%] rounded-[1.4rem] border px-3.5 py-3 sm:max-w-[88%] sm:rounded-[1.6rem] sm:px-4"
                         [class.border-emerald-600]="message.direction === 'outbound'"
                         [class.bg-emerald-600]="message.direction === 'outbound'"
                         [class.text-white]="message.direction === 'outbound'"
@@ -662,7 +668,7 @@
                             }
 
                             @if (media.filename) {
-                              <p class="mt-2 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">{{ media.filename }}</p>
+                              <p class="mt-2 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ media.filename }}</p>
                             }
                           </div>
                         }
@@ -675,7 +681,7 @@
                                   <p class="text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">Contact</p>
                                   <p class="mt-2 text-sm font-semibold" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-900]="message.direction === 'inbound'">{{ contact.name }}</p>
                                   @if (contact.phone) {
-                                    <p class="mt-1 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">{{ contact.phone }}</p>
+                                    <p class="mt-1 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ contact.phone }}</p>
                                   }
                                 </div>
                               }
@@ -692,10 +698,10 @@
                                   <p class="mt-2 text-sm font-semibold" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-900]="message.direction === 'inbound'">{{ location.name }}</p>
                                 }
                                 @if (location.address) {
-                                  <p class="mt-1 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">{{ location.address }}</p>
+                                  <p class="mt-1 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ location.address }}</p>
                                 }
                                 @if (location.latitude && location.longitude) {
-                                  <p class="mt-1 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">{{ location.latitude }}, {{ location.longitude }}</p>
+                                  <p class="mt-1 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ location.latitude }}, {{ location.longitude }}</p>
                                 }
                               </div>
                               @if (locationMapsUrl(location); as mapsUrl) {
@@ -727,7 +733,7 @@
                               </div>
                             }
                             @if (poll.maxAnswer) {
-                              <p class="mt-3 text-xs" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">Max. antwoorden: {{ poll.maxAnswer }}</p>
+                              <p class="mt-3 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">Max. antwoorden: {{ poll.maxAnswer }}</p>
                             }
                           </div>
                         }
@@ -739,7 +745,7 @@
                         }
 
                         @if (originalMessageBody(message); as originalBody) {
-                          <p class="mt-2 text-xs leading-relaxed" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-500]="message.direction === 'inbound'">
+                          <p class="mt-2 text-xs leading-relaxed" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">
                             Oorspronkelijk: {{ originalBody }}
                           </p>
                         }
@@ -772,7 +778,7 @@
                           </div>
                         }
 
-                        <div class="mt-3 flex items-center justify-end gap-1 text-[10px] font-medium uppercase tracking-[0.14em]" [class.text-emerald-100]="message.direction === 'outbound'" [class.text-zinc-400]="message.direction === 'inbound'">
+                        <div class="mt-3 flex items-center justify-end gap-1 text-[10px] font-medium uppercase tracking-[0.14em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">
                           <span>{{ relativeTime(message.createdAt) }}</span>
                           @if (message.direction === 'outbound') {
                             <lucide-icon [name]="messageStatusIcon(message)" class="h-3 w-3"></lucide-icon>
@@ -784,14 +790,257 @@
                   }
                 </div>
               }
+                </div>
+
+                <aside aria-label="Lead context" class="hidden min-h-0 flex-col border-l border-zinc-200 bg-white p-4 xl:flex xl:overflow-y-auto">
+                  <p class="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-700">Lead Context</p>
+
+                  @if (linkedLead(); as lead) {
+                    <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-4">
+                      <div class="flex items-center gap-3">
+                        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-lg font-black text-emerald-700">
+                          {{ (lead.consumer.firstName[0] ?? '') + (lead.consumer.lastName[0] ?? '') }}
+                        </div>
+                        <div class="min-w-0">
+                          <p class="truncate text-sm font-bold text-zinc-900">{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</p>
+                          <p class="truncate text-xs text-zinc-700">{{ lead.consumer.phone || selectedConversation()!.phoneNumber }}</p>
+                          @if (lead.address.city) {
+                            <p class="truncate text-xs text-zinc-700">{{ lead.address.city }}</p>
+                          }
+                        </div>
+                      </div>
+
+                      <div class="mt-4 flex flex-col gap-2">
+                        <button
+                          type="button"
+                          class="inline-flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50"
+                          [disabled]="leadRelationshipBusy() !== null"
+                          (click)="unlinkConversationLead()"
+                        >
+                          @if (leadRelationshipBusy() === 'unlink') {
+                            <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                          } @else {
+                            <lucide-icon name="unlink-2" class="h-3.5 w-3.5"></lucide-icon>
+                          }
+                          Ontkoppelen
+                        </button>
+                      </div>
+                    </div>
+                  } @else {
+                    <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-4">
+                      @if (conversationSuggestedLead(); as suggestedLead) {
+                        <div class="rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-3">
+                          <p class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Voorgestelde lead</p>
+                          <p class="mt-2 text-sm font-semibold text-emerald-950">{{ suggestedLead.fullName }}</p>
+                          <p class="mt-1 text-xs text-emerald-800">{{ suggestedLead.phone }} @if (suggestedLead.city) { · {{ suggestedLead.city }} }</p>
+                          <button
+                            type="button"
+                            class="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+                            [disabled]="leadRelationshipBusy() !== null"
+                            (click)="linkSuggestedLead()"
+                          >
+                            @if (leadRelationshipBusy() === 'link') {
+                              <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                            } @else {
+                              <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
+                            }
+                            Koppel suggestie
+                          </button>
+                        </div>
+                      }
+
+                      <div class="mt-3 flex flex-col gap-2">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                          (click)="toggleLeadSearchPanel()"
+                        >
+                          <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
+                          Bestaande lead koppelen
+                        </button>
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                          (click)="openCreateLeadPanel()"
+                        >
+                          <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
+                          Nieuwe lead aanmaken
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  @if (showLeadSearchPanel()) {
+                    <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-white p-4">
+                      <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Zoek lead</p>
+                      <input
+                        type="search"
+                        class="mt-3 h-10 w-full rounded-xl border border-zinc-300 px-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-600 focus:ring-2 focus:ring-emerald-500/20"
+                        placeholder="Zoek op naam, telefoon of e-mail"
+                        [value]="leadSearchQuery()"
+                        (input)="leadSearchQuery.set($any($event.target).value)"
+                      />
+                      <button
+                        type="button"
+                        class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
+                        [disabled]="leadSearchLoading()"
+                        (click)="searchExistingLeads()"
+                      >
+                        @if (leadSearchLoading()) {
+                          <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                        } @else {
+                          <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
+                        }
+                        Zoeken
+                      </button>
+
+                      @if (leadSearchResults().length > 0) {
+                        <div class="mt-3 grid gap-2">
+                          @for (lead of leadSearchResults(); track lead.id) {
+                            <div class="rounded-xl border border-zinc-200 px-3 py-3">
+                              <p class="truncate text-sm font-semibold text-zinc-900">{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</p>
+                              <p class="mt-1 text-xs text-zinc-700">{{ lead.consumer.phone }} @if (lead.address.city) { · {{ lead.address.city }} }</p>
+                              <button
+                                type="button"
+                                class="mt-3 inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-50"
+                                [disabled]="leadRelationshipBusy() !== null"
+                                (click)="linkConversationLead(lead.id)"
+                              >
+                                <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
+                                Koppel
+                              </button>
+                            </div>
+                          }
+                        </div>
+                      }
+                    </div>
+                  }
+
+                  @if (showCreateLeadPanel()) {
+                    <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-white p-4">
+                      <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Nieuwe lead</p>
+                      <div class="mt-3 grid gap-3">
+                        <input type="text" class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="Voornaam" [value]="createLeadFirstName()" (input)="createLeadFirstName.set($any($event.target).value)" />
+                        <input type="text" class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="Achternaam" [value]="createLeadLastName()" (input)="createLeadLastName.set($any($event.target).value)" />
+                        <input type="email" class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="E-mail" [value]="createLeadEmail()" (input)="createLeadEmail.set($any($event.target).value)" />
+                        <input type="text" class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="Straat" [value]="createLeadStreet()" (input)="createLeadStreet.set($any($event.target).value)" />
+                        <div class="grid grid-cols-2 gap-3">
+                          <input type="text" class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="Huisnummer" [value]="createLeadHouseNumber()" (input)="createLeadHouseNumber.set($any($event.target).value)" />
+                          <input type="text" class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="Postcode" [value]="createLeadZipCode()" (input)="createLeadZipCode.set($any($event.target).value)" />
+                        </div>
+                        <input type="text" class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" placeholder="Plaats" [value]="createLeadCity()" (input)="createLeadCity.set($any($event.target).value)" />
+                        <select class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" [value]="createLeadConsumerRole()" (change)="createLeadConsumerRole.set($any($event.target).value)">
+                          <option value="Owner">Eigenaar</option>
+                          <option value="Tenant">Huurder</option>
+                          <option value="Landlord">Verhuurder</option>
+                        </select>
+                        <select class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" [value]="createLeadServiceType()" (change)="createLeadServiceType.set($any($event.target).value)">
+                          @for (item of availableServiceTypes(); track item.id) {
+                            <option [value]="item.name">{{ item.name }}</option>
+                          }
+                        </select>
+                      </div>
+                      <div class="mt-4 flex flex-col gap-2">
+                        <button
+                          type="button"
+                          class="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
+                          [disabled]="!canCreateConversationLead()"
+                          (click)="createLeadFromConversation()"
+                        >
+                          @if (leadRelationshipBusy() === 'create') {
+                            <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                          } @else {
+                            <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
+                          }
+                          Lead aanmaken
+                        </button>
+                        <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100" (click)="closeCreateLeadPanel()">
+                          <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
+                          Sluiten
+                        </button>
+                      </div>
+                    </div>
+                  }
+
+                  @if (canUseLeadActions()) {
+                    <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-4">
+                      <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Belangrijke berichten</p>
+                      @if (showLinkedLeadServicePicker()) {
+                        <div class="mt-3">
+                          <shared-select
+                            [label]="'Leadservice voor opslaan'"
+                            [options]="linkedLeadServiceOptions()"
+                            [value]="linkedLeadServiceId()"
+                            (valueChange)="updateLinkedLeadServiceId($event)"
+                            [disabled]="linkedLeadLoading() || savingImportantMessages() || attachingMessageId() !== null"
+                          />
+                        </div>
+                      }
+                      @if (isImportantSelectionEnabled()) {
+                        <p class="mt-3 text-xs font-semibold text-zinc-700">
+                          {{ selectedImportantCount() }} bericht{{ selectedImportantCount() === 1 ? '' : 'en' }} geselecteerd
+                        </p>
+                        <div class="mt-3 flex flex-col gap-2">
+                          <button
+                            type="button"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300"
+                            [disabled]="selectedImportantCount() === 0 || savingImportantMessages()"
+                            (click)="saveSelectedMessagesToLead()"
+                          >
+                            @if (savingImportantMessages()) {
+                              <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+                            } @else {
+                              <lucide-icon name="bookmark-plus" class="h-3.5 w-3.5"></lucide-icon>
+                            }
+                            Opslaan bij lead
+                          </button>
+                          <button
+                            type="button"
+                            class="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                            [disabled]="savingImportantMessages()"
+                            (click)="toggleImportantSelectionMode()"
+                          >
+                            <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
+                            Stop selectie
+                          </button>
+                        </div>
+                      } @else {
+                        <p class="mt-3 text-xs leading-relaxed text-zinc-700">Selecteer belangrijke berichten in de thread om ze als leadcontext op te slaan.</p>
+                        <button
+                          type="button"
+                          class="mt-3 inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
+                          (click)="toggleImportantSelectionMode()"
+                        >
+                          <lucide-icon name="check-check" class="h-3.5 w-3.5"></lucide-icon>
+                          Berichten selecteren
+                        </button>
+                      }
+                    </div>
+                  }
+                </aside>
+              </div>
             </div>
 
-            <footer class="shrink-0 border-t border-zinc-100 bg-white px-3 py-3 sm:px-6 sm:py-4">
+            <footer class="shrink-0 border-t border-zinc-200 bg-white px-3 py-3 sm:px-6 sm:py-4">
               <div class="mx-auto flex max-w-3xl flex-col gap-3 sm:gap-4">
-                <section class="hidden rounded-3xl border border-zinc-200 bg-zinc-50/80 p-3 lg:block">
+                @if (selectedConversation()?.leadId) {
+                  <div class="flex flex-wrap items-center gap-2">
+                    <button
+                      type="button"
+                      class="inline-flex min-h-10 items-center gap-2 rounded-full border border-emerald-300 bg-emerald-50 px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-emerald-800 transition hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                      [disabled]="!canSuggestReply() || suggestingReply()"
+                      (click)="suggestReply()"
+                    >
+                      <lucide-icon name="sparkles" class="h-3.5 w-3.5"></lucide-icon>
+                      <span>{{ suggestingReply() ? 'AI suggestie bezig' : 'AI suggest reply' }}</span>
+                    </button>
+                  </div>
+                }
+
+                <section class="hidden rounded-[1.75rem] border border-zinc-200/80 bg-zinc-50/80 p-3 lg:block">
                   <div class="flex items-start justify-between gap-3">
                     <div>
-                      <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-400">Berichttype</p>
+                      <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-700">Berichttype</p>
                       <p class="mt-1 text-sm font-semibold text-zinc-900">{{ composerTypeLabel() }}</p>
                     </div>
                     <button
@@ -827,7 +1076,7 @@
                   </div>
 
                   @if (showAdvancedComposerOptions()) {
-                    <div class="mt-3 border-t border-zinc-200 pt-3">
+                    <div class="mt-3 border-t border-zinc-200/80 pt-3">
                       <div class="flex flex-wrap gap-2">
                         @for (type of advancedComposerTypes; track type.value) {
                           <button
@@ -854,7 +1103,7 @@
 
                 <section class="lg:hidden">
                   @if (composerType() === 'text') {
-                    <div class="flex items-center gap-2 rounded-[1.75rem] border border-zinc-200 bg-white px-2 py-2 shadow-sm">
+                    <div class="flex items-center gap-2 rounded-[1.75rem] border border-zinc-200 bg-white px-2 py-2">
                       <shared-menu
                         class="shrink-0 self-center"
                         triggerLabel="Meer berichtopties"
@@ -873,7 +1122,7 @@
                       </shared-menu>
 
                       <textarea
-                        class="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-sm outline-none placeholder:text-zinc-400"
+                        class="max-h-32 min-h-11 flex-1 resize-none bg-transparent px-2 py-2 text-sm text-zinc-900 outline-none placeholder:text-zinc-600"
                         [value]="composerBody()"
                         [disabled]="sendingMessage() || !canSend()"
                         placeholder="Typ je antwoord..."
@@ -893,7 +1142,7 @@
                       </button>
                     </div>
                   } @else {
-                    <div class="flex items-center justify-between gap-3 rounded-[1.75rem] border border-zinc-200 bg-white px-3 py-3 shadow-sm">
+                    <div class="flex items-center justify-between gap-3 rounded-[1.75rem] border border-zinc-200 bg-white px-3 py-3">
                       <div class="flex min-w-0 items-center gap-3">
                         <shared-menu
                           class="shrink-0"
@@ -913,7 +1162,7 @@
                         </shared-menu>
 
                         <div class="min-w-0">
-                          <p class="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-400">Berichttype</p>
+                          <p class="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-700">Berichttype</p>
                           <p class="truncate text-sm font-semibold text-zinc-900">{{ composerTypeLabel() }}</p>
                         </div>
                       </div>
@@ -933,7 +1182,7 @@
 
                 @if (composerType() === 'text' && !isMobileViewport()) {
                   <textarea
-                    class="min-h-28 w-full rounded-3xl border border-zinc-200 px-4 py-3 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
+                    class="min-h-28 w-full rounded-3xl border border-zinc-300 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
                     [value]="composerBody()"
                     [disabled]="sendingMessage() || !canSend()"
                     placeholder="Typ je antwoord..."
@@ -946,19 +1195,19 @@
                 @if (isUploadComposer()) {
                   <div class="grid gap-2 sm:gap-3 md:grid-cols-2">
                     <label class="flex flex-col gap-2 rounded-[1.5rem] border border-dashed border-zinc-300 bg-zinc-50 px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Upload</span>
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Upload</span>
                       <input type="file" class="text-sm" [accept]="uploadAccept()" [disabled]="sendingMessage() || !canSend()" (change)="handleAttachmentSelected($event)" />
                       @if (composerAttachmentName(); as attachmentName) {
                         <span class="inline-flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-xs font-medium text-zinc-700">
                           <span class="truncate">{{ attachmentName }}</span>
-                          <button type="button" class="shrink-0 text-zinc-500 hover:text-zinc-900" (click)="clearComposerAttachment()">Verwijder</button>
+                          <button type="button" class="shrink-0 text-zinc-700 hover:text-zinc-950" (click)="clearComposerAttachment()">Verwijder</button>
                         </span>
                       }
                     </label>
 
                     @if (showCaptionComposer()) {
                       <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Caption</span>
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Caption</span>
                         <textarea
                           class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
                           [value]="composerCaption()"
@@ -994,11 +1243,11 @@
                 @if (composerType() === 'contact') {
                   <div class="grid gap-2 sm:gap-3 md:grid-cols-2">
                     <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Naam</span>
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Naam</span>
                       <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactName()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactName.set($any($event.target).value)" />
                     </label>
                     <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Telefoon</span>
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Telefoon</span>
                       <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactPhone()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactPhone.set($any($event.target).value)" />
                     </label>
                   </div>
@@ -1007,11 +1256,11 @@
                 @if (composerType() === 'location') {
                   <div class="grid gap-2 sm:gap-3 md:grid-cols-2">
                     <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Latitude</span>
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Latitude</span>
                       <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLatitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLatitude.set($any($event.target).value)" />
                     </label>
                     <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Longitude</span>
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Longitude</span>
                       <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLongitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLongitude.set($any($event.target).value)" />
                     </label>
                   </div>
@@ -1020,29 +1269,29 @@
                 @if (composerType() === 'poll') {
                   <div class="grid gap-2 sm:gap-3">
                     <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Vraag</span>
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Vraag</span>
                       <textarea class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollQuestion()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollQuestion.set($any($event.target).value)"></textarea>
                     </label>
                     <div class="grid gap-2 sm:gap-3 md:grid-cols-2">
                       <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 1</span>
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 1</span>
                         <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionOne()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionOne.set($any($event.target).value)" />
                       </label>
                       <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 2</span>
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 2</span>
                         <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionTwo()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionTwo.set($any($event.target).value)" />
                       </label>
                       <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 3</span>
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 3</span>
                         <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionThree()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionThree.set($any($event.target).value)" />
                       </label>
                       <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Optie 4</span>
+                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 4</span>
                         <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionFour()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionFour.set($any($event.target).value)" />
                       </label>
                     </div>
                     <label class="flex max-w-full flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:max-w-48 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">Max. antwoorden</span>
+                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Max. antwoorden</span>
                       <input type="number" min="1" class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollMaxAnswer()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollMaxAnswer.set(+$any($event.target).value || 1)" />
                     </label>
                   </div>
@@ -1068,36 +1317,11 @@
                   </div>
                 }
 
-                <div class="flex flex-col gap-2 rounded-[1.25rem] border border-zinc-200/80 bg-white/90 px-3 py-2.5 sm:gap-3 sm:rounded-3xl sm:border-zinc-200 sm:bg-white sm:px-4 sm:py-3 sm:flex-row sm:items-center sm:justify-between">
-                  <p class="text-xs leading-relaxed text-zinc-500">
+                <div class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200/80 bg-white/90 px-3 py-2.5 sm:gap-3 sm:rounded-3xl sm:border-zinc-200 sm:bg-white sm:px-4 sm:py-3 sm:flex-row sm:items-center sm:justify-between">
+                  <p class="text-xs leading-relaxed text-zinc-700">
                     {{ composerHelperText() }}
                   </p>
                   <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-                    @if (selectedConversation()?.leadId) {
-                      @if (isMobileViewport()) {
-                        <button
-                          type="button"
-                          class="inline-flex min-h-9 items-center gap-1.5 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1.5 text-[11px] font-bold uppercase tracking-[0.16em] text-zinc-600 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
-                          [disabled]="!canSuggestReply() || suggestingReply()"
-                          (click)="suggestReply()"
-                        >
-                          <lucide-icon name="sparkles" class="h-3.5 w-3.5"></lucide-icon>
-                          <span>{{ suggestingReply() ? 'Bezig' : 'Suggest' }}</span>
-                        </button>
-                      } @else {
-                        <shared-button
-                          variant="secondary"
-                          size="compact"
-                          [fullWidth]="false"
-                          [loading]="suggestingReply()"
-                          [disabled]="!canSuggestReply()"
-                          (clicked)="suggestReply()"
-                        >
-                          <lucide-icon name="sparkles" class="mr-2 h-4 w-4"></lucide-icon>
-                          Suggest reply
-                        </shared-button>
-                      }
-                    }
                     @if (!isMobileViewport()) {
                       <shared-button
                         variant="primary"
