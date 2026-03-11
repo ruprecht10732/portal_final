@@ -85,6 +85,32 @@ export class LeadDetailTimelineTabComponent {
       .join(' ');
   }
 
+  protected truncateText(value: string | null | undefined, maxLength = 140): string {
+    if (!value) {
+      return '';
+    }
+
+    const normalized = value.replaceAll(/\s+/g, ' ').trim();
+    if (normalized.length <= maxLength) {
+      return normalized;
+    }
+
+    return `${normalized.slice(0, maxLength).trimEnd()}…`;
+  }
+
+  protected hasDetailSections(item: LeadTimelineItem): boolean {
+    return Boolean(this.getTimelineAppointmentApproval()(item))
+      || Boolean(this.getTimelinePartnerSummary()(item))
+      || Boolean(this.getTimelineEstimation()(item))
+      || this.getTimelineMissingInformation()(item).length > 0
+      || this.getTimelineResolvedInformation()(item).length > 0
+      || this.getTimelineExtractedFacts()(item).length > 0
+      || Boolean(this.getTimelineDraftedQuote()(item))
+      || Boolean(this.getTimelinePhotoAnalysis()(item))
+      || this.getTimelineRecommendedAction()(item) === 'CallImmediately'
+      || Boolean(this.getTimelineContactMessage()(item));
+  }
+
   private escapeHtml(value: string): string {
     return value
       .replaceAll('&', '&amp;')
@@ -118,11 +144,11 @@ export class LeadDetailTimelineTabComponent {
       detailParts.push(phoneNumber);
     }
     if (messageIds.length > 0) {
-      detailParts.push(`${messageIds.length} bericht${messageIds.length === 1 ? '' : 'en'}`);
+      detailParts.push(`${messageIds.length} ${this.t('leads.detail.timeline.messagesLabel')}`);
     }
 
     return {
-      sourceLabel: 'WhatsApp inbox',
+      sourceLabel: this.t('leads.detail.timeline.whatsappInbox'),
       detailLabel: detailParts.length > 0 ? detailParts.join(' · ') : null,
     };
   }

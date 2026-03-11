@@ -5,6 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { OrganizationService, WhatsAppStatus } from '../../../../core/services/organization.service';
 import { CreateWebhookAPIKeyResponse, WebhookAPIKey, WebhookService } from '../../../../core/services/webhook.service';
 import { environment } from '../../../../../environments/environment';
+import { resolveWhatsAppQrError } from '../../../../core/utils/whatsapp-qr-error.util';
 import { localizeWhatsAppStatusMessage } from '../../../../core/utils/whatsapp-status.util';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { CardComponent } from '../../../../shared/components/card/card.component';
@@ -32,6 +33,8 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly isWhatsAppLoading = signal(false);
   protected readonly isWhatsAppAction = signal(false);
   protected readonly whatsAppErrorMessage = signal('');
+  protected readonly whatsAppQrMessage = signal('');
+  protected readonly whatsAppQrMessageVariant = signal<'error' | 'info'>('error');
   protected readonly whatsAppSuccessMessage = signal('');
   protected readonly isWhatsAppTesting = signal(false);
   protected readonly whatsAppTestMessage = signal('');
@@ -169,6 +172,7 @@ export class OrganizationWhatsAppSettingsComponent {
 
         if (status.state === 'CONNECTED') {
           this.stopQrRefreshCycle();
+          this.clearWhatsAppQrMessage();
           this.revokeQrUrl();
           return;
         }
@@ -196,18 +200,20 @@ export class OrganizationWhatsAppSettingsComponent {
     if (this.isWhatsAppUnregistered() || this.qrLoadInFlight) return;
 
     this.qrLoadInFlight = true;
+    this.clearWhatsAppQrMessage();
 
     this.orgService
       .getWhatsAppQr()
       .pipe(
-        catchError(() => {
-          this.whatsAppErrorMessage.set(this.translate.instant('organization.settings.whatsapp.qrFailed'));
-          return EMPTY;
-        }),
         finalize(() => (this.qrLoadInFlight = false)),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(blob => this.setQrUrl(blob));
+      .subscribe({
+        next: blob => this.setQrUrl(blob),
+        error: error => {
+          void this.handleWhatsAppQrError(error);
+        },
+      });
   }
 
   private setQrUrl(blob: Blob): void {
@@ -223,11 +229,29 @@ export class OrganizationWhatsAppSettingsComponent {
     this.qrBlobUrl.set(null);
   }
 
+  private clearWhatsAppQrMessage(): void {
+    this.whatsAppQrMessage.set('');
+    this.whatsAppQrMessageVariant.set('error');
+  }
+
+  private async handleWhatsAppQrError(error: unknown): Promise<void> {
+    this.revokeQrUrl();
+
+    const resolution = await resolveWhatsAppQrError(error, this.translate);
+    this.whatsAppQrMessage.set(resolution.message);
+    this.whatsAppQrMessageVariant.set(resolution.variant);
+
+    if (resolution.stopRefreshing) {
+      this.stopQrRefreshCycle();
+    }
+  }
+
   protected connectWhatsApp(): void {
     if (this.isWhatsAppAction()) return;
 
     this.isWhatsAppAction.set(true);
     this.whatsAppErrorMessage.set('');
+    this.clearWhatsAppQrMessage();
     this.whatsAppSuccessMessage.set('');
 
     this.orgService
@@ -254,6 +278,7 @@ export class OrganizationWhatsAppSettingsComponent {
 
     this.isWhatsAppAction.set(true);
     this.whatsAppErrorMessage.set('');
+    this.clearWhatsAppQrMessage();
     this.whatsAppSuccessMessage.set('');
 
     this.orgService
@@ -278,6 +303,7 @@ export class OrganizationWhatsAppSettingsComponent {
 
     this.isWhatsAppAction.set(true);
     this.whatsAppErrorMessage.set('');
+    this.clearWhatsAppQrMessage();
     this.whatsAppSuccessMessage.set('');
 
     this.orgService
@@ -295,12 +321,14 @@ export class OrganizationWhatsAppSettingsComponent {
         this.whatsAppAccountJid.set(null);
         this.whatsAppStatus.set({ state: 'UNREGISTERED', message: '', canSend: false, needsReauth: false, presence: 'available' });
         this.whatsAppSuccessMessage.set(this.translate.instant('organization.settings.whatsapp.disconnected'));
+        this.clearWhatsAppQrMessage();
         this.revokeQrUrl();
       });
   }
 
   protected refreshQr(): void {
     this.stopQrRefreshCycle();
+    this.clearWhatsAppQrMessage();
     this.startQrRefreshCycle();
   }
 

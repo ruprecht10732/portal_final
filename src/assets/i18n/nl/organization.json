@@ -267,6 +267,9 @@
         "qrTitle": "Scan QR-code",
         "qrHint": "Open WhatsApp op uw telefoon en scan de QR-code om te koppelen.",
         "qrFailed": "QR-code laden mislukt.",
+        "qrMessages": {
+          "alreadyLinked": "Dit WhatsApp-apparaat is al gekoppeld. Een nieuwe QR-code is niet nodig. Gebruik Opnieuw verbinden als u een andere telefoon wilt koppelen."
+        },
         "refreshQr": "QR vernieuwen",
         "testPhoneLabel": "Testnummer (organisatie)",
         "testPhoneMissing": "Geen organisatietelefoonnummer ingesteld.",

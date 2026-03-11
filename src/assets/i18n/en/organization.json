@@ -267,6 +267,9 @@
         "qrTitle": "Scan QR code",
         "qrHint": "Open WhatsApp on your phone and scan the QR code to link the device.",
         "qrFailed": "Failed to load QR code.",
+        "qrMessages": {
+          "alreadyLinked": "This WhatsApp device is already linked. A new QR code is not needed. Use Reconnect if you want to pair a different phone."
+        },
         "refreshQr": "Refresh QR",
         "testPhoneLabel": "Test number (organization)",
         "testPhoneMissing": "No organization phone number is configured.",

@@ -4,6 +4,7 @@ import { Router } from '@angular/router';
 import { catchError, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ErrorReportingService } from '../services/error-reporting.service';
+import { SKIP_GLOBAL_ERROR_REPORTING } from './error-reporting-context';
 
 export const errorReportingInterceptor: HttpInterceptorFn = (req, next) => {
   const reporter = inject(ErrorReportingService);
@@ -12,6 +13,7 @@ export const errorReportingInterceptor: HttpInterceptorFn = (req, next) => {
   const isApiRequest = req.url.startsWith(apiBaseUrl);
   const isAuthRequest = req.url.startsWith(`${apiBaseUrl}/auth/`);
   const isRefreshRequest = req.url.startsWith(`${apiBaseUrl}/auth/refresh`);
+  const skipGlobalReporting = req.context.get(SKIP_GLOBAL_ERROR_REPORTING);
 
   return next(req).pipe(
     catchError(error => {
@@ -24,6 +26,7 @@ export const errorReportingInterceptor: HttpInterceptorFn = (req, next) => {
         const isOrgRequired = error.status === 403 && errorMessage === 'organization required';
         const isSilent =
           isAuthRequest ||
+          skipGlobalReporting ||
           (isRefreshRequest && error.status === 401) ||
           (isOnboardingRoute && isOrgRequired);
 

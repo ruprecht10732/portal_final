@@ -1,7 +1,8 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
+import { SKIP_GLOBAL_ERROR_REPORTING } from '../interceptors/error-reporting-context';
 import { toHttpParams } from '../utils/http-utils';
 
 export interface Organization {
@@ -459,7 +460,10 @@ export class OrganizationService {
   }
 
   getWhatsAppQr(): Observable<Blob> {
-    return this.http.get(`${this.baseUrl}/me/whatsapp/qr`, { responseType: 'blob' });
+    return this.http.get(`${this.baseUrl}/me/whatsapp/qr`, {
+      context: new HttpContext().set(SKIP_GLOBAL_ERROR_REPORTING, true),
+      responseType: 'blob',
+    });
   }
 
   getSMTPStatus(): Observable<SMTPStatusResponse> {
