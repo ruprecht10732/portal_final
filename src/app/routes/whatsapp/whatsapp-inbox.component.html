@@ -11,7 +11,7 @@
     [ariaLabel]="'Ververs gesprekken'"
     (clicked)="loadConversations()"
   >
-    <lucide-icon name="refresh-cw" class="mr-2 h-4 w-4"></lucide-icon>
+    <lucide-icon name="refresh-cw" class="mr-2 h-4 w-4" [class.animate-spin]="loadingConversations()"></lucide-icon>
     Ververs
   </shared-button>
 
@@ -67,7 +67,7 @@
       </div>
     </section>
 
-    <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:gap-4 xl:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)]">
+    <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:gap-4 xl:h-[min(70dvh,52rem)] xl:grid-cols-[minmax(22rem,28rem)_minmax(0,1fr)]">
       @if (showListPane()) {
         <aside class="flex min-h-[45dvh] min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm xl:min-h-0">
           <header class="shrink-0 border-b border-zinc-200 bg-white/95 px-4 py-4 backdrop-blur-sm">
@@ -247,7 +247,7 @@
       }
 
       @if (showThreadPane()) {
-        <section class="flex min-h-[55dvh] min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm xl:min-h-0">
+        <section class="flex h-[65dvh] min-h-[24rem] min-w-0 flex-col overflow-hidden rounded-sm border border-zinc-200 bg-white shadow-sm xl:h-full xl:min-h-0">
           @if (selectedConversation()) {
             <header class="shrink-0 border-b border-zinc-100 bg-white/95 px-4 py-4 backdrop-blur-sm sm:px-6">
               <div class="flex items-center gap-3">

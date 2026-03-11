@@ -97,6 +97,11 @@ type MessagePollCard = {
 
 type ConversationListFilter = 'all' | 'unread' | 'archived';
 
+type ConversationListFilterOption = {
+  value: ConversationListFilter;
+  label: string;
+};
+
 type ThreadActionState = {
   archived?: boolean;
   pinned?: boolean;
@@ -130,6 +135,12 @@ const disappearingTimerChoices = [
   { value: 7776000, label: '90 dagen' },
 ] as const;
 
+const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
+	{ value: 'all', label: 'Alles' },
+	{ value: 'unread', label: 'Ongelezen' },
+	{ value: 'archived', label: 'Archief' },
+];
+
 @Component({
   selector: 'app-whatsapp-inbox',
   imports: [TranslateModule, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, MenuComponent, PageLayoutComponent, SelectComponent],
@@ -157,6 +168,7 @@ export class WhatsAppInboxComponent {
   protected readonly sendingPresence = signal<WhatsAppPresenceType | null>(null);
   protected readonly conversationSearchQuery = signal('');
   protected readonly conversationListFilter = signal<ConversationListFilter>('all');
+  protected readonly conversationListFilterOptions = conversationListFilterOptions;
   protected readonly composerOptionsExpanded = signal(false);
   protected readonly composerType = signal<WhatsAppMessageComposerType>('text');
   protected readonly composerBody = signal('');
