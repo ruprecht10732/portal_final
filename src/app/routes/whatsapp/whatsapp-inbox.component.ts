@@ -254,6 +254,7 @@ export class WhatsAppInboxComponent {
   protected readonly createLeadServiceType = signal('');
   protected readonly createLeadConsumerRole = signal<'Owner' | 'Tenant' | 'Landlord'>('Owner');
   protected readonly isMobileViewport = signal(false);
+  protected readonly aiComposePanelExpanded = signal(false);
   protected readonly reactionChoices = reactionOptions;
   protected readonly quickReactionChoices = quickReactionOptions;
   protected readonly disappearingTimerOptions = disappearingTimerChoices;
@@ -572,9 +573,9 @@ export class WhatsAppInboxComponent {
         }
 
         const firstConversation = conversations.find(item => this.isConversationVisibleInActiveList(item));
-        if (firstConversation) {
+        if (firstConversation && !this.isMobileViewport()) {
           this.selectConversation(firstConversation.id);
-        } else {
+        } else if (!firstConversation) {
           this.selectedConversationId.set(null);
           this.messages.set([]);
         }

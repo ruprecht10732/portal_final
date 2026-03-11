@@ -1080,43 +1080,77 @@
             <footer class="shrink-0 border-t border-zinc-200 bg-white px-3 py-3 sm:px-6 sm:py-4">
               <div class="mx-auto flex max-w-3xl flex-col gap-3 sm:gap-4">
                 @if (selectedConversation()?.leadId) {
-                  <div class="rounded-[1.5rem] border border-emerald-200 bg-emerald-50/70 p-3">
-                    <div class="flex flex-col gap-3 lg:flex-row lg:items-end lg:justify-between">
-                      <div class="min-w-0 flex-1">
-                        <p class="text-[10px] font-black uppercase tracking-[0.2em] text-emerald-700">AI compose</p>
-                        <p class="mt-1 text-xs text-emerald-900">Kies het doel van dit bericht zodat de draft beter past bij de situatie.</p>
+                  <div class="overflow-hidden rounded-[1.5rem] border border-emerald-200 bg-gradient-to-br from-emerald-50 to-white shadow-sm">
+                    <!-- Card header: always visible -->
+                    <div class="flex items-center gap-3 px-3 py-3 sm:px-4">
+                      <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-emerald-100">
+                        <lucide-icon name="sparkles" class="h-4 w-4 text-emerald-700"></lucide-icon>
                       </div>
+                      <div class="min-w-0 flex-1">
+                        <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-700">AI compose</p>
+                        <p class="mt-0.5 hidden text-xs text-emerald-900/80 lg:block">{{ selectedSuggestionScenarioDescription() }}</p>
+                      </div>
+                      <!-- Mobile: toggle config panel -->
                       <button
                         type="button"
-                        class="inline-flex min-h-10 items-center gap-2 rounded-full border border-emerald-300 bg-white px-3 py-2 text-xs font-bold uppercase tracking-[0.16em] text-emerald-800 transition hover:bg-emerald-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                        class="inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-bold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-1 lg:hidden"
+                        [class.border-emerald-300]="aiComposePanelExpanded()"
+                        [class.bg-emerald-100]="aiComposePanelExpanded()"
+                        [class.text-emerald-800]="aiComposePanelExpanded()"
+                        [class.border-zinc-200]="!aiComposePanelExpanded()"
+                        [class.bg-white]="!aiComposePanelExpanded()"
+                        [class.text-zinc-600]="!aiComposePanelExpanded()"
+                        (click)="aiComposePanelExpanded.set(!aiComposePanelExpanded())"
+                        [attr.aria-expanded]="aiComposePanelExpanded()"
+                        aria-label="AI compose opties"
+                      >
+                        <lucide-icon name="sliders-horizontal" class="h-3 w-3"></lucide-icon>
+                        <span class="hidden xs:inline">{{ suggestionScenario() === 'generic' ? 'Algemeen' : 'Aangepast' }}</span>
+                        <lucide-icon [name]="aiComposePanelExpanded() ? 'chevron-up' : 'chevron-down'" class="h-3 w-3"></lucide-icon>
+                      </button>
+                      <!-- Main CTA button -->
+                      <button
+                        type="button"
+                        class="inline-flex min-h-9 shrink-0 items-center gap-2 rounded-full px-3 py-2 text-xs font-bold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-700 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-50"
+                        [class.bg-emerald-600]="!suggestingReply()"
+                        [class.text-white]="!suggestingReply()"
+                        [class.hover:bg-emerald-700]="!suggestingReply()"
+                        [class.bg-emerald-100]="suggestingReply()"
+                        [class.text-emerald-800]="suggestingReply()"
                         [disabled]="!canSuggestReply() || suggestingReply()"
                         (click)="suggestReply()"
+                        aria-label="AI suggestie genereren"
                       >
                         <lucide-icon [name]="suggestingReply() ? 'loader-circle' : 'sparkles'" [class.animate-spin]="suggestingReply()" class="h-3.5 w-3.5"></lucide-icon>
-                        <span>{{ suggestingReply() ? 'AI suggestie bezig' : 'AI suggest reply' }}</span>
+                        <span class="hidden sm:inline">{{ suggestingReply() ? 'Bezig...' : 'Genereer' }}</span>
                       </button>
                     </div>
 
-                    <div class="mt-3 grid gap-3 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:items-start">
-                      <shared-select
-                        [options]="suggestionScenarioOptions"
-                        [value]="suggestionScenario()"
-                        [ariaLabel]="'Doel van AI-bericht'"
-                        [placeholder]="'Kies een scenario'"
-                        (valueChange)="suggestionScenario.set($event ?? 'generic')"
-                      />
-
-                      <div class="grid gap-2">
-                        <p class="text-xs text-zinc-600">{{ selectedSuggestionScenarioDescription() }}</p>
-                        @if (showSuggestionScenarioNotes()) {
-                          <textarea
-                            class="min-h-20 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
-                            [value]="suggestionScenarioNotes()"
-                            [disabled]="suggestingReply()"
-                            placeholder="Extra instructie voor deze draft, bijvoorbeeld wat je wilt benadrukken of vermijden"
-                            (input)="suggestionScenarioNotes.set($any($event.target).value)"
-                          ></textarea>
-                        }
+                    <!-- Expandable config: hidden on mobile by default, always shown on desktop -->
+                    <div
+                      class="border-t border-emerald-100 px-3 pb-3 pt-3 sm:px-4 lg:block"
+                      [class.hidden]="!aiComposePanelExpanded() && isMobileViewport()"
+                    >
+                      <div class="grid gap-3 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:items-start">
+                        <shared-select
+                          [options]="suggestionScenarioOptions"
+                          [value]="suggestionScenario()"
+                          [ariaLabel]="'Doel van AI-bericht'"
+                          [placeholder]="'Kies een scenario'"
+                          (valueChange)="suggestionScenario.set($event ?? 'generic')"
+                        />
+                        <div class="grid gap-2">
+                          <p class="text-xs leading-relaxed text-emerald-900/70 lg:hidden">{{ selectedSuggestionScenarioDescription() }}</p>
+                          @if (showSuggestionScenarioNotes()) {
+                            <textarea
+                              class="min-h-20 rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-60"
+                              [value]="suggestionScenarioNotes()"
+                              [disabled]="suggestingReply()"
+                              placeholder="Extra instructie voor deze draft…"
+                              (input)="suggestionScenarioNotes.set($any($event.target).value)"
+                            ></textarea>
+                          }
+                        </div>
                       </div>
                     </div>
                   </div>
