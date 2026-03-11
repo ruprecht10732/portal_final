@@ -177,11 +177,21 @@ export interface SendIMAPMessageRequest {
 export interface ReplyIMAPMessageRequest {
   body: string;
   aiSuggestion?: string;
+  scenario?: string;
   isHtml?: boolean;
 }
 
 export interface SuggestIMAPReplyResponse {
   suggestion: string;
+  effectiveScenario: string;
+}
+
+export interface ReplyScenarioAnalyticsItem {
+  scenario: string;
+  sentCount: number;
+  editedCount: number;
+  editRate: number;
+  lastUsedAt?: string | null;
 }
 
 export type SuggestIMAPReplyRequest = SuggestReplyRequest;

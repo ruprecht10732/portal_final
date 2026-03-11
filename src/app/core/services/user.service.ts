@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable } from 'rxjs';
+import { map, Observable } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { CreateLeadRequest } from './leads.types';
 import type {
@@ -15,6 +15,7 @@ import type {
   IMAPMessageListResponse,
   LinkIMAPMessageLeadRequest,
   ReplyIMAPMessageRequest,
+  ReplyScenarioAnalyticsItem,
   SuggestIMAPReplyRequest,
   SendIMAPMessageRequest,
   SuggestIMAPReplyResponse,
@@ -137,5 +138,11 @@ export class UserService {
 
   replyAllIMAPMessage(accountId: string, uid: number, payload: ReplyIMAPMessageRequest): Observable<{ message: string }> {
     return this.http.post<{ message: string }>(`${this.imapBaseUrl}/${accountId}/messages/${uid}/reply-all`, payload);
+  }
+
+  getIMAPReplyScenarioAnalytics(): Observable<ReplyScenarioAnalyticsItem[]> {
+    return this.http.get<{ items: ReplyScenarioAnalyticsItem[] }>(`${this.imapBaseUrl}/reply-scenario-analytics`).pipe(
+      map(response => response.items)
+    );
   }
 }

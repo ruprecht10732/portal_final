@@ -84,7 +84,23 @@ export interface OrganizationSettings {
   whatsAppDeviceId?: string | null;
   whatsAppAccountJid?: string | null;
   whatsAppToneOfVoice: string;
+  whatsAppDefaultReplyScenario: string;
+  emailDefaultReplyScenario: string;
+  quoteRelatedReplyScenario: string;
+  appointmentRelatedReplyScenario: string;
   whatsAppPresence?: 'available' | 'unavailable';
+}
+
+export interface ReplyScenarioAnalyticsItem {
+  scenario: string;
+  sentCount: number;
+  editedCount: number;
+  editRate: number;
+  lastUsedAt?: string | null;
+}
+
+export interface ReplyScenarioAnalyticsResponse {
+  items: ReplyScenarioAnalyticsItem[];
 }
 
 export interface UpdateOrganizationSettingsRequest {
@@ -110,6 +126,10 @@ export interface UpdateOrganizationSettingsRequest {
   photoAnalysisPerspectiveNormalizationEnabled?: boolean;
   photoAnalysisPerspectiveNormalizationServiceTypes?: string[];
   whatsAppToneOfVoice?: string;
+  whatsAppDefaultReplyScenario?: string;
+  emailDefaultReplyScenario?: string;
+  quoteRelatedReplyScenario?: string;
+  appointmentRelatedReplyScenario?: string;
   whatsAppPresence?: 'available' | 'unavailable';
 }
 
@@ -388,6 +408,12 @@ export class OrganizationService {
 
   updateSettings(payload: UpdateOrganizationSettingsRequest): Observable<OrganizationSettings> {
     return this.http.patch<OrganizationSettings>(`${this.baseUrl}/me/settings`, payload);
+  }
+
+  getWhatsAppReplyScenarioAnalytics(): Observable<ReplyScenarioAnalyticsItem[]> {
+    return this.http.get<ReplyScenarioAnalyticsResponse>(`${this.baseUrl}/me/whatsapp/reply-scenario-analytics`).pipe(
+      map(response => response.items)
+    );
   }
 
   getWorkflowEngineWorkflows(): Observable<WorkflowEngineWorkflow[]> {

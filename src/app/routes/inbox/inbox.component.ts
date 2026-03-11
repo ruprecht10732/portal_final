@@ -457,10 +457,11 @@ export class InboxComponent {
         finalize(() => this.suggestingReply.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(({ suggestion }) => {
+      .subscribe(({ suggestion, effectiveScenario }) => {
         this.composerBody.set(suggestion);
         this.aiSuggestionSeed.set(suggestion);
         this.aiSuggestionUid.set(selectedMessage.uid);
+        this.suggestionScenario.set((effectiveScenario as ReplySuggestionScenario | undefined) ?? this.suggestionScenario());
       });
   }
 
@@ -489,6 +490,7 @@ export class InboxComponent {
           body,
           isHtml: false,
           ...(aiSuggestion ? { aiSuggestion } : {}),
+          ...(aiSuggestion ? { scenario: this.suggestionScenario() } : {}),
         };
         return this.userService.replyIMAPMessage(account.id, selected.uid, {
           ...payload,
@@ -499,6 +501,7 @@ export class InboxComponent {
           body,
           isHtml: false,
           ...(aiSuggestion ? { aiSuggestion } : {}),
+          ...(aiSuggestion ? { scenario: this.suggestionScenario() } : {}),
         };
         return this.userService.replyAllIMAPMessage(account.id, selected.uid, {
           ...payload,

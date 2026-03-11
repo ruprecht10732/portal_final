@@ -65,6 +65,40 @@
             (valueChange)="aiCouncilConsensusMode.set($event ?? 'weighted')"
           />
 
+          <div class="grid grid-cols-1 gap-5 lg:grid-cols-2">
+            <shared-select
+              label="Standaardscenario WhatsApp"
+              hint="Wordt gebruikt als een medewerker geen expliciet scenario kiest."
+              [options]="replyScenarioOptions"
+              [value]="whatsAppDefaultReplyScenario()"
+              (valueChange)="whatsAppDefaultReplyScenario.set(($event ?? 'generic'))"
+            />
+
+            <shared-select
+              label="Standaardscenario e-mail"
+              hint="Wordt gebruikt als een medewerker geen expliciet scenario kiest."
+              [options]="replyScenarioOptions"
+              [value]="emailDefaultReplyScenario()"
+              (valueChange)="emailDefaultReplyScenario.set(($event ?? 'generic'))"
+            />
+
+            <shared-select
+              label="Quote-gerelateerde override"
+              hint="Vervangt het standaardscenario wanneer de thread duidelijk aan een offerte hangt."
+              [options]="replyScenarioOptions"
+              [value]="quoteRelatedReplyScenario()"
+              (valueChange)="quoteRelatedReplyScenario.set(($event ?? 'quote_reminder'))"
+            />
+
+            <shared-select
+              label="Afspraak-gerelateerde override"
+              hint="Vervangt het standaardscenario wanneer er een aankomende of open afspraakcontext is."
+              [options]="replyScenarioOptions"
+              [value]="appointmentRelatedReplyScenario()"
+              (valueChange)="appointmentRelatedReplyScenario.set(($event ?? 'appointment_reminder'))"
+            />
+          </div>
+
           <div class="grid grid-cols-1 gap-5 sm:grid-cols-2">
             <shared-number-input
               [label]="'organization.settings.ai.catalogGapThreshold' | translate"
@@ -128,6 +162,71 @@
             [(value)]="photoAnalysisPerspectiveNormalizationServiceTypes"
           />
         </div>
+      </shared-card>
+
+      <shared-card>
+        <div class="flex items-center justify-between gap-4 mb-6">
+          <div>
+            <h4 class="text-xs font-bold uppercase tracking-widest text-zinc-400">Scenario Analytics</h4>
+            <p class="mt-2 text-sm text-zinc-500">Laat zien welke reply-scenario's het vaakst worden verzonden en het vaakst handmatig worden aangepast.</p>
+          </div>
+        </div>
+
+        @if (analyticsLoading()) {
+          <shared-skeleton height="10rem" width="100%" />
+        } @else if (!hasScenarioAnalytics()) {
+          <p class="text-sm text-zinc-500">Nog geen AI-reply analytics beschikbaar.</p>
+        } @else {
+          <div class="grid grid-cols-1 gap-6 xl:grid-cols-2">
+            <div class="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4">
+              <div class="mb-3">
+                <h5 class="text-sm font-semibold text-zinc-900">WhatsApp</h5>
+              </div>
+              <div class="space-y-2">
+                @for (item of whatsAppScenarioAnalytics(); track item.scenario) {
+                  <div class="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3 rounded-xl bg-white px-3 py-2 text-sm">
+                    <div>
+                      <p class="font-medium text-zinc-900">{{ scenarioLabel(item.scenario) }}</p>
+                      <p class="text-xs text-zinc-500">Laatste gebruik: {{ item.lastUsedAt ? (item.lastUsedAt | date:'short') : 'n.v.t.' }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-semibold text-zinc-900">{{ item.sentCount }}</p>
+                      <p class="text-[11px] uppercase tracking-wide text-zinc-500">Verzonden</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-semibold text-zinc-900">{{ item.editedCount }}</p>
+                      <p class="text-[11px] uppercase tracking-wide text-zinc-500">Bewerkt · {{ item.editRate | percent:'1.0-0' }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-zinc-200 bg-zinc-50/70 p-4">
+              <div class="mb-3">
+                <h5 class="text-sm font-semibold text-zinc-900">E-mail</h5>
+              </div>
+              <div class="space-y-2">
+                @for (item of emailScenarioAnalytics(); track item.scenario) {
+                  <div class="grid grid-cols-[minmax(0,1fr)_auto_auto] gap-3 rounded-xl bg-white px-3 py-2 text-sm">
+                    <div>
+                      <p class="font-medium text-zinc-900">{{ scenarioLabel(item.scenario) }}</p>
+                      <p class="text-xs text-zinc-500">Laatste gebruik: {{ item.lastUsedAt ? (item.lastUsedAt | date:'short') : 'n.v.t.' }}</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-semibold text-zinc-900">{{ item.sentCount }}</p>
+                      <p class="text-[11px] uppercase tracking-wide text-zinc-500">Verzonden</p>
+                    </div>
+                    <div class="text-right">
+                      <p class="font-semibold text-zinc-900">{{ item.editedCount }}</p>
+                      <p class="text-[11px] uppercase tracking-wide text-zinc-500">Bewerkt · {{ item.editRate | percent:'1.0-0' }}</p>
+                    </div>
+                  </div>
+                }
+              </div>
+            </div>
+          </div>
+        }
       </shared-card>
 
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">

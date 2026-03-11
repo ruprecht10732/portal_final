@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { EMPTY, catchError, finalize } from 'rxjs';
@@ -20,11 +21,13 @@ import {
 import type {
   AttachWhatsAppMessageToLeadRequest,
   EditWhatsAppMessageRequest,
+  LeadInboxSummary,
   LinkWhatsAppConversationLeadRequest,
   ReactWhatsAppMessageRequest,
   SaveWhatsAppMessagesToLeadRequest,
   SetWhatsAppDisappearingTimerRequest,
   SendWhatsAppConversationMessageRequest,
+  StartWhatsAppConversationMessageRequest,
   ToggleWhatsAppConversationStateRequest,
   ToggleWhatsAppMessageStateRequest,
   WhatsAppConversation,
@@ -51,7 +54,6 @@ type WhatsAppMessageEventPayload = {
   conversation?: Partial<WhatsAppConversation>;
   message?: Partial<WhatsAppMessage>;
 };
-
 type MessageMutationBadge = {
   key: string;
   icon: string;
@@ -119,6 +121,13 @@ type ComposerTypeOption = {
   icon: string;
 };
 
+type RouteConversationIntent = {
+  conversationId: string | null;
+  phoneNumber: string | null;
+  leadId: string | null;
+  compose: boolean;
+};
+
 const composerTypeOptions: ComposerTypeOption[] = [
   { value: 'text', label: 'Tekst', icon: 'message-square-text' },
   { value: 'image', label: 'Afbeelding', icon: 'image' },
@@ -155,6 +164,8 @@ const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
 export class WhatsAppInboxComponent {
   private readonly inbox = inject(WhatsAppInboxService);
   private readonly leads = inject(LeadsService);
+  private readonly route = inject(ActivatedRoute);
+  private readonly router = inject(Router);
   private readonly serviceTypesService = inject(ServiceTypesService);
   private readonly sse = inject(SSEService);
   private readonly toast = inject(ToastService);
@@ -166,6 +177,9 @@ export class WhatsAppInboxComponent {
   protected readonly conversations = signal<WhatsAppConversation[]>([]);
   protected readonly messages = signal<WhatsAppMessage[]>([]);
   protected readonly selectedConversationId = signal<string | null>(null);
+  protected readonly draftConversationOpen = signal(false);
+  protected readonly draftPhoneNumber = signal('');
+  protected readonly draftLeadId = signal<string | null>(null);
   protected readonly loadingConversations = signal(false);
   protected readonly loadingMessages = signal(false);
   protected readonly sendingMessage = signal(false);
@@ -270,6 +284,7 @@ export class WhatsAppInboxComponent {
 
   private readonly rtfCache = new Map<string, Intl.RelativeTimeFormat>();
   private typingPresenceConversationId: string | null = null;
+  private routeIntent: RouteConversationIntent | null = null;
 
   protected readonly selectedConversation = computed(() => {
     const conversationId = this.selectedConversationId();
@@ -279,8 +294,58 @@ export class WhatsAppInboxComponent {
     return this.conversations().find(item => item.id === conversationId) ?? null;
   });
 
-  protected readonly showListPane = computed(() => !this.isMobileViewport() || this.selectedConversation() == null);
-  protected readonly showThreadPane = computed(() => !this.isMobileViewport() || this.selectedConversation() != null);
+  protected readonly draftLeadSummary = computed<LeadInboxSummary | null>(() => {
+    if (!this.draftConversationOpen()) {
+      return null;
+    }
+
+    const lead = this.linkedLead();
+    const draftLeadId = this.draftLeadId();
+    if (!lead || !draftLeadId || lead.id !== draftLeadId) {
+      return null;
+    }
+
+    return {
+      id: lead.id,
+      fullName: `${lead.consumer.firstName} ${lead.consumer.lastName}`.trim(),
+      phone: lead.consumer.phone,
+      email: lead.consumer.email ?? null,
+      city: lead.address.city || null,
+    };
+  });
+
+  protected readonly draftConversation = computed<WhatsAppConversation | null>(() => {
+    if (!this.draftConversationOpen()) {
+      return null;
+    }
+
+    const phoneNumber = this.draftPhoneNumber().trim();
+    const linkedLead = this.draftLeadSummary();
+    const timestamp = new Date().toISOString();
+    const displayName = linkedLead?.fullName || phoneNumber || 'Nieuw gesprek';
+
+    return {
+      id: `draft:${this.normalizePhoneNumber(phoneNumber) || 'new'}`,
+      leadId: this.draftLeadId(),
+      linkedLead,
+      suggestedLead: null,
+      phoneNumber,
+      displayName,
+      lastMessagePreview: '',
+      lastMessageAt: timestamp,
+      lastMessageDirection: 'outbound',
+      lastMessageStatus: 'sent',
+      unreadCount: 0,
+      createdAt: timestamp,
+      updatedAt: timestamp,
+    };
+  });
+
+  protected readonly activeThreadConversation = computed(() => this.selectedConversation() ?? this.draftConversation());
+  protected readonly isDraftThreadOpen = computed(() => this.draftConversation() !== null && this.selectedConversation() === null);
+
+  protected readonly showListPane = computed(() => !this.isMobileViewport() || this.activeThreadConversation() == null);
+  protected readonly showThreadPane = computed(() => !this.isMobileViewport() || this.activeThreadConversation() != null);
   protected readonly showReactionDialog = computed(() => this.pendingReactionMessage() !== null);
   protected readonly showEditMessageDialog = computed(() => this.pendingEditMessage() !== null);
   protected readonly showDeleteMessageDialog = computed(() => this.pendingDeleteMessage() !== null);
@@ -332,7 +397,7 @@ export class WhatsAppInboxComponent {
     return !!conversation?.leadId && !this.loadingMessages() && !this.sendingMessage() && !this.suggestingReply();
   });
   protected readonly showSuggestionScenarioNotes = computed(() => isNonGenericReplyScenario(this.suggestionScenario()));
-  protected readonly conversationLinkedLead = computed(() => this.selectedConversation()?.linkedLead ?? null);
+  protected readonly conversationLinkedLead = computed(() => this.selectedConversation()?.linkedLead ?? this.draftLeadSummary());
   protected readonly conversationSuggestedLead = computed(() => this.conversationLinkedLead() ? null : (this.selectedConversation()?.suggestedLead ?? null));
   protected readonly canUseLeadActions = computed(() => !!this.selectedConversation()?.leadId);
   protected readonly canCreateConversationLead = computed(() => {
@@ -439,6 +504,27 @@ export class WhatsAppInboxComponent {
     this.loadServiceTypes();
     this.loadConversations();
     this.subscribeToRealtimeEvents();
+    this.route.queryParamMap
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((queryParams) => {
+        const conversationId = queryParams.get('conversationId')?.trim() || null;
+        const phoneNumber = queryParams.get('phone')?.trim() || null;
+        const leadId = queryParams.get('leadId')?.trim() || null;
+        const composeValue = (queryParams.get('compose') || '').trim().toLowerCase();
+
+        if (!conversationId && !phoneNumber && !leadId && composeValue === '') {
+          this.routeIntent = null;
+          return;
+        }
+
+        this.routeIntent = {
+          conversationId,
+          phoneNumber,
+          leadId,
+          compose: composeValue === 'true' || composeValue === '1' || composeValue === 'yes',
+        };
+        this.applyRouteIntent();
+      });
   }
 
   protected loadServiceTypes(): void {
@@ -473,6 +559,15 @@ export class WhatsAppInboxComponent {
         this.unreadCount.refresh();
         const selectedConversationId = this.selectedConversationId();
         if (selectedConversationId && conversations.some(item => item.id === selectedConversationId && !this.isConversationDeleted(item))) {
+          this.applyRouteIntent();
+          return;
+        }
+
+        if (this.applyRouteIntent()) {
+          return;
+        }
+
+        if (this.draftConversationOpen()) {
           return;
         }
 
@@ -492,6 +587,7 @@ export class WhatsAppInboxComponent {
     }
 
     this.stopTypingPresence();
+  this.clearDraftConversationState(false);
     this.importantSelectionMode.set(false);
     this.selectedImportantMessageIds.set([]);
     this.resetConversationLeadPanels();
@@ -510,6 +606,18 @@ export class WhatsAppInboxComponent {
     this.messages.set([]);
   }
 
+  protected closeActiveThread(): void {
+    if (this.selectedConversation()) {
+      this.closeConversation();
+      return;
+    }
+    this.closeDraftConversation();
+  }
+
+  protected openNewConversationDraft(): void {
+    this.openDraftConversation();
+  }
+
   protected toggleLeadSearchPanel(): void {
     const nextValue = !this.showLeadSearchPanel();
     this.showLeadSearchPanel.set(nextValue);
@@ -519,6 +627,9 @@ export class WhatsAppInboxComponent {
   }
 
   protected openCreateLeadPanel(): void {
+    if (!this.selectedConversation()) {
+      return;
+    }
     this.prefillCreateLeadFromConversation();
     this.showCreateLeadPanel.set(true);
     this.showLeadSearchPanel.set(false);
@@ -558,7 +669,17 @@ export class WhatsAppInboxComponent {
 
   protected linkConversationLead(leadId: string): void {
     const conversation = this.selectedConversation();
-    if (!conversation || !leadId || this.leadRelationshipBusy()) {
+    if (!leadId || this.leadRelationshipBusy()) {
+      return;
+    }
+
+    if (!conversation) {
+      const lead = this.leadSearchResults().find(item => item.id === leadId);
+      if (lead) {
+        this.useLeadForDraft(lead);
+        this.showLeadSearchPanel.set(false);
+        this.leadSearchResults.set([]);
+      }
       return;
     }
 
@@ -648,6 +769,26 @@ export class WhatsAppInboxComponent {
     this.linkedLeadServiceId.set(value || null);
   }
 
+  protected useLeadForDraft(lead: Lead): void {
+    this.draftConversationOpen.set(true);
+    this.draftLeadId.set(lead.id);
+    this.draftPhoneNumber.set(lead.consumer.phone || this.draftPhoneNumber());
+    this.linkedLead.set(lead);
+    this.linkedLeadLoading.set(false);
+    this.linkedLeadServiceId.set(lead.currentService?.id ?? lead.services[0]?.id ?? null);
+  }
+
+  protected clearDraftLead(): void {
+    this.draftLeadId.set(null);
+    if (this.selectedConversation() == null) {
+      this.resetLinkedLeadState();
+    }
+  }
+
+  protected updateDraftPhoneNumber(value: string): void {
+    this.draftPhoneNumber.set(value);
+  }
+
   protected startTypingPresence(): void {
     const conversation = this.selectedConversation();
     if (!conversation || !this.canSend() || this.typingPresenceConversationId === conversation.id) {
@@ -683,7 +824,8 @@ export class WhatsAppInboxComponent {
 
   protected sendMessage(): void {
     const conversation = this.selectedConversation();
-    if (!conversation || this.sendingMessage() || !this.canSend() || this.composerIsEncodingAttachment()) {
+    const isDraftConversation = this.isDraftThreadOpen();
+    if ((!conversation && !isDraftConversation) || this.sendingMessage() || !this.canSend() || this.composerIsEncodingAttachment()) {
       return;
     }
 
@@ -701,7 +843,10 @@ export class WhatsAppInboxComponent {
 
     this.stopTypingPresence();
     this.sendingMessage.set(true);
-    this.inbox.sendConversationMessage(conversation.id, payload)
+    const request$ = conversation
+      ? this.inbox.sendConversationMessage(conversation.id, payload)
+      : this.inbox.startConversationMessage(this.buildDraftConversationRequest(payload));
+    request$
       .pipe(
         catchError(error => {
           this.toast.error(this.normalizeError(error));
@@ -712,6 +857,12 @@ export class WhatsAppInboxComponent {
       )
       .subscribe(({ conversation: updatedConversation, message }) => {
         this.resetComposerState();
+        if (!conversation) {
+          this.clearDraftConversationState(false);
+          this.upsertConversation(updatedConversation);
+          this.selectConversation(updatedConversation.id);
+          return;
+        }
         this.upsertConversation(updatedConversation);
         this.upsertMessage(message);
       });
@@ -737,11 +888,12 @@ export class WhatsAppInboxComponent {
         finalize(() => this.suggestingReply.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(({ suggestion }) => {
+      .subscribe(({ suggestion, effectiveScenario }) => {
         this.resetComposerState('text');
         this.composerBody.set(suggestion);
         this.aiSuggestionSeed.set(suggestion);
         this.aiSuggestionConversationId.set(conversation.id);
+        this.suggestionScenario.set((effectiveScenario as ReplySuggestionScenario | undefined) ?? this.suggestionScenario());
       });
   }
 
@@ -1817,6 +1969,9 @@ export class WhatsAppInboxComponent {
       .subscribe(lead => {
         this.linkedLead.set(lead);
         this.linkedLeadServiceId.set(lead.currentService?.id ?? lead.services[0]?.id ?? null);
+        if (this.draftConversationOpen() && this.draftLeadId() === lead.id && !this.draftPhoneNumber().trim()) {
+          this.draftPhoneNumber.set(lead.consumer.phone || '');
+        }
       });
   }
 
@@ -1824,6 +1979,134 @@ export class WhatsAppInboxComponent {
     this.linkedLead.set(null);
     this.linkedLeadLoading.set(false);
     this.linkedLeadServiceId.set(null);
+  }
+
+  private openDraftConversation(options?: { phoneNumber?: string | null; leadId?: string | null }): void {
+    this.stopTypingPresence();
+    this.selectedConversationId.set(null);
+    this.messages.set([]);
+    this.draftConversationOpen.set(true);
+    this.draftPhoneNumber.set(options?.phoneNumber?.trim() ?? '');
+    this.draftLeadId.set(options?.leadId?.trim() || null);
+    this.resetConversationLeadPanels();
+    this.resetComposerState('text');
+    this.resetLinkedLeadState();
+    if (options?.leadId) {
+      this.loadLinkedLead(options.leadId);
+    }
+  }
+
+  private closeDraftConversation(): void {
+    this.clearDraftConversationState();
+    this.messages.set([]);
+  }
+
+  private clearDraftConversationState(resetComposer = true): void {
+    this.draftConversationOpen.set(false);
+    this.draftPhoneNumber.set('');
+    this.draftLeadId.set(null);
+    this.resetConversationLeadPanels();
+    this.resetLinkedLeadState();
+    if (resetComposer) {
+      this.resetComposerState('text');
+    }
+  }
+
+  private buildDraftConversationRequest(payload: SendWhatsAppConversationMessageRequest): StartWhatsAppConversationMessageRequest {
+    const phoneNumber = this.normalizePhoneNumber(this.draftPhoneNumber());
+    return {
+      phoneNumber,
+      ...(this.draftLeadId() ? { leadId: this.draftLeadId()! } : {}),
+      ...payload,
+    };
+  }
+
+  private applyRouteIntent(): boolean {
+    const intent = this.routeIntent;
+    if (!intent) {
+      return false;
+    }
+
+    const matchingConversation = this.findConversationForIntent(intent);
+    if (matchingConversation) {
+      this.clearDraftConversationState(false);
+      this.selectConversation(matchingConversation.id);
+      this.consumeRouteIntent();
+      return true;
+    }
+
+    if (intent.compose && (intent.phoneNumber || intent.leadId)) {
+      this.openDraftConversation({
+        phoneNumber: intent.phoneNumber,
+        leadId: intent.leadId,
+      });
+      this.consumeRouteIntent();
+      return true;
+    }
+
+    return false;
+  }
+
+  private consumeRouteIntent(): void {
+    this.routeIntent = null;
+    void this.router.navigate([], {
+      relativeTo: this.route,
+      queryParams: {
+        conversationId: null,
+        phone: null,
+        leadId: null,
+        compose: null,
+      },
+      queryParamsHandling: 'merge',
+      replaceUrl: true,
+    });
+  }
+
+  private findConversationForIntent(intent: RouteConversationIntent): WhatsAppConversation | null {
+    const conversations = this.conversations();
+    if (intent.conversationId) {
+      const exactMatch = conversations.find(item => item.id === intent.conversationId && !this.isConversationDeleted(item));
+      if (exactMatch) {
+        return exactMatch;
+      }
+    }
+
+    const normalizedPhone = this.normalizePhoneNumber(intent.phoneNumber);
+    const leadId = intent.leadId;
+
+    if (leadId && normalizedPhone) {
+      const leadAndPhoneMatch = conversations.find(item => item.leadId === leadId && this.normalizePhoneNumber(item.phoneNumber) === normalizedPhone && !this.isConversationDeleted(item));
+      if (leadAndPhoneMatch) {
+        return leadAndPhoneMatch;
+      }
+    }
+
+    if (leadId) {
+      const leadMatch = conversations.find(item => item.leadId === leadId && !this.isConversationDeleted(item));
+      if (leadMatch) {
+        return leadMatch;
+      }
+    }
+
+    if (normalizedPhone) {
+      return conversations.find(item => this.normalizePhoneNumber(item.phoneNumber) === normalizedPhone && !this.isConversationDeleted(item)) ?? null;
+    }
+
+    return null;
+  }
+
+  private normalizePhoneNumber(value: string | null | undefined): string {
+    const trimmed = value?.trim() ?? '';
+    if (!trimmed) {
+      return '';
+    }
+
+    const sanitized = trimmed.replaceAll(/[^0-9+]/g, '');
+    if (!sanitized) {
+      return '';
+    }
+
+    return sanitized.startsWith('+') ? sanitized : `+${sanitized}`;
   }
 
   private selectedLinkedLeadServiceId(): string | undefined {
@@ -2533,7 +2816,7 @@ export class WhatsAppInboxComponent {
   }
 
   private prefillCreateLeadFromConversation(): void {
-    const conversation = this.selectedConversation();
+    const conversation = this.selectedConversation() ?? this.draftConversation();
     if (!conversation) {
       return;
     }
@@ -2553,7 +2836,7 @@ export class WhatsAppInboxComponent {
 
   private splitName(value: string): [string, string] {
     const trimmed = value.trim();
-    if (!trimmed || trimmed === this.selectedConversation()?.phoneNumber) {
+    if (!trimmed || trimmed === this.activeThreadConversation()?.phoneNumber) {
       return ['', ''];
     }
     const parts = trimmed.split(/\s+/).filter(Boolean);
@@ -2624,6 +2907,10 @@ export class WhatsAppInboxComponent {
   }
 
   private getComposerValidationMessage(): string | null {
+    if (this.isDraftThreadOpen() && !this.normalizePhoneNumber(this.draftPhoneNumber())) {
+      return 'Voer een geldig telefoonnummer in om een nieuw WhatsApp-gesprek te starten.';
+    }
+
     const type = this.composerType();
     if (type === 'text') {
       return this.validateTextComposer();
@@ -2721,6 +3008,7 @@ export class WhatsAppInboxComponent {
     const aiSuggestion = this.aiSuggestionSeed();
     if (conversationId && aiSuggestion && this.aiSuggestionConversationId() === conversationId) {
       payload.aiSuggestion = aiSuggestion;
+      payload.scenario = this.suggestionScenario();
     }
     return payload;
   }

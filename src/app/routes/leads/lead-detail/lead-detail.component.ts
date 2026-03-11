@@ -1047,14 +1047,17 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected openLeadWhatsApp(): void {
-    const phone = this.lead()?.consumer.phone?.trim();
-    if (!phone) return;
+    const lead = this.lead();
+    const phone = lead?.consumer.phone?.trim();
+    if (!lead || !phone) return;
 
-    const sanitized = phone.replaceAll(/[^0-9+]/g, '');
-    const number = sanitized.startsWith('+') ? sanitized.slice(1) : sanitized;
-    if (!number) return;
-
-    globalThis.open(`https://wa.me/${number}`, '_blank', 'noopener');
+    void this.router.navigate(['/app/whatsapp'], {
+      queryParams: {
+        leadId: lead.id,
+        phone,
+        compose: 'true',
+      },
+    });
   }
 
   protected navigateToLead(): void {

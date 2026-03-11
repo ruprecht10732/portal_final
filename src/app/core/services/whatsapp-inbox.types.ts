@@ -193,6 +193,7 @@ export interface SendWhatsAppConversationAttachmentRequest {
 export interface SendWhatsAppConversationMessageRequest {
   type?: WhatsAppMessageComposerType;
   body?: string;
+  scenario?: string;
   aiSuggestion?: string;
   caption?: string;
   viewOnce?: boolean;
@@ -209,6 +210,11 @@ export interface SendWhatsAppConversationMessageRequest {
   options?: string[];
   maxAnswer?: number;
   durationSeconds?: number;
+}
+
+export interface StartWhatsAppConversationMessageRequest extends SendWhatsAppConversationMessageRequest {
+  phoneNumber: string;
+  leadId?: string;
 }
 
 export type WhatsAppPresenceType = 'available' | 'unavailable';
@@ -251,6 +257,7 @@ export interface SendWhatsAppConversationMessageResponse {
 
 export interface SuggestWhatsAppReplyResponse {
   suggestion: string;
+  effectiveScenario: string;
 }
 
 export type SuggestWhatsAppReplyRequest = SuggestReplyRequest;
