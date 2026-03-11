@@ -1,7 +1,10 @@
 <shared-card padding="none">
-  <details>
-    <summary class="flex items-center min-h-11 cursor-pointer px-4 py-3 text-sm font-semibold">
-      {{ 'leads.detail.consumerInfo' | translate }}
+  <details class="mobile-consumer-details">
+    <summary class="flex min-h-11 cursor-pointer items-center justify-between gap-3 px-4 py-3 text-sm font-semibold">
+      <span>{{ 'leads.detail.consumerInfo' | translate }}</span>
+      <svg class="mobile-consumer-chevron h-4 w-4 text-zinc-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" d="M19 9l-7 7-7-7" />
+      </svg>
     </summary>
     <div class="px-4 pb-4">
       <dl class="grid gap-3">
@@ -10,6 +13,15 @@
           <dd class="font-medium">{{ fullName() }}</dd>
         </div>
       </dl>
+      <div class="mt-4 overflow-hidden rounded-lg border border-zinc-200 bg-zinc-50">
+        <shared-map-preview
+          [address]="fullAddress()"
+          [latitude]="latitude()"
+          [longitude]="longitude()"
+          [height]="160"
+          class="block w-full"
+        ></shared-map-preview>
+      </div>
       <div class="mt-4">
         <shared-contact-info
           [phone]="phone()"
@@ -41,7 +53,7 @@
             class="inline-flex items-center gap-1 text-blue-600 hover:underline text-sm"
             [href]="mapUrl()"
             target="_blank"
-            rel="noopener"
+            rel="noopener noreferrer"
           >
             {{ 'leads.detail.viewOnMaps' | translate }}
           </a>

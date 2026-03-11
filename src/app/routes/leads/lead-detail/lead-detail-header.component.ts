@@ -17,6 +17,7 @@ export class LeadDetailHeaderComponent {
   lead = input<Lead | null>(null);
   fullName = input<string>('');
   serviceTypeLabel = input<string | null>(null);
+  hasSelectedService = input(false);
   status = input<LeadStatus | null>(null);
   pipelineStage = input<PipelineStage | null>(null);
   noServiceLabel = input<string>('');

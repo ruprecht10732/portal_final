@@ -133,10 +133,10 @@
               </div>
               <button
                 type="button"
-                class="rounded-lg border border-zinc-200 px-3 py-2 text-xs font-medium text-slate-700 transition hover:border-zinc-300 hover:bg-white"
+                class="min-h-11 rounded-lg border border-zinc-200 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:border-zinc-300 hover:bg-white"
                 (click)="downloadAppointmentAttachment.emit(attachment)"
               >
-                Download
+                {{ 'common.download' | translate }}
               </button>
             </div>
           }

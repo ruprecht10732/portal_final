@@ -1,0 +1,15 @@
+.mobile-consumer-details summary {
+	list-style: none;
+}
+
+.mobile-consumer-details summary::-webkit-details-marker {
+	display: none;
+}
+
+.mobile-consumer-chevron {
+	transition: transform 160ms ease;
+}
+
+.mobile-consumer-details[open] .mobile-consumer-chevron {
+	transform: rotate(180deg);
+}

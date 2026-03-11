@@ -28,7 +28,7 @@
           {{ 'leads.detail.appointments.date' | translate }}
           <input
             type="date"
-            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            class="min-h-11 w-full rounded-lg border border-zinc-200 px-3 py-3 text-sm"
             [min]="minDate() ?? ''"
             [value]="appointmentDate()"
             (input)="setAppointmentDate.emit($any($event.target).value)"
@@ -38,7 +38,7 @@
           {{ 'leads.detail.appointments.time' | translate }}
           <input
             type="time"
-            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            class="min-h-11 w-full rounded-lg border border-zinc-200 px-3 py-3 text-sm"
             [value]="appointmentTime()"
             (input)="setAppointmentTime.emit($any($event.target).value)"
           />
@@ -49,7 +49,7 @@
             type="number"
             min="15"
             step="5"
-            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            class="min-h-11 w-full rounded-lg border border-zinc-200 px-3 py-3 text-sm"
             [value]="appointmentDurationMinutes()"
             (input)="setAppointmentDurationMinutes.emit($any($event.target).value)"
           />
@@ -60,7 +60,7 @@
           {{ 'leads.detail.appointments.titleField' | translate }}
           <input
             type="text"
-            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            class="min-h-11 w-full rounded-lg border border-zinc-200 px-3 py-3 text-sm"
             [placeholder]="'leads.detail.appointments.titlePlaceholder' | translate"
             [value]="appointmentTitle()"
             (input)="setAppointmentTitle.emit($any($event.target).value)"
@@ -70,7 +70,7 @@
           {{ 'leads.detail.appointments.location' | translate }}
           <input
             type="text"
-            class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+            class="min-h-11 w-full rounded-lg border border-zinc-200 px-3 py-3 text-sm"
             [placeholder]="'leads.detail.appointments.locationPlaceholder' | translate"
             [value]="appointmentLocation()"
             (input)="setAppointmentLocation.emit($any($event.target).value)"
@@ -81,7 +81,7 @@
         {{ 'leads.detail.appointments.notes' | translate }}
         <textarea
           rows="3"
-          class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+          class="min-h-11 w-full rounded-lg border border-zinc-200 px-3 py-3 text-sm"
           [placeholder]="'leads.detail.appointments.notesPlaceholder' | translate"
           [value]="appointmentNotes()"
           (input)="setAppointmentNotes.emit($any($event.target).value)"
@@ -145,7 +145,7 @@
                 <div class="mt-2 flex justify-end">
                   <button
                     type="button"
-                    class="inline-flex items-center gap-1.5 rounded-lg bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
+                    class="inline-flex min-h-11 items-center gap-1.5 rounded-lg bg-emerald-600 px-4 py-2.5 text-sm font-semibold text-white shadow-sm transition-colors hover:bg-emerald-700 active:scale-95 disabled:opacity-50"
                     [disabled]="approvingAppointmentId() === appointment.id"
                     (click)="$event.stopPropagation(); approveAppointment.emit(appointment.id)"
                   >
@@ -187,7 +187,7 @@
               {{ 'leads.detail.appointments.measurements' | translate }}
               <textarea
                 rows="3"
-                class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                class="min-h-11 w-full rounded-lg border border-zinc-200 px-3 py-3 text-sm"
                 [value]="reportMeasurements()"
                 [disabled]="!canEditReport()"
                 (input)="setReportMeasurements.emit($any($event.target).value)"
@@ -196,7 +196,7 @@
             <label class="flex flex-col gap-2 text-sm font-medium">
               {{ 'leads.detail.appointments.accessDifficulty' | translate }}
               <select
-                class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                class="min-h-11 w-full rounded-lg border border-zinc-200 px-3 py-3 text-sm"
                 [value]="reportAccessDifficulty() ?? ''"
                 [disabled]="!canEditReport()"
                 (change)="setAccessDifficulty.emit($any($event.target).value)"
@@ -211,7 +211,7 @@
               {{ 'leads.detail.appointments.notes' | translate }}
               <textarea
                 rows="3"
-                class="w-full rounded-lg border border-zinc-200 px-3 py-2 text-sm"
+                class="min-h-11 w-full rounded-lg border border-zinc-200 px-3 py-3 text-sm"
                 [value]="reportNotes()"
                 [disabled]="!canEditReport()"
                 (input)="setReportNotes.emit($any($event.target).value)"
@@ -258,10 +258,10 @@
                     </div>
                     <button
                       type="button"
-                      class="rounded-lg border border-zinc-200 px-3 py-1.5 text-xs font-medium text-slate-700 transition hover:border-zinc-300 hover:bg-white"
+                      class="min-h-11 rounded-lg border border-zinc-200 px-3 py-2.5 text-xs font-medium text-slate-700 transition hover:border-zinc-300 hover:bg-white"
                       (click)="downloadAttachment.emit(attachment)"
                     >
-                      Download
+                      {{ 'common.download' | translate }}
                     </button>
                   </div>
                 </div>

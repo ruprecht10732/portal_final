@@ -16,6 +16,7 @@ export class LeadDetailTopSectionComponent {
   lead = input<Lead | null>(null);
   fullName = input<string>('');
   serviceTypeLabel = input<string | null>(null);
+  hasSelectedService = input(false);
   status = input<LeadStatus | null>(null);
   pipelineStage = input<PipelineStage | null>(null);
   noServiceLabel = input<string>('');
@@ -27,7 +28,6 @@ export class LeadDetailTopSectionComponent {
   energyLabelVariant = input<ChipVariant>('neutral');
   phone = input<string | null>(null);
   email = input<string | null>(null);
-  hasSelectedService = input(false);
 
   back = output<void>();
   toggleStatusMenu = output<void>();

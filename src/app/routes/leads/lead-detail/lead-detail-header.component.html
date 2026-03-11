@@ -1,6 +1,6 @@
-<div class="sticky top-0 z-20">
+<div class="sticky top-0 z-20 bg-white/90 backdrop-blur-sm">
   <div class="flex flex-col gap-3 p-4 lg:flex-row lg:items-center lg:justify-between">
-    <div class="flex items-center gap-3">
+    <div class="flex min-w-0 items-center gap-3">
       <button
         type="button"
         class="touch-target rounded-lg hover:bg-zinc-100 transition-colors"
@@ -11,12 +11,12 @@
           <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 19l-7-7 7-7" />
         </svg>
       </button>
-      <div class="flex flex-col">
+      <div class="flex min-w-0 flex-col">
         @if (lead(); as l) {
-          <h1 class="text-xl font-semibold">
-            {{ fullName() }}
+          <h1 class="text-lg font-semibold leading-tight text-zinc-950 sm:text-xl">
+            <span class="block break-words">{{ fullName() }}</span>
             @if (serviceTypeLabel()) {
-              <span class="text-zinc-500 font-normal">({{ serviceTypeLabel() }})</span>
+              <span class="mt-0.5 block text-sm font-normal text-zinc-500 sm:inline sm:mt-0 sm:text-base">({{ serviceTypeLabel() }})</span>
             }
           </h1>
           <div class="flex flex-wrap items-center gap-2 text-sm text-zinc-500">
@@ -51,7 +51,7 @@
     </div>
 
     @if (lead(); as l) {
-      <div class="flex flex-wrap items-center gap-2">
+      <div class="flex flex-wrap items-center gap-2 lg:justify-end">
         <shared-button
           variant="secondary"
           size="compact"
@@ -61,21 +61,24 @@
         >
           {{ 'leads.detail.editLead' | translate }}
         </shared-button>
-        <shared-button
-          variant="secondary"
-          size="compact"
-          [uppercase]="false"
-          [fullWidth]="false"
-          (clicked)="createQuote.emit()"
-        >
-          {{ 'leads.detail.createQuote' | translate }}
-        </shared-button>
+        @if (hasSelectedService()) {
+          <shared-button
+            variant="secondary"
+            size="compact"
+            [uppercase]="false"
+            [fullWidth]="false"
+            (clicked)="createQuote.emit()"
+          >
+            {{ 'leads.detail.createQuote' | translate }}
+          </shared-button>
+        }
         <div class="relative">
           <button
             type="button"
             id="status-toggle"
-            class="inline-flex items-center gap-2 min-h-11"
+            class="inline-flex min-h-11 items-center gap-2 rounded-lg px-2"
             (click)="toggleStatusMenu.emit()"
+            (keydown.escape)="closeStatusMenu.emit()"
             aria-haspopup="true"
             [attr.aria-expanded]="statusMenuOpen()"
           >
@@ -90,10 +93,10 @@
             </svg>
           </button>
           @if (statusMenuOpen()) {
-            <div class="dropdown-backdrop" (click)="closeStatusMenu.emit()" (keydown.escape)="closeStatusMenu.emit()" tabindex="-1" aria-hidden="true"></div>
+            <button type="button" class="dropdown-backdrop" (click)="closeStatusMenu.emit()" [attr.aria-label]="'leads.detail.cancel' | translate"></button>
             <div
               id="status-menu"
-              class="absolute right-0 mt-2 w-48 rounded-lg border border-zinc-200 bg-white shadow-lg z-20"
+              class="absolute right-0 z-40 mt-2 w-48 max-w-[calc(100vw-2rem)] rounded-lg border border-zinc-200 bg-white shadow-lg"
             >
               @for (option of statusOptions(); track option.value) {
                 <button

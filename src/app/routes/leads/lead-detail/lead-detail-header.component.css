@@ -24,7 +24,11 @@ select:focus-visible,
 
 /* Dropdown backdrop */
 .dropdown-backdrop {
+  appearance: none;
+  background: transparent;
+  border: 0;
   position: fixed;
   inset: 0;
+  padding: 0;
   z-index: 10;
 }

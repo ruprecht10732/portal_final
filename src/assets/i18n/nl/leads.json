@@ -250,6 +250,9 @@
         "notAvailable": "Niet beschikbaar",
         "missing": "Geen gepubliceerd energielabel voor dit adres gevonden."
       },
+      "serviceType": {
+        "confirmTitle": "Bevestig wijziging van servicetype"
+      },
       "enrichment": {
         "title": "Lead verrijking",
         "subtitle": "PDOK/CBS indicatoren voor dit adres",

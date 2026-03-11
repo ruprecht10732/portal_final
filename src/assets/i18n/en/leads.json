@@ -251,6 +251,9 @@
         "notAvailable": "Not available",
         "missing": "No published energy label found for this address yet."
       },
+      "serviceType": {
+        "confirmTitle": "Confirm service type change"
+      },
       "enrichment": {
         "title": "Lead enrichment",
         "subtitle": "PDOK/CBS indicators for this address",

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, HostListener, inject, OnInit, signal, viewChild } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, DestroyRef, effect, inject, OnInit, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -33,11 +33,8 @@ import { ACCESS_DIFFICULTY_OPTIONS } from '../../../core/services/appointments.t
 import { UserService } from '../../../core/services/user.service';
 import type { UserProfile } from '../../../core/services/user.types';
 import { CardComponent } from '../../../shared/components/card/card.component';
-import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
-import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
-import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
-import { SelectComponent } from '../../../shared/components/select/select.component';
+import type { AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { type SelectOption } from '../../../shared/components/select/select.component';
 import type { ChipVariant } from '../../../shared/components/chip/chip.component';
 import { type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
@@ -56,6 +53,8 @@ import { LeadDetailSidebarInfoComponent } from './lead-detail-sidebar-info.compo
 import { LeadDetailTabsShellComponent } from './lead-detail-tabs-shell.component';
 import { LeadDetailTopSectionComponent } from './lead-detail-top-section.component';
 import { LeadDetailTimelineTabComponent } from './lead-detail-timeline-tab.component';
+import { LeadDetailManualPartnerPanelComponent } from './lead-detail-manual-partner-panel.component';
+import { LeadDetailWorkflowPanelComponent } from './lead-detail-workflow-panel.component';
 import { TIMEOUT_MS } from '../../../core/config';
 
 type WhatsAppMessageStatus = 'sent' | 'draft' | 'failed';
@@ -145,8 +144,10 @@ interface TimelineExtractedFact {
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'block min-h-full lg:flex lg:h-full lg:min-h-0 lg:flex-1 lg:flex-col lg:overflow-hidden',
+    '(document:click)': 'handleDocumentClick($event)',
+    '(document:keydown)': 'handleKeydown($event)',
   },
-  imports: [ButtonComponent, CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadInquiryCardComponent, AutocompleteComponent, NumberInputComponent, SelectComponent, TranslatePipe],
+  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailManualPartnerPanelComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadDetailWorkflowPanelComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
@@ -916,6 +917,24 @@ export class LeadDetailComponent implements OnInit {
     this.statusMenuOpen.set(false);
   }
 
+  protected handleDocumentClick(event: MouseEvent): void {
+    if (!this.statusMenuOpen()) {
+      return;
+    }
+
+    const target = event.target;
+    if (!(target instanceof Element)) {
+      this.closeStatusMenu();
+      return;
+    }
+
+    if (target.closest('#status-toggle') || target.closest('#status-menu')) {
+      return;
+    }
+
+    this.closeStatusMenu();
+  }
+
   protected selectStatus(status: LeadStatus): void {
     this.statusMenuOpen.set(false);
     
@@ -956,8 +975,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   // Keyboard handler for dropdowns and dialogs
-  @HostListener('document:keydown', ['$event'])
-  handleKeydown(event: KeyboardEvent): void {
+  protected handleKeydown(event: KeyboardEvent): void {
     if (event.key === 'Escape') {
       if (this.showCallLoggerDialog() && !this.callLoggerProcessing()) {
         this.closeCallLogger();
