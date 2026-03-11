@@ -43,6 +43,8 @@ ng build
 
 This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
 
+Production builds automatically stamp the frontend bundles with a translation cache version so updated `/assets/i18n` files are fetched immediately after deploys. The build uses `APP_BUILD_ID` when your pipeline provides it, otherwise it falls back to the current git commit SHA when available, and finally to a timestamp. No file needs to be edited per release.
+
 ## Running unit tests
 
 To execute unit tests with the [Vitest](https://vitest.dev/) test runner, use the following command:

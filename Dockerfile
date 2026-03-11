@@ -2,6 +2,8 @@ FROM node:22-alpine AS build
 WORKDIR /app
 RUN npm install -g npm@11.4.1
 ARG BUILD_CONFIGURATION=production
+ARG APP_BUILD_ID
+ENV APP_BUILD_ID=${APP_BUILD_ID}
 COPY package*.json ./
 RUN npm ci
 COPY . .

@@ -141,24 +141,27 @@ import { MultiTranslateHttpLoader } from 'ngx-translate-multi-http-loader';
 
 registerLocaleData(localeNl);
 
+const translationVersion = '__APP_BUILD_ID__';
+const versionedTranslationSuffix = (fileName: string) => `${fileName}?v=${encodeURIComponent(translationVersion)}`;
+
 const createTranslateLoader = (handler: HttpBackend) => new MultiTranslateHttpLoader(handler, [
-  { prefix: '/assets/i18n/', suffix: '/common.json' },
-  { prefix: '/assets/i18n/', suffix: '/navigation.json' },
-  { prefix: '/assets/i18n/', suffix: '/auth.json' },
-  { prefix: '/assets/i18n/', suffix: '/data-grid.json' },
-  { prefix: '/assets/i18n/', suffix: '/sidebar.json' },
-  { prefix: '/assets/i18n/', suffix: '/menu.json' },
-  { prefix: '/assets/i18n/', suffix: '/profile.json' },
-  { prefix: '/assets/i18n/', suffix: '/leads.json' },
-  { prefix: '/assets/i18n/', suffix: '/services.json' },
-  { prefix: '/assets/i18n/', suffix: '/offertes.json' },
-  { prefix: '/assets/i18n/', suffix: '/catalog.json' },
-  { prefix: '/assets/i18n/', suffix: '/partners.json' },
-  { prefix: '/assets/i18n/', suffix: '/organization.json' },
-  { prefix: '/assets/i18n/', suffix: '/appointments.json' },
-  { prefix: '/assets/i18n/', suffix: '/webhook.json' },
-  { prefix: '/assets/i18n/', suffix: '/google-ads.json' },
-  { prefix: '/assets/i18n/', suffix: '/search.json' },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/common.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/navigation.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/auth.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/data-grid.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/sidebar.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/menu.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/profile.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/leads.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/services.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/offertes.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/catalog.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/partners.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/organization.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/appointments.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/webhook.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/google-ads.json') },
+  { prefix: '/assets/i18n/', suffix: versionedTranslationSuffix('/search.json') },
 ]);
 
 export const appConfig: ApplicationConfig = {
