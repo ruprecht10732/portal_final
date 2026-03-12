@@ -495,6 +495,7 @@
                             <label class="text-xs font-semibold text-zinc-700">
                               Diensttype
                               <select class="mt-1 h-10 w-full rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-zinc-900/10" [value]="createLeadServiceType()" (change)="createLeadServiceType.set($any($event.target).value)">
+                                <option value="" disabled>Selecteer een diensttype</option>
                                 @for (item of availableServiceTypes(); track item.id) {
                                   <option [value]="item.name">{{ item.name }}</option>
                                 }
@@ -991,6 +992,7 @@
                           <option value="Landlord">Verhuurder</option>
                         </select>
                         <select class="h-10 rounded-xl border border-zinc-200 px-3 text-sm outline-none focus:ring-2 focus:ring-emerald-500/20" [value]="createLeadServiceType()" (change)="createLeadServiceType.set($any($event.target).value)">
+                          <option value="" disabled>Selecteer een diensttype</option>
                           @for (item of availableServiceTypes(); track item.id) {
                             <option [value]="item.name">{{ item.name }}</option>
                           }

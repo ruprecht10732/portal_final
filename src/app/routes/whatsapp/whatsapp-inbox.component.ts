@@ -536,10 +536,6 @@ export class WhatsAppInboxComponent {
       )
       .subscribe((response) => {
         this.availableServiceTypes.set(response.items ?? []);
-        const firstItem = response.items[0];
-        if (!this.createLeadServiceType() && firstItem) {
-          this.createLeadServiceType.set(firstItem.name);
-        }
       });
   }
 
@@ -2829,10 +2825,7 @@ export class WhatsAppInboxComponent {
     this.createLeadHouseNumber.set('');
     this.createLeadZipCode.set('');
     this.createLeadCity.set(this.conversationSuggestedLead()?.city ?? '');
-    const firstServiceType = this.availableServiceTypes()[0];
-    if (!this.createLeadServiceType() && firstServiceType) {
-	      this.createLeadServiceType.set(firstServiceType.name);
-    }
+    this.createLeadServiceType.set('');
   }
 
   private splitName(value: string): [string, string] {

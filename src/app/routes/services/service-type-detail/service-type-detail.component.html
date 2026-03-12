@@ -1,4 +1,4 @@
-<div class="flex flex-col w-full pb-16 sm:pb-0">
+<div class="flex h-full min-h-0 w-full flex-col pb-16 sm:pb-0">
   <div class="border-b border-zinc-200">
     <shared-page-header
       [title]="serviceType()?.name || ('services.detail.loading' | translate)"
@@ -7,12 +7,33 @@
       (back)="goBack()"
     >
       @if (serviceType()) {
-        <div actions class="flex items-center gap-2">
+        <div actions class="hidden items-center gap-2 sm:flex">
+          <shared-button
+            type="button"
+            variant="secondary"
+            size="compact"
+            [fullWidth]="false"
+            [disabled]="saving() || !hasChanges()"
+            (clicked)="resetForm()"
+          >
+            {{ 'common.reset' | translate }}
+          </shared-button>
+          <shared-button
+            type="button"
+            variant="primary"
+            size="compact"
+            [fullWidth]="false"
+            [disabled]="!canSave()"
+            (clicked)="saveChanges()"
+          >
+            {{ 'common.save' | translate }}
+          </shared-button>
           <shared-button
             type="button"
             variant="danger"
             size="compact"
             [fullWidth]="false"
+            [disabled]="saving() || deleting()"
             (clicked)="openDeleteDialog()"
           >
             <lucide-icon name="trash-2" class="h-4 w-4 mr-2" aria-hidden="true"></lucide-icon>
@@ -25,11 +46,39 @@
 
   <!-- Mobile action -->
   @if (serviceType()) {
-    <div class="sm:hidden border-b border-gray-100 bg-white px-5 py-3">
-      <shared-button variant="danger" size="compact" [fullWidth]="true" (clicked)="openDeleteDialog()">
-        <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
-        {{ 'services.detail.delete' | translate }}
-      </shared-button>
+    <div class="border-b border-gray-100 bg-white px-5 py-3 sm:hidden">
+      <div class="flex flex-col gap-2">
+        <shared-button
+          variant="primary"
+          size="compact"
+          [fullWidth]="true"
+          [disabled]="!canSave()"
+          (clicked)="saveChanges()"
+        >
+          {{ 'common.save' | translate }}
+        </shared-button>
+        <div class="grid grid-cols-2 gap-2">
+          <shared-button
+            variant="secondary"
+            size="compact"
+            [fullWidth]="true"
+            [disabled]="saving() || !hasChanges()"
+            (clicked)="resetForm()"
+          >
+            {{ 'common.reset' | translate }}
+          </shared-button>
+          <shared-button
+            variant="danger"
+            size="compact"
+            [fullWidth]="true"
+            [disabled]="saving() || deleting()"
+            (clicked)="openDeleteDialog()"
+          >
+            <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
+            {{ 'services.detail.delete' | translate }}
+          </shared-button>
+        </div>
+      </div>
     </div>
   }
 
@@ -48,7 +97,7 @@
       <p class="text-xs font-mono uppercase text-zinc-400">{{ 'services.detail.loading' | translate }}</p>
     </div>
   } @else if (serviceType(); as item) {
-    <div class="flex-1 overflow-y-auto">
+    <div class="flex-1 min-h-0 overflow-y-auto">
       <div class="grid grid-cols-1 md:grid-cols-2 w-full border-b border-zinc-200">
         <!-- Section A: Basics -->
         <section class="p-4 sm:p-6 border-b md:border-b-0 md:border-r border-zinc-200">
@@ -59,58 +108,54 @@
             </h2>
           </div>
 
-          <dl class="space-y-5">
-            <div>
-              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                {{ 'services.detail.fields.name' | translate }}
-              </dt>
-              <dd class="mt-1 text-sm font-medium text-zinc-900">
-                {{ item.name }}
-              </dd>
+          <div class="space-y-5">
+            <shared-input
+              [label]="'services.detail.fields.name' | translate"
+              [value]="name()"
+              (valueChange)="name.set($event)"
+              [required]="true"
+            />
+
+            <shared-input
+              [label]="'services.detail.fields.slug' | translate"
+              [value]="item.slug"
+              [readonly]="true"
+              [clearable]="false"
+            />
+
+            <shared-textarea
+              [label]="'services.detail.fields.description' | translate"
+              [rows]="4"
+              [value]="description()"
+              (valueChange)="description.set($event)"
+            />
+
+            <div class="space-y-3">
+              <shared-textarea
+                [label]="'services.detail.fields.intakeGuidelines' | translate"
+                [rows]="8"
+                [value]="intakeGuidelines()"
+                (valueChange)="intakeGuidelines.set($event)"
+              />
+
+              @if (intakeGuidelines().trim()) {
+                <div class="markdown-content prose prose-zinc max-w-none max-h-72 overflow-y-auto rounded-lg border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-700" [innerHTML]="intakeGuidelines() | markdown"></div>
+              }
             </div>
 
-            <div>
-              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                {{ 'services.detail.fields.slug' | translate }}
-              </dt>
-              <dd class="mt-1 text-sm font-mono text-zinc-600">
-                {{ item.slug }}
-              </dd>
+            <div class="space-y-3">
+              <shared-textarea
+                [label]="'services.detail.fields.estimationGuidelines' | translate"
+                [rows]="8"
+                [value]="estimationGuidelines()"
+                (valueChange)="estimationGuidelines.set($event)"
+              />
+
+              @if (estimationGuidelines().trim()) {
+                <div class="markdown-content prose prose-zinc max-w-none max-h-72 overflow-y-auto rounded-lg border border-zinc-200 bg-zinc-50/70 px-4 py-3 text-sm text-zinc-700" [innerHTML]="estimationGuidelines() | markdown"></div>
+              }
             </div>
-
-            @if (item.description) {
-              <div>
-                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  {{ 'services.detail.fields.description' | translate }}
-                </dt>
-                <dd class="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">
-                  {{ item.description }}
-                </dd>
-              </div>
-            }
-
-            @if (item.intakeGuidelines) {
-              <div>
-                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  {{ 'services.detail.fields.intakeGuidelines' | translate }}
-                </dt>
-                <dd class="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">
-                  {{ item.intakeGuidelines }}
-                </dd>
-              </div>
-            }
-
-            @if (item.estimationGuidelines) {
-              <div>
-                <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  {{ 'services.detail.fields.estimationGuidelines' | translate }}
-                </dt>
-                <dd class="mt-1 text-sm text-zinc-700 whitespace-pre-wrap">
-                  {{ item.estimationGuidelines }}
-                </dd>
-              </div>
-            }
-          </dl>
+          </div>
         </section>
 
         <!-- Section B: Configuration -->
@@ -122,57 +167,42 @@
             </h2>
           </div>
 
-          <dl class="space-y-5">
-            <div>
-              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                {{ 'services.detail.fields.status' | translate }}
-              </dt>
-              <dd class="mt-2">
+          <div class="space-y-5">
+            <div class="rounded-lg border border-zinc-200 bg-zinc-50/70 p-4">
+              <div class="mb-3 flex items-center justify-between gap-3">
+                <p class="text-xs font-bold uppercase tracking-wider text-zinc-500">
+                  {{ 'services.detail.fields.status' | translate }}
+                </p>
                 <span
                   class="inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold"
-                  [class.bg-emerald-100]="isActive()"
-                  [class.text-emerald-700]="isActive()"
-                  [class.bg-zinc-200]="!isActive()"
-                  [class.text-zinc-600]="!isActive()"
+                  [class.bg-emerald-100]="isActiveDraft()"
+                  [class.text-emerald-700]="isActiveDraft()"
+                  [class.bg-zinc-200]="!isActiveDraft()"
+                  [class.text-zinc-600]="!isActiveDraft()"
                 >
-                  {{ isActive() ? ('services.detail.status.active' | translate) : ('services.detail.status.inactive' | translate) }}
+                  {{ isActiveDraft() ? ('services.detail.status.active' | translate) : ('services.detail.status.inactive' | translate) }}
                 </span>
-              </dd>
+              </div>
+              <shared-checkbox
+                [label]="'services.detail.status.active' | translate"
+                [checked]="isActiveDraft()"
+                (checkedChange)="isActiveDraft.set($event)"
+                [dense]="true"
+              />
             </div>
 
-            <div>
-              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                {{ 'services.detail.fields.icon' | translate }}
-              </dt>
-              <dd class="mt-2">
-                @if (item.icon) {
-                  <div class="flex items-center gap-2 text-sm text-zinc-700">
-                    <lucide-icon [name]="item.icon" class="h-4 w-4" aria-hidden="true"></lucide-icon>
-                    <span class="font-mono">{{ item.icon }}</span>
-                  </div>
-                } @else {
-                  <span class="text-sm text-zinc-500">—</span>
-                }
-              </dd>
-            </div>
+            <shared-icon-picker
+              [label]="'services.detail.fields.icon' | translate"
+              [value]="icon()"
+              (valueChange)="icon.set($event ?? '')"
+            />
 
-            <div>
-              <dt class="text-xs font-bold uppercase tracking-wider text-zinc-400">
-                {{ 'services.detail.fields.color' | translate }}
-              </dt>
-              <dd class="mt-2">
-                @if (item.color) {
-                  <div class="flex items-center gap-2 text-sm text-zinc-700">
-                    <span class="h-4 w-4 rounded-full border border-zinc-200" [style.backgroundColor]="item.color"></span>
-                    <span class="font-mono">{{ item.color }}</span>
-                  </div>
-                } @else {
-                  <span class="text-sm text-zinc-500">—</span>
-                }
-              </dd>
-            </div>
-
-          </dl>
+            <shared-color-picker
+              [label]="'services.detail.fields.color' | translate"
+              [value]="color()"
+              (valueChange)="color.set($event)"
+            />
+          </div>
         </section>
       </div>
 

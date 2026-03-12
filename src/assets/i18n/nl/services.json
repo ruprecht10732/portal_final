@@ -60,6 +60,7 @@
       "deleteConfirm": "Verwijderen",
       "deleteCancel": "Annuleren",
       "deleteSuccess": "Diensttype verwijderd",
+      "saveSuccess": "Diensttype opgeslagen",
       "sections": {
         "basics": "Basis",
         "configuration": "Configuratie",

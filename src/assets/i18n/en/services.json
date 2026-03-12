@@ -60,6 +60,7 @@
       "deleteConfirm": "Delete",
       "deleteCancel": "Cancel",
       "deleteSuccess": "Service type deleted",
+      "saveSuccess": "Service type saved",
       "sections": {
         "basics": "Basics",
         "configuration": "Configuration",
