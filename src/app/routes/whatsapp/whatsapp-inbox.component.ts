@@ -395,7 +395,7 @@ export class WhatsAppInboxComponent {
   });
   protected readonly canSuggestReply = computed(() => {
     const conversation = this.selectedConversation();
-    return !!conversation?.leadId && !this.loadingMessages() && !this.sendingMessage() && !this.suggestingReply();
+    return !!conversation && !this.loadingMessages() && !this.sendingMessage() && !this.suggestingReply();
   });
   protected readonly showSuggestionScenarioNotes = computed(() => isNonGenericReplyScenario(this.suggestionScenario()));
   protected readonly conversationLinkedLead = computed(() => this.selectedConversation()?.linkedLead ?? this.draftLeadSummary());
@@ -867,7 +867,7 @@ export class WhatsAppInboxComponent {
 
   protected suggestReply(): void {
     const conversation = this.selectedConversation();
-    if (!conversation?.leadId || this.suggestingReply()) {
+    if (!conversation || this.suggestingReply()) {
       return;
     }
 
