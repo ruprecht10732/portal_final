@@ -153,7 +153,7 @@
 
 .slot-button.is-disabled,
 .slot-button:disabled {
-  color: #cbd5e1;
+  color: #475569;
   border-color: #e5e7eb;
   background: #f8fafc;
   cursor: not-allowed;
