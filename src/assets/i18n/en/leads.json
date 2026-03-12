@@ -363,6 +363,10 @@
         "disqualified": "This will mark the lead as disqualified. This action may affect reporting.",
         "default": "Are you sure you want to make this change?"
       },
+      "actions": {
+        "runAi": "Run AI",
+        "runningAi": "Running AI..."
+      },
       "announcements": {
         "statusChanged": "Status changed to {{status}}",
         "visitScheduled": "Visit scheduled successfully",
@@ -370,6 +374,7 @@
         "visitCompleted": "Visit completed successfully",
         "visitRescheduled": "Visit rescheduled successfully",
         "noteAdded": "Note added successfully",
+        "aiQueued": "AI analysis queued",
         "aiNoNewInfo": "No new information since last analysis",
         "aiUpdated": "AI analysis updated"
       },

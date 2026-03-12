@@ -362,6 +362,10 @@
         "disqualified": "Dit markeert de lead als gediskwalificeerd. Dit kan rapportages beïnvloeden.",
         "default": "Weet je zeker dat je deze wijziging wilt doorvoeren?"
       },
+      "actions": {
+        "runAi": "AI uitvoeren",
+        "runningAi": "AI bezig..."
+      },
       "announcements": {
         "statusChanged": "Status gewijzigd naar {{status}}",
         "visitScheduled": "Bezoek succesvol ingepland",
@@ -369,6 +373,7 @@
         "visitCompleted": "Bezoek succesvol afgerond",
         "visitRescheduled": "Bezoek succesvol opnieuw ingepland",
         "noteAdded": "Notitie succesvol toegevoegd",
+        "aiQueued": "AI-analyse in wachtrij gezet",
         "aiNoNewInfo": "Geen nieuwe informatie sinds de laatste analyse",
         "aiUpdated": "AI-analyse bijgewerkt"
       },

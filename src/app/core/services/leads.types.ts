@@ -495,9 +495,10 @@ export interface LeadAIAnalysisResponse {
 }
 
 export interface AnalyzeLeadResponse {
-  status: 'created' | 'no_change' | 'error';
+  status?: 'created' | 'queued' | 'no_change' | 'error';
   message: string;
   analysis?: LeadAIAnalysis;
+  leadId?: string;
 }
 
 // Photo Analysis types

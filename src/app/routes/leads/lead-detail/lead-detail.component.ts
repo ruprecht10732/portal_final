@@ -114,6 +114,7 @@ const ERROR_LOAD_TIMELINE_TRANSLATION_KEY = 'leads.detail.errors.loadTimeline';
 const ERROR_LOAD_QUOTES_TRANSLATION_KEY = 'leads.detail.errors.loadQuotes';
 const ERROR_LOAD_COMMUNICATIONS_TRANSLATION_KEY = 'leads.detail.errors.loadCommunications';
 const ERROR_LOAD_AI_ANALYSIS_TRANSLATION_KEY = 'leads.detail.errors.loadAIAnalysis';
+const ANNOUNCEMENT_AI_QUEUED_TRANSLATION_KEY = 'leads.detail.announcements.aiQueued';
 const ANNOUNCEMENT_AI_NO_NEW_INFO_TRANSLATION_KEY = 'leads.detail.announcements.aiNoNewInfo';
 const ANNOUNCEMENT_AI_UPDATED_TRANSLATION_KEY = 'leads.detail.announcements.aiUpdated';
 const ERROR_UNEXPECTED_RESPONSE_TRANSLATION_KEY = 'leads.detail.errors.unexpectedResponse';
@@ -308,6 +309,13 @@ export class LeadDetailComponent implements OnInit {
     const missing = this.aiInsightsMissingInformation();
     const score = this.leadScore();
     return Boolean(analysis) || missing.length > 0 || Boolean(score?.score) || Boolean(score?.preAi);
+  });
+  protected readonly canTriggerAiWorkflow = computed(() => {
+    const service = this.selectedService();
+    if (!service) {
+      return false;
+    }
+    return service.pipelineStage === 'Triage' || service.pipelineStage === 'Nurturing';
   });
 
   // Photo Analysis
@@ -671,6 +679,14 @@ export class LeadDetailComponent implements OnInit {
       .subscribe((event) => {
         if (this.isCurrentLeadEvent(event)) {
           this.liveRefresh$.next();
+        }
+      });
+
+    this.sse.events
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe((event) => {
+        if (this.isCurrentAnalysisCompleteEvent(event)) {
+          this.refreshAnalysisFromLiveEvent();
         }
       });
 
@@ -1080,6 +1096,19 @@ export class LeadDetailComponent implements OnInit {
     return this.extractLeadIdFromEvent(event) === currentLeadId;
   }
 
+  private isCurrentAnalysisCompleteEvent(event: SSEEvent): boolean {
+    if (event.type !== 'analysis_complete') {
+      return false;
+    }
+
+    const currentServiceId = this.selectedService()?.id;
+    if (!currentServiceId) {
+      return false;
+    }
+
+    return this.isCurrentLeadEvent(event) && this.extractServiceIdFromEvent(event) === currentServiceId;
+  }
+
   private extractLeadIdFromEvent(event: SSEEvent): string | null {
     if (typeof event.leadId === 'string' && event.leadId.trim() !== '') {
       return event.leadId.trim();
@@ -1096,6 +1125,37 @@ export class LeadDetailComponent implements OnInit {
       }
     }
     return null;
+  }
+
+  private extractServiceIdFromEvent(event: SSEEvent): string | null {
+    if (typeof event.serviceId === 'string' && event.serviceId.trim() !== '') {
+      return event.serviceId.trim();
+    }
+
+    const dataServiceId = event.data?.['serviceId'];
+    if (typeof dataServiceId === 'string' && dataServiceId.trim() !== '') {
+      return dataServiceId.trim();
+    }
+
+    const leadServiceId = event.data?.['leadServiceId'];
+    if (typeof leadServiceId === 'string' && leadServiceId.trim() !== '') {
+      return leadServiceId.trim();
+    }
+
+    return null;
+  }
+
+  private refreshAnalysisFromLiveEvent(): void {
+    const leadId = this.lead()?.id;
+    const serviceId = this.selectedService()?.id;
+    if (!leadId || !serviceId) {
+      return;
+    }
+
+    this.aiAnalysisRefreshing.set(false);
+    this.refreshLeadSnapshot(leadId);
+    this.loadTimeline(leadId, serviceId);
+    this.loadAIAnalysis(leadId, serviceId);
   }
 
   private refreshFromLiveEvent(): void {
@@ -1657,8 +1717,9 @@ export class LeadDetailComponent implements OnInit {
     this.leadsService.analyzeWithAI(lead.id, service.id, force).subscribe({
       next: (response) => {
         if (response.status === 'error') {
-          this.aiAnalysisError.set(response.message);
-          this.reporter.report(new Error(response.message), { source: 'manual', silent: true, userMessage: response.message });
+          const message = response.message || this.translate.instant(ERROR_ANALYZE_LEAD_TRANSLATION_KEY);
+          this.aiAnalysisError.set(message);
+          this.reporter.report(new Error(message), { source: 'manual', silent: true, userMessage: message });
         } else if (response.analysis) {
           this.aiAnalysis.set(response.analysis);
           this.aiAnalysisIsDefault.set(false);
@@ -1671,6 +1732,11 @@ export class LeadDetailComponent implements OnInit {
             // Reload photo analysis as it may have been updated during AI analysis
             this.loadPhotoAnalysis(lead.id, service.id);
           }
+        } else if (response.message) {
+          const queuedMessage = this.translate.instant(ANNOUNCEMENT_AI_QUEUED_TRANSLATION_KEY);
+          this.toast.info(queuedMessage);
+          this.announce(queuedMessage);
+          this.refreshAutomationState(lead.id, service.id);
         } else {
           const message = this.translate.instant(ERROR_UNEXPECTED_RESPONSE_TRANSLATION_KEY);
           this.aiAnalysisError.set(message);

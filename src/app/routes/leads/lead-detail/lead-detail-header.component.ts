@@ -9,7 +9,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { LucideAngularModule } from 'lucide-angular';
 
-type LeadHeaderAction = 'edit' | 'quote' | 'call' | 'email' | 'whatsapp' | 'navigate' | 'log-call';
+type LeadHeaderAction = 'edit' | 'quote' | 'run-ai' | 'call' | 'email' | 'whatsapp' | 'navigate' | 'log-call';
 
 @Component({
   selector: 'app-lead-detail-header',
@@ -34,11 +34,14 @@ export class LeadDetailHeaderComponent {
   statusLabelMap = input<Partial<Record<LeadStatus, string>>>({} as Partial<Record<LeadStatus, string>>);
   energyLabelClass = input<string | null>(null);
   energyLabelVariant = input<ChipVariant>('neutral');
+  canTriggerAiWorkflow = input(false);
+  aiWorkflowTriggering = input(false);
   back = output<void>();
   toggleStatusMenu = output<void>();
   closeStatusMenu = output<void>();
   selectStatus = output<LeadStatus>();
   createQuote = output<void>();
+  triggerAiWorkflow = output<void>();
   editLead = output<void>();
   callClicked = output<void>();
   emailClicked = output<void>();
@@ -63,7 +66,14 @@ export class LeadDetailHeaderComponent {
     const secondaryItems: MenuItem[] = [];
 
     if (this.hasSelectedService()) {
-      primaryItems.push({ label: 'leads.detail.createQuote', value: 'quote' });
+      primaryItems.push(
+        {
+          label: this.aiWorkflowTriggering() ? 'leads.detail.actions.runningAi' : 'leads.detail.actions.runAi',
+          value: 'run-ai',
+          disabled: !this.canTriggerAiWorkflow() || this.aiWorkflowTriggering(),
+        },
+        { label: 'leads.detail.createQuote', value: 'quote' },
+      );
       secondaryItems.push({ label: 'leads.detail.quickActions.logCall', value: 'log-call' });
     }
 
@@ -104,6 +114,9 @@ export class LeadDetailHeaderComponent {
         return;
       case 'quote':
         this.createQuote.emit();
+        return;
+      case 'run-ai':
+        this.triggerAiWorkflow.emit();
         return;
       case 'call':
         this.callClicked.emit();

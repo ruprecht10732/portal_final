@@ -62,6 +62,18 @@
         </shared-button>
         @if (hasSelectedService()) {
           <shared-button
+            variant="ghost"
+            size="compact"
+            [uppercase]="false"
+            [fullWidth]="false"
+            [disabled]="!canTriggerAiWorkflow()"
+            [loading]="aiWorkflowTriggering()"
+            [ariaLabel]="'leads.detail.actions.runAi' | translate"
+            (clicked)="triggerAiWorkflow.emit()"
+          >
+            {{ (aiWorkflowTriggering() ? 'leads.detail.actions.runningAi' : 'leads.detail.actions.runAi') | translate }}
+          </shared-button>
+          <shared-button
             variant="primary"
             size="compact"
             [uppercase]="false"

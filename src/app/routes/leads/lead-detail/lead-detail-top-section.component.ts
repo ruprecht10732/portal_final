@@ -27,12 +27,15 @@ export class LeadDetailTopSectionComponent {
   energyLabelVariant = input<ChipVariant>('neutral');
   phone = input<string | null>(null);
   email = input<string | null>(null);
+  canTriggerAiWorkflow = input(false);
+  aiWorkflowTriggering = input(false);
 
   back = output<void>();
   toggleStatusMenu = output<void>();
   closeStatusMenu = output<void>();
   selectStatus = output<LeadStatus>();
   createQuote = output<void>();
+  triggerAiWorkflow = output<void>();
   editLead = output<void>();
   callClicked = output<void>();
   emailClicked = output<void>();
