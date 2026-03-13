@@ -116,12 +116,9 @@
 /* --- Bulletproof Rich Text Layout Constraints --- */
 
 :host ::ng-deep .rich-text {
-	overflow-wrap: break-word;
-	word-wrap: break-word;
+	overflow-wrap: anywhere;
 	word-break: normal;
-	-webkit-hyphens: none;
 	hyphens: none;
-	/* Prevent the container itself from expanding */
 	max-width: 100%;
 }
 
@@ -152,5 +149,5 @@
 :host ::ng-deep .rich-text pre,
 :host ::ng-deep .rich-text code {
 	white-space: pre-wrap !important;
-	word-break: break-word !important;
+	overflow-wrap: anywhere !important;
 }

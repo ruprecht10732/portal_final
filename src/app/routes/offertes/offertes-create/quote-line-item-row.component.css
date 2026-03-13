@@ -33,10 +33,22 @@
   color: #18181b;
 }
 
-:host ::ng-deep .ql-toolbar.ql-snow .ql-stroke { stroke-width: 1.6; }
-:host ::ng-deep .ql-toolbar.ql-snow .ql-fill { fill: currentColor; }
-:host ::ng-deep .ql-toolbar.ql-snow svg { width: 0.95rem; height: 0.95rem; }
-:host ::ng-deep .ql-container.ql-snow { border-color: #d4d4d8; }
+:host ::ng-deep .ql-toolbar.ql-snow .ql-stroke {
+  stroke-width: 1.6;
+}
+
+:host ::ng-deep .ql-toolbar.ql-snow .ql-fill {
+  fill: currentColor;
+}
+
+:host ::ng-deep .ql-toolbar.ql-snow svg {
+  width: 0.95rem;
+  height: 0.95rem;
+}
+
+:host ::ng-deep .ql-container.ql-snow {
+  border-color: #d4d4d8;
+}
 
 :host ::ng-deep .ql-container .ql-editor {
   min-height: 5rem;

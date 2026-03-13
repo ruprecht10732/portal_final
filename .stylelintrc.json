@@ -5,9 +5,15 @@
   "plugins": ["stylelint-scss"],
   "rules": {
     "selector-class-pattern": [
-      "^[a-z][a-zA-Z0-9]*(-[a-z][a-zA-Z0-9]*)*(__[a-z][a-zA-Z0-9]*(-[a-z][a-zA-Z0-9]*)*)?(--[a-z][a-zA-Z0-9]*(-[a-z][a-zA-Z0-9]*)*)?$",
+      "^(?:[a-z][a-zA-Z0-9]*(-[a-z][a-zA-Z0-9]*)*(__[a-z][a-zA-Z0-9]*(-[a-z][a-zA-Z0-9]*)*)?(--[a-z][a-zA-Z0-9]*(-[a-z][a-zA-Z0-9]*)*)?|ql-[a-z0-9]+(?:-[a-z0-9]+)*|line-clamp-[0-9]+)$",
       {
         "message": "Expected class selector to be in BEM format"
+      }
+    ],
+    "scss/at-rule-no-unknown": [
+      true,
+      {
+        "ignoreAtRules": ["custom-variant"]
       }
     ],
     "no-empty-source": null,

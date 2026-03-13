@@ -67,8 +67,7 @@ body {
 }
 
 .markdown-content :where(.katex-display) {
-  overflow-x: auto;
-  overflow-y: hidden;
+  overflow: auto hidden;
   padding: 0.25rem 0;
 }
 
