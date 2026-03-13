@@ -133,6 +133,7 @@ export class AuthenticatedMobileNavComponent {
   );
 
   private readonly isAdmin = computed(() => this.user()?.roles?.includes('admin') ?? false);
+  private readonly isSuperAdmin = computed(() => this.user()?.roles?.includes('superadmin') ?? false);
 
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
   protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
@@ -154,6 +155,9 @@ export class AuthenticatedMobileNavComponent {
       base.splice(4, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
       base.splice(5, 0, { label: 'navigation.whatsapp', route: '/app/whatsapp/inbox', icon: 'whatsapp' });
       base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
+    }
+    if (this.isSuperAdmin()) {
+      base.push({ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'whatsapp' });
     }
     base.push({ label: 'navigation.profile', route: '/app/profile', icon: 'profile' });
     return base;

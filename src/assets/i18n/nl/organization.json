@@ -283,6 +283,29 @@
           "unregistered": "Niet verbonden",
           "error": "Actie vereist",
           "unknown": "Controleren"
+        },
+        "members": {
+          "title": "Toegestane agent-gebruikers",
+          "subtitle": "Registreer de telefoonnummers van teamleden die het gedeelde WhatsApp agent-nummer mogen gebruiken.",
+          "phoneLabel": "Telefoonnummer",
+          "phonePlaceholder": "+31 6 12345678",
+          "displayNameLabel": "Weergavenaam",
+          "displayNamePlaceholder": "Optionele naam voor herkenning",
+          "add": "Gebruiker toevoegen",
+          "empty": "Nog geen telefoonnummers geregistreerd.",
+          "unnamed": "Naamloze gebruiker",
+          "registerFailed": "Gebruiker registreren mislukt.",
+          "removeFailed": "Gebruiker verwijderen mislukt.",
+          "loadFailed": "Geregistreerde gebruikers laden mislukt.",
+          "registered": "Telefoonnummer geregistreerd voor de WhatsApp agent.",
+          "removed": "Telefoonnummer verwijderd uit de WhatsApp agent.",
+          "remove": "Verwijderen",
+          "confirmRemove": {
+            "title": "Gebruiker verwijderen",
+            "message": "Dit telefoonnummer mag het gedeelde WhatsApp agent-nummer niet langer gebruiken.",
+            "confirm": "Verwijderen",
+            "cancel": "Annuleren"
+          }
         }
       },
       "smtp": {

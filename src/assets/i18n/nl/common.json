@@ -215,6 +215,52 @@
       "vatRatesLoadFailed": "BTW-tarieven laden mislukt."
     }
   },
+  "whatsappAgentAdmin": {
+    "title": "Agent WhatsApp",
+    "subtitle": "Registreer en beheer het ene gedeelde WhatsApp-nummer waar de AI-agent draait.",
+    "statusLabel": "Verbindingsstatus",
+    "statusHint": "Dit is het globale WhatsApp-apparaat voor de gedeelde AI-agent.",
+    "providerDeviceIdLabel": "Provider apparaat-ID",
+    "providerDeviceIdHint": "Gebruikt voor provider-acties zoals status ophalen en opnieuw verbinden.",
+    "accountJidLabel": "Gekoppeld WhatsApp-account",
+    "accountJidHint": "Verschijnt zodra de telefoon volledig aan het gedeelde apparaat is gekoppeld.",
+    "accountJidPending": "Verschijnt zodra de telefoon klaar is met koppelen.",
+    "connect": "Agent-apparaat registreren",
+    "reconnect": "Opnieuw verbinden",
+    "disconnect": "Ontkoppelen",
+    "connected": "Agent-apparaat geregistreerd.",
+    "disconnected": "Agent-apparaat ontkoppeld.",
+    "reconnectStarted": "Opnieuw verbinden gestart.",
+    "loadFailed": "Agent-apparaatstatus laden mislukt.",
+    "connectFailed": "Agent-apparaat registreren mislukt.",
+    "reconnectFailed": "Agent-apparaat opnieuw verbinden mislukt.",
+    "disconnectFailed": "Agent-apparaat ontkoppelen mislukt.",
+    "qrTitle": "Scan QR-code",
+    "qrHint": "Open WhatsApp op de gedeelde agent-telefoon en scan de QR-code.",
+    "refreshQr": "QR vernieuwen",
+    "qrAlt": "Agent WhatsApp QR-code",
+    "qrFailed": "Agent QR-code laden mislukt.",
+    "webhook": {
+      "title": "Provider webhook-callback",
+      "subtitle": "Plak deze callback in GoWA zodat inkomende berichten naar de backend worden doorgestuurd.",
+      "callbackUrlLabel": "Callback-URL",
+      "copyCallback": "Callback-URL kopiëren",
+      "headerNameLabel": "Naam van secret-header",
+      "queryParamLabel": "Secret query-parameter",
+      "secretLabel": "Gedeeld geheim",
+      "copySecret": "Geheim kopiëren",
+      "copied": "Gekopieerd",
+      "loadFailed": "Webhook-callbackinstellingen laden mislukt.",
+      "instructions": "Configureer GoWA om inkomende events naar deze callback-URL te POSTen. U kunt het geheim toevoegen als de bovenstaande query-parameter, of dezelfde waarde meesturen in de genoemde header."
+    },
+    "states": {
+      "connected": "Verbonden",
+      "disconnected": "Scan nodig",
+      "unregistered": "Niet verbonden",
+      "error": "Actie vereist",
+      "unknown": "Controleren"
+    }
+  },
   "dashboard": {
     "views": {
       "overview": "Overzicht",

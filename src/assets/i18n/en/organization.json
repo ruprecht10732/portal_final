@@ -283,6 +283,29 @@
           "unregistered": "Not connected",
           "error": "Needs attention",
           "unknown": "Checking"
+        },
+        "members": {
+          "title": "Allowed agent members",
+          "subtitle": "Register the phone numbers of team members who may use the shared WhatsApp agent number.",
+          "phoneLabel": "Phone number",
+          "phonePlaceholder": "+31 6 12345678",
+          "displayNameLabel": "Display name",
+          "displayNamePlaceholder": "Optional name for easier recognition",
+          "add": "Add member",
+          "empty": "No phone numbers registered yet.",
+          "unnamed": "Unnamed member",
+          "registerFailed": "Failed to register member.",
+          "removeFailed": "Failed to remove member.",
+          "loadFailed": "Failed to load registered members.",
+          "registered": "Phone number registered for the WhatsApp agent.",
+          "removed": "Phone number removed from the WhatsApp agent.",
+          "remove": "Remove",
+          "confirmRemove": {
+            "title": "Remove member",
+            "message": "This phone number will no longer be allowed to use the shared WhatsApp agent number.",
+            "confirm": "Remove",
+            "cancel": "Cancel"
+          }
         }
       },
       "smtp": {

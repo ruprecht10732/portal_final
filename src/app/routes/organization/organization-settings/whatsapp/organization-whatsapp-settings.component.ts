@@ -2,7 +2,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize, Subscription, timer } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { OrganizationService, WhatsAppStatus } from '../../../../core/services/organization.service';
+import { OrganizationService, WhatsAppAgentMember, WhatsAppStatus } from '../../../../core/services/organization.service';
 import { CreateWebhookAPIKeyResponse, WebhookAPIKey, WebhookService } from '../../../../core/services/webhook.service';
 import { environment } from '../../../../../environments/environment';
 import { resolveWhatsAppQrError } from '../../../../core/utils/whatsapp-qr-error.util';
@@ -57,6 +57,14 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly revokeWebhookTarget = signal<WebhookAPIKey | null>(null);
   protected readonly webhookKeyCopied = signal(false);
   protected readonly webhookUrlCopied = signal(false);
+  protected readonly agentMembers = signal<WhatsAppAgentMember[]>([]);
+  protected readonly isAgentMembersLoading = signal(true);
+  protected readonly isAgentMemberSaving = signal(false);
+  protected readonly agentMemberPhoneNumber = signal('');
+  protected readonly agentMemberDisplayName = signal('');
+  protected readonly agentMemberErrorMessage = signal('');
+  protected readonly agentMemberSuccessMessage = signal('');
+  protected readonly removeAgentMemberTarget = signal<WhatsAppAgentMember | null>(null);
 
   private statusPollingStarted = false;
   private qrRefreshSub: Subscription | null = null;
@@ -79,6 +87,7 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly pairedAccountJidPending = computed(() => !this.isWhatsAppUnregistered() && !this.pairedAccountJid());
   protected readonly activeWebhookKeys = computed(() => this.webhookKeys().filter(key => key.isActive));
   protected readonly showWebhookRevokeDialog = computed(() => this.revokeWebhookTarget() !== null);
+  protected readonly showRemoveAgentMemberDialog = computed(() => this.removeAgentMemberTarget() !== null);
   protected readonly hasToneChanges = computed(() => this.whatsAppToneOfVoice().trim() !== this.initialWhatsAppToneOfVoice().trim());
   protected readonly canSaveTone = computed(() => !this.isToneSaving() && this.hasToneChanges() && this.whatsAppToneOfVoice().trim().length >= 3);
   protected readonly whatsAppWebhookUrl = computed(() => `${environment.apiBaseUrl}/webhook/whatsapp`);
@@ -102,6 +111,7 @@ export class OrganizationWhatsAppSettingsComponent {
 
     this.loadSettings();
     this.loadWhatsAppWebhookKeys();
+    this.loadAgentMembers();
   }
 
   private loadSettings(): void {
@@ -532,6 +542,89 @@ export class OrganizationWhatsAppSettingsComponent {
       takeUntilDestroyed(this.destroyRef),
     )
     .subscribe(keys => this.webhookKeys.set(keys));
+  }
+
+  private loadAgentMembers(): void {
+    this.isAgentMembersLoading.set(true);
+    this.agentMemberErrorMessage.set('');
+
+    this.orgService
+      .listWhatsAppAgentMembers()
+      .pipe(
+        catchError(() => {
+          this.agentMemberErrorMessage.set(this.translate.instant('organization.settings.whatsapp.members.loadFailed'));
+          return EMPTY;
+        }),
+        finalize(() => this.isAgentMembersLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(members => this.agentMembers.set(members));
+  }
+
+  protected registerAgentMember(): void {
+    const phoneNumber = this.agentMemberPhoneNumber().trim();
+    const displayName = this.agentMemberDisplayName().trim();
+    if (!phoneNumber || this.isAgentMemberSaving()) {
+      return;
+    }
+
+    this.isAgentMemberSaving.set(true);
+    this.agentMemberErrorMessage.set('');
+    this.agentMemberSuccessMessage.set('');
+
+    const payload = displayName ? { phoneNumber, displayName } : { phoneNumber };
+
+    this.orgService
+      .registerWhatsAppAgentMember(payload)
+      .pipe(
+        catchError(() => {
+          this.agentMemberErrorMessage.set(this.translate.instant('organization.settings.whatsapp.members.registerFailed'));
+          return EMPTY;
+        }),
+        finalize(() => this.isAgentMemberSaving.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.agentMemberPhoneNumber.set('');
+        this.agentMemberDisplayName.set('');
+        this.agentMemberSuccessMessage.set(this.translate.instant('organization.settings.whatsapp.members.registered'));
+        this.loadAgentMembers();
+      });
+  }
+
+  protected confirmRemoveAgentMember(member: WhatsAppAgentMember): void {
+    this.removeAgentMemberTarget.set(member);
+  }
+
+  protected cancelRemoveAgentMember(): void {
+    this.removeAgentMemberTarget.set(null);
+  }
+
+  protected removeAgentMember(): void {
+    const target = this.removeAgentMemberTarget();
+    if (!target || this.isAgentMemberSaving()) {
+      return;
+    }
+
+    this.isAgentMemberSaving.set(true);
+    this.removeAgentMemberTarget.set(null);
+    this.agentMemberErrorMessage.set('');
+    this.agentMemberSuccessMessage.set('');
+
+    this.orgService
+      .removeWhatsAppAgentMember(target.phoneNumber)
+      .pipe(
+        catchError(() => {
+          this.agentMemberErrorMessage.set(this.translate.instant('organization.settings.whatsapp.members.removeFailed'));
+          return EMPTY;
+        }),
+        finalize(() => this.isAgentMemberSaving.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.agentMemberSuccessMessage.set(this.translate.instant('organization.settings.whatsapp.members.removed'));
+        this.loadAgentMembers();
+      });
   }
 
   private normalizeApiError(error: unknown, fallbackKey: string): string {

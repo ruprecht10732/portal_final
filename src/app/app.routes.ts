@@ -3,6 +3,7 @@ import { authGuard } from './core/guards/auth.guard';
 import { onboardingGuard } from './core/guards/onboarding.guard';
 import { guestGuard } from './core/guards/guest.guard';
 import { adminGuard } from './core/guards/admin.guard';
+import { superadminGuard } from './core/guards/superadmin.guard';
 import { catalogDetailResolver } from './routes/catalog/catalog-detail/catalog-detail.resolver';
 import { leadsListResolver } from './routes/leads/leads-list.resolver';
 import { partnersOfferListResolver } from './routes/partners/partners-offer-list/partners-offer-list.resolver';
@@ -318,7 +319,6 @@ export const routes: Routes = [
 			},
 			{
 				path: 'whatsapp',
-				canActivate: [adminGuard],
 				data: {
 					panelItems: [
 						{ label: 'navigation.whatsapp', route: '/app/whatsapp/inbox', icon: 'mail' },
@@ -333,6 +333,7 @@ export const routes: Routes = [
 					},
 					{
 						path: 'settings',
+						canActivate: [adminGuard],
 						loadComponent: () =>
 							import('./routes/organization/organization-settings/whatsapp/organization-whatsapp-settings.component').then(
 								m => m.OrganizationWhatsAppSettingsComponent,
@@ -340,9 +341,20 @@ export const routes: Routes = [
 					},
 					{
 						path: 'inbox',
+						canActivate: [adminGuard],
 						loadComponent: () => import('./routes/whatsapp/whatsapp-inbox.component').then(m => m.WhatsAppInboxComponent),
 					},
 				],
+			},
+			{
+				path: 'agent-whatsapp',
+				canActivate: [superadminGuard],
+				data: {
+					panelItems: [
+						{ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'globe', exact: true },
+					],
+				} satisfies SidebarPanelConfig,
+				loadComponent: () => import('./routes/whatsapp-agent/whatsapp-agent-admin.component').then(m => m.WhatsAppAgentAdminComponent),
 			},
 			{
 				path: 'leads',

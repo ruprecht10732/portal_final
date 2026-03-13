@@ -227,6 +227,21 @@ export interface UpdateInviteResponse {
   token?: string | null;
 }
 
+export interface WhatsAppAgentMember {
+  phoneNumber: string;
+  displayName: string;
+  createdAt: string;
+}
+
+export interface ListWhatsAppAgentMembersResponse {
+  members: WhatsAppAgentMember[];
+}
+
+export interface RegisterWhatsAppAgentMemberRequest {
+  phoneNumber: string;
+  displayName?: string;
+}
+
 export interface WorkflowStepRecipientConfig {
   audience?: string;
   includeAssignedAgent: boolean;
@@ -510,5 +525,19 @@ export class OrganizationService {
 
   detectSMTP(email: string): Observable<DetectSMTPResponse> {
     return this.http.post<DetectSMTPResponse>(`${this.baseUrl}/me/smtp/detect`, { email });
+  }
+
+  listWhatsAppAgentMembers(): Observable<WhatsAppAgentMember[]> {
+    return this.http.get<ListWhatsAppAgentMembersResponse>(`${this.baseUrl}/me/whatsapp-agent/members`).pipe(
+      map(response => response.members),
+    );
+  }
+
+  registerWhatsAppAgentMember(payload: RegisterWhatsAppAgentMemberRequest): Observable<{ phoneNumber: string; status: string }> {
+    return this.http.post<{ phoneNumber: string; status: string }>(`${this.baseUrl}/me/whatsapp-agent/members`, payload);
+  }
+
+  removeWhatsAppAgentMember(phoneNumber: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/me/whatsapp-agent/members/${encodeURIComponent(phoneNumber)}`);
   }
 }

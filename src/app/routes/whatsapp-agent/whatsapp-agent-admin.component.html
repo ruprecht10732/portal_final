@@ -1,0 +1,221 @@
+<shared-page-layout
+  [title]="'whatsappAgentAdmin.title' | translate"
+  [subtitle]="'whatsappAgentAdmin.subtitle' | translate"
+  [error]="errorMessage()"
+>
+  @if (isLoading()) {
+    <div class="mx-auto w-full max-w-4xl flex flex-col gap-6 py-6">
+      <shared-skeleton height="12rem" width="100%" />
+    </div>
+  } @else {
+    <div class="mx-auto w-full max-w-4xl flex flex-col gap-6 py-6">
+      <shared-card>
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+            <div class="flex flex-col gap-1">
+              <p class="text-sm font-semibold text-zinc-900">
+                {{ 'whatsappAgentAdmin.statusLabel' | translate }}
+              </p>
+              <p class="text-xs text-zinc-500">
+                {{ 'whatsappAgentAdmin.statusHint' | translate }}
+              </p>
+            </div>
+
+            <div class="inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold"
+                 [class.bg-emerald-100]="isConnected()"
+                 [class.text-emerald-700]="isConnected()"
+                 [class.bg-amber-100]="!isConnected() && !isUnregistered()"
+                 [class.text-amber-700]="!isConnected() && !isUnregistered()"
+                 [class.bg-zinc-100]="isUnregistered()"
+                 [class.text-zinc-600]="isUnregistered()">
+              @switch (status()?.state) {
+                @case ('CONNECTED') {
+                  {{ 'whatsappAgentAdmin.states.connected' | translate }}
+                }
+                @case ('DISCONNECTED') {
+                  {{ 'whatsappAgentAdmin.states.disconnected' | translate }}
+                }
+                @case ('UNREGISTERED') {
+                  {{ 'whatsappAgentAdmin.states.unregistered' | translate }}
+                }
+                @case ('ERROR') {
+                  {{ 'whatsappAgentAdmin.states.error' | translate }}
+                }
+                @default {
+                  {{ 'whatsappAgentAdmin.states.unknown' | translate }}
+                }
+              }
+            </div>
+          </div>
+
+          <div class="flex flex-col sm:flex-row sm:flex-wrap sm:items-center gap-3">
+            @if (isUnregistered()) {
+              <shared-button variant="primary" [disabled]="isAction()" [loading]="isAction()" (clicked)="registerDevice()">
+                {{ 'whatsappAgentAdmin.connect' | translate }}
+              </shared-button>
+            } @else {
+              <shared-button variant="secondary" [disabled]="isAction()" [loading]="isAction()" (clicked)="reconnectDevice()">
+                {{ 'whatsappAgentAdmin.reconnect' | translate }}
+              </shared-button>
+              <shared-button variant="danger" [disabled]="isAction()" [loading]="isAction()" (clicked)="disconnectDevice()">
+                {{ 'whatsappAgentAdmin.disconnect' | translate }}
+              </shared-button>
+            }
+          </div>
+
+          @if (!isUnregistered()) {
+            <div class="grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:grid-cols-2">
+              <div class="flex flex-col gap-1 min-w-0">
+                <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-zinc-500">
+                  {{ 'whatsappAgentAdmin.providerDeviceIdLabel' | translate }}
+                </p>
+                <p class="break-all font-mono text-sm text-zinc-900">
+                  {{ deviceId() }}
+                </p>
+                <p class="text-xs text-zinc-500">
+                  {{ 'whatsappAgentAdmin.providerDeviceIdHint' | translate }}
+                </p>
+              </div>
+
+              <div class="flex flex-col gap-1 min-w-0">
+                <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-zinc-500">
+                  {{ 'whatsappAgentAdmin.accountJidLabel' | translate }}
+                </p>
+                @if (accountJid()) {
+                  <p class="break-all font-mono text-sm text-zinc-900">
+                    {{ accountJid() }}
+                  </p>
+                } @else {
+                  <p class="text-sm font-semibold text-amber-700">
+                    {{ 'whatsappAgentAdmin.accountJidPending' | translate }}
+                  </p>
+                }
+                <p class="text-xs text-zinc-500">
+                  {{ 'whatsappAgentAdmin.accountJidHint' | translate }}
+                </p>
+              </div>
+            </div>
+          }
+
+          @if (successMessage()) {
+            <p class="text-sm font-semibold text-emerald-600">
+              {{ successMessage() }}
+            </p>
+          }
+
+          @if (!isUnregistered()) {
+            <div class="mt-2 grid gap-4 sm:grid-cols-[minmax(0,1fr)_220px] items-start">
+              <div class="flex flex-col gap-2">
+                <p class="text-sm font-semibold text-zinc-900">
+                  {{ 'whatsappAgentAdmin.qrTitle' | translate }}
+                </p>
+                <p class="text-xs text-zinc-500">
+                  {{ 'whatsappAgentAdmin.qrHint' | translate }}
+                </p>
+                @if (qrMessage()) {
+                  <div
+                    class="rounded-lg border px-3 py-2 text-xs leading-5"
+                    [class.border-amber-200]="qrMessageVariant() === 'info'"
+                    [class.bg-amber-50]="qrMessageVariant() === 'info'"
+                    [class.text-amber-800]="qrMessageVariant() === 'info'"
+                    [class.border-rose-200]="qrMessageVariant() === 'error'"
+                    [class.bg-rose-50]="qrMessageVariant() === 'error'"
+                    [class.text-rose-700]="qrMessageVariant() === 'error'"
+                  >
+                    {{ qrMessage() }}
+                  </div>
+                }
+                <shared-button variant="ghost" [disabled]="isAction()" [fullWidth]="false" (clicked)="refreshQr()">
+                  {{ 'whatsappAgentAdmin.refreshQr' | translate }}
+                </shared-button>
+              </div>
+
+              @if (qrBlobUrl()) {
+                <div class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
+                  <img [src]="qrBlobUrl()!" [alt]="'whatsappAgentAdmin.qrAlt' | translate" class="h-auto w-full rounded-2xl" />
+                </div>
+              }
+            </div>
+          }
+        </div>
+      </shared-card>
+
+      <shared-card>
+        <div class="flex flex-col gap-4">
+          <div class="flex flex-col gap-1">
+            <p class="text-sm font-semibold text-zinc-900">
+              {{ 'whatsappAgentAdmin.webhook.title' | translate }}
+            </p>
+            <p class="text-xs text-zinc-500">
+              {{ 'whatsappAgentAdmin.webhook.subtitle' | translate }}
+            </p>
+          </div>
+
+          @if (webhookConfigError()) {
+            <p class="text-sm font-semibold text-rose-600">
+              {{ webhookConfigError() }}
+            </p>
+          }
+
+          <div class="space-y-2">
+            <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
+              {{ 'whatsappAgentAdmin.webhook.callbackUrlLabel' | translate }}
+            </p>
+            <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+              <code class="block flex-1 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-900">
+                {{ callbackUrlWithQuery() }}
+              </code>
+              <shared-button variant="secondary" size="compact" [fullWidth]="false" (clicked)="copyCallbackUrl()">
+                @if (callbackCopied()) {
+                  {{ 'whatsappAgentAdmin.webhook.copied' | translate }}
+                } @else {
+                  {{ 'whatsappAgentAdmin.webhook.copyCallback' | translate }}
+                }
+              </shared-button>
+            </div>
+          </div>
+
+          @if (webhookConfig(); as config) {
+            <div class="grid gap-3 rounded-2xl border border-zinc-200 bg-zinc-50 p-4 sm:grid-cols-2">
+              <div class="flex flex-col gap-1 min-w-0">
+                <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-zinc-500">
+                  {{ 'whatsappAgentAdmin.webhook.headerNameLabel' | translate }}
+                </p>
+                <p class="break-all font-mono text-sm text-zinc-900">{{ config.secretHeaderName }}</p>
+              </div>
+
+              <div class="flex flex-col gap-1 min-w-0">
+                <p class="text-[11px] font-bold uppercase tracking-[0.24em] text-zinc-500">
+                  {{ 'whatsappAgentAdmin.webhook.queryParamLabel' | translate }}
+                </p>
+                <p class="break-all font-mono text-sm text-zinc-900">{{ config.queryParamName }}</p>
+              </div>
+            </div>
+
+            <div class="space-y-2">
+              <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-500">
+                {{ 'whatsappAgentAdmin.webhook.secretLabel' | translate }}
+              </p>
+              <div class="flex flex-col gap-2 sm:flex-row sm:items-center">
+                <code class="block flex-1 overflow-x-auto rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-900">
+                  {{ config.sharedSecret }}
+                </code>
+                <shared-button variant="secondary" size="compact" [fullWidth]="false" (clicked)="copySecret()">
+                  @if (secretCopied()) {
+                    {{ 'whatsappAgentAdmin.webhook.copied' | translate }}
+                  } @else {
+                    {{ 'whatsappAgentAdmin.webhook.copySecret' | translate }}
+                  }
+                </shared-button>
+              </div>
+            </div>
+
+            <div class="rounded-2xl border border-sky-200 bg-sky-50 px-4 py-3 text-sm text-sky-900">
+              {{ 'whatsappAgentAdmin.webhook.instructions' | translate }}
+            </div>
+          }
+        </div>
+      </shared-card>
+    </div>
+  }
+</shared-page-layout>

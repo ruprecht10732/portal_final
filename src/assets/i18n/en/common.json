@@ -215,6 +215,52 @@
       "vatRatesLoadFailed": "Failed to load VAT rates."
     }
   },
+  "whatsappAgentAdmin": {
+    "title": "Agent WhatsApp",
+    "subtitle": "Register and manage the single shared WhatsApp number where the AI agent lives.",
+    "statusLabel": "Connection status",
+    "statusHint": "This is the global app-wide WhatsApp device used by the shared AI agent.",
+    "providerDeviceIdLabel": "Provider device ID",
+    "providerDeviceIdHint": "Used for provider reconnect and status operations.",
+    "accountJidLabel": "Paired WhatsApp account",
+    "accountJidHint": "Appears after the phone finishes linking to the shared device.",
+    "accountJidPending": "Will appear after the phone completes linking.",
+    "connect": "Register agent device",
+    "reconnect": "Reconnect",
+    "disconnect": "Disconnect",
+    "connected": "Agent device registered.",
+    "disconnected": "Agent device disconnected.",
+    "reconnectStarted": "Reconnection started.",
+    "loadFailed": "Failed to load agent device status.",
+    "connectFailed": "Failed to register the agent device.",
+    "reconnectFailed": "Failed to reconnect the agent device.",
+    "disconnectFailed": "Failed to disconnect the agent device.",
+    "qrTitle": "Scan QR code",
+    "qrHint": "Open WhatsApp on the shared agent phone and scan the QR code.",
+    "refreshQr": "Refresh QR",
+    "qrAlt": "Agent WhatsApp QR code",
+    "qrFailed": "Failed to load agent QR code.",
+    "webhook": {
+      "title": "Provider webhook callback",
+      "subtitle": "Paste this callback into GoWA so inbound messages are forwarded to the backend.",
+      "callbackUrlLabel": "Callback URL",
+      "copyCallback": "Copy callback URL",
+      "headerNameLabel": "Secret header name",
+      "queryParamLabel": "Secret query parameter",
+      "secretLabel": "Shared secret",
+      "copySecret": "Copy secret",
+      "copied": "Copied",
+      "loadFailed": "Failed to load webhook callback settings.",
+      "instructions": "Configure GoWA to POST inbound events to this callback URL. You can either append the secret as the query parameter shown above, or send the same value in the listed header."
+    },
+    "states": {
+      "connected": "Connected",
+      "disconnected": "Needs scan",
+      "unregistered": "Not connected",
+      "error": "Needs attention",
+      "unknown": "Checking"
+    }
+  },
   "dashboard": {
     "views": {
       "overview": "Overview",
