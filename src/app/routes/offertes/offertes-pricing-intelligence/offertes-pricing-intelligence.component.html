@@ -144,7 +144,7 @@
                       <td class="px-5 py-3 text-right text-sm tabular-nums text-zinc-700">{{ formatPercent(aggregate.conversionRate) }}</td>
                       <td class="px-5 py-3 text-right text-sm tabular-nums text-zinc-700">{{ formatCurrency(aggregate.averageQuotedCents) }}</td>
                       <td class="px-5 py-3 text-right text-sm tabular-nums text-zinc-700">
-                        {{ aggregate.averageOutcomeCents != null ? formatCurrency(aggregate.averageOutcomeCents) : '—' }}
+                        {{ formatOptionalCurrency(aggregate.averageOutcomeCents) }}
                       </td>
                     </tr>
                   }
@@ -202,7 +202,7 @@
                         </div>
                         <div class="text-right">
                           <p class="text-sm font-semibold tabular-nums text-zinc-900">
-                            {{ outcome.finalTotalCents != null ? formatCurrency(outcome.finalTotalCents) : '—' }}
+                            {{ formatOptionalCurrency(outcome.finalTotalCents) }}
                           </p>
                           <p class="mt-1 text-xs text-zinc-500">{{ outcome.createdAt | date:'short' }}</p>
                         </div>

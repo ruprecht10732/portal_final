@@ -49,84 +49,88 @@ import { MenuComponent, type MenuItem, type MenuSection } from '../../shared/com
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
 import { SelectComponent, type SelectOption } from '../../shared/components/select/select.component';
 
-type WhatsAppConversationEventPayload = { conversation?: Partial<WhatsAppConversation> };
-type WhatsAppMessageEventPayload = {
+interface WhatsAppConversationEventPayload {
+  conversation?: Partial<WhatsAppConversation>;
+}
+
+interface WhatsAppMessageEventPayload {
   conversation?: Partial<WhatsAppConversation>;
   message?: Partial<WhatsAppMessage>;
-};
-type MessageMutationBadge = {
+}
+
+interface MessageMutationBadge {
   key: string;
   icon: string;
   kind: 'edited' | 'deleted' | 'revoked';
   label: string;
-};
+}
 
-type MessageReactionSummary = {
+interface MessageReactionSummary {
   key: string;
   reaction: string;
   count: number;
   tooltip: string;
-};
+}
 
-type MessageReplyContext = {
+interface MessageReplyContext {
   messageId?: string;
   body: string;
-};
+}
 
-type MessageMediaContent = {
+interface MessageMediaContent {
   kind: 'image' | 'video' | 'audio' | 'file' | 'sticker' | 'video_note';
   label: string;
   url: string | null;
   caption: string | null;
   filename: string | null;
   placeholder: string;
-};
+}
 
-type MessageContactCard = {
+interface MessageContactCard {
   name: string;
   phone?: string;
-};
+}
 
-type MessageLocationCard = {
+interface MessageLocationCard {
   latitude?: string;
   longitude?: string;
   name?: string;
   address?: string;
   live?: boolean;
-};
+}
 
-type MessagePollCard = {
+interface MessagePollCard {
   question?: string;
   options: string[];
   selectedOptions: string[];
   maxAnswer?: string;
-};
+}
 
 type ConversationListFilter = 'all' | 'unread' | 'archived';
 
-type ConversationListFilterOption = {
+interface ConversationListFilterOption {
   value: ConversationListFilter;
   label: string;
-};
+}
 
-type ThreadActionState = {
+interface ThreadActionState {
   archived?: boolean;
   pinned?: boolean;
   timerSeconds?: number;
-};
+}
 
-type ComposerTypeOption = {
+interface ComposerTypeOption {
   value: WhatsAppMessageComposerType;
   label: string;
   icon: string;
-};
+}
 
-type RouteConversationIntent = {
+interface RouteConversationIntent {
   conversationId: string | null;
   phoneNumber: string | null;
   leadId: string | null;
   compose: boolean;
-};
+}
 
 const composerTypeOptions: ComposerTypeOption[] = [
   { value: 'text', label: 'Tekst', icon: 'message-square-text' },

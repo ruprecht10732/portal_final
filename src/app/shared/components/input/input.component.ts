@@ -69,7 +69,6 @@ import { type TemplateVariable } from '../rich-text-editor/rich-text-editor.comp
                 class="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors cursor-pointer touch-manipulation
                        hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
                 aria-label="Variabele invoegen"
-                tabindex="-1"
               >
                 <svg viewBox="0 0 18 18" class="h-4 w-4"><text x="1" y="14" font-size="12" font-family="sans-serif" font-weight="600" fill="currentColor">{{ '{' }}x{{ '}' }}</text></svg>
               </button>
@@ -83,7 +82,6 @@ import { type TemplateVariable } from '../rich-text-editor/rich-text-editor.comp
                        hover:bg-zinc-100 hover:text-zinc-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
                 [attr.aria-label]="passwordToggleLabel()"
                 [attr.aria-pressed]="isPasswordVisible()"
-                tabindex="-1"
               >
                 @if (isPasswordVisible()) {
                   <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
@@ -106,7 +104,6 @@ import { type TemplateVariable } from '../rich-text-editor/rich-text-editor.comp
                 class="flex h-8 w-8 items-center justify-center rounded-md text-zinc-400 transition-colors cursor-pointer touch-manipulation
                        hover:bg-zinc-100 hover:text-red-600 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900"
                 aria-label="Clear input"
-                tabindex="-1"
               >
                 <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
                   <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
@@ -117,8 +114,7 @@ import { type TemplateVariable } from '../rich-text-editor/rich-text-editor.comp
         }
 
         @if (hasVariables() && showVariableDropdown()) {
-          <div class="absolute right-0 top-full mt-1 z-1000 min-w-65 max-h-70 overflow-y-auto bg-white border border-zinc-200 rounded-lg shadow-lg py-1"
-               (click)="$event.stopPropagation()">
+          <div class="absolute right-0 top-full mt-1 z-1000 min-w-65 max-h-70 overflow-y-auto bg-white border border-zinc-200 rounded-lg shadow-lg py-1">
             @for (v of variables(); track v.value) {
               <button type="button"
                       class="flex items-center justify-between gap-3 w-full px-3.5 py-2 border-none bg-transparent cursor-pointer text-left text-[0.8125rem] text-zinc-900 transition-colors hover:bg-zinc-100"
@@ -133,7 +129,7 @@ import { type TemplateVariable } from '../rich-text-editor/rich-text-editor.comp
     </shared-field-shell>
 
     @if (showVariableDropdown()) {
-      <div class="fixed inset-0 z-999" (click)="closeVariableDropdown()"></div>
+      <button type="button" class="fixed inset-0 z-999" aria-label="Close variable menu" (click)="closeVariableDropdown()"></button>
     }
   `,
   styles: `

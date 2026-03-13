@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { Subject, debounceTime, switchMap, map, catchError, of } from 'rxjs';
+import { EMPTY, Subject, debounceTime, switchMap, map, catchError, of } from 'rxjs';
 
 import { LeadsService } from '../../../core/services/leads.service';
 import { QuotesService } from '../../../core/services/quotes.service';
@@ -875,11 +875,9 @@ export class OffertesCreateComponent implements OnInit {
   private submitQuoteFeedbackInBackground(quoteId: string, requests: CreateQuoteFeedbackRequest[]): void {
     for (const request of requests) {
       this.quotesService.submitFeedback(quoteId, request).pipe(
+        catchError(() => EMPTY),
         takeUntilDestroyed(this.destroyRef),
-      ).subscribe({
-        next: () => {},
-        error: () => {},
-      });
+      ).subscribe();
     }
   }
 

@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, model, signal, viewChild, type AfterViewInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, effect, input, model, signal, viewChild, type AfterViewInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { QuillEditorComponent, type QuillModules } from 'ngx-quill';
 import { FieldShellComponent } from '../field-shell/field-shell.component';
@@ -42,6 +42,23 @@ export class RichTextEditorComponent implements AfterViewInit {
       ['clean'],
     ],
   };
+
+  constructor() {
+    effect((onCleanup) => {
+      if (!this.showVariableDropdown()) {
+        return;
+      }
+
+      const handleKeydown = (event: KeyboardEvent) => {
+        if (event.key === 'Escape') {
+          this.closeDropdown();
+        }
+      };
+
+      document.addEventListener('keydown', handleKeydown);
+      onCleanup(() => document.removeEventListener('keydown', handleKeydown));
+    });
+  }
 
   ngAfterViewInit(): void {
     const editor = this.editorRef();

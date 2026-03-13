@@ -14,7 +14,7 @@ import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { CatalogFormComponent, type CatalogFormValue } from '../catalog-form/catalog-form.component';
 
-type InlineMaterialDraft = {
+interface InlineMaterialDraft {
   id: number;
   title: string;
   reference: string;
@@ -24,7 +24,7 @@ type InlineMaterialDraft = {
   unitLabel: string;
   vatRateId: string;
   pricingMode: MaterialPricingMode;
-};
+}
 
 @Component({
   selector: 'app-catalog-create',

@@ -31,14 +31,18 @@ import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/
 import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
 
-type LeadServiceOption = { label: string; value: string };
-type QuoteLineageSummary = {
+interface LeadServiceOption {
+  label: string;
+  value: string;
+}
+
+interface QuoteLineageSummary {
   kind: 'duplicate' | 'version';
   title: string;
   body: string;
   sourceQuoteId: string;
   sourceQuoteNumber: string;
-};
+}
 
 @Component({
   selector: 'app-offertes-detail',

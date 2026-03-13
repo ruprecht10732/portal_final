@@ -24,7 +24,7 @@
     />
 
     @if (variables().length && showVariableDropdown()) {
-      <div class="variable-dropdown" (click)="$event.stopPropagation()" (keydown.escape)="closeDropdown()">
+      <div class="variable-dropdown">
         @for (v of variables(); track v.value) {
           <button type="button" class="variable-option" (click)="insertVariable(v)">
             <span class="variable-option-label">{{ v.label }}</span>
@@ -37,5 +37,5 @@
 </shared-field-shell>
 
 @if (showVariableDropdown()) {
-  <div class="variable-backdrop" (click)="closeDropdown()" (keydown.escape)="closeDropdown()"></div>
+  <button type="button" class="variable-backdrop" aria-label="Close variable menu" (click)="closeDropdown()"></button>
 }

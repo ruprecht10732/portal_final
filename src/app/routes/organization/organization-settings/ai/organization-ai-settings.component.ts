@@ -16,13 +16,14 @@ import { SkeletonComponent } from '../../../../shared/components/skeleton/skelet
 import { TextareaComponent } from '../../../../shared/components/textarea/textarea.component';
 
 type CouncilConsensusMode = 'weighted' | 'majority' | 'estimator_final';
-type ScenarioAnalyticsItem = {
+
+interface ScenarioAnalyticsItem {
   scenario: string;
   sentCount: number;
   editedCount: number;
   editRate: number;
   lastUsedAt?: string | null;
-};
+}
 
 @Component({
   selector: 'app-organization-ai-settings',

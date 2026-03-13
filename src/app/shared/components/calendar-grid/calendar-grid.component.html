@@ -199,7 +199,6 @@
           [enableSelection]="true"
           [softDisabled]="false"
           selectionMode="explicit"
-          (keydown)="onKeyDown($event)"
           [attr.aria-labelledby]="gridLabelId"
           [attr.aria-describedby]="instructionsId"
           class="w-full border-collapse border border-zinc-900"
@@ -243,8 +242,10 @@
                     type="button"
                     class="absolute inset-0 w-full h-full text-left focus-visible:outline-2 focus-visible:outline-zinc-900 focus-visible:outline-offset-2"
                     [attr.aria-label]="day.ariaLabel"
+                    [attr.data-day]="day.day"
                     [disabled]="isUnavailable(day)"
                     (click)="onSlotClick(day)"
+                    (keydown)="onKeyDown($event)"
                   ></button>
                   <div class="relative z-10 flex flex-col h-full">
                     <div

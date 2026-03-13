@@ -142,6 +142,10 @@ export class OffertesPricingIntelligenceComponent {
     }).format(centsToEuros(cents));
   }
 
+  protected formatOptionalCurrency(cents: number | null | undefined): string {
+    return typeof cents === 'number' ? this.formatCurrency(cents) : '—';
+  }
+
   protected formatPercent(value: number): string {
     return new Intl.NumberFormat('nl-NL', {
       style: 'percent',
