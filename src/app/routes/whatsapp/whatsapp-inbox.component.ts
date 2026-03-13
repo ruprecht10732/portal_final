@@ -40,6 +40,7 @@ import type {
   WhatsAppPortalLocation,
   WhatsAppPortalPoll,
   WhatsAppPortalReply,
+  WhatsAppPortalTranscription,
   WhatsAppPresenceType,
   WhatsAppWebhookPayload,
 } from '../../core/services/whatsapp-inbox.types';
@@ -104,6 +105,14 @@ interface MessagePollCard {
   options: string[];
   selectedOptions: string[];
   maxAnswer?: string;
+}
+
+interface MessageTranscriptionCard {
+  status: 'pending' | 'processing' | 'completed' | 'failed';
+  label: string;
+  detail?: string;
+  text?: string;
+  error?: string;
 }
 
 type ConversationListFilter = 'all' | 'unread' | 'archived';
@@ -1885,6 +1894,49 @@ export class WhatsAppInboxComponent {
   };
   }
 
+  protected messageTranscription(message: WhatsAppMessage): MessageTranscriptionCard | null {
+  const transcription = this.messagePortalMetadata(message)?.transcription;
+  if (!transcription) {
+    return null;
+  }
+
+  const status = this.normalizeTranscriptionStatus(transcription.status);
+  const detailParts = [transcription.language?.trim(), transcription.provider?.trim()].filter(Boolean);
+  const text = transcription.text?.trim() || undefined;
+  const error = transcription.error?.trim() || undefined;
+
+  switch (status) {
+    case 'pending':
+      return {
+        status,
+        label: 'Transcriptie in wachtrij',
+        ...(detailParts.length > 0 ? { detail: detailParts.join(' · ') } : {}),
+      };
+    case 'processing':
+      return {
+        status,
+        label: 'Transcriptie bezig',
+        ...(detailParts.length > 0 ? { detail: detailParts.join(' · ') } : {}),
+      };
+    case 'failed':
+      return {
+        status,
+        label: 'Transcriptie mislukt',
+        ...(detailParts.length > 0 ? { detail: detailParts.join(' · ') } : {}),
+        ...(error ? { error } : {}),
+      };
+    case 'completed':
+      return {
+        status,
+        label: 'Getranscribeerd',
+        ...(detailParts.length > 0 ? { detail: detailParts.join(' · ') } : {}),
+        ...(text && text !== this.messagePrimaryBody(message)?.trim() ? { text } : {}),
+      };
+    default:
+      return null;
+  }
+  }
+
   protected messagePrimaryBody(message: WhatsAppMessage): string | null {
   const body = message.body.trim();
   if (!body) {
@@ -1915,6 +1967,30 @@ export class WhatsAppInboxComponent {
   }
 
   return body;
+  }
+
+  protected messageTranscriptionBadgeClass(message: WhatsAppMessage, transcription: MessageTranscriptionCard): string {
+  const outbound = message.direction === 'outbound';
+  switch (transcription.status) {
+    case 'completed':
+      return outbound ? 'bg-emerald-500/25 text-white' : 'bg-emerald-100 text-emerald-700';
+    case 'failed':
+      return outbound ? 'bg-rose-500/25 text-white' : 'bg-rose-100 text-rose-700';
+    default:
+      return outbound ? 'bg-amber-500/25 text-white' : 'bg-amber-100 text-amber-700';
+  }
+  }
+
+  private normalizeTranscriptionStatus(status: WhatsAppPortalTranscription['status']): MessageTranscriptionCard['status'] | null {
+  switch (status) {
+    case 'pending':
+    case 'processing':
+    case 'completed':
+    case 'failed':
+      return status;
+    default:
+      return null;
+  }
   }
 
   protected locationMapsUrl(location: MessageLocationCard): string | null {

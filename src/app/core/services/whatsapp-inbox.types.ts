@@ -38,6 +38,17 @@ export interface WhatsAppPortalAttachment {
   mediaType?: string;
 }
 
+export interface WhatsAppPortalTranscription {
+  status?: 'pending' | 'processing' | 'completed' | 'failed';
+  provider?: string;
+  language?: string;
+  text?: string;
+  error?: string;
+  confidence?: number;
+  storageBucket?: string;
+  storageKey?: string;
+}
+
 export interface WhatsAppPortalContact {
   name?: string;
   phone?: string;
@@ -118,6 +129,7 @@ export interface WhatsAppPortalMetadata {
   text?: string;
   caption?: string;
   attachment?: WhatsAppPortalAttachment;
+  transcription?: WhatsAppPortalTranscription;
   contact?: WhatsAppPortalContact;
   contacts?: WhatsAppPortalContact[];
   reply?: WhatsAppPortalReply;

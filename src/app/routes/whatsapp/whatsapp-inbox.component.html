@@ -728,6 +728,25 @@
                           </div>
                         }
 
+                        @if (messageTranscription(message); as transcription) {
+                          <div class="mb-3 rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
+                            <div class="flex flex-wrap items-center gap-2">
+                              <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold" [class]="messageTranscriptionBadgeClass(message, transcription)">
+                                {{ transcription.label }}
+                              </span>
+                              @if (transcription.detail) {
+                                <span class="text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">{{ transcription.detail }}</span>
+                              }
+                            </div>
+                            @if (transcription.text) {
+                              <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed" [class]="messageBodyClass(message)">{{ transcription.text }}</p>
+                            }
+                            @if (transcription.error) {
+                              <p class="mt-3 text-xs leading-relaxed" [class.text-rose-100]="message.direction === 'outbound'" [class.text-rose-700]="message.direction === 'inbound'">{{ transcription.error }}</p>
+                            }
+                          </div>
+                        }
+
                         @if (messageContacts(message); as contacts) {
                           @if (contacts.length > 0) {
                             <div class="mb-3 grid gap-2">
