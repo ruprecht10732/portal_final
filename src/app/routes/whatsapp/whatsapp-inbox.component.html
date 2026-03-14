@@ -705,17 +705,29 @@
                             </div>
 
                             @if (media.url && (media.kind === 'image' || media.kind === 'sticker')) {
-                              <img [src]="media.url" [alt]="media.filename || media.label" class="mt-3 max-h-72 rounded-2xl object-contain" />
+                              <img [src]="media.url" [alt]="media.filename || media.label" class="mt-3 max-h-72 rounded-2xl object-contain" (error)="handleMessageMediaLoadError(message)" />
                             }
 
                             @if (media.url && (media.kind === 'video' || media.kind === 'video_note')) {
-                              <div class="mt-3 rounded-2xl border border-dashed px-3 py-4 text-sm" [class.border-white/20]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-300]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
-                                Video kan extern worden geopend.
-                              </div>
+                              <video controls playsinline class="mt-3 max-h-72 w-full rounded-2xl object-contain" [src]="media.url" (error)="handleMessageMediaLoadError(message)">
+                                <track kind="captions" label="Ondertiteling" srclang="nl" src="data:text/vtt;charset=utf-8,WEBVTT%0A%0A" default />
+                              </video>
                             }
 
                             @if (media.url && media.kind === 'audio') {
-                              <audio controls class="mt-3 w-full" [src]="media.url"></audio>
+                              <audio controls class="mt-3 w-full" [src]="media.url" (error)="handleMessageMediaLoadError(message)"></audio>
+                            }
+
+                            @if (!media.url && isResolvingMessageMedia(message)) {
+                              <div class="mt-3 rounded-2xl border border-dashed px-3 py-4 text-sm" [class.border-white/20]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-300]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
+                                Media laden...
+                              </div>
+                            }
+
+                            @if (!media.url && messageMediaLoadError(message); as mediaError) {
+                              <div class="mt-3 rounded-2xl border border-dashed px-3 py-4 text-sm leading-relaxed" [class.border-white/20]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-300]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
+                                {{ mediaError }}
+                              </div>
                             }
 
                             @if (media.caption) {

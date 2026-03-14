@@ -244,6 +244,10 @@ export class WhatsAppInboxComponent {
   protected readonly starringMessageId = signal<string | null>(null);
   protected readonly downloadingMessageId = signal<string | null>(null);
   protected readonly attachingMessageId = signal<string | null>(null);
+  protected readonly resolvedMessageMediaUrls = signal<Record<string, string>>({});
+  protected readonly resolvingMessageMediaIds = signal<Record<string, true>>({});
+  protected readonly messageMediaErrors = signal<Record<string, string>>({});
+  protected readonly failedInlineMessageMediaIds = signal<Record<string, true>>({});
   protected readonly savingImportantMessages = signal(false);
   protected readonly importantSelectionMode = signal(false);
   protected readonly selectedImportantMessageIds = signal<string[]>([]);
@@ -587,6 +591,7 @@ export class WhatsAppInboxComponent {
         } else if (!firstConversation) {
           this.selectedConversationId.set(null);
           this.messages.set([]);
+          this.resetThreadMediaState();
         }
       });
   }
@@ -614,6 +619,7 @@ export class WhatsAppInboxComponent {
     this.resetLinkedLeadState();
     this.selectedConversationId.set(null);
     this.messages.set([]);
+    this.resetThreadMediaState();
   }
 
   protected closeActiveThread(): void {
@@ -1806,7 +1812,9 @@ export class WhatsAppInboxComponent {
   const attachment = portal?.attachment;
   const providerMedia = providerPayload ? this.providerMediaValue(providerPayload, messageType) : null;
   const filename = attachment?.filename?.trim() || this.providerMediaFilename(providerMedia);
-  const url = this.normalizeMediaUrl(attachment?.remoteUrl || attachment?.path || this.providerMediaUrl(providerMedia));
+  const resolvedUrl = this.resolvedMessageMediaUrls()[message.id]?.trim() || null;
+  const fallbackUrl = this.normalizeMediaUrl(attachment?.remoteUrl || attachment?.path || this.providerMediaUrl(providerMedia));
+  const url = resolvedUrl || (this.failedInlineMessageMediaIds()[message.id] ? null : fallbackUrl);
   const caption = portal?.caption?.trim() || this.providerMediaCaption(providerMedia);
   const label = this.mediaLabel(messageType);
   return {
@@ -1817,6 +1825,19 @@ export class WhatsAppInboxComponent {
     filename,
     placeholder: filename ? `${label} ${filename}` : label,
   };
+  }
+
+  protected isResolvingMessageMedia(message: WhatsAppMessage): boolean {
+    return !!this.resolvingMessageMediaIds()[message.id];
+  }
+
+  protected messageMediaLoadError(message: WhatsAppMessage): string | null {
+    return this.messageMediaErrors()[message.id] ?? null;
+  }
+
+  protected handleMessageMediaLoadError(message: WhatsAppMessage): void {
+    this.failedInlineMessageMediaIds.update(items => ({ ...items, [message.id]: true }));
+    this.resolveMessageMediaForThread(message, true);
   }
 
   protected messageContacts(message: WhatsAppMessage): MessageContactCard[] {
@@ -2003,6 +2024,7 @@ export class WhatsAppInboxComponent {
 
   private loadMessages(conversationId: string): void {
     this.loadingMessages.set(true);
+    this.resetThreadMediaState();
     this.inbox.getConversationMessages(conversationId)
       .pipe(
         catchError(error => {
@@ -2062,6 +2084,7 @@ export class WhatsAppInboxComponent {
     this.stopTypingPresence();
     this.selectedConversationId.set(null);
     this.messages.set([]);
+    this.resetThreadMediaState();
     this.draftConversationOpen.set(true);
     this.draftPhoneNumber.set(options?.phoneNumber?.trim() ?? '');
     this.draftLeadId.set(options?.leadId?.trim() || null);
@@ -2076,6 +2099,7 @@ export class WhatsAppInboxComponent {
   private closeDraftConversation(): void {
     this.clearDraftConversationState();
     this.messages.set([]);
+    this.resetThreadMediaState();
   }
 
   private clearDraftConversationState(resetComposer = true): void {
@@ -2264,6 +2288,7 @@ export class WhatsAppInboxComponent {
       }
       return next.sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime());
     });
+    this.resolveMessageMediaForThread(message);
   }
 
   private applyConversationActionResponse(response: WhatsAppConversationActionResponse): void {
@@ -2950,6 +2975,75 @@ export class WhatsAppInboxComponent {
       return value;
     }
     return `${value.slice(0, maxLength - 1).trimEnd()}…`;
+  }
+
+  private resetThreadMediaState(): void {
+    this.resolvedMessageMediaUrls.set({});
+    this.resolvingMessageMediaIds.set({});
+    this.messageMediaErrors.set({});
+    this.failedInlineMessageMediaIds.set({});
+  }
+
+  private resolveMessageMediaForThread(message: WhatsAppMessage, force = false): void {
+    const conversationId = this.selectedConversationId();
+    const messageTarget = this.actionMessageTarget(message);
+    const media = this.messageMedia(message);
+    if (!conversationId || !messageTarget || !media || media.kind === 'file') {
+      return;
+    }
+    if (!force) {
+      if (this.resolvedMessageMediaUrls()[message.id]?.trim()) {
+        return;
+      }
+      if (this.resolvingMessageMediaIds()[message.id]) {
+        return;
+      }
+    }
+
+    this.resolvingMessageMediaIds.update(items => ({ ...items, [message.id]: true }));
+    this.messageMediaErrors.update(items => {
+      const next = { ...items };
+      delete next[message.id];
+      return next;
+    });
+
+    this.inbox.downloadMessageMedia(conversationId, messageTarget)
+      .pipe(
+        catchError(error => {
+          this.messageMediaErrors.update(items => ({
+            ...items,
+            [message.id]: this.normalizeError(error),
+          }));
+          return EMPTY;
+        }),
+        finalize(() => {
+          this.resolvingMessageMediaIds.update(items => {
+            const next = { ...items };
+            delete next[message.id];
+            return next;
+          });
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => {
+        const resolvedUrl = this.normalizeMediaUrl(response.downloadUrl);
+        if (!resolvedUrl) {
+          this.messageMediaErrors.update(items => ({
+            ...items,
+            [message.id]: 'Geen bruikbare media-URL ontvangen voor dit bericht.',
+          }));
+          return;
+        }
+        this.resolvedMessageMediaUrls.update(items => ({
+          ...items,
+          [message.id]: resolvedUrl,
+        }));
+        this.failedInlineMessageMediaIds.update(items => {
+          const next = { ...items };
+          delete next[message.id];
+          return next;
+        });
+      });
   }
 
   private resetComposerState(type: WhatsAppMessageComposerType = 'text'): void {
