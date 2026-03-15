@@ -300,6 +300,19 @@
           "registered": "Telefoonnummer geregistreerd voor de WhatsApp agent.",
           "removed": "Telefoonnummer verwijderd uit de WhatsApp agent.",
           "remove": "Verwijderen",
+          "partners": {
+            "title": "Partners registreren",
+            "subtitle": "Zoek een bestaande partner en registreer het contactnummer voor de gedeelde WhatsApp agent.",
+            "searchLabel": "Partner zoeken",
+            "searchPlaceholder": "Zoek op bedrijfsnaam of contactpersoon",
+            "searchAction": "Partners zoeken",
+            "add": "Partner toevoegen",
+            "registered": "Partner geregistreerd voor de WhatsApp agent.",
+            "registerFailed": "Partner registreren mislukt.",
+            "searchFailed": "Partners zoeken mislukt.",
+            "noPhone": "Geen telefoonnummer bij partner beschikbaar",
+            "partnerLabel": "Partner"
+          },
           "confirmRemove": {
             "title": "Gebruiker verwijderen",
             "message": "Dit telefoonnummer mag het gedeelde WhatsApp agent-nummer niet langer gebruiken.",

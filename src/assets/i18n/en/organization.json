@@ -300,6 +300,19 @@
           "registered": "Phone number registered for the WhatsApp agent.",
           "removed": "Phone number removed from the WhatsApp agent.",
           "remove": "Remove",
+          "partners": {
+            "title": "Register partners",
+            "subtitle": "Search for an existing partner and register their contact phone for the shared WhatsApp agent.",
+            "searchLabel": "Partner search",
+            "searchPlaceholder": "Search by business name or contact",
+            "searchAction": "Search partners",
+            "add": "Add partner",
+            "registered": "Partner registered for the WhatsApp agent.",
+            "registerFailed": "Failed to register partner.",
+            "searchFailed": "Failed to search partners.",
+            "noPhone": "No partner phone number available",
+            "partnerLabel": "Partner"
+          },
           "confirmRemove": {
             "title": "Remove member",
             "message": "This phone number will no longer be allowed to use the shared WhatsApp agent number.",

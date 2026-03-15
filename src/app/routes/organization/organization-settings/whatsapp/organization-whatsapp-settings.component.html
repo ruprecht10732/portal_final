@@ -285,6 +285,97 @@
             </div>
           </div>
 
+          <div class="flex flex-col gap-3 rounded-2xl border border-zinc-200 bg-white p-4">
+            <div class="flex flex-col gap-1">
+              <p class="text-sm font-semibold text-zinc-900">
+                {{ 'organization.settings.whatsapp.members.partners.title' | translate }}
+              </p>
+              <p class="text-sm text-zinc-500">
+                {{ 'organization.settings.whatsapp.members.partners.subtitle' | translate }}
+              </p>
+            </div>
+
+            <div class="grid gap-3 md:grid-cols-[minmax(0,1fr)_auto]">
+              <shared-input
+                [label]="'organization.settings.whatsapp.members.partners.searchLabel' | translate"
+                [placeholder]="'organization.settings.whatsapp.members.partners.searchPlaceholder' | translate"
+                [(value)]="partnerSearch"
+              />
+
+              <div class="flex items-end justify-end">
+                <shared-button
+                  variant="secondary"
+                  size="compact"
+                  [fullWidth]="false"
+                  [loading]="isPartnerSearchLoading()"
+                  [disabled]="!partnerSearch().trim() || isPartnerSearchLoading() || isAgentMemberSaving()"
+                  (clicked)="searchPartners()"
+                >
+                  {{ 'organization.settings.whatsapp.members.partners.searchAction' | translate }}
+                </shared-button>
+              </div>
+            </div>
+
+            @if (selectedPartnerLabel()) {
+              <div class="flex items-center justify-between gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 px-4 py-3">
+                <div class="min-w-0">
+                  <p class="text-sm font-semibold text-emerald-900">{{ selectedPartnerLabel() }}</p>
+                  @if (selectedPartner(); as partner) {
+                    <p class="mt-1 text-xs text-emerald-700">{{ partner.contactPhone || ('organization.settings.whatsapp.members.partners.noPhone' | translate) }}</p>
+                  }
+                </div>
+
+                <div class="flex flex-wrap gap-2">
+                  <shared-button
+                    variant="secondary"
+                    size="compact"
+                    [fullWidth]="false"
+                    [disabled]="isAgentMemberSaving()"
+                    (clicked)="clearPartnerSelection()"
+                  >
+                    {{ 'common.clear' | translate }}
+                  </shared-button>
+                  <shared-button
+                    variant="primary"
+                    size="compact"
+                    [fullWidth]="false"
+                    [loading]="isAgentMemberSaving()"
+                    [disabled]="!selectedPartnerId() || isAgentMemberSaving()"
+                    (clicked)="registerPartnerMember()"
+                  >
+                    {{ 'organization.settings.whatsapp.members.partners.add' | translate }}
+                  </shared-button>
+                </div>
+              </div>
+            }
+
+            @if (partnerSearchResults().length > 0) {
+              <div class="space-y-2">
+                @for (partner of partnerSearchResults(); track partner.id) {
+                  <button
+                    type="button"
+                    class="flex w-full items-start justify-between gap-3 rounded-2xl border px-4 py-3 text-left transition hover:border-zinc-300 hover:bg-zinc-50"
+                    [class.border-emerald-300]="selectedPartnerId() === partner.id"
+                    [class.bg-emerald-50]="selectedPartnerId() === partner.id"
+                    [class.border-zinc-200]="selectedPartnerId() !== partner.id"
+                    [class.bg-white]="selectedPartnerId() !== partner.id"
+                    (click)="selectPartner(partner)"
+                  >
+                    <div class="min-w-0">
+                      <p class="text-sm font-semibold text-zinc-900">{{ partner.businessName }}</p>
+                      <p class="mt-1 text-xs text-zinc-500">{{ partner.contactName || ('organization.settings.whatsapp.members.unnamed' | translate) }}</p>
+                      <p class="mt-1 break-all text-xs text-zinc-500">{{ partner.contactPhone || ('organization.settings.whatsapp.members.partners.noPhone' | translate) }}</p>
+                    </div>
+
+                    <span class="rounded-full bg-zinc-100 px-2 py-0.5 text-[11px] font-medium text-zinc-600">
+                      {{ partner.city || partner.postalCode || ('organization.settings.whatsapp.members.partners.partnerLabel' | translate) }}
+                    </span>
+                  </button>
+                }
+              </div>
+            }
+          </div>
+
           @if (agentMemberSuccessMessage()) {
             <p class="text-sm font-semibold text-emerald-600">
               {{ agentMemberSuccessMessage() }}
@@ -314,6 +405,11 @@
                     <p class="text-sm font-semibold text-zinc-900">
                       {{ member.displayName || ('organization.settings.whatsapp.members.unnamed' | translate) }}
                     </p>
+                    @if (member.userType === 'partner') {
+                      <p class="mt-1 text-xs font-medium text-emerald-700">
+                        {{ 'organization.settings.whatsapp.members.partners.partnerLabel' | translate }}
+                      </p>
+                    }
                     <p class="mt-1 break-all font-mono text-xs text-zinc-500">
                       {{ member.phoneNumber }}
                     </p>

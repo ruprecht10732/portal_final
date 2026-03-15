@@ -3,6 +3,8 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize, Subscription, timer } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { OrganizationService, WhatsAppAgentMember, WhatsAppStatus } from '../../../../core/services/organization.service';
+import { PartnersService } from '../../../../core/services/partners.service';
+import type { Partner } from '../../../../core/services/partners.types';
 import { CreateWebhookAPIKeyResponse, WebhookAPIKey, WebhookService } from '../../../../core/services/webhook.service';
 import { environment } from '../../../../../environments/environment';
 import { resolveWhatsAppQrError } from '../../../../core/utils/whatsapp-qr-error.util';
@@ -62,6 +64,11 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly isAgentMemberSaving = signal(false);
   protected readonly agentMemberPhoneNumber = signal('');
   protected readonly agentMemberDisplayName = signal('');
+  protected readonly partnerSearch = signal('');
+  protected readonly partnerSearchResults = signal<Partner[]>([]);
+  protected readonly selectedPartnerId = signal<string | null>(null);
+  protected readonly selectedPartnerLabel = signal('');
+  protected readonly isPartnerSearchLoading = signal(false);
   protected readonly agentMemberErrorMessage = signal('');
   protected readonly agentMemberSuccessMessage = signal('');
   protected readonly removeAgentMemberTarget = signal<WhatsAppAgentMember | null>(null);
@@ -72,6 +79,7 @@ export class OrganizationWhatsAppSettingsComponent {
 
   private readonly orgService = inject(OrganizationService);
   private readonly webhookService = inject(WebhookService);
+  private readonly partnersService = inject(PartnersService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly translate = inject(TranslateService);
 
@@ -88,6 +96,13 @@ export class OrganizationWhatsAppSettingsComponent {
   protected readonly activeWebhookKeys = computed(() => this.webhookKeys().filter(key => key.isActive));
   protected readonly showWebhookRevokeDialog = computed(() => this.revokeWebhookTarget() !== null);
   protected readonly showRemoveAgentMemberDialog = computed(() => this.removeAgentMemberTarget() !== null);
+  protected readonly selectedPartner = computed(() => {
+    const selectedId = this.selectedPartnerId();
+    if (!selectedId) {
+      return null;
+    }
+    return this.partnerSearchResults().find(partner => partner.id === selectedId) ?? null;
+  });
   protected readonly hasToneChanges = computed(() => this.whatsAppToneOfVoice().trim() !== this.initialWhatsAppToneOfVoice().trim());
   protected readonly canSaveTone = computed(() => !this.isToneSaving() && this.hasToneChanges() && this.whatsAppToneOfVoice().trim().length >= 3);
   protected readonly whatsAppWebhookUrl = computed(() => `${environment.apiBaseUrl}/webhook/whatsapp`);
@@ -561,6 +576,76 @@ export class OrganizationWhatsAppSettingsComponent {
       .subscribe(members => this.agentMembers.set(members));
   }
 
+  protected searchPartners(): void {
+    const query = this.partnerSearch().trim();
+    if (!query || this.isPartnerSearchLoading() || this.isAgentMemberSaving()) {
+      return;
+    }
+
+    this.isPartnerSearchLoading.set(true);
+    this.agentMemberErrorMessage.set('');
+    this.agentMemberSuccessMessage.set('');
+
+    this.partnersService
+      .list({ search: query, page: 1, pageSize: 8, sortBy: 'businessName', sortOrder: 'asc' })
+      .pipe(
+        catchError(() => {
+          this.partnerSearchResults.set([]);
+          this.agentMemberErrorMessage.set(this.translate.instant('organization.settings.whatsapp.members.partners.searchFailed'));
+          return EMPTY;
+        }),
+        finalize(() => this.isPartnerSearchLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => {
+        this.partnerSearchResults.set(response.items ?? []);
+        if ((response.items ?? []).length === 0) {
+          this.selectedPartnerId.set(null);
+          this.selectedPartnerLabel.set('');
+        }
+      });
+  }
+
+  protected selectPartner(partner: Partner): void {
+    this.selectedPartnerId.set(partner.id);
+    this.selectedPartnerLabel.set(partner.businessName);
+  }
+
+  protected clearPartnerSelection(): void {
+    this.selectedPartnerId.set(null);
+    this.selectedPartnerLabel.set('');
+  }
+
+  protected registerPartnerMember(): void {
+    const partnerId = this.selectedPartnerId();
+    if (!partnerId || this.isAgentMemberSaving()) {
+      return;
+    }
+
+    this.isAgentMemberSaving.set(true);
+    this.agentMemberErrorMessage.set('');
+    this.agentMemberSuccessMessage.set('');
+
+    this.orgService
+      .registerWhatsAppPartnerAgentMember({ partnerId })
+      .pipe(
+        catchError(() => {
+          this.agentMemberErrorMessage.set(this.translate.instant('organization.settings.whatsapp.members.partners.registerFailed'));
+          return EMPTY;
+        }),
+        finalize(() => this.isAgentMemberSaving.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => {
+        this.partnerSearch.set('');
+        this.partnerSearchResults.set([]);
+        this.selectedPartnerId.set(null);
+        this.selectedPartnerLabel.set('');
+        this.agentMemberSuccessMessage.set(this.translate.instant('organization.settings.whatsapp.members.partners.registered'));
+        this.loadAgentMembers();
+      });
+  }
+
   protected registerAgentMember(): void {
     const phoneNumber = this.agentMemberPhoneNumber().trim();
     const displayName = this.agentMemberDisplayName().trim();
@@ -611,8 +696,11 @@ export class OrganizationWhatsAppSettingsComponent {
     this.agentMemberErrorMessage.set('');
     this.agentMemberSuccessMessage.set('');
 
-    this.orgService
-      .removeWhatsAppAgentMember(target.phoneNumber)
+    const request$ = target.userType === 'partner' && target.partnerId
+      ? this.orgService.removeWhatsAppPartnerAgentMember(target.partnerId)
+      : this.orgService.removeWhatsAppAgentMember(target.phoneNumber);
+
+    request$
       .pipe(
         catchError(() => {
           this.agentMemberErrorMessage.set(this.translate.instant('organization.settings.whatsapp.members.removeFailed'));

@@ -230,6 +230,8 @@ export interface UpdateInviteResponse {
 export interface WhatsAppAgentMember {
   phoneNumber: string;
   displayName: string;
+  userType?: 'admin' | 'partner';
+  partnerId?: string;
   createdAt: string;
 }
 
@@ -240,6 +242,10 @@ export interface ListWhatsAppAgentMembersResponse {
 export interface RegisterWhatsAppAgentMemberRequest {
   phoneNumber: string;
   displayName?: string;
+}
+
+export interface RegisterWhatsAppPartnerAgentMemberRequest {
+  partnerId: string;
 }
 
 export interface WorkflowStepRecipientConfig {
@@ -537,7 +543,15 @@ export class OrganizationService {
     return this.http.post<{ phoneNumber: string; status: string }>(`${this.baseUrl}/me/whatsapp-agent/members`, payload);
   }
 
+  registerWhatsAppPartnerAgentMember(payload: RegisterWhatsAppPartnerAgentMemberRequest): Observable<{ partnerId: string; phoneNumber: string; status: string }> {
+    return this.http.post<{ partnerId: string; phoneNumber: string; status: string }>(`${this.baseUrl}/me/whatsapp-agent/members/partners`, payload);
+  }
+
   removeWhatsAppAgentMember(phoneNumber: string): Observable<void> {
     return this.http.delete<void>(`${this.baseUrl}/me/whatsapp-agent/members/${encodeURIComponent(phoneNumber)}`);
+  }
+
+  removeWhatsAppPartnerAgentMember(partnerId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/me/whatsapp-agent/members/partners/${encodeURIComponent(partnerId)}`);
   }
 }
