@@ -26,6 +26,7 @@ const STATUS_ORDER: LeadStatus[] = [
   'Appointment_Scheduled',
   'Needs_Rescheduling',
   'In_Progress',
+  'Completed',
   'Disqualified',
 ];
 
