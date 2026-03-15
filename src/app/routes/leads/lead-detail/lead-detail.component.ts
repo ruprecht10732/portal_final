@@ -2314,8 +2314,8 @@ export class LeadDetailComponent implements OnInit {
     if (!lead || !serviceId) return;
 
     const amountStr = this.completeExtraWorkAmountEuros().trim();
-    const parsedAmount = amountStr !== '' ? parseFloat(amountStr) : NaN;
-    const extraWorkAmountCents = !isNaN(parsedAmount) && parsedAmount >= 0 ? Math.round(parsedAmount * 100) : null;
+    const parsedAmount = amountStr === '' ? Number.NaN : Number.parseFloat(amountStr);
+    const extraWorkAmountCents = Number.isNaN(parsedAmount) || parsedAmount < 0 ? null : Math.round(parsedAmount * 100);
     const extraWorkNotes = this.completeExtraWorkNotes().trim() || null;
 
     const request: CompleteServiceRequest = { extraWorkAmountCents, extraWorkNotes };

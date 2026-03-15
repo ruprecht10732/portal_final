@@ -30,13 +30,18 @@
 
   <!-- Complete Service Modal -->
   @if (showCompleteServiceModal()) {
-    <div
-      class="fixed inset-0 z-50 flex items-center justify-center p-4"
-      role="dialog"
+    <dialog
+      open
+      class="fixed inset-0 z-50 m-0 flex max-h-none max-w-none items-center justify-center border-0 bg-transparent p-4"
       aria-modal="true"
       [attr.aria-labelledby]="'complete-service-title'"
     >
-      <div class="absolute inset-0 bg-black/50" (click)="cancelCompleteService()"></div>
+      <button
+        type="button"
+        class="absolute inset-0 bg-black/50"
+        [attr.aria-label]="'leads.detail.cancel' | translate"
+        (click)="cancelCompleteService()"
+      ></button>
       <div class="relative z-10 w-full max-w-md rounded-xl bg-white p-6 shadow-xl">
         <h2 id="complete-service-title" class="text-lg font-semibold text-gray-900">
           {{ 'leads.detail.services.completeModalTitle' | translate }}
@@ -105,7 +110,7 @@
           </button>
         </div>
       </div>
-    </div>
+    </dialog>
   }
 
   <!-- Call Logger Dialog -->
