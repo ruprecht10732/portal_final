@@ -23,6 +23,7 @@ import type {
   CompleteServiceRequest,
   LeadAIAnalysisResponse,
   LeadAIAnalysisListResponse,
+  LeadDetailContextResponse,
   AnalyzeLeadResponse,
   LogCallRequest,
   LogCallResponse,
@@ -82,6 +83,10 @@ export class LeadsService extends BaseCrudService<
 
   getById(id: string): Observable<Lead> {
     return this.http.get<Lead>(`${this.baseUrl}/${id}`);
+  }
+
+  getDetailContext(id: string): Observable<LeadDetailContextResponse> {
+    return this.http.get<LeadDetailContextResponse>(`${this.baseUrl}/${id}/detail-context`);
   }
 
   getTimeline(id: string, serviceId?: string): Observable<LeadTimelineResponse> {

@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { finalize, map, Observable, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { CreateServiceTypeRequest, DeleteServiceTypeResponse, ListServiceTypesParams, ServiceTypeItem, ServiceTypeListResponse, UpdateServiceTypeRequest } from './service-types.types';
 import { normalizeIconName } from './icon-utils';
@@ -11,11 +11,29 @@ export class ServiceTypesService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/service-types`;
   private readonly adminBaseUrl = `${environment.apiBaseUrl}/admin/service-types`;
+  private activeListCache: ServiceTypeListResponse | null = null;
+  private activeListRequest: Observable<ServiceTypeListResponse> | null = null;
 
   listActive(): Observable<ServiceTypeListResponse> {
-    return this.http.get<ServiceTypeListResponse>(this.baseUrl).pipe(
+    if (this.activeListCache) {
+      return of(this.activeListCache);
+    }
+    if (this.activeListRequest) {
+      return this.activeListRequest;
+    }
+
+    this.activeListRequest = this.http.get<ServiceTypeListResponse>(this.baseUrl).pipe(
       map(response => this.normalizeResponse(response)),
+      tap(response => {
+        this.activeListCache = response;
+      }),
+      finalize(() => {
+        this.activeListRequest = null;
+      }),
+      shareReplay({ bufferSize: 1, refCount: false }),
     );
+
+    return this.activeListRequest;
   }
 
   getById(id: string): Observable<ServiceTypeItem> {
@@ -41,23 +59,33 @@ export class ServiceTypesService {
   create(request: CreateServiceTypeRequest): Observable<ServiceTypeItem> {
     return this.http.post<ServiceTypeItem>(this.adminBaseUrl, request).pipe(
       map(item => this.normalizeItem(item)),
+      tap(() => this.clearActiveListCache()),
     );
   }
 
   update(id: string, request: UpdateServiceTypeRequest): Observable<ServiceTypeItem> {
     return this.http.put<ServiceTypeItem>(`${this.adminBaseUrl}/${id}`, request).pipe(
       map(item => this.normalizeItem(item)),
+      tap(() => this.clearActiveListCache()),
     );
   }
 
   delete(id: string): Observable<DeleteServiceTypeResponse> {
-    return this.http.delete<DeleteServiceTypeResponse>(`${this.adminBaseUrl}/${id}`);
+    return this.http.delete<DeleteServiceTypeResponse>(`${this.adminBaseUrl}/${id}`).pipe(
+      tap(() => this.clearActiveListCache()),
+    );
   }
 
   toggleActive(id: string): Observable<ServiceTypeItem> {
     return this.http.patch<ServiceTypeItem>(`${this.adminBaseUrl}/${id}/toggle-active`, {}).pipe(
       map(item => this.normalizeItem(item)),
+      tap(() => this.clearActiveListCache()),
     );
+  }
+
+  private clearActiveListCache(): void {
+    this.activeListCache = null;
+    this.activeListRequest = null;
   }
 
   private normalizeItem(item: ServiceTypeItem): ServiceTypeItem {

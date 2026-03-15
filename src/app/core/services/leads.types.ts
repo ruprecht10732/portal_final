@@ -1,3 +1,6 @@
+import type { AppointmentResponse } from './appointments.types';
+import type { QuoteResponse } from './quotes.types';
+
 // Lead types matching backend DTOs
 
 export type ConsumerRole = 'Owner' | 'Tenant' | 'Landlord';
@@ -565,6 +568,21 @@ export interface TimelinePhotoAnalysisSummary {
 
 export interface PhotoAnalysisResponse {
   analysis: PhotoAnalysis | null;
+}
+
+export interface LeadDetailAnalysisContext {
+  analysis?: LeadAIAnalysis | null;
+  isDefault: boolean;
+}
+
+export interface LeadDetailContextResponse {
+  lead: Lead;
+  notes: LeadNote[];
+  appointments: AppointmentResponse[];
+  quotes: QuoteResponse[];
+  communications: LeadInboxCommunicationsResponse;
+  currentServiceAnalysis?: LeadDetailAnalysisContext | null;
+  currentServicePhotoAnalysis?: PhotoAnalysis | null;
 }
 
 // Call Logger types

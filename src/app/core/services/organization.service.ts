@@ -1,6 +1,6 @@
 import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { finalize, map, Observable, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { SKIP_GLOBAL_ERROR_REPORTING } from '../interceptors/error-reporting-context';
 import { toHttpParams } from '../utils/http-utils';
@@ -380,6 +380,8 @@ export interface ResolveLeadWorkflowResponse {
 export class OrganizationService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/admin/organizations`;
+  private workflowEngineWorkflowsCache: WorkflowEngineWorkflow[] | null = null;
+  private workflowEngineWorkflowsRequest: Observable<WorkflowEngineWorkflow[]> | null = null;
 
   getOrganization(): Observable<Organization> {
     return this.http.get<Organization>(`${this.baseUrl}/me`);
@@ -438,14 +440,34 @@ export class OrganizationService {
   }
 
   getWorkflowEngineWorkflows(): Observable<WorkflowEngineWorkflow[]> {
-    return this.http.get<ListWorkflowEngineWorkflowsResponse>(`${this.baseUrl}/me/workflow-engine/workflows`).pipe(
-      map(response => response.workflows)
+    if (this.workflowEngineWorkflowsCache) {
+      return of(this.workflowEngineWorkflowsCache);
+    }
+    if (this.workflowEngineWorkflowsRequest) {
+      return this.workflowEngineWorkflowsRequest;
+    }
+
+    this.workflowEngineWorkflowsRequest = this.http.get<ListWorkflowEngineWorkflowsResponse>(`${this.baseUrl}/me/workflow-engine/workflows`).pipe(
+      map(response => response.workflows),
+      tap(workflows => {
+        this.workflowEngineWorkflowsCache = workflows;
+      }),
+      finalize(() => {
+        this.workflowEngineWorkflowsRequest = null;
+      }),
+      shareReplay({ bufferSize: 1, refCount: false })
     );
+
+    return this.workflowEngineWorkflowsRequest;
   }
 
   replaceWorkflowEngineWorkflows(payload: ReplaceWorkflowEngineWorkflowsRequest): Observable<WorkflowEngineWorkflow[]> {
     return this.http.put<ListWorkflowEngineWorkflowsResponse>(`${this.baseUrl}/me/workflow-engine/workflows`, payload).pipe(
-      map(response => response.workflows)
+      map(response => response.workflows),
+      tap(workflows => {
+        this.workflowEngineWorkflowsCache = workflows;
+        this.workflowEngineWorkflowsRequest = null;
+      })
     );
   }
 

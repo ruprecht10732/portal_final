@@ -1,6 +1,6 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { map, Observable } from 'rxjs';
+import { finalize, map, Observable, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import type { CreateLeadRequest } from './leads.types';
 import type {
@@ -30,13 +30,17 @@ export class UserService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/users`;
   private readonly imapBaseUrl = `${this.baseUrl}/me/imap-accounts`;
+  private usersCache: UserSummary[] | null = null;
+  private usersRequest: Observable<UserSummary[]> | null = null;
 
   getProfile(): Observable<UserProfile> {
     return this.http.get<UserProfile>(`${this.baseUrl}/me`);
   }
 
   updateProfile(data: UpdateProfileRequest): Observable<UserProfile> {
-    return this.http.patch<UserProfile>(`${this.baseUrl}/me`, data);
+    return this.http.patch<UserProfile>(`${this.baseUrl}/me`, data).pipe(
+      tap(() => this.clearUsersCache())
+    );
   }
 
   completeOnboarding(data: CompleteOnboardingRequest): Observable<{ message: string }> {
@@ -52,7 +56,29 @@ export class UserService {
   }
 
   listUsers(): Observable<UserSummary[]> {
-    return this.http.get<UserSummary[]>(this.baseUrl);
+    if (this.usersCache) {
+      return of(this.usersCache);
+    }
+    if (this.usersRequest) {
+      return this.usersRequest;
+    }
+
+    this.usersRequest = this.http.get<UserSummary[]>(this.baseUrl).pipe(
+      tap(users => {
+        this.usersCache = users;
+      }),
+      finalize(() => {
+        this.usersRequest = null;
+      }),
+      shareReplay({ bufferSize: 1, refCount: false })
+    );
+
+    return this.usersRequest;
+  }
+
+  private clearUsersCache(): void {
+    this.usersCache = null;
+    this.usersRequest = null;
   }
 
   listIMAPAccounts(): Observable<IMAPAccount[]> {

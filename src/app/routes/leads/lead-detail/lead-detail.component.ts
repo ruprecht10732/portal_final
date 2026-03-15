@@ -14,7 +14,7 @@ import { AppointmentsService } from '../../../core/services/appointments.service
 import { SSEService, type SSEEvent } from '../../../core/services/sse.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { Lead, LeadAIAnalysis, LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem, TimelinePhotoAnalysisSummary, CompleteServiceRequest } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadDetailContextResponse, LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem, TimelinePhotoAnalysisSummary, CompleteServiceRequest } from '../../../core/services/leads.types';
 import { ALLOWED_STATUS_TRANSITIONS, buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
 import { PartnersService } from '../../../core/services/partners.service';
 import type { OfferResponse, Partner } from '../../../core/services/partners.types';
@@ -772,20 +772,15 @@ export class LeadDetailComponent implements OnInit {
 
   private loadLead(id: string): void {
     this.loading.set(true);
-    this.leadsService.getById(id).subscribe({
-      next: (lead) => {
-        this.lead.set(lead);
-        this.newStatus.set(lead.currentService?.status ?? null);
-        this.selectedAssignee.set(lead.assignedAgentId ?? null);
+    this.appointmentsLoading.set(true);
+    this.quotesLoading.set(true);
+    this.inboxCommunicationsLoading.set(true);
+    this.leadsService.getDetailContext(id).subscribe({
+      next: (context) => {
+        this.applyLeadDetailContext(context);
         this.loading.set(false);
-        this.loadNotes(lead.id);
-        this.loadAppointments(lead.id);
-        this.loadTimeline(lead.id, this.selectedService()?.id);
-        this.loadQuotes(lead.id);
-        this.loadInboxCommunications(lead.id);
-        this.loadLeadWorkflowData(lead.id);
-        // AI Analysis is loaded automatically by effect when selectedService changes
-        // Mark as viewed
+        this.loadTimeline(context.lead.id, this.selectedService()?.id);
+        this.loadLeadWorkflowData(context.lead.id);
         this.leadsService.markViewed(id).subscribe();
       },
       error: (err) => {
@@ -793,18 +788,68 @@ export class LeadDetailComponent implements OnInit {
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.loading.set(false);
+        this.appointmentsLoading.set(false);
+        this.quotesLoading.set(false);
+        this.inboxCommunicationsLoading.set(false);
       },
     });
   }
 
+  private applyLeadDetailContext(context: LeadDetailContextResponse): void {
+    const lead = context.lead;
+    this.lead.set(lead);
+    this.newStatus.set(lead.currentService?.status ?? null);
+    this.selectedAssignee.set(lead.assignedAgentId ?? null);
+    this.leadNotes.set(context.notes ?? []);
+    this.appointments.set(context.appointments ?? []);
+    this.quotes.set(context.quotes ?? []);
+    this.linkedWhatsAppConversations.set(context.communications?.whatsAppConversations ?? []);
+    this.linkedEmailMessages.set(context.communications?.emailMessages ?? []);
+    this.appointmentsError.set(null);
+    this.quotesError.set(null);
+    this.inboxCommunicationsError.set(null);
+    this.appointmentsLoading.set(false);
+    this.quotesLoading.set(false);
+    this.inboxCommunicationsLoading.set(false);
+
+    const selectedService = this.resolveSelectedService(lead, this.selectedServiceId());
+    const currentService = lead.currentService;
+    if (!selectedService || !currentService) {
+      this.aiAnalysis.set(null);
+      this.aiAnalysisIsDefault.set(true);
+      this.aiAnalysisLoading.set(false);
+      this.photoAnalysis.set(null);
+      this.photoAnalysisLoading.set(false);
+      this.loadedAnalysisServiceId = null;
+    } else if (selectedService.id === currentService.id) {
+      this.aiAnalysis.set(context.currentServiceAnalysis?.analysis ?? null);
+      this.aiAnalysisIsDefault.set(context.currentServiceAnalysis?.isDefault ?? true);
+      this.aiAnalysisError.set(null);
+      this.aiAnalysisNoNewInfo.set(false);
+      this.aiAnalysisLoading.set(false);
+      this.photoAnalysis.set(context.currentServicePhotoAnalysis ?? null);
+      this.photoAnalysisLoading.set(false);
+      this.loadedAnalysisServiceId = currentService.id;
+    } else {
+      this.loadedAnalysisServiceId = null;
+    }
+
+    const selectedAppointmentId = this.selectedAppointmentId();
+    const appointmentIds = new Set((context.appointments ?? []).map(item => item.id));
+    if (selectedAppointmentId && !appointmentIds.has(selectedAppointmentId)) {
+      this.selectedAppointmentId.set(null);
+    }
+    const firstAppointment = (context.appointments ?? [])[0];
+    if (!this.selectedAppointmentId() && firstAppointment) {
+      this.selectedAppointmentId.set(firstAppointment.id);
+      this.loadAppointmentDetails(firstAppointment.id);
+    }
+  }
+
   private refreshLeadSnapshot(id: string): void {
-    this.leadsService.getById(id).subscribe({
-      next: (lead) => {
-        this.lead.set(lead);
-        this.newStatus.set(lead.currentService?.status ?? null);
-        this.selectedAssignee.set(lead.assignedAgentId ?? null);
-        this.loadQuotes(lead.id);
-        this.loadInboxCommunications(lead.id);
+    this.leadsService.getDetailContext(id).subscribe({
+      next: (context) => {
+        this.applyLeadDetailContext(context);
       },
       error: (err) => {
         this.reporter.report(err, { source: 'http', silent: true });
