@@ -58,6 +58,8 @@ export interface LeadService {
   preferences?: LeadPreferences | null;
   consumerNote?: string;
   source?: string | null;
+  extraWorkAmountCents?: number | null;
+  extraWorkNotes?: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -267,6 +269,11 @@ export interface UpdateServiceStatusRequest {
 
 export interface UpdateServiceTypeRequest {
   serviceType: string;
+}
+
+export interface CompleteServiceRequest {
+  extraWorkAmountCents: number | null;
+  extraWorkNotes: string | null;
 }
 
 export interface UpdateStatusRequest {

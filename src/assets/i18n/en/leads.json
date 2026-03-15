@@ -493,7 +493,8 @@
         "analyzeLead": "Failed to analyze lead",
         "unexpectedResponse": "Unexpected response from server",
         "addService": "Failed to add service",
-        "updateServiceStatus": "Failed to update service status"
+        "updateServiceStatus": "Failed to update service status",
+        "completeService": "Failed to complete service"
       },
       "datetime": {
         "todayAt": "Today at {{time}}",
@@ -515,7 +516,16 @@
         "confirmScope": "Confirm Scope",
         "noServicesTitle": "No services active",
         "noServicesSubtitle": "Configure a new scope above.",
-        "directSource": "Direct"
+        "directSource": "Direct",
+        "markComplete": "Mark as Complete",
+        "completeModalTitle": "Mark Job as Complete",
+        "completeModalSubtitle": "Optionally record any extra work performed on top of the accepted quote.",
+        "extraWorkAmount": "Extra work amount (€)",
+        "extraWorkAmountPlaceholder": "0.00",
+        "extraWorkNotes": "Extra work notes",
+        "extraWorkNotesPlaceholder": "Describe the additional work...",
+        "confirmComplete": "Mark as Complete",
+        "completingService": "Completing..."
       }
     },
     "timeline": {

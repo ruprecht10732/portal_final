@@ -20,6 +20,7 @@ import type {
   AddServiceRequest,
   UpdateServiceStatusRequest,
   UpdateServiceTypeRequest,
+  CompleteServiceRequest,
   LeadAIAnalysisResponse,
   LeadAIAnalysisListResponse,
   AnalyzeLeadResponse,
@@ -156,6 +157,10 @@ export class LeadsService extends BaseCrudService<
 
   updateServiceType(leadId: string, serviceId: string, data: UpdateServiceTypeRequest): Observable<Lead> {
     return this.http.patch<Lead>(`${this.baseUrl}/${leadId}/services/${serviceId}/type`, data);
+  }
+
+  completeService(leadId: string, serviceId: string, data: CompleteServiceRequest): Observable<Lead> {
+    return this.http.patch<Lead>(`${this.baseUrl}/${leadId}/services/${serviceId}/complete`, data);
   }
 
   // AI Analysis methods

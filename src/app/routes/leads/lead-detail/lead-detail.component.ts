@@ -14,7 +14,7 @@ import { AppointmentsService } from '../../../core/services/appointments.service
 import { SSEService, type SSEEvent } from '../../../core/services/sse.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { Lead, LeadAIAnalysis, LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem, TimelinePhotoAnalysisSummary } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem, TimelinePhotoAnalysisSummary, CompleteServiceRequest } from '../../../core/services/leads.types';
 import { ALLOWED_STATUS_TRANSITIONS, buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
 import { PartnersService } from '../../../core/services/partners.service';
 import type { OfferResponse, Partner } from '../../../core/services/partners.types';
@@ -123,6 +123,7 @@ const TIMELINE_MESSAGE_COPIED_TRANSLATION_KEY = 'leads.detail.timeline.messageCo
 const TIMELINE_SYSTEM_TYPE_LABEL = 'Systeem';
 const ERROR_ADD_SERVICE_TRANSLATION_KEY = 'leads.detail.errors.addService';
 const ERROR_UPDATE_SERVICE_STATUS_TRANSLATION_KEY = 'leads.detail.errors.updateServiceStatus';
+const ERROR_COMPLETE_SERVICE_TRANSLATION_KEY = 'leads.detail.errors.completeService';
 const WORKFLOW_SAVED_TRANSLATION_KEY = 'leads.detail.workflow.saved';
 const WORKFLOW_SAVE_FAILED_TRANSLATION_KEY = 'leads.detail.workflow.saveFailed';
 const WORKFLOW_CLEARED_TRANSLATION_KEY = 'leads.detail.workflow.cleared';
@@ -257,6 +258,14 @@ export class LeadDetailComponent implements OnInit {
   protected readonly serviceAttachmentDeleting = signal<string | null>(null);
   protected readonly serviceAttachmentError = signal<string | null>(null);
   protected readonly serviceAttachmentUploading = signal(false);
+
+  // Complete service modal
+  protected readonly showCompleteServiceModal = signal(false);
+  protected readonly completingServiceId = signal<string | null>(null);
+  protected readonly completeExtraWorkAmountEuros = signal('');
+  protected readonly completeExtraWorkNotes = signal('');
+  protected readonly completingService = signal(false);
+  protected readonly completeServiceError = signal<string | null>(null);
 
   protected readonly noteText = signal('');
   protected readonly noteType = signal<LeadNoteType>('note');
@@ -2281,6 +2290,50 @@ export class LeadDetailComponent implements OnInit {
         this.error.set(message);
         this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
         this.saving.set(false);
+      },
+    });
+  }
+
+  protected startCompleteService(service: LeadService): void {
+    this.completingServiceId.set(service.id);
+    this.completeExtraWorkAmountEuros.set('');
+    this.completeExtraWorkNotes.set('');
+    this.completeServiceError.set(null);
+    this.showCompleteServiceModal.set(true);
+  }
+
+  protected cancelCompleteService(): void {
+    this.showCompleteServiceModal.set(false);
+    this.completingServiceId.set(null);
+    this.completeServiceError.set(null);
+  }
+
+  protected confirmCompleteService(): void {
+    const lead = this.lead();
+    const serviceId = this.completingServiceId();
+    if (!lead || !serviceId) return;
+
+    const amountStr = this.completeExtraWorkAmountEuros().trim();
+    const parsedAmount = amountStr !== '' ? parseFloat(amountStr) : NaN;
+    const extraWorkAmountCents = !isNaN(parsedAmount) && parsedAmount >= 0 ? Math.round(parsedAmount * 100) : null;
+    const extraWorkNotes = this.completeExtraWorkNotes().trim() || null;
+
+    const request: CompleteServiceRequest = { extraWorkAmountCents, extraWorkNotes };
+    this.completingService.set(true);
+    this.completeServiceError.set(null);
+
+    this.leadsService.completeService(lead.id, serviceId, request).subscribe({
+      next: (updated) => {
+        this.lead.set(updated);
+        this.completingService.set(false);
+        this.showCompleteServiceModal.set(false);
+        this.completingServiceId.set(null);
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant(ERROR_COMPLETE_SERVICE_TRANSLATION_KEY));
+        this.completeServiceError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.completingService.set(false);
       },
     });
   }

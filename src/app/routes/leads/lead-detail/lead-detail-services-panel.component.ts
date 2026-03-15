@@ -43,4 +43,7 @@ export class LeadDetailServicesPanelComponent {
   cancelEditServiceType = output<void>();
   saveServiceType = output<void>();
   editingServiceTypeChange = output<string | null>();
+
+  // Service completion output
+  startCompleteService = output<LeadService>();
 }

@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
-import { DatePipe } from '@angular/common';
+import { DatePipe, DecimalPipe } from '@angular/common';
 import { TranslatePipe } from '@ngx-translate/core';
 import type { LeadService, LeadStatus } from '../../../../core/services/leads.types';
 import type { SelectOption } from '../../select/select.component';
@@ -14,7 +14,7 @@ import { TextareaComponent } from '../../textarea/textarea.component';
   templateUrl: './lead-services-card.component.html',
   styleUrl: './lead-services-card.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  imports: [CardComponent, CheckboxComponent, DatePipe, InputComponent, SelectComponent, TextareaComponent, TranslatePipe],
+  imports: [CardComponent, CheckboxComponent, DatePipe, DecimalPipe, InputComponent, SelectComponent, TextareaComponent, TranslatePipe],
 })
 export class LeadServicesCardComponent {
   services = input<LeadService[]>([]);
@@ -50,6 +50,9 @@ export class LeadServicesCardComponent {
   cancelEditServiceType = output<void>();
   saveServiceType = output<void>();
   editingServiceTypeChange = output<string | null>();
+
+  // Service completion output
+  startCompleteService = output<LeadService>();
 
   protected isSelected(service: LeadService): boolean {
     return service.id === this.selectedServiceId();

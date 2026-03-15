@@ -168,6 +168,22 @@
             >
               {{ statusLabels()[service.status] || service.status }}
             </span>
+            @if (service.pipelineStage === 'Fulfillment') {
+              <button
+                type="button"
+                class="rounded-md bg-emerald-600 px-3 py-1 text-[11px] font-semibold text-white hover:bg-emerald-700 active:bg-emerald-800"
+                (click)="startCompleteService.emit(service); $event.stopPropagation()"
+                [title]="'leads.detail.services.completeTitle' | translate"
+              >
+                {{ 'leads.detail.services.markComplete' | translate }}
+              </button>
+            }
+            @if (service.pipelineStage === 'Completed' && service.extraWorkAmountCents != null) {
+              <span class="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 ring-1 ring-amber-200"
+                [title]="service.extraWorkNotes ?? ''">
+                + &euro;{{ (service.extraWorkAmountCents / 100) | number: '1.2-2' }}
+              </span>
+            }
           </div>
         </button>
       }

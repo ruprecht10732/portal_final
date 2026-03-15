@@ -492,7 +492,8 @@
         "analyzeLead": "Kon lead niet analyseren",
         "unexpectedResponse": "Onverwacht antwoord van de server",
         "addService": "Kon dienst niet toevoegen",
-        "updateServiceStatus": "Kon dienststatus niet bijwerken"
+        "updateServiceStatus": "Kon dienststatus niet bijwerken",
+        "completeService": "Kon dienst niet afronden"
       },
       "datetime": {
         "todayAt": "Vandaag om {{time}}",
@@ -514,7 +515,16 @@
         "confirmScope": "Scope bevestigen",
         "noServicesTitle": "Geen actieve diensten",
         "noServicesSubtitle": "Configureer een nieuwe scope hierboven.",
-        "directSource": "Direct"
+        "directSource": "Direct",
+        "markComplete": "Markeer als voltooid",
+        "completeModalTitle": "Klus markeren als voltooid",
+        "completeModalSubtitle": "Optioneel: registreer eventueel meerwerk bovenop de geaccepteerde offerte.",
+        "extraWorkAmount": "Bedrag meerwerk (€)",
+        "extraWorkAmountPlaceholder": "0,00",
+        "extraWorkNotes": "Notitie meerwerk",
+        "extraWorkNotesPlaceholder": "Omschrijf het aanvullende werk...",
+        "confirmComplete": "Markeer als voltooid",
+        "completingService": "Afronden..."
       }
     },
     "timeline": {
