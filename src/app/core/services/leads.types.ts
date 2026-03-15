@@ -8,6 +8,7 @@ export type LeadStatus =
   | 'Attempted_Contact'
   | 'Appointment_Scheduled'
   | 'Needs_Rescheduling'
+  | 'Completed'
   | 'Disqualified';
 export type PipelineStage =
   | 'Triage'
@@ -356,6 +357,7 @@ export const STATUS_LABELS: Record<LeadStatus, string> = {
   Attempted_Contact: 'Attempted Contact',
   Appointment_Scheduled: 'Appointment Scheduled',
   Needs_Rescheduling: 'Needs Rescheduling',
+  Completed: 'Completed',
   Disqualified: 'Disqualified',
 };
 
@@ -366,6 +368,7 @@ export const STATUS_COLORS: Record<LeadStatus, string> = {
   Attempted_Contact: 'bg-yellow-100 text-yellow-800',
   Appointment_Scheduled: 'bg-purple-100 text-purple-800',
   Needs_Rescheduling: 'bg-orange-100 text-orange-800',
+  Completed: 'bg-emerald-100 text-emerald-800',
   Disqualified: 'bg-rose-100 text-rose-800',
 };
 
@@ -398,6 +401,7 @@ export const LEAD_STATUS_I18N_KEYS: Record<LeadStatus, string> = {
   Attempted_Contact: 'leads.detail.status.attemptedContact',
   Appointment_Scheduled: 'leads.detail.status.appointmentScheduled',
   Needs_Rescheduling: 'leads.detail.status.needsRescheduling',
+  Completed: 'leads.detail.status.completed',
   Disqualified: 'leads.detail.status.disqualified',
 };
 
@@ -445,6 +449,7 @@ export const STATUS_OPTIONS: { label: string; value: LeadStatus }[] = [
   { label: 'Attempted Contact', value: 'Attempted_Contact' },
   { label: 'Appointment Scheduled', value: 'Appointment_Scheduled' },
   { label: 'Needs Rescheduling', value: 'Needs_Rescheduling' },
+  { label: 'Completed', value: 'Completed' },
   { label: 'Disqualified', value: 'Disqualified' },
 ];
 
@@ -465,6 +470,7 @@ export const ALLOWED_STATUS_TRANSITIONS: Record<LeadStatus, readonly LeadStatus[
   Appointment_Scheduled: ['Needs_Rescheduling', 'Pending', 'In_Progress', 'Disqualified'],
   Needs_Rescheduling: ['Appointment_Scheduled', 'Attempted_Contact', 'Pending', 'Disqualified'],
   In_Progress: ['Pending', 'Disqualified'],
+  Completed: [],
   Disqualified: [],
 };
 

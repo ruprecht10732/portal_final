@@ -335,6 +335,7 @@
         "inProgress": "In Progress",
         "attemptedContact": "Attempted Contact",
         "appointmentScheduled": "Appointment Scheduled",
+        "completed": "Completed",
         "disqualified": "Disqualified",
         "needsRescheduling": "Needs Rescheduling",
         "noService": "No Service"

@@ -334,6 +334,7 @@
         "inProgress": "Bezig",
         "attemptedContact": "Contactpoging",
         "appointmentScheduled": "Afspraak ingepland",
+        "completed": "Voltooid",
         "disqualified": "Gediskwalificeerd",
         "needsRescheduling": "Opnieuw inplannen",
         "noService": "Geen dienst"
