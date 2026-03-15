@@ -766,6 +766,7 @@ export class LeadDetailComponent implements OnInit {
       this.loadProfile();
       this.loadUsers();
       this.loadServiceTypes();
+      this.loadWorkflowProfiles();
       this.loadLead(id);
     }
   }
@@ -780,7 +781,6 @@ export class LeadDetailComponent implements OnInit {
         this.applyLeadDetailContext(context);
         this.loading.set(false);
         this.loadTimeline(context.lead.id, this.selectedService()?.id);
-        this.loadLeadWorkflowData(context.lead.id);
         this.leadsService.markViewed(id).subscribe();
       },
       error: (err) => {
@@ -811,6 +811,7 @@ export class LeadDetailComponent implements OnInit {
     this.appointmentsLoading.set(false);
     this.quotesLoading.set(false);
     this.inboxCommunicationsLoading.set(false);
+    this.applyLeadWorkflowContext(context.workflow ?? null);
 
     const selectedService = this.resolveSelectedService(lead, this.selectedServiceId());
     const currentService = lead.currentService;
@@ -844,6 +845,15 @@ export class LeadDetailComponent implements OnInit {
       this.selectedAppointmentId.set(firstAppointment.id);
       this.loadAppointmentDetails(firstAppointment.id);
     }
+  }
+
+  private applyLeadWorkflowContext(workflow: LeadDetailContextResponse['workflow']): void {
+    const override = workflow?.override;
+    const resolved = workflow?.resolved;
+    this.workflowError.set(null);
+    this.selectedLeadWorkflowId.set(override?.workflowId ?? resolved?.workflowId ?? null);
+    this.leadWorkflowOverrideMode.set(override?.overrideMode ?? resolved?.overrideMode ?? null);
+    this.leadWorkflowResolutionSource.set(resolved?.resolutionSource ?? null);
   }
 
   private refreshLeadSnapshot(id: string): void {
@@ -2478,18 +2488,11 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
-  private loadLeadWorkflowData(leadID: string): void {
+  private loadWorkflowProfiles(): void {
     this.workflowError.set(null);
-    forkJoin({
-      workflows: this.orgService.getWorkflowEngineWorkflows(),
-      override: this.orgService.getLeadWorkflowOverride(leadID).pipe(catchError(() => of(null))),
-      resolved: this.orgService.resolveLeadWorkflow(leadID),
-    }).subscribe({
-      next: ({ workflows, override, resolved }) => {
+    this.orgService.getWorkflowEngineWorkflows().subscribe({
+      next: (workflows) => {
         this.workflowProfiles.set(workflows);
-        this.selectedLeadWorkflowId.set(override?.workflowId ?? resolved.workflow?.id ?? null);
-        this.leadWorkflowOverrideMode.set(override?.overrideMode ?? null);
-        this.leadWorkflowResolutionSource.set(resolved.resolutionSource ?? null);
       },
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant(WORKFLOW_LOAD_FAILED_TRANSLATION_KEY));

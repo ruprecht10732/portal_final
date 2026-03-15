@@ -575,12 +575,31 @@ export interface LeadDetailAnalysisContext {
   isDefault: boolean;
 }
 
+export interface LeadDetailWorkflowOverrideContext {
+  workflowId?: string | null;
+  overrideMode: 'manual' | 'manual_lock' | 'clear';
+}
+
+export interface LeadDetailWorkflowResolutionContext {
+  workflowId?: string | null;
+  workflowName?: string | null;
+  resolutionSource: 'manual_override' | 'auto_rule' | 'organization_default';
+  overrideMode?: 'manual' | 'manual_lock' | 'clear' | null;
+  matchedRuleId?: string | null;
+}
+
+export interface LeadDetailWorkflowContext {
+  override?: LeadDetailWorkflowOverrideContext | null;
+  resolved?: LeadDetailWorkflowResolutionContext | null;
+}
+
 export interface LeadDetailContextResponse {
   lead: Lead;
   notes: LeadNote[];
   appointments: AppointmentResponse[];
   quotes: QuoteResponse[];
   communications: LeadInboxCommunicationsResponse;
+  workflow?: LeadDetailWorkflowContext | null;
   currentServiceAnalysis?: LeadDetailAnalysisContext | null;
   currentServicePhotoAnalysis?: PhotoAnalysis | null;
 }
