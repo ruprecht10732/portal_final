@@ -1840,6 +1840,18 @@ export class WhatsAppInboxComponent {
     this.resolveMessageMediaForThread(message, true);
   }
 
+  protected messageMediaActionLabel(media: MessageMediaContent): string {
+    return media.kind === 'file' ? 'Download' : 'Open';
+  }
+
+  protected requestMessageMediaDownload(message: WhatsAppMessage): void {
+    this.downloadMessageMedia(message);
+  }
+
+  protected canDownloadMessageMedia(message: WhatsAppMessage): boolean {
+    return !this.isDownloadMessageDisabled(message);
+  }
+
   protected messageContacts(message: WhatsAppMessage): MessageContactCard[] {
   const portal = this.messagePortalMetadata(message);
   const portalContacts = this.normalizePortalContacts(portal);
@@ -2037,6 +2049,7 @@ export class WhatsAppInboxComponent {
       .subscribe(({ conversation, messages }) => {
         this.upsertConversation(conversation);
         this.messages.set(messages);
+        this.preloadThreadMedia(messages);
         this.loadLinkedLead(conversation.leadId ?? null);
         if (conversation.unreadCount > 0) {
           this.markConversationRead(conversation.id);
@@ -2453,7 +2466,10 @@ export class WhatsAppInboxComponent {
         finalize(() => this.downloadingMessageId.set(null)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(response => this.openDownloadedMedia(response));
+      .subscribe(response => {
+        this.rememberResolvedMessageMediaUrl(message.id, response.downloadUrl);
+        this.openDownloadedMedia(response);
+      });
   }
 
   private attachMessageToLead(message: WhatsAppMessage): void {
@@ -2984,11 +3000,19 @@ export class WhatsAppInboxComponent {
     this.failedInlineMessageMediaIds.set({});
   }
 
+  private preloadThreadMedia(messages: readonly WhatsAppMessage[]): void {
+    for (const message of messages) {
+      if (this.messageMedia(message)) {
+        this.resolveMessageMediaForThread(message);
+      }
+    }
+  }
+
   private resolveMessageMediaForThread(message: WhatsAppMessage, force = false): void {
     const conversationId = this.selectedConversationId();
     const messageTarget = this.actionMessageTarget(message);
     const media = this.messageMedia(message);
-    if (!conversationId || !messageTarget || !media || media.kind === 'file') {
+    if (!conversationId || !messageTarget || !media) {
       return;
     }
     if (!force) {
@@ -3026,24 +3050,36 @@ export class WhatsAppInboxComponent {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(response => {
-        const resolvedUrl = this.normalizeMediaUrl(response.downloadUrl);
+        const resolvedUrl = this.rememberResolvedMessageMediaUrl(message.id, response.downloadUrl);
         if (!resolvedUrl) {
           this.messageMediaErrors.update(items => ({
             ...items,
             [message.id]: 'Geen bruikbare media-URL ontvangen voor dit bericht.',
           }));
-          return;
         }
-        this.resolvedMessageMediaUrls.update(items => ({
-          ...items,
-          [message.id]: resolvedUrl,
-        }));
-        this.failedInlineMessageMediaIds.update(items => {
-          const next = { ...items };
-          delete next[message.id];
-          return next;
-        });
       });
+  }
+
+  private rememberResolvedMessageMediaUrl(messageId: string, value: string | null | undefined): string | null {
+    const resolvedUrl = this.normalizeMediaUrl(value);
+    if (!resolvedUrl) {
+      return null;
+    }
+    this.resolvedMessageMediaUrls.update(items => ({
+      ...items,
+      [messageId]: resolvedUrl,
+    }));
+    this.failedInlineMessageMediaIds.update(items => {
+      const next = { ...items };
+      delete next[messageId];
+      return next;
+    });
+    this.messageMediaErrors.update(items => {
+      const next = { ...items };
+      delete next[messageId];
+      return next;
+    });
+    return resolvedUrl;
   }
 
   private resetComposerState(type: WhatsAppMessageComposerType = 'text'): void {

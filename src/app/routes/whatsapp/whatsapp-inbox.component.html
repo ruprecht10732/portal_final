@@ -700,7 +700,9 @@
                             <div class="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">
                               <span>{{ media.label }}</span>
                               @if (media.url) {
-                                <a class="underline underline-offset-2" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'" [href]="media.url" target="_blank" rel="noreferrer">Open</a>
+                                <a class="underline underline-offset-2" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'" [href]="media.url" target="_blank" rel="noreferrer">{{ messageMediaActionLabel(media) }}</a>
+                              } @else if (canDownloadMessageMedia(message)) {
+                                <button type="button" class="underline underline-offset-2" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'" (click)="requestMessageMediaDownload(message)">{{ messageMediaActionLabel(media) }}</button>
                               }
                             </div>
 
@@ -721,6 +723,12 @@
                             @if (!media.url && isResolvingMessageMedia(message)) {
                               <div class="mt-3 rounded-2xl border border-dashed px-3 py-4 text-sm" [class.border-white/20]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-300]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
                                 Media laden...
+                              </div>
+                            }
+
+                            @if (!media.url && !isResolvingMessageMedia(message) && !messageMediaLoadError(message) && canDownloadMessageMedia(message)) {
+                              <div class="mt-3 rounded-2xl border border-dashed px-3 py-4 text-sm leading-relaxed" [class.border-white/20]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-300]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
+                                Preview niet direct beschikbaar. Gebruik {{ messageMediaActionLabel(media).toLowerCase() }} om het medium te openen.
                               </div>
                             }
 
