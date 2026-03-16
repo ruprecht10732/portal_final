@@ -147,7 +147,7 @@
     } 
     
     @else {
-      <div class="relative flex-1 min-w-0">
+      <div class="relative flex-1 min-h-0 min-w-0">
         @if (store.canScrollLeft()) {
           <div class="absolute left-0 top-0 bottom-0 w-12 bg-linear-to-r from-white via-white/20 to-transparent pointer-events-none z-20"></div>
           <div class="absolute left-0 top-0 bottom-0 w-px bg-zinc-200 z-20"></div>
@@ -158,7 +158,7 @@
         }
 
         <section 
-          class="overflow-x-auto h-full overflow-y-auto max-w-full"
+          class="flex-1 min-h-0 overflow-x-auto overflow-y-auto max-w-full"
           [attr.aria-label]="(ariaLabel() | translate) + ' ' + ('dataGrid.tableSuffix' | translate)"
           (scroll)="onTableScroll($event)"
         >
