@@ -55,7 +55,7 @@ export class AIJobSidebarPanelComponent {
   protected onCancelJob(event: MouseEvent, job: AIJobState): void {
     event.stopPropagation();
 
-    if (job.status !== 'pending' && job.status !== 'running') {
+    if (!this.canCancel(job)) {
       return;
     }
 
@@ -69,7 +69,7 @@ export class AIJobSidebarPanelComponent {
   protected onSubmitFeedback(event: MouseEvent, job: AIJobState, rating: -1 | 1): void {
     event.stopPropagation();
 
-    if (job.status !== 'completed' && job.status !== 'failed') {
+    if (!this.canSubmitFeedback(job)) {
       return;
     }
 
@@ -105,5 +105,23 @@ export class AIJobSidebarPanelComponent {
 
   protected isTerminal(job: AIJobState): boolean {
     return job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled';
+  }
+
+  protected jobLabel(job: AIJobState): string {
+	if (job.kind === 'lead_analysis') {
+	  return 'Lead analyse';
+	}
+	if (job.kind === 'photo_analysis') {
+	  return 'Foto analyse';
+	}
+	return 'Offerte generatie';
+  }
+
+  protected canCancel(job: AIJobState): boolean {
+	return job.kind === 'quote_generation' && (job.status === 'pending' || job.status === 'running');
+  }
+
+  protected canSubmitFeedback(job: AIJobState): boolean {
+	return job.kind === 'quote_generation' && (job.status === 'completed' || job.status === 'failed');
   }
 }

@@ -22,6 +22,7 @@ import type {
   UpdateServiceTypeRequest,
   CompleteServiceRequest,
   LeadAIAnalysisResponse,
+  TriggerPhotoAnalysisResponse,
   LeadAIAnalysisListResponse,
   LeadDetailContextResponse,
   AnalyzeLeadResponse,
@@ -189,8 +190,8 @@ export class LeadsService extends BaseCrudService<
     return this.http.get<PhotoAnalysisResponse>(`${this.baseUrl}/${leadId}/services/${serviceId}/photo-analysis`);
   }
 
-  triggerPhotoAnalysis(leadId: string, serviceId: string, context?: string): Observable<{ status: string; message: string; photoCount: number }> {
-    return this.http.post<{ status: string; message: string; photoCount: number }>(
+  triggerPhotoAnalysis(leadId: string, serviceId: string, context?: string): Observable<TriggerPhotoAnalysisResponse> {
+    return this.http.post<TriggerPhotoAnalysisResponse>(
       `${this.baseUrl}/${leadId}/services/${serviceId}/analyze-photos`,
       { context: context ?? '' },
     );

@@ -510,11 +510,36 @@ export interface LeadAIAnalysisResponse {
   isDefault: boolean;
 }
 
+export type AutomationRunKind = 'lead_analysis' | 'photo_analysis';
+
+export interface AutomationRunResponse {
+  jobId: string;
+  kind: AutomationRunKind;
+  status: 'pending' | 'running' | 'completed' | 'failed' | 'cancelled';
+  step: string;
+  progressPercent: number;
+  leadId: string;
+  leadServiceId: string;
+  startedAt: string;
+  updatedAt: string;
+  finishedAt?: string;
+  message?: string;
+  photoCount?: number;
+}
+
 export interface AnalyzeLeadResponse {
   status?: 'created' | 'queued' | 'no_change' | 'error';
   message: string;
   analysis?: LeadAIAnalysis;
   leadId?: string;
+  run?: AutomationRunResponse;
+}
+
+export interface TriggerPhotoAnalysisResponse {
+  status: 'queued' | 'processing' | 'error';
+  message: string;
+  photoCount: number;
+  run?: AutomationRunResponse;
 }
 
 // Photo Analysis types

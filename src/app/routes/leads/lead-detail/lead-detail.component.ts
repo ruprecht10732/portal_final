@@ -4,6 +4,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { EMPTY, Subject, catchError, debounceTime, distinctUntilChanged, finalize, firstValueFrom, forkJoin, of, switchMap, take, timer } from 'rxjs';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
+import { AIJobService } from '../../../core/services/ai-job.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { WhatsAppDeviceStatusService } from '../../../core/services/whatsapp-device-status.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
@@ -160,6 +161,7 @@ interface TimelineExtractedFact {
   imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailChatsTabComponent, LeadDetailEmailsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailManualPartnerPanelComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailQuotesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadDetailWorkflowPanelComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
+  private readonly aiJobs = inject(AIJobService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly leadsService = inject(LeadsService);
@@ -1797,6 +1799,9 @@ export class LeadDetailComponent implements OnInit {
             this.loadPhotoAnalysis(lead.id, service.id);
           }
         } else if (response.message) {
+          if (response.run) {
+            this.aiJobs.trackAutomationRun(response.run);
+          }
           const queuedMessage = this.translate.instant(ANNOUNCEMENT_AI_QUEUED_TRANSLATION_KEY);
           this.toast.info(queuedMessage);
           this.announce(queuedMessage);

@@ -2,12 +2,17 @@ import { DestroyRef, computed, inject, Injectable, signal } from '@angular/core'
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, map, Observable, tap, throwError } from 'rxjs';
 import type { GenerateQuoteJobResponse, GenerateQuoteJobStatus } from './quotes.types';
+import type { AutomationRunKind, AutomationRunResponse, LeadAIAnalysisResponse } from './leads.types';
+import { LeadsService } from './leads.service';
 import { QuotesService } from './quotes.service';
 import { SSEService } from './sse.service';
 import { ToastService } from './toast.service';
 
+export type AIJobKind = 'quote_generation' | AutomationRunKind;
+
 export interface AIJobState {
   jobId: string;
+  kind: AIJobKind;
   status: GenerateQuoteJobStatus;
   step: string;
   progressPercent: number;
@@ -20,6 +25,7 @@ export interface AIJobState {
   feedbackAt?: string;
   cancellationReason?: string;
   viewedAt?: string;
+  message?: string;
   leadId: string;
   leadServiceId: string;
   startedAt: string;
@@ -30,6 +36,7 @@ export interface AIJobState {
 @Injectable({ providedIn: 'root' })
 export class AIJobService {
   private readonly quotesService = inject(QuotesService);
+  private readonly leadsService = inject(LeadsService);
   private readonly sse = inject(SSEService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
@@ -64,6 +71,7 @@ export class AIJobService {
 
         this.upsertJob({
           jobId: maybeJob.jobId,
+          kind: 'quote_generation',
           status: maybeJob.status,
           step: maybeJob.step ?? '',
           progressPercent: maybeJob.progressPercent ?? 0,
@@ -77,6 +85,26 @@ export class AIJobService {
           updatedAt: maybeJob.updatedAt,
           ...(maybeJob.finishedAt ? { finishedAt: maybeJob.finishedAt } : {}),
         });
+
+      });
+
+    this.sse.events
+      .pipe(takeUntilDestroyed())
+      .subscribe(event => {
+        if (event.type === 'analysis_complete') {
+          this.completeAutomationJob('lead_analysis', event.leadId, event.serviceId);
+          return;
+        }
+
+        if (event.type === 'photo_analysis_complete') {
+          const success = event.data?.['success'];
+          if (success === false) {
+            const error = typeof event.data?.['error'] === 'string' ? event.data['error'] : event.message;
+            this.completeAutomationJob('photo_analysis', event.leadId, event.serviceId, 'failed', error);
+            return;
+          }
+          this.completeAutomationJob('photo_analysis', event.leadId, event.serviceId);
+        }
       });
 
     this.restoreTrackedJobs();
@@ -129,6 +157,17 @@ export class AIJobService {
       });
     }
 
+    if (target.kind !== 'quote_generation') {
+      this.jobsState.update(current => {
+        const { [jobId]: _, ...rest } = current;
+        return rest;
+      });
+      return new Observable<void>(subscriber => {
+        subscriber.next();
+        subscriber.complete();
+      });
+    }
+
     return this.quotesService.deleteGenerateJob(jobId).pipe(
       tap(() => {
         this.jobsState.update(current => {
@@ -147,7 +186,7 @@ export class AIJobService {
 
   cancel(jobId: string, reason?: string): Observable<void> {
     const target = this.jobsState()[jobId];
-    if (!target) {
+    if (target?.kind !== 'quote_generation') {
       return new Observable<void>(subscriber => {
         subscriber.next();
         subscriber.complete();
@@ -167,6 +206,14 @@ export class AIJobService {
   }
 
   submitFeedback(jobId: string, rating: -1 | 1, comment?: string): Observable<void> {
+    const target = this.jobsState()[jobId];
+    if (target?.kind !== 'quote_generation') {
+      return new Observable<void>(subscriber => {
+        subscriber.next();
+        subscriber.complete();
+      });
+    }
+
     const payload = comment ? { rating, comment } : { rating };
     return this.quotesService.submitGenerateJobFeedback(jobId, payload).pipe(
       tap(job => {
@@ -189,6 +236,20 @@ export class AIJobService {
       });
     }
 
+    if (target.kind !== 'quote_generation') {
+      this.jobsState.update(current => ({
+        ...current,
+        [jobId]: {
+          ...target,
+          viewedAt: new Date().toISOString(),
+        },
+      }));
+      return new Observable<void>(subscriber => {
+        subscriber.next();
+        subscriber.complete();
+      });
+    }
+
     return this.quotesService.markGenerateJobViewed(jobId).pipe(
       tap(job => {
         this.upsertJob(this.mapJob(job));
@@ -201,6 +262,17 @@ export class AIJobService {
   }
 
   clearCompleted(): Observable<void> {
+    this.jobsState.update(current => {
+      const next: Record<string, AIJobState> = {};
+      for (const [id, job] of Object.entries(current)) {
+        if (job.kind !== 'quote_generation' && (job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled')) {
+          continue;
+        }
+        next[id] = job;
+      }
+      return next;
+    });
+
     return this.quotesService.clearCompletedGenerateJobs().pipe(
       tap(() => {
         this.jobsState.update(current => {
@@ -231,15 +303,19 @@ export class AIJobService {
     this.fetchJob(jobId);
   }
 
+  trackAutomationRun(run: AutomationRunResponse): void {
+    this.upsertJob(this.mapAutomationRun(run));
+  }
+
   private upsertJob(job: AIJobState): void {
     this.jobsState.update(current => ({
       ...current,
       [job.jobId]: job,
     }));
 
-    if (this.isActive(job.status)) {
+    if (job.kind === 'quote_generation' && this.isActive(job.status)) {
       this.addTrackedJob(job.jobId);
-    } else {
+    } else if (job.kind === 'quote_generation') {
       this.removeTrackedJob(job.jobId);
     }
   }
@@ -259,12 +335,19 @@ export class AIJobService {
   private reconcileActiveJobs(): void {
     if (typeof document !== 'undefined' && document.hidden) return;
 
-    const activeIds = this.activeJobs().map(job => job.jobId);
-    const ids = Array.from(new Set([...this.trackedJobIds(), ...activeIds]));
-    if (ids.length === 0) return;
+    const activeJobs = this.activeJobs();
+    const quoteIds = Array.from(new Set([...this.trackedJobIds(), ...activeJobs.filter(job => job.kind === 'quote_generation').map(job => job.jobId)]));
 
-    for (const jobId of ids) {
+    for (const jobId of quoteIds) {
       this.fetchJob(jobId);
+    }
+
+    for (const job of activeJobs) {
+      if (job.kind === 'lead_analysis') {
+        this.fetchLeadAnalysisJob(job);
+      } else if (job.kind === 'photo_analysis') {
+        this.fetchPhotoAnalysisJob(job);
+      }
     }
   }
 
@@ -364,6 +447,7 @@ export class AIJobService {
   private mapJob(job: GenerateQuoteJobResponse): AIJobState {
     return {
       jobId: job.jobId,
+      kind: 'quote_generation',
       status: job.status,
       step: job.step,
       progressPercent: job.progressPercent,
@@ -420,6 +504,7 @@ export class AIJobService {
 
     return {
       jobId,
+      kind: 'quote_generation',
       status,
       step: readString('step', 'step') ?? '',
       progressPercent: readNumber('progressPercent', 'progress_percent') ?? 0,
@@ -446,5 +531,75 @@ export class AIJobService {
       default:
         return null;
     }
+  }
+
+  private mapAutomationRun(run: AutomationRunResponse): AIJobState {
+    return {
+      jobId: run.jobId,
+      kind: run.kind,
+      status: run.status,
+      step: run.step,
+      progressPercent: run.progressPercent,
+      ...(run.message ? { message: run.message } : {}),
+      leadId: run.leadId,
+      leadServiceId: run.leadServiceId,
+      startedAt: run.startedAt,
+      updatedAt: run.updatedAt,
+      ...(run.finishedAt ? { finishedAt: run.finishedAt } : {}),
+    };
+  }
+
+  private fetchLeadAnalysisJob(job: AIJobState): void {
+    this.leadsService.getLatestAnalysis(job.leadId, job.leadServiceId).subscribe({
+      next: (response: LeadAIAnalysisResponse) => {
+        if (response.analysis && !response.isDefault) {
+          this.completeAutomationJob('lead_analysis', job.leadId, job.leadServiceId);
+          this.resetPollDelay();
+        }
+      },
+      error: () => {
+        this.increasePollDelay();
+      },
+    });
+  }
+
+  private fetchPhotoAnalysisJob(job: AIJobState): void {
+    this.leadsService.getPhotoAnalysis(job.leadId, job.leadServiceId).subscribe({
+      next: (response) => {
+        if (response.analysis) {
+          this.completeAutomationJob('photo_analysis', job.leadId, job.leadServiceId);
+          this.resetPollDelay();
+        }
+      },
+      error: () => {
+        this.increasePollDelay();
+      },
+    });
+  }
+
+  private completeAutomationJob(kind: AutomationRunKind, leadId?: string, leadServiceId?: string, status: GenerateQuoteJobStatus = 'completed', error?: string): void {
+    if (!leadId || !leadServiceId) {
+      return;
+    }
+
+    const finishedAt = new Date().toISOString();
+    this.jobsState.update(current => {
+      const next: Record<string, AIJobState> = { ...current };
+      for (const [jobId, job] of Object.entries(current)) {
+        if (job.kind !== kind || job.leadId !== leadId || job.leadServiceId !== leadServiceId || !this.isActive(job.status)) {
+          continue;
+        }
+        next[jobId] = {
+          ...job,
+          status,
+          step: status === 'failed' ? 'Mislukt' : 'Voltooid',
+          progressPercent: status === 'failed' ? job.progressPercent : 100,
+          updatedAt: finishedAt,
+          finishedAt,
+          ...(error ? { error } : {}),
+        };
+      }
+      return next;
+    });
   }
 }
