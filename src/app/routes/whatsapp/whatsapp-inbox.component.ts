@@ -1837,6 +1837,11 @@ export class WhatsAppInboxComponent {
 
   protected handleMessageMediaLoadError(message: WhatsAppMessage): void {
     this.failedInlineMessageMediaIds.update(items => ({ ...items, [message.id]: true }));
+    this.resolvedMessageMediaUrls.update(items => {
+      const next = { ...items };
+      delete next[message.id];
+      return next;
+    });
     this.resolveMessageMediaForThread(message, true);
   }
 
@@ -3015,13 +3020,11 @@ export class WhatsAppInboxComponent {
     if (!conversationId || !messageTarget || !media) {
       return;
     }
-    if (!force) {
-      if (this.resolvedMessageMediaUrls()[message.id]?.trim()) {
-        return;
-      }
-      if (this.resolvingMessageMediaIds()[message.id]) {
-        return;
-      }
+    if (this.resolvingMessageMediaIds()[message.id]) {
+      return;
+    }
+    if (!force && this.resolvedMessageMediaUrls()[message.id]?.trim()) {
+      return;
     }
 
     this.resolvingMessageMediaIds.update(items => ({ ...items, [message.id]: true }));
