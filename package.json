@@ -16,8 +16,8 @@
     "lint:styles": "stylelint \"src/**/*.css\"",
     "analyze:deps": "madge --ts-config tsconfig.app.json --circular --extensions ts src/main.ts",
     "analyze:orphans": "madge --ts-config tsconfig.app.json --orphans --extensions ts src/main.ts",
-    "analyze:graph": "madge --ts-config tsconfig.app.json --extensions ts src/main.ts --image documentation/deps.svg",
-    "analyze:json": "madge --ts-config tsconfig.app.json --extensions ts src/main.ts --json > documentation/deps.json",
+    "analyze:graph": "mkdir -p documentation && madge --ts-config tsconfig.app.json --extensions ts src/main.ts --image documentation/deps.svg",
+    "analyze:json": "mkdir -p documentation && madge --ts-config tsconfig.app.json --extensions ts src/main.ts --json > documentation/deps.json",
     "docs:compodoc": "compodoc -p tsconfig.app.json -d documentation"
   },
   "prettier": {
