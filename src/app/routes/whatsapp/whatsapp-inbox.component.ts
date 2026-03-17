@@ -1813,8 +1813,12 @@ export class WhatsAppInboxComponent {
   const providerMedia = providerPayload ? this.providerMediaValue(providerPayload, messageType) : null;
   const filename = attachment?.filename?.trim() || this.providerMediaFilename(providerMedia);
   const resolvedUrl = this.resolvedMessageMediaUrls()[message.id]?.trim() || null;
+  const isResolving = !!this.resolvingMessageMediaIds()[message.id];
   const fallbackUrl = this.normalizeMediaUrl(attachment?.remoteUrl || attachment?.path || this.providerMediaUrl(providerMedia));
-  const url = resolvedUrl || (this.failedInlineMessageMediaIds()[message.id] ? null : fallbackUrl);
+  // While a resolve is in-flight, suppress the fallback URL to prevent the browser from
+  // starting a load on an expired presigned URL that will be replaced moments later when the
+  // fresh URL arrives.  Swapping <img src> mid-load causes NS_BINDING_ABORTED in Firefox.
+  const url = resolvedUrl || (isResolving || this.failedInlineMessageMediaIds()[message.id] ? null : fallbackUrl);
   const caption = portal?.caption?.trim() || this.providerMediaCaption(providerMedia);
   const label = this.mediaLabel(messageType);
   return {
