@@ -62,7 +62,7 @@ import { fromEvent, Observable } from 'rxjs';
     TranslatePipe,
   ],
   host: {
-    'class': 'block w-full min-h-0',
+    'class': 'flex w-full min-h-0 flex-1 flex-col overflow-hidden',
     '[attr.aria-busy]': 'store.loadingState() === "loading"',
   },
 })
