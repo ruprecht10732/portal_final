@@ -586,7 +586,7 @@
 
             <div class="min-h-0 flex-1 overflow-hidden">
               <div class="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_19rem]">
-                <div class="min-h-0 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6 sm:py-5">
+                <div #threadScrollContainer class="min-h-0 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6 sm:py-5">
               @if (loadingMessages()) {
                 <div class="flex h-full flex-col items-center justify-center gap-3 text-zinc-600">
                   <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
@@ -602,6 +602,37 @@
                 </div>
               } @else {
                 <div class="mx-auto flex max-w-3xl flex-col gap-4">
+                  @if (selectedConversation()) {
+                    <div class="rounded-[1.35rem] border border-sky-200 bg-sky-50/80 px-4 py-3 text-xs leading-relaxed text-sky-900">
+                      <div class="flex items-start gap-2">
+                        <lucide-icon name="info" class="mt-0.5 h-4 w-4 shrink-0 text-sky-700"></lucide-icon>
+                        <p>
+                          Deze inbox toont alleen WhatsApp-geschiedenis die naar dit gekoppelde apparaat is gesynchroniseerd.
+                          Oudere berichten kunnen ontbreken en nieuwere geschiedenis kan soms pas na enkele minuten zichtbaar worden.
+                        </p>
+                      </div>
+                    </div>
+                  }
+                  @if (historyPagination(); as pagination) {
+                    @if (pagination.offset + pagination.limit < pagination.total) {
+                      <div class="flex justify-center">
+                        <button
+                          type="button"
+                          class="inline-flex items-center gap-2 rounded-full border border-zinc-300 bg-white px-4 py-2 text-xs font-semibold uppercase tracking-[0.16em] text-zinc-700 transition hover:bg-zinc-50 disabled:cursor-not-allowed disabled:opacity-60"
+                          [disabled]="!canLoadOlderMessages()"
+                          (click)="loadOlderMessages()"
+                        >
+                          @if (loadingOlderMessages()) {
+                            <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin"></lucide-icon>
+                            Oudere berichten laden...
+                          } @else {
+                            <lucide-icon name="chevrons-up" class="h-4 w-4"></lucide-icon>
+                            Oudere berichten laden
+                          }
+                        </button>
+                      </div>
+                    }
+                  }
                   @for (message of messages(); track message.id) {
                     <div class="flex" [class.justify-end]="message.direction === 'outbound'" [class.justify-start]="message.direction === 'inbound'">
                       @if (isImportantSelectionEnabled() && canToggleImportantSelection(message)) {

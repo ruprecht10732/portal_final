@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
@@ -32,6 +32,7 @@ import type {
   ToggleWhatsAppMessageStateRequest,
   WhatsAppConversation,
   WhatsAppConversationActionResponse,
+  WhatsAppHistoryPagination,
   WhatsAppMediaDownloadResponse,
   WhatsAppMessage,
   WhatsAppMessageComposerType,
@@ -115,6 +116,11 @@ interface MessageTranscriptionCard {
   error?: string;
 }
 
+interface ThreadScrollSnapshot {
+  scrollHeight: number;
+  scrollTop: number;
+}
+
 type ConversationListFilter = 'all' | 'unread' | 'archived';
 
 interface ConversationListFilterOption {
@@ -175,6 +181,8 @@ const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class WhatsAppInboxComponent {
+  private static readonly messageHistoryPageSize = 200;
+
   private readonly inbox = inject(WhatsAppInboxService);
   private readonly leads = inject(LeadsService);
   private readonly route = inject(ActivatedRoute);
@@ -183,6 +191,7 @@ export class WhatsAppInboxComponent {
   private readonly sse = inject(SSEService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector);
   private readonly translate = inject(TranslateService);
   private readonly unreadCount = inject(WhatsAppUnreadCountService);
   protected readonly deviceStatus = inject(WhatsAppDeviceStatusService);
@@ -195,6 +204,7 @@ export class WhatsAppInboxComponent {
   protected readonly draftLeadId = signal<string | null>(null);
   protected readonly loadingConversations = signal(false);
   protected readonly loadingMessages = signal(false);
+  protected readonly loadingOlderMessages = signal(false);
   protected readonly sendingMessage = signal(false);
   protected readonly suggestingReply = signal(false);
   protected readonly sendingPresence = signal<WhatsAppPresenceType | null>(null);
@@ -272,6 +282,7 @@ export class WhatsAppInboxComponent {
   protected readonly createLeadConsumerRole = signal<'Owner' | 'Tenant' | 'Landlord'>('Owner');
   protected readonly isMobileViewport = signal(false);
   protected readonly aiComposePanelExpanded = signal(false);
+  protected readonly historyPagination = signal<WhatsAppHistoryPagination | null>(null);
   protected readonly reactionChoices = reactionOptions;
   protected readonly quickReactionChoices = quickReactionOptions;
   protected readonly disappearingTimerOptions = disappearingTimerChoices;
@@ -301,6 +312,7 @@ export class WhatsAppInboxComponent {
   ]);
 
   private readonly rtfCache = new Map<string, Intl.RelativeTimeFormat>();
+  private readonly threadScrollContainer = viewChild<ElementRef<HTMLDivElement>>('threadScrollContainer');
   private typingPresenceConversationId: string | null = null;
   private routeIntent: RouteConversationIntent | null = null;
 
@@ -413,6 +425,14 @@ export class WhatsAppInboxComponent {
   protected readonly canSuggestReply = computed(() => {
     const conversation = this.selectedConversation();
     return !!conversation && !this.loadingMessages() && !this.sendingMessage() && !this.suggestingReply();
+  });
+  protected readonly canLoadOlderMessages = computed(() => {
+    const conversation = this.selectedConversation();
+    const pagination = this.historyPagination();
+    if (!conversation || !pagination) {
+      return false;
+    }
+    return !this.loadingMessages() && !this.loadingOlderMessages() && pagination.offset + pagination.limit < pagination.total;
   });
   protected readonly showSuggestionScenarioNotes = computed(() => isNonGenericReplyScenario(this.suggestionScenario()));
   protected readonly conversationLinkedLead = computed(() => this.selectedConversation()?.linkedLead ?? this.draftLeadSummary());
@@ -591,6 +611,7 @@ export class WhatsAppInboxComponent {
         } else if (!firstConversation) {
           this.selectedConversationId.set(null);
           this.messages.set([]);
+          this.historyPagination.set(null);
           this.resetThreadMediaState();
         }
       });
@@ -602,7 +623,7 @@ export class WhatsAppInboxComponent {
     }
 
     this.stopTypingPresence();
-  this.clearDraftConversationState(false);
+    this.clearDraftConversationState(false);
     this.importantSelectionMode.set(false);
     this.selectedImportantMessageIds.set([]);
     this.resetConversationLeadPanels();
@@ -619,7 +640,53 @@ export class WhatsAppInboxComponent {
     this.resetLinkedLeadState();
     this.selectedConversationId.set(null);
     this.messages.set([]);
+    this.historyPagination.set(null);
     this.resetThreadMediaState();
+  }
+
+  protected loadOlderMessages(): void {
+    const conversation = this.selectedConversation();
+    const pagination = this.historyPagination();
+    if (!conversation || !pagination || this.loadingMessages() || this.loadingOlderMessages()) {
+      return;
+    }
+
+    const nextOffset = pagination.offset + pagination.limit;
+    if (nextOffset >= pagination.total) {
+      return;
+    }
+
+    const chatJid = this.conversationHistoryChatJid(conversation);
+    if (!chatJid) {
+      this.toast.error('Geen chat-ID beschikbaar voor deze thread.');
+      return;
+    }
+
+    const scrollSnapshot = this.captureThreadScrollSnapshot();
+
+    this.loadingOlderMessages.set(true);
+    this.inbox.getChatMessages(chatJid, WhatsAppInboxComponent.messageHistoryPageSize, nextOffset)
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.loadingOlderMessages.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(({ conversation: responseConversation, messages, pagination: responsePagination }) => {
+        if (this.selectedConversationId() !== responseConversation.id) {
+          return;
+        }
+
+        const existingMessages = this.messages();
+        const olderUniqueMessages = this.filterNewOlderMessages(existingMessages, messages);
+        this.upsertConversation(responseConversation);
+        this.messages.set(this.mergeOlderMessages(existingMessages, olderUniqueMessages));
+        this.historyPagination.set(responsePagination);
+        this.preloadThreadMedia(olderUniqueMessages);
+        this.restoreThreadScrollSnapshot(scrollSnapshot);
+      });
   }
 
   protected closeActiveThread(): void {
@@ -2044,9 +2111,26 @@ export class WhatsAppInboxComponent {
   }
 
   private loadMessages(conversationId: string): void {
+    const conversation = this.conversations().find(item => item.id === conversationId) ?? this.selectedConversation();
+    if (!conversation) {
+      return;
+    }
+
+    const chatJid = this.conversationHistoryChatJid(conversation);
+    if (!chatJid) {
+      this.historyPagination.set(null);
+      this.messages.set([]);
+      this.loadLinkedLead(conversation.leadId ?? null);
+      this.toast.error('Geen chat-ID beschikbaar voor deze thread.');
+      return;
+    }
+
     this.loadingMessages.set(true);
+    this.historyPagination.set(null);
+    this.messages.set([]);
     this.resetThreadMediaState();
-    this.inbox.getConversationMessages(conversationId)
+    this.loadLinkedLead(conversation.leadId ?? null);
+    this.inbox.getChatMessages(chatJid, WhatsAppInboxComponent.messageHistoryPageSize, 0)
       .pipe(
         catchError(error => {
           this.toast.error(this.normalizeError(error));
@@ -2055,13 +2139,18 @@ export class WhatsAppInboxComponent {
         finalize(() => this.loadingMessages.set(false)),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe(({ conversation, messages }) => {
-        this.upsertConversation(conversation);
+      .subscribe(({ conversation: responseConversation, messages, pagination }) => {
+        if (this.selectedConversationId() !== conversationId) {
+          return;
+        }
+
+        this.upsertConversation(responseConversation);
         this.messages.set(messages);
+        this.historyPagination.set(pagination);
         this.preloadThreadMedia(messages);
-        this.loadLinkedLead(conversation.leadId ?? null);
-        if (conversation.unreadCount > 0) {
-          this.markConversationRead(conversation.id);
+        this.loadLinkedLead(responseConversation.leadId ?? null);
+        if (responseConversation.unreadCount > 0) {
+          this.markConversationRead(responseConversation.id);
         }
       });
   }
@@ -2106,6 +2195,7 @@ export class WhatsAppInboxComponent {
     this.stopTypingPresence();
     this.selectedConversationId.set(null);
     this.messages.set([]);
+    this.historyPagination.set(null);
     this.resetThreadMediaState();
     this.draftConversationOpen.set(true);
     this.draftPhoneNumber.set(options?.phoneNumber?.trim() ?? '');
@@ -2121,7 +2211,67 @@ export class WhatsAppInboxComponent {
   private closeDraftConversation(): void {
     this.clearDraftConversationState();
     this.messages.set([]);
+    this.historyPagination.set(null);
     this.resetThreadMediaState();
+  }
+
+  private conversationHistoryChatJid(conversation: WhatsAppConversation): string | null {
+    const explicitChatJid = conversation.chatJid?.trim();
+    if (explicitChatJid) {
+      return explicitChatJid;
+    }
+
+    const normalizedPhone = this.normalizePhoneNumber(conversation.phoneNumber);
+    if (!normalizedPhone) {
+      return null;
+    }
+    return `${normalizedPhone.replace(/^\+/, '')}@s.whatsapp.net`;
+  }
+
+  private captureThreadScrollSnapshot(): ThreadScrollSnapshot | null {
+    const container = this.threadScrollContainer()?.nativeElement;
+    if (!container) {
+      return null;
+    }
+
+    return {
+      scrollHeight: container.scrollHeight,
+      scrollTop: container.scrollTop,
+    };
+  }
+
+  private restoreThreadScrollSnapshot(snapshot: ThreadScrollSnapshot | null): void {
+    if (!snapshot) {
+      return;
+    }
+
+    afterNextRender(() => {
+      const container = this.threadScrollContainer()?.nativeElement;
+      if (!container) {
+        return;
+      }
+      const nextScrollTop = container.scrollHeight - snapshot.scrollHeight + snapshot.scrollTop;
+      container.scrollTop = Math.max(0, nextScrollTop);
+    }, { injector: this.injector });
+  }
+
+  private filterNewOlderMessages(existingMessages: readonly WhatsAppMessage[], olderMessages: readonly WhatsAppMessage[]): WhatsAppMessage[] {
+    if (olderMessages.length === 0) {
+      return [];
+    }
+
+    const existingMessageIds = new Set(existingMessages.map(message => message.id));
+    return olderMessages.filter(message => !existingMessageIds.has(message.id));
+  }
+
+  private mergeOlderMessages(existingMessages: WhatsAppMessage[], olderMessages: WhatsAppMessage[]): WhatsAppMessage[] {
+    if (olderMessages.length === 0) {
+      return existingMessages;
+    }
+
+    const seen = new Set(existingMessages.map(message => message.id));
+    const merged = [...olderMessages.filter(message => !seen.has(message.id)), ...existingMessages];
+    return merged.sort((left, right) => new Date(left.createdAt).getTime() - new Date(right.createdAt).getTime());
   }
 
   private clearDraftConversationState(resetComposer = true): void {

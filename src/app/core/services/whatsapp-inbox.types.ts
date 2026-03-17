@@ -2,6 +2,7 @@ import type { SuggestReplyRequest } from './reply-suggestion.types';
 
 export interface WhatsAppConversation {
   id: string;
+  chatJid?: string | null;
   leadId?: string | null;
   linkedLead?: LeadInboxSummary | null;
   suggestedLead?: LeadInboxSummary | null;
@@ -182,6 +183,13 @@ export interface WhatsAppConversationListResponse {
 export interface WhatsAppConversationMessagesResponse {
   conversation: WhatsAppConversation;
   messages: WhatsAppMessage[];
+  pagination: WhatsAppHistoryPagination;
+}
+
+export interface WhatsAppHistoryPagination {
+  total: number;
+  limit: number;
+  offset: number;
 }
 
 export type WhatsAppMessageComposerType =

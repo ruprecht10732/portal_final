@@ -36,6 +36,7 @@ import type {
 export class WhatsAppInboxService {
   private readonly http = inject(HttpClient);
   private readonly baseUrl = `${environment.apiBaseUrl}/whatsapp/conversations`;
+  private readonly chatBaseUrl = `${environment.apiBaseUrl}/chat`;
 
   listConversations(limit = 50): Observable<WhatsAppConversationListResponse> {
     return this.http.get<WhatsAppConversationListResponse>(this.baseUrl, {
@@ -47,9 +48,12 @@ export class WhatsAppInboxService {
     return this.http.get<WhatsAppUnreadConversationCountResponse>(`${this.baseUrl}/unread-count`);
   }
 
-  getConversationMessages(conversationId: string, limit = 200): Observable<WhatsAppConversationMessagesResponse> {
-    return this.http.get<WhatsAppConversationMessagesResponse>(`${this.baseUrl}/${conversationId}/messages`, {
-      params: { limit: String(limit) },
+  getChatMessages(chatJid: string, limit = 200, offset = 0): Observable<WhatsAppConversationMessagesResponse> {
+    return this.http.get<WhatsAppConversationMessagesResponse>(`${this.chatBaseUrl}/${encodeURIComponent(chatJid)}/messages`, {
+      params: {
+        limit: String(limit),
+        offset: String(offset),
+      },
     });
   }
 
