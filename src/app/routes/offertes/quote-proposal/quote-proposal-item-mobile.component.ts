@@ -6,11 +6,10 @@ import { centsToEuros, formatQuantityAndPrice } from '../../../core/services/quo
 import { QuoteAnnotationListComponent } from './quote-annotation-list.component';
 import { LucideAngularModule } from 'lucide-angular';
 import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
-import { PreventDanglingHyphenPipe } from '../../../shared/pipes/prevent-dangling-hyphen.pipe';
 
 @Component({
   selector: 'app-quote-proposal-item-mobile',
-  imports: [QuoteAnnotationListComponent, LucideAngularModule, TranslatePipe, PreventDanglingHyphenPipe, SafeHtmlPipe],
+  imports: [QuoteAnnotationListComponent, LucideAngularModule, TranslatePipe, SafeHtmlPipe],
   templateUrl: './quote-proposal-item-mobile.component.html',
   styleUrl: './quote-proposal-item-mobile.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

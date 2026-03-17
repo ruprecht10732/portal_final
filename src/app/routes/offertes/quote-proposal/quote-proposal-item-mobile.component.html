@@ -28,7 +28,7 @@
         <div
           class="text-slate-900 font-medium leading-relaxed rich-text"
           [class.line-clamp-3]="!expanded()"
-          [innerHTML]="item().description | preventDanglingHyphen | safeHtml"
+          [innerHTML]="item().description | safeHtml"
         ></div>
         @if (isClamped() || expanded()) {
           <button
