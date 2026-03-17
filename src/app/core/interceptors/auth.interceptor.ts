@@ -61,8 +61,7 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
   };
 
   const shouldProactivelyRefresh = !!(
-    selectedAccount
-    && selectedAccount.refreshToken
+    selectedAccount?.refreshToken
     && accessToken
     && isApiRequest
     && !isAuthRequest
