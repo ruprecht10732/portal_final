@@ -36,6 +36,7 @@ const STATUS_ORDER: LeadStatus[] = [
   templateUrl: './leads-status-board.component.html',
   styleUrl: './leads-status-board.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class LeadsStatusBoardComponent {
   private readonly leadsService = inject(LeadsService);

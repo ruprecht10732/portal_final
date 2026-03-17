@@ -15,6 +15,7 @@ import { environment } from '../../../environments/environment';
   imports: [ButtonComponent, CardComponent, PageLayoutComponent, SkeletonComponent, TranslatePipe],
   templateUrl: './whatsapp-agent-admin.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class WhatsAppAgentAdminComponent {
   protected readonly status = signal<WhatsAppAgentDeviceStatus | null>(null);

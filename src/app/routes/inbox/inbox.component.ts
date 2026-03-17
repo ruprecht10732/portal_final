@@ -27,6 +27,7 @@ import { SelectComponent, type SelectOption } from '../../shared/components/sele
   imports: [TranslateModule, RouterLink, ButtonComponent, PageLayoutComponent, LucideAngularModule, SelectComponent],
   templateUrl: './inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
 })
 export class InboxComponent {
   private readonly userService = inject(UserService);

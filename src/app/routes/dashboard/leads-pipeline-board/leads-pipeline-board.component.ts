@@ -34,6 +34,7 @@ const PIPELINE_ORDER: PipelineStage[] = [
   templateUrl: './leads-pipeline-board.component.html',
   styleUrl: './leads-pipeline-board.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class LeadsPipelineBoardComponent {
   private readonly leadsService = inject(LeadsService);

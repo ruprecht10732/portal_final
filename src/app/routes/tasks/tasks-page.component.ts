@@ -34,7 +34,7 @@ type TaskScopeFilter = 'all' | 'global' | 'lead_service';
   templateUrl: './tasks-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
-    class: 'block min-h-full',
+    class: 'block min-h-full xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto',
   },
 })
 export class TasksPageComponent {

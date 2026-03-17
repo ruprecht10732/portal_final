@@ -15,6 +15,7 @@ import { isEmailValid } from '../../../core/utils/email.util';
   templateUrl: './personal-details.component.html',
   styleUrl: './personal-details.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class PersonalDetailsComponent {
   protected readonly firstName = signal('');

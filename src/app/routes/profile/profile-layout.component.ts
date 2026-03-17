@@ -7,5 +7,6 @@ import { RouterOutlet } from '@angular/router';
   templateUrl: './profile-layout.component.html',
   styleUrl: './profile-layout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
 })
 export class ProfileLayoutComponent {}

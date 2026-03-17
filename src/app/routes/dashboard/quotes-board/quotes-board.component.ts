@@ -37,6 +37,7 @@ const ALLOWED_QUOTE_TRANSITIONS: Record<QuoteStatus, readonly QuoteStatus[]> = {
   templateUrl: './quotes-board.component.html',
   styleUrl: './quotes-board.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class QuotesBoardComponent {
   private readonly quotesService = inject(QuotesService);

@@ -14,6 +14,7 @@ import type { CreateIMAPAccountRequest, IMAPAccount, UpdateIMAPAccountRequest } 
   templateUrl: './email-accounts.component.html',
   styleUrl: './email-accounts.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class EmailAccountsComponent {
   private readonly userService = inject(UserService);

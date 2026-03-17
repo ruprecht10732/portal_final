@@ -598,6 +598,18 @@
                     </shared-button>
                   }
 
+                  @if (isAdmin()) {
+                    <shared-button
+                      variant="secondary"
+                      size="compact"
+                      [fullWidth]="false"
+                      (clicked)="openTransferDialog()"
+                    >
+                      <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                      {{ 'offertes.transfer.action' | translate }}
+                    </shared-button>
+                  }
+
                   <shared-button
                     variant="secondary"
                     size="compact"
