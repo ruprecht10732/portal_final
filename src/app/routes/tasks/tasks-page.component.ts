@@ -5,6 +5,10 @@ import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { catchError, debounceTime, distinctUntilChanged, finalize, of, switchMap, tap } from 'rxjs';
 import { ErrorReportingService } from '../../core/services/error-reporting.service';
+import { LeadsService } from '../../core/services/leads.service';
+import type { Lead } from '../../core/services/leads.types';
+import { SearchService } from '../../core/services/search.service';
+import type { SearchResultItem } from '../../core/services/search.types';
 import { TasksService } from '../../core/services/tasks.service';
 import type { CreateTaskRequest, TaskItem, UpdateTaskRequest } from '../../core/services/tasks.types';
 import { ToastService } from '../../core/services/toast.service';
@@ -12,6 +16,8 @@ import { UserService } from '../../core/services/user.service';
 import type { UserSummary } from '../../core/services/user.types';
 import { extractErrorMessage } from '../../core/utils/error-utils';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { CardComponent } from '../../shared/components/card/card.component';
+import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
 
 interface UserOption {
@@ -24,7 +30,7 @@ type TaskScopeFilter = 'all' | 'global' | 'lead_service';
 
 @Component({
   selector: 'app-tasks-page',
-  imports: [ReactiveFormsModule, TranslatePipe, DatePipe, ButtonComponent, PageLayoutComponent],
+  imports: [ReactiveFormsModule, TranslatePipe, DatePipe, ButtonComponent, CardComponent, KpiCardComponent, PageLayoutComponent],
   templateUrl: './tasks-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -35,6 +41,8 @@ export class TasksPageComponent {
   private readonly fb = inject(FormBuilder);
   private readonly tasksService = inject(TasksService);
   private readonly userService = inject(UserService);
+  private readonly leadsService = inject(LeadsService);
+  private readonly searchService = inject(SearchService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
@@ -46,6 +54,16 @@ export class TasksPageComponent {
   protected readonly tasks = signal<TaskItem[]>([]);
   protected readonly users = signal<UserOption[]>([]);
   protected readonly editingTaskId = signal<string | null>(null);
+  protected readonly modalOpen = signal(false);
+
+  // Lead search state
+  protected readonly leadQuery = signal('');
+  protected readonly leadSearchLoading = signal(false);
+  protected readonly leadSearchOpen = signal(false);
+  protected readonly leadResults = signal<SearchResultItem[]>([]);
+  protected readonly selectedLead = signal<{ id: string; label: string } | null>(null);
+  protected readonly leadServices = signal<Array<{ id: string; label: string }>>([]);
+  protected readonly servicesLoading = signal(false);
   protected readonly statusFilter = signal<TaskStatusFilter>('open');
   protected readonly scopeFilter = signal<TaskScopeFilter>('all');
   protected readonly assigneeFilter = signal('');
@@ -81,6 +99,7 @@ export class TasksPageComponent {
 
   constructor() {
     this.loadUsers();
+    this.initLeadSearch();
 
     toObservable(this.filterState)
       .pipe(
@@ -117,6 +136,110 @@ export class TasksPageComponent {
       });
   }
 
+  private initLeadSearch(): void {
+    toObservable(this.leadQuery)
+      .pipe(
+        debounceTime(300),
+        distinctUntilChanged(),
+        tap(() => this.leadSearchLoading.set(true)),
+        switchMap((q) => {
+          if (q.trim().length < 2) {
+            this.leadSearchLoading.set(false);
+            this.leadResults.set([]);
+            return of(null);
+          }
+          return this.searchService.globalSearch({ q: q.trim(), types: 'lead', limit: 8 }).pipe(
+            catchError(() => of({ items: [], total: 0 })),
+            finalize(() => this.leadSearchLoading.set(false)),
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => {
+        if (response) {
+          this.leadResults.set(response.items);
+        }
+      });
+  }
+
+  protected onLeadInput(value: string): void {
+    this.leadQuery.set(value);
+    this.leadSearchOpen.set(true);
+    this.selectedLead.set(null);
+    this.form.patchValue({ leadId: '', leadServiceId: '' });
+    this.leadServices.set([]);
+  }
+
+  protected onLeadBlur(): void {
+    setTimeout(() => this.leadSearchOpen.set(false), 150);
+  }
+
+  protected selectLead(item: SearchResultItem): void {
+    this.selectedLead.set({ id: item.id, label: item.title });
+    this.leadQuery.set('');
+    this.leadSearchOpen.set(false);
+    this.leadResults.set([]);
+    this.form.patchValue({ leadId: item.id, leadServiceId: '' });
+    this.loadLeadServices(item.id);
+  }
+
+  protected clearLead(): void {
+    this.selectedLead.set(null);
+    this.leadQuery.set('');
+    this.leadResults.set([]);
+    this.leadServices.set([]);
+    this.form.patchValue({ leadId: '', leadServiceId: '' });
+  }
+
+  protected selectService(serviceId: string): void {
+    this.form.patchValue({ leadServiceId: serviceId });
+  }
+
+  private loadLeadServices(leadId: string): void {
+    this.servicesLoading.set(true);
+    this.leadsService.getById(leadId)
+      .pipe(
+        finalize(() => this.servicesLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (lead: Lead) => {
+          this.leadServices.set(lead.services.map(s => ({
+            id: s.id,
+            label: `${s.serviceType} — ${s.status}`,
+          })));
+          if (lead.services.length === 1 && lead.services[0]) {
+            this.form.patchValue({ leadServiceId: lead.services[0].id });
+          }
+        },
+        error: () => this.leadServices.set([]),
+      });
+  }
+
+  private loadLeadForEdit(leadId: string, leadServiceId: string | null): void {
+    this.servicesLoading.set(true);
+    this.leadsService.getById(leadId)
+      .pipe(
+        finalize(() => this.servicesLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (lead: Lead) => {
+          const name = `${lead.consumer.firstName} ${lead.consumer.lastName}`.trim();
+          const address = `${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`;
+          this.selectedLead.set({ id: lead.id, label: `${name} — ${address}` });
+          this.leadServices.set(lead.services.map(s => ({
+            id: s.id,
+            label: `${s.serviceType} — ${s.status}`,
+          })));
+          if (leadServiceId) {
+            this.form.patchValue({ leadServiceId });
+          }
+        },
+        error: () => {},
+      });
+  }
+
   protected setStatusFilter(value: TaskStatusFilter): void {
     this.statusFilter.set(value);
   }
@@ -132,10 +255,16 @@ export class TasksPageComponent {
   protected startCreate(): void {
     this.editingTaskId.set(null);
     this.resetForm();
+    this.modalOpen.set(true);
   }
 
   protected editTask(task: TaskItem): void {
     this.editingTaskId.set(task.id);
+    this.modalOpen.set(true);
+    this.selectedLead.set(null);
+    this.leadQuery.set('');
+    this.leadResults.set([]);
+    this.leadServices.set([]);
     this.form.setValue({
       title: task.title,
       description: task.description ?? '',
@@ -151,11 +280,42 @@ export class TasksPageComponent {
       sendEmail: task.reminder?.sendEmail ?? true,
       sendWhatsApp: task.reminder?.sendWhatsApp ?? false,
     });
+    if (task.scopeType === 'lead_service' && task.leadId) {
+      this.loadLeadForEdit(task.leadId, task.leadServiceId);
+    }
   }
 
   protected resetEditor(): void {
     this.editingTaskId.set(null);
+    this.modalOpen.set(false);
     this.resetForm();
+    this.selectedLead.set(null);
+    this.leadQuery.set('');
+    this.leadResults.set([]);
+    this.leadServices.set([]);
+  }
+
+  protected closeModal(): void {
+    this.resetEditor();
+  }
+
+  protected statusClass(status: string): string {
+    switch (status) {
+      case 'open': return 'bg-blue-50 text-blue-700';
+      case 'completed': return 'bg-emerald-50 text-emerald-700';
+      case 'cancelled': return 'bg-red-50 text-red-500';
+      default: return 'bg-zinc-100 text-zinc-500';
+    }
+  }
+
+  protected priorityClass(priority: string): string {
+    switch (priority) {
+      case 'low': return 'bg-zinc-100 text-zinc-500';
+      case 'normal': return 'bg-sky-50 text-sky-600';
+      case 'high': return 'bg-orange-50 text-orange-600';
+      case 'urgent': return 'bg-red-50 text-red-600';
+      default: return 'bg-zinc-100 text-zinc-500';
+    }
   }
 
   protected saveTask(): void {
