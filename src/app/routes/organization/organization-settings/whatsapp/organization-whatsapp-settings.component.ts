@@ -23,6 +23,7 @@ import { TextareaComponent } from '../../../../shared/components/textarea/textar
   templateUrl: './organization-whatsapp-settings.component.html',
   styleUrl: './organization-whatsapp-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class OrganizationWhatsAppSettingsComponent {
   protected readonly orgPhoneNumber = signal('');

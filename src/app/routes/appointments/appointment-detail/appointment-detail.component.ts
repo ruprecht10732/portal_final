@@ -36,6 +36,7 @@ import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
   styleUrl: './appointment-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, AutocompleteComponent, PageHeaderComponent, LucideAngularModule, TranslatePipe, DatePipe],
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
 })
 export class AppointmentDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

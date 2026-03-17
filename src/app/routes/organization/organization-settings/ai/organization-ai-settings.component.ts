@@ -43,6 +43,7 @@ interface ScenarioAnalyticsItem {
   templateUrl: './organization-ai-settings.component.html',
   styleUrl: './organization-ai-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class OrganizationAiSettingsComponent {
   protected readonly aiAutoDisqualifyJunk = signal(true);

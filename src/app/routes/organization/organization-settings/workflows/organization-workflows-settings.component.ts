@@ -112,6 +112,7 @@ interface WorkflowSelectedChannelCardState {
   templateUrl: './organization-workflows-settings.component.html',
   styleUrl: './organization-workflows-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class OrganizationWorkflowsSettingsComponent {
   private readonly orgService = inject(OrganizationService);

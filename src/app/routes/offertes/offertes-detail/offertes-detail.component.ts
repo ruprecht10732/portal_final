@@ -59,6 +59,7 @@ interface QuoteLineageSummary {
   templateUrl: './offertes-detail.component.html',
   styleUrl: './offertes-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
 })
 export class OffertesDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

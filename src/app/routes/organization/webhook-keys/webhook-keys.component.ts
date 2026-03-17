@@ -23,6 +23,7 @@ import { formatDateValue } from '../../../core/utils/date-utils';
   ],
   templateUrl: './webhook-keys.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class WebhookKeysComponent {
   // ---- State ----

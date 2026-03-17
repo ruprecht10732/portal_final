@@ -41,6 +41,7 @@ import { AddressSuggestion } from '../../../core/services/address.service';
     PartnerDetailServicesCardComponent,
     PartnerDetailOffersCardComponent,
   ],
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
 })
 export class PartnersDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

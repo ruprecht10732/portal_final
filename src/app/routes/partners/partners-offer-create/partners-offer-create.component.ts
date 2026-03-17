@@ -47,6 +47,7 @@ interface Option {
   templateUrl: './partners-offer-create.component.html',
   styleUrl: './partners-offer-create.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
 })
 export class PartnersOfferCreateComponent {
   private readonly router = inject(Router);

@@ -11,6 +11,7 @@ import { isEmailValid } from '../../../core/utils/email.util';
   templateUrl: './organization-invite-create.component.html',
   styleUrl: './organization-invite-create.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class OrganizationInviteCreateComponent {
   protected readonly email = signal('');

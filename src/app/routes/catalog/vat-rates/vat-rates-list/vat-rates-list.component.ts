@@ -29,6 +29,7 @@ type VatRateRow = VatRate & { rateDisplay: string } & Record<string, unknown>;
     ConfirmDialogComponent,
     DataGridComponent,
   ],
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class VatRatesListComponent implements OnInit {
   private readonly catalogService = inject(CatalogService);

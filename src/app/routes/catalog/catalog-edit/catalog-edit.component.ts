@@ -34,6 +34,7 @@ import { CatalogFormComponent, type CatalogFormValue } from '../catalog-form/cat
   templateUrl: './catalog-edit.component.html',
   styleUrl: './catalog-edit.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class CatalogEditComponent implements OnInit {
   private readonly catalogService = inject(CatalogService);

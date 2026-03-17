@@ -17,6 +17,7 @@ import { SkeletonComponent } from '../../../../shared/components/skeleton/skelet
   templateUrl: './organization-quote-defaults-settings.component.html',
   styleUrl: './organization-quote-defaults-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class OrganizationQuoteDefaultsSettingsComponent {
   protected readonly quotePaymentDays = signal<number | null>(7);

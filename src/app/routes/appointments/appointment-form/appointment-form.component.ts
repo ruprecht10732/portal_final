@@ -27,6 +27,7 @@ import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
   styleUrl: './appointment-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonComponent, InputComponent, TextareaComponent, SelectComponent, CheckboxComponent, AutocompleteComponent, PageHeaderComponent, LucideAngularModule, TranslatePipe],
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class AppointmentFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

@@ -19,6 +19,7 @@ type InviteRow = OrganizationInvite & { status: InviteStatus; expiresAtDisplay: 
   templateUrl: './organization-invites.component.html',
   styleUrl: './organization-invites.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class OrganizationInvitesComponent {
   protected readonly invites = signal<OrganizationInvite[]>([]);

@@ -28,6 +28,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
   templateUrl: './offertes-pricing-intelligence.component.html',
   styleUrl: './offertes-pricing-intelligence.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class OffertesPricingIntelligenceComponent {
   private readonly route = inject(ActivatedRoute);

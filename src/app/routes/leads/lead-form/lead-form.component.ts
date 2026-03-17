@@ -31,6 +31,7 @@ import { DEBOUNCE_MS, MIN_LENGTH, MAX_LENGTH } from '../../../core/config';
   styleUrl: './lead-form.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [RouterLink, ButtonComponent, InputComponent, SelectComponent, AutocompleteComponent, TextareaComponent, PageHeaderComponent, TranslatePipe, LucideAngularModule, ReactiveFormsModule, CheckboxComponent],
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class LeadFormComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);

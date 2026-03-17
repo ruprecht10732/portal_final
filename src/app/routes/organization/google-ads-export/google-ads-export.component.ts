@@ -19,6 +19,7 @@ import { formatDateValue } from '../../../core/utils/date-utils';
   imports: [ButtonComponent, ConfirmDialogComponent, TranslatePipe, LucideAngularModule],
   templateUrl: './google-ads-export.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class GoogleAdsExportComponent {
   protected readonly credential = signal<GoogleAdsExportCredential | null>(null);

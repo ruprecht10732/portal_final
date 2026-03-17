@@ -54,6 +54,7 @@ const MAX_LENGTHS = {
     CheckboxComponent,
     TranslatePipe,
   ],
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class PartnersCreateComponent implements OnInit {
   private readonly partnersService = inject(PartnersService);

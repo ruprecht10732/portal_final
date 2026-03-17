@@ -44,6 +44,7 @@ const COMMON_TIMEZONES = [
   styleUrl: './availability-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [FormsModule, ButtonComponent, InputComponent, SelectComponent, CheckboxComponent, CardComponent, ConfirmDialogComponent, LucideAngularModule, TranslatePipe, DatePipe, SlicePipe],
+  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })
 export class AvailabilitySettingsComponent implements OnInit {
   private readonly appointmentsService = inject(AppointmentsService);
