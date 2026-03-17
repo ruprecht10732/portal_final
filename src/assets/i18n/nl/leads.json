@@ -106,7 +106,13 @@
         "files": "Bestanden",
         "quotes": "Offertes",
         "emails": "E-mails",
-        "chats": "Chats"
+        "chats": "Chats",
+        "tasks": "Taken"
+      },
+      "tasks": {
+        "subtitle": "Taken gekoppeld aan dit lead en deze dienst.",
+        "empty": "Nog geen taken voor dit lead.",
+        "modalSubtitle": "Deze taak wordt gekoppeld aan het huidige lead en de dienst."
       },
       "quotes": {
         "title": "Gekoppelde offertes",

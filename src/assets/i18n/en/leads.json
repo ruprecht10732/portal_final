@@ -106,7 +106,13 @@
         "files": "Files",
         "quotes": "Quotes",
         "emails": "Emails",
-        "chats": "Chats"
+        "chats": "Chats",
+        "tasks": "Tasks"
+      },
+      "tasks": {
+        "subtitle": "Tasks linked to this lead and service.",
+        "empty": "No tasks for this lead yet.",
+        "modalSubtitle": "This task will be linked to the current lead and service."
       },
       "quotes": {
         "title": "Associated quotes",

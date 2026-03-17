@@ -767,6 +767,11 @@
                 [formatHumanDateTime]="formatHumanDateTime"
                 (openConversation)="openWhatsAppConversation($event.conversationId)"
               />
+            } @else if (activeTab() === 'tasks') {
+              <app-lead-detail-tasks-tab
+                [leadId]="l.id"
+                [leadServiceId]="selectedService()?.id ?? null"
+              />
             }
           </app-lead-detail-tabs-shell>
         </main>

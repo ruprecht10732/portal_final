@@ -56,6 +56,7 @@ import { LeadDetailServicesPanelComponent } from './lead-detail-services-panel.c
 import { LeadDetailSidebarInfoComponent } from './lead-detail-sidebar-info.component';
 import { LeadDetailTabsShellComponent } from './lead-detail-tabs-shell.component';
 import { LeadDetailTopSectionComponent } from './lead-detail-top-section.component';
+import { LeadDetailTasksTabComponent } from './lead-detail-tasks-tab.component';
 import { LeadDetailTimelineTabComponent } from './lead-detail-timeline-tab.component';
 import { LeadDetailManualPartnerPanelComponent } from './lead-detail-manual-partner-panel.component';
 import { LeadDetailWorkflowPanelComponent } from './lead-detail-workflow-panel.component';
@@ -84,6 +85,7 @@ const TAB_FILES_TRANSLATION_KEY = 'leads.detail.tabs.files';
 const TAB_QUOTES_TRANSLATION_KEY = 'leads.detail.tabs.quotes';
 const TAB_EMAILS_TRANSLATION_KEY = 'leads.detail.tabs.emails';
 const TAB_CHATS_TRANSLATION_KEY = 'leads.detail.tabs.chats';
+const TAB_TASKS_TRANSLATION_KEY = 'leads.detail.tabs.tasks';
 const ADD_SERVICE_CONSUMER_NOTE_TOO_LONG_TRANSLATION_KEY = 'leads.detail.addService.consumerNoteTooLong';
 const ACCESS_DIFFICULTY_LOW_TRANSLATION_KEY = 'appointments.accessDifficulty.low';
 const ACCESS_DIFFICULTY_MEDIUM_TRANSLATION_KEY = 'appointments.accessDifficulty.medium';
@@ -158,7 +160,7 @@ interface TimelineExtractedFact {
     '(document:click)': 'handleDocumentClick($event)',
     '(document:keydown)': 'handleKeydown($event)',
   },
-  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailChatsTabComponent, LeadDetailEmailsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailManualPartnerPanelComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailQuotesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadDetailWorkflowPanelComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailChatsTabComponent, LeadDetailEmailsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailManualPartnerPanelComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailQuotesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTasksTabComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadDetailWorkflowPanelComponent, LeadInquiryCardComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly aiJobs = inject(AIJobService);
@@ -197,7 +199,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly newStatus = signal<LeadStatus | null>(null);
 
   protected readonly statusMenuOpen = signal(false);
-  protected readonly activeTab = signal<'activity' | 'appointments' | 'files' | 'preferences' | 'quotes' | 'emails' | 'chats'>('activity');
+  protected readonly activeTab = signal<'activity' | 'appointments' | 'files' | 'preferences' | 'quotes' | 'emails' | 'chats' | 'tasks'>('activity');
 
   protected readonly workflowProfiles = signal<WorkflowEngineWorkflow[]>([]);
   protected readonly selectedLeadWorkflowId = signal<string | null>(null);
@@ -221,6 +223,7 @@ export class LeadDetailComponent implements OnInit {
       { id: 'quotes', label: this.translate.instant(TAB_QUOTES_TRANSLATION_KEY) },
       { id: 'emails', label: this.translate.instant(TAB_EMAILS_TRANSLATION_KEY) },
       { id: 'chats', label: this.translate.instant(TAB_CHATS_TRANSLATION_KEY) },
+      { id: 'tasks', label: this.translate.instant(TAB_TASKS_TRANSLATION_KEY) },
     ];
   });
 
@@ -1148,9 +1151,9 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected onTabChange(tabId: string): void {
-    const validTabs = ['activity', 'appointments', 'files', 'preferences', 'quotes', 'emails', 'chats'] as const;
+    const validTabs = ['activity', 'appointments', 'files', 'preferences', 'quotes', 'emails', 'chats', 'tasks'] as const;
     if (validTabs.includes(tabId as typeof validTabs[number])) {
-      this.activeTab.set(tabId as 'activity' | 'appointments' | 'files' | 'preferences' | 'quotes' | 'emails' | 'chats');
+      this.activeTab.set(tabId as 'activity' | 'appointments' | 'files' | 'preferences' | 'quotes' | 'emails' | 'chats' | 'tasks');
     }
   }
 
