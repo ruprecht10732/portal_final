@@ -28,6 +28,7 @@ import { CardComponent } from '../../../shared/components/card/card.component';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 
 interface Option {
   label: string;
@@ -44,6 +45,7 @@ interface Option {
     AutocompleteComponent,
     NumberInputComponent,
     ButtonComponent,
+    SafeHtmlPipe,
   ],
   templateUrl: './partners-offer-create.component.html',
   styleUrl: './partners-offer-create.component.css',

@@ -21,10 +21,11 @@ import { MapPreviewComponent } from '../../../shared/components/map-preview/map-
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
 import { SignaturePadComponent } from '../../../shared/components/signature-pad/signature-pad.component';
 import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
+import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 
 @Component({
   selector: 'app-partner-offer',
-  imports: [DatePipe, FormsModule, TranslatePipe, MapPreviewComponent, BottomSheetComponent, SignaturePadComponent, MarkdownPipe],
+  imports: [DatePipe, FormsModule, TranslatePipe, MapPreviewComponent, BottomSheetComponent, SignaturePadComponent, MarkdownPipe, SafeHtmlPipe],
   templateUrl: './partner-offer.component.html',
   styleUrl: './partner-offer.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

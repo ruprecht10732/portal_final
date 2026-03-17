@@ -149,7 +149,7 @@
                   <div class="space-y-3">
                     @for (item of lineItems(); track item.description + item.quantity) {
                       <div class="rounded-2xl border border-zinc-200 px-4 py-3">
-                        <p class="text-sm font-semibold text-zinc-900">{{ item.description }}</p>
+                        <div class="offer-line-item-rich-text text-sm font-semibold text-zinc-900" [innerHTML]="item.description | safeHtml"></div>
                         <p class="mt-1 text-xs text-zinc-500">{{ item.quantity }}</p>
                       </div>
                     }
@@ -340,7 +340,7 @@
                 <div class="mt-4 space-y-3">
                   @for (item of lineItems(); track item.description + item.quantity) {
                     <div class="rounded-xl border border-zinc-200 px-4 py-3">
-                      <p class="text-sm font-semibold text-zinc-900">{{ item.description }}</p>
+                      <div class="offer-line-item-rich-text text-sm font-semibold text-zinc-900" [innerHTML]="item.description | safeHtml"></div>
                       <p class="mt-1 text-xs text-zinc-500">{{ item.quantity }}</p>
                     </div>
                   }

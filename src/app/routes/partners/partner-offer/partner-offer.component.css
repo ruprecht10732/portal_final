@@ -1,3 +1,52 @@
+:host ::ng-deep .offer-line-item-rich-text {
+  overflow-wrap: anywhere;
+}
+
+:host ::ng-deep .offer-line-item-rich-text p,
+:host ::ng-deep .offer-line-item-rich-text ul,
+:host ::ng-deep .offer-line-item-rich-text ol,
+:host ::ng-deep .offer-line-item-rich-text blockquote,
+:host ::ng-deep .offer-line-item-rich-text pre {
+  margin: 0;
+}
+
+:host ::ng-deep .offer-line-item-rich-text p + p,
+:host ::ng-deep .offer-line-item-rich-text p + ul,
+:host ::ng-deep .offer-line-item-rich-text p + ol,
+:host ::ng-deep .offer-line-item-rich-text ul + p,
+:host ::ng-deep .offer-line-item-rich-text ol + p,
+:host ::ng-deep .offer-line-item-rich-text li + li {
+  margin-top: 0.35rem;
+}
+
+:host ::ng-deep .offer-line-item-rich-text ul,
+:host ::ng-deep .offer-line-item-rich-text ol {
+  padding-left: 1.1rem;
+}
+
+:host ::ng-deep .offer-line-item-rich-text ul {
+  list-style-type: disc;
+}
+
+:host ::ng-deep .offer-line-item-rich-text ol {
+  list-style-type: decimal;
+}
+
+:host ::ng-deep .offer-line-item-rich-text a {
+  color: #2563eb;
+  text-decoration: underline;
+}
+
+:host ::ng-deep .offer-line-item-rich-text strong,
+:host ::ng-deep .offer-line-item-rich-text b {
+  font-weight: 700;
+}
+
+:host ::ng-deep .offer-line-item-rich-text em,
+:host ::ng-deep .offer-line-item-rich-text i {
+  font-style: italic;
+}
+
 /* ─── Calendar ─── */
 
 .calendar-card {
