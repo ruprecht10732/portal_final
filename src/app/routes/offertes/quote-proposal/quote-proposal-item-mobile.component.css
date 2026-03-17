@@ -1,5 +1,11 @@
 /* Mobile item row styles are handled with utility classes. */
 
+/* Ensure long words and URLs wrap in both collapsed and expanded states. */
+:host ::ng-deep .rich-text {
+  overflow-wrap: break-word;
+  word-break: break-word;
+}
+
 /* Preserve rich-text markup and clamp collapsed state to ~3 lines. */
 :host ::ng-deep .rich-text.line-clamp-3 {
   display: block;

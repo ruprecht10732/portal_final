@@ -2,7 +2,7 @@
   @if (variant() === 'mobile') {
     <div class="rounded-2xl border border-green-200 bg-green-50 px-4 py-3">
       <div class="flex items-center justify-between gap-3">
-        <div>
+        <div class="min-w-0">
           <p class="text-sm font-semibold text-green-800">{{ 'offertes.proposal.statusAccepted' | translate }}</p>
           @if (acceptedAt()) {
             <p class="text-xs text-green-600">{{ 'offertes.proposal.statusAcceptedAt' | translate:{date: (acceptedAt() | date:'d MMMM yyyy, HH:mm':'':'nl')} }}</p>
