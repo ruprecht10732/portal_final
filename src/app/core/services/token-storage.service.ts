@@ -1,46 +1,37 @@
-import { Injectable, signal } from '@angular/core';
-
-const ACCESS_TOKEN_KEY = 'portal.accessToken';
+import { inject, Injectable } from '@angular/core';
+import { AccountRegistryService } from './account-registry.service';
+import { decodeJwtClaims } from '../utils/jwt-token.utils';
 
 @Injectable({ providedIn: 'root' })
 export class TokenStorageService {
-  private readonly accessToken = signal<string | null>(this.readToken(ACCESS_TOKEN_KEY));
+  private readonly accounts = inject(AccountRegistryService);
 
   get accessTokenValue(): string | null {
-    return this.accessToken();
+    return this.accounts.usableActiveAccountValue?.token ?? null;
   }
 
   setAccessToken(accessToken: string): void {
-    this.accessToken.set(accessToken);
-    this.writeToken(ACCESS_TOKEN_KEY, accessToken);
+    const claims = decodeJwtClaims(accessToken);
+    const uid = claims?.sub?.trim();
+    if (!uid) {
+      return;
+    }
+
+    this.accounts.addAccount(
+      uid,
+      claims?.email?.trim() ?? this.accounts.activeAccountValue?.email ?? '',
+      accessToken,
+      this.accounts.activeAccountValue?.uid === uid ? this.accounts.activeAccountValue.refreshToken : ''
+    );
   }
 
   clear(): void {
-    this.accessToken.set(null);
-    this.removeToken(ACCESS_TOKEN_KEY);
-  }
-
-  private readToken(key: string): string | null {
-    try {
-      return localStorage.getItem(key);
-    } catch {
-      return null;
+    const activeAccount = this.accounts.activeAccountValue;
+    if (!activeAccount) {
+      this.accounts.logoutAll();
+      return;
     }
-  }
 
-  private writeToken(key: string, value: string): void {
-    try {
-      localStorage.setItem(key, value);
-    } catch {
-      // ignore storage errors (e.g., private mode)
-    }
-  }
-
-  private removeToken(key: string): void {
-    try {
-      localStorage.removeItem(key);
-    } catch {
-      // ignore storage errors
-    }
+    this.accounts.removeAccount(activeAccount.uid);
   }
 }

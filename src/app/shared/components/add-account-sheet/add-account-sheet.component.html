@@ -1,0 +1,61 @@
+<app-right-sidebar
+  [isOpen]="isOpen()"
+  [title]="'auth.account.addAccount' | translate"
+  (closed)="onClose()"
+>
+  <div class="space-y-6 px-4 py-5 sm:px-5">
+    <header class="space-y-2">
+      <p class="text-[10px] font-semibold uppercase tracking-[0.35em] text-zinc-400">
+        {{ 'auth.signIn.eyebrow' | translate }}
+      </p>
+      <h2 class="text-2xl font-bold uppercase tracking-tight text-zinc-950">
+        {{ 'auth.account.addAccount' | translate }}
+      </h2>
+      <p class="text-sm text-zinc-500">
+        {{ 'auth.account.addAccountDescription' | translate }}
+      </p>
+    </header>
+
+    <form class="space-y-5" (submit)="onSubmit($event)">
+      <shared-input
+        [(value)]="email"
+        [label]="'auth.form.email' | translate"
+        [placeholder]="'auth.form.emailPlaceholder' | translate"
+        [required]="true"
+        [error]="emailError()"
+      />
+
+      <shared-input
+        [(value)]="password"
+        [label]="'auth.form.password' | translate"
+        [placeholder]="'auth.form.passwordDots' | translate"
+        type="password"
+        [required]="true"
+        [passwordToggle]="true"
+        [clearable]="false"
+        [error]="passwordError()"
+      />
+
+      <div class="grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <shared-button
+          type="button"
+          variant="secondary"
+          [disabled]="isSubmitting()"
+          [ariaLabel]="'common.cancel' | translate"
+          (clicked)="onClose()"
+        >
+          {{ 'common.cancel' | translate }}
+        </shared-button>
+
+        <shared-button
+          [type]="'submit'"
+          [loading]="isSubmitting()"
+          [disabled]="!canSubmit()"
+          [ariaLabel]="'auth.account.confirmAddAccount' | translate"
+        >
+          {{ 'auth.account.confirmAddAccount' | translate }}
+        </shared-button>
+      </div>
+    </form>
+  </div>
+</app-right-sidebar>

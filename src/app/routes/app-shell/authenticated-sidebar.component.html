@@ -133,7 +133,7 @@
         [triggerSize]="'compact'"
         [triggerShape]="'round'"
         [fullWidth]="false"
-        [sections]="profileMenu"
+        [sections]="profileMenu()"
         [tooltip]="'navigation.profile' | translate"
         (itemSelected)="handleProfileMenuSelection($event)"
       >
@@ -152,6 +152,12 @@
       </shared-menu>
     </div>
   </aside>
+
+  <app-add-account-sheet
+    [isOpen]="showAddAccountSheet()"
+    (closed)="handleAddAccountClosed()"
+    (accountAdded)="handleAccountAdded()"
+  ></app-add-account-sheet>
 
   @if (isExpanded()) {
     <app-authenticated-sidebar-panel

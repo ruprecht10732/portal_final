@@ -19,6 +19,9 @@ export interface MenuItem {
   value?: string;
   route?: string;
   href?: string;
+  detail?: string | undefined;
+  badge?: string | undefined;
+  tone?: 'default' | 'danger' | 'success' | undefined;
   disabled?: boolean;
   items?: readonly MenuItem[];
 }

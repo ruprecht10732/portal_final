@@ -6,13 +6,14 @@ import {
 } from 'lucide-angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, map, of } from 'rxjs';
+import { AccountRegistryService } from '../../core/services/account-registry.service';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { AddAccountSheetComponent } from '../../shared/components/add-account-sheet/add-account-sheet.component';
 import { MenuComponent, MenuItem, MenuSection } from '../../shared/components/menu/menu.component';
 import { AuthenticatedSidebarPanelComponent } from './authenticated-sidebar-panel.component';
 import { SidebarPanelItem } from './sidebar-panel.config';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationsService } from '../../core/services/notifications.service';
-import { TokenStorageService } from '../../core/services/token-storage.service';
 import { UserService } from '../../core/services/user.service';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-bell.component';
@@ -45,6 +46,7 @@ interface SidebarItem {
   imports: [
     RouterLink,
     ButtonComponent,
+    AddAccountSheetComponent,
     MenuComponent,
     LucideAngularModule,
     AuthenticatedSidebarPanelComponent,
@@ -59,11 +61,11 @@ interface SidebarItem {
 export class AuthenticatedSidebarComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly accountRegistry = inject(AccountRegistryService);
   private readonly authService = inject(AuthService);
   private readonly notificationsService = inject(NotificationsService);
   private readonly imapUnreadCountService = inject(IMAPUnreadCountService);
   private readonly whatsappUnreadCountService = inject(WhatsAppUnreadCountService);
-  private readonly tokens = inject(TokenStorageService);
   private readonly userService = inject(UserService);
 
   private readonly currentUrl = toSignal(
@@ -77,6 +79,7 @@ export class AuthenticatedSidebarComponent {
   protected readonly isExpanded = signal(true);
   protected readonly hoveredItemRoute = signal<string | null>(null);
   protected readonly suppressHoverTooltip = signal(false);
+  protected readonly showAddAccountSheet = signal(false);
 
   private readonly user = toSignal(
     this.userService.getProfile().pipe(
@@ -142,15 +145,45 @@ export class AuthenticatedSidebarComponent {
     return base;
   });
 
-  protected readonly profileMenu: MenuSection[] = [
-    {
-      label: 'menu.account',
-      items: [
-        { label: 'navigation.profile', route: '/app/profile' },
-        { label: 'menu.signOut' },
-      ],
-    },
-  ];
+  protected readonly profileMenu = computed<MenuSection[]>(() => {
+    const accountItems: MenuItem[] = this.accountRegistry.accounts().map(account => {
+      const item: MenuItem = {
+        label: account.email || 'auth.account.unknown',
+        value: `switch:${account.uid}`,
+        tone: account.isExpired ? 'danger' : 'default',
+        disabled: account.isExpired || account.isActive,
+      };
+
+      if (account.isActive) {
+        item.detail = 'auth.account.current';
+      }
+      if (account.isExpired) {
+        item.badge = 'auth.account.sessionExpired';
+      }
+
+      return item;
+    });
+
+    const actionItems: MenuItem[] = [
+      { label: 'navigation.profile', route: '/app/profile', value: 'profile' },
+      { label: 'auth.account.addAccount', value: 'add-account', icon: 'plus' },
+      { label: 'auth.account.signOutCurrent', value: 'sign-out-current', icon: 'log-out' },
+    ];
+
+    if (this.accountRegistry.accounts().length > 1) {
+      actionItems.push({ label: 'auth.account.signOutAll', value: 'sign-out-all', icon: 'log-out' });
+    }
+
+    return [
+      {
+        label: 'menu.account',
+        items: accountItems,
+      },
+      {
+        items: actionItems,
+      },
+    ];
+  });
 
   protected readonly activeTitle = computed(() => {
     const panelItem = this.getActivePanelItem();
@@ -225,15 +258,81 @@ export class AuthenticatedSidebarComponent {
   }
 
   protected handleProfileMenuSelection(item: MenuItem): void {
-    if (item.label !== 'menu.signOut') return;
-    this.authService.signOut().subscribe({
-      next: () => {
-        this.router.navigate(['/sign-in']);
-      },
-      error: () => {
-        this.tokens.clear();
-        this.router.navigate(['/sign-in']);
-      },
+    if (!item.value) {
+      return;
+    }
+
+    if (item.value.startsWith('switch:')) {
+      const uid = item.value.replace('switch:', '');
+      if (!this.accountRegistry.switchAccount(uid)) {
+        return;
+      }
+
+      globalThis.location.assign('/app/dashboard');
+      return;
+    }
+
+    switch (item.value) {
+      case 'add-account':
+        this.showAddAccountSheet.set(true);
+        return;
+      case 'sign-out-current':
+        this.signOutCurrentAccount();
+        return;
+      case 'sign-out-all':
+        this.signOutAllAccounts();
+        return;
+      default:
+        return;
+    }
+  }
+
+  protected handleAddAccountClosed(): void {
+    this.showAddAccountSheet.set(false);
+  }
+
+  protected handleAccountAdded(): void {
+    this.showAddAccountSheet.set(false);
+    globalThis.location.assign('/app/dashboard');
+  }
+
+  private signOutCurrentAccount(): void {
+    const activeAccount = this.accountRegistry.activeAccountValue;
+    if (!activeAccount) {
+      void this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    this.authService.signOut(activeAccount.refreshToken).subscribe({
+      next: () => this.finishCurrentAccountSignOut(activeAccount.uid),
+      error: () => this.finishCurrentAccountSignOut(activeAccount.uid),
     });
+  }
+
+  private finishCurrentAccountSignOut(uid: string): void {
+    const removal = this.accountRegistry.removeAccount(uid);
+    if (removal.nextActive && !removal.nextActive.isExpired) {
+      globalThis.location.assign('/app/dashboard');
+      return;
+    }
+
+    void this.router.navigate(['/sign-in']);
+  }
+
+  private signOutAllAccounts(): void {
+    if (this.accountRegistry.accounts().length > 0) {
+      this.authService.signOutAllAccounts().subscribe({
+        next: () => this.completeSignOutAll(),
+        error: () => this.completeSignOutAll(),
+      });
+      return;
+    }
+
+    this.completeSignOutAll();
+  }
+
+  private completeSignOutAll(): void {
+    this.accountRegistry.logoutAll();
+    void this.router.navigate(['/sign-in']);
   }
 }

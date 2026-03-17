@@ -1,11 +1,13 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { Observable, finalize, shareReplay, tap } from 'rxjs';
+import { forkJoin, map, Observable, finalize, shareReplay, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
-import { TokenStorageService } from './token-storage.service';
+import { AccountRegistryService } from './account-registry.service';
+import { decodeJwtClaims } from '../utils/jwt-token.utils';
 
 export interface AuthResponse {
   accessToken: string;
+  refreshToken: string;
 }
 
 export interface SignInRequest {
@@ -37,6 +39,17 @@ export interface VerifyEmailRequest {
   token: string;
 }
 
+export interface VerifyTokenResponse {
+  valid: boolean;
+  userId: string;
+  email: string;
+}
+
+type PostBodyOptions = {
+  withCredentials: boolean;
+  headers?: HttpHeaders;
+};
+
 interface MessageResponse {
   message: string;
 }
@@ -45,13 +58,22 @@ interface MessageResponse {
 @Injectable({ providedIn: 'root' })
 export class AuthService {
   private readonly http = inject(HttpClient);
-  private readonly tokens = inject(TokenStorageService);
+  private readonly accounts = inject(AccountRegistryService);
   private readonly baseUrl = environment.apiBaseUrl;
   private refreshInFlight: Observable<AuthResponse> | null = null;
+  private refreshInFlightKey: string | null = null;
 
   signIn(payload: SignInRequest): Observable<AuthResponse> {
     return this.http.post<AuthResponse>(`${this.baseUrl}/auth/sign-in`, payload, { withCredentials: true }).pipe(
-      tap(response => this.tokens.setAccessToken(response.accessToken))
+      tap(response => {
+        const claims = decodeJwtClaims(response.accessToken);
+        const uid = claims?.sub?.trim();
+        if (!uid) {
+          throw new Error('token invalid');
+        }
+
+        this.accounts.addAccount(uid, claims?.email?.trim() || payload.email.trim(), response.accessToken, response.refreshToken);
+      })
     );
   }
 
@@ -59,31 +81,104 @@ export class AuthService {
     return this.http.post<MessageResponse>(`${this.baseUrl}/auth/sign-up`, payload);
   }
 
-  refresh(): Observable<AuthResponse> {
-    if (this.refreshInFlight) {
+  refresh(refreshToken?: string): Observable<AuthResponse> {
+    const activeAccount = this.accounts.activeAccountValue;
+    const resolvedRefreshToken = refreshToken ?? activeAccount?.refreshToken ?? '';
+    const refreshKey = `${activeAccount?.uid ?? 'anonymous'}:${resolvedRefreshToken}`;
+
+    if (!resolvedRefreshToken) {
+      return throwError(() => new Error('token invalid'));
+    }
+
+    if (this.refreshInFlight && this.refreshInFlightKey === refreshKey) {
       return this.refreshInFlight;
     }
 
     this.refreshInFlight = this.http
-      .post<AuthResponse>(`${this.baseUrl}/auth/refresh`, null, { withCredentials: true })
+      .post<AuthResponse>(
+        `${this.baseUrl}/auth/refresh`,
+        refreshToken ? { refreshToken: resolvedRefreshToken } : null,
+        { withCredentials: !refreshToken }
+      )
       .pipe(
-        tap(response => this.tokens.setAccessToken(response.accessToken)),
+        tap(response => {
+          const claims = decodeJwtClaims(response.accessToken);
+          const uid = claims?.sub?.trim() || activeAccount?.uid;
+          if (!uid) {
+            throw new Error('token invalid');
+          }
+
+          this.accounts.updateTokens(uid, response.accessToken, response.refreshToken, claims?.email?.trim() || activeAccount?.email);
+        }),
         finalize(() => {
           this.refreshInFlight = null;
+          this.refreshInFlightKey = null;
         }),
         shareReplay({ bufferSize: 1, refCount: false })
       );
 
+    this.refreshInFlightKey = refreshKey;
+
     return this.refreshInFlight;
   }
 
-  signOut(): Observable<MessageResponse> {
-    return this.http.post<MessageResponse>(`${this.baseUrl}/auth/sign-out`, null, { withCredentials: true }).pipe(
+  signOut(refreshToken?: string): Observable<MessageResponse> {
+    const activeAccount = this.accounts.activeAccountValue;
+    const resolvedRefreshToken = refreshToken ?? this.accounts.activeAccountValue?.refreshToken;
+    const authorizationToken = activeAccount?.token;
+    const options: PostBodyOptions = {
+      withCredentials: !resolvedRefreshToken,
+    };
+
+    if (authorizationToken) {
+      options.headers = new HttpHeaders({ Authorization: `Bearer ${authorizationToken}` });
+    }
+
+    return this.http.post<MessageResponse>(
+      `${this.baseUrl}/auth/sign-out`,
+      resolvedRefreshToken ? { refreshToken: resolvedRefreshToken } : null,
+      options
+    ).pipe(
       tap(() => {
-        this.tokens.clear();
         this.refreshInFlight = null;
+        this.refreshInFlightKey = null;
       })
     );
+  }
+
+  signOutAllAccounts(): Observable<MessageResponse[]> {
+    const accounts = this.accounts.accounts();
+    if (accounts.length === 0) {
+      return throwError(() => new Error('no accounts available'));
+    }
+
+    return forkJoin(
+      accounts.map(account => {
+        const options: PostBodyOptions = {
+          withCredentials: !account.refreshToken,
+        };
+
+        if (account.token) {
+          options.headers = new HttpHeaders({ Authorization: `Bearer ${account.token}` });
+        }
+
+        return this.http.post<MessageResponse>(
+          `${this.baseUrl}/auth/sign-out`,
+          account.refreshToken ? { refreshToken: account.refreshToken } : null,
+          options
+        );
+      })
+    ).pipe(
+      map(responses => responses.filter(Boolean))
+    );
+  }
+
+  verifyToken(token: string): Observable<VerifyTokenResponse> {
+    return this.http.get<VerifyTokenResponse>(`${this.baseUrl}/auth/verify`, {
+      headers: new HttpHeaders({
+        Authorization: `Bearer ${token}`,
+      }),
+    });
   }
 
   forgotPassword(payload: ForgotPasswordRequest): Observable<MessageResponse> {

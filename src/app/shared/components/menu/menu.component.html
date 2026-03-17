@@ -67,14 +67,14 @@
                 </p>
               }
               <ul class="space-y-0.5">
-                @for (item of section.items; track item.label) {
+                @for (item of section.items; track item.value ?? item.label) {
                   <li>
                     @if (item.items?.length) {
                       <div class="px-2 py-2 text-[10px] font-bold uppercase tracking-wide text-zinc-400">
                         {{ item.label | translate }}
                       </div>
                       <ul class="space-y-0.5">
-                        @for (child of item.items; track child.label) {
+                        @for (child of item.items; track child.value ?? child.label) {
                           <li>
                             @if (child.route) {
                               <a
@@ -89,7 +89,22 @@
                                 [class.text-zinc-400]="isDisabled(child)"
                                 [class.pointer-events-none]="isDisabled(child)"
                               >
-                                {{ child.label | translate }}
+                                <span class="flex min-w-0 flex-col items-start gap-0.5">
+                                  <span class="truncate">{{ child.label | translate }}</span>
+                                  @if (child.detail) {
+                                    <span class="text-xs text-zinc-400">{{ child.detail | translate }}</span>
+                                  }
+                                </span>
+                                @if (child.badge) {
+                                  <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                                    [class.bg-zinc-100]="(child.tone ?? 'default') === 'default'"
+                                    [class.text-zinc-600]="(child.tone ?? 'default') === 'default'"
+                                    [class.bg-emerald-100]="child.tone === 'success'"
+                                    [class.text-emerald-700]="child.tone === 'success'"
+                                    [class.bg-rose-100]="child.tone === 'danger'"
+                                    [class.text-rose-700]="child.tone === 'danger'"
+                                  >{{ child.badge | translate }}</span>
+                                }
                               </a>
                             } @else if (child.href) {
                               <a
@@ -104,7 +119,22 @@
                                 [class.text-zinc-400]="isDisabled(child)"
                                 [class.pointer-events-none]="isDisabled(child)"
                               >
-                                {{ child.label | translate }}
+                                <span class="flex min-w-0 flex-col items-start gap-0.5">
+                                  <span class="truncate">{{ child.label | translate }}</span>
+                                  @if (child.detail) {
+                                    <span class="text-xs text-zinc-400">{{ child.detail | translate }}</span>
+                                  }
+                                </span>
+                                @if (child.badge) {
+                                  <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                                    [class.bg-zinc-100]="(child.tone ?? 'default') === 'default'"
+                                    [class.text-zinc-600]="(child.tone ?? 'default') === 'default'"
+                                    [class.bg-emerald-100]="child.tone === 'success'"
+                                    [class.text-emerald-700]="child.tone === 'success'"
+                                    [class.bg-rose-100]="child.tone === 'danger'"
+                                    [class.text-rose-700]="child.tone === 'danger'"
+                                  >{{ child.badge | translate }}</span>
+                                }
                               </a>
                             } @else {
                               <button
@@ -123,8 +153,23 @@
                                   @if (child.icon) {
                                     <lucide-icon [name]="child.icon" class="h-4 w-4 shrink-0"></lucide-icon>
                                   }
-                                  <span class="truncate">{{ child.label | translate }}</span>
+                                  <span class="flex min-w-0 flex-col items-start gap-0.5">
+                                    <span class="truncate">{{ child.label | translate }}</span>
+                                    @if (child.detail) {
+                                      <span class="text-xs text-zinc-400">{{ child.detail | translate }}</span>
+                                    }
+                                  </span>
                                 </span>
+                                @if (child.badge) {
+                                  <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                                    [class.bg-zinc-100]="(child.tone ?? 'default') === 'default'"
+                                    [class.text-zinc-600]="(child.tone ?? 'default') === 'default'"
+                                    [class.bg-emerald-100]="child.tone === 'success'"
+                                    [class.text-emerald-700]="child.tone === 'success'"
+                                    [class.bg-rose-100]="child.tone === 'danger'"
+                                    [class.text-rose-700]="child.tone === 'danger'"
+                                  >{{ child.badge | translate }}</span>
+                                }
                               </button>
                             }
                           </li>
@@ -144,7 +189,22 @@
                           [class.text-zinc-400]="isDisabled(item)"
                           [class.pointer-events-none]="isDisabled(item)"
                         >
-                          {{ item.label | translate }}
+                          <span class="flex min-w-0 flex-col items-start gap-0.5">
+                            <span class="truncate">{{ item.label | translate }}</span>
+                            @if (item.detail) {
+                              <span class="text-xs text-zinc-400">{{ item.detail | translate }}</span>
+                            }
+                          </span>
+                          @if (item.badge) {
+                            <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                              [class.bg-zinc-100]="(item.tone ?? 'default') === 'default'"
+                              [class.text-zinc-600]="(item.tone ?? 'default') === 'default'"
+                              [class.bg-emerald-100]="item.tone === 'success'"
+                              [class.text-emerald-700]="item.tone === 'success'"
+                              [class.bg-rose-100]="item.tone === 'danger'"
+                              [class.text-rose-700]="item.tone === 'danger'"
+                            >{{ item.badge | translate }}</span>
+                          }
                         </a>
                       } @else if (item.href) {
                         <a
@@ -159,7 +219,22 @@
                           [class.text-zinc-400]="isDisabled(item)"
                           [class.pointer-events-none]="isDisabled(item)"
                         >
-                          {{ item.label | translate }}
+                          <span class="flex min-w-0 flex-col items-start gap-0.5">
+                            <span class="truncate">{{ item.label | translate }}</span>
+                            @if (item.detail) {
+                              <span class="text-xs text-zinc-400">{{ item.detail | translate }}</span>
+                            }
+                          </span>
+                          @if (item.badge) {
+                            <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                              [class.bg-zinc-100]="(item.tone ?? 'default') === 'default'"
+                              [class.text-zinc-600]="(item.tone ?? 'default') === 'default'"
+                              [class.bg-emerald-100]="item.tone === 'success'"
+                              [class.text-emerald-700]="item.tone === 'success'"
+                              [class.bg-rose-100]="item.tone === 'danger'"
+                              [class.text-rose-700]="item.tone === 'danger'"
+                            >{{ item.badge | translate }}</span>
+                          }
                         </a>
                       } @else {
                         <button
@@ -178,8 +253,23 @@
                             @if (item.icon) {
                               <lucide-icon [name]="item.icon" class="h-4 w-4 shrink-0"></lucide-icon>
                             }
-                            <span class="truncate">{{ item.label | translate }}</span>
+                            <span class="flex min-w-0 flex-col items-start gap-0.5">
+                              <span class="truncate">{{ item.label | translate }}</span>
+                              @if (item.detail) {
+                                <span class="text-xs text-zinc-400">{{ item.detail | translate }}</span>
+                              }
+                            </span>
                           </span>
+                          @if (item.badge) {
+                            <span class="shrink-0 rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide"
+                              [class.bg-zinc-100]="(item.tone ?? 'default') === 'default'"
+                              [class.text-zinc-600]="(item.tone ?? 'default') === 'default'"
+                              [class.bg-emerald-100]="item.tone === 'success'"
+                              [class.text-emerald-700]="item.tone === 'success'"
+                              [class.bg-rose-100]="item.tone === 'danger'"
+                              [class.text-rose-700]="item.tone === 'danger'"
+                            >{{ item.badge | translate }}</span>
+                          }
                         </button>
                       }
                     }
