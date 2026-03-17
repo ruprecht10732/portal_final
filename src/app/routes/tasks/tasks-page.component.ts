@@ -62,7 +62,7 @@ export class TasksPageComponent {
   protected readonly leadSearchOpen = signal(false);
   protected readonly leadResults = signal<SearchResultItem[]>([]);
   protected readonly selectedLead = signal<{ id: string; label: string } | null>(null);
-  protected readonly leadServices = signal<Array<{ id: string; label: string }>>([]);
+  protected readonly leadServices = signal<{ id: string; label: string }[]>([]);
   protected readonly servicesLoading = signal(false);
   protected readonly statusFilter = signal<TaskStatusFilter>('open');
   protected readonly scopeFilter = signal<TaskScopeFilter>('all');
@@ -236,7 +236,7 @@ export class TasksPageComponent {
             this.form.patchValue({ leadServiceId });
           }
         },
-        error: () => {},
+        error: () => this.leadServices.set([]),
       });
   }
 

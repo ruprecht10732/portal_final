@@ -178,7 +178,11 @@
                 {{ 'leads.detail.services.markComplete' | translate }}
               </button>
             }
-            @if (service.pipelineStage === 'Completed' && service.extraWorkAmountCents != null) {
+            @if (
+              service.pipelineStage === 'Completed' &&
+              service.extraWorkAmountCents !== null &&
+              service.extraWorkAmountCents !== undefined
+            ) {
               <span class="inline-flex items-center gap-1 rounded bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700 ring-1 ring-amber-200"
                 [title]="service.extraWorkNotes ?? ''">
                 + &euro;{{ (service.extraWorkAmountCents / 100) | number: '1.2-2' }}

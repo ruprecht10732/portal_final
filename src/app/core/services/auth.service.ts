@@ -45,10 +45,10 @@ export interface VerifyTokenResponse {
   email: string;
 }
 
-type PostBodyOptions = {
+interface PostBodyOptions {
   withCredentials: boolean;
   headers?: HttpHeaders;
-};
+}
 
 interface MessageResponse {
   message: string;
