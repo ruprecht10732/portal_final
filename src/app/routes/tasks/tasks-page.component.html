@@ -1,0 +1,234 @@
+<shared-page-layout
+  [title]="'tasks.title' | translate"
+  [subtitle]="'tasks.subtitle' | translate"
+  [error]="error()"
+>
+  <div class="grid gap-6 px-4 pb-24 pt-4 md:px-6 xl:grid-cols-[22rem_minmax(0,1fr)] xl:pb-6">
+    <section class="rounded-3xl border border-zinc-200 bg-white p-5 shadow-sm">
+      <div class="mb-4 flex items-start justify-between gap-3">
+        <div>
+          <h2 class="text-lg font-semibold text-zinc-900">{{ (isEditing() ? 'tasks.editor.editTitle' : 'tasks.editor.newTitle') | translate }}</h2>
+          <p class="mt-1 text-sm text-zinc-500">{{ 'tasks.editor.subtitle' | translate }}</p>
+        </div>
+        <shared-button variant="ghost" size="compact" [fullWidth]="false" (clicked)="resetEditor()">
+          {{ 'tasks.actions.reset' | translate }}
+        </shared-button>
+      </div>
+
+      <form class="space-y-4" [formGroup]="form">
+        <label class="block space-y-1.5">
+          <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.title' | translate }}</span>
+          <input formControlName="title" class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none ring-0 transition focus:border-zinc-900" />
+        </label>
+
+        <label class="block space-y-1.5">
+          <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.description' | translate }}</span>
+          <textarea formControlName="description" rows="4" class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900"></textarea>
+        </label>
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="block space-y-1.5">
+            <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.scope' | translate }}</span>
+            <select formControlName="scopeType" class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900">
+              <option value="global">{{ 'tasks.scope.global' | translate }}</option>
+              <option value="lead_service">{{ 'tasks.scope.leadService' | translate }}</option>
+            </select>
+          </label>
+
+          <label class="block space-y-1.5">
+            <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.priority' | translate }}</span>
+            <select formControlName="priority" class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900">
+              <option value="low">{{ 'tasks.priority.low' | translate }}</option>
+              <option value="normal">{{ 'tasks.priority.normal' | translate }}</option>
+              <option value="high">{{ 'tasks.priority.high' | translate }}</option>
+              <option value="urgent">{{ 'tasks.priority.urgent' | translate }}</option>
+            </select>
+          </label>
+        </div>
+
+        @if (form.controls.scopeType.value === 'lead_service') {
+          <div class="grid gap-4 md:grid-cols-2">
+            <label class="block space-y-1.5">
+              <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.leadId' | translate }}</span>
+              <input formControlName="leadId" class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900" />
+            </label>
+
+            <label class="block space-y-1.5">
+              <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.leadServiceId' | translate }}</span>
+              <input formControlName="leadServiceId" class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900" />
+            </label>
+          </div>
+        }
+
+        <div class="grid gap-4 md:grid-cols-2">
+          <label class="block space-y-1.5">
+            <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.assignee' | translate }}</span>
+            <select formControlName="assignedUserId" class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900">
+              @for (user of users(); track user.value) {
+                <option [value]="user.value">{{ user.label }}</option>
+              }
+            </select>
+          </label>
+
+          <label class="block space-y-1.5">
+            <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.dueAt' | translate }}</span>
+            <input formControlName="dueAt" type="datetime-local" class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900" />
+          </label>
+        </div>
+
+        <div class="rounded-3xl bg-zinc-50 p-4">
+          <label class="flex items-center justify-between gap-3 text-sm font-medium text-zinc-800">
+            <span>{{ 'tasks.form.reminderEnabled' | translate }}</span>
+            <input formControlName="reminderEnabled" type="checkbox" class="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900" />
+          </label>
+
+          @if (form.controls.reminderEnabled.value) {
+            <div class="mt-4 space-y-4">
+              <label class="block space-y-1.5">
+                <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.reminderAt' | translate }}</span>
+                <input formControlName="reminderAt" type="datetime-local" class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900" />
+              </label>
+
+              <div class="grid gap-3 md:grid-cols-3">
+                <label class="flex items-center gap-2 text-sm text-zinc-700">
+                  <input formControlName="repeatDaily" type="checkbox" class="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900" />
+                  <span>{{ 'tasks.form.repeatDaily' | translate }}</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm text-zinc-700">
+                  <input formControlName="sendEmail" type="checkbox" class="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900" />
+                  <span>{{ 'tasks.form.sendEmail' | translate }}</span>
+                </label>
+                <label class="flex items-center gap-2 text-sm text-zinc-700">
+                  <input formControlName="sendWhatsApp" type="checkbox" class="h-4 w-4 rounded border-zinc-300 text-zinc-900 focus:ring-zinc-900" />
+                  <span>{{ 'tasks.form.sendWhatsApp' | translate }}</span>
+                </label>
+              </div>
+            </div>
+          }
+        </div>
+
+        <shared-button variant="primary" size="compact" [loading]="saving()" [disabled]="form.invalid" (clicked)="saveTask()">
+          <span>{{ (isEditing() ? 'tasks.actions.update' : 'tasks.actions.create') | translate }}</span>
+        </shared-button>
+      </form>
+    </section>
+
+    <section class="space-y-4">
+      <div class="grid gap-3 md:grid-cols-4">
+        <div class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
+          <div class="text-xs uppercase tracking-[0.24em] text-zinc-500">{{ 'tasks.summary.open' | translate }}</div>
+          <div class="mt-2 text-3xl font-semibold text-zinc-900">{{ openCount() }}</div>
+        </div>
+        <div class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
+          <div class="text-xs uppercase tracking-[0.24em] text-zinc-500">{{ 'tasks.summary.completed' | translate }}</div>
+          <div class="mt-2 text-3xl font-semibold text-zinc-900">{{ completionCount() }}</div>
+        </div>
+        <div class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
+          <div class="text-xs uppercase tracking-[0.24em] text-zinc-500">{{ 'tasks.summary.cancelled' | translate }}</div>
+          <div class="mt-2 text-3xl font-semibold text-zinc-900">{{ cancellationCount() }}</div>
+        </div>
+        <div class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
+          <div class="text-xs uppercase tracking-[0.24em] text-zinc-500">{{ 'tasks.summary.visible' | translate }}</div>
+          <div class="mt-2 text-3xl font-semibold text-zinc-900">{{ tasks().length }}</div>
+        </div>
+      </div>
+
+      <div class="rounded-[2rem] border border-zinc-200 bg-[radial-gradient(circle_at_top_left,_rgba(244,244,245,0.9),_rgba(255,255,255,1))] p-5 shadow-sm">
+        <div class="flex flex-col gap-4 md:flex-row md:items-end md:justify-between">
+          <div>
+            <h2 class="text-lg font-semibold text-zinc-900">{{ 'tasks.list.title' | translate }}</h2>
+            <p class="mt-1 text-sm text-zinc-500">{{ 'tasks.list.subtitle' | translate }}</p>
+          </div>
+          <div class="flex flex-wrap gap-2">
+            <shared-button variant="ghost" size="compact" [fullWidth]="false" (clicked)="startCreate()">
+              {{ 'tasks.actions.new' | translate }}
+            </shared-button>
+          </div>
+        </div>
+
+        <div class="mt-4 grid gap-3 md:grid-cols-3">
+          <label class="block space-y-1.5">
+            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ 'tasks.filters.status' | translate }}</span>
+            <select class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900" [value]="statusFilter()" (change)="setStatusFilter($any($event.target).value)">
+              <option value="open">{{ 'tasks.status.open' | translate }}</option>
+              <option value="completed">{{ 'tasks.status.completed' | translate }}</option>
+              <option value="cancelled">{{ 'tasks.status.cancelled' | translate }}</option>
+            </select>
+          </label>
+
+          <label class="block space-y-1.5">
+            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ 'tasks.filters.scope' | translate }}</span>
+            <select class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900" [value]="scopeFilter()" (change)="setScopeFilter($any($event.target).value)">
+              <option value="all">{{ 'tasks.filters.allScopes' | translate }}</option>
+              <option value="global">{{ 'tasks.scope.global' | translate }}</option>
+              <option value="lead_service">{{ 'tasks.scope.leadService' | translate }}</option>
+            </select>
+          </label>
+
+          <label class="block space-y-1.5">
+            <span class="text-xs font-semibold uppercase tracking-[0.2em] text-zinc-500">{{ 'tasks.filters.assignee' | translate }}</span>
+            <select class="w-full rounded-2xl border border-zinc-300 px-3 py-2.5 text-sm shadow-sm outline-none transition focus:border-zinc-900" [value]="assigneeFilter()" (change)="setAssigneeFilter($any($event.target).value)">
+              <option value="">{{ 'tasks.filters.allAssignees' | translate }}</option>
+              @for (user of users(); track user.value) {
+                <option [value]="user.value">{{ user.label }}</option>
+              }
+            </select>
+          </label>
+        </div>
+
+        @if (loading()) {
+          <div class="mt-6 rounded-3xl border border-dashed border-zinc-300 px-6 py-10 text-center text-sm text-zinc-500">
+            {{ 'tasks.list.loading' | translate }}
+          </div>
+        } @else if (tasks().length === 0) {
+          <div class="mt-6 rounded-3xl border border-dashed border-zinc-300 px-6 py-10 text-center text-sm text-zinc-500">
+            {{ 'tasks.list.empty' | translate }}
+          </div>
+        } @else {
+          <div class="mt-6 space-y-3">
+            @for (task of tasks(); track trackTask($index, task)) {
+              <article class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm transition hover:border-zinc-300">
+                <div class="flex flex-col gap-3 md:flex-row md:items-start md:justify-between">
+                  <div class="space-y-2">
+                    <div class="flex flex-wrap items-center gap-2">
+                      <span class="rounded-full bg-zinc-900 px-2.5 py-1 text-xs font-medium text-white">{{ ('tasks.status.' + task.status) | translate }}</span>
+                      <span class="rounded-full bg-zinc-100 px-2.5 py-1 text-xs font-medium text-zinc-700">{{ ('tasks.priority.' + task.priority) | translate }}</span>
+                      <span class="rounded-full bg-amber-100 px-2.5 py-1 text-xs font-medium text-amber-900">{{ ('tasks.scope.' + (task.scopeType === 'lead_service' ? 'leadService' : 'global')) | translate }}</span>
+                    </div>
+                    <h3 class="text-base font-semibold text-zinc-900">{{ task.title }}</h3>
+                    @if (task.description) {
+                      <p class="max-w-3xl text-sm leading-6 text-zinc-600">{{ task.description }}</p>
+                    }
+                    <div class="flex flex-wrap gap-x-4 gap-y-1 text-xs text-zinc-500">
+                      <span>{{ 'tasks.card.assignee' | translate }}: {{ assigneeLabel(task) }}</span>
+                      @if (task.dueAt) {
+                        <span>{{ 'tasks.card.dueAt' | translate }}: {{ task.dueAt | date:'short' }}</span>
+                      }
+                      @if (task.reminder?.enabled && task.reminder?.nextRunAt) {
+                        <span>{{ 'tasks.card.reminderAt' | translate }}: {{ task.reminder?.nextRunAt | date:'short' }}</span>
+                      }
+                    </div>
+                  </div>
+
+                  <div class="flex flex-wrap gap-2 md:justify-end">
+                    <shared-button variant="ghost" size="compact" [fullWidth]="false" (clicked)="editTask(task)">
+                      {{ 'tasks.actions.edit' | translate }}
+                    </shared-button>
+                    @if (task.status === 'open') {
+                      <shared-button variant="secondary" size="compact" [fullWidth]="false" (clicked)="completeTask(task)">
+                        {{ 'tasks.actions.complete' | translate }}
+                      </shared-button>
+                      <shared-button variant="danger" size="compact" [fullWidth]="false" (clicked)="cancelTask(task)">
+                        {{ 'tasks.actions.cancel' | translate }}
+                      </shared-button>
+                    }
+                  </div>
+                </div>
+              </article>
+            }
+          </div>
+        }
+      </div>
+    </section>
+  </div>
+</shared-page-layout>

@@ -15,6 +15,7 @@ type MobileNavIcon =
   | 'dashboard'
   | 'search'
   | 'leads'
+  | 'tasks'
   | 'inbox'
   | 'whatsapp'
   | 'partners'
@@ -69,6 +70,9 @@ interface MobileNavItem {
                     <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadLeadNotifications() }}</span>
                   }
                 </span>
+              }
+              @case ('tasks') {
+                <lucide-icon name="list-checks" class="h-5 w-5"></lucide-icon>
               }
               @case ('inbox') {
                 <lucide-icon name="mail" class="h-5 w-5"></lucide-icon>
@@ -145,6 +149,7 @@ export class AuthenticatedMobileNavComponent {
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
       { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
+      { label: 'navigation.tasks', route: '/app/tasks', icon: 'tasks' },
       { label: 'navigation.inbox', route: '/app/inbox', icon: 'inbox' },
       { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
       { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },

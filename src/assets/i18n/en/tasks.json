@@ -1,0 +1,83 @@
+{
+  "tasks": {
+    "title": "Tasks",
+    "subtitle": "Track internal follow-up, ownership, and reminder timing in one place.",
+    "summary": {
+      "open": "Open",
+      "completed": "Completed",
+      "cancelled": "Cancelled",
+      "visible": "Visible"
+    },
+    "actions": {
+      "new": "New task",
+      "create": "Create task",
+      "update": "Update task",
+      "edit": "Edit",
+      "complete": "Complete",
+      "cancel": "Cancel",
+      "reset": "Reset"
+    },
+    "editor": {
+      "newTitle": "Create task",
+      "editTitle": "Edit task",
+      "subtitle": "Use global tasks for general follow-up and lead-service tasks when work is tied to a specific job."
+    },
+    "form": {
+      "title": "Title",
+      "description": "Description",
+      "scope": "Scope",
+      "leadId": "Lead ID",
+      "leadServiceId": "Lead service ID",
+      "assignee": "Assigned user",
+      "priority": "Priority",
+      "dueAt": "Due at",
+      "reminderEnabled": "Enable reminder",
+      "reminderAt": "Reminder at",
+      "repeatDaily": "Repeat daily",
+      "sendEmail": "Send email",
+      "sendWhatsApp": "Send WhatsApp"
+    },
+    "filters": {
+      "status": "Status",
+      "scope": "Scope",
+      "assignee": "Assignee",
+      "allScopes": "All scopes",
+      "allAssignees": "All assignees"
+    },
+    "list": {
+      "title": "Task queue",
+      "subtitle": "Filter and review current work without leaving the authenticated workspace.",
+      "loading": "Loading tasks…",
+      "empty": "No tasks match the current filters."
+    },
+    "card": {
+      "assignee": "Assignee",
+      "dueAt": "Due",
+      "reminderAt": "Reminder"
+    },
+    "scope": {
+      "global": "Global",
+      "leadService": "Lead service"
+    },
+    "status": {
+      "open": "Open",
+      "completed": "Completed",
+      "cancelled": "Cancelled"
+    },
+    "priority": {
+      "low": "Low",
+      "normal": "Normal",
+      "high": "High",
+      "urgent": "Urgent"
+    },
+    "messages": {
+      "loadError": "Failed to load tasks.",
+      "loadUsersError": "Failed to load users.",
+      "saveError": "Failed to save task.",
+      "createSuccess": "Task created.",
+      "updateSuccess": "Task updated.",
+      "completeSuccess": "Task completed.",
+      "cancelSuccess": "Task cancelled."
+    }
+  }
+}

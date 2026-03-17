@@ -357,6 +357,15 @@ export const routes: Routes = [
 				loadComponent: () => import('./routes/whatsapp-agent/whatsapp-agent-admin.component').then(m => m.WhatsAppAgentAdminComponent),
 			},
 			{
+				path: 'tasks',
+				data: {
+					panelItems: [
+						{ label: 'navigation.tasks', route: '/app/tasks', icon: 'list', exact: true },
+					],
+				} satisfies SidebarPanelConfig,
+				loadComponent: () => import('./routes/tasks/tasks-page.component').then(m => m.TasksPageComponent),
+			},
+			{
 				path: 'leads',
 				loadComponent: () => import('./routes/leads/leads-layout/leads-layout.component').then(m => m.LeadsLayoutComponent),
 				data: {

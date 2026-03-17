@@ -1,0 +1,83 @@
+{
+  "tasks": {
+    "title": "Taken",
+    "subtitle": "Beheer interne opvolging, eigenaarschap en herinneringen op één plek.",
+    "summary": {
+      "open": "Open",
+      "completed": "Afgerond",
+      "cancelled": "Geannuleerd",
+      "visible": "Zichtbaar"
+    },
+    "actions": {
+      "new": "Nieuwe taak",
+      "create": "Taak aanmaken",
+      "update": "Taak bijwerken",
+      "edit": "Bewerken",
+      "complete": "Afronden",
+      "cancel": "Annuleren",
+      "reset": "Resetten"
+    },
+    "editor": {
+      "newTitle": "Taak aanmaken",
+      "editTitle": "Taak bewerken",
+      "subtitle": "Gebruik globale taken voor algemene opvolging en leadtaken wanneer het werk aan een specifieke opdracht hangt."
+    },
+    "form": {
+      "title": "Titel",
+      "description": "Beschrijving",
+      "scope": "Scope",
+      "leadId": "Lead-ID",
+      "leadServiceId": "Leadservice-ID",
+      "assignee": "Toegewezen gebruiker",
+      "priority": "Prioriteit",
+      "dueAt": "Deadline",
+      "reminderEnabled": "Herinnering inschakelen",
+      "reminderAt": "Herinneren op",
+      "repeatDaily": "Dagelijks herhalen",
+      "sendEmail": "E-mail versturen",
+      "sendWhatsApp": "WhatsApp versturen"
+    },
+    "filters": {
+      "status": "Status",
+      "scope": "Scope",
+      "assignee": "Eigenaar",
+      "allScopes": "Alle scopes",
+      "allAssignees": "Alle gebruikers"
+    },
+    "list": {
+      "title": "Takenoverzicht",
+      "subtitle": "Filter en beheer lopende opvolging zonder de app-shell te verlaten.",
+      "loading": "Taken laden…",
+      "empty": "Er zijn geen taken die bij de huidige filters passen."
+    },
+    "card": {
+      "assignee": "Eigenaar",
+      "dueAt": "Deadline",
+      "reminderAt": "Herinnering"
+    },
+    "scope": {
+      "global": "Globaal",
+      "leadService": "Leadservice"
+    },
+    "status": {
+      "open": "Open",
+      "completed": "Afgerond",
+      "cancelled": "Geannuleerd"
+    },
+    "priority": {
+      "low": "Laag",
+      "normal": "Normaal",
+      "high": "Hoog",
+      "urgent": "Urgent"
+    },
+    "messages": {
+      "loadError": "Taken laden is mislukt.",
+      "loadUsersError": "Gebruikers laden is mislukt.",
+      "saveError": "Taak opslaan is mislukt.",
+      "createSuccess": "Taak aangemaakt.",
+      "updateSuccess": "Taak bijgewerkt.",
+      "completeSuccess": "Taak afgerond.",
+      "cancelSuccess": "Taak geannuleerd."
+    }
+  }
+}
