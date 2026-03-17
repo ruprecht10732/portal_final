@@ -23,11 +23,13 @@ import { ToastService } from '../../../core/services/toast.service';
 import { formatDateValue } from '../../../core/utils/date-utils';
 import type { Lead } from '../../../core/services/leads.types';
 import { UserService } from '../../../core/services/user.service';
+import { CrossOrgTransferService, type TransferDestinationAccount } from '../../../core/services/cross-org-transfer.service';
 
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/components/menu/menu.component';
+import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
 
@@ -53,6 +55,7 @@ interface QuoteLineageSummary {
     ConfirmDialogComponent,
     PageHeaderComponent,
     MenuComponent,
+    SelectComponent,
     SafeHtmlPipe,
     QuotePricingIntelligencePanelComponent,
   ],
@@ -72,6 +75,7 @@ export class OffertesDetailComponent implements OnInit {
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly userService = inject(UserService);
+  private readonly transferService = inject(CrossOrgTransferService);
 
   private readonly currentUser = toSignal(
     this.userService.getProfile().pipe(catchError(() => of(null))),
@@ -88,6 +92,18 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly duplicating = signal(false);
   protected readonly creatingVersion = signal(false);
   protected readonly downloadingPdf = signal(false);
+  protected readonly showTransferDialog = signal(false);
+  protected readonly transferDestinations = signal<TransferDestinationAccount[]>([]);
+  protected readonly transferDestinationsLoading = signal(false);
+  protected readonly transferDestinationUID = signal<string | null>(null);
+  protected readonly transferError = signal<string | null>(null);
+  protected readonly transferringQuote = signal(false);
+  protected readonly transferDestinationOptions = computed<SelectOption<string>[]>(() =>
+    this.transferDestinations().map(destination => ({
+      value: destination.uid,
+      label: destination.organizationName,
+    })),
+  );
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly loadingPreview = signal(false);
   protected readonly moneybirdConnected = signal(false);
@@ -159,6 +175,7 @@ export class OffertesDetailComponent implements OnInit {
     return [
       {
         items: [
+          { label: 'offertes.transfer.action', disabled: !this.isAdmin() },
           { label: 'offertes.duplicate' },
           { label: 'offertes.newVersion', disabled: !canCreateVersion },
           { label: 'offertes.preview', disabled: !previewAvailable },
@@ -331,6 +348,9 @@ export class OffertesDetailComponent implements OnInit {
 
   protected handleMobileMenuSelection(item: MenuItem): void {
     switch (item.label) {
+      case 'offertes.transfer.action':
+        this.openTransferDialog();
+        break;
       case 'offertes.duplicate':
         this.duplicateQuote();
         break;
@@ -515,6 +535,81 @@ export class OffertesDetailComponent implements OnInit {
       },
       error: () => {
         this.sending.set(false);
+      },
+    });
+  }
+
+  protected openTransferDialog(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
+    this.showTransferDialog.set(true);
+    this.transferDestinationsLoading.set(true);
+    this.transferError.set(null);
+    this.transferDestinationUID.set(null);
+
+    this.transferService.listDestinationAccounts().subscribe({
+      next: destinations => {
+        this.transferDestinations.set(destinations);
+        this.transferDestinationUID.set(destinations[0]?.uid ?? null);
+        this.transferDestinationsLoading.set(false);
+        if (destinations.length === 0) {
+          this.transferError.set(this.translate.instant('offertes.transfer.noDestinations'));
+        }
+      },
+      error: err => {
+        this.transferDestinationsLoading.set(false);
+        const message = extractErrorMessage(err, this.translate.instant('offertes.transfer.loadError'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
+        this.transferError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  protected closeTransferDialog(): void {
+    if (this.transferringQuote()) {
+      return;
+    }
+
+    this.showTransferDialog.set(false);
+    this.transferError.set(null);
+    this.transferDestinationUID.set(null);
+  }
+
+  protected confirmTransferQuote(): void {
+    const quote = this.quote();
+    const destinationUID = this.transferDestinationUID();
+    if (!quote || !destinationUID || this.transferringQuote()) {
+      return;
+    }
+
+    this.transferringQuote.set(true);
+    this.transferError.set(null);
+
+    this.transferService.transferQuote(quote, this.lead(), destinationUID).subscribe({
+      next: result => {
+        this.transferringQuote.set(false);
+        this.showTransferDialog.set(false);
+        const successKey = result.sourceLeadDeleted
+          ? 'offertes.transfer.successLeadDeleted'
+          : 'offertes.transfer.successServiceOnly';
+        this.toast.success(this.translate.instant(successKey, {
+          organization: result.destination.organizationName,
+        }));
+        void this.router.navigate(['/app/offertes']);
+      },
+      error: err => {
+        this.transferringQuote.set(false);
+        const message = extractErrorMessage(err, this.translate.instant('offertes.transfer.error'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
+        this.transferError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
       },
     });
   }

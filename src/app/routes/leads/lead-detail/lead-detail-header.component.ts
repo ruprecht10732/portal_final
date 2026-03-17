@@ -9,7 +9,7 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 import { StatusBadgeComponent } from '../../../shared/components/status-badge/status-badge.component';
 import { LucideAngularModule } from 'lucide-angular';
 
-type LeadHeaderAction = 'edit' | 'quote' | 'run-ai' | 'call' | 'email' | 'whatsapp' | 'navigate' | 'log-call';
+type LeadHeaderAction = 'edit' | 'quote' | 'run-ai' | 'call' | 'email' | 'whatsapp' | 'navigate' | 'log-call' | 'send-to-org';
 
 @Component({
   selector: 'app-lead-detail-header',
@@ -36,6 +36,7 @@ export class LeadDetailHeaderComponent {
   energyLabelVariant = input<ChipVariant>('neutral');
   canTriggerAiWorkflow = input(false);
   aiWorkflowTriggering = input(false);
+  canTransfer = input(false);
   back = output<void>();
   toggleStatusMenu = output<void>();
   closeStatusMenu = output<void>();
@@ -48,11 +49,16 @@ export class LeadDetailHeaderComponent {
   whatsappClicked = output<void>();
   navigateClicked = output<void>();
   logCallClicked = output<void>();
+  transferClicked = output<void>();
 
   protected readonly desktopMenuSections = computed<readonly MenuSection[]>(() => {
     const items: MenuItem[] = [];
 
     items.push({ label: 'leads.detail.quickActions.navigate', value: 'navigate' });
+
+    if (this.canTransfer()) {
+      items.push({ label: 'leads.detail.actions.sendToOrg', value: 'send-to-org' });
+    }
 
     if (this.hasSelectedService()) {
       items.push({ label: 'leads.detail.quickActions.logCall', value: 'log-call' });
@@ -64,6 +70,10 @@ export class LeadDetailHeaderComponent {
   protected readonly mobileMenuSections = computed<readonly MenuSection[]>(() => {
     const primaryItems: MenuItem[] = [{ label: 'leads.detail.editLead', value: 'edit' }];
     const secondaryItems: MenuItem[] = [];
+
+    if (this.canTransfer()) {
+      primaryItems.push({ label: 'leads.detail.actions.sendToOrg', value: 'send-to-org' });
+    }
 
     if (this.hasSelectedService()) {
       primaryItems.push(
@@ -132,6 +142,9 @@ export class LeadDetailHeaderComponent {
         return;
       case 'log-call':
         this.logCallClicked.emit();
+        return;
+      case 'send-to-org':
+        this.transferClicked.emit();
         return;
       default:
         return;

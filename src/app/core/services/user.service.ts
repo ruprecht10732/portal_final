@@ -1,4 +1,4 @@
-import { HttpClient } from '@angular/common/http';
+import { HttpClient, HttpContext } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { finalize, map, Observable, of, shareReplay, tap } from 'rxjs';
 import { environment } from '../../../environments/environment';
@@ -33,8 +33,11 @@ export class UserService {
   private usersCache: UserSummary[] | null = null;
   private usersRequest: Observable<UserSummary[]> | null = null;
 
-  getProfile(): Observable<UserProfile> {
-    return this.http.get<UserProfile>(`${this.baseUrl}/me`);
+  getProfile(options?: { context?: HttpContext }): Observable<UserProfile> {
+    return this.http.get<UserProfile>(
+      `${this.baseUrl}/me`,
+      options?.context ? { context: options.context } : undefined,
+    );
   }
 
   updateProfile(data: UpdateProfileRequest): Observable<UserProfile> {

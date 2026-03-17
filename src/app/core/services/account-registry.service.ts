@@ -150,6 +150,16 @@ export class AccountRegistryService {
     return this.registryState().find(account => account.uid !== excludedUID && !account.isExpired) ?? null;
   }
 
+  getUsableAccount(uid: string): Account | null {
+    const normalizedUID = uid.trim();
+    if (!normalizedUID) {
+      return null;
+    }
+
+    const account = this.registryState().find(item => item.uid === normalizedUID) ?? null;
+    return account && !account.isExpired ? account : null;
+  }
+
   private replaceRegistry(accounts: Account[]): void {
     const normalized = this.normalizeRegistry(accounts);
     this.registryState.set(normalized);

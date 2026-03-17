@@ -16,6 +16,7 @@
   [energyLabelVariant]="energyLabelVariant()"
   [canTriggerAiWorkflow]="canTriggerAiWorkflow()"
   [aiWorkflowTriggering]="aiWorkflowTriggering()"
+  [canTransfer]="canTransfer()"
   (back)="back.emit()"
   (toggleStatusMenu)="toggleStatusMenu.emit()"
   (closeStatusMenu)="closeStatusMenu.emit()"
@@ -28,4 +29,5 @@
   (whatsappClicked)="whatsappClicked.emit()"
   (navigateClicked)="navigateClicked.emit()"
   (logCallClicked)="logCallClicked.emit()"
+  (transferClicked)="transferClicked.emit()"
 ></app-lead-detail-header>

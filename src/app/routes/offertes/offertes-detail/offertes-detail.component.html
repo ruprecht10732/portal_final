@@ -1,5 +1,42 @@
 <div class="flex flex-col h-full">
   <!-- Error state -->
+  <shared-confirm-dialog
+    [isOpen]="showTransferDialog()"
+    [title]="'offertes.transfer.title' | translate"
+    [confirmText]="(transferringQuote() ? 'offertes.transfer.transferring' : 'offertes.transfer.confirm') | translate"
+    [cancelText]="'offertes.cancel' | translate"
+    [confirmDisabled]="transferringQuote() || !transferDestinationUID() || transferDestinationsLoading()"
+    confirmVariant="primary"
+    (confirm)="confirmTransferQuote()"
+    (cancelled)="closeTransferDialog()"
+  >
+    <div class="flex flex-col gap-4">
+      <p class="text-sm text-zinc-500">
+        {{ 'offertes.transfer.subtitle' | translate }}
+      </p>
+
+      @if (transferDestinationsLoading()) {
+        <p class="text-sm text-zinc-500">{{ 'offertes.transfer.loading' | translate }}</p>
+      } @else {
+        <shared-select
+          [label]="'offertes.transfer.destinationLabel' | translate"
+          [options]="transferDestinationOptions()"
+          [value]="transferDestinationUID()"
+          [placeholder]="'common.select' | translate"
+          (valueChange)="transferDestinationUID.set($event)"
+        />
+      }
+
+      <p class="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        {{ 'offertes.transfer.warning' | translate }}
+      </p>
+
+      @if (transferError()) {
+        <p class="text-sm text-red-600">{{ transferError() }}</p>
+      }
+    </div>
+  </shared-confirm-dialog>
+
   @if (error()) {
     <div class="flex-1 flex flex-col items-center justify-center p-12 gap-5">
       <div class="h-16 w-16 rounded-full bg-red-100 flex items-center justify-center">
@@ -189,6 +226,16 @@
                     {{ 'offertes.edit' | translate }}
                   </shared-button>
                 }
+
+                <shared-button
+                  variant="secondary"
+                  size="compact"
+                  [fullWidth]="true"
+                  (clicked)="openTransferDialog()"
+                >
+                  <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                  {{ 'offertes.transfer.action' | translate }}
+                </shared-button>
 
                 <shared-button
                   variant="secondary"

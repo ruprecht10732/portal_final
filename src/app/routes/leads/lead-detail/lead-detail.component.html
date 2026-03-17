@@ -28,6 +28,43 @@
     (cancelled)="cancelServiceTypeConfirmDialog()"
   />
 
+  <shared-confirm-dialog
+    [isOpen]="showTransferDialog()"
+    [title]="'leads.detail.transfer.title' | translate"
+    [confirmText]="(transferringLead() ? 'leads.detail.transfer.transferring' : 'leads.detail.transfer.confirm') | translate"
+    [cancelText]="'leads.detail.cancel' | translate"
+    [confirmDisabled]="transferringLead() || !transferDestinationUID() || transferDestinationsLoading()"
+    confirmVariant="primary"
+    (confirm)="confirmLeadTransfer()"
+    (cancelled)="closeTransferDialog()"
+  >
+    <div class="flex flex-col gap-4">
+      <p class="text-sm text-zinc-500">
+        {{ 'leads.detail.transfer.subtitle' | translate }}
+      </p>
+
+      @if (transferDestinationsLoading()) {
+        <p class="text-sm text-zinc-500">{{ 'leads.detail.transfer.loading' | translate }}</p>
+      } @else {
+        <shared-select
+          [label]="'leads.detail.transfer.destinationLabel' | translate"
+          [options]="transferDestinationOptions()"
+          [value]="transferDestinationUID()"
+          [placeholder]="'common.select' | translate"
+          (valueChange)="transferDestinationUID.set($event)"
+        />
+      }
+
+      <p class="rounded-xl bg-amber-50 px-3 py-2 text-sm text-amber-800">
+        {{ 'leads.detail.transfer.warning' | translate }}
+      </p>
+
+      @if (transferError()) {
+        <p class="text-sm text-red-600">{{ transferError() }}</p>
+      }
+    </div>
+  </shared-confirm-dialog>
+
   <!-- Complete Service Modal -->
   @if (showCompleteServiceModal()) {
     <dialog
@@ -142,6 +179,7 @@
     [hasSelectedService]="!!selectedService()"
     [canTriggerAiWorkflow]="canTriggerAiWorkflow()"
     [aiWorkflowTriggering]="aiAnalysisRefreshing()"
+    [canTransfer]="isAdmin()"
     (back)="goBack()"
     (toggleStatusMenu)="toggleStatusMenu()"
     (closeStatusMenu)="closeStatusMenu()"
@@ -154,6 +192,7 @@
     (whatsappClicked)="openLeadWhatsApp()"
     (navigateClicked)="navigateToLead()"
     (logCallClicked)="openCallLogger()"
+    (transferClicked)="openTransferDialog()"
   />
 
   @if (error()) {

@@ -371,7 +371,21 @@
       },
       "actions": {
         "runAi": "AI uitvoeren",
-        "runningAi": "AI bezig..."
+        "runningAi": "AI bezig...",
+        "sendToOrg": "Naar andere organisatie sturen"
+      },
+      "transfer": {
+        "title": "Lead naar andere organisatie sturen",
+        "subtitle": "Kies een van je andere ingelogde admin-organisaties.",
+        "destinationLabel": "Doelorganisatie",
+        "loading": "Doelorganisaties laden...",
+        "warning": "Dit verplaatst de lead naar de geselecteerde organisatie en verwijdert hem daarna uit de huidige organisatie.",
+        "confirm": "Lead versturen",
+        "transferring": "Bezig met versturen...",
+        "loadError": "Doelorganisaties laden mislukt.",
+        "noDestinations": "Er zijn geen andere ingelogde admin-organisaties beschikbaar.",
+        "success": "Lead verstuurd naar {{organization}}.",
+        "error": "Lead versturen naar de geselecteerde organisatie is mislukt."
       },
       "announcements": {
         "statusChanged": "Status gewijzigd naar {{status}}",

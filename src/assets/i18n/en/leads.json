@@ -372,7 +372,21 @@
       },
       "actions": {
         "runAi": "Run AI",
-        "runningAi": "Running AI..."
+        "runningAi": "Running AI...",
+        "sendToOrg": "Send to another org"
+      },
+      "transfer": {
+        "title": "Send lead to another org",
+        "subtitle": "Choose one of your other logged-in admin organizations.",
+        "destinationLabel": "Destination organization",
+        "loading": "Loading destination organizations...",
+        "warning": "This transfers the lead to the selected organization and removes it from the current organization after a successful move.",
+        "confirm": "Send lead",
+        "transferring": "Sending...",
+        "loadError": "Failed to load destination organizations.",
+        "noDestinations": "No other logged-in admin organizations are available.",
+        "success": "Lead sent to {{organization}}.",
+        "error": "Failed to send lead to the selected organization."
       },
       "announcements": {
         "statusChanged": "Status changed to {{status}}",

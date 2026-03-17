@@ -383,8 +383,11 @@ export class OrganizationService {
   private workflowEngineWorkflowsCache: WorkflowEngineWorkflow[] | null = null;
   private workflowEngineWorkflowsRequest: Observable<WorkflowEngineWorkflow[]> | null = null;
 
-  getOrganization(): Observable<Organization> {
-    return this.http.get<Organization>(`${this.baseUrl}/me`);
+  getOrganization(options?: { context?: HttpContext }): Observable<Organization> {
+    return this.http.get<Organization>(
+      `${this.baseUrl}/me`,
+      options?.context ? { context: options.context } : undefined,
+    );
   }
 
   updateOrganization(payload: UpdateOrganizationRequest): Observable<Organization> {

@@ -20,6 +20,7 @@ import { ALLOWED_STATUS_TRANSITIONS, buildLeadStatusLabels, MANUAL_STATUS_OPTION
 import { PartnersService } from '../../../core/services/partners.service';
 import type { OfferResponse, Partner } from '../../../core/services/partners.types';
 import { QuotesService } from '../../../core/services/quotes.service';
+import { CrossOrgTransferService, type TransferDestinationAccount } from '../../../core/services/cross-org-transfer.service';
 import type { QuoteResponse } from '../../../core/services/quotes.types';
 import type {
   AccessDifficulty,
@@ -36,7 +37,7 @@ import type { UserProfile } from '../../../core/services/user.types';
 import { CardComponent } from '../../../shared/components/card/card.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import type { AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
-import { type SelectOption } from '../../../shared/components/select/select.component';
+import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import type { ChipVariant } from '../../../shared/components/chip/chip.component';
 import { type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 import { CallLoggerDialogComponent, type CallLoggerSubmitEvent } from '../../../shared/components/call-logger-dialog';
@@ -160,7 +161,7 @@ interface TimelineExtractedFact {
     '(document:click)': 'handleDocumentClick($event)',
     '(document:keydown)': 'handleKeydown($event)',
   },
-  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailChatsTabComponent, LeadDetailEmailsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailManualPartnerPanelComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailQuotesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTasksTabComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadDetailWorkflowPanelComponent, LeadInquiryCardComponent, TranslatePipe],
+  imports: [CallLoggerDialogComponent, CardComponent, ConfirmDialogComponent, LeadDetailSkeletonComponent, LeadDetailAppointmentsTabComponent, LeadDetailChatsTabComponent, LeadDetailEmailsTabComponent, LeadDetailFilesTabComponent, LeadDetailInfoCardsComponent, LeadDetailManualPartnerPanelComponent, LeadDetailMobileConsumerCardComponent, LeadDetailNotesPanelComponent, LeadDetailPreferencesTabComponent, LeadDetailQuotesTabComponent, LeadDetailServicesPanelComponent, LeadDetailSidebarInfoComponent, LeadDetailTabsShellComponent, LeadDetailTasksTabComponent, LeadDetailTopSectionComponent, LeadDetailTimelineTabComponent, LeadDetailWorkflowPanelComponent, LeadInquiryCardComponent, SelectComponent, TranslatePipe],
 })
 export class LeadDetailComponent implements OnInit {
   private readonly aiJobs = inject(AIJobService);
@@ -173,6 +174,7 @@ export class LeadDetailComponent implements OnInit {
   private readonly userService = inject(UserService);
   private readonly partnersService = inject(PartnersService);
   private readonly quotesService = inject(QuotesService);
+  private readonly transferService = inject(CrossOrgTransferService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
@@ -192,6 +194,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly saving = signal(false);
   protected readonly noteSaving = signal(false);
   protected readonly user = signal<UserProfile | null>(null);
+  protected readonly isAdmin = computed(() => this.user()?.roles.includes('admin') ?? false);
   protected readonly assigneeOptions = signal<SelectOption<string | null>[]>([]);
   protected readonly selectedAssignee = signal<string | null>(null);
 
@@ -228,6 +231,18 @@ export class LeadDetailComponent implements OnInit {
   });
 
   protected readonly appointments = signal<AppointmentResponse[]>([]);
+  protected readonly showTransferDialog = signal(false);
+  protected readonly transferDestinations = signal<TransferDestinationAccount[]>([]);
+  protected readonly transferDestinationsLoading = signal(false);
+  protected readonly transferDestinationUID = signal<string | null>(null);
+  protected readonly transferError = signal<string | null>(null);
+  protected readonly transferringLead = signal(false);
+  protected readonly transferDestinationOptions = computed<SelectOption<string>[]>(() =>
+    this.transferDestinations().map(destination => ({
+      value: destination.uid,
+      label: destination.organizationName,
+    })),
+  );
   protected readonly appointmentsLoading = signal(false);
   protected readonly appointmentsError = signal<string | null>(null);
   protected readonly showAppointmentForm = signal(false);
@@ -1613,6 +1628,72 @@ export class LeadDetailComponent implements OnInit {
     const lead = this.lead();
     if (!lead) return;
     this.router.navigate(['/app/leads', lead.id, 'edit']);
+  }
+
+  protected openTransferDialog(): void {
+    if (!this.isAdmin()) {
+      return;
+    }
+
+    this.showTransferDialog.set(true);
+    this.transferDestinationsLoading.set(true);
+    this.transferError.set(null);
+    this.transferDestinationUID.set(null);
+
+    this.transferService.listDestinationAccounts().subscribe({
+      next: destinations => {
+        this.transferDestinations.set(destinations);
+        this.transferDestinationUID.set(destinations[0]?.uid ?? null);
+        this.transferDestinationsLoading.set(false);
+        if (destinations.length === 0) {
+          this.transferError.set(this.translate.instant('leads.detail.transfer.noDestinations'));
+        }
+      },
+      error: err => {
+        this.transferDestinationsLoading.set(false);
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.transfer.loadError'));
+        this.transferError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
+  }
+
+  protected closeTransferDialog(): void {
+    if (this.transferringLead()) {
+      return;
+    }
+
+    this.showTransferDialog.set(false);
+    this.transferError.set(null);
+    this.transferDestinationUID.set(null);
+  }
+
+  protected confirmLeadTransfer(): void {
+    const lead = this.lead();
+    const destinationUID = this.transferDestinationUID();
+    if (!lead || !destinationUID || this.transferringLead()) {
+      return;
+    }
+
+    this.transferringLead.set(true);
+    this.transferError.set(null);
+
+    this.transferService.transferLead(lead, destinationUID).subscribe({
+      next: result => {
+        this.transferringLead.set(false);
+        this.showTransferDialog.set(false);
+        this.toast.success(this.translate.instant('leads.detail.transfer.success', {
+          organization: result.destination.organizationName,
+        }));
+        void this.router.navigate(['/app/leads']);
+      },
+      error: err => {
+        this.transferringLead.set(false);
+        const message = extractErrorMessage(err, this.translate.instant('leads.detail.transfer.error'));
+        this.transferError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
   }
 
   protected addNote(): void {

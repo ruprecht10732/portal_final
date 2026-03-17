@@ -29,6 +29,7 @@ export class LeadDetailTopSectionComponent {
   email = input<string | null>(null);
   canTriggerAiWorkflow = input(false);
   aiWorkflowTriggering = input(false);
+  canTransfer = input(false);
 
   back = output<void>();
   toggleStatusMenu = output<void>();
@@ -42,4 +43,5 @@ export class LeadDetailTopSectionComponent {
   whatsappClicked = output<void>();
   navigateClicked = output<void>();
   logCallClicked = output<void>();
+  transferClicked = output<void>();
 }
