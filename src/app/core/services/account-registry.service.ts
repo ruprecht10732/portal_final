@@ -1,5 +1,5 @@
 import { computed, Injectable, signal } from '@angular/core';
-import { decodeJwtClaims, isJwtExpired } from '../utils/jwt-token.utils';
+import { decodeJwtClaims } from '../utils/jwt-token.utils';
 
 const ACCOUNT_REGISTRY_KEY = 'portal.accountRegistry';
 const LEGACY_ACCESS_TOKEN_KEY = 'portal.accessToken';
@@ -46,7 +46,7 @@ export class AccountRegistryService {
       token,
       refreshToken,
       isActive: true,
-      isExpired: isJwtExpired(token),
+      isExpired: false,
     };
 
     this.replaceRegistry([...nextRegistry, account]);
@@ -104,7 +104,7 @@ export class AccountRegistryService {
             email: email?.trim() || account.email,
             token,
             refreshToken,
-            isExpired: isJwtExpired(token),
+            isExpired: false,
           }
           : account
       )
@@ -150,13 +150,17 @@ export class AccountRegistryService {
     return this.registryState().find(account => account.uid !== excludedUID && !account.isExpired) ?? null;
   }
 
-  getUsableAccount(uid: string): Account | null {
+  getAccount(uid: string): Account | null {
     const normalizedUID = uid.trim();
     if (!normalizedUID) {
       return null;
     }
 
-    const account = this.registryState().find(item => item.uid === normalizedUID) ?? null;
+    return this.registryState().find(account => account.uid === normalizedUID) ?? null;
+  }
+
+  getUsableAccount(uid: string): Account | null {
+    const account = this.getAccount(uid);
     return account && !account.isExpired ? account : null;
   }
 
@@ -214,7 +218,7 @@ export class AccountRegistryService {
         token,
         refreshToken: '',
         isActive: true,
-        isExpired: isJwtExpired(token),
+        isExpired: false,
       };
     } catch {
       return null;
@@ -239,7 +243,7 @@ export class AccountRegistryService {
     return normalized.map(account => ({
       ...account,
       isActive: account.uid === activeUID,
-      isExpired: account.isExpired || isJwtExpired(account.token),
+      isExpired: account.isExpired,
     }));
   }
 

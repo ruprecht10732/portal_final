@@ -58,6 +58,16 @@ describe('AccountRegistryService', () => {
     ]);
   });
 
+  it('does not auto-expire an account just because the access token timestamp is old', () => {
+    const service = TestBed.inject(AccountRegistryService);
+    const expiredAccessToken = buildToken({ sub: 'user-a', email: 'a@example.com', exp: Math.floor(Date.now() / 1000) - 60 });
+
+    service.addAccount('user-a', 'a@example.com', expiredAccessToken, 'refresh-a');
+
+    expect(service.activeAccountValue?.isExpired).toBe(false);
+    expect(service.usableActiveAccountValue?.uid).toBe('user-a');
+  });
+
   it('marks expired accounts and finds the next usable account', () => {
     const service = TestBed.inject(AccountRegistryService);
 

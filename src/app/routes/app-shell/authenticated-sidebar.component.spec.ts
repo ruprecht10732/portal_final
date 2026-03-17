@@ -1,7 +1,7 @@
 import { TestBed } from '@angular/core/testing';
 import { ActivatedRoute, NavigationEnd, Router } from '@angular/router';
 import { signal } from '@angular/core';
-import { of, Subject } from 'rxjs';
+import { of, Subject, throwError } from 'rxjs';
 
 import { AccountRegistryService } from '../../core/services/account-registry.service';
 import { AuthService } from '../../core/services/auth.service';
@@ -36,7 +36,7 @@ const instantiateSidebarComponent = (): AuthenticatedSidebarComponent =>
 
 describe('AuthenticatedSidebarComponent', () => {
   let accountRegistry: AccountRegistryService;
-  let authService: { signOut: ReturnType<typeof vi.fn>; signOutAllAccounts: ReturnType<typeof vi.fn> };
+  let authService: { signOut: ReturnType<typeof vi.fn>; signOutAllAccounts: ReturnType<typeof vi.fn>; refresh: ReturnType<typeof vi.fn> };
   let router: { events: Subject<NavigationEnd>; url: string; navigate: ReturnType<typeof vi.fn> };
 
   beforeEach(() => {
@@ -51,6 +51,7 @@ describe('AuthenticatedSidebarComponent', () => {
     authService = {
       signOut: vi.fn().mockReturnValue(of({ message: 'signed out' })),
       signOutAllAccounts: vi.fn().mockReturnValue(of([{ message: 'signed out' }, { message: 'signed out' }])),
+      refresh: vi.fn().mockReturnValue(of({ accessToken: buildToken({ sub: 'user-b', email: 'user-b@example.com', exp: Math.floor(Date.now() / 1000) + 3600 }), refreshToken: 'refresh-b-next' })),
     };
 
     TestBed.configureTestingModule({
@@ -129,5 +130,20 @@ describe('AuthenticatedSidebarComponent', () => {
     expect(authService.signOutAllAccounts).toHaveBeenCalled();
     expect(accountRegistry.accounts()).toEqual([]);
     expect(router.navigate).toHaveBeenCalledWith(['/sign-in']);
+  });
+
+  it('tries to refresh a stale inactive account before marking it expired', () => {
+    accountRegistry.addAccount('user-a', 'user-a@example.com', buildToken({ sub: 'user-a', email: 'user-a@example.com', exp: Math.floor(Date.now() / 1000) + 3600 }), 'refresh-a');
+    accountRegistry.addAccount('user-b', 'user-b@example.com', buildToken({ sub: 'user-b', email: 'user-b@example.com', exp: Math.floor(Date.now() / 1000) - 60 }), 'refresh-b');
+    accountRegistry.switchAccount('user-a');
+    authService.refresh.mockReturnValueOnce(throwError(() => new Error('refresh failed')));
+
+    const component = instantiateSidebarComponent();
+
+    component['handleProfileMenuSelection']({ label: 'user-b@example.com', value: 'switch:user-b' });
+
+    expect(authService.refresh).toHaveBeenCalledWith('refresh-b');
+    expect(accountRegistry.getAccount('user-b')?.isExpired).toBe(true);
+    expect(accountRegistry.activeAccountValue?.uid).toBe('user-a');
   });
 });

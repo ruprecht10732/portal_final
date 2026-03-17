@@ -7,6 +7,7 @@ import {
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, map, of } from 'rxjs';
 import { AccountRegistryService } from '../../core/services/account-registry.service';
+import { isJwtExpired } from '../../core/utils/jwt-token.utils';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { AddAccountSheetComponent } from '../../shared/components/add-account-sheet/add-account-sheet.component';
 import { MenuComponent, MenuItem, MenuSection } from '../../shared/components/menu/menu.component';
@@ -264,6 +265,35 @@ export class AuthenticatedSidebarComponent {
 
     if (item.value.startsWith('switch:')) {
       const uid = item.value.replace('switch:', '');
+      const targetAccount = this.accountRegistry.getAccount(uid);
+      if (!targetAccount) {
+        return;
+      }
+
+      if (targetAccount.isExpired) {
+        return;
+      }
+
+      if (isJwtExpired(targetAccount.token)) {
+        if (!targetAccount.refreshToken) {
+          this.accountRegistry.markExpired(targetAccount.uid);
+          return;
+        }
+
+        this.authService.refresh(targetAccount.refreshToken).subscribe({
+          next: () => {
+            if (!this.accountRegistry.switchAccount(uid)) {
+              return;
+            }
+            globalThis.location.assign('/app/dashboard');
+          },
+          error: () => {
+            this.accountRegistry.markExpired(targetAccount.uid);
+          },
+        });
+        return;
+      }
+
       if (!this.accountRegistry.switchAccount(uid)) {
         return;
       }

@@ -26,7 +26,6 @@ export class App {
     this.translate.use('nl');
 
     this.bootstrapActiveAccount();
-    this.validateInactiveAccounts();
   }
 
   private bootstrapActiveAccount(): void {
@@ -41,42 +40,30 @@ export class App {
         tap(response => this.accounts.updateEmail(activeAccount.uid, response.email)),
         switchMap(() => this.userService.getProfile()),
         catchError(error => {
-          if (this.isUnauthorized(error)) {
-            this.accounts.markExpired(activeAccount.uid);
+          if (!this.isUnauthorized(error)) {
+            return of(null);
           }
-          return of(null);
+
+          if (!activeAccount.refreshToken) {
+            this.accounts.markExpired(activeAccount.uid);
+            return of(null);
+          }
+
+          return this.authService.refresh(activeAccount.refreshToken).pipe(
+            switchMap(() => this.userService.getProfile()),
+            catchError(refreshError => {
+              if (this.isUnauthorized(refreshError)) {
+                this.accounts.markExpired(activeAccount.uid);
+              }
+              return of(null);
+            })
+          );
         })
       )
       .subscribe(profile => {
         const lang = profile?.preferredLanguage === 'en' ? 'en' : 'nl';
         this.translate.use(lang);
       });
-  }
-
-  private validateInactiveAccounts(): void {
-    const activeUID = this.accounts.activeAccountValue?.uid;
-
-    for (const account of this.accounts.accounts()) {
-      if (account.uid === activeUID || account.isExpired) {
-        continue;
-      }
-
-      this.authService.verifyToken(account.token)
-        .pipe(
-          take(1),
-          catchError(error => {
-            if (this.isUnauthorized(error)) {
-              this.accounts.markExpired(account.uid);
-            }
-            return of(null);
-          })
-        )
-        .subscribe(response => {
-          if (response?.email) {
-            this.accounts.updateEmail(account.uid, response.email);
-          }
-        });
-    }
   }
 
   private isUnauthorized(error: unknown): boolean {
