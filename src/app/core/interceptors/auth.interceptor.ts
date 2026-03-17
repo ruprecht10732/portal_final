@@ -8,6 +8,7 @@ import { AccountRegistryService } from '../services/account-registry.service';
 import { AuthService } from '../services/auth.service';
 import { ToastService } from '../services/toast.service';
 import { getAuthErrorMessage } from '../utils/auth-error-mapper';
+import { isJwtExpired } from '../utils/jwt-token.utils';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
   const accounts = inject(AccountRegistryService);
@@ -59,7 +60,17 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return handleExpiredAccount(error);
   };
 
-  return next(authReq).pipe(
+  const shouldProactivelyRefresh = !!(
+    selectedAccount
+    && selectedAccount.refreshToken
+    && accessToken
+    && isApiRequest
+    && !isAuthRequest
+    && !isRefreshRequest
+    && isJwtExpired(accessToken)
+  );
+
+  const executeRequest = (request = authReq) => next(request).pipe(
     catchError(error => {
       if (!isApiRequest || isRefreshRequest || isAuthRequest || !(error instanceof HttpErrorResponse) || error.status !== 401) {
         return throwError(() => error);
@@ -69,10 +80,10 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
         return handleExpiredAccount(error);
       }
 
-      return authService.refresh(selectedAccount.refreshToken).pipe(
+      return authService.refresh(selectedAccount.refreshToken, selectedAccount.uid).pipe(
         switchMap(response =>
           next(
-            authReq.clone({
+            request.clone({
               setHeaders: {
                 Authorization: `Bearer ${response.accessToken}`,
               },
@@ -83,4 +94,21 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       );
     })
   );
+
+  if (shouldProactivelyRefresh) {
+    return authService.refresh(selectedAccount.refreshToken, selectedAccount.uid).pipe(
+      switchMap(response =>
+        executeRequest(
+          req.clone({
+            setHeaders: {
+              Authorization: `Bearer ${response.accessToken}`,
+            },
+          })
+        )
+      ),
+      catchError(refreshError => handleRefreshFailure(refreshError))
+    );
+  }
+
+  return executeRequest();
 };

@@ -82,6 +82,34 @@ describe('AuthService', () => {
     }));
   });
 
+  it('refreshes a targeted inactive account without overwriting the active one', () => {
+    const activeToken = buildToken({ sub: 'user-a', email: 'user-a@example.com', exp: Math.floor(Date.now() / 1000) + 3600 });
+    const staleInactiveToken = buildToken({ sub: 'user-b', email: 'user-b@example.com', exp: Math.floor(Date.now() / 1000) - 60 });
+    const refreshedInactiveToken = buildToken({ sub: 'user-b', email: 'user-b@example.com', exp: Math.floor(Date.now() / 1000) + 7200 });
+    registry.addAccount('user-a', 'user-a@example.com', activeToken, 'refresh-a');
+    registry.addAccount('user-b', 'user-b@example.com', staleInactiveToken, 'refresh-b');
+    registry.switchAccount('user-a');
+
+    service.refresh('refresh-b', 'user-b').subscribe();
+
+    const request = httpMock.expectOne(`${environment.apiBaseUrl}/auth/refresh`);
+    expect(request.request.method).toBe('POST');
+    expect(request.request.body).toEqual({ refreshToken: 'refresh-b' });
+    request.flush({ accessToken: refreshedInactiveToken, refreshToken: 'refresh-b-next' });
+
+    expect(registry.activeAccountValue).toEqual(expect.objectContaining({
+      uid: 'user-a',
+      token: activeToken,
+      refreshToken: 'refresh-a',
+    }));
+    expect(registry.getAccount('user-b')).toEqual(expect.objectContaining({
+      uid: 'user-b',
+      token: refreshedInactiveToken,
+      refreshToken: 'refresh-b-next',
+      isExpired: false,
+    }));
+  });
+
   it('sends explicit authorization when verifying a token', () => {
     const token = buildToken({ sub: 'user-a', email: 'user-a@example.com', exp: Math.floor(Date.now() / 1000) + 3600 });
 

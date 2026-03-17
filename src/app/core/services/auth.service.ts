@@ -81,10 +81,10 @@ export class AuthService {
     return this.http.post<MessageResponse>(`${this.baseUrl}/auth/sign-up`, payload);
   }
 
-  refresh(refreshToken?: string): Observable<AuthResponse> {
-    const activeAccount = this.accounts.activeAccountValue;
-    const resolvedRefreshToken = refreshToken ?? activeAccount?.refreshToken ?? '';
-    const refreshKey = `${activeAccount?.uid ?? 'anonymous'}:${resolvedRefreshToken}`;
+  refresh(refreshToken?: string, accountUID?: string): Observable<AuthResponse> {
+    const targetAccount = accountUID ? this.accounts.getAccount(accountUID) : this.accounts.activeAccountValue;
+    const resolvedRefreshToken = refreshToken ?? targetAccount?.refreshToken ?? '';
+    const refreshKey = `${targetAccount?.uid ?? 'anonymous'}:${resolvedRefreshToken}`;
 
     if (!resolvedRefreshToken) {
       return throwError(() => new Error('token invalid'));
@@ -103,12 +103,12 @@ export class AuthService {
       .pipe(
         tap(response => {
           const claims = decodeJwtClaims(response.accessToken);
-          const uid = claims?.sub?.trim() || activeAccount?.uid;
+          const uid = claims?.sub?.trim() || targetAccount?.uid;
           if (!uid) {
             throw new Error('token invalid');
           }
 
-          this.accounts.updateTokens(uid, response.accessToken, response.refreshToken, claims?.email?.trim() || activeAccount?.email);
+          this.accounts.updateTokens(uid, response.accessToken, response.refreshToken, claims?.email?.trim() || targetAccount?.email);
         }),
         finalize(() => {
           this.refreshInFlight = null;
