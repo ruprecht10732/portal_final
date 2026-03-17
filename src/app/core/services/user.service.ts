@@ -9,6 +9,7 @@ import type {
   CreateIMAPAccountRequest,
   DetectIMAPAccountResponse,
   IMAPAccount,
+  IMAPOutboundMessageListResponse,
   IMAPUnreadCountResponse,
   IMAPMessageContent,
   IMAPMessageLeadLinkResponse,
@@ -119,6 +120,10 @@ export class UserService {
         pageSize: String(pageSize),
       },
     });
+  }
+
+  listIMAPOutboundMessages(accountId: string): Observable<IMAPOutboundMessageListResponse> {
+    return this.http.get<IMAPOutboundMessageListResponse>(`${this.imapBaseUrl}/${accountId}/outbox`);
   }
 
   deleteIMAPMessage(accountId: string, uid: number): Observable<{ message: string }> {

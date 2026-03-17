@@ -109,6 +109,9 @@ export interface CreateOfferFromQuoteRequest {
   quoteId: string;
   expiresInHours: number;
   jobSummaryShort?: string;
+  marginBasisPoints?: number;
+  vakmanPriceCents?: number;
+  selectedItemIds?: string[];
 }
 
 export interface CreateOfferResponse {

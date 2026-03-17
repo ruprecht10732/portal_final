@@ -222,6 +222,8 @@
       },
       "quotePaymentDays": "Betalingstermijn (dagen)",
       "quoteValidDays": "Geldigheid offerte (dagen)",
+      "offerMarginPercent": "Standaard marge partneraanbod",
+      "offerMarginPercentHint": "Percentage platformmarge dat standaard van het offertetotaal wordt afgetrokken.",
       "notificationEmail": "Notificatie e-mail",
       "notificationEmailPlaceholder": "ops@bedrijf.nl",
       "notificationEmailHint": "Partner-aanbod meldingen naar admins worden naar dit adres gestuurd. Laat leeg voor de standaardwaarde.",

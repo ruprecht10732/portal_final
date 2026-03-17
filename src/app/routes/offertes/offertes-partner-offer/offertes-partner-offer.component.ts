@@ -8,6 +8,7 @@ import { QuotesService } from '../../../core/services/quotes.service';
 import type { QuoteResponse } from '../../../core/services/quotes.types';
 import { PartnersService } from '../../../core/services/partners.service';
 import type { Partner } from '../../../core/services/partners.types';
+import { OrganizationService } from '../../../core/services/organization.service';
 import type { AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -32,6 +33,7 @@ export class OffertesPartnerOfferComponent implements OnInit {
   private readonly translate = inject(TranslateService);
   private readonly quotesService = inject(QuotesService);
   private readonly partnersService = inject(PartnersService);
+  private readonly organizationService = inject(OrganizationService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
@@ -50,6 +52,9 @@ export class OffertesPartnerOfferComponent implements OnInit {
   protected readonly selectedPartnerId = signal<string | null>(null);
 
   protected readonly expiresInHours = signal<number>(12);
+  protected readonly marginPercent = signal<number>(10);
+  protected readonly vakmanPriceOverrideEuros = signal<number | null>(null);
+  protected readonly selectedItemIds = signal<string[]>([]);
 
   protected readonly offerCreating = signal(false);
   protected readonly offerError = signal<string | null>(null);
@@ -72,13 +77,33 @@ export class OffertesPartnerOfferComponent implements OnInit {
     return this.partnersService.buildOfferAcceptanceUrl(token);
   });
 
+  protected readonly selectableItems = computed(() => this.quote()?.items ?? []);
+
+  protected readonly selectedQuoteItems = computed(() => {
+    const selectedIds = new Set(this.selectedItemIds());
+    return this.selectableItems().filter(item => selectedIds.has(item.id));
+  });
+
+  protected readonly selectedItemsTotalCents = computed(() =>
+    this.selectedQuoteItems().reduce((total, item) => total + item.lineTotalCents, 0),
+  );
+
+  protected readonly effectiveVakmanPriceCents = computed(() => {
+    const override = this.vakmanPriceOverrideEuros();
+    if (override != null) {
+      return Math.max(0, Math.round(override * 100));
+    }
+    return Math.max(0, Math.round(this.selectedItemsTotalCents() * (1 - this.marginPercent() / 100)));
+  });
+
   protected readonly canCreateOffer = computed(() => {
     const q = this.quote();
     if (!q) return false;
     if (this.offerCreating()) return false;
     if (!this.selectedPartnerId()) return false;
     if (!q.leadServiceId) return false;
-    if (q.totalCents <= 0) return false;
+    if (this.selectedItemIds().length === 0) return false;
+    if (this.selectedItemsTotalCents() <= 0) return false;
     return q.status === 'Accepted';
   });
 
@@ -121,6 +146,7 @@ export class OffertesPartnerOfferComponent implements OnInit {
         },
       });
 
+    this.loadOrganizationDefaults();
     this.loadQuote(id);
   }
 
@@ -156,6 +182,22 @@ export class OffertesPartnerOfferComponent implements OnInit {
     this.partnerSearchLoading.set(false);
   }
 
+  protected isItemSelected(itemId: string): boolean {
+    return this.selectedItemIds().includes(itemId);
+  }
+
+  protected toggleItemSelection(itemId: string): void {
+    this.selectedItemIds.update((itemIds) =>
+      itemIds.includes(itemId)
+        ? itemIds.filter((id) => id !== itemId)
+        : [...itemIds, itemId],
+    );
+  }
+
+  protected resetVakmanPriceOverride(): void {
+    this.vakmanPriceOverrideEuros.set(null);
+  }
+
   protected createOffer(): void {
     const q = this.quote();
     const partnerId = this.selectedPartnerId();
@@ -170,8 +212,18 @@ export class OffertesPartnerOfferComponent implements OnInit {
     this.createdOfferToken.set(null);
     this.createdOfferVakmanPriceCents.set(null);
 
+    const vakmanPriceOverrideEuros = this.vakmanPriceOverrideEuros();
+    const request = {
+      partnerId,
+      quoteId: q.id,
+      expiresInHours,
+      marginBasisPoints: Math.round(this.marginPercent() * 100),
+      selectedItemIds: this.selectedItemIds(),
+      ...(vakmanPriceOverrideEuros == null ? {} : { vakmanPriceCents: Math.round(vakmanPriceOverrideEuros * 100) }),
+    };
+
     this.partnersService
-      .createOfferFromQuote({ partnerId, quoteId: q.id, expiresInHours })
+      .createOfferFromQuote(request)
       .subscribe({
         next: (resp) => {
           this.createdOfferToken.set(resp.publicToken);
@@ -210,7 +262,7 @@ export class OffertesPartnerOfferComponent implements OnInit {
     const partner = this.selectedPartner();
     const token = this.createdOfferToken();
     const vakmanPrice = this.createdOfferVakmanPriceCents();
-    if (!partner || !token || !vakmanPrice) return;
+    if (!partner || !token || vakmanPrice == null) return;
 
     const url = this.partnersService.buildOfferWhatsAppUrl(partner.contactPhone, partner.businessName, token, vakmanPrice);
     globalThis.open(url, '_blank', 'noopener');
@@ -230,6 +282,7 @@ export class OffertesPartnerOfferComponent implements OnInit {
     this.quotesService.getById(id).subscribe({
       next: (quote) => {
         this.quote.set(quote);
+        this.selectedItemIds.set(this.defaultSelectedItemIds(quote));
         this.loading.set(false);
       },
       error: (err) => {
@@ -239,5 +292,22 @@ export class OffertesPartnerOfferComponent implements OnInit {
         this.loading.set(false);
       },
     });
+  }
+
+  private loadOrganizationDefaults(): void {
+    this.organizationService.getSettings().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (settings) => {
+        this.marginPercent.set(settings.offerMarginBasisPoints / 100);
+      },
+      error: () => {
+        this.marginPercent.set(10);
+      },
+    });
+  }
+
+  private defaultSelectedItemIds(quote: QuoteResponse): string[] {
+    return quote.items
+      .filter((item) => !item.isOptional || item.isSelected)
+      .map((item) => item.id);
   }
 }

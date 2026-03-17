@@ -203,6 +203,21 @@ export class PartnerOfferComponent implements OnInit {
     return o.city;
   });
 
+  protected readonly lineItems = computed(() => this.offer()?.lineItems ?? []);
+
+  protected readonly photoItems = computed(() => {
+    const offer = this.offer();
+    if (!offer?.photos?.length) return [];
+
+    const token = this.route.snapshot.paramMap.get('token');
+    const offerId = this.route.snapshot.paramMap.get('offerId');
+
+    return offer.photos.map((photo) => ({
+      ...photo,
+      url: this.resolvePhotoUrl(token, offerId, photo.id),
+    })).filter((photo) => photo.url !== '');
+  });
+
   protected readonly statusBadgeClass = computed(() => {
     if (this.done() === 'accepted') return 'bg-emerald-100 text-emerald-700';
     if (this.done() === 'rejected') return 'bg-rose-100 text-rose-700';
@@ -514,6 +529,18 @@ export class PartnerOfferComponent implements OnInit {
     return `${dateLabel} · ${startTime} - ${endTime}`;
   }
 
+  protected attachmentLabel(fileName: string): string {
+    const withoutExtension = fileName.replace(/\.[^.]+$/, '');
+    const normalized = withoutExtension
+      .replaceAll(/photo/gi, '')
+      .replaceAll(/foto/gi, '')
+      .replaceAll(/[_-]+/g, ' ')
+      .replaceAll(/\s+/g, ' ')
+      .trim();
+
+    return normalized || 'Afbeelding';
+  }
+
   private validateSlots(slots: TimeSlot[], requireAtLeastOne: boolean): string[] {
     const errors: string[] = [];
     if (requireAtLeastOne && slots.length === 0) {
@@ -642,5 +669,15 @@ export class PartnerOfferComponent implements OnInit {
     const month = String(date.getMonth() + 1).padStart(2, '0');
     const day = String(date.getDate()).padStart(2, '0');
     return `${year}-${month}-${day}`;
+  }
+
+  private resolvePhotoUrl(token: string | null, offerId: string | null, photoId: string): string {
+    if (token) {
+      return this.offerService.buildPhotoUrl(token, photoId);
+    }
+    if (offerId) {
+      return this.partnersService.buildPreviewOfferPhotoUrl(offerId, photoId);
+    }
+    return '';
   }
 }

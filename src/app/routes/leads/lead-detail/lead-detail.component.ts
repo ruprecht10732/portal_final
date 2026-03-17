@@ -438,6 +438,9 @@ export class LeadDetailComponent implements OnInit {
   protected readonly selectedPartnerId = signal<string | null>(null);
 
   protected readonly expiresInHours = signal<number>(12);
+  protected readonly manualPartnerMarginPercent = signal<number>(10);
+  protected readonly manualPartnerVakmanPriceOverrideEuros = signal<number | null>(null);
+  protected readonly manualPartnerSelectedItemIds = signal<string[]>([]);
 
   protected readonly offerCreating = signal(false);
   protected readonly offerError = signal<string | null>(null);
@@ -460,12 +463,30 @@ export class LeadDetailComponent implements OnInit {
     return this.partnersService.buildOfferAcceptanceUrl(token);
   });
 
+  protected readonly manualPartnerSelectedQuoteItems = computed(() => {
+    const quote = this.acceptedQuote();
+    const selectedIds = new Set(this.manualPartnerSelectedItemIds());
+    return (quote?.items ?? []).filter((item) => selectedIds.has(item.id));
+  });
+
+  protected readonly manualPartnerSelectedItemsTotalCents = computed(() =>
+    this.manualPartnerSelectedQuoteItems().reduce((total, item) => total + item.lineTotalCents, 0),
+  );
+
+  protected readonly manualPartnerEffectiveVakmanPriceCents = computed(() => {
+    const override = this.manualPartnerVakmanPriceOverrideEuros();
+    if (override != null) {
+      return Math.max(0, Math.round(override * 100));
+    }
+    return Math.max(0, Math.round(this.manualPartnerSelectedItemsTotalCents() * (1 - this.manualPartnerMarginPercent() / 100)));
+  });
+
   protected readonly canCreateOffer = computed(() => {
     if (this.offerCreating()) return false;
     if (!this.selectedPartnerId()) return false;
     const quote = this.acceptedQuote();
     if (!quote) return false;
-    return quote.totalCents > 0;
+    return this.manualPartnerSelectedItemIds().length > 0 && this.manualPartnerSelectedItemsTotalCents() > 0;
   });
 
   protected readonly statusLabels = computed<Record<LeadStatus, string>>(() => {
@@ -781,6 +802,15 @@ export class LeadDetailComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.orgService.getSettings().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (settings) => {
+        this.manualPartnerMarginPercent.set(settings.offerMarginBasisPoints / 100);
+      },
+      error: () => {
+        this.manualPartnerMarginPercent.set(10);
+      },
+    });
+
     const id = this.route.snapshot.paramMap.get('id');
     if (id && id !== 'new') {
       this.loadProfile();
@@ -1420,6 +1450,18 @@ export class LeadDetailComponent implements OnInit {
     this.partnerSearchLoading.set(false);
   }
 
+  protected toggleManualPartnerItemSelection(itemId: string): void {
+    this.manualPartnerSelectedItemIds.update((itemIds) =>
+      itemIds.includes(itemId)
+        ? itemIds.filter((id) => id !== itemId)
+        : [...itemIds, itemId],
+    );
+  }
+
+  protected resetManualPartnerVakmanPriceOverride(): void {
+    this.manualPartnerVakmanPriceOverrideEuros.set(null);
+  }
+
   protected createManualOffer(): void {
     const lead = this.lead();
     const service = this.selectedService();
@@ -1437,9 +1479,18 @@ export class LeadDetailComponent implements OnInit {
     this.createdOfferVakmanPriceCents.set(null);
 
     const expiresInHours = Math.max(1, Math.min(12, Math.floor(this.expiresInHours() || 12)));
+    const vakmanPriceOverrideEuros = this.manualPartnerVakmanPriceOverrideEuros();
+    const request = {
+      partnerId,
+      quoteId: quote.id,
+      expiresInHours,
+      marginBasisPoints: Math.round(this.manualPartnerMarginPercent() * 100),
+      selectedItemIds: this.manualPartnerSelectedItemIds(),
+      ...(vakmanPriceOverrideEuros == null ? {} : { vakmanPriceCents: Math.round(vakmanPriceOverrideEuros * 100) }),
+    };
 
     this.partnersService
-      .createOfferFromQuote({ partnerId, quoteId: quote.id, expiresInHours })
+      .createOfferFromQuote(request)
       .subscribe({
         next: (resp) => {
           this.createdOfferToken.set(resp.publicToken);
@@ -1563,6 +1614,8 @@ export class LeadDetailComponent implements OnInit {
           const items = resp.items ?? [];
           const match = items.find(q => q.status === 'Accepted' && q.leadServiceId === serviceId) ?? null;
           this.acceptedQuote.set(match);
+          this.manualPartnerSelectedItemIds.set(match ? match.items.filter((item) => !item.isOptional || item.isSelected).map((item) => item.id) : []);
+          this.manualPartnerVakmanPriceOverrideEuros.set(null);
           this.acceptedQuoteLoading.set(false);
         },
         error: (err) => {

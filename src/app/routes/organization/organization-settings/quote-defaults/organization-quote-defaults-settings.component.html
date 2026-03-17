@@ -31,6 +31,15 @@
             [step]="1"
             suffix="dagen"
           />
+          <shared-number-input
+            [label]="'organization.settings.offerMarginPercent' | translate"
+            [hint]="'organization.settings.offerMarginPercentHint' | translate"
+            [(value)]="offerMarginPercent"
+            [min]="0"
+            [max]="50"
+            [step]="0.5"
+            suffix="%"
+          />
           <div class="sm:col-span-2">
             <shared-input
               [label]="'organization.settings.notificationEmail' | translate"

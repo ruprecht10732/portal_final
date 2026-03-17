@@ -26,6 +26,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
   protected readonly quoteValidDays = signal<number | null>(14);
   private readonly initialQuoteValidDays = signal<number>(14);
 
+  protected readonly offerMarginPercent = signal<number | null>(10);
+  private readonly initialOfferMarginPercent = signal<number>(10);
+
   protected readonly notificationEmail = signal('');
   private readonly initialNotificationEmail = signal('');
 
@@ -41,6 +44,7 @@ export class OrganizationQuoteDefaultsSettingsComponent {
   protected readonly hasChanges = computed(() =>
     (this.quotePaymentDays() ?? this.initialQuotePaymentDays()) !== this.initialQuotePaymentDays() ||
     (this.quoteValidDays() ?? this.initialQuoteValidDays()) !== this.initialQuoteValidDays() ||
+    (this.offerMarginPercent() ?? this.initialOfferMarginPercent()) !== this.initialOfferMarginPercent() ||
     this.notificationEmail().trim() !== this.initialNotificationEmail().trim()
   );
 
@@ -57,7 +61,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
     this.hasChanges() &&
     this.notificationEmailError() === '' &&
     (this.quotePaymentDays() ?? 0) >= 1 &&
-    (this.quoteValidDays() ?? 0) >= 1
+    (this.quoteValidDays() ?? 0) >= 1 &&
+    (this.offerMarginPercent() ?? -1) >= 0 &&
+    (this.offerMarginPercent() ?? 101) <= 50
   );
 
   constructor() {
@@ -83,6 +89,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
         this.initialQuotePaymentDays.set(settings.quotePaymentDays);
         this.quoteValidDays.set(settings.quoteValidDays);
         this.initialQuoteValidDays.set(settings.quoteValidDays);
+        const offerMarginPercent = settings.offerMarginBasisPoints / 100;
+        this.offerMarginPercent.set(offerMarginPercent);
+        this.initialOfferMarginPercent.set(offerMarginPercent);
         const notificationEmail = settings.notificationEmail ?? '';
         this.notificationEmail.set(notificationEmail);
         this.initialNotificationEmail.set(notificationEmail);
@@ -100,6 +109,7 @@ export class OrganizationQuoteDefaultsSettingsComponent {
       .updateSettings({
         ...(this.quotePaymentDays() == null ? {} : { quotePaymentDays: this.quotePaymentDays()! }),
         ...(this.quoteValidDays() == null ? {} : { quoteValidDays: this.quoteValidDays()! }),
+        ...(this.offerMarginPercent() == null ? {} : { offerMarginBasisPoints: Math.round(this.offerMarginPercent()! * 100) }),
         notificationEmail: this.notificationEmail().trim(),
       })
       .pipe(
@@ -115,6 +125,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
         this.initialQuotePaymentDays.set(settings.quotePaymentDays);
         this.quoteValidDays.set(settings.quoteValidDays);
         this.initialQuoteValidDays.set(settings.quoteValidDays);
+        const offerMarginPercent = settings.offerMarginBasisPoints / 100;
+        this.offerMarginPercent.set(offerMarginPercent);
+        this.initialOfferMarginPercent.set(offerMarginPercent);
         const notificationEmail = settings.notificationEmail ?? '';
         this.notificationEmail.set(notificationEmail);
         this.initialNotificationEmail.set(notificationEmail);

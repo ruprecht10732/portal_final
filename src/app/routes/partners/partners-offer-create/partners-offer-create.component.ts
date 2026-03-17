@@ -13,9 +13,10 @@ import { LucideAngularModule } from 'lucide-angular';
 import { EMPTY, Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
 import { PartnersService } from '../../../core/services/partners.service';
-import type { Partner, CreateOfferResponse } from '../../../core/services/partners.types';
+import type { CreateOfferResponse, Partner } from '../../../core/services/partners.types';
 import { LeadsService } from '../../../core/services/leads.service';
 import type { Lead, LeadService } from '../../../core/services/leads.types';
+import { OrganizationService } from '../../../core/services/organization.service';
 import { QuotesService } from '../../../core/services/quotes.service';
 import type { QuoteResponse } from '../../../core/services/quotes.types';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
@@ -54,23 +55,21 @@ export class PartnersOfferCreateComponent {
   private readonly translate = inject(TranslateService);
   private readonly partnersService = inject(PartnersService);
   private readonly leadsService = inject(LeadsService);
+  private readonly organizationService = inject(OrganizationService);
   private readonly quotesService = inject(QuotesService);
   private readonly reporter = inject(ErrorReportingService);
   private readonly toast = inject(ToastService);
   private readonly destroyRef = inject(DestroyRef);
 
-  // Search streams
   private readonly partnerSearch$ = new Subject<string>();
   private readonly leadSearch$ = new Subject<string>();
 
-  // Partner search/selection
   protected readonly partnerSearch = signal('');
   protected readonly partnerSearchLoading = signal(false);
   protected readonly partnerSearchError = signal<string | null>(null);
   protected readonly partnerResults = signal<Partner[]>([]);
   protected readonly selectedPartnerId = signal<string | null>(null);
 
-  // Lead search/selection
   protected readonly leadSearch = signal('');
   protected readonly leadSearchLoading = signal(false);
   protected readonly leadSearchError = signal<string | null>(null);
@@ -78,30 +77,102 @@ export class PartnersOfferCreateComponent {
   protected readonly selectedLead = signal<Lead | null>(null);
   protected readonly leadLoading = signal(false);
 
-  // Quotes (Accepted) for selected lead
   protected readonly quotesLoading = signal(false);
   protected readonly quotesError = signal<string | null>(null);
   protected readonly quotes = signal<QuoteResponse[]>([]);
   protected readonly selectedQuoteId = signal<string | null>(null);
 
-  // Inline quote->service linking (when quote.leadServiceId is missing)
   protected readonly linkingQuoteService = signal(false);
   protected readonly linkServiceQuoteId = signal<string | null>(null);
   protected readonly linkServiceLeadServiceId = signal<string | null>(null);
   protected readonly linkServiceError = signal<string | null>(null);
 
-  // Offer inputs
   protected readonly expiresInHours = signal<number>(12);
+  protected readonly marginPercent = signal<number>(10);
+  protected readonly vakmanPriceOverrideEuros = signal<number | null>(null);
+  protected readonly selectedItemIds = signal<string[]>([]);
 
-  // Offer create output
   protected readonly creating = signal(false);
   protected readonly createError = signal<string | null>(null);
   protected readonly createdOffer = signal<CreateOfferResponse | null>(null);
 
-  // Optional link action
   protected readonly linkingLead = signal(false);
 
+  protected readonly partnerOptions = computed<AutocompleteOption[]>(() =>
+    (this.partnerResults() ?? []).map((partner) => ({ value: partner.id, label: `${partner.businessName} — ${partner.city}` })),
+  );
+
+  protected readonly selectedPartner = computed(() => {
+    const id = this.selectedPartnerId();
+    if (!id) return null;
+    return this.partnerResults().find((partner) => partner.id === id) ?? null;
+  });
+
+  protected readonly leadOptions = computed<AutocompleteOption[]>(() =>
+    (this.leadResults() ?? []).map((lead) => ({
+      value: lead.id,
+      label: `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
+    })),
+  );
+
+  protected readonly leadServiceOptions = computed<Option[]>(() => {
+    const lead = this.selectedLead();
+    if (!lead?.services?.length) return [];
+    return lead.services.map((service: LeadService) => ({ label: service.serviceType, value: service.id }));
+  });
+
+  protected readonly selectedQuote = computed(() => {
+    const quoteId = this.selectedQuoteId();
+    if (!quoteId) return null;
+    return this.quotes().find((quote) => quote.id === quoteId) ?? null;
+  });
+
+  protected readonly acceptanceUrl = computed(() => {
+    const offer = this.createdOffer();
+    if (!offer) return null;
+    return this.partnersService.buildOfferAcceptanceUrl(offer.publicToken);
+  });
+
+  protected readonly selectedQuoteItems = computed(() => {
+    const quote = this.selectedQuote();
+    const selectedIds = new Set(this.selectedItemIds());
+    return (quote?.items ?? []).filter((item) => selectedIds.has(item.id));
+  });
+
+  protected readonly selectedItemsTotalCents = computed(() =>
+    this.selectedQuoteItems().reduce((total, item) => total + item.lineTotalCents, 0),
+  );
+
+  protected readonly effectiveVakmanPriceCents = computed(() => {
+    const override = this.vakmanPriceOverrideEuros();
+    if (override != null) {
+      return Math.max(0, Math.round(override * 100));
+    }
+    return Math.max(0, Math.round(this.selectedItemsTotalCents() * (1 - this.marginPercent() / 100)));
+  });
+
+  protected readonly canCreateOffer = computed(() => {
+    if (this.creating()) return false;
+    if (!this.selectedPartnerId()) return false;
+    const quote = this.selectedQuote();
+    if (!quote) return false;
+    if (quote.status !== 'Accepted') return false;
+    if (!quote.leadServiceId) return false;
+    if (this.selectedItemIds().length === 0) return false;
+    if (this.selectedItemsTotalCents() <= 0) return false;
+    return true;
+  });
+
   constructor() {
+    this.organizationService.getSettings().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
+      next: (settings) => {
+        this.marginPercent.set(settings.offerMarginBasisPoints / 100);
+      },
+      error: () => {
+        this.marginPercent.set(10);
+      },
+    });
+
     this.partnerSearch$
       .pipe(
         debounceTime(350),
@@ -173,54 +244,8 @@ export class PartnersOfferCreateComponent {
       });
   }
 
-  protected readonly partnerOptions = computed<AutocompleteOption[]>(() =>
-    (this.partnerResults() ?? []).map(p => ({ value: p.id, label: `${p.businessName} — ${p.city}` })),
-  );
-
-  protected readonly selectedPartner = computed(() => {
-    const id = this.selectedPartnerId();
-    if (!id) return null;
-    return this.partnerResults().find(p => p.id === id) ?? null;
-  });
-
-  protected readonly leadOptions = computed<AutocompleteOption[]>(() =>
-    (this.leadResults() ?? []).map(l => ({
-      value: l.id,
-      label: `${l.consumer.firstName} ${l.consumer.lastName} — ${l.address.street} ${l.address.houseNumber}, ${l.address.city}`,
-    })),
-  );
-
-  protected readonly leadServiceOptions = computed<Option[]>(() => {
-    const lead = this.selectedLead();
-    if (!lead?.services?.length) return [];
-    return (lead.services ?? []).map((s: LeadService) => ({ label: s.serviceType, value: s.id }));
-  });
-
-  protected readonly selectedQuote = computed(() => {
-    const quoteId = this.selectedQuoteId();
-    if (!quoteId) return null;
-    return this.quotes().find(q => q.id === quoteId) ?? null;
-  });
-
-  protected readonly acceptanceUrl = computed(() => {
-    const offer = this.createdOffer();
-    if (!offer) return null;
-    return this.partnersService.buildOfferAcceptanceUrl(offer.publicToken);
-  });
-
-  protected readonly canCreateOffer = computed(() => {
-    if (this.creating()) return false;
-    if (!this.selectedPartnerId()) return false;
-    const quote = this.selectedQuote();
-    if (!quote) return false;
-    if (quote.status !== 'Accepted') return false;
-    if (!quote.leadServiceId) return false;
-    if (quote.totalCents <= 0) return false;
-    return true;
-  });
-
   protected goBack(): void {
-	this.router.navigate(['/app/offers']);
+    this.router.navigate(['/app/offers']);
   }
 
   protected onPartnerSearchChange(value: string): void {
@@ -232,9 +257,9 @@ export class PartnersOfferCreateComponent {
   }
 
   protected onPartnerSelected(value: string): void {
-    const opt = this.partnerOptions().find(o => o.label === value);
-    if (!opt) return;
-    this.selectedPartnerId.set(opt.value);
+    const option = this.partnerOptions().find((entry) => entry.label === value);
+    if (!option) return;
+    this.selectedPartnerId.set(option.value);
   }
 
   protected clearPartner(): void {
@@ -249,6 +274,7 @@ export class PartnersOfferCreateComponent {
     this.selectedLead.set(null);
     this.quotes.set([]);
     this.selectedQuoteId.set(null);
+    this.selectedItemIds.set([]);
     this.quotesError.set(null);
     this.createdOffer.set(null);
     this.createError.set(null);
@@ -256,19 +282,20 @@ export class PartnersOfferCreateComponent {
   }
 
   protected onLeadSelected(value: string): void {
-    const opt = this.leadOptions().find(o => o.label === value);
-    if (!opt) return;
+    const option = this.leadOptions().find((entry) => entry.label === value);
+    if (!option) return;
 
     this.leadLoading.set(true);
     this.quotes.set([]);
     this.selectedQuoteId.set(null);
+    this.selectedItemIds.set([]);
     this.quotesError.set(null);
-    this.leadsService.getById(opt.value).subscribe({
+
+    this.leadsService.getById(option.value).subscribe({
       next: (lead) => {
         this.selectedLead.set(lead);
         this.leadLoading.set(false);
-
-		this.loadQuotesForLead(lead.id);
+        this.loadQuotesForLead(lead.id);
       },
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant('partners.createOfferPage.errors.loadLead'));
@@ -286,6 +313,7 @@ export class PartnersOfferCreateComponent {
     this.selectedLead.set(null);
     this.quotes.set([]);
     this.selectedQuoteId.set(null);
+    this.selectedItemIds.set([]);
     this.quotesError.set(null);
   }
 
@@ -294,12 +322,28 @@ export class PartnersOfferCreateComponent {
     this.expiresInHours.set(safe);
   }
 
+  protected isItemSelected(itemId: string): boolean {
+    return this.selectedItemIds().includes(itemId);
+  }
+
+  protected toggleItemSelection(itemId: string): void {
+    this.selectedItemIds.update((itemIds) =>
+      itemIds.includes(itemId)
+        ? itemIds.filter((id) => id !== itemId)
+        : [...itemIds, itemId],
+    );
+  }
+
+  protected resetVakmanPriceOverride(): void {
+    this.vakmanPriceOverrideEuros.set(null);
+  }
+
   protected createOffer(): void {
     if (!this.canCreateOffer()) return;
 
-    const partnerId = this.selectedPartnerId()!;
+    const partnerId = this.selectedPartnerId();
     const quote = this.selectedQuote();
-    if (!quote) return;
+    if (!partnerId || !quote) return;
 
     const expiresInHours = Math.max(1, Math.min(12, Math.floor(this.expiresInHours() || 12)));
 
@@ -307,27 +351,37 @@ export class PartnersOfferCreateComponent {
     this.createError.set(null);
     this.createdOffer.set(null);
 
-    this.partnersService
-      .createOfferFromQuote({ partnerId, quoteId: quote.id, expiresInHours })
-      .subscribe({
-        next: (resp) => {
-          this.createdOffer.set(resp);
-          this.creating.set(false);
-          this.toast.success(this.translate.instant('partners.createOfferPage.success.offerCreated'));
-        },
-        error: (err) => {
-          const message = extractErrorMessage(err, this.translate.instant('partners.createOfferPage.errors.createOffer'));
-          this.createError.set(message);
-          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-          this.creating.set(false);
-        },
-      });
+    const vakmanPriceOverrideEuros = this.vakmanPriceOverrideEuros();
+    const request = {
+      partnerId,
+      quoteId: quote.id,
+      expiresInHours,
+      marginBasisPoints: Math.round(this.marginPercent() * 100),
+      selectedItemIds: this.selectedItemIds(),
+      ...(vakmanPriceOverrideEuros == null ? {} : { vakmanPriceCents: Math.round(vakmanPriceOverrideEuros * 100) }),
+    };
+
+    this.partnersService.createOfferFromQuote(request).subscribe({
+      next: (response) => {
+        this.createdOffer.set(response);
+        this.creating.set(false);
+        this.toast.success(this.translate.instant('partners.createOfferPage.success.offerCreated'));
+      },
+      error: (err) => {
+        const message = extractErrorMessage(err, this.translate.instant('partners.createOfferPage.errors.createOffer'));
+        this.createError.set(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.creating.set(false);
+      },
+    });
   }
 
   protected selectQuote(quote: QuoteResponse): void {
     if (quote.status !== 'Accepted') return;
     if (!quote.leadServiceId) return;
     this.selectedQuoteId.set(quote.id);
+    this.selectedItemIds.set(this.defaultSelectedItemIds(quote));
+    this.vakmanPriceOverrideEuros.set(null);
     this.createdOffer.set(null);
     this.createError.set(null);
   }
@@ -352,13 +406,14 @@ export class PartnersOfferCreateComponent {
     this.linkServiceError.set(null);
     this.quotesService.setLeadServiceId(quote.id, leadServiceId).subscribe({
       next: (updated) => {
-        this.quotes.update(current => current.map(q => (q.id === updated.id ? updated : q)));
+        this.quotes.update((current) => current.map((item) => (item.id === updated.id ? updated : item)));
         this.linkingQuoteService.set(false);
         this.toast.success(this.translate.instant('common.saved'));
         this.cancelLinkService();
 
         if (updated.leadServiceId) {
           this.selectedQuoteId.set(updated.id);
+          this.selectedItemIds.set(this.defaultSelectedItemIds(updated));
         }
       },
       error: (err) => {
@@ -371,36 +426,6 @@ export class PartnersOfferCreateComponent {
         this.linkingQuoteService.set(false);
       },
     });
-  }
-
-  private loadQuotesForLead(leadId: string): void {
-    this.quotesLoading.set(true);
-    this.quotesError.set(null);
-
-    this.quotesService
-      .list({
-        leadId,
-        status: 'Accepted',
-        page: 1,
-        pageSize: 25,
-        sortBy: 'createdAt',
-        sortOrder: 'desc',
-      })
-      .subscribe({
-        next: (resp) => {
-          this.quotes.set(resp.items ?? []);
-          this.quotesLoading.set(false);
-
-          const firstEligible = (resp.items ?? []).find(q => q.status === 'Accepted' && !!q.leadServiceId && q.totalCents > 0);
-          this.selectedQuoteId.set(firstEligible?.id ?? null);
-        },
-        error: (err) => {
-          const message = extractErrorMessage(err, this.translate.instant('partners.createOfferPage.errors.loadQuotes'));
-          this.quotesError.set(message);
-          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-          this.quotesLoading.set(false);
-        },
-      });
   }
 
   protected linkPartnerToLead(): void {
@@ -452,5 +477,44 @@ export class PartnersOfferCreateComponent {
       currency: 'EUR',
       minimumFractionDigits: 2,
     });
+  }
+
+  private loadQuotesForLead(leadId: string): void {
+    this.quotesLoading.set(true);
+    this.quotesError.set(null);
+
+    this.quotesService
+      .list({
+        leadId,
+        status: 'Accepted',
+        page: 1,
+        pageSize: 25,
+        sortBy: 'createdAt',
+        sortOrder: 'desc',
+      })
+      .subscribe({
+        next: (response) => {
+          const items = response.items ?? [];
+          this.quotes.set(items);
+          this.quotesLoading.set(false);
+
+          const firstEligible = items.find((quote) => quote.status === 'Accepted' && !!quote.leadServiceId && quote.totalCents > 0) ?? null;
+          this.selectedQuoteId.set(firstEligible?.id ?? null);
+          this.selectedItemIds.set(firstEligible ? this.defaultSelectedItemIds(firstEligible) : []);
+          this.vakmanPriceOverrideEuros.set(null);
+        },
+        error: (err) => {
+          const message = extractErrorMessage(err, this.translate.instant('partners.createOfferPage.errors.loadQuotes'));
+          this.quotesError.set(message);
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+          this.quotesLoading.set(false);
+        },
+      });
+  }
+
+  private defaultSelectedItemIds(quote: QuoteResponse): string[] {
+    return quote.items
+      .filter((item) => !item.isOptional || item.isSelected)
+      .map((item) => item.id);
   }
 }

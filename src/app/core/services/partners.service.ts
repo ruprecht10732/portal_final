@@ -122,6 +122,10 @@ export class PartnersService extends BaseCrudService<
     return this.http.get<PublicPartnerOfferResponse>(`${this.baseUrl}/offers/${offerId}/preview`);
   }
 
+  buildPreviewOfferPhotoUrl(offerId: string, attachmentId: string): string {
+    return `${this.baseUrl}/offers/${offerId}/photos/${attachmentId}`;
+  }
+
   /**
    * Build the public acceptance URL for a given offer token.
    * This URL is the page the vakman visits to accept/reject the offer.

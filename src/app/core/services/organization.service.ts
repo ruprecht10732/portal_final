@@ -63,6 +63,7 @@ export interface OrgLogoDownloadResponse {
 export interface OrganizationSettings {
   quotePaymentDays: number;
   quoteValidDays: number;
+  offerMarginBasisPoints: number;
   aiAutoDisqualifyJunk: boolean;
   aiAutoDispatch: boolean;
   aiAutoEstimate: boolean;
@@ -106,6 +107,7 @@ export interface ReplyScenarioAnalyticsResponse {
 export interface UpdateOrganizationSettingsRequest {
   quotePaymentDays?: number;
   quoteValidDays?: number;
+  offerMarginBasisPoints?: number;
   notificationEmail?: string;
 
   aiAutoDisqualifyJunk?: boolean;

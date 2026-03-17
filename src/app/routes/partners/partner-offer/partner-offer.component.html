@@ -141,6 +141,37 @@
                 <div class="markdown-content summary-markdown prose prose-zinc max-w-none text-sm leading-relaxed text-zinc-700" [innerHTML]="summaryDisplay() | markdown"></div>
               </div>
 
+              @if (lineItems().length > 0) {
+                <div class="flex items-center justify-between px-5 py-4 mt-2">
+                  <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'partners.offer.lineItemsTitle' | translate }}</h3>
+                </div>
+                <div class="mx-5 rounded-2xl bg-white p-5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+                  <div class="space-y-3">
+                    @for (item of lineItems(); track item.description + item.quantity) {
+                      <div class="rounded-2xl border border-zinc-200 px-4 py-3">
+                        <p class="text-sm font-semibold text-zinc-900">{{ item.description }}</p>
+                        <p class="mt-1 text-xs text-zinc-500">{{ item.quantity }}</p>
+                      </div>
+                    }
+                  </div>
+                </div>
+              }
+
+              @if (photoItems().length > 0) {
+                <div class="flex items-center justify-between px-5 py-4 mt-2">
+                  <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'partners.offer.photosTitle' | translate }}</h3>
+                </div>
+                <div class="mx-5 rounded-2xl bg-white p-5 shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
+                  <div class="grid grid-cols-2 gap-3">
+                    @for (attachment of photoItems(); track attachment.id) {
+                      <a [href]="attachment.url" target="_blank" rel="noopener" class="block overflow-hidden rounded-2xl border border-zinc-200 bg-zinc-50">
+                        <img [src]="attachment.url" [alt]="attachmentLabel(attachment.fileName)" class="h-32 w-full object-cover" loading="lazy" />
+                      </a>
+                    }
+                  </div>
+                </div>
+              }
+
               <!-- Location -->
               <div class="flex items-center justify-between px-5 py-4 mt-2">
                 <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">{{ 'partners.offer.locationTitle' | translate }}</h3>
@@ -300,6 +331,37 @@
               }
               <div class="markdown-content summary-markdown prose prose-zinc max-w-none mt-4 text-sm leading-relaxed text-zinc-700" [innerHTML]="summaryDisplay() | markdown"></div>
             </div>
+
+            @if (lineItems().length > 0) {
+              <div class="rounded-xl bg-white p-6 shadow-sm">
+                <div class="border-b border-zinc-100 pb-4">
+                  <h2 class="text-lg font-semibold text-zinc-900">{{ 'partners.offer.lineItemsTitle' | translate }}</h2>
+                </div>
+                <div class="mt-4 space-y-3">
+                  @for (item of lineItems(); track item.description + item.quantity) {
+                    <div class="rounded-xl border border-zinc-200 px-4 py-3">
+                      <p class="text-sm font-semibold text-zinc-900">{{ item.description }}</p>
+                      <p class="mt-1 text-xs text-zinc-500">{{ item.quantity }}</p>
+                    </div>
+                  }
+                </div>
+              </div>
+            }
+
+            @if (photoItems().length > 0) {
+              <div class="rounded-xl bg-white p-6 shadow-sm">
+                <div class="border-b border-zinc-100 pb-4">
+                  <h2 class="text-lg font-semibold text-zinc-900">{{ 'partners.offer.photosTitle' | translate }}</h2>
+                </div>
+                <div class="mt-4 grid grid-cols-2 gap-4">
+                  @for (attachment of photoItems(); track attachment.id) {
+                    <a [href]="attachment.url" target="_blank" rel="noopener" class="block overflow-hidden rounded-xl border border-zinc-200 bg-zinc-50">
+                      <img [src]="attachment.url" [alt]="attachmentLabel(attachment.fileName)" class="h-40 w-full object-cover" loading="lazy" />
+                    </a>
+                  }
+                </div>
+              </div>
+            }
 
             <!-- Location card -->
             <div class="overflow-hidden rounded-xl bg-white shadow-sm">

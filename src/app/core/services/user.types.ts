@@ -134,6 +134,25 @@ export interface IMAPMessageListResponse {
   totalPages: number;
 }
 
+export interface IMAPOutboundMessage {
+  id: string;
+  accountId: string;
+  toAddresses: string[];
+  ccAddresses: string[];
+  fromName?: string | null;
+  fromAddress: string;
+  subject: string;
+  status: 'pending' | 'sent' | 'failed';
+  errorMessage?: string | null;
+  sentAt?: string | null;
+  createdAt: string;
+  updatedAt: string;
+}
+
+export interface IMAPOutboundMessageListResponse {
+  items: IMAPOutboundMessage[];
+}
+
 export interface IMAPUnreadCountResponse {
   count: number;
 }

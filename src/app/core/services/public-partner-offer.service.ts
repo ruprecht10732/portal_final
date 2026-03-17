@@ -31,4 +31,8 @@ export class PublicPartnerOfferService {
   reject(token: string, payload: RejectOfferRequest): Observable<void> {
     return this.http.post<void>(`${this.baseUrl}/${token}/reject`, payload);
   }
+
+  buildPhotoUrl(token: string, attachmentId: string): string {
+    return `${this.baseUrl}/${token}/photos/${attachmentId}`;
+  }
 }

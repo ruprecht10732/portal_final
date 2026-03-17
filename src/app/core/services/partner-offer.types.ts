@@ -16,6 +16,19 @@ export interface PublicPartnerOfferResponse {
   status: PartnerOfferStatus;
   expiresAt: string;
   createdAt: string;
+  lineItems?: PublicPartnerOfferLineItem[];
+  photos?: OfferPhotoRef[];
+}
+
+export interface PublicPartnerOfferLineItem {
+  description: string;
+  quantity: string;
+}
+
+export interface OfferPhotoRef {
+  id: string;
+  fileName: string;
+  contentType: string;
 }
 
 export type PartnerOfferStatus = 'pending' | 'sent' | 'accepted' | 'rejected' | 'expired';

@@ -25,12 +25,17 @@ export class LeadDetailManualPartnerPanelComponent {
   partnerSearchLoading = input(false);
   partnerSearchError = input<string | null>(null);
   expiresInHours = input(12);
+  marginPercent = input(10);
+  vakmanPriceOverrideEuros = input<number | null>(null);
+  selectedItemIds = input<string[]>([]);
   offerError = input<string | null>(null);
   offerCreating = input(false);
   canCreateOffer = input(false);
   selectedPartnerId = input<string | null>(null);
   hasSelectedPartner = input(false);
   offerAcceptanceUrl = input<string | null>(null);
+  selectedItemsTotalCents = input(0);
+  effectiveVakmanPriceCents = input(0);
   formatEuroCents = input<(value: number) => string>(String);
 
   viewAcceptedOffer = output<void>();
@@ -38,7 +43,15 @@ export class LeadDetailManualPartnerPanelComponent {
   partnerSelected = output<string>();
   clearPartnerSearch = output<void>();
   expiresInHoursChange = output<number | null>();
+  marginPercentChange = output<number | null>();
+  vakmanPriceOverrideEurosChange = output<number | null>();
+  toggleItemSelection = output<string>();
+  resetVakmanPriceOverride = output<void>();
   createManualOffer = output<void>();
   linkSelectedPartnerToLead = output<void>();
   openOfferWhatsApp = output<void>();
+
+  protected isItemSelected(itemId: string): boolean {
+    return this.selectedItemIds().includes(itemId);
+  }
 }

@@ -245,9 +245,44 @@
               <p class="mt-2 text-sm text-amber-700">{{ 'partners.createOfferPage.quoteMissingServiceShort' | translate }}</p>
             }
           </div>
+
+          <div class="mt-4 rounded-lg border border-zinc-200 bg-white p-4">
+            <div class="flex items-center justify-between gap-4">
+              <div>
+                <p class="text-sm font-semibold text-zinc-900">{{ 'partners.createOfferPage.selectedItemsTitle' | translate }}</p>
+                <p class="mt-1 text-xs text-zinc-500">{{ 'partners.createOfferPage.selectedItemsHint' | translate }}</p>
+              </div>
+              <div class="text-right">
+                <p class="text-xs text-zinc-500">{{ 'partners.createOfferPage.selectedItemsTotalLabel' | translate }}</p>
+                <p class="text-sm font-semibold text-zinc-900">{{ formatEuroCents(selectedItemsTotalCents()) }}</p>
+              </div>
+            </div>
+
+            <div class="mt-4 space-y-3">
+              @for (item of q.items; track item.id) {
+                <label class="flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-200 px-3 py-3">
+                  <input
+                    type="checkbox"
+                    class="mt-1 h-4 w-4 rounded border-zinc-300 text-indigo-600 focus:ring-indigo-500"
+                    [checked]="isItemSelected(item.id)"
+                    (change)="toggleItemSelection(item.id)"
+                  />
+                  <div class="min-w-0 flex-1">
+                    <div class="flex items-start justify-between gap-3">
+                      <div>
+                        <p class="text-sm font-semibold text-zinc-900">{{ item.description }}</p>
+                        <p class="mt-1 text-xs text-zinc-500">{{ item.quantity }}</p>
+                      </div>
+                      <p class="text-sm font-semibold text-zinc-900">{{ formatEuroCents(item.lineTotalCents) }}</p>
+                    </div>
+                  </div>
+                </label>
+              }
+            </div>
+          </div>
         }
 
-        <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-2">
+        <div class="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
           <shared-number-input
             [label]="'partners.createOfferPage.expiresLabel' | translate"
             [value]="expiresInHours()"
@@ -256,6 +291,34 @@
             [max]="12"
             [step]="1"
           />
+          <shared-number-input
+            [label]="'partners.createOfferPage.marginPercentLabel' | translate"
+            [hint]="'partners.createOfferPage.marginPercentHint' | translate"
+            [(value)]="marginPercent"
+            [min]="0"
+            [max]="50"
+            [step]="0.5"
+            suffix="%"
+          />
+          <shared-number-input
+            [label]="'partners.createOfferPage.customPriceLabel' | translate"
+            [hint]="'partners.createOfferPage.customPriceHint' | translate"
+            [(value)]="vakmanPriceOverrideEuros"
+            [min]="0"
+            [step]="0.01"
+            prefix="€"
+          />
+        </div>
+
+        <div class="mt-3 flex flex-wrap gap-2">
+          <shared-button variant="ghost" size="compact" [fullWidth]="false" [disabled]="vakmanPriceOverrideEuros() == null" (clicked)="resetVakmanPriceOverride()">
+            {{ 'partners.createOfferPage.resetCustomPrice' | translate }}
+          </shared-button>
+        </div>
+
+        <div class="mt-3 rounded-lg border border-emerald-200 bg-emerald-50 px-3 py-3 text-sm">
+          <span class="text-emerald-700">{{ 'partners.createOfferPage.vakmanReceivesLabel' | translate }}:</span>
+          <span class="ml-1 font-semibold text-emerald-900">{{ formatEuroCents(effectiveVakmanPriceCents()) }}</span>
         </div>
 
         @if (createError()) {

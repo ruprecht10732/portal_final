@@ -81,52 +81,98 @@
                 <div class="flex flex-col items-center justify-center gap-4 py-20">
                   <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin text-zinc-400"></lucide-icon>
                 </div>
-              } @else if (indexMessages().length === 0) {
-                <div class="flex flex-col items-center px-6 py-20 text-center">
-                  <lucide-icon name="inbox" class="mb-4 h-10 w-10 text-zinc-200"></lucide-icon>
-                  <p class="text-xs font-bold uppercase leading-relaxed tracking-widest text-zinc-400">
-                    {{ 'profile.imap.inbox.states.nothingRemains' | translate }}
-                  </p>
-                </div>
               } @else {
-                <ul class="divide-y divide-zinc-100">
-                  @for (message of indexMessages(); track message.id) {
-                    <li class="group relative">
-                      <button
-                        type="button"
-                        class="flex w-full flex-col gap-1 px-4 py-4 text-left transition-all hover:bg-zinc-50 active:bg-zinc-100"
-                        [class.bg-zinc-50]="selectedMessageUid() === message.uid"
-                        [class.border-l-4]="!message.seen"
-                        [class.border-l-zinc-900]="!message.seen"
-                        [class.border-l-transparent]="message.seen"
-                        [attr.aria-label]="message.subject || ('profile.imap.noSubject' | translate)"
-                        (click)="openReading(message)"
-                      >
-                        <div class="flex items-center justify-between gap-2">
-                          <span class="truncate pr-8 text-[10px] font-bold uppercase tracking-tight text-zinc-500">
-                            {{ senderLabel(message) }}
-                          </span>
-                          <span class="shrink-0 text-[10px] font-medium text-zinc-400">
-                            {{ formatTime(message) }}
-                          </span>
-                        </div>
-                        <h4 class="truncate pr-8 text-sm font-semibold text-zinc-900" [class.font-black]="!message.seen">
-                          {{ message.subject || ('profile.imap.noSubject' | translate) }}
-                        </h4>
-                      </button>
+                @if (loadingOutbox() || outboxMessages().length > 0) {
+                  <section class="border-b border-zinc-100 bg-zinc-50/70 px-4 py-4">
+                    <div class="mb-3 flex items-center justify-between gap-3">
+                      <div>
+                        <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">Recent verzonden</p>
+                        <p class="mt-1 text-xs text-zinc-500">SMTP successen en fouten van deze inbox.</p>
+                      </div>
+                      @if (loadingOutbox()) {
+                        <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin text-zinc-400"></lucide-icon>
+                      }
+                    </div>
 
-                      <button
-                        class="absolute bottom-4 right-4 rounded border border-zinc-200 bg-white p-1.5 shadow-sm transition-all hover:bg-zinc-900 hover:text-white lg:opacity-0 lg:group-hover:opacity-100"
-                        type="button"
-                        (click)="toggleSeen(message)"
-                        [title]="message.seen ? ('profile.imap.inbox.actions.markUnread' | translate) : ('profile.imap.inbox.actions.markRead' | translate)"
-                        [attr.aria-label]="message.seen ? ('profile.imap.inbox.actions.markUnread' | translate) : ('profile.imap.inbox.actions.markRead' | translate)"
-                      >
-                        <lucide-icon [name]="message.seen ? 'mail' : 'mail-open'" class="h-3.5 w-3.5"></lucide-icon>
-                      </button>
-                    </li>
-                  }
-                </ul>
+                    @if (outboxMessages().length > 0) {
+                      <ul class="grid gap-2">
+                        @for (message of outboxMessages(); track message.id) {
+                          <li class="rounded-xl border px-3 py-3" [class]="message.status === 'failed' ? 'border-rose-200 bg-rose-50/80' : message.status === 'sent' ? 'border-emerald-200 bg-emerald-50/70' : 'border-zinc-200 bg-white'">
+                            <div class="flex items-start justify-between gap-3">
+                              <div class="min-w-0 flex-1">
+                                <div class="flex items-center gap-2">
+                                  <span class="truncate text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+                                    {{ outboxRecipientLabel(message) }}
+                                  </span>
+                                  <span class="rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-[0.16em]" [class]="message.status === 'failed' ? 'bg-rose-100 text-rose-700' : message.status === 'sent' ? 'bg-emerald-100 text-emerald-700' : 'bg-zinc-200 text-zinc-700'">
+                                    {{ outboxStatusLabel(message) }}
+                                  </span>
+                                </div>
+                                <p class="mt-1 truncate text-sm font-semibold text-zinc-900">
+                                  {{ message.subject || ('profile.imap.noSubject' | translate) }}
+                                </p>
+                                @if (message.errorMessage) {
+                                  <p class="mt-1 text-xs text-rose-700">{{ message.errorMessage }}</p>
+                                }
+                              </div>
+                              <span class="shrink-0 text-[10px] font-medium text-zinc-400" [title]="formatOutboundFullDate(message)">
+                                {{ formatOutboundTime(message) }}
+                              </span>
+                            </div>
+                          </li>
+                        }
+                      </ul>
+                    }
+                  </section>
+                }
+
+                @if (indexMessages().length === 0) {
+                  <div class="flex flex-col items-center px-6 py-20 text-center">
+                    <lucide-icon name="inbox" class="mb-4 h-10 w-10 text-zinc-200"></lucide-icon>
+                    <p class="text-xs font-bold uppercase leading-relaxed tracking-widest text-zinc-400">
+                      {{ 'profile.imap.inbox.states.nothingRemains' | translate }}
+                    </p>
+                  </div>
+                } @else {
+                  <ul class="divide-y divide-zinc-100">
+                    @for (message of indexMessages(); track message.id) {
+                      <li class="group relative">
+                        <button
+                          type="button"
+                          class="flex w-full flex-col gap-1 px-4 py-4 text-left transition-all hover:bg-zinc-50 active:bg-zinc-100"
+                          [class.bg-zinc-50]="selectedMessageUid() === message.uid"
+                          [class.border-l-4]="!message.seen"
+                          [class.border-l-zinc-900]="!message.seen"
+                          [class.border-l-transparent]="message.seen"
+                          [attr.aria-label]="message.subject || ('profile.imap.noSubject' | translate)"
+                          (click)="openReading(message)"
+                        >
+                          <div class="flex items-center justify-between gap-2">
+                            <span class="truncate pr-8 text-[10px] font-bold uppercase tracking-tight text-zinc-500">
+                              {{ senderLabel(message) }}
+                            </span>
+                            <span class="shrink-0 text-[10px] font-medium text-zinc-400">
+                              {{ formatTime(message) }}
+                            </span>
+                          </div>
+                          <h4 class="truncate pr-8 text-sm font-semibold text-zinc-900" [class.font-black]="!message.seen">
+                            {{ message.subject || ('profile.imap.noSubject' | translate) }}
+                          </h4>
+                        </button>
+
+                        <button
+                          class="absolute bottom-4 right-4 rounded border border-zinc-200 bg-white p-1.5 shadow-sm transition-all hover:bg-zinc-900 hover:text-white lg:opacity-0 lg:group-hover:opacity-100"
+                          type="button"
+                          (click)="toggleSeen(message)"
+                          [title]="message.seen ? ('profile.imap.inbox.actions.markUnread' | translate) : ('profile.imap.inbox.actions.markRead' | translate)"
+                          [attr.aria-label]="message.seen ? ('profile.imap.inbox.actions.markUnread' | translate) : ('profile.imap.inbox.actions.markRead' | translate)"
+                        >
+                          <lucide-icon [name]="message.seen ? 'mail' : 'mail-open'" class="h-3.5 w-3.5"></lucide-icon>
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                }
               }
             </div>
 

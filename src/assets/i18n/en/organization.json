@@ -222,6 +222,8 @@
       },
       "quotePaymentDays": "Payment term (days)",
       "quoteValidDays": "Quote validity (days)",
+      "offerMarginPercent": "Default partner-offer margin",
+      "offerMarginPercentHint": "Platform margin percentage subtracted from the quote total by default.",
       "notificationEmail": "Notification email",
       "notificationEmailPlaceholder": "ops@company.com",
       "notificationEmailHint": "Partner-offer admin alerts are sent to this email. Leave empty to use default.",

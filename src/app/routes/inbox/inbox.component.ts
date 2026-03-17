@@ -17,7 +17,7 @@ import {
 import { UserService } from '../../core/services/user.service';
 import { ToastService } from '../../core/services/toast.service';
 import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
-import type { IMAPAccount, IMAPMessage, IMAPMessageContent } from '../../core/services/user.types';
+import type { IMAPAccount, IMAPMessage, IMAPMessageContent, IMAPOutboundMessage } from '../../core/services/user.types';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
 import { SelectComponent, type SelectOption } from '../../shared/components/select/select.component';
@@ -42,8 +42,10 @@ export class InboxComponent {
   protected readonly accounts = signal<IMAPAccount[]>([]);
   protected readonly selectedAccountId = signal<string | null>(null);
   protected readonly messages = signal<IMAPMessage[]>([]);
+  protected readonly outboxMessages = signal<IMAPOutboundMessage[]>([]);
   protected readonly loadingAccounts = signal(false);
   protected readonly loadingMessages = signal(false);
+  protected readonly loadingOutbox = signal(false);
   protected readonly syncingAccountId = signal<string | null>(null);
   protected readonly deletingMessageUid = signal<number | null>(null);
   protected readonly viewMode = signal<'inbox' | 'archive'>('inbox');
@@ -265,6 +267,7 @@ export class InboxComponent {
             this.loadMessages(firstAccount.id);
           } else {
             this.messages.set([]);
+            this.outboxMessages.set([]);
           }
         } else if (selected) {
           this.loadMessages(selected);
@@ -452,6 +455,7 @@ export class InboxComponent {
       .suggestIMAPReply(account.id, selectedMessage.uid, request)
       .pipe(
         catchError(error => {
+          this.loadOutboundMessages(account.id);
           this.toast.error(this.normalizeError(error, 'profile.imap.errors.sendMessage'));
           return EMPTY;
         }),
@@ -564,8 +568,40 @@ export class InboxComponent {
     });
   }
 
+  protected formatOutboundTime(message: IMAPOutboundMessage): string {
+    return this.outboundDate(message).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' });
+  }
+
+  protected formatOutboundFullDate(message: IMAPOutboundMessage): string {
+    return this.outboundDate(message).toLocaleString(undefined, {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric',
+      hour: '2-digit',
+      minute: '2-digit',
+    });
+  }
+
   protected senderLabel(message: IMAPMessage): string {
     return (message.fromName || message.fromAddress || 'Unknown sender').toUpperCase();
+  }
+
+  protected outboxRecipientLabel(message: IMAPOutboundMessage): string {
+    const recipients = [...message.toAddresses, ...message.ccAddresses].filter(value => value.trim() !== '');
+    const primary = recipients[0] ?? 'Onbekende ontvanger';
+    return recipients.length > 1 ? `${primary} +${recipients.length - 1}` : primary;
+  }
+
+  protected outboxStatusLabel(message: IMAPOutboundMessage): string {
+    switch (message.status) {
+      case 'sent':
+        return 'Verzonden';
+      case 'failed':
+        return 'Mislukt';
+      default:
+        return 'Bezig';
+    }
   }
 
   protected loadMoreUnread(): void {
@@ -593,8 +629,13 @@ export class InboxComponent {
     return new Date(message.sentAt || message.receivedAt || message.createdAt);
   }
 
+  private outboundDate(message: IMAPOutboundMessage): Date {
+    return new Date(message.sentAt || message.createdAt);
+  }
+
   private loadMessages(accountId: string): void {
     this.loadingMessages.set(true);
+    this.loadOutboundMessages(accountId);
     this.userService
       .listIMAPMessages(accountId, 1, 50)
       .pipe(
@@ -621,6 +662,21 @@ export class InboxComponent {
           this.clearAISuggestion();
         }
       });
+  }
+
+  private loadOutboundMessages(accountId: string): void {
+    this.loadingOutbox.set(true);
+    this.userService
+      .listIMAPOutboundMessages(accountId)
+      .pipe(
+        catchError(() => {
+          this.outboxMessages.set([]);
+          return EMPTY;
+        }),
+        finalize(() => this.loadingOutbox.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(response => this.outboxMessages.set(response.items ?? []));
   }
 
   private loadMessageContent(accountId: string, uid: number): void {
