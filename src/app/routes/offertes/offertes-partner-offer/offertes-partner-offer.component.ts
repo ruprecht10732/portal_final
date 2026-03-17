@@ -217,7 +217,7 @@ export class OffertesPartnerOfferComponent implements OnInit {
   }
 
   protected formatEuroCents(cents: number): string {
-    const lang = this.translate.currentLang || 'nl';
+    const lang = this.translate.getCurrentLang() || this.translate.getFallbackLang() || 'nl';
     const locale = lang === 'nl' ? 'nl-NL' : 'en-US';
     return (cents / 100).toLocaleString(locale, { style: 'currency', currency: 'EUR', minimumFractionDigits: 2 });
   }

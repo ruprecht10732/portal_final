@@ -132,7 +132,7 @@ export class MoneybirdIntegrationComponent {
   }
 
   protected formatDate(value: string | null): string {
-    return formatDateValue(value, this.translate.currentLang || 'nl', {
+    return formatDateValue(value, this.translate.getCurrentLang() || this.translate.getFallbackLang() || 'nl', {
       dateStyle: 'medium',
       timeStyle: 'short',
     });

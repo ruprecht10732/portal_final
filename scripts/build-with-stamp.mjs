@@ -24,7 +24,7 @@ const getGitCommitSha = () => {
   return gitResult.stdout.trim() || null;
 };
 
-const timestamp = new Date().toISOString().replace(/[^0-9A-Za-z]/g, '');
+const timestamp = new Date().toISOString().replaceAll(/[^0-9A-Za-z]/g, '');
 const buildId =
   process.env.APP_BUILD_ID?.trim() ||
   process.env.SOURCE_VERSION?.trim() ||

@@ -24,7 +24,7 @@ export class DraftApprovalsComponent {
   protected readonly error = signal<string | null>(null);
   protected readonly items = signal<DraftApprovalItem[]>([]);
   protected readonly total = signal(0);
-  private readonly locale = signal(this.translateService.currentLang || this.translateService.getDefaultLang() || 'nl');
+  private readonly locale = signal(this.translateService.getCurrentLang() || this.translateService.getFallbackLang() || 'nl');
 
   protected readonly hasPrevious = computed(() => this.page() > 1);
   protected readonly hasNext = computed(() => this.page() * this.pageSize() < this.total());
