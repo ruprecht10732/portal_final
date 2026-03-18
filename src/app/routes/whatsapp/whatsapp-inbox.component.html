@@ -26,9 +26,9 @@
       </section>
     }
 
-    <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:gap-4 lg:overflow-hidden lg:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)]">
+    <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:gap-4 xl:overflow-hidden xl:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)]">
       @if (showListPane()) {
-        <aside aria-label="Conversatielijst" class="flex min-h-[70dvh] min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white lg:min-h-0">
+        <aside aria-label="Conversatielijst" class="flex min-h-[70dvh] min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white xl:min-h-0">
           <header class="shrink-0 border-b border-zinc-200 bg-white px-4 py-4 sm:px-5">
             <div class="flex items-start justify-between gap-4">
               <div>
@@ -233,13 +233,13 @@
       }
 
       @if (showThreadPane()) {
-        <section class="flex min-h-[80dvh] min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white lg:h-full lg:min-h-0">
+        <section class="flex min-h-[80dvh] min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white xl:h-full xl:min-h-0">
           @if (activeThreadConversation(); as activeConversation) {
             <header class="shrink-0 border-b border-zinc-200/70 bg-white/95 px-4 py-4 backdrop-blur-sm sm:px-6">
               <div class="flex items-start gap-3">
                 <button
                   type="button"
-                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-100 lg:hidden"
+                  class="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl border border-zinc-200 text-zinc-600 transition-colors hover:bg-zinc-100 xl:hidden"
                   aria-label="Terug naar lijst"
                   (click)="closeActiveThread()"
                 >
@@ -294,7 +294,7 @@
               </div>
               @if (isDraftThreadOpen()) {
                 <div class="mt-4 rounded-[1.5rem] border border-emerald-200 bg-emerald-50 px-4 py-4">
-                  <div class="grid gap-3 lg:grid-cols-[minmax(0,1fr)_auto] lg:items-end">
+                  <div class="grid gap-3 xl:grid-cols-[minmax(0,1fr)_auto] xl:items-end">
                     <label class="flex flex-col gap-2 text-sm font-semibold text-zinc-700">
                       <span class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Telefoonnummer</span>
                       <input
@@ -335,7 +335,7 @@
                   }
                 </div>
               }
-              <div class="mt-4 space-y-3 lg:hidden">
+              <div class="mt-4 space-y-3 xl:hidden">
                 <div class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 px-3 py-3">
                   @if (conversationLinkedLead(); as linkedLeadSummary) {
                     <div class="flex flex-wrap items-center justify-between gap-3">
@@ -585,7 +585,7 @@
             </header>
 
             <div class="min-h-0 flex-1 overflow-hidden">
-              <div class="grid h-full min-h-0 grid-cols-1 lg:grid-cols-[minmax(0,1fr)_19rem]">
+              <div class="grid h-full min-h-0 grid-cols-1 xl:grid-cols-[minmax(0,1fr)_19rem]">
                 <div #threadScrollContainer class="min-h-0 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6 sm:py-5">
               @if (loadingMessages()) {
                 <div class="flex h-full flex-col items-center justify-center gap-3 text-zinc-600">
@@ -917,7 +917,7 @@
               }
                 </div>
 
-                <aside aria-label="Lead context" class="hidden min-h-0 flex-col border-l border-zinc-200 bg-white p-4 lg:flex lg:overflow-y-auto">
+                <aside aria-label="Lead context" class="hidden min-h-0 flex-col border-l border-zinc-200 bg-white p-4 xl:flex xl:overflow-y-auto">
                   <p class="text-[10px] font-black uppercase tracking-[0.24em] text-zinc-700">Lead Context</p>
 
                   @if (linkedLead(); as lead) {
@@ -1160,12 +1160,12 @@
                       </div>
                       <div class="min-w-0 flex-1">
                         <p class="text-[10px] font-black uppercase tracking-[0.22em] text-emerald-700">AI compose</p>
-                        <p class="mt-0.5 hidden text-xs text-emerald-900/80 lg:block">{{ selectedSuggestionScenarioDescription() }}</p>
+                        <p class="mt-0.5 hidden text-xs text-emerald-900/80 xl:block">{{ selectedSuggestionScenarioDescription() }}</p>
                       </div>
                       <!-- Mobile: toggle config panel -->
                       <button
                         type="button"
-                        class="inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-bold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-1 lg:hidden"
+                        class="inline-flex h-8 items-center gap-1.5 rounded-full border px-2.5 text-[10px] font-bold uppercase tracking-[0.14em] transition focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-1 xl:hidden"
                         [class.border-emerald-300]="aiComposePanelExpanded()"
                         [class.bg-emerald-100]="aiComposePanelExpanded()"
                         [class.text-emerald-800]="aiComposePanelExpanded()"
@@ -1200,10 +1200,10 @@
 
                     <!-- Expandable config: hidden on mobile by default, always shown on desktop -->
                     <div
-                      class="border-t border-emerald-100 px-3 pb-3 pt-3 sm:px-4 lg:block"
+                      class="border-t border-emerald-100 px-3 pb-3 pt-3 sm:px-4 xl:block"
                       [class.hidden]="!aiComposePanelExpanded() && isMobileViewport()"
                     >
-                      <div class="grid gap-3 lg:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] lg:items-start">
+                      <div class="grid gap-3 xl:grid-cols-[minmax(0,16rem)_minmax(0,1fr)] xl:items-start">
                         <shared-select
                           [options]="suggestionScenarioOptions"
                           [value]="suggestionScenario()"
@@ -1212,7 +1212,7 @@
                           (valueChange)="suggestionScenario.set($event ?? 'generic')"
                         />
                         <div class="grid gap-2">
-                          <p class="text-xs leading-relaxed text-emerald-900/70 lg:hidden">{{ selectedSuggestionScenarioDescription() }}</p>
+                          <p class="text-xs leading-relaxed text-emerald-900/70 xl:hidden">{{ selectedSuggestionScenarioDescription() }}</p>
                           @if (showSuggestionScenarioNotes()) {
                             <textarea
                               class="min-h-20 rounded-2xl border border-emerald-200 bg-white px-3 py-2 text-sm text-zinc-900 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/30 disabled:opacity-60"
@@ -1228,7 +1228,7 @@
                   </div>
                 }
 
-                <section class="hidden rounded-[1.75rem] border border-zinc-200/80 bg-zinc-50/80 p-3 lg:block">
+                <section class="hidden rounded-[1.75rem] border border-zinc-200/80 bg-zinc-50/80 p-3 xl:block">
                   <div class="flex items-start justify-between gap-3">
                     <div>
                       <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-700">Berichttype</p>
@@ -1292,7 +1292,7 @@
                   }
                 </section>
 
-                <section class="lg:hidden">
+                <section class="xl:hidden">
                   @if (composerType() === 'text') {
                     <div class="flex items-center gap-2 rounded-[1.75rem] border border-zinc-200 bg-white px-2 py-2">
                       <shared-menu
@@ -1529,7 +1529,7 @@
               </div>
             </footer>
           } @else {
-            <div class="hidden h-full flex-col items-center justify-center bg-zinc-50/30 p-10 text-center lg:flex">
+            <div class="hidden h-full flex-col items-center justify-center bg-zinc-50/30 p-10 text-center xl:flex">
               <lucide-icon name="message-circle" class="mb-4 h-12 w-12 text-zinc-200"></lucide-icon>
               <p class="text-sm font-semibold text-zinc-700">Kies een gesprek</p>
               <p class="mt-2 text-xs text-zinc-500">Open een gesprek links om de thread en composer te zien.</p>
