@@ -16,9 +16,17 @@ export interface PublicPartnerOfferResponse {
   status: PartnerOfferStatus;
   expiresAt: string;
   createdAt: string;
+  leadContact?: PublicPartnerOfferLeadContact | null;
   lineItems?: PublicPartnerOfferLineItem[];
   photos?: OfferPhotoRef[];
   requiresInspection?: boolean;
+}
+
+export interface PublicPartnerOfferLeadContact {
+  name: string;
+  phone?: string;
+  email?: string;
+  address?: string;
 }
 
 export interface PublicPartnerOfferLineItem {
@@ -30,6 +38,29 @@ export interface OfferPhotoRef {
   id: string;
   fileName: string;
   contentType: string;
+}
+
+export interface PartnerOfferTermsResponse {
+  content: string;
+  version: number;
+  createdAt?: string | null;
+  createdByUserId?: string | null;
+}
+
+export interface PartnerOfferTermsHistoryItem {
+  id: string;
+  content: string;
+  version: number;
+  createdAt: string;
+  createdByUserId?: string | null;
+}
+
+export interface PartnerOfferTermsHistoryResponse {
+  items: PartnerOfferTermsHistoryItem[];
+}
+
+export interface UpdatePartnerOfferTermsRequest {
+  content: string;
 }
 
 export type PartnerOfferStatus = 'pending' | 'sent' | 'accepted' | 'rejected' | 'expired';

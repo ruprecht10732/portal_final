@@ -91,6 +91,19 @@
       "navLabel": "Settings",
       "subtitle": "Set default values for quotes.",
       "quoteDefaults": "Defaults",
+      "partnerOfferTerms": {
+        "title": "Partner terms",
+        "subtitle": "Manage the terms the partner must accept before signing.",
+        "editorLabel": "Terms and agreements",
+        "editorHint": "Markdown is supported. Every save is stored as a new version.",
+        "historyTitle": "Version history",
+        "historyEmpty": "No saved versions yet.",
+        "versionLabel": "Version {{version}}",
+        "editedBy": "Edited by user {{userId}}",
+        "loadFailed": "Failed to load partner terms.",
+        "saveFailed": "Failed to save partner terms.",
+        "saved": "Partner terms updated."
+      },
       "ai": {
         "title": "AI",
         "subtitle": "Manage AI automation and catalog improvement.",

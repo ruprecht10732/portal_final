@@ -20,7 +20,13 @@ import type {
   ListOffersParams,
   OfferListResponse,
 } from './partners.types';
-import type { PublicPartnerOfferResponse, OfferDetailResponse } from './partner-offer.types';
+import type {
+  PublicPartnerOfferResponse,
+  OfferDetailResponse,
+  PartnerOfferTermsHistoryResponse,
+  PartnerOfferTermsResponse,
+  UpdatePartnerOfferTermsRequest,
+} from './partner-offer.types';
 
 @Injectable({ providedIn: 'root' })
 export class PartnersService extends BaseCrudService<
@@ -124,6 +130,18 @@ export class PartnersService extends BaseCrudService<
 
   getOfferDetail(offerId: string): Observable<OfferDetailResponse> {
     return this.http.get<OfferDetailResponse>(`${this.baseUrl}/offers/${offerId}/detail`);
+  }
+
+  getOfferTerms(): Observable<PartnerOfferTermsResponse> {
+    return this.http.get<PartnerOfferTermsResponse>(`${this.baseUrl}/offer-terms`);
+  }
+
+  updateOfferTerms(data: UpdatePartnerOfferTermsRequest): Observable<PartnerOfferTermsResponse> {
+    return this.http.put<PartnerOfferTermsResponse>(`${this.baseUrl}/offer-terms`, data);
+  }
+
+  listOfferTermsHistory(): Observable<PartnerOfferTermsHistoryResponse> {
+    return this.http.get<PartnerOfferTermsHistoryResponse>(`${this.baseUrl}/offer-terms/history`);
   }
 
   buildPreviewOfferPhotoUrl(offerId: string, attachmentId: string): string {

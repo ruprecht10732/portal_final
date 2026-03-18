@@ -259,6 +259,7 @@
         "termsHeading": "Algemene voorwaarden",
         "termsBody": "Lees en accepteer de algemene voorwaarden voordat u verdergaat.",
         "termsLegal": "Door dit aanbod te accepteren gaat u akkoord met de algemene voorwaarden van Offerteportaal. U verbindt zich tot het uitvoeren van de werkzaamheden zoals beschreven in het aanbod.",
+        "termsVersion": "Versie {{version}}",
         "termsCheckbox": "Ik heb de algemene voorwaarden gelezen en ga akkoord",
         "detailsHeading": "Uw gegevens",
         "detailsBody": "Vul uw volledige naam en bedrijfsgegevens in zoals deze op de overeenkomst moeten verschijnen.",
@@ -308,6 +309,20 @@
         "thanks": "Bedankt!",
         "accepted": "U heeft het aanbod geaccepteerd. De opdrachtgever neemt contact met u op om een inspectieafspraak in te plannen.",
         "rejected": "U heeft het aanbod afgewezen. Bedankt voor uw reactie."
+      },
+      "confirmation": {
+        "title": "Bevestiging",
+        "subtitle": "Deze gegevens zijn vrijgegeven nadat u het aanbod heeft ondertekend.",
+        "leadContactTitle": "Contactgegevens van de lead",
+        "name": "Naam",
+        "phone": "Telefoon",
+        "email": "E-mail",
+        "address": "Adres",
+        "downloadPdf": "Download ondertekende PDF",
+        "pdfPreparing": "De ondertekende PDF wordt aangemaakt. Dit duurt meestal enkele seconden.",
+        "pdfReady": "De ondertekende PDF staat klaar om te downloaden.",
+        "pdfRetry": "De PDF is nog niet klaar. Probeer het zo opnieuw.",
+        "retry": "Opnieuw proberen"
       },
       "errors": {
         "invalidLink": "Geen geldige link.",

@@ -91,6 +91,19 @@
       "navLabel": "Instellingen",
       "subtitle": "Stel standaardwaarden in voor offertes.",
       "quoteDefaults": "Standaardwaarden",
+      "partnerOfferTerms": {
+        "title": "Partner voorwaarden",
+        "subtitle": "Beheer de voorwaarden die de vakman moet accepteren voordat er wordt ondertekend.",
+        "editorLabel": "Voorwaarden en afspraken",
+        "editorHint": "Markdown is toegestaan. Elke wijziging wordt als nieuwe versie opgeslagen.",
+        "historyTitle": "Versiegeschiedenis",
+        "historyEmpty": "Nog geen opgeslagen versies.",
+        "versionLabel": "Versie {{version}}",
+        "editedBy": "Gewijzigd door gebruiker {{userId}}",
+        "loadFailed": "Partnervoorwaarden laden mislukt.",
+        "saveFailed": "Partnervoorwaarden opslaan mislukt.",
+        "saved": "Partnervoorwaarden bijgewerkt."
+      },
       "ai": {
         "title": "AI",
         "subtitle": "Beheer AI-automatisering en catalogus-verbetering.",

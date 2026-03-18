@@ -257,6 +257,7 @@
         "termsHeading": "Terms & conditions",
         "termsBody": "Please read and accept the general terms and conditions before proceeding.",
         "termsLegal": "By accepting this offer you agree to the general terms and conditions of Offerteportaal. You commit to executing the work as described in the offer.",
+        "termsVersion": "Version {{version}}",
         "termsCheckbox": "I have read and accept the general terms and conditions",
         "detailsHeading": "Your details",
         "detailsBody": "Enter your full legal name and business details as they should appear on the agreement.",
@@ -306,6 +307,20 @@
         "thanks": "Thank you!",
         "accepted": "You accepted the offer. The client will contact you to schedule an inspection.",
         "rejected": "You rejected the offer. Thank you for your response."
+      },
+      "confirmation": {
+        "title": "Confirmation",
+        "subtitle": "These details were released after you signed the offer.",
+        "leadContactTitle": "Lead contact details",
+        "name": "Name",
+        "phone": "Phone",
+        "email": "Email",
+        "address": "Address",
+        "downloadPdf": "Download signed PDF",
+        "pdfPreparing": "The signed PDF is being generated. This usually takes a few seconds.",
+        "pdfReady": "The signed PDF is ready to download.",
+        "pdfRetry": "The PDF is not ready yet. Try again shortly.",
+        "retry": "Retry"
       },
       "errors": {
         "invalidLink": "Invalid link.",

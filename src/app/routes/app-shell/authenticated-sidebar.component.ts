@@ -42,6 +42,13 @@ interface SidebarItem {
     | 'profile';
 }
 
+interface SidebarTooltip {
+  route: string;
+  label: string;
+  top: number;
+  left: number;
+}
+
 @Component({
   selector: 'app-authenticated-sidebar',
   imports: [
@@ -78,7 +85,7 @@ export class AuthenticatedSidebarComponent {
   );
 
   protected readonly isExpanded = signal(true);
-  protected readonly hoveredItemRoute = signal<string | null>(null);
+  protected readonly hoveredTooltip = signal<SidebarTooltip | null>(null);
   protected readonly suppressHoverTooltip = signal(false);
   protected readonly showAddAccountSheet = signal(false);
 
@@ -239,23 +246,31 @@ export class AuthenticatedSidebarComponent {
     this.isExpanded.update((value) => !value);
   }
 
-  protected handleNavItemEnter(route: string): void {
+  protected handleNavItemEnter(route: string, label: string, element: HTMLElement): void {
+    const button = element.querySelector('button');
+    const target = button instanceof HTMLElement ? button : element;
+    const rect = target.getBoundingClientRect();
+
     this.suppressHoverTooltip.set(false);
-    this.hoveredItemRoute.set(route);
+    this.hoveredTooltip.set({
+      route,
+      label,
+      top: rect.top + rect.height / 2,
+      left: rect.right + 12,
+    });
   }
 
   protected handleNavItemLeave(route: string): void {
-    if (this.hoveredItemRoute() !== route) return;
-    this.hoveredItemRoute.set(null);
+    if (this.hoveredTooltip()?.route !== route) {
+      return;
+    }
+
+    this.hoveredTooltip.set(null);
   }
 
   protected handleNavItemClick(): void {
     this.suppressHoverTooltip.set(true);
-    this.hoveredItemRoute.set(null);
-  }
-
-  protected isTooltipVisible(route: string): boolean {
-    return !this.suppressHoverTooltip() && this.hoveredItemRoute() === route;
+    this.hoveredTooltip.set(null);
   }
 
   protected handleProfileMenuSelection(item: MenuItem): void {

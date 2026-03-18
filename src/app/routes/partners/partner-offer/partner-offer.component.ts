@@ -16,7 +16,7 @@ import { TranslatePipe } from '@ngx-translate/core';
 import { interval, startWith } from 'rxjs';
 import { PublicPartnerOfferService } from '../../../core/services/public-partner-offer.service';
 import { PartnersService } from '../../../core/services/partners.service';
-import { type PublicPartnerOfferResponse, type TimeSlot, centsToEuros } from '../../../core/services/partner-offer.types';
+import { type PartnerOfferTermsResponse, type PublicPartnerOfferLeadContact, type PublicPartnerOfferResponse, type TimeSlot, centsToEuros } from '../../../core/services/partner-offer.types';
 import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
 import { SignaturePadComponent } from '../../../shared/components/signature-pad/signature-pad.component';
@@ -46,6 +46,13 @@ export class PartnerOfferComponent implements OnInit {
   protected readonly accepting = signal(false);
   protected readonly rejecting = signal(false);
   protected readonly done = signal<'accepted' | 'rejected' | null>(null);
+  protected readonly termsLoading = signal(false);
+  protected readonly termsContent = signal('');
+  protected readonly termsVersion = signal<number | null>(null);
+  protected readonly pdfReady = signal(false);
+  protected readonly pdfWaiting = signal(false);
+  protected readonly pdfError = signal(false);
+  protected readonly pdfDownloadUrl = signal<string | null>(null);
 
   // Live clock for countdown (ticks every minute)
   protected readonly now = signal(new Date());
@@ -206,6 +213,8 @@ export class PartnerOfferComponent implements OnInit {
   });
 
   protected readonly lineItems = computed(() => this.offer()?.lineItems ?? []);
+  protected readonly leadContact = computed<PublicPartnerOfferLeadContact | null>(() => this.offer()?.leadContact ?? null);
+  protected readonly showAcceptedConfirmation = computed(() => this.done() === 'accepted' || this.offer()?.status === 'accepted');
 
   protected readonly photoItems = computed(() => {
     const offer = this.offer();
@@ -316,10 +325,15 @@ export class PartnerOfferComponent implements OnInit {
       ? this.partnersService.previewOffer(offerId)
       : this.offerService.getByToken(token);
 
+    if (!preview && token) {
+      this.loadTerms(token);
+    }
+
     source$.subscribe({
       next: (offer) => {
         this.offer.set(offer);
         this.loading.set(false);
+        this.updateAcceptedState(token, offer);
       },
       error: () => {
         this.errorKey.set('partners.offer.errors.loadFailed');
@@ -481,10 +495,23 @@ export class PartnerOfferComponent implements OnInit {
       .accept(token, acceptPayload)
       .subscribe({
         next: () => {
-          this.accepting.set(false);
-          this.done.set('accepted');
-          this.showAcceptForm.set(false);
-          this.showAcceptSheet.set(false);
+          this.offerService.getByToken(token).subscribe({
+            next: (offer) => {
+              this.accepting.set(false);
+              this.offer.set(offer);
+              this.done.set('accepted');
+              this.showAcceptForm.set(false);
+              this.showAcceptSheet.set(false);
+              this.updateAcceptedState(token, offer, true);
+            },
+            error: () => {
+              this.accepting.set(false);
+              this.done.set('accepted');
+              this.showAcceptForm.set(false);
+              this.showAcceptSheet.set(false);
+              this.updateAcceptedState(token, null, true);
+            },
+          });
         },
         error: () => {
           this.accepting.set(false);
@@ -691,5 +718,70 @@ export class PartnerOfferComponent implements OnInit {
       return this.partnersService.buildPreviewOfferPhotoUrl(offerId, photoId);
     }
     return '';
+  }
+
+  protected retryPdfReady(): void {
+    const token = this.route.snapshot.paramMap.get('token') ?? '';
+    const offer = this.offer();
+    if (!token || offer?.status !== 'accepted') {
+      return;
+    }
+    this.startPdfReadyWatcher(token, true);
+  }
+
+  private loadTerms(token: string): void {
+    this.termsLoading.set(true);
+    this.offerService.getTerms(token)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (terms: PartnerOfferTermsResponse) => {
+          this.termsContent.set(terms.content?.trim() ?? '');
+          this.termsVersion.set(terms.version ?? null);
+          this.termsLoading.set(false);
+        },
+        error: () => {
+          this.termsLoading.set(false);
+        },
+      });
+  }
+
+  private updateAcceptedState(token: string, offer: PublicPartnerOfferResponse | null, force = false): void {
+    const currentOffer = offer ?? this.offer();
+    if (!token || this.isPreview()) {
+      return;
+    }
+    if (currentOffer?.status !== 'accepted') {
+      this.pdfReady.set(false);
+      this.pdfWaiting.set(false);
+      this.pdfError.set(false);
+      this.pdfDownloadUrl.set(null);
+      return;
+    }
+    this.pdfDownloadUrl.set(this.offerService.buildPdfUrl(token));
+    this.startPdfReadyWatcher(token, force);
+  }
+
+  private startPdfReadyWatcher(token: string, force = false): void {
+    if (this.pdfReady()) {
+      return;
+    }
+    if (this.pdfWaiting() && !force) {
+      return;
+    }
+    this.pdfWaiting.set(true);
+    this.pdfError.set(false);
+    this.offerService.waitForPdfReady(token)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.pdfReady.set(true);
+          this.pdfWaiting.set(false);
+          this.pdfError.set(false);
+        },
+        error: () => {
+          this.pdfWaiting.set(false);
+          this.pdfError.set(true);
+        },
+      });
   }
 }

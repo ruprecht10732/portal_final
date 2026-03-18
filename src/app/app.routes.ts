@@ -171,6 +171,7 @@ export const routes: Routes = [
 							panelItems: [
 								{ label: 'organization.backToOrg', route: '/app/organization', icon: 'building', exact: true },
 								{ label: 'organization.settings.quoteDefaults', route: '/app/organization/settings/quote-defaults', icon: 'settings', exact: true },
+								{ label: 'organization.settings.partnerOfferTerms.title', route: '/app/organization/settings/partner-offer-terms', icon: 'file-text' },
 								{ label: 'organization.settings.ai.title', route: '/app/organization/settings/ai', icon: 'settings' },
 								{ label: 'organization.settings.smtp.title', route: '/app/organization/settings/smtp', icon: 'mail' },
 								{ label: 'organization.settings.workflows.title', route: '/app/organization/settings/workflows', icon: 'settings' },
@@ -188,6 +189,13 @@ export const routes: Routes = [
 									import(
 										'./routes/organization/organization-settings/quote-defaults/organization-quote-defaults-settings.component'
 									).then(m => m.OrganizationQuoteDefaultsSettingsComponent),
+							},
+							{
+								path: 'partner-offer-terms',
+								loadComponent: () =>
+									import(
+										'./routes/organization/organization-settings/partner-offer-terms/organization-partner-offer-terms-settings.component'
+									).then(m => m.OrganizationPartnerOfferTermsSettingsComponent),
 							},
 							{
 								path: 'ai',
