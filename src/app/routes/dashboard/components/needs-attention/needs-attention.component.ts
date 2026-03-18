@@ -11,6 +11,7 @@ type NeedsAttentionTab = 'actionItems' | 'draftApprovals';
   templateUrl: './needs-attention.component.html',
   styleUrl: './needs-attention.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block w-full xl:flex xl:min-h-0 xl:flex-col' },
 })
 export class NeedsAttentionComponent {
   protected readonly activeTab = signal<NeedsAttentionTab>('actionItems');

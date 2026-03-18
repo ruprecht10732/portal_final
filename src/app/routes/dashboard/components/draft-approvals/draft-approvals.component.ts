@@ -11,6 +11,7 @@ import { DashboardDraftApprovalsService } from '../../../../core/services/dashbo
   templateUrl: './draft-approvals.component.html',
   styleUrl: './draft-approvals.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block w-full xl:flex xl:min-h-0 xl:flex-1 xl:flex-col' },
   imports: [LucideAngularModule, RouterLink, TranslatePipe],
 })
 export class DraftApprovalsComponent {

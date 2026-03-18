@@ -12,6 +12,7 @@ import { DashboardActionItemsService } from '../../../../core/services/dashboard
   templateUrl: './action-items.component.html',
   styleUrl: './action-items.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block w-full xl:flex xl:min-h-0 xl:flex-1 xl:flex-col' },
   imports: [LucideAngularModule, DatePipe, RouterLink, TranslatePipe],
 })
 export class ActionItemsComponent {

@@ -10,6 +10,7 @@ import type { ActivityCategory, ActivityEvent } from '../../../../core/services/
   templateUrl: './activity-feed.component.html',
   styleUrl: './activity-feed.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block w-full xl:flex xl:min-h-0 xl:flex-col' },
   imports: [RouterLink, TranslatePipe, LucideAngularModule],
 })
 export class ActivityFeedComponent {

@@ -1,4 +1,4 @@
-<section class="flex h-full flex-col gap-3">
+<section class="flex h-full min-h-0 flex-col gap-3">
   <header class="flex items-center justify-between gap-3 px-1">
     <h2 class="text-sm font-semibold text-zinc-900 dark:text-white min-w-0 truncate">
       {{ 'dashboard.needsAttention.title' | translate }}
@@ -30,8 +30,8 @@
   </header>
 
   @if (activeTab() === 'actionItems') {
-    <app-dashboard-action-items />
+    <app-dashboard-action-items class="min-h-0 flex-1" />
   } @else {
-    <app-dashboard-draft-approvals />
+    <app-dashboard-draft-approvals class="min-h-0 flex-1" />
   }
 </section>

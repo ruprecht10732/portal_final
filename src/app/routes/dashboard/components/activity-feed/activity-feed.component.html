@@ -1,4 +1,4 @@
-<div class="h-full flex flex-col bg-white dark:bg-zinc-900 rounded-2xl overflow-hidden shadow-sm border border-zinc-100 dark:border-zinc-800">
+<div class="flex h-full min-h-0 flex-col overflow-hidden rounded-2xl border border-zinc-100 bg-white shadow-sm dark:border-zinc-800 dark:bg-zinc-900 xl:max-h-[30rem] 2xl:max-h-[34rem]">
 
   <!-- Header -->
   <header class="flex items-center justify-between px-5 pt-5 pb-4">
@@ -33,7 +33,7 @@
   </div>
 
   <!-- Feed -->
-  <div class="flex-1 overflow-y-auto activity-scroll px-3 pb-3 2xl:max-h-110">
+  <div class="activity-scroll flex-1 overflow-y-auto px-3 pb-3">
     @if (!filteredCount()) {
       <div class="flex h-48 items-center justify-center">
         <p class="text-[11px] text-zinc-300 dark:text-zinc-600">{{ 'dashboard.activityFeed.empty' | translate }}</p>
