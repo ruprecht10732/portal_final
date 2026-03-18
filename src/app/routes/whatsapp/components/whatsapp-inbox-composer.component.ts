@@ -8,6 +8,7 @@ import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/
   imports: [LucideAngularModule, ButtonComponent, MenuComponent],
   templateUrl: './whatsapp-inbox-composer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block shrink-0' },
 })
 export class WhatsAppInboxComposerComponent {
   sendingMessage = input(false);

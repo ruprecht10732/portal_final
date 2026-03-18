@@ -14,6 +14,7 @@ export interface WhatsAppInboxThreadStateBadge {
   imports: [LucideAngularModule, MenuComponent],
   templateUrl: './whatsapp-inbox-thread-header.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block shrink-0' },
 })
 export class WhatsAppInboxThreadHeaderComponent {
   isDraftThreadOpen = input(false);

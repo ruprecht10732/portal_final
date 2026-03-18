@@ -1,4 +1,4 @@
-<main class="flex h-full min-h-0 flex-1 flex-col overflow-y-auto bg-transparent px-0 pb-0 sm:px-3 sm:pb-4 lg:overflow-hidden">
+<main class="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-transparent px-0 pb-0 sm:px-3 sm:pb-4 lg:overflow-hidden">
     @if (deviceStatus.needsReconnectBanner() || deviceStatus.needsDeviceConnection()) {
       <section class="mb-3 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
         <div class="flex items-center gap-2 font-semibold">
@@ -9,7 +9,7 @@
       </section>
     }
 
-    <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-visible sm:gap-4 xl:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)] xl:overflow-hidden">
+    <section class="grid min-h-0 min-w-0 flex-1 grid-cols-1 gap-3 overflow-visible sm:gap-4 xl:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)] xl:overflow-hidden">
       @if (showListPane()) {
         <app-whatsapp-inbox-conversation-list
           [filteredCount]="filteredConversations().length"
@@ -73,8 +73,8 @@
             />
 
             <div class="min-h-0 flex-1 overflow-hidden">
-              <div class="grid h-full min-h-0 grid-cols-1">
-                <div #threadScrollContainer class="min-h-0 overflow-y-auto overscroll-contain px-3 py-4 pb-[10.5rem] sm:px-6 sm:py-5 lg:pb-5">
+              <div class="flex h-full min-h-0 flex-col">
+                <div #threadScrollContainer class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-3 py-4 pb-[10.5rem] sm:px-6 sm:py-5 lg:pb-5">
               @if (loadingMessages()) {
                 <div class="flex h-full flex-col items-center justify-center gap-3 text-zinc-600">
                   <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>

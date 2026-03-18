@@ -23,6 +23,7 @@ export interface WhatsAppInboxConversationListItem {
   imports: [LucideAngularModule],
   templateUrl: './whatsapp-inbox-conversation-list.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block h-full min-h-0 min-w-0' },
 })
 export class WhatsAppInboxConversationListComponent {
   filteredCount = input(0);

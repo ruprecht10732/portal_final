@@ -7,6 +7,7 @@ import { SelectComponent, type SelectOption } from '../../../shared/components/s
   imports: [LucideAngularModule, SelectComponent],
   templateUrl: './whatsapp-inbox-selection-bar.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block shrink-0' },
 })
 export class WhatsAppInboxSelectionBarComponent {
   selectedCount = input(0);
