@@ -196,7 +196,7 @@ const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
   imports: [CommonModule, TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, RightSidebarComponent, SelectComponent, WhatsAppInboxComposerComponent, WhatsAppInboxConversationListComponent, WhatsAppInboxLeadPanelComponent, WhatsAppInboxMessageItemComponent, WhatsAppInboxSelectionBarComponent, WhatsAppInboxThreadHeaderComponent],
   templateUrl: './whatsapp-inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
+  host: { class: 'flex flex-1 min-h-0 flex-col overflow-hidden' },
 })
 export class WhatsAppInboxComponent {
   private static readonly messageHistoryPageSize = 200;

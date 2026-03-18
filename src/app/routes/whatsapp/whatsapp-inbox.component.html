@@ -1,4 +1,4 @@
-<main class="flex min-h-0 flex-1 flex-col overflow-hidden bg-transparent px-0 pb-0 sm:px-3 sm:pb-4">
+<main class="flex h-full min-h-0 flex-1 flex-col overflow-hidden bg-transparent px-0 pb-0 sm:px-3 sm:pb-4">
     @if (deviceStatus.needsReconnectBanner() || deviceStatus.needsDeviceConnection()) {
       <section class="mb-3 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
         <div class="flex items-center gap-2 font-semibold">
@@ -9,7 +9,7 @@
       </section>
     }
 
-    <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:gap-4 xl:overflow-hidden xl:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)]">
+    <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-hidden sm:gap-4 xl:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)]">
       @if (showListPane()) {
         <app-whatsapp-inbox-conversation-list
           [filteredCount]="filteredConversations().length"
@@ -40,7 +40,7 @@
       }
 
       @if (showThreadPane()) {
-        <section class="relative flex min-h-[80dvh] min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white xl:h-full xl:min-h-0">
+        <section class="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white">
           @if (activeThreadConversation(); as activeConversation) {
             <app-whatsapp-inbox-thread-header
               [isDraftThreadOpen]="isDraftThreadOpen()"
@@ -72,7 +72,7 @@
 
             <div class="min-h-0 flex-1 overflow-hidden">
               <div class="grid h-full min-h-0 grid-cols-1">
-                <div #threadScrollContainer class="min-h-0 overflow-y-auto overscroll-contain px-3 py-4 sm:px-6 sm:py-5">
+                <div #threadScrollContainer class="min-h-0 overflow-y-auto overscroll-contain px-3 py-4 pb-[10.5rem] sm:px-6 sm:py-5 lg:pb-5">
               @if (loadingMessages()) {
                 <div class="flex h-full flex-col items-center justify-center gap-3 text-zinc-600">
                   <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
