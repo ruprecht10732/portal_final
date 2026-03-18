@@ -20,7 +20,7 @@ import type {
   ListOffersParams,
   OfferListResponse,
 } from './partners.types';
-import type { PublicPartnerOfferResponse } from './partner-offer.types';
+import type { PublicPartnerOfferResponse, OfferDetailResponse } from './partner-offer.types';
 
 @Injectable({ providedIn: 'root' })
 export class PartnersService extends BaseCrudService<
@@ -120,6 +120,10 @@ export class PartnersService extends BaseCrudService<
   /** Fetch what the vakman sees (authenticated preview for admin users). */
   previewOffer(offerId: string): Observable<PublicPartnerOfferResponse> {
     return this.http.get<PublicPartnerOfferResponse>(`${this.baseUrl}/offers/${offerId}/preview`);
+  }
+
+  getOfferDetail(offerId: string): Observable<OfferDetailResponse> {
+    return this.http.get<OfferDetailResponse>(`${this.baseUrl}/offers/${offerId}/detail`);
   }
 
   buildPreviewOfferPhotoUrl(offerId: string, attachmentId: string): string {

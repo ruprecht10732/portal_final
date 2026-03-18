@@ -462,6 +462,13 @@ export const routes: Routes = [
 						data: { preview: true },
 					},
 					{
+						path: ':offerId/detail',
+						loadComponent: () =>
+							import('./routes/partners/partners-offer-detail/partners-offer-detail.component').then(
+								m => m.PartnersOfferDetailComponent,
+							),
+					},
+					{
 						path: '',
 						loadComponent: () =>
 							import('./routes/partners/partners-offer-list/partners-offer-list.component').then(

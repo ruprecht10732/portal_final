@@ -18,6 +18,7 @@ export interface PublicPartnerOfferResponse {
   createdAt: string;
   lineItems?: PublicPartnerOfferLineItem[];
   photos?: OfferPhotoRef[];
+  requiresInspection?: boolean;
 }
 
 export interface PublicPartnerOfferLineItem {
@@ -41,13 +42,54 @@ export interface TimeSlot {
 
 /** Payload the vakman sends when accepting an offer. */
 export interface AcceptOfferRequest {
-  inspectionSlots: TimeSlot[];
+  inspectionSlots?: TimeSlot[];
   jobSlots?: TimeSlot[];
+  signerFullName?: string;
+  signerBusinessName?: string;
+  signerAddress?: string;
+  signatureData?: string;
 }
 
 /** Payload the vakman sends when rejecting an offer. */
 export interface RejectOfferRequest {
   reason?: string;
+}
+
+/** Admin detail view of an accepted offer – what was sent AND accepted. */
+export interface OfferDetailResponse {
+  offerId: string;
+  publicToken: string;
+  status: PartnerOfferStatus;
+  partnerName: string;
+  organizationName: string;
+  serviceType: string;
+  leadCity?: string | null;
+  pricingSource: string;
+  customerPriceCents: number;
+  vakmanPriceCents: number;
+  requiresInspection: boolean;
+  expiresAt: string;
+  createdAt: string;
+  acceptedAt?: string | null;
+  rejectedAt?: string | null;
+  rejectionReason?: string | null;
+  builderSummary?: string | null;
+  jobSummaryShort?: string | null;
+  lineItems: OfferDetailLineItem[];
+  inspectionSlots?: TimeSlot[] | null;
+  jobSlots?: TimeSlot[] | null;
+  signerName?: string | null;
+  signerBusinessName?: string | null;
+  signerAddress?: string | null;
+  pdfFileKey?: string | null;
+  photos?: OfferPhotoRef[] | null;
+}
+
+export interface OfferDetailLineItem {
+  description: string;
+  quantity: string;
+  unitPriceCents: number;
+  lineTotalCents: number;
 }
 
 /** Helper: convert cents to euros display string. */

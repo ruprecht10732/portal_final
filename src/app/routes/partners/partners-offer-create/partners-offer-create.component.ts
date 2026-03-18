@@ -93,6 +93,7 @@ export class PartnersOfferCreateComponent {
   protected readonly marginPercent = signal<number>(10);
   protected readonly vakmanPriceOverrideEuros = signal<number | null>(null);
   protected readonly selectedItemIds = signal<string[]>([]);
+  protected readonly requiresInspection = signal<boolean>(true);
 
   protected readonly creating = signal(false);
   protected readonly createError = signal<string | null>(null);
@@ -360,6 +361,7 @@ export class PartnersOfferCreateComponent {
       expiresInHours,
       marginBasisPoints: Math.round(this.marginPercent() * 100),
       selectedItemIds: this.selectedItemIds(),
+      requiresInspection: this.requiresInspection(),
       ...(vakmanPriceOverrideEuros == null ? {} : { vakmanPriceCents: Math.round(vakmanPriceOverrideEuros * 100) }),
     };
 

@@ -112,6 +112,7 @@ export interface CreateOfferFromQuoteRequest {
   marginBasisPoints?: number;
   vakmanPriceCents?: number;
   selectedItemIds?: string[];
+  requiresInspection?: boolean;
 }
 
 export interface CreateOfferResponse {

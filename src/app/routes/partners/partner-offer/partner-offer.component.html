@@ -569,6 +569,7 @@
         <p class="mt-2 text-sm text-zinc-500">{{ 'partners.offer.wizard.slotsBody' | translate }}</p>
 
         <!-- ── Inspection availability ── -->
+        @if (offer()?.requiresInspection !== false) {
         <div class="mt-6">
           <h4 class="text-sm font-bold text-zinc-900 mb-3">
             {{ 'partners.offer.accept.title' | translate }}
@@ -618,6 +619,7 @@
             <div class="validation-list">@for (err of inspectionErrors(); track err) { <p>{{ err | translate }}</p> }</div>
           }
         </div>
+        }
 
         <!-- ── Job availability (optional) ── -->
         <div class="mt-6 border-t border-zinc-100 pt-5">

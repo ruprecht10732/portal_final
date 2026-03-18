@@ -1,0 +1,240 @@
+<shared-page-layout
+  [title]="'partners.offerDetail.title' | translate"
+  [subtitle]="offer()?.partnerName ?? ''"
+  [error]="error()"
+>
+  <shared-button
+    actionsDesktop
+    class="hidden sm:flex"
+    variant="secondary"
+    [fullWidth]="false"
+    [ariaLabel]="'partners.offerDetail.back' | translate"
+    (clicked)="goBack()"
+  >
+    {{ 'partners.offerDetail.back' | translate }}
+  </shared-button>
+
+  @if (offer()?.publicToken) {
+    <shared-button
+      actions
+      variant="primary"
+      size="compact"
+      [fullWidth]="false"
+      [ariaLabel]="'partners.offerDetail.openVakmanLink' | translate"
+      (clicked)="openVakmanLink()"
+    >
+      {{ 'partners.offerDetail.openVakmanLink' | translate }}
+    </shared-button>
+  }
+
+  @if (loading()) {
+    <div class="flex items-center justify-center py-16">
+      <span class="text-sm text-zinc-400">{{ 'common.loading' | translate }}</span>
+    </div>
+  }
+
+  @if (offer(); as o) {
+    <div class="flex flex-col gap-6 p-4 sm:p-6 max-w-4xl mx-auto w-full">
+
+      <!-- Status badge + meta -->
+      <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-4">
+        <div class="flex flex-wrap items-start gap-4 justify-between">
+          <div class="flex flex-col gap-1">
+            <span class="text-xs text-zinc-500 uppercase tracking-wide">{{ 'partners.offerDetail.partner' | translate }}</span>
+            <span class="text-base font-semibold text-zinc-800">{{ o.partnerName }}</span>
+          </div>
+          <span
+            class="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium"
+            [class]="o.status === 'accepted' ? 'bg-teal-50 text-teal-700' :
+                     o.status === 'rejected' ? 'bg-red-50 text-red-700' :
+                     o.status === 'expired'  ? 'bg-zinc-100 text-zinc-500' :
+                     'bg-amber-50 text-amber-700'"
+          >
+            {{ ('partners.offer.status.' + o.status) | translate }}
+          </span>
+        </div>
+
+        <div class="grid grid-cols-2 sm:grid-cols-3 gap-4 text-sm">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.serviceType' | translate }}</span>
+            <span class="text-zinc-700 font-medium">{{ o.serviceType }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.city' | translate }}</span>
+            <span class="text-zinc-700 font-medium">{{ o.leadCity ?? '—' }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.organization' | translate }}</span>
+            <span class="text-zinc-700 font-medium">{{ o.organizationName }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.createdAt' | translate }}</span>
+            <span class="text-zinc-700 font-medium">{{ formatDate(o.createdAt) }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.expiresAt' | translate }}</span>
+            <span class="text-zinc-700 font-medium">{{ formatDate(o.expiresAt) }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.requiresInspection' | translate }}</span>
+            <span class="text-zinc-700 font-medium">
+              @if (o.requiresInspection) {
+                <span class="text-teal-600">{{ 'partners.offerDetail.yes' | translate }}</span>
+              } @else {
+                <span class="text-zinc-400">{{ 'partners.offerDetail.no' | translate }}</span>
+              }
+            </span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Pricing -->
+      <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-3">
+        <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wide">{{ 'partners.offerDetail.pricing' | translate }}</h2>
+        <div class="grid grid-cols-2 gap-4 text-sm">
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.vakmanPrice' | translate }}</span>
+            <span class="text-zinc-800 font-semibold text-base">{{ centsToEuros(o.vakmanPriceCents) }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.customerPrice' | translate }}</span>
+            <span class="text-zinc-800 font-semibold text-base">{{ centsToEuros(o.customerPriceCents) }}</span>
+          </div>
+          <div class="flex flex-col gap-0.5">
+            <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.pricingSource' | translate }}</span>
+            <span class="text-zinc-700">{{ o.pricingSource }}</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Line items -->
+      @if (o.lineItems.length) {
+        <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-3">
+          <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wide">{{ 'partners.offerDetail.lineItems' | translate }}</h2>
+          <table class="w-full text-sm border-collapse">
+            <thead>
+              <tr class="text-left text-xs text-zinc-400 border-b border-zinc-100">
+                <th class="pb-2 font-medium pr-4">{{ 'partners.offerDetail.lineItem.description' | translate }}</th>
+                <th class="pb-2 font-medium pr-4 text-right">{{ 'partners.offerDetail.lineItem.qty' | translate }}</th>
+                <th class="pb-2 font-medium pr-4 text-right">{{ 'partners.offerDetail.lineItem.unitPrice' | translate }}</th>
+                <th class="pb-2 font-medium text-right">{{ 'partners.offerDetail.lineItem.total' | translate }}</th>
+              </tr>
+            </thead>
+            <tbody>
+              @for (item of o.lineItems; track item.description) {
+                <tr class="border-b border-zinc-50 last:border-0">
+                  <td class="py-2 pr-4 text-zinc-700">{{ item.description }}</td>
+                  <td class="py-2 pr-4 text-right text-zinc-600">{{ item.quantity }}</td>
+                  <td class="py-2 pr-4 text-right text-zinc-600">{{ centsToEuros(item.unitPriceCents) }}</td>
+                  <td class="py-2 text-right font-medium text-zinc-800">{{ centsToEuros(item.lineTotalCents) }}</td>
+                </tr>
+              }
+            </tbody>
+          </table>
+        </div>
+      }
+
+      <!-- Job summary -->
+      @if (o.builderSummary || o.jobSummaryShort) {
+        <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-2">
+          <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wide">{{ 'partners.offerDetail.jobSummary' | translate }}</h2>
+          @if (o.jobSummaryShort) {
+            <p class="text-sm text-zinc-700 font-medium">{{ o.jobSummaryShort }}</p>
+          }
+          @if (o.builderSummary) {
+            <p class="text-sm text-zinc-600 whitespace-pre-line">{{ o.builderSummary }}</p>
+          }
+        </div>
+      }
+
+      <!-- Inspection slots -->
+      @if (o.requiresInspection && o.inspectionSlots && o.inspectionSlots.length) {
+        <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-2">
+          <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wide">{{ 'partners.offerDetail.inspectionSlots' | translate }}</h2>
+          <p class="text-sm text-zinc-700">{{ formatSlots(o.inspectionSlots) }}</p>
+        </div>
+      }
+
+      <!-- Job slots -->
+      @if (o.jobSlots && o.jobSlots.length) {
+        <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-2">
+          <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wide">{{ 'partners.offerDetail.jobSlots' | translate }}</h2>
+          <p class="text-sm text-zinc-700">{{ formatSlots(o.jobSlots) }}</p>
+        </div>
+      }
+
+      <!-- Acceptance data (signer info) -->
+      @if (o.status === 'accepted') {
+        <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-3">
+          <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wide">{{ 'partners.offerDetail.acceptanceData' | translate }}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.signer.name' | translate }}</span>
+              <span class="text-zinc-700 font-medium">{{ o.signerName ?? '—' }}</span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.signer.businessName' | translate }}</span>
+              <span class="text-zinc-700 font-medium">{{ o.signerBusinessName ?? '—' }}</span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.signer.address' | translate }}</span>
+              <span class="text-zinc-700 font-medium">{{ o.signerAddress ?? '—' }}</span>
+            </div>
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs text-zinc-400">{{ 'partners.offerDetail.acceptedAt' | translate }}</span>
+              <span class="text-zinc-700 font-medium">{{ formatDate(o.acceptedAt) }}</span>
+            </div>
+          </div>
+
+          @if (o.pdfFileKey) {
+            <div class="mt-2">
+              <span class="text-xs text-zinc-400 block mb-1">{{ 'partners.offerDetail.pdf' | translate }}</span>
+              <span class="inline-flex items-center gap-1.5 text-sm font-medium text-teal-600 bg-teal-50 px-3 py-1.5 rounded-lg">
+                <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2">
+                  <path stroke-linecap="round" stroke-linejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                </svg>
+                {{ o.pdfFileKey }}
+              </span>
+            </div>
+          }
+        </div>
+      }
+
+      <!-- Rejection info -->
+      @if (o.status === 'rejected') {
+        <div class="bg-red-50 rounded-xl border border-red-100 p-5 flex flex-col gap-2">
+          <h2 class="text-sm font-semibold text-red-700 uppercase tracking-wide">{{ 'partners.offerDetail.rejection' | translate }}</h2>
+          <div class="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
+            <div class="flex flex-col gap-0.5">
+              <span class="text-xs text-red-400">{{ 'partners.offerDetail.rejectedAt' | translate }}</span>
+              <span class="text-zinc-700 font-medium">{{ formatDate(o.rejectedAt) }}</span>
+            </div>
+            @if (o.rejectionReason) {
+              <div class="flex flex-col gap-0.5">
+                <span class="text-xs text-red-400">{{ 'partners.offerDetail.rejectionReason' | translate }}</span>
+                <span class="text-zinc-700 font-medium">{{ o.rejectionReason }}</span>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      <!-- Photos -->
+      @if (o.photos && o.photos.length) {
+        <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-3">
+          <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wide">{{ 'partners.offerDetail.photos' | translate }}</h2>
+          <div class="flex flex-wrap gap-3">
+            @for (photo of o.photos; track photo.id; let index = $index) {
+              <img
+                [src]="partnersService.buildPreviewOfferPhotoUrl(o.offerId, photo.id)"
+                [alt]="'Bijlage ' + (index + 1)"
+                class="w-24 h-24 object-cover rounded-lg border border-zinc-200"
+              />
+            }
+          </div>
+        </div>
+      }
+
+    </div>
+  }
+</shared-page-layout>

@@ -104,7 +104,8 @@ export class PartnerOfferComponent implements OnInit {
   );
   protected readonly canProceedStep3 = computed(() => !!this.signatureData());
   protected readonly canSubmitStep4 = computed(() => {
-    if (this.inspectionSlots().length === 0) return false;
+    const needsInspection = this.offer()?.requiresInspection !== false;
+    if (needsInspection && this.inspectionSlots().length === 0) return false;
     if (this.inspectionErrors().length > 0) return false;
     if (this.jobErrors().length > 0) return false;
     return true;
@@ -454,16 +455,26 @@ export class PartnerOfferComponent implements OnInit {
   }
 
   protected submitAccept(): void {
+    const needsInspection = this.offer()?.requiresInspection !== false;
     const slots = this.inspectionSlots();
-    if (slots.length === 0 || this.inspectionErrors().length > 0 || this.jobErrors().length > 0) return;
+    if (needsInspection && (slots.length === 0 || this.inspectionErrors().length > 0)) return;
+    if (this.jobErrors().length > 0) return;
 
     const token = this.route.snapshot.paramMap.get('token') ?? '';
     this.accepting.set(true);
 
     const jobSlots = this.jobSlots();
+    const signerFullName = this.signerFullName().trim();
+    const signerBusinessName = this.signerBusinessName().trim();
+    const signerAddress = this.signerAddress().trim();
+    const signatureData = this.signatureData();
     const acceptPayload = {
-      inspectionSlots: slots,
+      ...(needsInspection && slots.length > 0 ? { inspectionSlots: slots } : {}),
       ...(jobSlots.length > 0 ? { jobSlots } : {}),
+      ...(signerFullName ? { signerFullName } : {}),
+      ...(signerBusinessName ? { signerBusinessName } : {}),
+      ...(signerAddress ? { signerAddress } : {}),
+      ...(signatureData ? { signatureData } : {}),
     };
 
     this.offerService

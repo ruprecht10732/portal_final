@@ -377,6 +377,6 @@ export class PartnersOfferListComponent implements OnInit {
 
   protected onOfferDoubleClick(offer: OfferRow): void {
     if (!offer.id) return;
-	this.router.navigate(['/app/offers', offer.id, 'preview']);
+    this.router.navigate(['/app/offers', offer.id, 'detail']);
   }
 }

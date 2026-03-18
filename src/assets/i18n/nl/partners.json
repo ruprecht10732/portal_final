@@ -36,6 +36,8 @@
       "customPriceHint": "Laat leeg om de prijs uit de marge te berekenen.",
       "resetCustomPrice": "Eigen prijs wissen",
       "vakmanReceivesLabel": "Partner ontvangt",
+      "requiresInspectionLabel": "Inspectie vereist",
+      "requiresInspectionHint": "Zet uit als er geen schouwinspectie nodig is. De partner hoeft dan geen beschikbaarheid op te geven.",
       "createButton": "Maak aanbod",
       "resultTitle": "Aanbod aangemaakt",
       "offerLinkLabel": "Aanbodlink",
@@ -365,6 +367,46 @@
       "loadFailed": "Kon partners niet laden",
       "saveFailed": "Kon partners niet opslaan",
       "deleteFailed": "Kon partners niet verwijderen"
+    },
+    "offerDetail": {
+      "title": "Werkaanbod detail",
+      "back": "Terug naar overzicht",
+      "openVakmanLink": "Open vakmanlink",
+      "partner": "Partner",
+      "serviceType": "Dienst",
+      "city": "Stad",
+      "organization": "Organisatie",
+      "createdAt": "Aangemaakt op",
+      "expiresAt": "Verloopt op",
+      "requiresInspection": "Inspectie vereist",
+      "yes": "Ja",
+      "no": "Nee",
+      "pricing": "Prijzen",
+      "vakmanPrice": "Partnerprijs",
+      "customerPrice": "Klantprijs",
+      "pricingSource": "Prijsbron",
+      "lineItems": "Offerteposten",
+      "lineItem": {
+        "description": "Omschrijving",
+        "qty": "Aantal",
+        "unitPrice": "Stukprijs",
+        "total": "Totaal"
+      },
+      "jobSummary": "Werkomschrijving",
+      "inspectionSlots": "Inspectietijdsloten",
+      "jobSlots": "Uitvoeringstijdsloten",
+      "acceptanceData": "Acceptatiegegevens",
+      "acceptedAt": "Geaccepteerd op",
+      "signer": {
+        "name": "Naam ondertekenaar",
+        "businessName": "Bedrijfsnaam",
+        "address": "Adres"
+      },
+      "pdf": "Ondertekend PDF",
+      "rejection": "Afwijzingsgegevens",
+      "rejectedAt": "Afgewezen op",
+      "rejectionReason": "Reden",
+      "photos": "Foto\u2019s"
     }
   }
 }
