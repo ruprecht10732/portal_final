@@ -397,13 +397,15 @@ export class PartnerOfferComponent implements OnInit {
 
   /** Open the accept bottom-sheet wizard directly */
   protected openAcceptSheet(): void {
+    const partnerPrefill = this.offer()?.partnerPrefill;
+
     this.showAcceptForm.set(false);
     this.showRejectForm.set(false);
     this.acceptStep.set(1);
     this.termsAccepted.set(false);
-    this.signerFullName.set('');
-    this.signerBusinessName.set('');
-    this.signerAddress.set('');
+    this.signerFullName.set((partnerPrefill?.fullName ?? '').trim());
+    this.signerBusinessName.set((partnerPrefill?.businessName ?? '').trim());
+    this.signerAddress.set((partnerPrefill?.address ?? '').trim());
     this.signatureData.set(null);
     this.inspectionSlots.set([]);
     this.jobSlots.set([]);

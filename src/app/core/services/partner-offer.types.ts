@@ -17,6 +17,7 @@ export interface PublicPartnerOfferResponse {
   expiresAt: string;
   createdAt: string;
   leadContact?: PublicPartnerOfferLeadContact | null;
+  partnerPrefill?: PublicPartnerOfferPartnerPrefill | null;
   lineItems?: PublicPartnerOfferLineItem[];
   photos?: OfferPhotoRef[];
   requiresInspection?: boolean;
@@ -26,6 +27,12 @@ export interface PublicPartnerOfferLeadContact {
   name: string;
   phone?: string;
   email?: string;
+  address?: string;
+}
+
+export interface PublicPartnerOfferPartnerPrefill {
+  fullName?: string;
+  businessName?: string;
   address?: string;
 }
 
