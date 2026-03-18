@@ -27,6 +27,20 @@
     </shared-button>
   }
 
+  @if (canResend()) {
+    <shared-button
+      actions
+      variant="secondary"
+      size="compact"
+      [fullWidth]="false"
+      [loading]="resending()"
+      [ariaLabel]="'partners.offerDetail.resend' | translate"
+      (clicked)="resendOffer()"
+    >
+      {{ 'partners.offerDetail.resend' | translate }}
+    </shared-button>
+  }
+
   @if (loading()) {
     <div class="flex items-center justify-center py-16">
       <span class="text-sm text-zinc-400">{{ 'common.loading' | translate }}</span>

@@ -380,6 +380,49 @@
       "loadFailed": "Failed to load partners",
       "saveFailed": "Failed to save partners",
       "deleteFailed": "Failed to delete partners"
+    },
+    "offerDetail": {
+      "title": "Offer details",
+      "back": "Back to offers",
+      "openVakmanLink": "Open partner link",
+      "resend": "Send again",
+      "resendSuccess": "Offer sent again",
+      "resendError": "Failed to send the offer again",
+      "partner": "Partner",
+      "serviceType": "Service",
+      "city": "City",
+      "organization": "Organization",
+      "createdAt": "Created at",
+      "expiresAt": "Expires at",
+      "requiresInspection": "Inspection required",
+      "yes": "Yes",
+      "no": "No",
+      "pricing": "Pricing",
+      "vakmanPrice": "Partner price",
+      "customerPrice": "Customer price",
+      "pricingSource": "Pricing source",
+      "lineItems": "Line items",
+      "lineItem": {
+        "description": "Description",
+        "qty": "Qty",
+        "unitPrice": "Unit price",
+        "total": "Total"
+      },
+      "jobSummary": "Job summary",
+      "inspectionSlots": "Inspection slots",
+      "jobSlots": "Job slots",
+      "acceptanceData": "Acceptance data",
+      "acceptedAt": "Accepted at",
+      "signer": {
+        "name": "Signer name",
+        "businessName": "Business name",
+        "address": "Address"
+      },
+      "pdf": "Signed PDF",
+      "rejection": "Rejection details",
+      "rejectedAt": "Rejected at",
+      "rejectionReason": "Reason",
+      "photos": "Photos"
     }
   }
 }

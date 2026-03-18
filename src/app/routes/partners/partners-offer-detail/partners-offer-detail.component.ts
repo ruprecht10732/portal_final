@@ -1,11 +1,12 @@
 import { ChangeDetectionStrategy, Component, inject, OnInit, signal, SecurityContext } from '@angular/core';
 import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { PartnersService } from '../../../core/services/partners.service';
 import { type OfferDetailResponse, centsToEuros } from '../../../core/services/partner-offer.types';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { ToastService } from '../../../core/services/toast.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 
@@ -23,11 +24,14 @@ export class PartnersOfferDetailComponent implements OnInit {
   private readonly sanitizer = inject(DomSanitizer);
   protected readonly partnersService = inject(PartnersService);
   private readonly reporter = inject(ErrorReportingService);
+  private readonly toast = inject(ToastService);
+  private readonly translate = inject(TranslateService);
   private currentOfferId: string | null = null;
 
   protected readonly offer = signal<OfferDetailResponse | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly resending = signal(false);
   protected readonly regeneratingPdf = signal(false);
 
   protected readonly centsToEuros = centsToEuros;
@@ -58,6 +62,27 @@ export class PartnersOfferDetailComponent implements OnInit {
         this.error.set(msg);
         this.reporter.report(err);
         this.regeneratingPdf.set(false);
+      },
+    });
+  }
+
+  protected resendOffer(): void {
+    if (!this.currentOfferId || this.resending()) {
+      return;
+    }
+
+    this.resending.set(true);
+    this.error.set(null);
+    this.partnersService.resendOffer(this.currentOfferId).subscribe({
+      next: () => {
+        this.toast.success(this.translate.instant('partners.offerDetail.resendSuccess'));
+        this.resending.set(false);
+      },
+      error: (err) => {
+        const msg = extractErrorMessage(err, this.translate.instant('partners.offerDetail.resendError'));
+        this.error.set(msg);
+        this.reporter.report(err);
+        this.resending.set(false);
       },
     });
   }
@@ -101,6 +126,15 @@ export class PartnersOfferDetailComponent implements OnInit {
       return null;
     }
     return this.partnersService.buildOfferPdfUrl(this.currentOfferId);
+  }
+
+  protected canResend(): boolean {
+    const currentOffer = this.offer();
+    if (!currentOffer?.publicToken) {
+      return false;
+    }
+
+    return currentOffer.status === 'pending' || currentOffer.status === 'sent';
   }
 
   protected renderDescription(value: string | null | undefined): SafeHtml {
