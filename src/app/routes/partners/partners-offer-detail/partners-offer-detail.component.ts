@@ -36,7 +36,13 @@ export class PartnersOfferDetailComponent implements OnInit {
     }
     this.partnersService.getOfferDetail(offerId).subscribe({
       next: (detail) => {
-        this.offer.set(detail);
+        this.offer.set({
+          ...detail,
+          lineItems: detail.lineItems ?? [],
+          inspectionSlots: detail.inspectionSlots ?? [],
+          jobSlots: detail.jobSlots ?? [],
+          photos: detail.photos ?? [],
+        });
         this.loading.set(false);
       },
       error: (err) => {

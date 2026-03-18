@@ -75,7 +75,7 @@ export interface OfferDetailResponse {
   rejectionReason?: string | null;
   builderSummary?: string | null;
   jobSummaryShort?: string | null;
-  lineItems: OfferDetailLineItem[];
+  lineItems?: OfferDetailLineItem[] | null;
   inspectionSlots?: TimeSlot[] | null;
   jobSlots?: TimeSlot[] | null;
   signerName?: string | null;

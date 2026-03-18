@@ -108,7 +108,7 @@
       </div>
 
       <!-- Line items -->
-      @if (o.lineItems.length) {
+      @if (o.lineItems?.length) {
         <div class="bg-white rounded-xl border border-zinc-200 shadow-sm p-5 flex flex-col gap-3">
           <h2 class="text-sm font-semibold text-zinc-700 uppercase tracking-wide">{{ 'partners.offerDetail.lineItems' | translate }}</h2>
           <table class="w-full text-sm border-collapse">
