@@ -1,0 +1,214 @@
+<div class="px-4 py-4">
+  @if (linkedLead(); as lead) {
+    <div class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-4">
+      <div class="flex items-center gap-3">
+        <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-lg font-black text-emerald-700">
+          {{ (lead.consumer.firstName[0] ?? '') + (lead.consumer.lastName[0] ?? '') }}
+        </div>
+        <div class="min-w-0">
+          <p class="truncate text-sm font-bold text-zinc-900">{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</p>
+          <p class="truncate text-xs text-zinc-700">{{ lead.consumer.phone || activePhoneNumber() }}</p>
+          @if (lead.address.city) {
+            <p class="truncate text-xs text-zinc-700">{{ lead.address.city }}</p>
+          }
+        </div>
+      </div>
+
+      <div class="mt-4 flex flex-col gap-2">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50"
+          [disabled]="selectedConversation() ? leadRelationshipBusy() !== null : false"
+          (click)="selectedConversation() ? unlinkConversationLead.emit() : clearLinkedLead.emit()"
+        >
+          @if (selectedConversation() && leadRelationshipBusy() === 'unlink') {
+            <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+          } @else {
+            <lucide-icon [name]="selectedConversation() ? 'unlink-2' : 'x'" class="h-3.5 w-3.5"></lucide-icon>
+          }
+          {{ selectedConversation() ? 'Ontkoppelen' : 'Lead verwijderen' }}
+        </button>
+      </div>
+    </div>
+  } @else {
+    <div class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-4">
+      @if (suggestedLead(); as leadSuggestion) {
+        <div class="rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-3">
+          <p class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Voorgestelde lead</p>
+          <p class="mt-2 text-sm font-semibold text-emerald-950">{{ leadSuggestion.fullName }}</p>
+          <p class="mt-1 text-xs text-emerald-800">{{ leadSuggestion.phone }} @if (leadSuggestion.city) { · {{ leadSuggestion.city }} }</p>
+          <button
+            type="button"
+            class="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
+            [disabled]="leadRelationshipBusy() !== null"
+            (click)="linkSuggestedLead.emit()"
+          >
+            @if (leadRelationshipBusy() === 'link') {
+              <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+            } @else {
+              <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
+            }
+            Koppel suggestie
+          </button>
+        </div>
+      }
+
+      <div class="mt-3 flex flex-col gap-2">
+        <button
+          type="button"
+          class="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
+          (click)="toggleLeadSearchPanel.emit()"
+        >
+          <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
+          Bestaande lead koppelen
+        </button>
+        @if (selectedConversation()) {
+          <button
+            type="button"
+            class="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
+            (click)="openCreateLeadPanel.emit()"
+          >
+            <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
+            Nieuwe lead aanmaken
+          </button>
+        }
+      </div>
+    </div>
+  }
+
+  @if (showLeadSearchPanel()) {
+    <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-white p-4">
+      <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Zoek lead</p>
+      <input
+        type="search"
+        class="mt-3 h-10 w-full rounded-xl border border-zinc-300 px-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-600 focus:ring-2 focus:ring-emerald-500/20"
+        placeholder="Zoek op naam, telefoon of e-mail"
+        [value]="leadSearchQuery()"
+        (input)="leadSearchQueryChange.emit($any($event.target).value)"
+      />
+      <button
+        type="button"
+        class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
+        [disabled]="leadSearchLoading()"
+        (click)="searchExistingLeads.emit()"
+      >
+        @if (leadSearchLoading()) {
+          <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+        } @else {
+          <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
+        }
+        Zoeken
+      </button>
+
+      @if (leadSearchResults().length > 0) {
+        <div class="mt-3 grid gap-2">
+          @for (leadSearchResult of leadSearchResults(); track leadSearchResult.id) {
+            <div class="rounded-xl border border-zinc-200 px-3 py-3">
+              <p class="truncate text-sm font-semibold text-zinc-900">{{ leadSearchResult.consumer.firstName }} {{ leadSearchResult.consumer.lastName }}</p>
+              <p class="mt-1 text-xs text-zinc-700">{{ leadSearchResult.consumer.phone }} @if (leadSearchResult.address.city) { · {{ leadSearchResult.address.city }} }</p>
+              <button
+                type="button"
+                class="mt-3 inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-50"
+                [disabled]="leadRelationshipBusy() !== null"
+                (click)="linkConversationLead.emit(leadSearchResult.id)"
+              >
+                <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
+                {{ selectedConversation() ? 'Koppel' : 'Gebruik' }}
+              </button>
+            </div>
+          }
+        </div>
+      }
+    </div>
+  }
+
+  @if (selectedConversation() && showCreateLeadPanel()) {
+    <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-white p-4">
+      <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Nieuwe lead</p>
+      <div class="mt-3 grid gap-3">
+        <div class="grid gap-3 sm:grid-cols-2">
+          <shared-input [label]="'Voornaam'" [value]="createLeadFirstName()" [clearable]="false" (valueChange)="createLeadFirstNameChange.emit($event)" />
+          <shared-input [label]="'Achternaam'" [value]="createLeadLastName()" [clearable]="false" (valueChange)="createLeadLastNameChange.emit($event)" />
+        </div>
+
+        <shared-input [label]="'E-mail'" type="email" [value]="createLeadEmail()" [clearable]="false" (valueChange)="createLeadEmailChange.emit($event)" />
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-12">
+          <div class="sm:col-span-8">
+            <shared-autocomplete
+              [label]="'Straat'"
+              [value]="createLeadStreet()"
+              (valueChange)="createLeadStreetChange.emit($event)"
+              [options]="createLeadAddressOptions()"
+              [filterMode]="'manual'"
+              [placeholder]="'Begin met typen voor adreslookup'"
+            />
+          </div>
+          <div class="sm:col-span-4">
+            <shared-input [label]="'Huisnummer'" [value]="createLeadHouseNumber()" [clearable]="false" (valueChange)="createLeadHouseNumberChange.emit($event)" />
+          </div>
+        </div>
+
+        <div class="grid grid-cols-1 gap-3 sm:grid-cols-12">
+          <div class="sm:col-span-4">
+            <shared-input [label]="'Postcode'" [value]="createLeadZipCode()" [clearable]="false" (valueChange)="createLeadZipCodeChange.emit($event)" />
+          </div>
+          <div class="sm:col-span-8">
+            <shared-input [label]="'Plaats'" [value]="createLeadCity()" [clearable]="false" (valueChange)="createLeadCityChange.emit($event)" />
+          </div>
+        </div>
+
+        <shared-select
+          [label]="'Rol'"
+          [options]="consumerRoleOptions()"
+          [value]="createLeadConsumerRole()"
+          (valueChange)="createLeadConsumerRoleChange.emit($event ?? 'Owner')"
+        />
+
+        <shared-select
+          [label]="'Diensttype'"
+          [options]="serviceTypeOptions()"
+          [value]="createLeadServiceType()"
+          (valueChange)="createLeadServiceTypeChange.emit($event ?? '')"
+          [placeholder]="'Selecteer een diensttype'"
+        />
+
+        <shared-select
+          [label]="'Workflow'"
+          [options]="workflowOptions()"
+          [value]="createLeadWorkflowId()"
+          (valueChange)="createLeadWorkflowIdChange.emit($event ?? null)"
+          [placeholder]="'Organisatie-standaard'"
+        />
+
+        <div class="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
+          <shared-checkbox
+            [label]="'WhatsApp-berichten toestaan'"
+            [hint]="'Nieuwe lead wordt aangemaakt met WhatsApp-opt-in wanneer dit aan staat.'"
+            [checked]="createLeadWhatsappOptedIn()"
+            (checkedChange)="createLeadWhatsappOptedInChange.emit($event)"
+          />
+        </div>
+      </div>
+      <div class="mt-4 flex flex-col gap-2">
+        <button
+          type="button"
+          class="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
+          [disabled]="!canCreateConversationLead()"
+          (click)="createLeadFromConversation.emit()"
+        >
+          @if (leadRelationshipBusy() === 'create') {
+            <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
+          } @else {
+            <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
+          }
+          Lead aanmaken
+        </button>
+        <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100" (click)="closeCreateLeadPanel.emit()">
+          <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
+          Sluiten
+        </button>
+      </div>
+    </div>
+  }
+</div>

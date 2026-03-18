@@ -11,208 +11,32 @@
 
     <section class="grid min-h-0 flex-1 grid-cols-1 gap-3 sm:gap-4 xl:overflow-hidden xl:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)]">
       @if (showListPane()) {
-        <aside aria-label="Conversatielijst" class="flex min-h-[70dvh] min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white xl:min-h-0">
-          <header class="shrink-0 border-b border-zinc-200 bg-white px-4 py-4 sm:px-5">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <p class="text-[11px] font-black uppercase tracking-[0.24em] text-emerald-600">Inbox</p>
-                <h2 class="mt-1 text-xl font-black tracking-tight text-zinc-950">WhatsApp Inbox</h2>
-                <p class="mt-1 text-xs text-zinc-700">
-                  {{ filteredConversations().length }} van {{ conversations().length }} zichtbaar
-                </p>
-              </div>
-              <div class="flex items-center gap-2">
-                <button
-                  type="button"
-                  class="rounded-2xl border border-zinc-300 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                  (click)="openNewConversationDraft()"
-                >
-                  Nieuw
-                </button>
-                <button
-                  type="button"
-                  class="rounded-2xl border p-2.5 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1 disabled:cursor-not-allowed disabled:opacity-60"
-                  [class.border-emerald-700]="isPresenceSelected('available')"
-                  [class.bg-emerald-50]="isPresenceSelected('available')"
-                  [class.text-emerald-700]="isPresenceSelected('available')"
-                  [class.border-zinc-300]="!isPresenceSelected('available')"
-                  [class.bg-white]="!isPresenceSelected('available')"
-                  [class.text-zinc-600]="!isPresenceSelected('available')"
-                  [disabled]="!canSend() || sendingPresence() !== null"
-                  [attr.aria-label]="presenceToggleAriaLabel()"
-                  [attr.aria-pressed]="isPresenceSelected('available')"
-                  [attr.title]="presenceToggleTitle()"
-                  (click)="togglePresence()"
-                >
-                  @if (sendingPresence() !== null) {
-                    <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin"></lucide-icon>
-                  } @else {
-                    <lucide-icon [name]="presenceToggleIcon()" class="h-4 w-4"></lucide-icon>
-                  }
-                </button>
-                <button
-                  type="button"
-                  class="rounded-2xl p-2.5 text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                  (click)="loadConversations()"
-                  aria-label="Ververs gesprekken"
-                >
-                  <lucide-icon name="refresh-cw" class="h-4 w-4" [class.animate-spin]="loadingConversations()"></lucide-icon>
-                </button>
-              </div>
-            </div>
-
-            <div class="mt-4 flex flex-wrap items-center gap-2 rounded-2xl bg-zinc-100/90 p-1.5">
-              <button
-                type="button"
-                class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                [class.bg-emerald-600]="conversationListFilter() === 'all'"
-                [class.text-white]="conversationListFilter() === 'all'"
-                [class.text-zinc-900]="conversationListFilter() !== 'all'"
-                [attr.aria-pressed]="conversationListFilter() === 'all'"
-                (click)="conversationListFilter.set('all')"
-              >
-                Alles
-              </button>
-              <button
-                type="button"
-                class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                [class.bg-emerald-600]="conversationListFilter() === 'unread'"
-                [class.text-white]="conversationListFilter() === 'unread'"
-                [class.text-zinc-900]="conversationListFilter() !== 'unread'"
-                [attr.aria-pressed]="conversationListFilter() === 'unread'"
-                (click)="conversationListFilter.set('unread')"
-              >
-                Ongelezen
-                @if (unreadConversationCount() > 0) {
-                  <span class="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1.5 py-0.5 text-[10px] font-bold" [class.text-white]="conversationListFilter() !== 'unread'" [class.text-emerald-600]="conversationListFilter() === 'unread'" [class.bg-white]="conversationListFilter() === 'unread'" [class.bg-zinc-900]="conversationListFilter() !== 'unread'">
-                    {{ unreadConversationCount() }}
-                  </span>
-                }
-              </button>
-              <button
-                type="button"
-                class="inline-flex min-h-10 flex-1 items-center justify-center rounded-xl px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                [class.bg-emerald-600]="conversationListFilter() === 'archived'"
-                [class.text-white]="conversationListFilter() === 'archived'"
-                [class.text-zinc-900]="conversationListFilter() !== 'archived'"
-                [attr.aria-pressed]="conversationListFilter() === 'archived'"
-                (click)="conversationListFilter.set('archived')"
-              >
-                Archief
-                @if (archivedConversationCount() > 0) {
-                  <span class="ml-2 inline-flex min-w-5 items-center justify-center rounded-full bg-zinc-900 px-1.5 py-0.5 text-[10px] font-bold" [class.text-white]="conversationListFilter() !== 'archived'" [class.text-emerald-600]="conversationListFilter() === 'archived'" [class.bg-white]="conversationListFilter() === 'archived'" [class.bg-zinc-900]="conversationListFilter() !== 'archived'">
-                    {{ archivedConversationCount() }}
-                  </span>
-                }
-              </button>
-            </div>
-
-            <div class="relative mt-3">
-              <lucide-icon name="search" class="pointer-events-none absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-zinc-600"></lucide-icon>
-              <input
-                type="search"
-                class="h-11 w-full rounded-2xl border border-zinc-300 bg-white pl-10 pr-10 text-sm text-zinc-900 outline-none transition-shadow placeholder:text-zinc-600 [-webkit-appearance:none] focus:ring-2 focus:ring-emerald-500/20"
-                placeholder="Zoek op naam, nummer of preview"
-                [value]="conversationSearchQuery()"
-                (input)="conversationSearchQuery.set($any($event.target).value)"
-              />
-              @if (hasConversationSearch()) {
-                <button
-                  type="button"
-                  class="absolute right-2 top-1/2 flex h-7 w-7 -translate-y-1/2 items-center justify-center rounded-full text-zinc-700 transition-colors hover:bg-zinc-100 hover:text-zinc-950"
-                  aria-label="Wis zoekopdracht"
-                  (click)="clearConversationSearch()"
-                >
-                  <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
-                </button>
-              }
-            </div>
-
-            @if (errorMessage()) {
-              <div class="mt-3 rounded-2xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs text-rose-700">
-                {{ errorMessage() }}
-              </div>
-            }
-          </header>
-
-          <div class="min-h-0 flex-1 overflow-y-auto overscroll-contain px-2 pb-2 pt-1 sm:px-3 sm:pb-3">
-            @if (loadingConversations() && conversations().length === 0) {
-              <div class="flex h-full flex-col items-center justify-center gap-3 px-6 py-20 text-center text-zinc-600">
-                <lucide-icon name="loader-circle" class="h-6 w-6 animate-spin"></lucide-icon>
-                <p class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Gesprekken worden geladen</p>
-              </div>
-            } @else if (conversations().length === 0) {
-              <div class="flex h-full flex-col items-center justify-center px-6 py-20 text-center">
-                <lucide-icon name="message-circle" class="mb-4 h-10 w-10 text-zinc-200"></lucide-icon>
-                <p class="text-sm font-semibold text-zinc-700">Nog geen WhatsApp-gesprekken</p>
-                <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-700">
-                  Nieuwe gesprekken verschijnen hier zodra er vanuit de portal een WhatsApp-bericht is verstuurd.
-                </p>
-              </div>
-            } @else if (filteredConversations().length === 0) {
-              <div class="flex h-full flex-col items-center justify-center px-6 py-20 text-center">
-                <lucide-icon name="search-x" class="mb-4 h-10 w-10 text-zinc-200"></lucide-icon>
-                <p class="text-sm font-semibold text-zinc-700">Geen gesprekken gevonden</p>
-                <p class="mt-2 max-w-xs text-xs leading-relaxed text-zinc-700">
-                  Pas je zoekopdracht of filter aan om weer gesprekken te tonen.
-                </p>
-              </div>
-            } @else {
-              <ul class="space-y-2">
-                @for (conversation of filteredConversations(); track conversation.id) {
-                  <li>
-                    <button
-                      type="button"
-                      class="group flex w-full items-start gap-3 rounded-[1.4rem] border border-transparent px-3 py-4 text-left transition-all hover:border-zinc-200 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900 sm:px-4"
-                      [class.bg-emerald-50]="selectedConversationId() === conversation.id"
-                      [class.border-emerald-200]="selectedConversationId() === conversation.id"
-                      (click)="selectConversation(conversation.id)"
-                    >
-                      <div class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-black text-zinc-700" [class.bg-emerald-100]="conversation.unreadCount > 0 || selectedConversationId() === conversation.id" [class.text-emerald-700]="conversation.unreadCount > 0 || selectedConversationId() === conversation.id">
-                        {{ conversationInitial(conversation) }}
-                        @if (conversation.unreadCount > 0) {
-                          <span class="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500"></span>
-                        }
-                      </div>
-
-                      <div class="min-w-0 flex-1">
-                        <div class="flex items-start justify-between gap-3">
-                          <div class="min-w-0">
-                            <div class="flex items-center gap-2">
-                              <p class="truncate text-sm text-zinc-900" [class.font-black]="conversation.unreadCount > 0 || selectedConversationId() === conversation.id" [class.font-semibold]="conversation.unreadCount === 0 && selectedConversationId() !== conversation.id">
-                                {{ displayName(conversation) }}
-                              </p>
-                              @if (conversation.unreadCount > 0) {
-                                <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                                  {{ conversation.unreadCount }}
-                                </span>
-                              }
-                            </div>
-                            <p class="mt-0.5 truncate text-[11px] text-zinc-700">{{ conversation.phoneNumber }}</p>
-                          </div>
-
-                          <div class="flex shrink-0 flex-col items-end gap-1">
-                            <span class="text-[10px] font-medium uppercase tracking-[0.16em]" [class.text-emerald-700]="selectedConversationId() === conversation.id" [class.text-zinc-700]="selectedConversationId() !== conversation.id">
-                              {{ relativeTime(conversation.lastMessageAt) }}
-                            </span>
-                            <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em]" [class.bg-zinc-100]="conversation.lastMessageDirection === 'inbound'" [class.text-zinc-600]="conversation.lastMessageDirection === 'inbound'" [class.bg-emerald-100]="conversation.lastMessageDirection === 'outbound'" [class.text-emerald-700]="conversation.lastMessageDirection === 'outbound'">
-                              <lucide-icon [name]="conversationDirectionIcon(conversation)" class="h-3 w-3"></lucide-icon>
-                              {{ conversationDirectionLabel(conversation) }}
-                            </span>
-                          </div>
-                        </div>
-
-                        <p class="mt-2 line-clamp-2 break-words text-xs leading-5" [class.font-medium]="conversation.unreadCount > 0" [class.text-zinc-800]="conversation.unreadCount > 0 || selectedConversationId() === conversation.id" [class.text-zinc-700]="conversation.unreadCount === 0 && selectedConversationId() !== conversation.id">
-                          {{ conversationPreview(conversation) }}
-                        </p>
-                      </div>
-                    </button>
-                  </li>
-                }
-              </ul>
-            }
-          </div>
-        </aside>
+        <app-whatsapp-inbox-conversation-list
+          [filteredCount]="filteredConversations().length"
+          [totalCount]="conversations().length"
+          [loadingConversations]="loadingConversations()"
+          [conversationsCount]="conversations().length"
+          [items]="conversationListItems()"
+          [errorMessage]="errorMessage()"
+          [canSend]="canSend()"
+          [sendingPresence]="sendingPresence() !== null"
+          [presenceSelected]="isPresenceSelected('available')"
+          [presenceToggleAriaLabel]="presenceToggleAriaLabel()"
+          [presenceToggleTitle]="presenceToggleTitle()"
+          [presenceToggleIcon]="presenceToggleIcon()"
+          [activeFilter]="conversationListFilter()"
+          [unreadConversationCount]="unreadConversationCount()"
+          [archivedConversationCount]="archivedConversationCount()"
+          [conversationSearchQuery]="conversationSearchQuery()"
+          [hasConversationSearch]="hasConversationSearch()"
+          (openNewConversationDraft)="openNewConversationDraft()"
+          (togglePresence)="togglePresence()"
+          (refresh)="loadConversations()"
+          (filterChange)="conversationListFilter.set($event)"
+          (conversationSearchQueryChange)="conversationSearchQuery.set($event)"
+          (clearConversationSearch)="clearConversationSearch()"
+          (selectConversation)="selectConversation($event)"
+        />
       }
 
       @if (showThreadPane()) {
@@ -767,56 +591,18 @@
             </div>
 
             @if (canUseLeadActions() && isImportantSelectionEnabled()) {
-              <div class="pointer-events-none absolute inset-x-0 bottom-28 z-20 flex justify-center px-3 sm:bottom-36 sm:px-6">
-                <div class="pointer-events-auto w-full max-w-3xl rounded-[1.5rem] border border-zinc-200 bg-white/95 px-3 py-3 shadow-xl backdrop-blur sm:px-4">
-                  <div class="flex flex-col gap-3 sm:flex-row sm:items-end sm:justify-between">
-                    <div class="min-w-0 flex-1">
-                      <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Selectiemodus</p>
-                      <p class="mt-1 text-sm font-semibold text-zinc-900">
-                        {{ selectedImportantCount() }} bericht{{ selectedImportantCount() === 1 ? '' : 'en' }} geselecteerd
-                      </p>
-                      <p class="mt-1 text-xs text-zinc-600">Kies welke berichten je als leadcontext wilt opslaan.</p>
-                    </div>
-
-                    @if (showLinkedLeadServicePicker()) {
-                      <div class="sm:min-w-[16rem] sm:max-w-[18rem] sm:flex-1">
-                        <shared-select
-                          [label]="'Leadservice voor opslaan'"
-                          [options]="linkedLeadServiceOptions()"
-                          [value]="linkedLeadServiceId()"
-                          (valueChange)="updateLinkedLeadServiceId($event)"
-                          [disabled]="linkedLeadLoading() || savingImportantMessages() || attachingMessageId() !== null"
-                        />
-                      </div>
-                    }
-
-                    <div class="flex flex-wrap items-center gap-2 sm:justify-end">
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50"
-                        [disabled]="savingImportantMessages()"
-                        (click)="toggleImportantSelectionMode()"
-                      >
-                        <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
-                        Stop selectie
-                      </button>
-                      <button
-                        type="button"
-                        class="inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300"
-                        [disabled]="selectedImportantCount() === 0 || savingImportantMessages()"
-                        (click)="saveSelectedMessagesToLead()"
-                      >
-                        @if (savingImportantMessages()) {
-                          <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-                        } @else {
-                          <lucide-icon name="bookmark-plus" class="h-3.5 w-3.5"></lucide-icon>
-                        }
-                        Opslaan bij lead
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
+              <app-whatsapp-inbox-selection-bar
+                [selectedCount]="selectedImportantCount()"
+                [showLinkedLeadServicePicker]="showLinkedLeadServicePicker()"
+                [linkedLeadServiceOptions]="linkedLeadServiceOptions()"
+                [linkedLeadServiceId]="linkedLeadServiceId()"
+                [linkedLeadLoading]="linkedLeadLoading()"
+                [savingImportantMessages]="savingImportantMessages()"
+                [attachingMessage]="attachingMessageId() !== null"
+                (linkedLeadServiceIdChange)="updateLinkedLeadServiceId($event)"
+                (cancelSelection)="toggleImportantSelectionMode()"
+                (saveSelection)="saveSelectedMessagesToLead()"
+              />
             }
 
             <footer class="shrink-0 border-t border-zinc-200 bg-white px-3 py-3 sm:px-6 sm:py-4">
@@ -1290,221 +1076,55 @@
   </app-bottom-sheet>
 
   <ng-template #leadContextContent>
-    <div class="px-4 py-4">
-      @if (linkedLead(); as lead) {
-        <div class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-4">
-          <div class="flex items-center gap-3">
-            <div class="flex h-14 w-14 items-center justify-center rounded-2xl bg-emerald-100 text-lg font-black text-emerald-700">
-              {{ (lead.consumer.firstName[0] ?? '') + (lead.consumer.lastName[0] ?? '') }}
-            </div>
-            <div class="min-w-0">
-              <p class="truncate text-sm font-bold text-zinc-900">{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</p>
-              <p class="truncate text-xs text-zinc-700">{{ lead.consumer.phone || activeThreadConversation()?.phoneNumber }}</p>
-              @if (lead.address.city) {
-                <p class="truncate text-xs text-zinc-700">{{ lead.address.city }}</p>
-              }
-            </div>
-          </div>
-
-          <div class="mt-4 flex flex-col gap-2">
-            <button
-              type="button"
-              class="inline-flex items-center justify-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100 disabled:opacity-50"
-              [disabled]="selectedConversation() ? leadRelationshipBusy() !== null : false"
-              (click)="selectedConversation() ? unlinkConversationLead() : clearDraftLead()"
-            >
-              @if (selectedConversation() && leadRelationshipBusy() === 'unlink') {
-                <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-              } @else {
-                <lucide-icon [name]="selectedConversation() ? 'unlink-2' : 'x'" class="h-3.5 w-3.5"></lucide-icon>
-              }
-              {{ selectedConversation() ? 'Ontkoppelen' : 'Lead verwijderen' }}
-            </button>
-          </div>
-        </div>
-      } @else {
-        <div class="rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-4">
-          @if (conversationSuggestedLead(); as suggestedLead) {
-            <div class="rounded-[1.25rem] border border-emerald-200 bg-emerald-50 p-3">
-              <p class="text-[10px] font-black uppercase tracking-[0.18em] text-emerald-700">Voorgestelde lead</p>
-              <p class="mt-2 text-sm font-semibold text-emerald-950">{{ suggestedLead.fullName }}</p>
-              <p class="mt-1 text-xs text-emerald-800">{{ suggestedLead.phone }} @if (suggestedLead.city) { · {{ suggestedLead.city }} }</p>
-              <button
-                type="button"
-                class="mt-3 inline-flex items-center gap-2 rounded-full bg-emerald-600 px-3 py-1.5 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:opacity-50"
-                [disabled]="leadRelationshipBusy() !== null"
-                (click)="linkSuggestedLead()"
-              >
-                @if (leadRelationshipBusy() === 'link') {
-                  <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-                } @else {
-                  <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
-                }
-                Koppel suggestie
-              </button>
-            </div>
-          }
-
-          <div class="mt-3 flex flex-col gap-2">
-            <button
-              type="button"
-              class="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
-              (click)="toggleLeadSearchPanel()"
-            >
-              <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
-              Bestaande lead koppelen
-            </button>
-            @if (selectedConversation()) {
-              <button
-                type="button"
-                class="inline-flex items-center gap-2 rounded-2xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
-                (click)="openCreateLeadPanel()"
-              >
-                <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
-                Nieuwe lead aanmaken
-              </button>
-            }
-          </div>
-        </div>
-      }
-
-      @if (showLeadSearchPanel()) {
-        <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-white p-4">
-          <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Zoek lead</p>
-          <input
-            type="search"
-            class="mt-3 h-10 w-full rounded-xl border border-zinc-300 px-3 text-sm text-zinc-900 outline-none placeholder:text-zinc-600 focus:ring-2 focus:ring-emerald-500/20"
-            placeholder="Zoek op naam, telefoon of e-mail"
-            [value]="leadSearchQuery()"
-            (input)="leadSearchQuery.set($any($event.target).value)"
-          />
-          <button
-            type="button"
-            class="mt-3 inline-flex w-full items-center justify-center gap-2 rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
-            [disabled]="leadSearchLoading()"
-            (click)="searchExistingLeads()"
-          >
-            @if (leadSearchLoading()) {
-              <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-            } @else {
-              <lucide-icon name="search" class="h-3.5 w-3.5"></lucide-icon>
-            }
-            Zoeken
-          </button>
-
-          @if (leadSearchResults().length > 0) {
-            <div class="mt-3 grid gap-2">
-              @for (lead of leadSearchResults(); track lead.id) {
-                <div class="rounded-xl border border-zinc-200 px-3 py-3">
-                  <p class="truncate text-sm font-semibold text-zinc-900">{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</p>
-                  <p class="mt-1 text-xs text-zinc-700">{{ lead.consumer.phone }} @if (lead.address.city) { · {{ lead.address.city }} }</p>
-                  <button
-                    type="button"
-                    class="mt-3 inline-flex items-center gap-2 rounded-full border border-zinc-300 px-3 py-1.5 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-50 disabled:opacity-50"
-                    [disabled]="leadRelationshipBusy() !== null"
-                    (click)="linkConversationLead(lead.id)"
-                  >
-                    <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
-                    {{ selectedConversation() ? 'Koppel' : 'Gebruik' }}
-                  </button>
-                </div>
-              }
-            </div>
-          }
-        </div>
-      }
-
-      @if (selectedConversation() && showCreateLeadPanel()) {
-        <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-white p-4">
-          <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Nieuwe lead</p>
-          <div class="mt-3 grid gap-3">
-            <div class="grid gap-3 sm:grid-cols-2">
-              <shared-input [label]="'Voornaam'" [value]="createLeadFirstName()" [clearable]="false" (valueChange)="createLeadFirstName.set($event)" />
-              <shared-input [label]="'Achternaam'" [value]="createLeadLastName()" [clearable]="false" (valueChange)="createLeadLastName.set($event)" />
-            </div>
-
-            <shared-input [label]="'E-mail'" type="email" [value]="createLeadEmail()" [clearable]="false" (valueChange)="createLeadEmail.set($event)" />
-
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-12">
-              <div class="sm:col-span-8">
-                <shared-autocomplete
-                  [label]="'Straat'"
-                  [value]="createLeadStreet()"
-                  (valueChange)="onCreateLeadStreetChange($event)"
-                  [options]="createLeadAddressOptions()"
-                  [filterMode]="'manual'"
-                  [placeholder]="'Begin met typen voor adreslookup'"
-                />
-              </div>
-              <div class="sm:col-span-4">
-                <shared-input [label]="'Huisnummer'" [value]="createLeadHouseNumber()" [clearable]="false" (valueChange)="onCreateLeadHouseNumberChange($event)" />
-              </div>
-            </div>
-
-            <div class="grid grid-cols-1 gap-3 sm:grid-cols-12">
-              <div class="sm:col-span-4">
-                <shared-input [label]="'Postcode'" [value]="createLeadZipCode()" [clearable]="false" (valueChange)="onCreateLeadZipCodeChange($event)" />
-              </div>
-              <div class="sm:col-span-8">
-                <shared-input [label]="'Plaats'" [value]="createLeadCity()" [clearable]="false" (valueChange)="onCreateLeadCityChange($event)" />
-              </div>
-            </div>
-
-            <shared-select
-              [label]="'Rol'"
-              [options]="consumerRoleOptions()"
-              [value]="createLeadConsumerRole()"
-              (valueChange)="createLeadConsumerRole.set($event ?? 'Owner')"
-            />
-
-            <shared-select
-              [label]="'Diensttype'"
-              [options]="serviceTypeOptions()"
-              [value]="createLeadServiceType()"
-              (valueChange)="createLeadServiceType.set($event ?? '')"
-              [placeholder]="'Selecteer een diensttype'"
-            />
-
-            <shared-select
-              [label]="'Workflow'"
-              [options]="workflowOptions()"
-              [value]="createLeadWorkflowId()"
-              (valueChange)="createLeadWorkflowId.set($event ?? null)"
-              [placeholder]="'Organisatie-standaard'"
-            />
-
-            <div class="rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3">
-              <shared-checkbox
-                [label]="'WhatsApp-berichten toestaan'"
-                [hint]="'Nieuwe lead wordt aangemaakt met WhatsApp-opt-in wanneer dit aan staat.'"
-                [checked]="createLeadWhatsappOptedIn()"
-                (checkedChange)="createLeadWhatsappOptedIn.set($event)"
-              />
-            </div>
-          </div>
-          <div class="mt-4 flex flex-col gap-2">
-            <button
-              type="button"
-              class="inline-flex items-center justify-center gap-2 rounded-xl bg-zinc-900 px-3 py-2 text-xs font-semibold text-white transition hover:bg-zinc-800 disabled:opacity-50"
-              [disabled]="!canCreateConversationLead()"
-              (click)="createLeadFromConversation()"
-            >
-              @if (leadRelationshipBusy() === 'create') {
-                <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-              } @else {
-                <lucide-icon name="user-plus" class="h-3.5 w-3.5"></lucide-icon>
-              }
-              Lead aanmaken
-            </button>
-            <button type="button" class="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100" (click)="closeCreateLeadPanel()">
-              <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
-              Sluiten
-            </button>
-          </div>
-        </div>
-      }
-
-    </div>
+    <app-whatsapp-inbox-lead-panel
+      [linkedLead]="linkedLead()"
+      [activePhoneNumber]="activeThreadConversation()?.phoneNumber ?? null"
+      [selectedConversation]="selectedConversation() !== null"
+      [leadRelationshipBusy]="leadRelationshipBusy()"
+      [suggestedLead]="conversationSuggestedLead()"
+      [showLeadSearchPanel]="showLeadSearchPanel()"
+      [leadSearchQuery]="leadSearchQuery()"
+      [leadSearchResults]="leadSearchResults()"
+      [leadSearchLoading]="leadSearchLoading()"
+      [showCreateLeadPanel]="showCreateLeadPanel()"
+      [createLeadFirstName]="createLeadFirstName()"
+      [createLeadLastName]="createLeadLastName()"
+      [createLeadEmail]="createLeadEmail()"
+      [createLeadStreet]="createLeadStreet()"
+      [createLeadHouseNumber]="createLeadHouseNumber()"
+      [createLeadZipCode]="createLeadZipCode()"
+      [createLeadCity]="createLeadCity()"
+      [createLeadConsumerRole]="createLeadConsumerRole()"
+      [createLeadServiceType]="createLeadServiceType()"
+      [createLeadWorkflowId]="createLeadWorkflowId()"
+      [createLeadWhatsappOptedIn]="createLeadWhatsappOptedIn()"
+      [createLeadAddressOptions]="createLeadAddressOptions()"
+      [consumerRoleOptions]="consumerRoleOptions()"
+      [serviceTypeOptions]="serviceTypeOptions()"
+      [workflowOptions]="workflowOptions()"
+      [canCreateConversationLead]="canCreateConversationLead()"
+      (clearLinkedLead)="clearDraftLead()"
+      (unlinkConversationLead)="unlinkConversationLead()"
+      (linkSuggestedLead)="linkSuggestedLead()"
+      (toggleLeadSearchPanel)="toggleLeadSearchPanel()"
+      (openCreateLeadPanel)="openCreateLeadPanel()"
+      (leadSearchQueryChange)="leadSearchQuery.set($event)"
+      (searchExistingLeads)="searchExistingLeads()"
+      (linkConversationLead)="linkConversationLead($event)"
+      (createLeadFirstNameChange)="createLeadFirstName.set($event)"
+      (createLeadLastNameChange)="createLeadLastName.set($event)"
+      (createLeadEmailChange)="createLeadEmail.set($event)"
+      (createLeadStreetChange)="onCreateLeadStreetChange($event)"
+      (createLeadHouseNumberChange)="onCreateLeadHouseNumberChange($event)"
+      (createLeadZipCodeChange)="onCreateLeadZipCodeChange($event)"
+      (createLeadCityChange)="onCreateLeadCityChange($event)"
+      (createLeadConsumerRoleChange)="createLeadConsumerRole.set($event)"
+      (createLeadServiceTypeChange)="createLeadServiceType.set($event)"
+      (createLeadWorkflowIdChange)="createLeadWorkflowId.set($event)"
+      (createLeadWhatsappOptedInChange)="createLeadWhatsappOptedIn.set($event)"
+      (createLeadFromConversation)="createLeadFromConversation()"
+      (closeCreateLeadPanel)="closeCreateLeadPanel()"
+    />
   </ng-template>
 
   <app-right-sidebar [isOpen]="showLeadContextPanel() && !isMobileViewport()" title="Leadcontext" (closed)="closeLeadContextPanel()">

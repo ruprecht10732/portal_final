@@ -48,15 +48,16 @@ import type {
   WhatsAppPresenceType,
   WhatsAppWebhookPayload,
 } from '../../core/services/whatsapp-inbox.types';
-import { AutocompleteComponent, type AutocompleteOption } from '../../shared/components/autocomplete/autocomplete.component';
+import type { AutocompleteOption } from '../../shared/components/autocomplete/autocomplete.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { BottomSheetComponent } from '../../shared/components/bottom-sheet';
-import { CheckboxComponent } from '../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { InputComponent } from '../../shared/components/input/input.component';
 import { MenuComponent, type MenuItem, type MenuSection } from '../../shared/components/menu/menu.component';
 import { RightSidebarComponent } from '../../shared/components/right-sidebar/right-sidebar.component';
 import { SelectComponent, type SelectOption } from '../../shared/components/select/select.component';
+import { WhatsAppInboxConversationListComponent, type WhatsAppInboxConversationListItem } from './components/whatsapp-inbox-conversation-list.component';
+import { WhatsAppInboxLeadPanelComponent } from './components/whatsapp-inbox-lead-panel.component';
+import { WhatsAppInboxSelectionBarComponent } from './components/whatsapp-inbox-selection-bar.component';
 
 interface WhatsAppConversationEventPayload {
   conversation?: Partial<WhatsAppConversation>;
@@ -183,7 +184,7 @@ const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
 
 @Component({
   selector: 'app-whatsapp-inbox',
-  imports: [CommonModule, TranslateModule, LucideAngularModule, AutocompleteComponent, ButtonComponent, BottomSheetComponent, CheckboxComponent, ConfirmDialogComponent, InputComponent, MenuComponent, RightSidebarComponent, SelectComponent],
+  imports: [CommonModule, TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, MenuComponent, RightSidebarComponent, SelectComponent, WhatsAppInboxConversationListComponent, WhatsAppInboxLeadPanelComponent, WhatsAppInboxSelectionBarComponent],
   templateUrl: './whatsapp-inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
@@ -444,6 +445,22 @@ export class WhatsAppInboxComponent {
 
       return haystack.includes(query);
     });
+  });
+  protected readonly conversationListItems = computed<WhatsAppInboxConversationListItem[]>(() => {
+    const selectedConversationId = this.selectedConversationId();
+    return this.filteredConversations().map(conversation => ({
+      id: conversation.id,
+      initial: this.conversationInitial(conversation),
+      unreadCount: conversation.unreadCount,
+      displayName: this.displayName(conversation),
+      phoneNumber: conversation.phoneNumber,
+      relativeTime: this.relativeTime(conversation.lastMessageAt),
+      inbound: conversation.lastMessageDirection === 'inbound',
+      directionIcon: this.conversationDirectionIcon(conversation),
+      directionLabel: this.conversationDirectionLabel(conversation),
+      preview: this.conversationPreview(conversation),
+      selected: selectedConversationId === conversation.id,
+    }));
   });
   protected readonly canSuggestReply = computed(() => {
     const conversation = this.selectedConversation();
