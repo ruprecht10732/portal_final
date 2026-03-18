@@ -21,7 +21,7 @@ import { UpcomingScheduleComponent } from './components/upcoming-schedule/upcomi
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
-  host: { class: 'lg:flex lg:flex-col lg:flex-1 lg:min-h-0 lg:overflow-y-auto' },
+  host: { class: 'app-page-scroll block min-h-full xl:flex xl:h-full xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-y-auto' },
 })
 export class DashboardComponent {
 }

@@ -80,4 +80,9 @@ body {
     min-height: 0;
     overflow: hidden;
   }
+
+  .app-page-viewport > .app-page-scroll {
+    overflow-y: auto;
+    overflow-x: hidden;
+  }
 }
