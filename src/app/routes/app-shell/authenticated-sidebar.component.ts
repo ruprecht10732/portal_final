@@ -261,11 +261,9 @@ export class AuthenticatedSidebarComponent {
   }
 
   protected handleNavItemLeave(route: string): void {
-    if (this.hoveredTooltip()?.route !== route) {
-      return;
+    if (this.hoveredTooltip()?.route === route) {
+      this.hoveredTooltip.set(null);
     }
-
-    this.hoveredTooltip.set(null);
   }
 
   protected handleNavItemClick(): void {
