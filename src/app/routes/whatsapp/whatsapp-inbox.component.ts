@@ -56,8 +56,10 @@ import { MenuComponent, type MenuItem, type MenuSection } from '../../shared/com
 import { RightSidebarComponent } from '../../shared/components/right-sidebar/right-sidebar.component';
 import { SelectComponent, type SelectOption } from '../../shared/components/select/select.component';
 import { WhatsAppInboxConversationListComponent, type WhatsAppInboxConversationListItem } from './components/whatsapp-inbox-conversation-list.component';
+import { WhatsAppInboxComposerComponent } from './components/whatsapp-inbox-composer.component';
 import { WhatsAppInboxLeadPanelComponent } from './components/whatsapp-inbox-lead-panel.component';
 import { WhatsAppInboxSelectionBarComponent } from './components/whatsapp-inbox-selection-bar.component';
+import { WhatsAppInboxThreadHeaderComponent, type WhatsAppInboxThreadStateBadge } from './components/whatsapp-inbox-thread-header.component';
 
 interface WhatsAppConversationEventPayload {
   conversation?: Partial<WhatsAppConversation>;
@@ -184,7 +186,7 @@ const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
 
 @Component({
   selector: 'app-whatsapp-inbox',
-  imports: [CommonModule, TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, MenuComponent, RightSidebarComponent, SelectComponent, WhatsAppInboxConversationListComponent, WhatsAppInboxLeadPanelComponent, WhatsAppInboxSelectionBarComponent],
+  imports: [CommonModule, TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, MenuComponent, RightSidebarComponent, SelectComponent, WhatsAppInboxComposerComponent, WhatsAppInboxConversationListComponent, WhatsAppInboxLeadPanelComponent, WhatsAppInboxSelectionBarComponent, WhatsAppInboxThreadHeaderComponent],
   templateUrl: './whatsapp-inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
@@ -462,6 +464,7 @@ export class WhatsAppInboxComponent {
       selected: selectedConversationId === conversation.id,
     }));
   });
+  protected readonly threadHeaderBadges = computed<WhatsAppInboxThreadStateBadge[]>(() => this.threadStateBadges());
   protected readonly canSuggestReply = computed(() => {
     const conversation = this.selectedConversation();
     return !!conversation && !this.loadingMessages() && !this.sendingMessage() && !this.suggestingReply();

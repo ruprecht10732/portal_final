@@ -1,0 +1,100 @@
+<footer class="shrink-0 border-t border-zinc-200 bg-white px-3 py-3 sm:px-6 sm:py-4">
+  <div class="mx-auto flex max-w-3xl flex-col gap-3 sm:gap-4">
+    <div class="flex items-center gap-2 rounded-[1.75rem] border border-zinc-200 bg-white px-2 py-2">
+      <shared-menu
+        class="shrink-0 self-center"
+        triggerLabel="Berichttype kiezen"
+        ariaLabel="Berichttype kiezen"
+        triggerVariant="ghost"
+        triggerShape="round"
+        [triggerSize]="'compact'"
+        [iconOnly]="true"
+        [showChevron]="false"
+        [fullWidth]="false"
+        [disabled]="sendingMessage() || !canSend()"
+        [tooltip]="!isMobileViewport() ? 'Berichttype' : undefined"
+        [sections]="composerTypeMenuSections()"
+        (itemSelected)="composerTypeMenuItemSelected.emit($event)"
+      >
+        <lucide-icon menuTrigger name="plus" class="h-5 w-5 text-emerald-700"></lucide-icon>
+      </shared-menu>
+
+      <div class="relative flex-1">
+        <input
+          type="text"
+          class="h-11 w-full bg-transparent px-2 pr-12 text-sm text-zinc-900 outline-none placeholder:text-zinc-600"
+          [value]="composerBody()"
+          [disabled]="sendingMessage() || !canSend()"
+          placeholder="Typ je antwoord..."
+          (input)="composerBodyChange.emit($any($event.target).value)"
+          (focus)="startTypingPresence.emit()"
+          (blur)="stopTypingPresence.emit()"
+        />
+
+        <shared-button
+          class="absolute right-1.5 top-1/2 -translate-y-1/2"
+          variant="ghost"
+          size="compact"
+          shape="round"
+          [iconOnly]="true"
+          [fullWidth]="false"
+          [disabled]="!canSuggestReply()"
+          ariaLabel="AI-antwoord opties openen"
+          [tooltip]="!isMobileViewport() ? 'AI-antwoord' : undefined"
+          (clicked)="openAIComposePanel.emit()"
+        >
+          <lucide-icon [name]="suggestingReply() ? 'loader-circle' : 'sparkles'" [class.animate-spin]="suggestingReply()" class="h-4 w-4 text-emerald-700"></lucide-icon>
+        </shared-button>
+      </div>
+
+      <button
+        type="button"
+        class="inline-flex h-11 w-11 shrink-0 self-center items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-zinc-300"
+        [disabled]="!canSubmitComposer()"
+        [attr.aria-label]="sendButtonLabel()"
+        (click)="sendMessage.emit()"
+      >
+        <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+      </button>
+    </div>
+
+    @if (hasActiveAISuggestion()) {
+      <div
+        class="flex flex-col gap-1 rounded-[1.25rem] border px-3 py-2.5 sm:rounded-3xl sm:px-4 sm:py-3"
+        [class.border-emerald-200]="willLearnEditedAISuggestion()"
+        [class.bg-emerald-50]="willLearnEditedAISuggestion()"
+        [class.border-sky-200]="!willLearnEditedAISuggestion()"
+        [class.bg-sky-50]="!willLearnEditedAISuggestion()"
+      >
+        <div class="flex items-center gap-2">
+          <lucide-icon [name]="willLearnEditedAISuggestion() ? 'sparkles' : 'info'" class="h-4 w-4" [class.text-emerald-700]="willLearnEditedAISuggestion()" [class.text-sky-700]="!willLearnEditedAISuggestion()"></lucide-icon>
+          <p class="text-[11px] font-black uppercase tracking-[0.2em]" [class.text-emerald-800]="willLearnEditedAISuggestion()" [class.text-sky-800]="!willLearnEditedAISuggestion()">
+            {{ willLearnEditedAISuggestion() ? 'Leert Na Verzenden' : 'AI-Draft Actief' }}
+          </p>
+        </div>
+        <p class="text-xs leading-relaxed" [class.text-emerald-800]="willLearnEditedAISuggestion()" [class.text-sky-800]="!willLearnEditedAISuggestion()">
+          {{ aiLearningIndicatorText() }}
+        </p>
+      </div>
+    }
+
+    <div class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200/80 bg-white/90 px-3 py-2.5 sm:gap-3 sm:rounded-3xl sm:border-zinc-200 sm:bg-white sm:px-4 sm:py-3 sm:flex-row sm:items-center sm:justify-between">
+      <p class="text-xs leading-relaxed text-zinc-700">
+        {{ composerHelperText() }}
+      </p>
+      <div class="flex flex-wrap items-center gap-2 sm:justify-end">
+        @if (!isMobileViewport()) {
+          <shared-button
+            variant="primary"
+            [fullWidth]="false"
+            [disabled]="!canSubmitComposer()"
+            (clicked)="sendMessage.emit()"
+          >
+            <lucide-icon name="send" class="mr-2 h-4 w-4"></lucide-icon>
+            {{ sendButtonLabel() }}
+          </shared-button>
+        }
+      </div>
+    </div>
+  </div>
+</footer>
