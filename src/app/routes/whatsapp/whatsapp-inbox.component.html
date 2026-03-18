@@ -1151,296 +1151,114 @@
 
             <footer class="shrink-0 border-t border-zinc-200 bg-white px-3 py-3 sm:px-6 sm:py-4">
               <div class="mx-auto flex max-w-3xl flex-col gap-3 sm:gap-4">
-                <section class="hidden rounded-[1.75rem] border border-zinc-200/80 bg-zinc-50/80 p-3 xl:block">
-                  <div class="flex items-start justify-between gap-3">
-                    <div>
-                      <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-700">Berichttype</p>
-                      <p class="mt-1 text-sm font-semibold text-zinc-900">{{ composerTypeLabel() }}</p>
+                @if (composerType() === 'text') {
+                  <div class="flex items-center gap-2 rounded-[1.75rem] border border-zinc-200 bg-white px-2 py-2">
+                    <shared-menu
+                      class="shrink-0 self-center"
+                      triggerLabel="Berichttype kiezen"
+                      ariaLabel="Berichttype kiezen"
+                      triggerVariant="secondary"
+                      triggerShape="round"
+                      [triggerSize]="'compact'"
+                      [iconOnly]="true"
+                      [showChevron]="false"
+                      [fullWidth]="false"
+                      [disabled]="sendingMessage() || !canSend()"
+                      [tooltip]="!isMobileViewport() ? 'Berichttype' : undefined"
+                      [sections]="composerTypeMenuSections()"
+                      (itemSelected)="onComposerTypeMenuItemSelected($event)"
+                    >
+                      <lucide-icon menuTrigger name="plus" class="h-5 w-5 text-emerald-700"></lucide-icon>
+                    </shared-menu>
+
+                    <div class="relative flex-1">
+                      <input
+                        type="text"
+                        class="h-11 w-full bg-transparent px-2 pr-12 text-sm text-zinc-900 outline-none placeholder:text-zinc-600"
+                        [value]="composerBody()"
+                        [disabled]="sendingMessage() || !canSend()"
+                        placeholder="Typ je antwoord..."
+                        (input)="composerBody.set($any($event.target).value)"
+                        (focus)="startTypingPresence()"
+                        (blur)="stopTypingPresence()"
+                      />
+
+                      <shared-button
+                        class="absolute right-1.5 top-1/2 -translate-y-1/2"
+                        variant="secondary"
+                        size="compact"
+                        shape="round"
+                        [iconOnly]="true"
+                        [fullWidth]="false"
+                        [disabled]="!canSuggestReply()"
+                        ariaLabel="AI-antwoord opties openen"
+                        [tooltip]="!isMobileViewport() ? 'AI-antwoord' : undefined"
+                        (clicked)="openAIComposePanel()"
+                      >
+                        <lucide-icon [name]="suggestingReply() ? 'loader-circle' : 'sparkles'" [class.animate-spin]="suggestingReply()" class="h-4 w-4 text-emerald-700"></lucide-icon>
+                      </shared-button>
                     </div>
+
                     <button
                       type="button"
-                      class="inline-flex min-h-10 items-center justify-center rounded-full border border-zinc-200 bg-white px-3 py-2 text-[11px] font-black uppercase tracking-[0.18em] text-zinc-700 transition-colors hover:bg-zinc-100 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                      [attr.aria-expanded]="showAdvancedComposerOptions()"
-                      (click)="toggleComposerOptions()"
+                      class="inline-flex h-11 w-11 shrink-0 self-center items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-zinc-300"
+                      [disabled]="!canSubmitComposer()"
+                      aria-label="Verstuur bericht"
+                      (click)="sendMessage()"
                     >
-                      <lucide-icon [name]="showAdvancedComposerOptions() ? 'chevron-up' : 'chevron-down'" class="mr-1.5 h-3.5 w-3.5"></lucide-icon>
-                      {{ composerOptionsToggleLabel() }}
+                      <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
                     </button>
                   </div>
-
-                  <div class="mt-3 flex flex-wrap gap-2">
-                    @for (type of primaryComposerTypes; track type.value) {
-                      <button
-                        type="button"
-                        class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                        [class.border-emerald-700]="composerType() === type.value"
-                        [class.bg-emerald-700]="composerType() === type.value"
-                        [class.text-white]="composerType() === type.value"
-                        [class.border-zinc-300]="composerType() !== type.value"
-                        [class.bg-white]="composerType() !== type.value"
-                        [class.text-zinc-700]="composerType() !== type.value"
-                        [disabled]="sendingMessage() || !canSend()"
-                        [attr.aria-pressed]="composerType() === type.value"
-                        (click)="setComposerType(type.value)"
-                      >
-                        <lucide-icon [name]="type.icon" class="mr-1.5 h-3.5 w-3.5"></lucide-icon>
-                        {{ type.label }}
-                      </button>
-                    }
-                  </div>
-
-                  @if (showAdvancedComposerOptions()) {
-                    <div class="mt-3 border-t border-zinc-200/80 pt-3">
-                      <div class="flex flex-wrap gap-2">
-                        @for (type of advancedComposerTypes; track type.value) {
-                          <button
-                            type="button"
-                            class="inline-flex min-h-10 items-center justify-center rounded-full border px-3 py-2 text-xs font-bold uppercase tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-zinc-900 focus-visible:ring-offset-1"
-                            [class.border-emerald-700]="composerType() === type.value"
-                            [class.bg-emerald-700]="composerType() === type.value"
-                            [class.text-white]="composerType() === type.value"
-                            [class.border-zinc-300]="composerType() !== type.value"
-                            [class.bg-white]="composerType() !== type.value"
-                            [class.text-zinc-700]="composerType() !== type.value"
-                            [disabled]="sendingMessage() || !canSend()"
-                            [attr.aria-pressed]="composerType() === type.value"
-                            (click)="setComposerType(type.value)"
-                          >
-                            <lucide-icon [name]="type.icon" class="mr-1.5 h-3.5 w-3.5"></lucide-icon>
-                            {{ type.label }}
-                          </button>
-                        }
-                      </div>
-                    </div>
-                  }
-                </section>
-
-                <section class="xl:hidden">
-                  @if (composerType() === 'text') {
-                    <div class="flex items-center gap-2 rounded-[1.75rem] border border-zinc-200 bg-white px-2 py-2">
+                } @else {
+                  <div class="flex items-center justify-between gap-3 rounded-[1.75rem] border border-zinc-200 bg-white px-3 py-3">
+                    <div class="flex min-w-0 items-center gap-3">
                       <shared-menu
-                        class="shrink-0 self-center"
-                        triggerLabel="Meer berichtopties"
-                        [ariaLabel]="mobileComposerMenuLabel()"
-                        triggerVariant="ghost"
+                        class="shrink-0"
+                        triggerLabel="Berichttype kiezen"
+                        ariaLabel="Berichttype kiezen"
+                        triggerVariant="secondary"
                         triggerShape="round"
                         [triggerSize]="'compact'"
                         [iconOnly]="true"
                         [showChevron]="false"
                         [fullWidth]="false"
                         [disabled]="sendingMessage() || !canSend()"
-                        [sections]="mobileComposerMenuSections()"
-                        (itemSelected)="onComposerMenuItemSelected($event)"
+                        [sections]="composerTypeMenuSections()"
+                        (itemSelected)="onComposerTypeMenuItemSelected($event)"
                       >
-                        <lucide-icon menuTrigger name="plus" class="h-5 w-5"></lucide-icon>
+                        <lucide-icon menuTrigger name="plus" class="h-5 w-5 text-emerald-700"></lucide-icon>
                       </shared-menu>
 
-                      <div class="relative flex-1">
-                        <textarea
-                          class="max-h-32 min-h-11 w-full resize-none bg-transparent px-2 py-2 pr-12 text-sm text-zinc-900 outline-none placeholder:text-zinc-600"
-                          [value]="composerBody()"
-                          [disabled]="sendingMessage() || !canSend()"
-                          placeholder="Typ je antwoord..."
-                          (input)="composerBody.set($any($event.target).value)"
-                          (focus)="startTypingPresence()"
-                          (blur)="stopTypingPresence()"
-                        ></textarea>
-
-                        <shared-button
-                          class="absolute bottom-1.5 right-1.5"
-                          variant="ghost"
-                          size="compact"
-                          shape="round"
-                          [iconOnly]="true"
-                          [fullWidth]="false"
-                          [disabled]="!canSuggestReply()"
-                          ariaLabel="AI reply opties openen"
-                          (clicked)="openAIComposePanel()"
-                        >
-                          <lucide-icon [name]="suggestingReply() ? 'loader-circle' : 'sparkles'" [class.animate-spin]="suggestingReply()" class="h-4 w-4 text-emerald-700"></lucide-icon>
-                        </shared-button>
+                      <div class="min-w-0">
+                        <p class="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-700">Berichttype</p>
+                        <p class="truncate text-sm font-semibold text-zinc-900">{{ composerTypeLabel() }}</p>
                       </div>
-
-                      <button
-                        type="button"
-                        class="inline-flex h-11 w-11 shrink-0 self-center items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-zinc-300"
-                        [disabled]="!canSubmitComposer()"
-                        aria-label="Verstuur bericht"
-                        (click)="sendMessage()"
-                      >
-                        <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
-                      </button>
                     </div>
-                  } @else {
-                    <div class="flex items-center justify-between gap-3 rounded-[1.75rem] border border-zinc-200 bg-white px-3 py-3">
-                      <div class="flex min-w-0 items-center gap-3">
-                        <shared-menu
-                          class="shrink-0"
-                          triggerLabel="Meer berichtopties"
-                          [ariaLabel]="mobileComposerMenuLabel()"
-                          triggerVariant="ghost"
-                          triggerShape="round"
-                          [triggerSize]="'compact'"
-                          [iconOnly]="true"
-                          [showChevron]="false"
-                          [fullWidth]="false"
-                          [disabled]="sendingMessage() || !canSend()"
-                          [sections]="mobileComposerMenuSections()"
-                          (itemSelected)="onComposerMenuItemSelected($event)"
-                        >
-                          <lucide-icon menuTrigger name="plus" class="h-5 w-5"></lucide-icon>
-                        </shared-menu>
 
-                        <div class="min-w-0">
-                          <p class="text-[11px] font-black uppercase tracking-[0.2em] text-zinc-700">Berichttype</p>
-                          <p class="truncate text-sm font-semibold text-zinc-900">{{ composerTypeLabel() }}</p>
-                        </div>
-                      </div>
-
-                      <button
-                        type="button"
-                        class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-zinc-300"
-                        [disabled]="!canSubmitComposer()"
-                        [attr.aria-label]="sendButtonLabel()"
-                        (click)="sendMessage()"
-                      >
-                        <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
-                      </button>
-                    </div>
-                  }
-                </section>
-
-                @if (composerType() === 'text' && !isMobileViewport()) {
-                  <div class="relative">
-                    <textarea
-                      class="min-h-28 w-full rounded-3xl border border-zinc-300 bg-white px-4 py-3 pr-16 text-sm text-zinc-900 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
-                      [value]="composerBody()"
-                      [disabled]="sendingMessage() || !canSend()"
-                      placeholder="Typ je antwoord..."
-                      (input)="composerBody.set($any($event.target).value)"
-                      (focus)="startTypingPresence()"
-                      (blur)="stopTypingPresence()"
-                    ></textarea>
-
-                    <shared-button
-                      class="absolute bottom-3 right-3"
-                      variant="ghost"
-                      size="compact"
-                      shape="round"
-                      [iconOnly]="true"
-                      [fullWidth]="false"
-                      [disabled]="!canSuggestReply()"
-                      ariaLabel="AI reply opties openen"
-                      tooltip="AI reply"
-                      (clicked)="openAIComposePanel()"
+                    <button
+                      type="button"
+                      class="inline-flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-emerald-600 text-white transition-colors hover:bg-emerald-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-600 focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:bg-zinc-300"
+                      [disabled]="!canSubmitComposer()"
+                      [attr.aria-label]="sendButtonLabel()"
+                      (click)="sendMessage()"
                     >
-                      <lucide-icon [name]="suggestingReply() ? 'loader-circle' : 'sparkles'" [class.animate-spin]="suggestingReply()" class="h-4 w-4 text-emerald-700"></lucide-icon>
-                    </shared-button>
+                      <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
+                    </button>
                   </div>
                 }
 
-                @if (isUploadComposer()) {
-                  <div class="grid gap-2 sm:gap-3 md:grid-cols-2">
-                    <label class="flex flex-col gap-2 rounded-[1.5rem] border border-dashed border-zinc-300 bg-zinc-50 px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Upload</span>
-                      <input type="file" class="text-sm" [accept]="uploadAccept()" [disabled]="sendingMessage() || !canSend()" (change)="handleAttachmentSelected($event)" />
-                      @if (composerAttachmentName(); as attachmentName) {
-                        <span class="inline-flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-xs font-medium text-zinc-700">
-                          <span class="truncate">{{ attachmentName }}</span>
-                          <button type="button" class="shrink-0 text-zinc-700 hover:text-zinc-950" (click)="clearComposerAttachment()">Verwijder</button>
-                        </span>
-                      }
-                    </label>
+                @if (composerType() !== 'text') {
+                  <div class="flex items-center justify-between gap-3 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 sm:rounded-3xl sm:px-4">
+                    <div class="min-w-0">
+                      <p class="text-[11px] font-black uppercase tracking-[0.18em] text-zinc-700">Berichttype</p>
+                      <p class="truncate text-sm font-semibold text-zinc-900">{{ composerTypeLabel() }}</p>
+                    </div>
 
-                    @if (showCaptionComposer()) {
-                      <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Caption</span>
-                        <textarea
-                          class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
-                          [value]="composerCaption()"
-                          [disabled]="sendingMessage() || !canSend()"
-                          placeholder="Optionele toelichting"
-                          (input)="composerCaption.set($any($event.target).value)"
-                        ></textarea>
-                      </label>
+                    @if (!isMobileViewport()) {
+                      <shared-button variant="secondary" size="compact" [fullWidth]="false" (clicked)="openComposerTypePanel()">
+                        Instellen
+                      </shared-button>
                     }
-                  </div>
-
-                  @if (composerType() === 'image' || composerType() === 'video') {
-                    <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
-                      <label class="inline-flex min-h-11 items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700">
-                        <input type="checkbox" [checked]="composerViewOnce()" [disabled]="sendingMessage() || !canSend()" (change)="composerViewOnce.set($any($event.target).checked)" />
-                        View once
-                      </label>
-                      <label class="inline-flex min-h-11 items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700">
-                        <input type="checkbox" [checked]="composerCompress()" [disabled]="sendingMessage() || !canSend()" (change)="composerCompress.set($any($event.target).checked)" />
-                        Comprimeren
-                      </label>
-                    </div>
-                  }
-
-                  @if (composerType() === 'audio') {
-                    <label class="inline-flex min-h-11 items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700">
-                      <input type="checkbox" [checked]="composerPushToTalk()" [disabled]="sendingMessage() || !canSend()" (change)="composerPushToTalk.set($any($event.target).checked)" />
-                      Verstuur als spraakbericht
-                    </label>
-                  }
-                }
-
-                @if (composerType() === 'contact') {
-                  <div class="grid gap-2 sm:gap-3 md:grid-cols-2">
-                    <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Naam</span>
-                      <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactName()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactName.set($any($event.target).value)" />
-                    </label>
-                    <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Telefoon</span>
-                      <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactPhone()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactPhone.set($any($event.target).value)" />
-                    </label>
-                  </div>
-                }
-
-                @if (composerType() === 'location') {
-                  <div class="grid gap-2 sm:gap-3 md:grid-cols-2">
-                    <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Latitude</span>
-                      <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLatitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLatitude.set($any($event.target).value)" />
-                    </label>
-                    <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Longitude</span>
-                      <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLongitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLongitude.set($any($event.target).value)" />
-                    </label>
-                  </div>
-                }
-
-                @if (composerType() === 'poll') {
-                  <div class="grid gap-2 sm:gap-3">
-                    <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Vraag</span>
-                      <textarea class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollQuestion()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollQuestion.set($any($event.target).value)"></textarea>
-                    </label>
-                    <div class="grid gap-2 sm:gap-3 md:grid-cols-2">
-                      <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 1</span>
-                        <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionOne()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionOne.set($any($event.target).value)" />
-                      </label>
-                      <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 2</span>
-                        <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionTwo()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionTwo.set($any($event.target).value)" />
-                      </label>
-                      <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 3</span>
-                        <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionThree()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionThree.set($any($event.target).value)" />
-                      </label>
-                      <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:rounded-3xl sm:px-4">
-                        <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 4</span>
-                        <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionFour()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionFour.set($any($event.target).value)" />
-                      </label>
-                    </div>
-                    <label class="flex max-w-full flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-3 py-3 text-sm text-zinc-700 sm:max-w-48 sm:rounded-3xl sm:px-4">
-                      <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Max. antwoorden</span>
-                      <input type="number" min="1" class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollMaxAnswer()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollMaxAnswer.set(+$any($event.target).value || 1)" />
-                    </label>
                   </div>
                 }
 
@@ -1497,13 +1315,20 @@
   </main>
 
   @if (selectedConversation() && composerType() === 'text' && aiComposePanelExpanded() && !isMobileViewport()) {
-    <div class="fixed inset-0 z-60 flex items-center justify-center bg-zinc-950/45 p-4 backdrop-blur-sm" (click)="closeAIComposePanel()">
-      <div class="w-full max-w-lg overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-2xl" (click)="$event.stopPropagation()">
+    <div class="fixed inset-0 z-60 flex items-center justify-center p-4">
+      <button
+        type="button"
+        class="absolute inset-0 bg-zinc-950/45 backdrop-blur-sm"
+        aria-label="AI-antwoord sluiten"
+        (click)="closeAIComposePanel()"
+      ></button>
+
+      <dialog open class="relative m-0 w-full max-w-lg overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-2xl">
         <div class="flex items-start justify-between gap-4 border-b border-zinc-200 px-6 py-5">
           <div>
-            <p class="text-[11px] font-black uppercase tracking-[0.24em] text-emerald-700">AI reply</p>
+            <p class="text-[11px] font-black uppercase tracking-[0.24em] text-emerald-700">AI-antwoord</p>
             <h2 class="mt-1 text-lg font-bold text-zinc-950">Genereer een antwoord</h2>
-            <p class="mt-1 text-sm text-zinc-600">Kies het doel van de reply en voeg eventueel extra context toe.</p>
+            <p class="mt-1 text-sm text-zinc-600">Kies het doel van het antwoord en voeg eventueel extra context toe.</p>
           </div>
 
           <shared-button
@@ -1512,7 +1337,7 @@
             shape="round"
             [iconOnly]="true"
             [fullWidth]="false"
-            ariaLabel="AI reply dialoog sluiten"
+            ariaLabel="AI-antwoord dialoog sluiten"
             (clicked)="closeAIComposePanel()"
           >
             <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
@@ -1552,21 +1377,21 @@
           </shared-button>
           <shared-button variant="primary" [fullWidth]="false" [loading]="suggestingReply()" [disabled]="!canSuggestReply()" (clicked)="suggestReply()">
             <lucide-icon name="sparkles" class="mr-2 h-4 w-4"></lucide-icon>
-            Genereer reply
+            Genereer antwoord
           </shared-button>
         </div>
-      </div>
+      </dialog>
     </div>
   }
 
   <app-bottom-sheet
     [isOpen]="!!selectedConversation() && composerType() === 'text' && aiComposePanelExpanded() && isMobileViewport()"
-    title="AI reply"
+    title="AI-antwoord"
     [maxHeight]="80"
     (closed)="closeAIComposePanel()"
   >
     <div class="space-y-4 px-4 py-4">
-      <p class="text-sm leading-relaxed text-zinc-600">Kies het doel van de reply en voeg eventueel extra context toe.</p>
+      <p class="text-sm leading-relaxed text-zinc-600">Kies het doel van het antwoord en voeg eventueel extra context toe.</p>
 
       <shared-select
         [options]="suggestionScenarioOptions"
@@ -1604,6 +1429,174 @@
           Genereer
         </shared-button>
       </div>
+    </div>
+  </app-bottom-sheet>
+
+  <ng-template #composerTypeConfigContent>
+    @if (isUploadComposer()) {
+      <div class="grid gap-3 md:grid-cols-2">
+        <label class="flex flex-col gap-2 rounded-[1.5rem] border border-dashed border-zinc-300 bg-zinc-50 px-4 py-4 text-sm text-zinc-700">
+          <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Upload</span>
+          <input type="file" class="text-sm" [accept]="uploadAccept()" [disabled]="sendingMessage() || !canSend()" (change)="handleAttachmentSelected($event)" />
+          @if (composerAttachmentName(); as attachmentName) {
+            <span class="inline-flex items-center justify-between gap-3 rounded-xl bg-white px-3 py-2 text-xs font-medium text-zinc-700">
+              <span class="truncate">{{ attachmentName }}</span>
+              <button type="button" class="shrink-0 text-zinc-700 hover:text-zinc-950" (click)="clearComposerAttachment()">Verwijder</button>
+            </span>
+          }
+        </label>
+
+        @if (showCaptionComposer()) {
+          <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+            <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Caption</span>
+            <textarea
+              class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 text-sm outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20"
+              [value]="composerCaption()"
+              [disabled]="sendingMessage() || !canSend()"
+              placeholder="Optionele toelichting"
+              (input)="composerCaption.set($any($event.target).value)"
+            ></textarea>
+          </label>
+        }
+      </div>
+
+      @if (composerType() === 'image' || composerType() === 'video') {
+        <div class="flex flex-col gap-2 sm:flex-row sm:flex-wrap sm:gap-3">
+          <label class="inline-flex min-h-11 items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700">
+            <input type="checkbox" [checked]="composerViewOnce()" [disabled]="sendingMessage() || !canSend()" (change)="composerViewOnce.set($any($event.target).checked)" />
+            View once
+          </label>
+          <label class="inline-flex min-h-11 items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700">
+            <input type="checkbox" [checked]="composerCompress()" [disabled]="sendingMessage() || !canSend()" (change)="composerCompress.set($any($event.target).checked)" />
+            Comprimeren
+          </label>
+        </div>
+      }
+
+      @if (composerType() === 'audio') {
+        <label class="inline-flex min-h-11 items-center gap-2 rounded-full border border-zinc-200 px-3 py-2 text-xs font-medium text-zinc-700">
+          <input type="checkbox" [checked]="composerPushToTalk()" [disabled]="sendingMessage() || !canSend()" (change)="composerPushToTalk.set($any($event.target).checked)" />
+          Verstuur als spraakbericht
+        </label>
+      }
+    }
+
+    @if (composerType() === 'contact') {
+      <div class="grid gap-3 md:grid-cols-2">
+        <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+          <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Naam</span>
+          <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactName()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactName.set($any($event.target).value)" />
+        </label>
+        <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+          <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Telefoon</span>
+          <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerContactPhone()" [disabled]="sendingMessage() || !canSend()" (input)="composerContactPhone.set($any($event.target).value)" />
+        </label>
+      </div>
+    }
+
+    @if (composerType() === 'location') {
+      <div class="grid gap-3 md:grid-cols-2">
+        <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+          <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Latitude</span>
+          <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLatitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLatitude.set($any($event.target).value)" />
+        </label>
+        <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+          <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Longitude</span>
+          <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerLongitude()" [disabled]="sendingMessage() || !canSend()" (input)="composerLongitude.set($any($event.target).value)" />
+        </label>
+      </div>
+    }
+
+    @if (composerType() === 'poll') {
+      <div class="grid gap-3">
+        <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+          <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Vraag</span>
+          <textarea class="min-h-24 rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollQuestion()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollQuestion.set($any($event.target).value)"></textarea>
+        </label>
+        <div class="grid gap-3 md:grid-cols-2">
+          <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+            <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 1</span>
+            <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionOne()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionOne.set($any($event.target).value)" />
+          </label>
+          <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+            <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 2</span>
+            <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionTwo()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionTwo.set($any($event.target).value)" />
+          </label>
+          <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+            <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 3</span>
+            <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionThree()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionThree.set($any($event.target).value)" />
+          </label>
+          <label class="flex flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700">
+            <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Optie 4</span>
+            <input class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollOptionFour()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollOptionFour.set($any($event.target).value)" />
+          </label>
+        </div>
+        <label class="flex max-w-full flex-col gap-2 rounded-[1.5rem] border border-zinc-200 bg-white px-4 py-4 text-sm text-zinc-700 sm:max-w-56">
+          <span class="text-xs font-bold uppercase tracking-[0.18em] text-zinc-700">Max. antwoorden</span>
+          <input type="number" min="1" class="rounded-xl border border-zinc-200 px-3 py-2 outline-none transition-shadow focus:ring-2 focus:ring-emerald-500/20" [value]="composerPollMaxAnswer()" [disabled]="sendingMessage() || !canSend()" (input)="composerPollMaxAnswer.set(+$any($event.target).value || 1)" />
+        </label>
+      </div>
+    }
+  </ng-template>
+
+  @if (activeThreadConversation() && composerTypePanelExpanded() && composerType() !== 'text' && !isMobileViewport()) {
+    <div class="fixed inset-0 z-60 flex items-center justify-center p-4">
+      <button
+        type="button"
+        class="absolute inset-0 bg-zinc-950/45 backdrop-blur-sm"
+        aria-label="Berichttype kiezen sluiten"
+        (click)="closeComposerTypePanel()"
+      ></button>
+
+      <dialog open class="relative m-0 w-full max-w-xl overflow-hidden rounded-[2rem] border border-zinc-200 bg-white shadow-2xl">
+        <div class="flex items-start justify-between gap-4 border-b border-zinc-200 px-6 py-5">
+          <div>
+            <p class="text-[11px] font-black uppercase tracking-[0.24em] text-zinc-700">Berichttype</p>
+            <h2 class="mt-1 text-lg font-bold text-zinc-950">{{ composerTypePanelTitle() }}</h2>
+            <p class="mt-1 text-sm text-zinc-600">{{ composerTypeDescription(composerType()) }}</p>
+          </div>
+
+          <shared-button
+            variant="ghost"
+            size="compact"
+            shape="round"
+            [iconOnly]="true"
+            [fullWidth]="false"
+            ariaLabel="Berichttype dialoog sluiten"
+            (clicked)="closeComposerTypePanel()"
+          >
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+          </shared-button>
+        </div>
+
+        <div class="space-y-4 px-6 py-5">
+          <ng-container [ngTemplateOutlet]="composerTypeConfigContent"></ng-container>
+        </div>
+
+        <div class="flex items-center justify-end gap-3 border-t border-zinc-200 px-6 py-4">
+          <shared-button variant="secondary" [fullWidth]="false" (clicked)="closeComposerTypePanel()">
+            Klaar
+          </shared-button>
+        </div>
+      </dialog>
+    </div>
+  }
+
+  <app-bottom-sheet
+    [isOpen]="!!activeThreadConversation() && composerTypePanelExpanded() && composerType() !== 'text' && isMobileViewport()"
+    title="Berichttype"
+    [maxHeight]="82"
+    (closed)="closeComposerTypePanel()"
+  >
+    <div class="space-y-3 px-4 py-4">
+      <p class="text-sm leading-relaxed text-zinc-600">{{ composerTypeDescription(composerType()) }}</p>
+      <ng-container [ngTemplateOutlet]="composerTypeConfigContent"></ng-container>
+    </div>
+
+    <div bottomSheetFooter class="border-t border-zinc-200 bg-white px-4 py-4">
+      <shared-button variant="primary" [fullWidth]="true" (clicked)="closeComposerTypePanel()">
+        Klaar
+      </shared-button>
     </div>
   </app-bottom-sheet>
 

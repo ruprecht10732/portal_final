@@ -1,3 +1,4 @@
+import { CommonModule } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, ElementRef, Injector, afterNextRender, computed, inject, signal, viewChild } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
@@ -177,7 +178,7 @@ const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
 
 @Component({
   selector: 'app-whatsapp-inbox',
-  imports: [TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, MenuComponent, PageLayoutComponent, SelectComponent],
+  imports: [CommonModule, TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, MenuComponent, PageLayoutComponent, SelectComponent],
   templateUrl: './whatsapp-inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
@@ -213,7 +214,7 @@ export class WhatsAppInboxComponent {
   protected readonly conversationSearchQuery = signal('');
   protected readonly conversationListFilter = signal<ConversationListFilter>('all');
   protected readonly conversationListFilterOptions = conversationListFilterOptions;
-  protected readonly composerOptionsExpanded = signal(false);
+  protected readonly composerTypePanelExpanded = signal(false);
   protected readonly composerType = signal<WhatsAppMessageComposerType>('text');
   protected readonly composerBody = signal('');
   protected readonly composerCaption = signal('');
@@ -302,13 +303,14 @@ export class WhatsAppInboxComponent {
   protected readonly advancedComposerTypes = composerTypeOptions.filter(option =>
     option.value !== 'text' && option.value !== 'image' && option.value !== 'file' && option.value !== 'contact'
   );
-  protected readonly mobileComposerMenuSections = computed<readonly MenuSection[]>(() => [
+  protected readonly composerTypeMenuSections = computed<readonly MenuSection[]>(() => [
     {
       items: this.composerTypes.map(option => ({
         label: option.label,
+        detail: this.composerTypeDescription(option.value),
         icon: option.icon,
         value: option.value,
-        disabled: this.composerType() === option.value,
+        ...(this.composerType() === option.value ? { badge: 'Actief', tone: 'success' as const } : {}),
       })),
     },
   ]);
@@ -467,10 +469,6 @@ export class WhatsAppInboxComponent {
   protected readonly showCaptionComposer = computed(() => {
     const type = this.composerType();
     return type === 'image' || type === 'video' || type === 'file';
-  });
-  protected readonly showAdvancedComposerOptions = computed(() => {
-    const activeType = this.composerType();
-    return this.composerOptionsExpanded() || this.advancedComposerTypes.some(option => option.value === activeType);
   });
   protected readonly hasActiveAISuggestion = computed(() => {
     const conversationId = this.selectedConversationId();
@@ -995,29 +993,47 @@ export class WhatsAppInboxComponent {
     this.aiComposePanelExpanded.set(false);
   }
 
+  protected openComposerTypePanel(): void {
+    this.composerTypePanelExpanded.set(true);
+  }
+
+  protected closeComposerTypePanel(): void {
+    this.composerTypePanelExpanded.set(false);
+  }
+
+  protected onComposerTypeMenuItemSelected(item: MenuItem): void {
+    const type = this.composerTypeFromValue(item.value);
+    if (!type) {
+      return;
+    }
+
+    if (type === 'text') {
+      this.setComposerType(type);
+      this.closeComposerTypePanel();
+      return;
+    }
+
+    if (this.composerType() === type) {
+      this.openComposerTypePanel();
+      return;
+    }
+
+    this.setComposerType(type);
+    this.openComposerTypePanel();
+  }
+
   protected setComposerType(type: WhatsAppMessageComposerType): void {
     if (this.composerType() === type) {
       return;
     }
 
     this.stopTypingPresence();
-    if (this.advancedComposerTypes.some(option => option.value === type)) {
-      this.composerOptionsExpanded.set(true);
-    }
     this.resetComposerState(type);
   }
 
-  protected toggleComposerOptions(): void {
-    this.composerOptionsExpanded.update(expanded => !expanded);
-  }
-
-  protected onComposerMenuItemSelected(item: MenuItem): void {
-    const type = this.composerMenuItemValue(item);
-    if (!type) {
-      return;
-    }
-
+  protected selectComposerType(type: WhatsAppMessageComposerType): void {
     this.setComposerType(type);
+    this.closeComposerTypePanel();
   }
 
   protected clearConversationSearch(): void {
@@ -1657,12 +1673,41 @@ export class WhatsAppInboxComponent {
     return this.composerTypes.find(option => option.value === this.composerType())?.label ?? 'Bericht';
   }
 
-  protected mobileComposerMenuLabel(): string {
-    return this.composerType() === 'text' ? 'Meer berichtopties' : `${this.composerTypeLabel()} kiezen`;
+  protected composerTypeDescription(type: WhatsAppMessageComposerType): string {
+    switch (type) {
+      case 'text':
+        return 'Standaard tekstbericht voor een direct antwoord.';
+      case 'image':
+        return 'Afbeelding versturen met optionele caption.';
+      case 'video':
+        return 'Video of videobericht delen in de chat.';
+      case 'audio':
+        return 'Audiofragment of spraakbericht verzenden.';
+      case 'file':
+        return 'Document, offerte of andere bijlage meesturen.';
+      case 'sticker':
+        return 'Sticker als luchtige reactie versturen.';
+      case 'contact':
+        return 'Contactkaart met naam en telefoonnummer delen.';
+      case 'location':
+        return 'Locatie of live locatie naar de klant sturen.';
+      case 'poll':
+        return 'Poll maken om snel een keuze op te halen.';
+    }
+
+    return 'WhatsApp-bericht versturen.';
   }
 
-  protected composerOptionsToggleLabel(): string {
-    return this.showAdvancedComposerOptions() ? 'Minder opties' : 'Meer opties';
+  protected composerTypeSelectionHint(type: WhatsAppMessageComposerType): string {
+    return this.composerType() === type ? 'Actief berichttype' : this.composerTypeDescription(type);
+  }
+
+  protected composerTypePanelTitle(): string {
+    return `${this.composerTypeLabel()} instellen`;
+  }
+
+  protected mobileComposerMenuLabel(): string {
+    return this.composerType() === 'text' ? 'Meer berichtopties' : `${this.composerTypeLabel()} kiezen`;
   }
 
   protected isPresenceSelected(type: WhatsAppPresenceType): boolean {
@@ -2724,13 +2769,8 @@ export class WhatsAppInboxComponent {
   return message.metadata?.payload ?? null;
   }
 
-  private composerMenuItemValue(item: MenuItem): WhatsAppMessageComposerType | null {
-    const value = item.value;
-    return this.isComposerType(value) ? value : null;
-  }
-
-  private isComposerType(value: string | undefined): value is WhatsAppMessageComposerType {
-    return composerTypeOptions.some(option => option.value === value);
+  private composerTypeFromValue(value: string | undefined): WhatsAppMessageComposerType | null {
+    return composerTypeOptions.find(option => option.value === value)?.value ?? null;
   }
 
   private normalizeReplyContext(reply: WhatsAppPortalReply | undefined): MessageReplyContext | null {
