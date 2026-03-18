@@ -144,6 +144,10 @@ export class PartnersService extends BaseCrudService<
     return this.http.get<PartnerOfferTermsHistoryResponse>(`${this.baseUrl}/offer-terms/history`);
   }
 
+  buildOfferPdfUrl(offerId: string): string {
+    return `${this.baseUrl}/offers/${offerId}/pdf`;
+  }
+
   buildPreviewOfferPhotoUrl(offerId: string, attachmentId: string): string {
     return `${this.baseUrl}/offers/${offerId}/photos/${attachmentId}`;
   }

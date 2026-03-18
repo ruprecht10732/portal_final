@@ -21,6 +21,7 @@ export class PartnersOfferDetailComponent implements OnInit {
   private readonly router = inject(Router);
   protected readonly partnersService = inject(PartnersService);
   private readonly reporter = inject(ErrorReportingService);
+  private currentOfferId: string | null = null;
 
   protected readonly offer = signal<OfferDetailResponse | null>(null);
   protected readonly loading = signal(true);
@@ -34,6 +35,7 @@ export class PartnersOfferDetailComponent implements OnInit {
       this.router.navigate(['/app/offers']);
       return;
     }
+    this.currentOfferId = offerId;
     this.partnersService.getOfferDetail(offerId).subscribe({
       next: (detail) => {
         this.offer.set({
@@ -64,6 +66,13 @@ export class PartnersOfferDetailComponent implements OnInit {
 
     const acceptanceUrl = this.partnersService.buildOfferAcceptanceUrl(token);
     globalThis.open(acceptanceUrl, '_blank', 'noopener,noreferrer');
+  }
+
+  protected offerPdfUrl(): string | null {
+    if (!this.currentOfferId) {
+      return null;
+    }
+    return this.partnersService.buildOfferPdfUrl(this.currentOfferId);
   }
 
   protected formatDate(dateStr: string | null | undefined): string {
