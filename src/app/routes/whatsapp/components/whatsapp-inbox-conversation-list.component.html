@@ -148,65 +148,65 @@
       <ul class="space-y-2">
         @for (item of items(); track item.id) {
           <li>
-            <div
-              class="group flex w-full items-start gap-3 rounded-[1.4rem] border border-transparent px-3 py-4 text-left transition-all hover:border-zinc-200 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900 sm:px-4"
-              [class.bg-emerald-50]="item.selected"
-              [class.border-emerald-200]="item.selected"
-              role="button"
-              tabindex="0"
-              (click)="selectConversation.emit(item.id)"
-              (keydown.enter)="selectConversation.emit(item.id)"
-              (keydown.space)="$event.preventDefault(); selectConversation.emit(item.id)"
-            >
-              <div class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-black text-zinc-700" [class.bg-emerald-100]="item.unreadCount > 0 || item.selected" [class.text-emerald-700]="item.unreadCount > 0 || item.selected">
-                {{ item.initial }}
-                @if (item.unreadCount > 0) {
-                  <span class="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500"></span>
-                }
-              </div>
-
-              <div class="min-w-0 flex-1">
-                <div class="flex items-start justify-between gap-3">
-                  <div class="min-w-0">
-                    <div class="flex items-center gap-2">
-                      <p class="truncate text-sm text-zinc-900" [class.font-black]="item.unreadCount > 0 || item.selected" [class.font-semibold]="item.unreadCount === 0 && !item.selected">
-                        {{ item.displayName }}
-                      </p>
-                      @if (item.leadId) {
-                        <button
-                          type="button"
-                          class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-white text-emerald-700 transition hover:bg-emerald-50 hover:text-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30"
-                          title="Open lead detail"
-                          aria-label="Open lead detail"
-                          (click)="$event.stopPropagation(); openLeadDetail.emit(item.leadId)"
-                        >
-                          <lucide-icon name="external-link" class="h-3.5 w-3.5"></lucide-icon>
-                        </button>
-                      }
-                      @if (item.unreadCount > 0) {
-                        <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
-                          {{ item.unreadCount }}
-                        </span>
-                      }
-                    </div>
-                    <p class="mt-0.5 truncate text-[11px] text-zinc-700">{{ item.phoneNumber }}</p>
-                  </div>
-
-                  <div class="flex shrink-0 flex-col items-end gap-1">
-                    <span class="text-[10px] font-medium uppercase tracking-[0.16em]" [class.text-emerald-700]="item.selected" [class.text-zinc-700]="!item.selected">
-                      {{ item.relativeTime }}
-                    </span>
-                    <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em]" [class.bg-zinc-100]="item.inbound" [class.text-zinc-600]="item.inbound" [class.bg-emerald-100]="!item.inbound" [class.text-emerald-700]="!item.inbound">
-                      <lucide-icon [name]="item.directionIcon" class="h-3 w-3"></lucide-icon>
-                      {{ item.directionLabel }}
-                    </span>
-                  </div>
+            <div class="group flex w-full items-start gap-2">
+              <button
+                type="button"
+                class="flex min-w-0 flex-1 items-start gap-3 rounded-[1.4rem] border border-transparent px-3 py-4 text-left transition-all hover:border-zinc-200 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900 sm:px-4"
+                [class.bg-emerald-50]="item.selected"
+                [class.border-emerald-200]="item.selected"
+                (click)="selectConversation.emit(item.id)"
+              >
+                <div class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-black text-zinc-700" [class.bg-emerald-100]="item.unreadCount > 0 || item.selected" [class.text-emerald-700]="item.unreadCount > 0 || item.selected">
+                  {{ item.initial }}
+                  @if (item.unreadCount > 0) {
+                    <span class="absolute -right-1 -top-1 h-3.5 w-3.5 rounded-full border-2 border-white bg-emerald-500"></span>
+                  }
                 </div>
 
-                <p class="mt-2 line-clamp-2 break-words text-xs leading-5" [class.font-medium]="item.unreadCount > 0" [class.text-zinc-800]="item.unreadCount > 0 || item.selected" [class.text-zinc-700]="item.unreadCount === 0 && !item.selected">
-                  {{ item.preview }}
-                </p>
-              </div>
+                <div class="min-w-0 flex-1">
+                  <div class="flex items-start justify-between gap-3">
+                    <div class="min-w-0">
+                      <div class="flex items-center gap-2">
+                        <p class="truncate text-sm text-zinc-900" [class.font-black]="item.unreadCount > 0 || item.selected" [class.font-semibold]="item.unreadCount === 0 && !item.selected">
+                          {{ item.displayName }}
+                        </p>
+                        @if (item.unreadCount > 0) {
+                          <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
+                            {{ item.unreadCount }}
+                          </span>
+                        }
+                      </div>
+                      <p class="mt-0.5 truncate text-[11px] text-zinc-700">{{ item.phoneNumber }}</p>
+                    </div>
+
+                    <div class="flex shrink-0 flex-col items-end gap-1">
+                      <span class="text-[10px] font-medium uppercase tracking-[0.16em]" [class.text-emerald-700]="item.selected" [class.text-zinc-700]="!item.selected">
+                        {{ item.relativeTime }}
+                      </span>
+                      <span class="inline-flex items-center gap-1 rounded-full px-2 py-1 text-[10px] font-bold uppercase tracking-[0.16em]" [class.bg-zinc-100]="item.inbound" [class.text-zinc-600]="item.inbound" [class.bg-emerald-100]="!item.inbound" [class.text-emerald-700]="!item.inbound">
+                        <lucide-icon [name]="item.directionIcon" class="h-3 w-3"></lucide-icon>
+                        {{ item.directionLabel }}
+                      </span>
+                    </div>
+                  </div>
+
+                  <p class="mt-2 line-clamp-2 break-words text-xs leading-5" [class.font-medium]="item.unreadCount > 0" [class.text-zinc-800]="item.unreadCount > 0 || item.selected" [class.text-zinc-700]="item.unreadCount === 0 && !item.selected">
+                    {{ item.preview }}
+                  </p>
+                </div>
+              </button>
+
+              @if (item.leadId) {
+                <button
+                  type="button"
+                  class="mt-4 inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-white text-emerald-700 transition hover:bg-emerald-50 hover:text-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30"
+                  title="Open lead detail"
+                  aria-label="Open lead detail"
+                  (click)="$event.stopPropagation(); openLeadDetail.emit(item.leadId)"
+                >
+                  <lucide-icon name="external-link" class="h-3.5 w-3.5"></lucide-icon>
+                </button>
+              }
             </div>
           </li>
         }
