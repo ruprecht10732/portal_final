@@ -148,12 +148,15 @@
       <ul class="space-y-2">
         @for (item of items(); track item.id) {
           <li>
-            <button
-              type="button"
+            <div
               class="group flex w-full items-start gap-3 rounded-[1.4rem] border border-transparent px-3 py-4 text-left transition-all hover:border-zinc-200 hover:bg-zinc-50 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-zinc-900 sm:px-4"
               [class.bg-emerald-50]="item.selected"
               [class.border-emerald-200]="item.selected"
+              role="button"
+              tabindex="0"
               (click)="selectConversation.emit(item.id)"
+              (keydown.enter)="selectConversation.emit(item.id)"
+              (keydown.space)="$event.preventDefault(); selectConversation.emit(item.id)"
             >
               <div class="relative flex h-12 w-12 shrink-0 items-center justify-center rounded-2xl bg-zinc-100 text-sm font-black text-zinc-700" [class.bg-emerald-100]="item.unreadCount > 0 || item.selected" [class.text-emerald-700]="item.unreadCount > 0 || item.selected">
                 {{ item.initial }}
@@ -169,6 +172,17 @@
                       <p class="truncate text-sm text-zinc-900" [class.font-black]="item.unreadCount > 0 || item.selected" [class.font-semibold]="item.unreadCount === 0 && !item.selected">
                         {{ item.displayName }}
                       </p>
+                      @if (item.leadId) {
+                        <button
+                          type="button"
+                          class="inline-flex h-7 w-7 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-white text-emerald-700 transition hover:bg-emerald-50 hover:text-emerald-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-500/30"
+                          title="Open lead detail"
+                          aria-label="Open lead detail"
+                          (click)="$event.stopPropagation(); openLeadDetail.emit(item.leadId)"
+                        >
+                          <lucide-icon name="external-link" class="h-3.5 w-3.5"></lucide-icon>
+                        </button>
+                      }
                       @if (item.unreadCount > 0) {
                         <span class="inline-flex min-w-5 items-center justify-center rounded-full bg-emerald-600 px-1.5 py-0.5 text-[10px] font-bold text-white">
                           {{ item.unreadCount }}
@@ -193,7 +207,7 @@
                   {{ item.preview }}
                 </p>
               </div>
-            </button>
+            </div>
           </li>
         }
       </ul>

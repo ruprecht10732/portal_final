@@ -42,4 +42,5 @@ export class WhatsAppInboxThreadHeaderComponent {
   linkSuggestedLead = output<void>();
   openCreateLeadPanel = output<void>();
   toggleImportantSelectionMode = output<void>();
+  openLeadDetail = output<string>();
 }

@@ -17,15 +17,15 @@
           <p class="text-[11px] font-black uppercase tracking-[0.24em] text-emerald-600">{{ isDraftThreadOpen() ? 'Nieuw gesprek' : 'Actief gesprek' }}</p>
           <div class="flex min-w-0 items-center gap-2">
             <h2 class="truncate text-lg font-bold text-zinc-900">{{ activeConversationDisplayName() }}</h2>
-            @if (!conversationLinkedLead()) {
+            @if (conversationLinkedLead(); as linkedLeadSummary) {
               <button
                 type="button"
                 class="inline-flex h-8 w-8 shrink-0 items-center justify-center rounded-full border border-emerald-200 bg-emerald-50 text-emerald-700 transition hover:bg-emerald-100"
-                title="Lead koppelen of aanmaken"
-                aria-label="Lead koppelen of aanmaken"
-                (click)="openLeadContextPanel.emit()"
+                title="Open lead detail"
+                aria-label="Open lead detail"
+                (click)="openLeadDetail.emit(linkedLeadSummary.id)"
               >
-                <lucide-icon name="link-2" class="h-3.5 w-3.5"></lucide-icon>
+                <lucide-icon name="external-link" class="h-3.5 w-3.5"></lucide-icon>
               </button>
             }
           </div>

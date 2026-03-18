@@ -5,6 +5,7 @@ export type WhatsAppInboxConversationListFilter = 'all' | 'unread' | 'archived';
 
 export interface WhatsAppInboxConversationListItem {
   id: string;
+  leadId: string | null;
   initial: string;
   unreadCount: number;
   displayName: string;
@@ -49,4 +50,5 @@ export class WhatsAppInboxConversationListComponent {
   conversationSearchQueryChange = output<string>();
   clearConversationSearch = output<void>();
   selectConversation = output<string>();
+  openLeadDetail = output<string>();
 }

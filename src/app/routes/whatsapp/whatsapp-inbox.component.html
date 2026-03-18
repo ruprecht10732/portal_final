@@ -36,6 +36,7 @@
           (conversationSearchQueryChange)="conversationSearchQuery.set($event)"
           (clearConversationSearch)="clearConversationSearch()"
           (selectConversation)="selectConversation($event)"
+          (openLeadDetail)="navigateToLeadDetail($event)"
         />
       }
 
@@ -67,6 +68,7 @@
               (unlinkConversationLead)="unlinkConversationLead()"
               (linkSuggestedLead)="linkSuggestedLead()"
               (openCreateLeadPanel)="openCreateLeadPanel()"
+              (openLeadDetail)="navigateToLeadDetail($event)"
               (toggleImportantSelectionMode)="toggleImportantSelectionMode()"
             />
 

@@ -459,6 +459,7 @@ export class WhatsAppInboxComponent {
     const selectedConversationId = this.selectedConversationId();
     return this.filteredConversations().map(conversation => ({
       id: conversation.id,
+      leadId: conversation.leadId ?? null,
       initial: this.conversationInitial(conversation),
       unreadCount: conversation.unreadCount,
       displayName: this.displayName(conversation),
@@ -693,6 +694,10 @@ export class WhatsAppInboxComponent {
           this.resetThreadMediaState();
         }
       });
+  }
+
+  protected navigateToLeadDetail(leadId: string): void {
+    void this.router.navigate(['/app/leads', leadId]);
   }
 
   protected selectConversation(conversationId: string): void {
