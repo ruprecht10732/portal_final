@@ -120,284 +120,46 @@
                     }
                   }
                   @for (message of messages(); track message.id) {
-                    <div class="flex" [class.justify-end]="message.direction === 'outbound'" [class.justify-start]="message.direction === 'inbound'">
-                      @if (isImportantSelectionEnabled() && canToggleImportantSelection(message)) {
-                        <label class="mr-3 mt-4 inline-flex h-6 w-6 shrink-0 cursor-pointer items-center justify-center self-start rounded-full border border-zinc-400 bg-white text-zinc-800">
-                          <input
-                            type="checkbox"
-                            class="sr-only"
-                            [checked]="isMessageSelectedAsImportant(message)"
-                            [disabled]="savingImportantMessages()"
-                            (change)="toggleMessageImportantSelection(message)"
-                          />
-                          @if (isMessageSelectedAsImportant(message)) {
-                            <lucide-icon name="check" class="h-3.5 w-3.5"></lucide-icon>
-                          }
-                        </label>
-                      }
-                      <article
-                        class="max-w-[92%] rounded-[1.4rem] border px-3.5 py-3 sm:max-w-[88%] sm:rounded-[1.6rem] sm:px-4"
-                        [class.border-emerald-600]="message.direction === 'outbound'"
-                        [class.bg-emerald-600]="message.direction === 'outbound'"
-                        [class.text-white]="message.direction === 'outbound'"
-                        [class.border-zinc-200]="message.direction === 'inbound'"
-                        [class.bg-white]="message.direction === 'inbound'"
-                        [class.text-zinc-900]="message.direction === 'inbound'"
-                      >
-                        @if (shouldShowMessageActions(message)) {
-                          <div class="mb-2 flex flex-wrap items-center justify-end gap-2">
-                            @if (!isMobileViewport() && !isReactionDisabled(message)) {
-                              <div class="flex flex-wrap items-center gap-1">
-                                @for (emoji of quickReactionChoices; track emoji) {
-                                  <button
-                                    type="button"
-                                    class="inline-flex h-8 w-8 items-center justify-center rounded-full border border-white/15 bg-white/10 text-sm transition-colors hover:bg-white/20 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white/60 focus-visible:ring-offset-1"
-                                    [class.border-zinc-200]="message.direction === 'inbound'"
-                                    [class.bg-white]="message.direction === 'inbound'"
-                                    [class.hover:bg-zinc-100]="message.direction === 'inbound'"
-                                    [disabled]="isReactingMessage(message)"
-                                    [attr.aria-label]="'Reageer met ' + emoji"
-                                    (click)="quickReact(message, emoji)"
-                                  >
-                                    {{ emoji }}
-                                  </button>
-                                }
-                              </div>
-                            }
-                            <shared-menu
-                              triggerLabel="Berichtacties"
-                              [ariaLabel]="'Berichtacties'"
-                              triggerVariant="ghost"
-                              triggerShape="round"
-                              [triggerSize]="'compact'"
-                              [iconOnly]="true"
-                              [showChevron]="false"
-                              [fullWidth]="false"
-                              [disabled]="isReactingMessage(message) || isEditingMessage(message) || isDeletingMessage(message) || isRevokingMessage(message) || isStarringMessage(message) || isDownloadingMessage(message) || isAttachingMessage(message)"
-                              [sections]="messageMenuSections(message)"
-                              (itemSelected)="onMessageMenuItemSelected(message, $event)"
-                            >
-                              @if (isReactingMessage(message) || isEditingMessage(message) || isDeletingMessage(message) || isRevokingMessage(message) || isStarringMessage(message) || isDownloadingMessage(message) || isAttachingMessage(message)) {
-                                <lucide-icon menuTrigger name="loader-circle" class="h-4 w-4 animate-spin"></lucide-icon>
-                              } @else {
-                                <lucide-icon menuTrigger name="ellipsis-vertical" class="h-4 w-4"></lucide-icon>
-                              }
-                            </shared-menu>
-                          </div>
-                        }
-
-                        @if (messageMutationBadges(message); as mutationBadges) {
-                          @if (mutationBadges.length > 0) {
-                            <div class="mb-2 flex flex-wrap items-center gap-1.5">
-                              @for (badge of mutationBadges; track badge.key) {
-                                <span
-                                  class="inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase tracking-[0.18em]"
-                                  [class]="mutationBadgeClass(message, badge)"
-                                >
-                                  <lucide-icon [name]="badge.icon" class="h-3 w-3"></lucide-icon>
-                                  {{ badge.label }}
-                                </span>
-                              }
-                            </div>
-                          }
-                        }
-
-                        @if (messageReplyContext(message); as reply) {
-                          <div class="mb-3 rounded-2xl border px-3 py-2 text-xs leading-relaxed" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
-                            <p class="font-semibold uppercase tracking-[0.14em]">Antwoord op</p>
-                            <p class="mt-1 whitespace-pre-wrap">{{ reply.body }}</p>
-                            @if (reply.messageId) {
-                              <p class="mt-1 text-[10px] uppercase tracking-[0.14em] opacity-70">{{ reply.messageId }}</p>
-                            }
-                          </div>
-                        }
-
-                        @if (messageMedia(message); as media) {
-                          <div class="mb-3 rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
-                            <div class="flex items-center justify-between gap-3 text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">
-                              <span>{{ media.label }}</span>
-                              @if (media.url) {
-                                <a class="underline underline-offset-2" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'" [href]="media.url" target="_blank" rel="noreferrer">{{ messageMediaActionLabel(media) }}</a>
-                              } @else if (canDownloadMessageMedia(message)) {
-                                <button type="button" class="underline underline-offset-2" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'" (click)="requestMessageMediaDownload(message)">{{ messageMediaActionLabel(media) }}</button>
-                              }
-                            </div>
-
-                            @if (media.url && (media.kind === 'image' || media.kind === 'sticker')) {
-                              <img [src]="media.url" [alt]="media.filename || media.label" class="mt-3 max-h-72 rounded-2xl object-contain" (error)="handleMessageMediaLoadError(message)" />
-                            }
-
-                            @if (media.url && (media.kind === 'video' || media.kind === 'video_note')) {
-                              <video controls playsinline class="mt-3 max-h-72 w-full rounded-2xl object-contain" [src]="media.url" (error)="handleMessageMediaLoadError(message)">
-                                <track kind="captions" label="Ondertiteling" srclang="nl" src="data:text/vtt;charset=utf-8,WEBVTT%0A%0A" default />
-                              </video>
-                            }
-
-                            @if (media.url && media.kind === 'audio') {
-                              <audio controls class="mt-3 w-full" [src]="media.url" (error)="handleMessageMediaLoadError(message)"></audio>
-                            }
-
-                            @if (!media.url && isResolvingMessageMedia(message)) {
-                              <div class="mt-3 rounded-2xl border border-dashed px-3 py-4 text-sm" [class.border-white/20]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-300]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
-                                Media laden...
-                              </div>
-                            }
-
-                            @if (!media.url && !isResolvingMessageMedia(message) && !messageMediaLoadError(message) && canDownloadMessageMedia(message)) {
-                              <div class="mt-3 rounded-2xl border border-dashed px-3 py-4 text-sm leading-relaxed" [class.border-white/20]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-300]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
-                                Preview niet direct beschikbaar. Gebruik {{ messageMediaActionLabel(media).toLowerCase() }} om het medium te openen.
-                              </div>
-                            }
-
-                            @if (!media.url && messageMediaLoadError(message); as mediaError) {
-                              <div class="mt-3 rounded-2xl border border-dashed px-3 py-4 text-sm leading-relaxed" [class.border-white/20]="message.direction === 'outbound'" [class.text-emerald-50]="message.direction === 'outbound'" [class.border-zinc-300]="message.direction === 'inbound'" [class.text-zinc-600]="message.direction === 'inbound'">
-                                {{ mediaError }}
-                              </div>
-                            }
-
-                            @if (media.caption) {
-                              <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed" [class]="messageBodyClass(message)">{{ media.caption }}</p>
-                            }
-
-                            @if (media.filename) {
-                              <p class="mt-2 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ media.filename }}</p>
-                            }
-                          </div>
-                        }
-
-                        @if (messageTranscription(message); as transcription) {
-                          <div class="mb-3 rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
-                            <div class="flex flex-wrap items-center gap-2">
-                              <span class="inline-flex rounded-full px-2.5 py-1 text-[11px] font-semibold" [class]="messageTranscriptionBadgeClass(message, transcription)">
-                                {{ transcription.label }}
-                              </span>
-                              @if (transcription.detail) {
-                                <span class="text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">{{ transcription.detail }}</span>
-                              }
-                            </div>
-                            @if (transcription.text) {
-                              <p class="mt-3 whitespace-pre-wrap text-sm leading-relaxed" [class]="messageBodyClass(message)">{{ transcription.text }}</p>
-                            }
-                            @if (transcription.error) {
-                              <p class="mt-3 text-xs leading-relaxed" [class.text-rose-100]="message.direction === 'outbound'" [class.text-rose-700]="message.direction === 'inbound'">{{ transcription.error }}</p>
-                            }
-                          </div>
-                        }
-
-                        @if (messageContacts(message); as contacts) {
-                          @if (contacts.length > 0) {
-                            <div class="mb-3 grid gap-2">
-                              @for (contact of contacts; track contact.name + (contact.phone ?? '')) {
-                                <div class="rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
-                                  <p class="text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">Contact</p>
-                                  <p class="mt-2 text-sm font-semibold" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-900]="message.direction === 'inbound'">{{ contact.name }}</p>
-                                  @if (contact.phone) {
-                                    <p class="mt-1 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ contact.phone }}</p>
-                                  }
-                                </div>
-                              }
-                            </div>
-                          }
-                        }
-
-                        @if (messageLocation(message); as location) {
-                          <div class="mb-3 rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
-                            <div class="flex items-center justify-between gap-3">
-                              <div>
-                                <p class="text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">{{ location.live ? 'Live locatie' : 'Locatie' }}</p>
-                                @if (location.name) {
-                                  <p class="mt-2 text-sm font-semibold" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-900]="message.direction === 'inbound'">{{ location.name }}</p>
-                                }
-                                @if (location.address) {
-                                  <p class="mt-1 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ location.address }}</p>
-                                }
-                                @if (location.latitude && location.longitude) {
-                                  <p class="mt-1 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ location.latitude }}, {{ location.longitude }}</p>
-                                }
-                              </div>
-                              @if (locationMapsUrl(location); as mapsUrl) {
-                                <a class="text-xs font-semibold underline underline-offset-2" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'" [href]="mapsUrl" target="_blank" rel="noreferrer">Kaart</a>
-                              }
-                            </div>
-                          </div>
-                        }
-
-                        @if (messagePoll(message); as poll) {
-                          <div class="mb-3 rounded-2xl border px-3 py-3" [class.border-white/15]="message.direction === 'outbound'" [class.bg-white/10]="message.direction === 'outbound'" [class.border-zinc-200]="message.direction === 'inbound'" [class.bg-zinc-50]="message.direction === 'inbound'">
-                            <p class="text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">Poll</p>
-                            @if (poll.question) {
-                              <p class="mt-2 text-sm font-semibold" [class.text-white]="message.direction === 'outbound'" [class.text-zinc-900]="message.direction === 'inbound'">{{ poll.question }}</p>
-                            }
-                            @if (poll.options.length > 0) {
-                              <div class="mt-3 flex flex-wrap gap-2">
-                                @for (option of poll.options; track option) {
-                                  <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-medium" [class.bg-white/15]="message.direction === 'outbound'" [class.text-white]="message.direction === 'outbound'" [class.bg-white]="message.direction === 'inbound'" [class.text-zinc-700]="message.direction === 'inbound'">{{ option }}</span>
-                                }
-                              </div>
-                            }
-                            @if (poll.selectedOptions.length > 0) {
-                              <p class="mt-3 text-xs font-semibold uppercase tracking-[0.16em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-600]="message.direction === 'inbound'">Gekozen</p>
-                              <div class="mt-2 flex flex-wrap gap-2">
-                                @for (option of poll.selectedOptions; track option) {
-                                  <span class="inline-flex rounded-full px-2.5 py-1 text-xs font-semibold" [class.bg-emerald-500/25]="message.direction === 'outbound'" [class.text-white]="message.direction === 'outbound'" [class.bg-emerald-100]="message.direction === 'inbound'" [class.text-emerald-700]="message.direction === 'inbound'">{{ option }}</span>
-                                }
-                              </div>
-                            }
-                            @if (poll.maxAnswer) {
-                              <p class="mt-3 text-xs" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">Max. antwoorden: {{ poll.maxAnswer }}</p>
-                            }
-                          </div>
-                        }
-
-                        @if (messagePrimaryBody(message); as primaryBody) {
-                          <p class="whitespace-pre-wrap text-sm leading-relaxed" [class]="messageBodyClass(message)">
-                            {{ primaryBody }}
-                          </p>
-                        }
-
-                        @if (originalMessageBody(message); as originalBody) {
-                          <p class="mt-2 text-xs leading-relaxed" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">
-                            Oorspronkelijk: {{ originalBody }}
-                          </p>
-                        }
-
-                        @if (messageReactionSummaries(message); as reactions) {
-                          @if (reactions.length > 0) {
-                            <div class="mt-3 flex flex-wrap gap-1.5">
-                              @for (reaction of reactions; track reaction.key) {
-                                <span
-                                  class="inline-flex items-center gap-1 rounded-full px-2.5 py-1 text-xs font-semibold"
-                                  [class]="reactionChipClass(message)"
-                                  [attr.title]="reaction.tooltip"
-                                >
-                                  <span>{{ reaction.reaction }}</span>
-                                  @if (reaction.count > 1) {
-                                    <span>{{ reaction.count }}</span>
-                                  }
-                                </span>
-                              }
-                            </div>
-                          }
-                        }
-
-                        @if (isMessageStarred(message)) {
-                          <div class="mt-3 flex justify-end">
-                            <span class="inline-flex items-center gap-1 rounded-full bg-amber-100 px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.16em] text-amber-700">
-                              <lucide-icon name="star" class="h-3 w-3"></lucide-icon>
-                              Ster
-                            </span>
-                          </div>
-                        }
-
-                        <div class="mt-3 flex items-center justify-end gap-1 text-[10px] font-medium uppercase tracking-[0.14em]" [class.text-emerald-50]="message.direction === 'outbound'" [class.text-zinc-700]="message.direction === 'inbound'">
-                          <span>{{ relativeTime(message.createdAt) }}</span>
-                          @if (message.direction === 'outbound') {
-                            <lucide-icon [name]="messageStatusIcon(message)" class="h-3 w-3"></lucide-icon>
-                            <span>{{ messageStatusLabel(message) }}</span>
-                          }
-                        </div>
-                      </article>
-                    </div>
+                    <app-whatsapp-inbox-message-item
+                      [message]="message"
+                      [importantSelectionEnabled]="isImportantSelectionEnabled()"
+                      [canToggleImportantSelection]="canToggleImportantSelection(message)"
+                      [selectedAsImportant]="isMessageSelectedAsImportant(message)"
+                      [savingImportantMessages]="savingImportantMessages()"
+                      [shouldShowMessageActions]="shouldShowMessageActions(message)"
+                      [isMobileViewport]="isMobileViewport()"
+                      [isReactionDisabled]="isReactionDisabled(message)"
+                      [quickReactionChoices]="quickReactionChoices"
+                      [isReactingMessage]="isReactingMessage(message)"
+                      [isEditingMessage]="isEditingMessage(message)"
+                      [isDeletingMessage]="isDeletingMessage(message)"
+                      [isRevokingMessage]="isRevokingMessage(message)"
+                      [isStarringMessage]="isStarringMessage(message)"
+                      [isDownloadingMessage]="isDownloadingMessage(message)"
+                      [isAttachingMessage]="isAttachingMessage(message)"
+                      [messageMenuSections]="messageMenuSections(message)"
+                      [mutationBadges]="messageItemMutationBadges(message)"
+                      [replyContext]="messageReplyContext(message)"
+                      [media]="messageItemMedia(message)"
+                      [transcription]="messageItemTranscription(message)"
+                      [contacts]="messageContacts(message)"
+                      [location]="messageItemLocation(message)"
+                      [poll]="messagePoll(message)"
+                      [primaryBody]="messagePrimaryBody(message)"
+                      [originalBody]="originalMessageBody(message)"
+                      [reactionSummaries]="messageReactionSummaries(message)"
+                      [reactionChipClass]="reactionChipClass(message)"
+                      [messageBodyClass]="messageBodyClass(message)"
+                      [isStarred]="isMessageStarred(message)"
+                      [relativeCreatedAt]="relativeTime(message.createdAt)"
+                      [statusIcon]="messageStatusIcon(message)"
+                      [statusLabel]="messageStatusLabel(message)"
+                      (toggleImportantSelection)="toggleMessageImportantSelection(message)"
+                      (quickReact)="quickReact(message, $event)"
+                      (messageMenuItemSelected)="onMessageMenuItemSelected(message, $event)"
+                      (messageMediaDownload)="requestMessageMediaDownload(message)"
+                      (messageMediaLoadError)="handleMessageMediaLoadError(message)"
+                    />
                   }
                 </div>
               }

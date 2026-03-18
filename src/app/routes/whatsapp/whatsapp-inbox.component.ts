@@ -52,12 +52,19 @@ import type { AutocompleteOption } from '../../shared/components/autocomplete/au
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { BottomSheetComponent } from '../../shared/components/bottom-sheet';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
-import { MenuComponent, type MenuItem, type MenuSection } from '../../shared/components/menu/menu.component';
+import { type MenuItem, type MenuSection } from '../../shared/components/menu/menu.component';
 import { RightSidebarComponent } from '../../shared/components/right-sidebar/right-sidebar.component';
 import { SelectComponent, type SelectOption } from '../../shared/components/select/select.component';
 import { WhatsAppInboxConversationListComponent, type WhatsAppInboxConversationListItem } from './components/whatsapp-inbox-conversation-list.component';
 import { WhatsAppInboxComposerComponent } from './components/whatsapp-inbox-composer.component';
 import { WhatsAppInboxLeadPanelComponent } from './components/whatsapp-inbox-lead-panel.component';
+import {
+  WhatsAppInboxMessageItemComponent,
+  type WhatsAppInboxMessageLocation,
+  type WhatsAppInboxMessageMedia,
+  type WhatsAppInboxMessageMutationBadge,
+  type WhatsAppInboxMessageTranscription,
+} from './components/whatsapp-inbox-message-item.component';
 import { WhatsAppInboxSelectionBarComponent } from './components/whatsapp-inbox-selection-bar.component';
 import { WhatsAppInboxThreadHeaderComponent, type WhatsAppInboxThreadStateBadge } from './components/whatsapp-inbox-thread-header.component';
 
@@ -186,7 +193,7 @@ const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
 
 @Component({
   selector: 'app-whatsapp-inbox',
-  imports: [CommonModule, TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, MenuComponent, RightSidebarComponent, SelectComponent, WhatsAppInboxComposerComponent, WhatsAppInboxConversationListComponent, WhatsAppInboxLeadPanelComponent, WhatsAppInboxSelectionBarComponent, WhatsAppInboxThreadHeaderComponent],
+  imports: [CommonModule, TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, RightSidebarComponent, SelectComponent, WhatsAppInboxComposerComponent, WhatsAppInboxConversationListComponent, WhatsAppInboxLeadPanelComponent, WhatsAppInboxMessageItemComponent, WhatsAppInboxSelectionBarComponent, WhatsAppInboxThreadHeaderComponent],
   templateUrl: './whatsapp-inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
@@ -1921,6 +1928,15 @@ export class WhatsAppInboxComponent {
     }));
   }
 
+  protected messageItemMutationBadges(message: WhatsAppMessage): WhatsAppInboxMessageMutationBadge[] {
+    return this.messageMutationBadges(message).map(badge => ({
+      key: badge.key,
+      icon: badge.icon,
+      label: badge.label,
+      className: this.mutationBadgeClass(message, badge),
+    }));
+  }
+
   protected isMessageRemoved(message: WhatsAppMessage): boolean {
     const portal = this.messagePortalMetadata(message);
     return !!portal?.deleted || !!portal?.revoked;
@@ -2118,6 +2134,25 @@ export class WhatsAppInboxComponent {
   };
   }
 
+  protected messageItemMedia(message: WhatsAppMessage): WhatsAppInboxMessageMedia | null {
+    const media = this.messageMedia(message);
+    if (!media) {
+      return null;
+    }
+
+    return {
+      kind: media.kind,
+      label: media.label,
+      url: media.url,
+      caption: media.caption,
+      filename: media.filename,
+      actionLabel: this.messageMediaActionLabel(media),
+      resolving: this.isResolvingMessageMedia(message),
+      loadError: this.messageMediaLoadError(message),
+      canDownload: this.canDownloadMessageMedia(message),
+    };
+  }
+
   protected isResolvingMessageMedia(message: WhatsAppMessage): boolean {
     return !!this.resolvingMessageMediaIds()[message.id];
   }
@@ -2196,6 +2231,22 @@ export class WhatsAppInboxComponent {
   };
   }
 
+  protected messageItemLocation(message: WhatsAppMessage): WhatsAppInboxMessageLocation | null {
+    const location = this.messageLocation(message);
+    if (!location) {
+      return null;
+    }
+
+    return {
+      ...(location.latitude ? { latitude: location.latitude } : {}),
+      ...(location.longitude ? { longitude: location.longitude } : {}),
+      ...(location.name ? { name: location.name } : {}),
+      ...(location.address ? { address: location.address } : {}),
+      ...(location.live ? { live: location.live } : {}),
+      mapsUrl: this.locationMapsUrl(location),
+    };
+  }
+
   protected messagePoll(message: WhatsAppMessage): MessagePollCard | null {
   const portalPoll = this.normalizePortalPoll(this.messagePortalMetadata(message)?.poll);
   if (portalPoll) {
@@ -2264,6 +2315,21 @@ export class WhatsAppInboxComponent {
     default:
       return null;
   }
+  }
+
+  protected messageItemTranscription(message: WhatsAppMessage): WhatsAppInboxMessageTranscription | null {
+    const transcription = this.messageTranscription(message);
+    if (!transcription) {
+      return null;
+    }
+
+    return {
+      label: transcription.label,
+      ...(transcription.detail ? { detail: transcription.detail } : {}),
+      ...(transcription.text ? { text: transcription.text } : {}),
+      ...(transcription.error ? { error: transcription.error } : {}),
+      badgeClass: this.messageTranscriptionBadgeClass(message, transcription),
+    };
   }
 
   protected messagePrimaryBody(message: WhatsAppMessage): string | null {
