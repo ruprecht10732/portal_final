@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { EMPTY, Subject, debounceTime, switchMap, map, catchError, of } from 'rxjs';
+import { EMPTY, Subject, Observable, debounceTime, switchMap, map, catchError, of, forkJoin } from 'rxjs';
 
 import { LeadsService } from '../../../core/services/leads.service';
 import { QuotesService } from '../../../core/services/quotes.service';
@@ -686,6 +686,11 @@ export class OffertesCreateComponent implements OnInit {
     const lead = this.selectedLead();
     if (!lead || this.lineItems().length === 0) return;
 
+    if (this.hasAttachmentUploadsInProgress()) {
+      this.error.set(this.translate.instant('offertes.errors.save'));
+      return;
+    }
+
     this.saving.set(true);
     this.error.set(null);
 
@@ -887,19 +892,37 @@ export class OffertesCreateComponent implements OnInit {
     payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R ? Exclude<R, null> : never,
     status: 'Draft' | 'Sent',
   ): void {
-    this.quotesService.create({ leadId, ...payload }).subscribe({
-      next: created => {
-        // Upload any pending manual files (deferred from create mode)
-        this.uploadPendingFiles(created.id);
-
-        this.navigateAfterSave(created.id, status, 0);
+    this.quotesService.create({ leadId, ...payload }).pipe(
+      switchMap(created =>
+        this.uploadPendingFiles(created.id).pipe(
+          switchMap(() => this.sendIfRequested(created.id, status)),
+          map(() => created.id),
+        ),
+      ),
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: quoteId => {
+        this.navigateToQuote(quoteId, 0);
         this.saving.set(false);
       },
       error: () => {
+        this.clearPendingUploadFlags();
         this.error.set(this.translate.instant('offertes.errors.save'));
         this.saving.set(false);
       },
     });
+  }
+
+  private sendIfRequested(quoteId: string, status: 'Draft' | 'Sent'): Observable<void> {
+    if (status !== 'Sent') {
+      return of(void 0);
+    }
+    return this.quotesService.updateStatus(quoteId, 'Sent').pipe(map(() => void 0));
+  }
+
+  private navigateToQuote(quoteId: string, feedbackCount: number): void {
+    const navigationExtras = feedbackCount > 0 ? { state: { aiFeedbackCount: feedbackCount } } : undefined;
+    void this.router.navigate(['/app/offertes', quoteId], navigationExtras);
   }
 
   private navigateAfterSave(quoteId: string, status: 'Draft' | 'Sent', feedbackCount: number): void {
@@ -1193,14 +1216,21 @@ export class OffertesCreateComponent implements OnInit {
   /**
    * After a quote is created, upload any pending manual files and re-save attachments.
    */
-  private uploadPendingFiles(quoteId: string): void {
+  private uploadPendingFiles(quoteId: string): Observable<void> {
     const pending = this.attachmentDrafts().filter(a => a.pendingFile);
-    if (pending.length === 0) return;
+    if (pending.length === 0) return of(void 0);
 
-    for (const att of pending) {
+    this.attachmentDrafts.update(items =>
+      items.map(item => (item.pendingFile ? { ...item, uploading: true } : item)),
+    );
+
+    const uploads = pending.map(att => {
       const file = att.pendingFile;
-      if (!file) continue;
-      this.quotesService
+      if (!file) {
+        return of({ uid: att.uid, fileKey: '' });
+      }
+
+      return this.quotesService
         .presignAttachmentUpload(quoteId, {
           fileName: file.name,
           contentType: file.type,
@@ -1209,28 +1239,33 @@ export class OffertesCreateComponent implements OnInit {
         .pipe(
           switchMap(presigned =>
             this.quotesService.uploadToPresignedUrl(presigned.uploadUrl, file).pipe(
-              map(() => presigned.fileKey),
+              map(() => ({ uid: att.uid, fileKey: presigned.fileKey })),
             ),
           ),
-          takeUntilDestroyed(this.destroyRef),
-        )
-        .subscribe({
-          next: fileKey => {
-            this.attachmentDrafts.update(items =>
-              items.map(a => {
-                if (a.uid !== att.uid) return a;
-                const { pendingFile: _, ...rest } = a;
-                return { ...rest, fileKey, uploading: false };
-              }),
-            );
-            // Re-save attachments on the newly created quote
-            this.saveAttachmentsToQuote(quoteId);
-          },
-        });
-    }
+        );
+    });
+
+    return forkJoin(uploads).pipe(
+      switchMap(results => {
+        const fileKeyByUid = new Map(results.map(result => [result.uid, result.fileKey]));
+
+        this.attachmentDrafts.update(items =>
+          items.map(item => {
+            const fileKey = fileKeyByUid.get(item.uid);
+            if (!fileKey) {
+              return item.pendingFile ? { ...item, uploading: false } : item;
+            }
+            const { pendingFile: _pendingFile, ...rest } = item;
+            return { ...rest, fileKey, uploading: false };
+          }),
+        );
+
+        return this.saveAttachmentsToQuote(quoteId).pipe(map(() => void 0));
+      }),
+    );
   }
 
-  private saveAttachmentsToQuote(quoteId: string): void {
+  private saveAttachmentsToQuote(quoteId: string): Observable<QuoteResponse> {
     const attachments: QuoteAttachmentRequest[] = this.attachmentDrafts()
       .filter(a => a.fileKey && !a.pendingFile)
       .map((a, i) => ({
@@ -1248,9 +1283,17 @@ export class OffertesCreateComponent implements OnInit {
       ...(u.catalogProductId ? { catalogProductId: u.catalogProductId } : {}),
     }));
 
-    this.quotesService.update(quoteId, { attachments, urls }).pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe();
+    return this.quotesService.update(quoteId, { attachments, urls });
+  }
+
+  private clearPendingUploadFlags(): void {
+    this.attachmentDrafts.update(items =>
+      items.map(item => (item.pendingFile ? { ...item, uploading: false } : item)),
+    );
+  }
+
+  private hasAttachmentUploadsInProgress(): boolean {
+    return this.attachmentDrafts().some(item => item.uploading);
   }
 
   // ── URL Management ──────────────────────────────────────────────────────────
