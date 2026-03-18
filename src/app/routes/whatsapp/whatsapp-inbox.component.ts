@@ -46,6 +46,7 @@ import type {
   WhatsAppWebhookPayload,
 } from '../../core/services/whatsapp-inbox.types';
 import { ButtonComponent } from '../../shared/components/button/button.component';
+import { BottomSheetComponent } from '../../shared/components/bottom-sheet';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { MenuComponent, type MenuItem, type MenuSection } from '../../shared/components/menu/menu.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
@@ -176,7 +177,7 @@ const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
 
 @Component({
   selector: 'app-whatsapp-inbox',
-  imports: [TranslateModule, LucideAngularModule, ButtonComponent, ConfirmDialogComponent, MenuComponent, PageLayoutComponent, SelectComponent],
+  imports: [TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, MenuComponent, PageLayoutComponent, SelectComponent],
   templateUrl: './whatsapp-inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
@@ -978,7 +979,20 @@ export class WhatsAppInboxComponent {
         this.aiSuggestionSeed.set(suggestion);
         this.aiSuggestionConversationId.set(conversation.id);
         this.suggestionScenario.set((effectiveScenario as ReplySuggestionScenario | undefined) ?? this.suggestionScenario());
+        this.aiComposePanelExpanded.set(false);
       });
+  }
+
+  protected openAIComposePanel(): void {
+    if (!this.selectedConversation() || this.composerType() !== 'text') {
+      return;
+    }
+
+    this.aiComposePanelExpanded.set(true);
+  }
+
+  protected closeAIComposePanel(): void {
+    this.aiComposePanelExpanded.set(false);
   }
 
   protected setComposerType(type: WhatsAppMessageComposerType): void {
