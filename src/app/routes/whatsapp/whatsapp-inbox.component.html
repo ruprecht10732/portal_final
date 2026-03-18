@@ -1492,61 +1492,6 @@
         </div>
       }
 
-      @if (canUseLeadActions()) {
-        <div class="mt-4 rounded-[1.5rem] border border-zinc-200 bg-zinc-50 p-4">
-          <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-700">Belangrijke berichten</p>
-          @if (showLinkedLeadServicePicker()) {
-            <div class="mt-3">
-              <shared-select
-                [label]="'Leadservice voor opslaan'"
-                [options]="linkedLeadServiceOptions()"
-                [value]="linkedLeadServiceId()"
-                (valueChange)="updateLinkedLeadServiceId($event)"
-                [disabled]="linkedLeadLoading() || savingImportantMessages() || attachingMessageId() !== null"
-              />
-            </div>
-          }
-          @if (isImportantSelectionEnabled()) {
-            <p class="mt-3 text-xs font-semibold text-zinc-700">
-              {{ selectedImportantCount() }} bericht{{ selectedImportantCount() === 1 ? '' : 'en' }} geselecteerd
-            </p>
-            <div class="mt-3 flex flex-col gap-2">
-              <button
-                type="button"
-                class="inline-flex items-center justify-center gap-2 rounded-xl bg-emerald-600 px-3 py-2 text-xs font-semibold text-white transition hover:bg-emerald-700 disabled:cursor-not-allowed disabled:bg-emerald-300"
-                [disabled]="selectedImportantCount() === 0 || savingImportantMessages()"
-                (click)="saveSelectedMessagesToLead()"
-              >
-                @if (savingImportantMessages()) {
-                  <lucide-icon name="loader-circle" class="h-3.5 w-3.5 animate-spin"></lucide-icon>
-                } @else {
-                  <lucide-icon name="bookmark-plus" class="h-3.5 w-3.5"></lucide-icon>
-                }
-                Opslaan bij lead
-              </button>
-              <button
-                type="button"
-                class="inline-flex items-center justify-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
-                [disabled]="savingImportantMessages()"
-                (click)="toggleImportantSelectionMode()"
-              >
-                <lucide-icon name="x" class="h-3.5 w-3.5"></lucide-icon>
-                Stop selectie
-              </button>
-            </div>
-          } @else {
-            <p class="mt-3 text-xs leading-relaxed text-zinc-700">Selecteer belangrijke berichten in de thread om ze als leadcontext op te slaan.</p>
-            <button
-              type="button"
-              class="mt-3 inline-flex items-center gap-2 rounded-xl border border-zinc-200 bg-white px-3 py-2 text-xs font-semibold text-zinc-700 transition hover:bg-zinc-100"
-              (click)="toggleImportantSelectionMode()"
-            >
-              <lucide-icon name="check-check" class="h-3.5 w-3.5"></lucide-icon>
-              Berichten selecteren
-            </button>
-          }
-        </div>
-      }
     </div>
   </ng-template>
 
