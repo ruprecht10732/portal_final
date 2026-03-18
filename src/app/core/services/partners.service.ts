@@ -132,6 +132,10 @@ export class PartnersService extends BaseCrudService<
     return this.http.get<OfferDetailResponse>(`${this.baseUrl}/offers/${offerId}/detail`);
   }
 
+  regenerateOfferPdf(offerId: string): Observable<{ message: string }> {
+    return this.http.post<{ message: string }>(`${this.baseUrl}/offers/${offerId}/pdf/regenerate`, {});
+  }
+
   getOfferTerms(): Observable<PartnerOfferTermsResponse> {
     return this.http.get<PartnerOfferTermsResponse>(`${this.baseUrl}/offer-terms`);
   }

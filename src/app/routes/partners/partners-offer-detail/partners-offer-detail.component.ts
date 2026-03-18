@@ -1,4 +1,5 @@
-import { ChangeDetectionStrategy, Component, inject, OnInit, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, inject, OnInit, signal, SecurityContext } from '@angular/core';
+import { DomSanitizer, SafeHtml } from '@angular/platform-browser';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe } from '@ngx-translate/core';
 import { PartnersService } from '../../../core/services/partners.service';
@@ -19,6 +20,7 @@ import { PageLayoutComponent } from '../../../shared/components/page-layout/page
 export class PartnersOfferDetailComponent implements OnInit {
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
+  private readonly sanitizer = inject(DomSanitizer);
   protected readonly partnersService = inject(PartnersService);
   private readonly reporter = inject(ErrorReportingService);
   private currentOfferId: string | null = null;
@@ -26,6 +28,7 @@ export class PartnersOfferDetailComponent implements OnInit {
   protected readonly offer = signal<OfferDetailResponse | null>(null);
   protected readonly loading = signal(true);
   protected readonly error = signal<string | null>(null);
+  protected readonly regeneratingPdf = signal(false);
 
   protected readonly centsToEuros = centsToEuros;
 
@@ -36,6 +39,31 @@ export class PartnersOfferDetailComponent implements OnInit {
       return;
     }
     this.currentOfferId = offerId;
+    this.loadOfferDetail(offerId);
+  }
+
+  protected regeneratePdf(): void {
+    if (!this.currentOfferId || this.regeneratingPdf()) {
+      return;
+    }
+
+    this.regeneratingPdf.set(true);
+    this.partnersService.regenerateOfferPdf(this.currentOfferId).subscribe({
+      next: () => {
+        this.loadOfferDetail(this.currentOfferId!);
+        this.regeneratingPdf.set(false);
+      },
+      error: (err) => {
+        const msg = extractErrorMessage(err, 'Kon ondertekende PDF niet opnieuw genereren');
+        this.error.set(msg);
+        this.reporter.report(err);
+        this.regeneratingPdf.set(false);
+      },
+    });
+  }
+
+  private loadOfferDetail(offerId: string): void {
+    this.loading.set(true);
     this.partnersService.getOfferDetail(offerId).subscribe({
       next: (detail) => {
         this.offer.set({
@@ -73,6 +101,15 @@ export class PartnersOfferDetailComponent implements OnInit {
       return null;
     }
     return this.partnersService.buildOfferPdfUrl(this.currentOfferId);
+  }
+
+  protected renderDescription(value: string | null | undefined): SafeHtml {
+    const source = (value ?? '').trim();
+    if (!source) {
+      return '';
+    }
+    const sanitized = this.sanitizer.sanitize(SecurityContext.HTML, source) ?? '';
+    return this.sanitizer.bypassSecurityTrustHtml(sanitized);
   }
 
   protected formatDate(dateStr: string | null | undefined): string {

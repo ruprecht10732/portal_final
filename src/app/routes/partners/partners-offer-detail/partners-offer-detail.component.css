@@ -1,1 +1,16 @@
-/* partners-offer-detail component styles */
+:host ::ng-deep .offer-line-item-rich-text p,
+:host ::ng-deep .offer-line-item-rich-text ul,
+:host ::ng-deep .offer-line-item-rich-text ol {
+	margin: 0 0 0.35rem;
+}
+
+:host ::ng-deep .offer-line-item-rich-text p:last-child,
+:host ::ng-deep .offer-line-item-rich-text ul:last-child,
+:host ::ng-deep .offer-line-item-rich-text ol:last-child {
+	margin-bottom: 0;
+}
+
+:host ::ng-deep .offer-line-item-rich-text ul,
+:host ::ng-deep .offer-line-item-rich-text ol {
+	padding-left: 1.1rem;
+}
