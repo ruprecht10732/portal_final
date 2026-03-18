@@ -150,13 +150,7 @@ export class PartnerOfferComponent implements OnInit {
   });
 
   protected readonly summaryPlainDisplay = computed(() => {
-    const summary = this.summaryDisplay();
-    return summary
-      .replaceAll('**', '')
-      .replaceAll(/^\d+\.\s+/gm, '')
-      .replaceAll(/^\s*-\s+/gm, '')
-      .replaceAll(/\n+/g, ' ')
-      .trim();
+    return this.normalizeSummaryForPlainText(this.summaryDisplay());
   });
 
   protected readonly constructionYearDisplay = computed(() => {
@@ -578,6 +572,31 @@ export class PartnerOfferComponent implements OnInit {
       .trim();
 
     return normalized || 'Afbeelding';
+  }
+
+  private normalizeSummaryForPlainText(value: string): string {
+    const decoded = this.decodeHtmlEntities(value);
+    return decoded
+      .replaceAll(/<[^>]*>/g, ' ')
+      .replaceAll('**', '')
+      .replaceAll(/^\d+\.\s+/gm, '')
+      .replaceAll(/^\s*-\s+/gm, '')
+      .replaceAll(/\n+/g, ' ')
+      .replaceAll(/\s+/g, ' ')
+      .trim();
+  }
+
+  private decodeHtmlEntities(value: string): string {
+    return value
+      .replaceAll('&nbsp;', ' ')
+      .replaceAll('&#160;', ' ')
+      .replaceAll('&lt;', '<')
+      .replaceAll('&gt;', '>')
+      .replaceAll('&amp;', '&')
+      .replaceAll('&quot;', '"')
+      .replaceAll('&#34;', '"')
+      .replaceAll('&#39;', "'")
+      .replaceAll('&apos;', "'");
   }
 
   private validateSlots(slots: TimeSlot[], requireAtLeastOne: boolean): string[] {
