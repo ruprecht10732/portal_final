@@ -5,10 +5,12 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { EMPTY, catchError, finalize } from 'rxjs';
+import { AddressService, type AddressSuggestion } from '../../core/services/address.service';
+import { CONSUMER_ROLE_OPTIONS, type ConsumerRole, type CreateLeadRequest, type Lead, type LeadService } from '../../core/services/leads.types';
+import { OrganizationService, type WorkflowEngineWorkflow } from '../../core/services/organization.service';
 import { ToastService } from '../../core/services/toast.service';
 import { SSEService, type SSEEvent } from '../../core/services/sse.service';
 import { LeadsService } from '../../core/services/leads.service';
-import type { CreateLeadRequest, Lead, LeadService } from '../../core/services/leads.types';
 import { ServiceTypesService } from '../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../core/services/service-types.types';
 import { WhatsAppDeviceStatusService } from '../../core/services/whatsapp-device-status.service';
@@ -46,11 +48,14 @@ import type {
   WhatsAppPresenceType,
   WhatsAppWebhookPayload,
 } from '../../core/services/whatsapp-inbox.types';
+import { AutocompleteComponent, type AutocompleteOption } from '../../shared/components/autocomplete/autocomplete.component';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { BottomSheetComponent } from '../../shared/components/bottom-sheet';
+import { CheckboxComponent } from '../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
+import { InputComponent } from '../../shared/components/input/input.component';
 import { MenuComponent, type MenuItem, type MenuSection } from '../../shared/components/menu/menu.component';
-import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
+import { RightSidebarComponent } from '../../shared/components/right-sidebar/right-sidebar.component';
 import { SelectComponent, type SelectOption } from '../../shared/components/select/select.component';
 
 interface WhatsAppConversationEventPayload {
@@ -178,7 +183,7 @@ const conversationListFilterOptions: readonly ConversationListFilterOption[] = [
 
 @Component({
   selector: 'app-whatsapp-inbox',
-  imports: [CommonModule, TranslateModule, LucideAngularModule, ButtonComponent, BottomSheetComponent, ConfirmDialogComponent, MenuComponent, PageLayoutComponent, SelectComponent],
+  imports: [CommonModule, TranslateModule, LucideAngularModule, AutocompleteComponent, ButtonComponent, BottomSheetComponent, CheckboxComponent, ConfirmDialogComponent, InputComponent, MenuComponent, RightSidebarComponent, SelectComponent],
   templateUrl: './whatsapp-inbox.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-hidden' },
@@ -188,6 +193,8 @@ export class WhatsAppInboxComponent {
 
   private readonly inbox = inject(WhatsAppInboxService);
   private readonly leads = inject(LeadsService);
+  private readonly addressService = inject(AddressService);
+  private readonly orgService = inject(OrganizationService);
   private readonly route = inject(ActivatedRoute);
   private readonly router = inject(Router);
   private readonly serviceTypesService = inject(ServiceTypesService);
@@ -226,6 +233,9 @@ export class WhatsAppInboxComponent {
   protected readonly composerPushToTalk = signal(false);
   protected readonly composerContactName = signal('');
   protected readonly composerContactPhone = signal('');
+  protected readonly composerContactLeadSearchQuery = signal('');
+  protected readonly composerContactLeadSearchResults = signal<Lead[]>([]);
+  protected readonly composerContactLeadSearchLoading = signal(false);
   protected readonly composerLatitude = signal('');
   protected readonly composerLongitude = signal('');
   protected readonly composerPollQuestion = signal('');
@@ -268,12 +278,14 @@ export class WhatsAppInboxComponent {
   protected readonly linkedLeadLoading = signal(false);
   protected readonly linkedLeadServiceId = signal<string | null>(null);
   protected readonly availableServiceTypes = signal<ServiceTypeItem[]>([]);
+  protected readonly workflowProfiles = signal<WorkflowEngineWorkflow[]>([]);
   protected readonly leadSearchQuery = signal('');
   protected readonly leadSearchResults = signal<Lead[]>([]);
   protected readonly leadSearchLoading = signal(false);
   protected readonly leadRelationshipBusy = signal<'link' | 'unlink' | 'create' | null>(null);
   protected readonly showLeadSearchPanel = signal(false);
   protected readonly showCreateLeadPanel = signal(false);
+  protected readonly showLeadContextPanel = signal(false);
   protected readonly createLeadFirstName = signal('');
   protected readonly createLeadLastName = signal('');
   protected readonly createLeadEmail = signal('');
@@ -282,7 +294,13 @@ export class WhatsAppInboxComponent {
   protected readonly createLeadZipCode = signal('');
   protected readonly createLeadCity = signal('');
   protected readonly createLeadServiceType = signal('');
-  protected readonly createLeadConsumerRole = signal<'Owner' | 'Tenant' | 'Landlord'>('Owner');
+  protected readonly createLeadConsumerRole = signal<ConsumerRole>('Owner');
+  protected readonly createLeadWorkflowId = signal<string | null>(null);
+  protected readonly createLeadWhatsappOptedIn = signal(true);
+  protected readonly createLeadAddressOptions = signal<AutocompleteOption[]>([]);
+  protected readonly createLeadAddressSuggestions = signal<AddressSuggestion[]>([]);
+  protected readonly createLeadLatitude = signal<number | null>(null);
+  protected readonly createLeadLongitude = signal<number | null>(null);
   protected readonly isMobileViewport = signal(false);
   protected readonly aiComposePanelExpanded = signal(false);
   protected readonly historyPagination = signal<WhatsAppHistoryPagination | null>(null);
@@ -319,6 +337,7 @@ export class WhatsAppInboxComponent {
   private readonly threadScrollContainer = viewChild<ElementRef<HTMLDivElement>>('threadScrollContainer');
   private typingPresenceConversationId: string | null = null;
   private routeIntent: RouteConversationIntent | null = null;
+  private createLeadAddressSearchTimer: ReturnType<typeof setTimeout> | null = null;
 
   protected readonly selectedConversation = computed(() => {
     const conversationId = this.selectedConversationId();
@@ -465,6 +484,20 @@ export class WhatsAppInboxComponent {
     }));
   });
   protected readonly showLinkedLeadServicePicker = computed(() => this.linkedLeadServiceOptions().length > 1);
+  protected readonly consumerRoleOptions = computed<SelectOption<ConsumerRole>[]>(() => CONSUMER_ROLE_OPTIONS);
+  protected readonly workflowOptions = computed<SelectOption<string | null>[]>(() => [
+    { label: 'Organisatie-standaard', value: null },
+    ...this.workflowProfiles().map(workflow => ({
+      label: workflow.name,
+      value: workflow.id,
+    })),
+  ]);
+  protected readonly serviceTypeOptions = computed<SelectOption<string>[]>(() =>
+    this.availableServiceTypes().map(item => ({
+      label: item.name,
+      value: item.name,
+    }))
+  );
   protected readonly isUploadComposer = computed(() => this.isUploadType(this.composerType()));
   protected readonly showCaptionComposer = computed(() => {
     const type = this.composerType();
@@ -540,8 +573,15 @@ export class WhatsAppInboxComponent {
 
     this.deviceStatus.startPolling();
     this.loadServiceTypes();
+    this.loadWorkflows();
     this.loadConversations();
     this.subscribeToRealtimeEvents();
+    this.destroyRef.onDestroy(() => {
+      if (this.createLeadAddressSearchTimer) {
+        clearTimeout(this.createLeadAddressSearchTimer);
+        this.createLeadAddressSearchTimer = null;
+      }
+    });
     this.route.queryParamMap
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe((queryParams) => {
@@ -573,6 +613,17 @@ export class WhatsAppInboxComponent {
       )
       .subscribe((response) => {
         this.availableServiceTypes.set(response.items ?? []);
+      });
+  }
+
+  protected loadWorkflows(): void {
+    this.orgService.getWorkflowEngineWorkflows()
+      .pipe(
+        catchError(() => EMPTY),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(workflows => {
+        this.workflowProfiles.set(workflows);
       });
   }
 
@@ -690,6 +741,7 @@ export class WhatsAppInboxComponent {
   }
 
   protected closeActiveThread(): void {
+    this.showLeadContextPanel.set(false);
     if (this.selectedConversation()) {
       this.closeConversation();
       return;
@@ -701,8 +753,17 @@ export class WhatsAppInboxComponent {
     this.openDraftConversation();
   }
 
+  protected openLeadContextPanel(): void {
+    this.showLeadContextPanel.set(true);
+  }
+
+  protected closeLeadContextPanel(): void {
+    this.showLeadContextPanel.set(false);
+  }
+
   protected toggleLeadSearchPanel(): void {
     const nextValue = !this.showLeadSearchPanel();
+    this.showLeadContextPanel.set(true);
     this.showLeadSearchPanel.set(nextValue);
     if (nextValue) {
       this.showCreateLeadPanel.set(false);
@@ -714,12 +775,69 @@ export class WhatsAppInboxComponent {
       return;
     }
     this.prefillCreateLeadFromConversation();
+    this.showLeadContextPanel.set(true);
     this.showCreateLeadPanel.set(true);
     this.showLeadSearchPanel.set(false);
   }
 
   protected closeCreateLeadPanel(): void {
     this.showCreateLeadPanel.set(false);
+  }
+
+  protected onCreateLeadStreetChange(value: string): void {
+    this.createLeadStreet.set(value);
+
+    const match = this.createLeadAddressSuggestions().find(suggestion => suggestion.label === value);
+    if (match) {
+      this.applyCreateLeadAddressSuggestion(match);
+      return;
+    }
+
+    this.clearCreateLeadCoordinates();
+    this.queueCreateLeadAddressLookup(value);
+  }
+
+  protected onCreateLeadHouseNumberChange(value: string): void {
+    this.createLeadHouseNumber.set(value);
+    this.clearCreateLeadCoordinates();
+  }
+
+  protected onCreateLeadZipCodeChange(value: string): void {
+    this.createLeadZipCode.set(value);
+    this.clearCreateLeadCoordinates();
+  }
+
+  protected onCreateLeadCityChange(value: string): void {
+    this.createLeadCity.set(value);
+    this.clearCreateLeadCoordinates();
+  }
+
+  protected searchComposerContactLeads(): void {
+    const query = this.composerContactLeadSearchQuery().trim();
+    if (query.length < 2) {
+      this.composerContactLeadSearchResults.set([]);
+      return;
+    }
+
+    this.composerContactLeadSearchLoading.set(true);
+    this.leads.list({ search: query, pageSize: 6 })
+      .pipe(
+        catchError(error => {
+          this.toast.error(this.normalizeError(error));
+          return EMPTY;
+        }),
+        finalize(() => this.composerContactLeadSearchLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((response) => this.composerContactLeadSearchResults.set(response.items ?? []));
+  }
+
+  protected selectComposerContactLead(lead: Lead): void {
+    const fullName = `${lead.consumer.firstName} ${lead.consumer.lastName}`.trim();
+    this.composerContactName.set(fullName);
+    this.composerContactPhone.set(lead.consumer.phone ?? '');
+    this.composerContactLeadSearchQuery.set(fullName);
+    this.composerContactLeadSearchResults.set([]);
   }
 
   protected searchExistingLeads(): void {
@@ -815,6 +933,8 @@ export class WhatsAppInboxComponent {
       return;
     }
 
+    const workflowId = this.createLeadWorkflowId()?.trim() || '';
+
     const payload: CreateLeadRequest = {
       firstName: this.createLeadFirstName().trim(),
       lastName: this.createLeadLastName().trim(),
@@ -826,9 +946,25 @@ export class WhatsAppInboxComponent {
       city: this.createLeadCity().trim(),
       serviceType: this.createLeadServiceType().trim(),
       source: 'whatsapp_inbox',
-      whatsappOptedIn: true,
-      ...(this.createLeadEmail().trim() ? { email: this.createLeadEmail().trim() } : {}),
+      whatsappOptedIn: this.createLeadWhatsappOptedIn(),
     };
+
+    const email = this.createLeadEmail().trim();
+    const latitude = this.createLeadLatitude();
+    const longitude = this.createLeadLongitude();
+
+    if (email) {
+      payload.email = email;
+    }
+    if (latitude !== null) {
+      payload.latitude = latitude;
+    }
+    if (longitude !== null) {
+      payload.longitude = longitude;
+    }
+    if (workflowId) {
+      payload.workflowId = workflowId;
+    }
 
     this.leadRelationshipBusy.set('create');
     this.inbox.createLeadFromConversation(conversation.id, payload)
@@ -908,6 +1044,7 @@ export class WhatsAppInboxComponent {
   protected sendMessage(): void {
     const conversation = this.selectedConversation();
     const isDraftConversation = this.isDraftThreadOpen();
+    const shouldCloseComposerPanel = this.composerType() !== 'text';
     if ((!conversation && !isDraftConversation) || this.sendingMessage() || !this.canSend() || this.composerIsEncodingAttachment()) {
       return;
     }
@@ -940,6 +1077,9 @@ export class WhatsAppInboxComponent {
       )
       .subscribe(({ conversation: updatedConversation, message }) => {
         this.resetComposerState();
+        if (shouldCloseComposerPanel) {
+          this.closeComposerTypePanel();
+        }
         if (!conversation) {
           this.clearDraftConversationState(false);
           this.upsertConversation(updatedConversation);
@@ -3161,6 +3301,64 @@ export class WhatsAppInboxComponent {
     this.createLeadZipCode.set('');
     this.createLeadCity.set(this.conversationSuggestedLead()?.city ?? '');
     this.createLeadServiceType.set('');
+    this.createLeadWorkflowId.set(null);
+    this.createLeadWhatsappOptedIn.set(true);
+    this.createLeadAddressOptions.set([]);
+    this.createLeadAddressSuggestions.set([]);
+    this.createLeadLatitude.set(null);
+    this.createLeadLongitude.set(null);
+  }
+
+  private queueCreateLeadAddressLookup(queryValue: string): void {
+    if (this.createLeadAddressSearchTimer) {
+      clearTimeout(this.createLeadAddressSearchTimer);
+      this.createLeadAddressSearchTimer = null;
+    }
+
+    const query = queryValue.trim();
+    if (query.length < 3) {
+      this.createLeadAddressOptions.set([]);
+      this.createLeadAddressSuggestions.set([]);
+      return;
+    }
+
+    this.createLeadAddressSearchTimer = setTimeout(() => {
+      this.addressService.search(query)
+        .pipe(
+          catchError(() => EMPTY),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe(results => {
+          this.createLeadAddressSuggestions.set(results);
+          this.createLeadAddressOptions.set(results.map(address => ({
+            label: address.label,
+            value: address.label,
+          })));
+        });
+    }, 250);
+  }
+
+  private applyCreateLeadAddressSuggestion(suggestion: AddressSuggestion): void {
+    this.createLeadStreet.set(suggestion.street ?? '');
+    this.createLeadHouseNumber.set(suggestion.houseNumber ?? '');
+    this.createLeadZipCode.set(suggestion.zipCode ?? '');
+    this.createLeadCity.set(suggestion.city ?? '');
+    this.createLeadLatitude.set(this.parseCreateLeadCoordinate(suggestion.lat));
+    this.createLeadLongitude.set(this.parseCreateLeadCoordinate(suggestion.lon));
+  }
+
+  private clearCreateLeadCoordinates(): void {
+    this.createLeadLatitude.set(null);
+    this.createLeadLongitude.set(null);
+  }
+
+  private parseCreateLeadCoordinate(value?: string): number | null {
+    if (!value) {
+      return null;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : null;
   }
 
   private splitName(value: string): [string, string] {
@@ -3308,6 +3506,9 @@ export class WhatsAppInboxComponent {
     this.composerPushToTalk.set(false);
     this.composerContactName.set('');
     this.composerContactPhone.set('');
+    this.composerContactLeadSearchQuery.set('');
+    this.composerContactLeadSearchResults.set([]);
+    this.composerContactLeadSearchLoading.set(false);
     this.composerLatitude.set('');
     this.composerLongitude.set('');
     this.composerPollQuestion.set('');
