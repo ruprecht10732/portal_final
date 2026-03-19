@@ -649,3 +649,46 @@ export interface GenerateQuoteJobsListResponse {
   total: number;
   page: number;
 }
+
+// ── Subsidy Analyzer Job types ────────────────────────────────────────────────
+
+export type SubsidyAnalysisJobStatus = 'pending' | 'running' | 'completed' | 'failed';
+
+export interface StartSubsidyAnalysisResponse {
+  jobId: string;
+  status: SubsidyAnalysisJobStatus;
+}
+
+export interface SubsidyAnalysisJobResponse {
+  jobId: string;
+  status: SubsidyAnalysisJobStatus;
+  step: string;
+  progressPercent: number;
+  error?: string;
+  result?: {
+    measure_type_id: string;
+    installation_meldcode_id: string;
+    confidence: 'high' | 'medium' | 'low';
+    reasoning: string;
+  };
+  createdAt: string;
+  startedAt?: string;
+  updatedAt: string;
+  finishedAt?: string;
+}
+
+export interface AnalyzeSubsidyDraftRequest {
+  items: QuoteItemRequest[];
+}
+
+export interface AnalyzeSubsidyDraftResult {
+  measure_type_id?: string | null;
+  measure_type_ids?: string[];
+  installation_meldcode_id?: string | null;
+  confidence?: 'high' | 'medium' | 'low';
+  reasoning?: string;
+}
+
+export interface AnalyzeSubsidyDraftResponse {
+  result: AnalyzeSubsidyDraftResult;
+}

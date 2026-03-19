@@ -24,6 +24,7 @@ import type {
   GenerateQuoteJobFeedbackRequest,
   GenerateQuoteJobResponse,
   GenerateQuoteJobsListResponse,
+
   ExternalAccountingProvider,
   ProviderIntegrationStatusResponse,
   MoneybirdAuthorizeURLResponse,
@@ -32,6 +33,8 @@ import type {
   BulkQuoteExportRequest,
   BulkQuoteExportResponse,
   CreateQuoteFeedbackRequest,
+  AnalyzeSubsidyDraftRequest,
+  AnalyzeSubsidyDraftResponse,
   QuoteFeedbackResponse,
   PricingIntelligenceQuery,
   PricingIntelligenceSummaryResponse,
@@ -267,6 +270,28 @@ export class QuotesService {
         postcodePrefix: query.postcodePrefix,
       }),
     });
+  }
+
+  // ── Subsidy Analyzer Methods ──────────────────────────────────────────────
+
+  /** Start a subsidy analysis job for a quote */
+  startSubsidyAnalysis(quoteId: string): Observable<import('./quotes.types').StartSubsidyAnalysisResponse> {
+    return this.http.post<import('./quotes.types').StartSubsidyAnalysisResponse>(
+      `${this.baseUrl}/${quoteId}/analyze-subsidy`,
+      {},
+    );
+  }
+
+  /** Analyze current draft line items for subsidy suggestions without saving the quote first. */
+  analyzeSubsidyDraft(data: AnalyzeSubsidyDraftRequest): Observable<AnalyzeSubsidyDraftResponse> {
+    return this.http.post<AnalyzeSubsidyDraftResponse>(`${this.baseUrl}/analyze-subsidy-preview`, data);
+  }
+
+  /** Get the status of a subsidy analysis job */
+  getSubsidyAnalysisJob(jobId: string): Observable<import('./quotes.types').SubsidyAnalysisJobResponse> {
+    return this.http.get<import('./quotes.types').SubsidyAnalysisJobResponse>(
+      `${this.baseUrl}/subsidy-analysis-jobs/${jobId}`,
+    );
   }
 
   private normalizeGenerateAcceptedResponse(input: unknown): GenerateQuoteAcceptedResponse {

@@ -56,6 +56,8 @@ import type {
   QuoteURLRequest,
   GenerateQuoteRequest,
   CreateQuoteFeedbackRequest,
+  AnalyzeSubsidyDraftRequest,
+  AnalyzeSubsidyDraftResult,
 } from '../../../core/services/quotes.types';
 import type {
   ISDECalculationRequest,
@@ -196,11 +198,10 @@ type EditableSubsidyInstallationField =
 
 type EditableSubsidyValue = string | number | boolean | null;
 
-const HTML_TAG_PATTERN = /<[^>]*>/g;
+const HTML_TAG_PATTERN = /<[^>]+>/g;
 const WHITESPACE_PATTERN = /\s+/g;
 const AREA_PATTERN = /(\d+(?:[.,]\d+)?)\s*(m2|m²)/i;
-const U_VALUE_PATTERN = /\bu(?:-?waarde)?\s*[:=]?\s*(\d+(?:[.,]\d+)?)/i;
-const RD_VALUE_PATTERN = /\b(?:rd|r)\s*[:=]?\s*(\d+(?:[.,]\d+)?)/i;
+
 
 const ISDE_MEASURE_OPTIONS: ISDEMeasureOption[] = [
   { value: 'roof', label: 'Dakisolatie', performanceLabel: 'Rd-waarde' },
@@ -351,6 +352,11 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly pricingIntelligencePostcodePrefix = computed(() =>
     derivePostcodePrefixZip4(this.selectedLead()?.address.zipCode),
   );
+  protected readonly quoteId = computed(() => {
+    const fromRoute = this.route.snapshot.paramMap.get('id');
+    if (fromRoute) return fromRoute;
+    return this.existingQuote()?.id ?? null;
+  });
 
   // Lead selection
   protected readonly selectedLead = signal<Lead | null>(null);
@@ -403,7 +409,13 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly subsidyCalculating = signal(false);
   protected readonly subsidyError = signal<string | null>(null);
   protected readonly subsidyResult = signal<ISDECalculationResponse | null>(null);
+  protected readonly subsidyAnalysisJobId = signal<string | null>(null);
+  protected readonly subsidyAnalysisLoading = signal(false);
+  protected readonly subsidyAnalysisStep = signal<string | null>(null);
+  protected readonly subsidyAnalysisProgress = signal<number | null>(null);
+  protected readonly subsidyNotice = signal<string | null>(null);
   protected readonly lastCalculatedSubsidyFingerprint = signal<string | null>(null);
+  protected readonly lastSubsidyAnalysisSourceFingerprint = signal<string | null>(null);
   protected readonly subsidyExecutionYear = signal(
     new Date().getFullYear() >= 2026 ? 2026 : Math.max(new Date().getFullYear(), 2024),
   );
@@ -915,17 +927,321 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected openSubsidyEditor(): void {
-    this.subsidyEditorOpen.set(true);
-    this.subsidyError.set(null);
-    if (this.subsidyMeasures().length > 0 || this.subsidyInstallations().length > 0) {
+    const currentAnalysisFingerprint = this.buildSubsidyAnalysisSourceFingerprint();
+    const hasExistingSubsidyData =
+      this.subsidyMeasures().length > 0 || this.subsidyInstallations().length > 0;
+    const subsidyAnalysisIsCurrent =
+      currentAnalysisFingerprint !== null &&
+      currentAnalysisFingerprint === this.lastSubsidyAnalysisSourceFingerprint();
+
+    if (hasExistingSubsidyData && subsidyAnalysisIsCurrent) {
+      this.subsidyEditorOpen.set(true);
+      this.subsidyError.set(null);
+      this.subsidyNotice.set(null);
       return;
     }
-    this.prefillSubsidyFromLineItems();
+
+    const payload = this.buildSubsidyAnalysisDraftPayload();
+    if (!payload) {
+      this.subsidyEditorOpen.set(true);
+      this.subsidyError.set('Voeg eerst een regel toe met omschrijving en hoeveelheid om subsidie te laten analyseren.');
+      this.subsidyNotice.set(null);
+      this.prefillSubsidyFromLineItems();
+      return;
+    }
+
+    this.subsidyEditorOpen.set(false);
+    this.subsidyError.set(null);
+    this.subsidyNotice.set(null);
+    this.subsidyAnalysisLoading.set(true);
+    this.subsidyAnalysisStep.set('AI analyseert de offertelijnen');
+    this.subsidyAnalysisProgress.set(null);
+    this.subsidyMeasures.set([]);
+    this.subsidyInstallations.set([]);
+
+    this.quotesService.analyzeSubsidyDraft(payload).subscribe({
+      next: (response) => {
+        this.subsidyAnalysisLoading.set(false);
+        this.subsidyAnalysisStep.set(null);
+        this.subsidyAnalysisProgress.set(null);
+        this.subsidyNotice.set(
+          hasExistingSubsidyData
+            ? 'AI voorstel vernieuwd op basis van de aangepaste offertelijnen. Controleer de waarden voordat je berekent.'
+            : 'AI voorstel ingevuld. Controleer de waarden voordat je berekent.',
+        );
+        this.prefillFromAISuggestion(response.result);
+        this.subsidyEditorOpen.set(true);
+      },
+      error: () => {
+        this.subsidyAnalysisLoading.set(false);
+        this.subsidyAnalysisStep.set(null);
+        this.subsidyAnalysisProgress.set(null);
+        this.subsidyError.set('AI analyse mislukt. Controleer of de voorgestelde subsidie klopt.');
+        this.subsidyNotice.set('De velden zijn ingevuld op basis van de huidige regels.');
+        this.prefillSubsidyFromLineItems();
+        this.subsidyEditorOpen.set(true);
+      },
+    });
+  }
+
+  private prefillFromAISuggestion(result: AnalyzeSubsidyDraftResult): void {
+    const inferredMeasures = this.getSubsidyAnalysisSourceItems()
+      .map((item) => this.inferSubsidyMeasureFromLineItem(item))
+      .filter((row): row is SubsidyMeasureDraft => row !== null);
+    const measures = this.buildSubsidyMeasuresFromAIResult(result, inferredMeasures);
+
+    if (measures.length > 0) {
+      this.subsidyMeasures.set(measures);
+    }
+
+    if (result.installation_meldcode_id) {
+      this.subsidyInstallations.set([
+        {
+          uid: this.generateUUID(),
+          kind: 'meldcode',
+          meldcode: result.installation_meldcode_id,
+          heatPumpType: 'air_water',
+          heatPumpEnergyLabel: 'A++',
+          isAdditionalUnit: false,
+          isSplitSystem: false,
+        }
+      ]);
+    }
+
+    this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
+  }
+
+  private buildSubsidyMeasuresFromAIResult(
+    result: AnalyzeSubsidyDraftResult,
+    inferredMeasures: SubsidyMeasureDraft[],
+  ): SubsidyMeasureDraft[] {
+    const suggestedMeasureIds = this.extractAISuggestedMeasureIds(result);
+    if (suggestedMeasureIds.length === 0) {
+      return inferredMeasures;
+    }
+
+    const remainingInferred = [...inferredMeasures];
+    const aiMeasures = suggestedMeasureIds.map((measureId) => {
+      const matchingIndex = remainingInferred.findIndex((row) => row.measureId === measureId);
+      if (matchingIndex >= 0) {
+        const [matchingMeasure] = remainingInferred.splice(matchingIndex, 1);
+        if (matchingMeasure) {
+          return matchingMeasure;
+        }
+      }
+
+      return {
+        uid: this.generateUUID(),
+        measureId,
+        areaM2: 20,
+        performanceValue: this.defaultPerformanceValueForMeasure(measureId),
+        hasMKIBonus: false,
+        frameReplaced: measureId === 'triple_glass' || measureId === 'vacuum_glass',
+        stackedWithPairedMeasure: false,
+      } satisfies SubsidyMeasureDraft;
+    });
+
+    return [...aiMeasures, ...remainingInferred];
+  }
+
+  private extractAISuggestedMeasureIds(result: AnalyzeSubsidyDraftResult): ISDEMeasureID[] {
+    let rawMeasureIds: string[] = [];
+    if (Array.isArray(result.measure_type_ids)) {
+      rawMeasureIds = result.measure_type_ids;
+    } else if (result.measure_type_id) {
+      rawMeasureIds = [result.measure_type_id];
+    }
+
+    return rawMeasureIds.filter((value): value is ISDEMeasureID => this.isISDEMeasureID(value));
+  }
+
+  private isISDEMeasureID(value: string): value is ISDEMeasureID {
+    return [
+      'roof',
+      'attic',
+      'facade',
+      'cavity_wall',
+      'floor',
+      'crawl_space',
+      'hr_plus_plus',
+      'triple_glass',
+      'vacuum_glass',
+      'glass_panel_low',
+      'glass_panel_high',
+      'insulated_door_low',
+      'insulated_door_high',
+    ].includes(value);
+  }
+
+  private prefillSubsidyFromLineItems(): void {
+    const measures = this.getSubsidyAnalysisSourceItems()
+      .map((item) => this.inferSubsidyMeasureFromLineItem(item))
+      .filter((row): row is SubsidyMeasureDraft => row !== null);
+
+    if (measures.length > 0) {
+      this.subsidyMeasures.set(measures);
+      this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
+      return;
+    }
+
+    if (this.subsidyMeasures().length === 0 && this.subsidyInstallations().length === 0) {
+      this.subsidyMeasures.set([this.createDefaultSubsidyMeasure()]);
+    }
+
+    this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
+  }
+
+  private buildSubsidyAnalysisSourceFingerprint(): string | null {
+    const payload = this.buildSubsidyAnalysisDraftPayload();
+    return payload ? JSON.stringify(payload.items) : null;
+  }
+
+  private buildSubsidyAnalysisDraftPayload(): AnalyzeSubsidyDraftRequest | null {
+    const items: QuoteItemRequest[] = this.getSubsidyAnalysisSourceItems()
+      .filter((item) => item.description.trim() !== '' || item.title.trim() !== '')
+      .map((item) => ({
+        ...(item.title ? { title: item.title } : {}),
+        description: item.description,
+        quantity: item.quantity,
+        unitPriceCents: eurosToCents(item.unitPrice),
+        taxRateBps: taxDisplayToBps(item.taxRate),
+        isOptional: item.optional,
+      }));
+
+    if (items.length === 0) {
+      return null;
+    }
+
+    return { items };
+  }
+
+  private getSubsidyAnalysisSourceItems(): LineItemDraft[] {
+    const items = this.lineItems();
+    const liveDescriptions = this.readLiveSubsidyDescriptions();
+    const liveQuantities = this.readLiveSubsidyQuantities();
+
+    return items.map((item, index) => ({
+      ...item,
+      description: liveDescriptions[index] ?? item.description,
+      quantity: liveQuantities[index] ?? item.quantity,
+    }));
+  }
+
+  private readLiveSubsidyDescriptions(): string[] {
+    if (globalThis.document === undefined) {
+      return [];
+    }
+
+    return Array.from(globalThis.document.querySelectorAll<HTMLElement>('app-quote-line-item-row .ql-editor'))
+      .filter((element) => this.isElementVisible(element))
+      .map((element) => element.innerHTML.trim())
+      .filter((value) => value !== '');
+  }
+
+  private readLiveSubsidyQuantities(): string[] {
+    if (globalThis.document === undefined) {
+      return [];
+    }
+
+    return Array.from(
+      globalThis.document.querySelectorAll<HTMLInputElement>('app-quote-line-item-row input[placeholder="1, 10 m2, 1 stuk"]'),
+    )
+      .filter((element) => this.isElementVisible(element))
+      .map((element) => element.value.trim())
+      .filter((value) => value !== '');
+  }
+
+  private isElementVisible(element: HTMLElement): boolean {
+    const rect = element.getBoundingClientRect();
+    const style = globalThis.getComputedStyle(element);
+    return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
+  }
+
+  private inferSubsidyMeasureFromLineItem(item: LineItemDraft): SubsidyMeasureDraft | null {
+    const normalizedText = this.normalizeSubsidySourceText(`${item.title} ${item.description}`);
+    const measureId = this.detectMeasureIdFromText(normalizedText);
+
+    if (!measureId) {
+      return null;
+    }
+
+    return {
+      uid: crypto.randomUUID(),
+      measureId,
+      areaM2: this.detectAreaM2(item.quantity, normalizedText),
+      performanceValue: this.defaultPerformanceValueForMeasure(measureId),
+      hasMKIBonus: false,
+      frameReplaced: measureId === 'triple_glass' || measureId === 'vacuum_glass',
+      stackedWithPairedMeasure: false,
+    };
+  }
+
+  private normalizeSubsidySourceText(value: string): string {
+    return value
+      .replaceAll(HTML_TAG_PATTERN, ' ')
+      .toLowerCase()
+      .replaceAll('＋', '+')
+      .replaceAll('plusplus', '++')
+      .replaceAll('plus plus', '++')
+      .replaceAll('/', ' ')
+      .replaceAll('-', ' ')
+      .replaceAll(WHITESPACE_PATTERN, ' ')
+      .trim();
+  }
+
+  private detectMeasureIdFromText(text: string): ISDEMeasureID | null {
+    if (/\btriple\s*glas|tripleglas|hr\s*\+\+\+|hr\+\+\+/.test(text)) return 'triple_glass';
+    if (/\bhr\s*\+\+|hr\+\+/.test(text)) return 'hr_plus_plus';
+    if (/\bvacu+\w*\s*glas|vacuumglas/.test(text)) return 'vacuum_glass';
+    if (/\bzolder|vliering/.test(text)) return 'attic';
+    if (/\bkruipruimte|bodemisolatie/.test(text)) return 'crawl_space';
+    if (/\bisolerend\s*paneel\s*hoogwaardig|hoogwaardig\s*paneel/.test(text)) return 'glass_panel_high';
+    if (/\bisolerend\s*paneel|glaspaneel|paneelisolatie/.test(text)) return 'glass_panel_low';
+    if (/\bisolerende\s*deur\s*hoogwaardig|hoogwaardige\s*deur/.test(text)) return 'insulated_door_high';
+    if (/\bisolerende\s*deur|geisoleerde\s*deur|geïsoleerde\s*deur/.test(text)) return 'insulated_door_low';
+    if (/\bspouw/.test(text)) return 'cavity_wall';
+    if (/\bdak/.test(text)) return 'roof';
+    if (/\bvloer/.test(text)) return 'floor';
+    if (/\bgevel/.test(text)) return 'facade';
+    return null;
+  }
+
+  private detectAreaM2(quantity: string, text: string): number {
+    const quantityValue = parseQuantityNumber(quantity);
+    if (Number.isFinite(quantityValue) && quantityValue > 0 && /m2|m²/i.test(quantity)) {
+      return quantityValue;
+    }
+
+    const areaInText = AREA_PATTERN.exec(text)?.[1];
+    if (areaInText) {
+      const parsed = Number.parseFloat(areaInText.replace(',', '.'));
+      if (Number.isFinite(parsed) && parsed > 0) {
+        return parsed;
+      }
+    }
+
+    if (Number.isFinite(quantityValue) && quantityValue > 0 && quantityValue !== 1) {
+      return quantityValue;
+    }
+
+    return 20;
+  }
+
+  private generateUUID(): string {
+    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, (c: any) => {
+      const r = Math.trunc(Math.random() * 16);
+      const v = c === 'x' ? r : (r & 0x3) | 0x8;
+      return v.toString(16);
+    });
   }
 
   protected closeSubsidyEditor(): void {
     this.subsidyEditorOpen.set(false);
     this.subsidyError.set(null);
+    this.subsidyAnalysisLoading.set(false);
+    this.subsidyAnalysisStep.set(null);
+    this.subsidyAnalysisProgress.set(null);
+    this.subsidyNotice.set(null);
   }
 
   protected addSubsidyMeasureRow(): void {
@@ -1005,58 +1321,6 @@ export class OffertesCreateComponent implements OnInit {
           );
         },
       });
-  }
-
-  protected prefillSubsidyFromLineItems(): void {
-    const measureRows: SubsidyMeasureDraft[] = [];
-    const installations: SubsidyInstallationDraft[] = [];
-    const seenMeasures = new Set<ISDEMeasureID>();
-    const seenMeldcodes = new Set<string>();
-
-    for (const item of this.lineItems()) {
-      const plainDescription = this.stripHtml(item.description || '');
-      const haystack = `${item.title} ${plainDescription}`.toLowerCase();
-      const measureId = this.recognizeMeasureId(haystack);
-      if (measureId && !seenMeasures.has(measureId)) {
-        seenMeasures.add(measureId);
-        const performanceValue = this.recognizePerformanceValue(measureId, haystack);
-        const nextRow: SubsidyMeasureDraft = {
-          uid: crypto.randomUUID(),
-          measureId,
-          areaM2: this.recognizeAreaM2(item.quantity, haystack),
-          hasMKIBonus: /\bmki\b/.test(haystack),
-          frameReplaced: /kozijn|kozijnen/.test(haystack),
-          stackedWithPairedMeasure: false,
-        };
-        if (performanceValue != null) {
-          nextRow.performanceValue = performanceValue;
-        }
-        measureRows.push({
-          ...nextRow,
-        });
-      }
-
-      const matches = haystack.toUpperCase().match(/\b[A-Z]{2}\d{5}\b/g) ?? [];
-      for (const raw of matches) {
-        if (seenMeldcodes.has(raw)) continue;
-        seenMeldcodes.add(raw);
-        installations.push({
-          uid: crypto.randomUUID(),
-          kind: 'meldcode',
-          meldcode: raw,
-          heatPumpType: 'air_water',
-          heatPumpEnergyLabel: 'A++',
-          isAdditionalUnit: false,
-          isSplitSystem: false,
-        });
-      }
-    }
-
-    if (measureRows.length === 0) {
-      measureRows.push(this.createDefaultSubsidyMeasure());
-    }
-    this.subsidyMeasures.set(measureRows);
-    this.subsidyInstallations.set(installations);
   }
 
   // Save actions
@@ -1275,6 +1539,7 @@ export class OffertesCreateComponent implements OnInit {
       this.subsidyInstallations.set([]);
       this.subsidyResult.set(snapshot.result ?? null);
       this.lastCalculatedSubsidyFingerprint.set(null);
+      this.lastSubsidyAnalysisSourceFingerprint.set(null);
       return;
     }
 
@@ -1296,6 +1561,7 @@ export class OffertesCreateComponent implements OnInit {
     this.lastCalculatedSubsidyFingerprint.set(
       this.serializeSubsidyCalculationPayload(snapshot.input),
     );
+    this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
   }
 
   private resetSubsidyState(): void {
@@ -1304,6 +1570,7 @@ export class OffertesCreateComponent implements OnInit {
     this.includeSubsidyInSummary.set(false);
     this.subsidyResult.set(null);
     this.lastCalculatedSubsidyFingerprint.set(null);
+    this.lastSubsidyAnalysisSourceFingerprint.set(null);
     this.subsidyExecutionYear.set(defaultExecutionYear);
     this.previousSubsidiesWithin24Months.set(false);
     this.hasExistingWarmtenetConnection.set(false);
@@ -2384,63 +2651,4 @@ export class OffertesCreateComponent implements OnInit {
     };
   }
 
-  private stripHtml(value: string): string {
-    return value.replaceAll(HTML_TAG_PATTERN, ' ').replaceAll(WHITESPACE_PATTERN, ' ').trim();
-  }
-
-  private recognizeMeasureId(text: string): ISDEMeasureID | null {
-    if (/vacu|vacuum/.test(text)) return 'vacuum_glass';
-    if (/kozijnpaneel|paneel/.test(text)) return 'glass_panel_low';
-    if (/deur/.test(text)) return 'insulated_door_low';
-    if (/\b(hr\+\+\+|triple(\s+glas)?)\b/.test(text)) return 'triple_glass';
-    if (/\b(hr\+\+|hr plus plus)\b/.test(text)) return 'hr_plus_plus';
-    if (/\bspouw\b/.test(text)) return 'cavity_wall';
-    if (/\bkruip\b|bodemisolatie/.test(text)) return 'crawl_space';
-    if (/\bvloer\b/.test(text)) return 'floor';
-    if (/\bgevel\b/.test(text)) return 'facade';
-    if (/\bzolder\b|attic|vliering/.test(text)) return 'attic';
-    if (/\bdak\b/.test(text)) return 'roof';
-    return null;
-  }
-
-  private recognizeAreaM2(quantity: string, text: string): number {
-    const direct = parseQuantityNumber(quantity);
-    if (Number.isFinite(direct) && direct > 0 && /m2|m²/.test(quantity.toLowerCase())) {
-      return direct;
-    }
-    const inText = AREA_PATTERN.exec(text)?.[1];
-    if (inText != null) {
-      const parsed = Number.parseFloat(inText.replace(',', '.'));
-      if (Number.isFinite(parsed) && parsed > 0) return parsed;
-    }
-    if (Number.isFinite(direct) && direct > 0 && direct !== 1) {
-      return direct;
-    }
-    return 20;
-  }
-
-  private recognizePerformanceValue(measureId: ISDEMeasureID, text: string): number | undefined {
-    if (
-      [
-        'hr_plus_plus',
-        'triple_glass',
-        'vacuum_glass',
-        'glass_panel_low',
-        'glass_panel_high',
-        'insulated_door_low',
-        'insulated_door_high',
-      ].includes(measureId)
-    ) {
-      const u = U_VALUE_PATTERN.exec(text)?.[1];
-      if (u != null) {
-        const parsed = Number.parseFloat(u.replace(',', '.'));
-        return Number.isFinite(parsed) ? parsed : undefined;
-      }
-      return undefined;
-    }
-    const rd = RD_VALUE_PATTERN.exec(text)?.[1];
-    if (rd == null) return undefined;
-    const parsed = Number.parseFloat(rd.replace(',', '.'));
-    return Number.isFinite(parsed) ? parsed : undefined;
-  }
 }

@@ -785,6 +785,27 @@
         (checkedChange)="previousSubsidiesWithin24Months.set($event)"
       />
 
+      @if (subsidyAnalysisLoading()) {
+        <div class="rounded-xl border border-blue-200 bg-blue-50 px-3 py-3 text-sm text-blue-900">
+          <div class="flex items-center gap-2">
+            <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin"></lucide-icon>
+            <span class="font-medium">AI analyseert de offerte…</span>
+          </div>
+          @if (subsidyAnalysisStep()) {
+            <p class="mt-2 text-xs text-blue-800">{{ subsidyAnalysisStep() }}</p>
+          }
+          @if (subsidyAnalysisProgress() !== null) {
+            <p class="mt-1 text-xs text-blue-700">Voortgang: {{ subsidyAnalysisProgress() }}%</p>
+          }
+        </div>
+      }
+
+      @if (subsidyNotice()) {
+        <div class="rounded-xl border border-amber-200 bg-amber-50 px-3 py-3 text-sm text-amber-900">
+          {{ subsidyNotice() }}
+        </div>
+      }
+
       <section class="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
         <div class="flex items-center justify-between">
           <h3 class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
@@ -1049,6 +1070,24 @@
   >
     <ng-container [ngTemplateOutlet]="subsidyEditorContent"></ng-container>
   </app-bottom-sheet>
+
+  @if (subsidyAnalysisLoading() && !subsidyEditorOpen()) {
+    <div
+      class="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-white/70 backdrop-blur-sm"
+    >
+      <div class="pointer-events-auto rounded-2xl border border-zinc-200 bg-white px-6 py-5 shadow-xl">
+        <div class="flex items-center gap-3">
+          <lucide-icon name="loader-circle" class="h-5 w-5 animate-spin text-zinc-900"></lucide-icon>
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">
+              AI analyseert subsidie
+            </p>
+            <p class="text-sm text-zinc-600">We controleren de huidige offertelijnen op subsidiemogelijkheden.</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  }
 
   @if (loading()) {
     <div
