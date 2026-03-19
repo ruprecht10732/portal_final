@@ -40,6 +40,11 @@ import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
 import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
+import {
+  SplitActionComponent,
+  type SplitMenuItem,
+  type SplitMenuSection,
+} from '../../../shared/components/split-action/split-action.component';
 
 interface LeadServiceOption {
   label: string;
@@ -66,6 +71,7 @@ interface QuoteLineageSummary {
     SelectComponent,
     SafeHtmlPipe,
     QuotePricingIntelligencePanelComponent,
+    SplitActionComponent,
   ],
   templateUrl: './offertes-detail.component.html',
   styleUrl: './offertes-detail.component.css',
@@ -198,6 +204,100 @@ export class OffertesDetailComponent implements OnInit {
         ],
       },
     ];
+  });
+
+  protected readonly desktopActionMenuSections = computed<readonly SplitMenuSection[]>(() => {
+    const q = this.quote();
+    if (!q) return [];
+    const previewAvailable = !!this.previewUrl();
+    const pdfAvailable = !!q.pdfFileKey;
+    const canOpenPartnerOffer = q.status === 'Accepted' && !!q.leadServiceId;
+    const canCreateVersion = q.status === 'Draft' || q.status === 'Sent';
+    const items: SplitMenuItem[] = [];
+
+    if (q.status === 'Draft') {
+      items.push({
+        label: 'offertes.edit',
+        action: 'edit',
+        icon: 'pencil',
+      });
+    }
+
+    if (this.isAdmin()) {
+      items.push({
+        label: 'offertes.transfer.action',
+        action: 'transfer',
+        icon: 'send',
+      });
+    }
+
+    items.push({
+      label: 'offertes.duplicate',
+      action: 'duplicate',
+      icon: 'copy',
+      disabled: this.duplicating(),
+    });
+
+    if (canCreateVersion) {
+      items.push({
+        label: 'offertes.newVersion',
+        action: 'newVersion',
+        icon: 'git-branch',
+        disabled: this.creatingVersion(),
+      });
+    }
+
+    if (canOpenPartnerOffer) {
+      items.push({
+        label: 'offertes.partnerOffer.title',
+        action: 'partnerOffer',
+        icon: 'handshake',
+        disabled: !q.leadServiceId,
+      });
+    }
+
+    if (previewAvailable) {
+      items.push({
+        label: 'offertes.preview',
+        action: 'preview',
+        icon: 'eye',
+      });
+    }
+
+    if (pdfAvailable) {
+      items.push({
+        label: 'offertes.downloadPdf',
+        action: 'downloadPdf',
+        icon: 'download',
+        disabled: this.downloadingPdf(),
+      });
+    }
+
+    if (q.status === 'Accepted' && this.moneybirdConnected()) {
+      if (!this.moneybirdExported()) {
+        items.push({
+          label: 'offertes.sendToMoneybird',
+          action: 'sendToMoneybird',
+          icon: 'send',
+          disabled: this.exportingToMoneybird(),
+        });
+      } else {
+        items.push({
+          label: 'offertes.viewInMoneybird',
+          action: 'viewInMoneybird',
+          icon: 'external-link',
+        });
+      }
+    }
+
+    items.push({
+      label: 'common.delete',
+      action: 'delete',
+      icon: 'trash-2',
+      tone: 'danger',
+    });
+
+    return [{ items }];
   });
 
   ngOnInit(): void {
@@ -422,6 +522,43 @@ export class OffertesDetailComponent implements OnInit {
         this.openPartnerOffer();
         break;
       case 'common.delete':
+        this.confirmDelete();
+        break;
+      default:
+        break;
+    }
+  }
+
+  protected handleDesktopAction(action: string): void {
+    switch (action) {
+      case 'edit':
+        this.editQuote();
+        break;
+      case 'transfer':
+        this.openTransferDialog();
+        break;
+      case 'duplicate':
+        this.duplicateQuote();
+        break;
+      case 'newVersion':
+        this.createNewVersion();
+        break;
+      case 'preview':
+        this.openPreview();
+        break;
+      case 'downloadPdf':
+        this.downloadPdf();
+        break;
+      case 'partnerOffer':
+        this.openPartnerOffer();
+        break;
+      case 'sendToMoneybird':
+        this.sendToMoneybird();
+        break;
+      case 'viewInMoneybird':
+        this.openMoneybird();
+        break;
+      case 'delete':
         this.confirmDelete();
         break;
       default:

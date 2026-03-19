@@ -639,19 +639,20 @@
             <ng-container actions>
               @if (quote(); as q) {
                 <div class="flex items-center gap-1.5">
-                  <!-- Primary actions -->
                   @switch (q.status) {
                     @case ('Draft') {
-                      <shared-button
-                        variant="primary"
-                        size="compact"
-                        [fullWidth]="false"
-                        [loading]="sending()"
-                        (clicked)="sendProposal()"
+                      <shared-split-action
+                        [primaryLabel]="'offertes.sendProposal'"
+                        [primaryVariant]="'primary'"
+                        [menuTriggerLabel]="'common.more'"
+                        [menuVariant]="'secondary'"
+                        [menuSections]="desktopActionMenuSections()"
+                        [primaryLoading]="sending()"
+                        (primaryClicked)="sendProposal()"
+                        (actionSelected)="handleDesktopAction($event)"
                       >
-                        <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
-                        {{ 'offertes.sendProposal' | translate }}
-                      </shared-button>
+                        <lucide-icon primaryIcon name="send" class="h-4 w-4"></lucide-icon>
+                      </shared-split-action>
                       <shared-button
                         variant="secondary"
                         size="compact"
@@ -664,16 +665,18 @@
                       </shared-button>
                     }
                     @case ('Sent') {
-                      <shared-button
-                        variant="primary"
-                        size="compact"
-                        [fullWidth]="false"
-                        [loading]="sending()"
-                        (clicked)="sendProposal()"
+                      <shared-split-action
+                        [primaryLabel]="'offertes.resendProposal'"
+                        [primaryVariant]="'primary'"
+                        [menuTriggerLabel]="'common.more'"
+                        [menuVariant]="'secondary'"
+                        [menuSections]="desktopActionMenuSections()"
+                        [primaryLoading]="sending()"
+                        (primaryClicked)="sendProposal()"
+                        (actionSelected)="handleDesktopAction($event)"
                       >
-                        <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
-                        {{ 'offertes.resendProposal' | translate }}
-                      </shared-button>
+                        <lucide-icon primaryIcon name="send" class="h-4 w-4"></lucide-icon>
+                      </shared-split-action>
                       <shared-button
                         variant="success"
                         size="compact"
@@ -695,140 +698,15 @@
                         {{ 'offertes.markRejected' | translate }}
                       </shared-button>
                     }
-                  }
-
-                  @if (q.status === 'Accepted') {
-                    <shared-button
-                      variant="secondary"
-                      size="compact"
-                      [fullWidth]="false"
-                      [disabled]="!q.leadServiceId"
-                      (clicked)="openPartnerOffer()"
-                    >
-                      <lucide-icon name="handshake" class="h-4 w-4"></lucide-icon>
-                      {{ 'offertes.partnerOffer.title' | translate }}
-                    </shared-button>
-                  }
-
-                  @if (isAdmin()) {
-                    <shared-button
-                      variant="secondary"
-                      size="compact"
-                      [fullWidth]="false"
-                      (clicked)="openTransferDialog()"
-                    >
-                      <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
-                      {{ 'offertes.transfer.action' | translate }}
-                    </shared-button>
-                  }
-
-                  <shared-button
-                    variant="secondary"
-                    size="compact"
-                    [fullWidth]="false"
-                    [loading]="duplicating()"
-                    (clicked)="duplicateQuote()"
-                  >
-                    <lucide-icon name="copy" class="h-4 w-4"></lucide-icon>
-                    {{ 'offertes.duplicate' | translate }}
-                  </shared-button>
-
-                  @if (canCreateVersion()) {
-                    <shared-button
-                      variant="secondary"
-                      size="compact"
-                      [fullWidth]="false"
-                      [loading]="creatingVersion()"
-                      (clicked)="createNewVersion()"
-                    >
-                      <lucide-icon name="git-branch" class="h-4 w-4"></lucide-icon>
-                      {{ 'offertes.newVersion' | translate }}
-                    </shared-button>
-                  }
-
-                  @if (q.status === 'Draft') {
-                    <shared-button
-                      variant="secondary"
-                      size="compact"
-                      [fullWidth]="false"
-                      (clicked)="editQuote()"
-                    >
-                      <lucide-icon name="pencil" class="h-4 w-4"></lucide-icon>
-                      {{ 'offertes.edit' | translate }}
-                    </shared-button>
-                  }
-
-                  @if (q.status === 'Accepted' && moneybirdConnected()) {
-                    @if (!moneybirdExported()) {
-                      <shared-button
-                        variant="secondary"
-                        size="compact"
-                        [fullWidth]="false"
-                        [loading]="exportingToMoneybird()"
-                        (clicked)="sendToMoneybird()"
-                      >
-                        <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
-                        {{ 'offertes.sendToMoneybird' | translate }}
-                      </shared-button>
-                    } @else {
-                      <shared-button
-                        variant="ghost"
-                        size="compact"
-                        [fullWidth]="false"
-                        (clicked)="openMoneybird()"
-                        [attr.aria-label]="'offertes.viewInMoneybird' | translate"
-                      >
-                        <lucide-icon name="external-link" class="h-4 w-4"></lucide-icon>
-                        {{ 'offertes.viewInMoneybird' | translate }}
-                      </shared-button>
+                    @default {
+                      <shared-menu
+                        [triggerLabel]="'common.more'"
+                        [triggerVariant]="'secondary'"
+                        [sections]="desktopActionMenuSections()"
+                        (itemSelected)="handleDesktopAction($any($event).action)"
+                      />
                     }
                   }
-
-                  <!-- Secondary actions -->
-                  @if (previewUrl() || q.pdfFileKey) {
-                    <span class="w-px h-5 bg-zinc-200 mx-1"></span>
-                  }
-
-                  @if (previewUrl()) {
-                    <shared-button
-                      variant="ghost"
-                      size="compact"
-                      [iconOnly]="true"
-                      [fullWidth]="false"
-                      [loading]="loadingPreview()"
-                      (clicked)="openPreview()"
-                      [attr.aria-label]="'Voorbeeld bekijken'"
-                    >
-                      <lucide-icon name="eye" class="h-4 w-4"></lucide-icon>
-                    </shared-button>
-                  }
-
-                  @if (q.pdfFileKey) {
-                    <shared-button
-                      variant="ghost"
-                      size="compact"
-                      [iconOnly]="true"
-                      [fullWidth]="false"
-                      [loading]="downloadingPdf()"
-                      (clicked)="downloadPdf()"
-                      [attr.aria-label]="'PDF downloaden'"
-                    >
-                      <lucide-icon name="download" class="h-4 w-4"></lucide-icon>
-                    </shared-button>
-                  }
-
-                  <!-- Destructive -->
-                  <span class="w-px h-5 bg-zinc-200 mx-1"></span>
-                  <shared-button
-                    variant="ghost"
-                    size="compact"
-                    [iconOnly]="true"
-                    [fullWidth]="false"
-                    (clicked)="confirmDelete()"
-                    [attr.aria-label]="'offertes.delete' | translate"
-                  >
-                    <lucide-icon name="trash-2" class="h-4 w-4 text-red-500"></lucide-icon>
-                  </shared-button>
                 </div>
               }
             </ng-container>
