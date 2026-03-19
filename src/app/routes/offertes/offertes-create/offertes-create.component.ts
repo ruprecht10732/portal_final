@@ -927,6 +927,10 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected openSubsidyEditor(): void {
+    if (this.subsidyAnalysisLoading()) {
+      return;
+    }
+
     const currentAnalysisFingerprint = this.buildSubsidyAnalysisSourceFingerprint();
     const hasExistingSubsidyData =
       this.subsidyMeasures().length > 0 || this.subsidyInstallations().length > 0;

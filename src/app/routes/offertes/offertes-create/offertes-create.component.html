@@ -14,7 +14,7 @@
         <shared-button
           variant="secondary"
           size="compact"
-          [disabled]="lineItems().length === 0"
+          [disabled]="lineItems().length === 0 || subsidyAnalysisLoading()"
           (clicked)="openSubsidyEditor()"
         >
           <lucide-icon name="calculator" class="mr-2 h-4 w-4"></lucide-icon>
