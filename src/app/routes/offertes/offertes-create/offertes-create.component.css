@@ -21,7 +21,9 @@ app-quote-line-item-row.cdk-drag-preview {
   padding: 16px 24px;
   background: white;
   border-radius: 12px;
-  box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1), 0 10px 10px -5px rgb(0 0 0 / 0.04);
+  box-shadow:
+    0 20px 25px -5px rgb(0 0 0 / 0.1),
+    0 10px 10px -5px rgb(0 0 0 / 0.04);
   border: 1px solid rgb(228 228 231);
   font-weight: 500;
   color: rgb(24 24 27);
@@ -61,7 +63,80 @@ app-quote-line-item-row:hover [cdkDragHandle] {
 
 /* Reduced motion */
 @media (prefers-reduced-motion: reduce) {
-  .cdk-drop-list-dragging app-quote-line-item-row:not(.cdk-drag-placeholder):not(.cdk-drag-preview) {
+  .cdk-drop-list-dragging
+    app-quote-line-item-row:not(.cdk-drag-placeholder):not(.cdk-drag-preview) {
     transition: none;
   }
+}
+
+.subsidy-modal {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  max-height: none;
+  max-width: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.subsidy-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(24 24 27 / 0.45);
+}
+
+.subsidy-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(920px, 96vw);
+  max-height: 90vh;
+  overflow: auto;
+  border-radius: 1rem;
+  border: 1px solid rgb(228 228 231);
+  background: white;
+  box-shadow: 0 30px 60px -20px rgb(24 24 27 / 0.35);
+}
+
+.subsidy-modal-panel::-webkit-scrollbar {
+  width: 10px;
+}
+
+.subsidy-modal-panel::-webkit-scrollbar-thumb {
+  border: 2px solid white;
+  border-radius: 999px;
+  background: rgb(212 212 216);
+}
+
+.subsidy-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgb(244 244 245);
+  padding: 0.9rem 1rem;
+}
+
+.subsidy-modal-close {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 0;
+  background: transparent;
+  color: rgb(113 113 122);
+}
+
+.subsidy-modal-close:hover {
+  background: rgb(244 244 245);
+  color: rgb(24 24 27);
 }

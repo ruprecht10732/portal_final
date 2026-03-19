@@ -274,18 +274,18 @@ export class OffertesDetailComponent implements OnInit {
     }
 
     if (q.status === 'Accepted' && this.moneybirdConnected()) {
-      if (!this.moneybirdExported()) {
+      if (this.moneybirdExported()) {
+        items.push({
+          label: 'offertes.viewInMoneybird',
+          action: 'viewInMoneybird',
+          icon: 'external-link',
+        });
+      } else {
         items.push({
           label: 'offertes.sendToMoneybird',
           action: 'sendToMoneybird',
           icon: 'send',
           disabled: this.exportingToMoneybird(),
-        });
-      } else {
-        items.push({
-          label: 'offertes.viewInMoneybird',
-          action: 'viewInMoneybird',
-          icon: 'external-link',
         });
       }
     }

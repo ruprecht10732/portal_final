@@ -1,5 +1,6 @@
-// Quote types — aligned with backend API (cents-based)
+import type { ISDECalculationRequest, ISDECalculationResponse } from './isde.types';
 
+// Quote types — aligned with backend API (cents-based)
 
 // Backend uses PascalCase enum values
 export type QuoteStatus = 'Draft' | 'Sent' | 'Accepted' | 'Rejected' | 'Expired';
@@ -212,6 +213,7 @@ export interface QuoteResponse {
   totalCents: number;
   validUntil?: string;
   notes?: string;
+  isdeSubsidy?: QuoteISDESubsidy;
   items: QuoteItemResponse[];
   attachments: QuoteAttachmentResponse[];
   urls: QuoteURLResponse[];
@@ -371,6 +373,12 @@ export interface QuoteItemRequest {
   catalogProductId?: string;
 }
 
+export interface QuoteISDESubsidy {
+  includeInSummary: boolean;
+  input?: ISDECalculationRequest;
+  result?: ISDECalculationResponse;
+}
+
 export interface CreateQuoteRequest {
   leadId: string;
   leadServiceId?: string;
@@ -382,6 +390,7 @@ export interface CreateQuoteRequest {
   items: QuoteItemRequest[];
   attachments?: QuoteAttachmentRequest[];
   urls?: QuoteURLRequest[];
+  isdeSubsidy?: QuoteISDESubsidy;
   financingDisclaimer?: boolean;
 }
 
@@ -395,6 +404,7 @@ export interface UpdateQuoteRequest {
   items?: QuoteItemRequest[];
   attachments?: QuoteAttachmentRequest[];
   urls?: QuoteURLRequest[];
+  isdeSubsidy?: QuoteISDESubsidy;
   financingDisclaimer?: boolean;
 }
 
@@ -580,7 +590,7 @@ export interface AcceptQuoteRequest {
 
 export interface RejectQuoteRequest {
   reason: string;
-} 
+}
 
 // ── Activity timeline ─────────────────────────────────────────────────────────
 

@@ -1,13 +1,25 @@
 <div class="relative flex min-h-full w-full flex-col bg-zinc-50 pb-16 sm:pb-0">
-  
   <header class="sticky top-0 z-30 border-b border-zinc-200 bg-white">
     <shared-page-header
-      [title]="isEditMode() ? ('offertes.editTitle' | translate) : ('offertes.createTitle' | translate)"
-      [subtitle]="isEditMode() ? (existingQuote()?.quoteNumber ?? '') : ('offertes.newDraft' | translate)"
+      [title]="
+        isEditMode() ? ('offertes.editTitle' | translate) : ('offertes.createTitle' | translate)
+      "
+      [subtitle]="
+        isEditMode() ? (existingQuote()?.quoteNumber ?? '') : ('offertes.newDraft' | translate)
+      "
       [backAriaLabel]="'offertes.goBack' | translate"
       (back)="cancel()"
     >
       <div actions class="flex items-center gap-2">
+        <shared-button
+          variant="secondary"
+          size="compact"
+          [disabled]="lineItems().length === 0"
+          (clicked)="openSubsidyEditor()"
+        >
+          <lucide-icon name="calculator" class="mr-2 h-4 w-4"></lucide-icon>
+          Bereken subsidie
+        </shared-button>
         <shared-split-action
           [primaryLabel]="'offertes.save' | translate"
           [primaryVariant]="'primary'"
@@ -31,7 +43,9 @@
       <div class="mx-auto flex max-w-[1600px] items-start gap-3">
         <lucide-icon name="circle-alert" class="mt-0.5 h-4 w-4 shrink-0"></lucide-icon>
         <div>
-          <p class="text-[10px] font-black uppercase tracking-[0.18em] text-red-600">{{ 'offertes.errorLabel' | translate }}</p>
+          <p class="text-[10px] font-black uppercase tracking-[0.18em] text-red-600">
+            {{ 'offertes.errorLabel' | translate }}
+          </p>
           <p>{{ error() }}</p>
         </div>
       </div>
@@ -39,31 +53,59 @@
   }
 
   <div class="sm:hidden border-b border-zinc-100 bg-white px-5 py-3 shadow-sm">
-    <shared-button variant="primary" size="compact" [fullWidth]="true" [disabled]="!canSave() || saving()" [loading]="saving()" (clicked)="saveDraft()">
+    <shared-button
+      variant="primary"
+      size="compact"
+      [fullWidth]="true"
+      [disabled]="!canSave() || saving()"
+      [loading]="saving()"
+      (clicked)="saveDraft()"
+    >
       <lucide-icon name="save" class="h-4 w-4 mr-2"></lucide-icon>
       {{ 'offertes.save' | translate }}
     </shared-button>
   </div>
 
   <main class="flex flex-1 flex-col lg:flex-row items-start">
-    
     <div class="flex-1 min-w-0 w-full p-4 space-y-4 lg:p-6 xl:p-8">
-
-      <details class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" [open]="!selectedLead()">
-        <summary class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-5 hover:bg-zinc-50 transition-colors">
+      <details
+        class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm"
+        [open]="!selectedLead()"
+      >
+        <summary
+          class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-5 hover:bg-zinc-50 transition-colors"
+        >
           <div class="flex items-center gap-4">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full transition-all shrink-0"
-                 [class]="selectedLead() ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/10' : 'bg-zinc-100 text-zinc-400'">
-              <lucide-icon [name]="selectedLead() ? 'user-check' : 'user-plus'" class="h-5 w-5"></lucide-icon>
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-full transition-all shrink-0"
+              [class]="
+                selectedLead()
+                  ? 'bg-zinc-900 text-white shadow-lg shadow-zinc-900/10'
+                  : 'bg-zinc-100 text-zinc-400'
+              "
+            >
+              <lucide-icon
+                [name]="selectedLead() ? 'user-check' : 'user-plus'"
+                class="h-5 w-5"
+              ></lucide-icon>
             </div>
             <div class="min-w-0">
-              <h2 class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 group-open:text-zinc-900">{{ 'offertes.selectLead' | translate }}</h2>
+              <h2
+                class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 group-open:text-zinc-900"
+              >
+                {{ 'offertes.selectLead' | translate }}
+              </h2>
               @if (selectedLead()) {
-                <p class="truncate text-sm font-bold text-zinc-900">{{ selectedLead()?.consumer?.firstName }} {{ selectedLead()?.consumer?.lastName }}</p>
+                <p class="truncate text-sm font-bold text-zinc-900">
+                  {{ selectedLead()?.consumer?.firstName }} {{ selectedLead()?.consumer?.lastName }}
+                </p>
               }
             </div>
           </div>
-          <lucide-icon name="chevron-down" class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"></lucide-icon>
+          <lucide-icon
+            name="chevron-down"
+            class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"
+          ></lucide-icon>
         </summary>
 
         <div class="border-t border-zinc-100 bg-white p-5 sm:p-8">
@@ -71,18 +113,29 @@
             <div class="space-y-5 rounded-xl border border-zinc-200 bg-zinc-50 p-5">
               <div class="flex items-center justify-between gap-4 group/lead">
                 <div class="flex min-w-0 items-center gap-4">
-                  <div class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-900 shadow-sm">
+                  <div
+                    class="flex h-12 w-12 shrink-0 items-center justify-center rounded-full border border-zinc-200 bg-white text-zinc-900 shadow-sm"
+                  >
                     <lucide-icon name="user" class="h-6 w-6 stroke-[1.5]"></lucide-icon>
                   </div>
                   <div class="min-w-0 flex flex-col">
-                    <span class="truncate font-bold text-zinc-900">{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</span>
-                    <span class="truncate text-xs font-medium text-zinc-500">{{ lead.address.street }} {{ lead.address.houseNumber }}, {{ lead.address.city }}</span>
+                    <span class="truncate font-bold text-zinc-900"
+                      >{{ lead.consumer.firstName }} {{ lead.consumer.lastName }}</span
+                    >
+                    <span class="truncate text-xs font-medium text-zinc-500"
+                      >{{ lead.address.street }} {{ lead.address.houseNumber }},
+                      {{ lead.address.city }}</span
+                    >
                     @if (lead.consumer.phone) {
                       <span class="truncate text-xs text-zinc-400">{{ lead.consumer.phone }}</span>
                     }
                   </div>
                 </div>
-                <button (click)="clearLead()" class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-300 hover:bg-red-50 hover:text-red-600 transition-all" [attr.aria-label]="'offertes.changeLead' | translate">
+                <button
+                  (click)="clearLead()"
+                  class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-zinc-300 hover:bg-red-50 hover:text-red-600 transition-all"
+                  [attr.aria-label]="'offertes.changeLead' | translate"
+                >
                   <lucide-icon name="refresh-cw" class="h-4 w-4"></lucide-icon>
                 </button>
               </div>
@@ -127,17 +180,17 @@
           }
 
           <div class="mt-8 grid grid-cols-1 md:grid-cols-2 gap-6 pt-6 border-t border-zinc-50">
-            <shared-input 
-              [label]="'offertes.validUntil' | translate" 
-              type="date" 
-              [value]="summaryForm.controls.validUntil.value ?? ''" 
-              (valueChange)="summaryForm.controls.validUntil.setValue($event)" 
+            <shared-input
+              [label]="'offertes.validUntil' | translate"
+              type="date"
+              [value]="summaryForm.controls.validUntil.value ?? ''"
+              (valueChange)="summaryForm.controls.validUntil.setValue($event)"
             />
             <div class="flex items-end pb-2">
-              <shared-checkbox 
-                [label]="'offertes.financingDisclaimer' | translate" 
-                [checked]="financingDisclaimer()" 
-                (checkedChange)="financingDisclaimer.set($event)" 
+              <shared-checkbox
+                [label]="'offertes.financingDisclaimer' | translate"
+                [checked]="financingDisclaimer()"
+                (checkedChange)="financingDisclaimer.set($event)"
               />
             </div>
           </div>
@@ -154,106 +207,214 @@
         </div>
       </details>
 
-      <details class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" [open]="selectedLead() ? showGeneratePanel() : true">
-        <summary class="flex list-none items-center justify-between p-4 sm:p-5 transition-colors" [class.cursor-pointer]="!!selectedLead()" [class.hover:bg-zinc-50]="!!selectedLead()" (click)="selectedLead() && toggleGeneratePanel()">
-            <div class="flex items-center gap-4">
-              <div class="flex h-10 w-10 items-center justify-center rounded-full" [class.bg-indigo-50]="!!selectedLead()" [class.text-indigo-600]="!!selectedLead()" [class.bg-zinc-100]="!selectedLead()" [class.text-zinc-400]="!selectedLead()">
-                <lucide-icon name="sparkles" class="h-5 w-5"></lucide-icon>
-              </div>
-              <div>
-                <h2 class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400" [class.group-open:text-indigo-900]="!!selectedLead()">{{ 'offertes.generate.title' | translate }}</h2>
-                <p class="text-[10px] font-bold uppercase tracking-tighter" [class.text-indigo-400/70]="!!selectedLead()" [class.text-zinc-400]="!selectedLead()">
-                  {{ (selectedLead() ? 'offertes.generate.panelReady' : 'offertes.generate.panelLocked') | translate }}
-                </p>
-              </div>
+      <details
+        class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm"
+        [open]="selectedLead() ? showGeneratePanel() : true"
+      >
+        <summary
+          class="flex list-none items-center justify-between p-4 sm:p-5 transition-colors"
+          [class.cursor-pointer]="!!selectedLead()"
+          [class.hover:bg-zinc-50]="!!selectedLead()"
+          (click)="selectedLead() && toggleGeneratePanel()"
+        >
+          <div class="flex items-center gap-4">
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-full"
+              [class.bg-indigo-50]="!!selectedLead()"
+              [class.text-indigo-600]="!!selectedLead()"
+              [class.bg-zinc-100]="!selectedLead()"
+              [class.text-zinc-400]="!selectedLead()"
+            >
+              <lucide-icon name="sparkles" class="h-5 w-5"></lucide-icon>
             </div>
-            <lucide-icon name="chevron-down" class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"></lucide-icon>
+            <div>
+              <h2
+                class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400"
+                [class.group-open:text-indigo-900]="!!selectedLead()"
+              >
+                {{ 'offertes.generate.title' | translate }}
+              </h2>
+              <p
+                class="text-[10px] font-bold uppercase tracking-tighter"
+                [class.text-indigo-400/70]="!!selectedLead()"
+                [class.text-zinc-400]="!selectedLead()"
+              >
+                {{
+                  (selectedLead()
+                    ? 'offertes.generate.panelReady'
+                    : 'offertes.generate.panelLocked'
+                  ) | translate
+                }}
+              </p>
+            </div>
+          </div>
+          <lucide-icon
+            name="chevron-down"
+            class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"
+          ></lucide-icon>
         </summary>
         <div class="border-t border-zinc-100 bg-white p-5 sm:p-8">
           @if (!selectedLead()) {
-            <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600">
+            <div
+              class="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600"
+            >
               {{ 'offertes.generate.selectLeadFirstBody' | translate }}
             </div>
           }
 
-          <shared-textarea 
-            [label]="'offertes.generate.promptLabel' | translate" 
-            [rows]="3" 
-            [placeholder]="selectedLead() ? ('offertes.generate.promptPlaceholder' | translate) : ('offertes.generate.selectLeadFirstPlaceholder' | translate)"
+          <shared-textarea
+            [label]="'offertes.generate.promptLabel' | translate"
+            [rows]="3"
+            [placeholder]="
+              selectedLead()
+                ? ('offertes.generate.promptPlaceholder' | translate)
+                : ('offertes.generate.selectLeadFirstPlaceholder' | translate)
+            "
             [disabled]="!selectedLead()"
-            [value]="generatePrompt()" 
-            (valueChange)="generatePrompt.set($event)" 
+            [value]="generatePrompt()"
+            (valueChange)="generatePrompt.set($event)"
           />
           <div class="mt-4 flex items-center justify-between gap-3">
-             <div class="text-[10px] font-bold uppercase text-zinc-400">
-               {{ 'offertes.generate.service' | translate }}: <span [class.text-indigo-600]="!!selectedLeadServiceLabel()" [class.text-zinc-400]="!selectedLeadServiceLabel()">{{ selectedLeadServiceLabel() ?? (('offertes.generate.noServiceSelected' | translate)) }}</span>
-             </div>
-             <shared-button variant="secondary" [disabled]="!selectedLead() || !selectedLeadServiceId() || !generatePrompt().trim() || generating()" [loading]="generating()" (clicked)="generateQuote()">
-                <lucide-icon name="sparkles" class="h-4 w-4 mr-2"></lucide-icon>
-                {{ 'offertes.generate.submit' | translate }}
-             </shared-button>
+            <div class="text-[10px] font-bold uppercase text-zinc-400">
+              {{ 'offertes.generate.service' | translate }}:
+              <span
+                [class.text-indigo-600]="!!selectedLeadServiceLabel()"
+                [class.text-zinc-400]="!selectedLeadServiceLabel()"
+                >{{
+                  selectedLeadServiceLabel() ?? ('offertes.generate.noServiceSelected' | translate)
+                }}</span
+              >
+            </div>
+            <shared-button
+              variant="secondary"
+              [disabled]="
+                !selectedLead() ||
+                !selectedLeadServiceId() ||
+                !generatePrompt().trim() ||
+                generating()
+              "
+              [loading]="generating()"
+              (clicked)="generateQuote()"
+            >
+              <lucide-icon name="sparkles" class="h-4 w-4 mr-2"></lucide-icon>
+              {{ 'offertes.generate.submit' | translate }}
+            </shared-button>
           </div>
 
           @if (currentGenerateJob(); as job) {
             <div class="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
               <div class="flex justify-between mb-2">
                 <span class="text-[10px] font-black uppercase text-zinc-700">{{ job.step }}</span>
-                <span class="text-[10px] font-mono font-bold text-zinc-400">{{ job.progressPercent }}%</span>
+                <span class="text-[10px] font-mono font-bold text-zinc-400"
+                  >{{ job.progressPercent }}%</span
+                >
               </div>
               <div class="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
-                <div class="h-full bg-zinc-900 transition-all duration-500" [style.width.%]="job.progressPercent"></div>
+                <div
+                  class="h-full bg-zinc-900 transition-all duration-500"
+                  [style.width.%]="job.progressPercent"
+                ></div>
               </div>
             </div>
           }
         </div>
       </details>
 
-      <details class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" [open]="selectedLead()">
-        <summary class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-5 hover:bg-zinc-50 transition-colors">
+      <details
+        class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm"
+        [open]="selectedLead()"
+      >
+        <summary
+          class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-5 hover:bg-zinc-50 transition-colors"
+        >
           <div class="flex items-center gap-4">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full transition-all"
-                 [class]="lineItems().length > 0 ? 'bg-zinc-900 text-white shadow-lg' : 'bg-zinc-100 text-zinc-400'">
-              <lucide-icon [name]="lineItems().length > 0 ? 'list-checks' : 'list-plus'" class="h-5 w-5"></lucide-icon>
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-full transition-all"
+              [class]="
+                lineItems().length > 0
+                  ? 'bg-zinc-900 text-white shadow-lg'
+                  : 'bg-zinc-100 text-zinc-400'
+              "
+            >
+              <lucide-icon
+                [name]="lineItems().length > 0 ? 'list-checks' : 'list-plus'"
+                class="h-5 w-5"
+              ></lucide-icon>
             </div>
             <div>
-              <h2 class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 group-open:text-zinc-900">{{ 'offertes.lineItems' | translate }}</h2>
-              <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">{{ 'offertes.itemsCount' | translate:{ count: lineItems().length } }}</p>
+              <h2
+                class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 group-open:text-zinc-900"
+              >
+                {{ 'offertes.lineItems' | translate }}
+              </h2>
+              <p class="text-[10px] font-bold text-zinc-400 uppercase tracking-tighter">
+                {{ 'offertes.itemsCount' | translate: { count: lineItems().length } }}
+              </p>
             </div>
           </div>
           <div class="flex items-center gap-4">
             <div class="hidden sm:flex items-center gap-2 bg-zinc-100 p-1 rounded-md">
-               <span class="text-[9px] font-black uppercase px-2 text-zinc-400">{{ 'offertes.pricingMode' | translate }}</span>
-               <shared-select class="w-32 [&_button]:h-7 [&_button]:text-[10px] [&_button]:font-black" [options]="pricingModeOptions()" [value]="pricingMode()" (valueChange)="setPricingMode($event)" />
+              <span class="text-[9px] font-black uppercase px-2 text-zinc-400">{{
+                'offertes.pricingMode' | translate
+              }}</span>
+              <shared-select
+                class="w-32 [&_button]:h-7 [&_button]:text-[10px] [&_button]:font-black"
+                [options]="pricingModeOptions()"
+                [value]="pricingMode()"
+                (valueChange)="setPricingMode($event)"
+              />
             </div>
-            <lucide-icon name="chevron-down" class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"></lucide-icon>
+            <lucide-icon
+              name="chevron-down"
+              class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"
+            ></lucide-icon>
           </div>
         </summary>
-        
+
         <div class="border-t border-zinc-100 bg-white p-2 sm:p-6">
-          <div class="hidden rounded-t-lg border border-zinc-200 bg-zinc-50/80 px-4 py-2 
-                      lg:grid lg:grid-cols-[32px_88px_minmax(0,1.6fr)_104px_96px_92px_48px_32px] lg:items-center lg:gap-x-2">
+          <div
+            class="hidden rounded-t-lg border border-zinc-200 bg-zinc-50/80 px-4 py-2 lg:grid lg:grid-cols-[32px_88px_minmax(0,1.6fr)_104px_96px_92px_48px_32px] lg:items-center lg:gap-x-2"
+          >
             <span></span>
-            <span class="text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.qty' | translate }}</span>
-            <span class="text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.description' | translate }}</span>
-            <span class="text-right text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.form.unitPrice' | translate }}</span>
-            <span class="text-right text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.tax' | translate }}</span>
-            <span class="text-right text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.total' | translate }}</span>
-            <span class="text-center text-[9px] font-black uppercase tracking-widest text-zinc-400">{{ 'offertes.optional' | translate }}</span>
+            <span class="text-[9px] font-black uppercase tracking-widest text-zinc-400">{{
+              'offertes.qty' | translate
+            }}</span>
+            <span class="text-[9px] font-black uppercase tracking-widest text-zinc-400">{{
+              'offertes.description' | translate
+            }}</span>
+            <span
+              class="text-right text-[9px] font-black uppercase tracking-widest text-zinc-400"
+              >{{ 'offertes.form.unitPrice' | translate }}</span
+            >
+            <span
+              class="text-right text-[9px] font-black uppercase tracking-widest text-zinc-400"
+              >{{ 'offertes.tax' | translate }}</span
+            >
+            <span
+              class="text-right text-[9px] font-black uppercase tracking-widest text-zinc-400"
+              >{{ 'offertes.total' | translate }}</span
+            >
+            <span
+              class="text-center text-[9px] font-black uppercase tracking-widest text-zinc-400"
+              >{{ 'offertes.optional' | translate }}</span
+            >
             <span></span>
           </div>
 
-          <div cdkDropList 
-               [cdkDropListData]="lineItems()"
-               cdkDropListLockAxis="y"
-               cdkDropListOrientation="vertical"
-               class="space-y-3 pt-4"
-               (cdkDropListDropped)="onLineItemDrop($event)">
+          <div
+            cdkDropList
+            [cdkDropListData]="lineItems()"
+            cdkDropListLockAxis="y"
+            cdkDropListOrientation="vertical"
+            class="space-y-3 pt-4"
+            (cdkDropListDropped)="onLineItemDrop($event)"
+          >
             @for (item of lineItems(); track item.id) {
-              <app-quote-line-item-row 
-                cdkDrag 
+              <app-quote-line-item-row
+                cdkDrag
                 [cdkDragData]="item"
-                [cdkDragStartDelay]="{touch: 0, mouse: 0}"
-                [item]="item" 
+                [cdkDragStartDelay]="{ touch: 0, mouse: 0 }"
+                [item]="item"
                 [totalDisplay]="formatCurrency(getLineItemTotal(item))"
                 [taxRateOptions]="taxRateOptions()"
                 [ghostSearchFn]="catalogSearchFn"
@@ -263,8 +424,8 @@
                 (taxRateChange)="updateLineItemTaxRate(item.id, $event)"
                 (optionalChange)="updateLineItemOptional(item.id, $event)"
                 (ghostAccepted)="onGhostAccepted(item.id, $event)"
-                (remove)="removeLineItem(item.id)">
-                
+                (remove)="removeLineItem(item.id)"
+              >
                 <!-- Minimal drag preview - just a simple box, not the full component -->
                 <ng-template cdkDragPreview>
                   <div class="drag-preview-simple">
@@ -272,27 +433,46 @@
                     <span>{{ item.quantity }} × {{ formatCurrency(item.unitPrice) }}</span>
                   </div>
                 </ng-template>
-                
               </app-quote-line-item-row>
             }
           </div>
 
-          <button (click)="addLineItem()" class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-200 py-6 text-xs font-black uppercase tracking-widest text-zinc-400 hover:border-zinc-900 hover:text-zinc-900 transition-all group">
-            <lucide-icon name="plus" class="h-5 w-5 group-hover:scale-110 transition-transform"></lucide-icon>
+          <button
+            (click)="addLineItem()"
+            class="mt-6 flex w-full items-center justify-center gap-2 rounded-xl border-2 border-dashed border-zinc-200 py-6 text-xs font-black uppercase tracking-widest text-zinc-400 hover:border-zinc-900 hover:text-zinc-900 transition-all group"
+          >
+            <lucide-icon
+              name="plus"
+              class="h-5 w-5 group-hover:scale-110 transition-transform"
+            ></lucide-icon>
             {{ 'offertes.addItem' | translate }}
           </button>
         </div>
       </details>
 
-      <details class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm" open>
-        <summary class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-5 hover:bg-zinc-50 transition-colors">
+      <details
+        class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm"
+        open
+      >
+        <summary
+          class="flex cursor-pointer list-none items-center justify-between p-4 sm:p-5 hover:bg-zinc-50 transition-colors"
+        >
           <div class="flex items-center gap-4">
-            <div class="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-500">
+            <div
+              class="flex h-10 w-10 items-center justify-center rounded-full bg-zinc-100 text-zinc-500"
+            >
               <lucide-icon name="paperclip" class="h-5 w-5"></lucide-icon>
             </div>
-            <h2 class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 group-open:text-zinc-900">{{ 'offertes.documents' | translate }}</h2>
+            <h2
+              class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400 group-open:text-zinc-900"
+            >
+              {{ 'offertes.documents' | translate }}
+            </h2>
           </div>
-          <lucide-icon name="chevron-down" class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"></lucide-icon>
+          <lucide-icon
+            name="chevron-down"
+            class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"
+          ></lucide-icon>
         </summary>
         <div class="border-t border-zinc-100 bg-white p-5 sm:p-8">
           <app-attachment-panel
@@ -305,9 +485,13 @@
           <div class="mt-8 border-t border-zinc-100 pt-8">
             <div class="mb-4 flex items-center justify-between gap-3">
               <div>
-                <h3 class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">{{ 'offertes.urls' | translate }}</h3>
+                <h3 class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">
+                  {{ 'offertes.urls' | translate }}
+                </h3>
               </div>
-              <div class="rounded-full bg-zinc-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 ring-1 ring-inset ring-zinc-200/70">
+              <div
+                class="rounded-full bg-zinc-100 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 ring-1 ring-inset ring-zinc-200/70"
+              >
                 {{ urlDrafts().length }}
               </div>
             </div>
@@ -315,8 +499,12 @@
             @if (urlDrafts().length > 0) {
               <div class="mb-4 space-y-2">
                 @for (url of urlDrafts(); track url.uid) {
-                  <div class="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3">
-                    <div class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-50 text-zinc-400">
+                  <div
+                    class="flex items-center gap-3 rounded-lg border border-zinc-200 bg-white px-4 py-3"
+                  >
+                    <div
+                      class="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-zinc-50 text-zinc-400"
+                    >
                       <lucide-icon name="link" class="h-4 w-4"></lucide-icon>
                     </div>
                     <div class="min-w-0 flex-1">
@@ -346,7 +534,9 @@
             }
 
             <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-              <div class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:items-end">
+              <div
+                class="grid gap-4 sm:grid-cols-[minmax(0,1fr)_minmax(0,1.4fr)_auto] sm:items-end"
+              >
                 <shared-input
                   #urlLabel
                   [label]="'offertes.urlLabel' | translate"
@@ -361,7 +551,11 @@
                   variant="secondary"
                   [fullWidth]="false"
                   [disabled]="!urlLabel.value().trim() || !urlHref.value().trim()"
-                  (clicked)="addUrl(urlLabel.value(), urlHref.value()); urlLabel.value.set(''); urlHref.value.set('')"
+                  (clicked)="
+                    addUrl(urlLabel.value(), urlHref.value());
+                    urlLabel.value.set('');
+                    urlHref.value.set('')
+                  "
                 >
                   <lucide-icon name="plus" class="mr-2 h-4 w-4"></lucide-icon>
                   {{ 'offertes.addUrl' | translate }}
@@ -373,42 +567,70 @@
       </details>
     </div>
 
-    <aside class="w-full shrink-0 lg:w-80 xl:w-96 lg:sticky lg:top-[73px] lg:h-[calc(100dvh-73px)] lg:overflow-y-auto">
+    <aside
+      class="w-full shrink-0 lg:w-80 xl:w-96 lg:sticky lg:top-[73px] lg:h-[calc(100dvh-73px)] lg:overflow-y-auto"
+    >
       <div class="h-full border-t border-zinc-200 bg-white p-6 lg:border-l lg:border-t-0 xl:p-10">
         <div class="flex items-center gap-3 mb-10">
           <div class="h-2 w-2 rounded-full bg-zinc-900"></div>
-          <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">{{ 'offertes.summary' | translate }}</h2>
+          <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
+            {{ 'offertes.summary' | translate }}
+          </h2>
         </div>
 
         <div class="space-y-8">
           <section class="rounded-xl border border-zinc-200 bg-white p-5">
             <div class="space-y-4">
               <div class="flex items-baseline justify-between gap-4">
-                <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.subtotal' | translate }}</span>
-                <span class="font-mono text-base font-bold tabular-nums text-zinc-900">{{ formatCurrency(totals().subtotal) }}</span>
+                <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{
+                  'offertes.subtotal' | translate
+                }}</span>
+                <span class="font-mono text-base font-bold tabular-nums text-zinc-900">{{
+                  formatCurrency(totals().subtotal)
+                }}</span>
               </div>
 
               <div class="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
                 <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.discount' | translate }}</span>
+                  <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{
+                    'offertes.discount' | translate
+                  }}</span>
                   <lucide-icon name="tag" class="h-4 w-4 text-zinc-300"></lucide-icon>
                 </div>
                 <div class="flex gap-2">
-                  <shared-number-input class="flex-1 [&_input]:h-9 [&_input]:text-xs [&_input]:font-bold" [value]="summaryForm.controls.discountValue.value" (valueChange)="setDiscountValue($event ?? 0)" [prefix]="discountPrefix()" />
-                  <shared-select class="w-20 [&_button]:h-9 [&_button]:text-[10px] [&_button]:font-black" [options]="discountTypeOptions()" [value]="summaryForm.controls.discountType.value" (valueChange)="setDiscountType($event)" />
+                  <shared-number-input
+                    class="flex-1 [&_input]:h-9 [&_input]:text-xs [&_input]:font-bold"
+                    [value]="summaryForm.controls.discountValue.value"
+                    (valueChange)="setDiscountValue($event ?? 0)"
+                    [prefix]="discountPrefix()"
+                  />
+                  <shared-select
+                    class="w-20 [&_button]:h-9 [&_button]:text-[10px] [&_button]:font-black"
+                    [options]="discountTypeOptions()"
+                    [value]="summaryForm.controls.discountType.value"
+                    (valueChange)="setDiscountType($event)"
+                  />
                 </div>
                 @if (totals().discountAmount > 0) {
                   <div class="flex items-center justify-between text-emerald-600">
-                    <span class="text-[10px] font-black uppercase tracking-[0.16em]">{{ 'offertes.savings' | translate }}</span>
-                    <span class="font-mono text-sm font-bold tabular-nums">-{{ formatCurrency(totals().discountAmount) }}</span>
+                    <span class="text-[10px] font-black uppercase tracking-[0.16em]">{{
+                      'offertes.savings' | translate
+                    }}</span>
+                    <span class="font-mono text-sm font-bold tabular-nums"
+                      >-{{ formatCurrency(totals().discountAmount) }}</span
+                    >
                   </div>
                 }
               </div>
 
               <div class="space-y-2 border-t border-zinc-200 pt-4">
                 <div class="flex items-baseline justify-between gap-4 text-zinc-600">
-                  <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.taxTotal' | translate }}</span>
-                  <span class="font-mono text-sm font-bold tabular-nums text-zinc-800">{{ formatCurrency(totals().taxAmount) }}</span>
+                  <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{
+                    'offertes.taxTotal' | translate
+                  }}</span>
+                  <span class="font-mono text-sm font-bold tabular-nums text-zinc-800">{{
+                    formatCurrency(totals().taxAmount)
+                  }}</span>
                 </div>
 
                 @if (taxBreakdown().length > 0) {
@@ -416,7 +638,9 @@
                     @for (entry of taxBreakdown(); track entry.rate) {
                       <div class="flex items-center justify-between text-xs text-zinc-500">
                         <span>{{ 'offertes.tax' | translate }} {{ entry.rate }}%</span>
-                        <span class="font-mono tabular-nums text-zinc-700">{{ formatCurrency(entry.amount) }}</span>
+                        <span class="font-mono tabular-nums text-zinc-700">{{
+                          formatCurrency(entry.amount)
+                        }}</span>
                       </div>
                     }
                   </div>
@@ -428,12 +652,51 @@
           <section class="rounded-xl border border-zinc-200 bg-zinc-50 px-5 py-4">
             <div class="flex items-start justify-between gap-4">
               <div>
-                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.totalAmount' | translate }}</p>
-                <p class="mt-2 font-mono text-[1.75rem] font-black leading-none tracking-tight tabular-nums text-zinc-900">{{ formatCurrency(totals().total) }}</p>
+                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+                  {{ 'offertes.totalAmount' | translate }}
+                </p>
+                <p
+                  class="mt-2 font-mono text-[1.75rem] font-black leading-none tracking-tight tabular-nums text-zinc-900"
+                >
+                  {{ formatCurrency(totals().total) }}
+                </p>
               </div>
-              <span class="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500">
+              <span
+                class="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500"
+              >
                 {{ 'offertes.pricesInclVat' | translate }}
               </span>
+            </div>
+
+            <div class="mt-5 rounded-xl border border-zinc-200 bg-white p-4">
+              <div class="flex items-center justify-between gap-3">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+                    ISDE Subsidie
+                  </p>
+                  @if (hasSubsidyResult()) {
+                    <p class="mt-1 text-sm font-bold text-zinc-900">
+                      {{ formatCurrency(subsidyTotalEuros()) }}
+                    </p>
+                  } @else {
+                    <p class="mt-1 text-xs text-zinc-500">Nog geen berekening uitgevoerd</p>
+                  }
+                </div>
+              </div>
+
+              <div class="mt-4 border-t border-zinc-100 pt-4">
+                <shared-checkbox
+                  label="Meesturen in offertesamenvatting"
+                  [checked]="includeSubsidyInSummary()"
+                  [disabled]="!hasSubsidyResult()"
+                  (checkedChange)="includeSubsidyInSummary.set($event)"
+                />
+                @if (includeSubsidyInSummary() && hasSubsidyResult()) {
+                  <p class="mt-2 text-xs text-zinc-500">
+                    Subsidie wordt opgenomen in de interne samenvatting voor workflow-verzending.
+                  </p>
+                }
+              </div>
             </div>
 
             @if (isAdmin()) {
@@ -449,13 +712,13 @@
               </div>
             }
           </section>
-          
+
           <div class="hidden lg:block pt-6">
-            <shared-button 
-              variant="primary" 
-              size="default" 
-              [fullWidth]="true" 
-              [disabled]="!canSave() || saving()" 
+            <shared-button
+              variant="primary"
+              size="default"
+              [fullWidth]="true"
+              [disabled]="!canSave() || saving()"
               [loading]="saving()"
               (clicked)="saveDraft()"
               class="h-12"
@@ -480,13 +743,327 @@
     (closed)="closePreview()"
   />
 
-  @if (loading()) {
-    <div class="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-white/60 backdrop-blur-sm">
-      <div class="pointer-events-auto rounded-2xl border border-zinc-200 bg-white px-6 py-5 shadow-xl">
-        <div class="flex items-center gap-3">
-          <lucide-icon name="loader-circle" class="h-5 w-5 animate-spin text-zinc-900"></lucide-icon>
+  <ng-template #subsidyEditorContent>
+    <div class="space-y-5 p-4 sm:p-5">
+      <section
+        class="rounded-xl border border-amber-200 bg-gradient-to-br from-amber-50 via-white to-orange-50 p-4 text-sm text-zinc-700"
+      >
+        <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">Invulhulp</p>
+        <p class="mt-2">
+          Glasmaatregelen gebruiken een U- of Ud-waarde: lager is beter. Isolatiemaatregelen
+          gebruiken een Rd-waarde: hoger is beter.
+        </p>
+        <p class="mt-1 text-xs text-zinc-500">
+          Voorbeeld: HR++ glas kwalificeert doorgaans bij een U-waarde van 1,2 of lager.
+        </p>
+      </section>
+
+      <div class="grid gap-3 md:grid-cols-3">
+        <shared-select
+          [label]="'Uitvoeringsjaar'"
+          [options]="subsidyExecutionYearOptions()"
+          [value]="subsidyExecutionYear()"
+          (valueChange)="subsidyExecutionYear.set($event ?? subsidyExecutionYear())"
+        />
+        <div class="md:col-span-2 grid gap-3 md:grid-cols-2">
+          <shared-checkbox
+            label="Woning is al aangesloten op warmtenet"
+            [checked]="hasExistingWarmtenetConnection()"
+            (checkedChange)="hasExistingWarmtenetConnection.set($event)"
+          />
+          <shared-checkbox
+            label="Eerder warmtenetsubsidie ontvangen"
+            [checked]="hasReceivedWarmtenetSubsidy()"
+            (checkedChange)="hasReceivedWarmtenetSubsidy.set($event)"
+          />
+        </div>
+      </div>
+
+      <shared-checkbox
+        label="In de afgelopen 24 maanden al subsidie ontvangen"
+        [checked]="previousSubsidiesWithin24Months()"
+        (checkedChange)="previousSubsidiesWithin24Months.set($event)"
+      />
+
+      <section class="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+            Maatregelen
+          </h3>
+          <shared-button variant="secondary" size="compact" (clicked)="addSubsidyMeasureRow()">
+            <lucide-icon name="plus" class="mr-1 h-4 w-4"></lucide-icon>
+            Rij
+          </shared-button>
+        </div>
+
+        @for (row of subsidyMeasures(); track row.uid) {
+          <div
+            class="grid gap-2 rounded-lg border border-zinc-200 bg-white p-3 md:grid-cols-[1.25fr_0.85fr_0.85fr_auto]"
+          >
+            <shared-select
+              [label]="'Maatregel'"
+              [options]="subsidyMeasureOptions()"
+              [value]="row.measureId"
+              (valueChange)="updateSubsidyMeasure(row.uid, 'measureId', $event)"
+            />
+            <shared-number-input
+              [label]="'Oppervlakte (m2)'"
+              [value]="row.areaM2"
+              (valueChange)="updateSubsidyMeasure(row.uid, 'areaM2', $event ?? 0)"
+            />
+            <shared-number-input
+              [label]="measurePerformanceLabel(row.measureId)"
+              [value]="row.performanceValue ?? null"
+              (valueChange)="updateSubsidyMeasure(row.uid, 'performanceValue', $event)"
+            />
+            <button
+              type="button"
+              class="mt-7 inline-flex h-10 w-10 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
+              (click)="removeSubsidyMeasureRow(row.uid)"
+              aria-label="Verwijder maatregel"
+            >
+              <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
+            </button>
+            <div class="md:col-span-4 flex flex-wrap items-center gap-x-3 gap-y-1 text-xs text-zinc-500">
+              <span>{{ measurePerformanceHint(row.measureId) }}</span>
+              <span class="rounded-full bg-zinc-100 px-2 py-1 font-medium text-zinc-700">
+                {{ measurePerformanceExample(row.measureId) }}
+              </span>
+            </div>
+            @if (measureNeedsFrameFields(row.measureId)) {
+              <div class="md:col-span-4 grid gap-2 md:grid-cols-2">
+                <shared-checkbox
+                  label="Nieuwe kozijnen geplaatst"
+                  [checked]="row.frameReplaced"
+                  (checkedChange)="updateSubsidyMeasure(row.uid, 'frameReplaced', $event)"
+                />
+                <shared-number-input
+                  [label]="'Uf-waarde kozijn (optioneel)'"
+                  [value]="row.framePerformanceValue ?? null"
+                  (valueChange)="updateSubsidyMeasure(row.uid, 'framePerformanceValue', $event)"
+                />
+              </div>
+            }
+            @if (measureSupportsPairStacking(row.measureId)) {
+              <div class="md:col-span-4">
+                <shared-checkbox
+                  label="Ligt boven de gekoppelde maatregel op hetzelfde vlak"
+                  [checked]="row.stackedWithPairedMeasure"
+                  (checkedChange)="
+                    updateSubsidyMeasure(row.uid, 'stackedWithPairedMeasure', $event)
+                  "
+                />
+              </div>
+            }
+            @if (measureSupportsMKI(row.measureId)) {
+              <div class="md:col-span-4">
+                <shared-checkbox
+                  label="MKI bonus toepassen"
+                  [checked]="row.hasMKIBonus"
+                  (checkedChange)="updateSubsidyMeasure(row.uid, 'hasMKIBonus', $event)"
+                />
+              </div>
+            }
+            @if (!measureSupportsMKI(row.measureId)) {
+              <div class="md:col-span-4 text-xs text-zinc-500">
+                Voor glas, panelen en deuren geldt geen MKI bonus.
+              </div>
+            }
+          </div>
+        }
+      </section>
+
+      <section class="space-y-3 rounded-xl border border-zinc-200 bg-zinc-50 p-3">
+        <div class="flex items-center justify-between">
+          <h3 class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+            Installaties
+          </h3>
+          <shared-button variant="secondary" size="compact" (clicked)="addSubsidyInstallationRow()">
+            <lucide-icon name="plus" class="mr-1 h-4 w-4"></lucide-icon>
+            Installatie
+          </shared-button>
+        </div>
+
+        @for (row of subsidyInstallations(); track row.uid) {
+          <div
+            class="grid gap-2 rounded-lg border border-zinc-200 bg-white p-3 md:grid-cols-[1fr_1fr_auto]"
+          >
+            <shared-select
+              [label]="'Type installatie'"
+              [options]="subsidyInstallationKindOptions()"
+              [value]="row.kind"
+              (valueChange)="updateSubsidyInstallation(row.uid, 'kind', $event)"
+            />
+            @if (installationUsesMeldcode(row.kind)) {
+              <shared-input
+                [label]="'Meldcode (bijv. KA00001)'"
+                [value]="row.meldcode"
+                (valueChange)="updateSubsidyInstallation(row.uid, 'meldcode', $event)"
+              />
+            }
+            @if (installationUsesHeatPumpFormula(row.kind)) {
+              <div class="grid gap-2 md:grid-cols-2 md:col-span-2">
+                <shared-select
+                  [label]="'Warmtepomptype'"
+                  [options]="subsidyHeatPumpTypeOptions()"
+                  [value]="row.heatPumpType"
+                  (valueChange)="updateSubsidyInstallation(row.uid, 'heatPumpType', $event)"
+                />
+                <shared-select
+                  [label]="'Energielabel'"
+                  [options]="subsidyHeatPumpLabelOptions()"
+                  [value]="row.heatPumpEnergyLabel"
+                  (valueChange)="updateSubsidyInstallation(row.uid, 'heatPumpEnergyLabel', $event)"
+                />
+                <shared-number-input
+                  [label]="'Thermisch vermogen (kW)'"
+                  [value]="row.thermalPowerKW ?? null"
+                  (valueChange)="updateSubsidyInstallation(row.uid, 'thermalPowerKW', $event)"
+                />
+                <shared-number-input
+                  [label]="'Koudemiddelvulling (kg, optioneel)'"
+                  [value]="row.refrigerantChargeKg ?? null"
+                  (valueChange)="updateSubsidyInstallation(row.uid, 'refrigerantChargeKg', $event)"
+                />
+                <shared-number-input
+                  [label]="'GWP (optioneel)'"
+                  [value]="row.refrigerantGWP ?? null"
+                  (valueChange)="updateSubsidyInstallation(row.uid, 'refrigerantGWP', $event)"
+                />
+                <div class="space-y-2">
+                  <shared-checkbox
+                    label="Extra lucht-waterunit"
+                    [checked]="row.isAdditionalUnit"
+                    (checkedChange)="updateSubsidyInstallation(row.uid, 'isAdditionalUnit', $event)"
+                  />
+                  <shared-checkbox
+                    label="Split-systeem"
+                    [checked]="row.isSplitSystem"
+                    (checkedChange)="updateSubsidyInstallation(row.uid, 'isSplitSystem', $event)"
+                  />
+                </div>
+              </div>
+            }
+            @if (
+              !installationUsesMeldcode(row.kind) && !installationUsesHeatPumpFormula(row.kind)
+            ) {
+              <div class="md:col-span-2 self-center text-xs text-zinc-500">
+                Voor dit type zijn geen extra velden nodig.
+              </div>
+            }
+            <button
+              type="button"
+              class="inline-flex h-10 w-10 items-center justify-center rounded-lg text-zinc-400 transition-colors hover:bg-red-50 hover:text-red-600"
+              (click)="removeSubsidyInstallationRow(row.uid)"
+              aria-label="Verwijder meldcode"
+            >
+              <lucide-icon name="trash-2" class="h-4 w-4"></lucide-icon>
+            </button>
+          </div>
+        }
+      </section>
+
+      @if (subsidyError()) {
+        <div class="rounded-lg border border-red-200 bg-red-50 px-3 py-2 text-sm text-red-700">
+          {{ subsidyError() }}
+        </div>
+      }
+
+      @if (subsidyBreakdownRows().length > 0) {
+        <section class="rounded-xl border border-zinc-200 bg-white p-3">
+          <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+            Laatste berekening
+          </p>
+          <ul class="mt-2 space-y-1 text-xs text-zinc-700">
+            @for (
+              entry of subsidyBreakdownRows();
+              track entry.description + '-' + entry.amountCents
+            ) {
+              <li class="flex items-center justify-between gap-3">
+                <span class="truncate">{{ entry.description }}</span>
+                <span class="font-mono tabular-nums">{{
+                  formatCurrency(entry.amountCents / 100)
+                }}</span>
+              </li>
+            }
+          </ul>
+          <div class="mt-3 border-t border-zinc-100 pt-2 text-sm font-bold text-zinc-900">
+            Totaal: {{ formatCurrency(subsidyTotalEuros()) }}
+          </div>
+        </section>
+      }
+
+      <div class="flex items-center justify-end gap-2 border-t border-zinc-100 pt-3">
+        <shared-button variant="ghost" (clicked)="closeSubsidyEditor()">Annuleren</shared-button>
+        <shared-button
+          variant="primary"
+          [loading]="subsidyCalculating()"
+          (clicked)="calculateSubsidy()"
+        >
+          Berekenen
+        </shared-button>
+      </div>
+    </div>
+  </ng-template>
+
+  @if (subsidyEditorOpen() && !isMobileViewport()) {
+    <dialog class="subsidy-modal" aria-modal="true" open>
+      <button
+        class="subsidy-modal-backdrop"
+        type="button"
+        (click)="closeSubsidyEditor()"
+        aria-label="Sluiten"
+      ></button>
+      <div class="subsidy-modal-panel">
+        <div class="subsidy-modal-header">
           <div>
-            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">{{ 'offertes.loading' | translate }}</p>
+            <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+              Subsidieplanner
+            </p>
+            <h2 class="mt-1 text-sm font-black uppercase tracking-[0.14em] text-zinc-700">
+              Bereken ISDE subsidie
+            </h2>
+          </div>
+          <button
+            type="button"
+            class="subsidy-modal-close"
+            (click)="closeSubsidyEditor()"
+            aria-label="Sluiten"
+          >
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
+        <ng-container [ngTemplateOutlet]="subsidyEditorContent"></ng-container>
+      </div>
+    </dialog>
+  }
+
+  <app-bottom-sheet
+    [isOpen]="subsidyEditorOpen() && isMobileViewport()"
+    [title]="'Bereken ISDE subsidie'"
+    [showCloseButton]="true"
+    [maxHeight]="92"
+    (closed)="closeSubsidyEditor()"
+  >
+    <ng-container [ngTemplateOutlet]="subsidyEditorContent"></ng-container>
+  </app-bottom-sheet>
+
+  @if (loading()) {
+    <div
+      class="pointer-events-none fixed inset-0 z-40 flex items-center justify-center bg-white/60 backdrop-blur-sm"
+    >
+      <div
+        class="pointer-events-auto rounded-2xl border border-zinc-200 bg-white px-6 py-5 shadow-xl"
+      >
+        <div class="flex items-center gap-3">
+          <lucide-icon
+            name="loader-circle"
+            class="h-5 w-5 animate-spin text-zinc-900"
+          ></lucide-icon>
+          <div>
+            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">
+              {{ 'offertes.loading' | translate }}
+            </p>
             <p class="text-sm text-zinc-600">{{ 'offertes.createHint' | translate }}</p>
           </div>
         </div>

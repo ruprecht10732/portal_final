@@ -1,20 +1,52 @@
-import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { CdkDragDrop, DragDropModule, moveItemInArray, CdkDragStart, CdkDragEnd } from '@angular/cdk/drag-drop';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  computed,
+  DestroyRef,
+  inject,
+  OnInit,
+  signal,
+} from '@angular/core';
+import {
+  CdkDragDrop,
+  DragDropModule,
+  moveItemInArray,
+  CdkDragStart,
+  CdkDragEnd,
+} from '@angular/cdk/drag-drop';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
+import { NgTemplateOutlet } from '@angular/common';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
-import { EMPTY, Subject, Observable, debounceTime, switchMap, map, catchError, of, forkJoin } from 'rxjs';
+import {
+  EMPTY,
+  Subject,
+  Observable,
+  debounceTime,
+  switchMap,
+  map,
+  catchError,
+  of,
+  forkJoin,
+} from 'rxjs';
 
 import { LeadsService } from '../../../core/services/leads.service';
 import { QuotesService } from '../../../core/services/quotes.service';
 import { OrganizationService } from '../../../core/services/organization.service';
-import { CatalogService, type AutocompleteItemResponse, type MaterialPricingMode, type Product } from '../../../core/services/catalog.service';
+import {
+  CatalogService,
+  type AutocompleteItemResponse,
+  type MaterialPricingMode,
+  type Product,
+} from '../../../core/services/catalog.service';
 import { AIJobService } from '../../../core/services/ai-job.service';
+import { IsdeService } from '../../../core/services/isde.service';
 import type { Lead } from '../../../core/services/leads.types';
 import type {
   QuoteResponse,
+  QuoteISDESubsidy,
   TaxRateDisplay,
   DiscountType,
   PricingMode,
@@ -25,6 +57,12 @@ import type {
   GenerateQuoteRequest,
   CreateQuoteFeedbackRequest,
 } from '../../../core/services/quotes.types';
+import type {
+  ISDECalculationRequest,
+  ISDECalculationResponse,
+  RequestedInstallation,
+  RequestedMeasure,
+} from '../../../core/services/isde.types';
 import {
   TAX_RATE_OPTIONS,
   DISCOUNT_TYPE_OPTIONS,
@@ -37,19 +75,32 @@ import {
 } from '../../../core/services/quotes.types';
 import { UserService } from '../../../core/services/user.service';
 
-import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
+import {
+  AutocompleteComponent,
+  type AutocompleteOption,
+} from '../../../shared/components/autocomplete/autocomplete.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../shared/components/number-input/number-input.component';
 import { RichTextEditorComponent } from '../../../shared/components/rich-text-editor/rich-text-editor.component';
-import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
-import { SplitActionComponent, type SplitMenuSection } from '../../../shared/components/split-action/split-action.component';
+import {
+  SelectComponent,
+  type SelectOption,
+} from '../../../shared/components/select/select.component';
+import {
+  SplitActionComponent,
+  type SplitMenuSection,
+} from '../../../shared/components/split-action/split-action.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { type GhostSuggestion } from '../../../shared/components/ghost-text/ghost-text.directive';
-import { AttachmentPanelComponent, type AttachmentDraft } from '../../../shared/components/attachment-panel/attachment-panel.component';
+import {
+  AttachmentPanelComponent,
+  type AttachmentDraft,
+} from '../../../shared/components/attachment-panel/attachment-panel.component';
 import { FilePreviewDialogComponent } from '../../../shared/components/file-preview-dialog/file-preview-dialog.component';
+import { BottomSheetComponent } from '../../../shared/components/bottom-sheet';
 import { QuoteLineItemRowComponent } from './quote-line-item-row.component';
 import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
 
@@ -71,9 +122,142 @@ interface QuoteFeedbackDiff {
   humanValue: Record<string, unknown>;
 }
 
+type ISDEMeasureID =
+  | 'roof'
+  | 'attic'
+  | 'facade'
+  | 'cavity_wall'
+  | 'floor'
+  | 'crawl_space'
+  | 'hr_plus_plus'
+  | 'triple_glass'
+  | 'vacuum_glass'
+  | 'glass_panel_low'
+  | 'glass_panel_high'
+  | 'insulated_door_low'
+  | 'insulated_door_high';
+
+type ISDEInstallationKind =
+  | 'meldcode'
+  | 'ventilation'
+  | 'heat_pump'
+  | 'warmtenet'
+  | 'electric_cooking';
+
+interface SubsidyMeasureDraft {
+  uid: string;
+  measureId: ISDEMeasureID;
+  areaM2: number;
+  performanceValue?: number;
+  framePerformanceValue?: number;
+  hasMKIBonus: boolean;
+  frameReplaced: boolean;
+  stackedWithPairedMeasure: boolean;
+}
+
+interface SubsidyInstallationDraft {
+  uid: string;
+  kind: ISDEInstallationKind;
+  meldcode: string;
+  heatPumpType: 'air_water' | 'ground_water' | 'water_water' | 'heat_pump_boiler';
+  heatPumpEnergyLabel: 'A++' | 'A+++';
+  thermalPowerKW?: number;
+  isAdditionalUnit: boolean;
+  isSplitSystem: boolean;
+  refrigerantChargeKg?: number;
+  refrigerantGWP?: number;
+}
+
+interface ISDEMeasureOption {
+  value: ISDEMeasureID;
+  label: string;
+  performanceLabel: string;
+}
+
+type EditableSubsidyMeasureField =
+  | 'measureId'
+  | 'areaM2'
+  | 'performanceValue'
+  | 'framePerformanceValue'
+  | 'hasMKIBonus'
+  | 'frameReplaced'
+  | 'stackedWithPairedMeasure';
+
+type EditableSubsidyInstallationField =
+  | 'kind'
+  | 'meldcode'
+  | 'heatPumpType'
+  | 'heatPumpEnergyLabel'
+  | 'thermalPowerKW'
+  | 'isAdditionalUnit'
+  | 'isSplitSystem'
+  | 'refrigerantChargeKg'
+  | 'refrigerantGWP';
+
+type EditableSubsidyValue = string | number | boolean | null;
+
+const HTML_TAG_PATTERN = /<[^>]*>/g;
+const WHITESPACE_PATTERN = /\s+/g;
+const AREA_PATTERN = /(\d+(?:[.,]\d+)?)\s*(m2|m²)/i;
+const U_VALUE_PATTERN = /\bu(?:-?waarde)?\s*[:=]?\s*(\d+(?:[.,]\d+)?)/i;
+const RD_VALUE_PATTERN = /\b(?:rd|r)\s*[:=]?\s*(\d+(?:[.,]\d+)?)/i;
+
+const ISDE_MEASURE_OPTIONS: ISDEMeasureOption[] = [
+  { value: 'roof', label: 'Dakisolatie', performanceLabel: 'Rd-waarde' },
+  { value: 'attic', label: 'Zolder/vliering isolatie', performanceLabel: 'Rd-waarde' },
+  { value: 'facade', label: 'Gevelisolatie', performanceLabel: 'Rd-waarde' },
+  { value: 'cavity_wall', label: 'Spouwmuurisolatie', performanceLabel: 'Rd-waarde' },
+  { value: 'floor', label: 'Vloerisolatie', performanceLabel: 'Rd-waarde' },
+  { value: 'crawl_space', label: 'Bodemisolatie (kruipruimte)', performanceLabel: 'Rd-waarde' },
+  { value: 'hr_plus_plus', label: 'HR++ glas', performanceLabel: 'U-waarde' },
+  { value: 'triple_glass', label: 'Triple glas', performanceLabel: 'U-waarde' },
+  { value: 'vacuum_glass', label: 'Vacuumglas', performanceLabel: 'U-waarde' },
+  { value: 'glass_panel_low', label: 'Isolerend paneel', performanceLabel: 'U-waarde paneel' },
+  {
+    value: 'glass_panel_high',
+    label: 'Isolerend paneel hoogwaardig',
+    performanceLabel: 'U-waarde paneel',
+  },
+  { value: 'insulated_door_low', label: 'Isolerende deur', performanceLabel: 'Ud-waarde' },
+  {
+    value: 'insulated_door_high',
+    label: 'Isolerende deur hoogwaardig',
+    performanceLabel: 'Ud-waarde',
+  },
+];
+
+const ISDE_INSTALLATION_KIND_OPTIONS: SelectOption<ISDEInstallationKind>[] = [
+  { label: 'Meldcode', value: 'meldcode' },
+  { label: 'Ventilatie', value: 'ventilation' },
+  { label: 'Lucht-water warmtepomp', value: 'heat_pump' },
+  { label: 'Warmtenet', value: 'warmtenet' },
+  { label: 'Elektrische kookvoorziening', value: 'electric_cooking' },
+];
+
+const ISDE_HEAT_PUMP_TYPE_OPTIONS: SelectOption<
+  'air_water' | 'ground_water' | 'water_water' | 'heat_pump_boiler'
+>[] = [
+  { label: 'Lucht-water', value: 'air_water' },
+  { label: 'Grond-water', value: 'ground_water' },
+  { label: 'Water-water', value: 'water_water' },
+  { label: 'Warmtepompboiler', value: 'heat_pump_boiler' },
+];
+
+const ISDE_HEAT_PUMP_LABEL_OPTIONS: SelectOption<'A++' | 'A+++'>[] = [
+  { label: 'A++', value: 'A++' },
+  { label: 'A+++', value: 'A+++' },
+];
+
+const ISDE_EXECUTION_YEAR_OPTIONS: SelectOption<number>[] = [
+  { label: '2024', value: 2024 },
+  { label: '2025', value: 2025 },
+  { label: '2026+', value: 2026 },
+];
+
 @Component({
   selector: 'app-offertes-create',
   imports: [
+    NgTemplateOutlet,
     ReactiveFormsModule,
     DragDropModule,
     TranslatePipe,
@@ -90,6 +274,7 @@ interface QuoteFeedbackDiff {
     PageHeaderComponent,
     AttachmentPanelComponent,
     FilePreviewDialogComponent,
+    BottomSheetComponent,
     QuoteLineItemRowComponent,
     QuotePricingIntelligencePanelComponent,
   ],
@@ -106,6 +291,7 @@ export class OffertesCreateComponent implements OnInit {
   private readonly orgService = inject(OrganizationService);
   private readonly catalogService = inject(CatalogService);
   private readonly aiJobs = inject(AIJobService);
+  private readonly isdeService = inject(IsdeService);
   private readonly translate = inject(TranslateService);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
@@ -133,7 +319,9 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly generateError = signal<string | null>(null);
   protected readonly showGeneratePanel = signal(true);
   protected readonly currentGenerateJobId = signal<string | null>(null);
-  protected readonly currentGenerateJob = computed(() => this.aiJobs.job(this.currentGenerateJobId()));
+  protected readonly currentGenerateJob = computed(() =>
+    this.aiJobs.job(this.currentGenerateJobId()),
+  );
   protected readonly isGenerateLocked = computed(() => {
     const status = this.currentGenerateJob()?.status;
     return status === 'pending' || status === 'running';
@@ -147,15 +335,19 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly selectedLeadServiceId = signal<string | null>(null);
   protected readonly leadServices = computed(() => this.selectedLead()?.services ?? []);
   protected readonly leadServiceOptions = computed<SelectOption<string>[]>(() =>
-    this.leadServices().map(s => ({ label: s.serviceType, value: s.id }))
+    this.leadServices().map((s) => ({ label: s.serviceType, value: s.id })),
   );
   protected readonly selectedLeadServiceLabel = computed(() => {
     const id = this.selectedLeadServiceId();
     if (!id) return null;
-    return this.leadServices().find(s => s.id === id)?.serviceType ?? null;
+    return this.leadServices().find((s) => s.id === id)?.serviceType ?? null;
   });
-  protected readonly isAdmin = computed(() => this.currentUser()?.roles?.includes('admin') ?? false);
-  protected readonly pricingIntelligenceServiceType = computed(() => this.selectedLeadServiceLabel());
+  protected readonly isAdmin = computed(
+    () => this.currentUser()?.roles?.includes('admin') ?? false,
+  );
+  protected readonly pricingIntelligenceServiceType = computed(() =>
+    this.selectedLeadServiceLabel(),
+  );
   protected readonly pricingIntelligencePostcodePrefix = computed(() =>
     derivePostcodePrefixZip4(this.selectedLead()?.address.zipCode),
   );
@@ -175,7 +367,9 @@ export class OffertesCreateComponent implements OnInit {
 
   // Document attachments & URLs (collected from catalog autocomplete + manual uploads)
   protected readonly attachmentDrafts = signal<AttachmentDraft[]>([]);
-  protected readonly urlDrafts = signal<{ uid: string; label: string; href: string; catalogProductId?: string }[]>([]);
+  protected readonly urlDrafts = signal<
+    { uid: string; label: string; href: string; catalogProductId?: string }[]
+  >([]);
 
   // File preview dialog state
   protected readonly previewOpen = signal(false);
@@ -183,7 +377,9 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly previewError = signal<string | null>(null);
   protected readonly previewUrl = signal<string | null>(null);
   protected readonly previewAttachment = signal<AttachmentDraft | null>(null);
-  protected readonly previewTitle = computed(() => this.previewAttachment()?.filename ?? 'File preview');
+  protected readonly previewTitle = computed(
+    () => this.previewAttachment()?.filename ?? 'File preview',
+  );
   protected readonly previewFileName = computed(() => this.previewAttachment()?.filename ?? '');
   protected readonly previewContentType = computed(() => {
     const name = this.previewAttachment()?.filename ?? '';
@@ -201,6 +397,39 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly serverCalc = signal<QuoteCalculationResponse | null>(null);
   protected readonly calculating = signal(false);
 
+  // Subsidy summary state
+  protected readonly includeSubsidyInSummary = signal(false);
+  protected readonly subsidyEditorOpen = signal(false);
+  protected readonly subsidyCalculating = signal(false);
+  protected readonly subsidyError = signal<string | null>(null);
+  protected readonly subsidyResult = signal<ISDECalculationResponse | null>(null);
+  protected readonly lastCalculatedSubsidyFingerprint = signal<string | null>(null);
+  protected readonly subsidyExecutionYear = signal(
+    new Date().getFullYear() >= 2026 ? 2026 : Math.max(new Date().getFullYear(), 2024),
+  );
+  protected readonly previousSubsidiesWithin24Months = signal(false);
+  protected readonly hasExistingWarmtenetConnection = signal(false);
+  protected readonly hasReceivedWarmtenetSubsidy = signal(false);
+  protected readonly subsidyMeasures = signal<SubsidyMeasureDraft[]>([]);
+  protected readonly subsidyInstallations = signal<SubsidyInstallationDraft[]>([]);
+  protected readonly subsidyMeasureOptions = signal(ISDE_MEASURE_OPTIONS);
+  protected readonly subsidyInstallationKindOptions = signal(ISDE_INSTALLATION_KIND_OPTIONS);
+  protected readonly subsidyHeatPumpTypeOptions = signal(ISDE_HEAT_PUMP_TYPE_OPTIONS);
+  protected readonly subsidyHeatPumpLabelOptions = signal(ISDE_HEAT_PUMP_LABEL_OPTIONS);
+  protected readonly subsidyExecutionYearOptions = signal(ISDE_EXECUTION_YEAR_OPTIONS);
+  protected readonly isMobileViewport = signal(false);
+  protected readonly hasSubsidyResult = computed(
+    () => this.subsidyResult()?.totalAmountCents != null,
+  );
+  protected readonly subsidyTotalEuros = computed(() =>
+    centsToEuros(this.subsidyResult()?.totalAmountCents ?? 0),
+  );
+  protected readonly subsidyBreakdownRows = computed(() => {
+    const result = this.subsidyResult();
+    if (!result) return [];
+    return [...result.insulationBreakdown, ...result.glassBreakdown, ...result.installations];
+  });
+
   // Summary form
   protected readonly summaryForm = this.fb.group({
     discountType: this.fb.control<DiscountType>('percentage', { nonNullable: true }),
@@ -212,7 +441,9 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly discountType = signal<DiscountType>('percentage');
   protected readonly discountValue = signal(0);
   protected readonly discountPrefix = computed(() => (this.discountType() === 'fixed' ? '€' : ''));
-  protected readonly discountSuffix = computed(() => (this.discountType() === 'percentage' ? '%' : ''));
+  protected readonly discountSuffix = computed(() =>
+    this.discountType() === 'percentage' ? '%' : '',
+  );
   protected readonly pricingModeOptions = computed<SelectOption<PricingMode>[]>(() => [
     { label: this.translate.instant('offertes.pricesExclVat'), value: 'exclusive' },
     { label: this.translate.instant('offertes.pricesInclVat'), value: 'inclusive' },
@@ -220,11 +451,11 @@ export class OffertesCreateComponent implements OnInit {
 
   // Options for selects
   protected readonly taxRateOptions = computed<SelectOption<TaxRateDisplay>[]>(() =>
-    TAX_RATE_OPTIONS.map(opt => ({ label: opt.label, value: opt.value }))
+    TAX_RATE_OPTIONS.map((opt) => ({ label: opt.label, value: opt.value })),
   );
 
   protected readonly discountTypeOptions = computed<SelectOption<DiscountType>[]>(() =>
-    DISCOUNT_TYPE_OPTIONS.map(opt => ({ label: opt.label, value: opt.value }))
+    DISCOUNT_TYPE_OPTIONS.map((opt) => ({ label: opt.label, value: opt.value })),
   );
 
   // Calculated totals — derived from server calculation when available, else client-side fallback
@@ -239,11 +470,14 @@ export class OffertesCreateComponent implements OnInit {
       };
     }
     // Client-side fallback (shown while server request is in-flight)
-    const items = this.lineItems().filter(i => !i.optional);
+    const items = this.lineItems().filter((i) => !i.optional);
     const mode = this.pricingMode();
     const dType = this.discountType();
     const dValue = this.discountValue();
-    const subtotal = items.reduce((sum, item) => sum + parseQuantityNumber(item.quantity) * item.unitPrice, 0);
+    const subtotal = items.reduce(
+      (sum, item) => sum + parseQuantityNumber(item.quantity) * item.unitPrice,
+      0,
+    );
 
     let discountAmount = dType === 'percentage' ? subtotal * (dValue / 100) : dValue;
     discountAmount = Math.min(Math.max(discountAmount, 0), subtotal);
@@ -254,7 +488,8 @@ export class OffertesCreateComponent implements OnInit {
       return sum + (mode === 'exclusive' ? lineTotal * rate : lineTotal - lineTotal / (1 + rate));
     }, 0);
 
-    const total = mode === 'exclusive' ? subtotal - discountAmount + taxAmount : subtotal - discountAmount;
+    const total =
+      mode === 'exclusive' ? subtotal - discountAmount + taxAmount : subtotal - discountAmount;
     return { subtotal, discountAmount, taxAmount, total };
   });
 
@@ -262,12 +497,12 @@ export class OffertesCreateComponent implements OnInit {
     const calc = this.serverCalc();
     if (calc?.vatBreakdown?.length) {
       return calc.vatBreakdown
-        .filter(b => b.amountCents > 0)
-        .map(b => ({ rate: b.rateBps / 100, amount: centsToEuros(b.amountCents) }))
+        .filter((b) => b.amountCents > 0)
+        .map((b) => ({ rate: b.rateBps / 100, amount: centsToEuros(b.amountCents) }))
         .sort((a, b) => b.rate - a.rate);
     }
     // Client-side fallback
-    const items = this.lineItems().filter(i => !i.optional);
+    const items = this.lineItems().filter((i) => !i.optional);
     const mode = this.pricingMode();
 
     const byRate = new Map<number, number>();
@@ -311,12 +546,14 @@ export class OffertesCreateComponent implements OnInit {
   });
 
   ngOnInit(): void {
+    this.bindViewportMode();
+
     // Wire up debounced server-side calculation
     this.calcTrigger$
       .pipe(
         debounceTime(300),
         switchMap(() => {
-          const validItems = this.lineItems().filter(i => i.description.trim() !== '');
+          const validItems = this.lineItems().filter((i) => i.description.trim() !== '');
           if (validItems.length === 0) {
             this.serverCalc.set(null);
             this.calculating.set(false);
@@ -324,9 +561,10 @@ export class OffertesCreateComponent implements OnInit {
           }
           this.calculating.set(true);
           const dType = this.discountType();
-          const dVal = dType === 'fixed' ? eurosToCents(this.discountValue()) : this.discountValue();
+          const dVal =
+            dType === 'fixed' ? eurosToCents(this.discountValue()) : this.discountValue();
           return this.quotesService.calculate({
-            items: validItems.map(i => ({
+            items: validItems.map((i) => ({
               description: i.description,
               quantity: i.quantity || '1',
               unitPriceCents: eurosToCents(i.unitPrice),
@@ -341,7 +579,7 @@ export class OffertesCreateComponent implements OnInit {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe({
-        next: result => {
+        next: (result) => {
           this.serverCalc.set(result);
           this.calculating.set(false);
         },
@@ -370,15 +608,18 @@ export class OffertesCreateComponent implements OnInit {
 
   /** Load org settings and pre-populate validUntil for new quotes. */
   private loadDefaultValidity(): void {
-    this.orgService.getSettings().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: settings => {
-        if (!this.summaryForm.controls.validUntil.value && settings.quoteValidDays > 0) {
-          const date = new Date();
-          date.setDate(date.getDate() + settings.quoteValidDays);
-          this.summaryForm.controls.validUntil.setValue(date.toISOString().split('T')[0] ?? '');
-        }
-      },
-    });
+    this.orgService
+      .getSettings()
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (settings) => {
+          if (!this.summaryForm.controls.validUntil.value && settings.quoteValidDays > 0) {
+            const date = new Date();
+            date.setDate(date.getDate() + settings.quoteValidDays);
+            this.summaryForm.controls.validUntil.setValue(date.toISOString().split('T')[0] ?? '');
+          }
+        },
+      });
   }
 
   protected onLeadSearchChange(value: string): void {
@@ -386,7 +627,7 @@ export class OffertesCreateComponent implements OnInit {
 
     // When a suggestion is clicked, the shared autocomplete emits the option label.
     // Avoid triggering a new search when the clicked value is one of our current options.
-    const selectedOption = this.leadOptions().find(o => o.label === value);
+    const selectedOption = this.leadOptions().find((o) => o.label === value);
     if (selectedOption?.value === OffertesCreateComponent.CREATE_LEAD_OPTION_VALUE) {
       return;
     }
@@ -399,24 +640,24 @@ export class OffertesCreateComponent implements OnInit {
     }
 
     this.leadsService.list({ search: value, pageSize: 10 }).subscribe({
-      next: response => {
+      next: (response) => {
         this.leadSuggestions.set(response.items);
-				const options = response.items.map(lead => ({
-					label: `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
-					value: lead.id,
-				}));
-				options.push(this.buildCreateLeadOption(query));
-				this.leadOptions.set(options);
+        const options = response.items.map((lead) => ({
+          label: `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
+          value: lead.id,
+        }));
+        options.push(this.buildCreateLeadOption(query));
+        this.leadOptions.set(options);
       },
       error: () => {
-				this.leadSuggestions.set([]);
-				this.leadOptions.set(query ? [this.buildCreateLeadOption(query)] : []);
+        this.leadSuggestions.set([]);
+        this.leadOptions.set(query ? [this.buildCreateLeadOption(query)] : []);
       },
     });
   }
 
   protected onLeadSelected(value: string): void {
-    const selectedOption = this.leadOptions().find(o => o.label === value);
+    const selectedOption = this.leadOptions().find((o) => o.label === value);
     if (selectedOption?.value === OffertesCreateComponent.CREATE_LEAD_OPTION_VALUE) {
       const returnTo = this.router.url.split('?')[0] ?? '/app/offertes/new';
       this.router.navigate(['/app/leads/new'], { queryParams: { returnTo, source: 'quote_flow' } });
@@ -424,14 +665,14 @@ export class OffertesCreateComponent implements OnInit {
     }
 
     const leadId = selectedOption?.value;
-    const lead = leadId ? this.leadSuggestions().find(l => l.id === leadId) : null;
+    const lead = leadId ? this.leadSuggestions().find((l) => l.id === leadId) : null;
 
     if (lead) {
       this.selectedLead.set(lead);
       // Default to the first service; user can change it explicitly.
       this.selectedLeadServiceId.set(lead.services?.[0]?.id ?? null);
       this.leadSearchQuery.set(
-        `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`
+        `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
       );
     }
   }
@@ -452,15 +693,15 @@ export class OffertesCreateComponent implements OnInit {
   private loadLead(id: string, preferredServiceId?: string): void {
     this.loading.set(true);
     this.leadsService.getById(id).subscribe({
-      next: lead => {
+      next: (lead) => {
         this.selectedLead.set(lead);
         const nextServiceId =
-          preferredServiceId && lead.services?.some(s => s.id === preferredServiceId)
+          preferredServiceId && lead.services?.some((s) => s.id === preferredServiceId)
             ? preferredServiceId
             : (lead.services?.[0]?.id ?? null);
         this.selectedLeadServiceId.set(nextServiceId);
         this.leadSearchQuery.set(
-          `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`
+          `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
         );
         this.loading.set(false);
       },
@@ -474,7 +715,7 @@ export class OffertesCreateComponent implements OnInit {
   private loadQuote(id: string): void {
     this.loading.set(true);
     this.quotesService.getById(id).subscribe({
-      next: quote => {
+      next: (quote) => {
         if (quote) this.applyQuote(quote);
         this.loading.set(false);
       },
@@ -488,7 +729,7 @@ export class OffertesCreateComponent implements OnInit {
   private applyQuote(quote: QuoteResponse): void {
     this.existingQuote.set(quote);
     this.lineItems.set(
-      quote.items.map(item => ({
+      quote.items.map((item) => ({
         id: item.id,
         title: item.title ?? '',
         description: item.description,
@@ -497,18 +738,21 @@ export class OffertesCreateComponent implements OnInit {
         taxRate: taxBpsToDisplay(item.taxRateBps),
         optional: item.isOptional,
         ...(item.catalogProductId == null ? {} : { catalogProductId: item.catalogProductId }),
-      }))
+      })),
     );
     this.descriptionEditState.set(
       Object.fromEntries(
-        quote.items.map(item => [item.id, !(item.catalogProductId && /<[^>]+>/.test(item.description))]),
+        quote.items.map((item) => [
+          item.id,
+          !(item.catalogProductId && /<[^>]+>/.test(item.description)),
+        ]),
       ),
     );
 
     // Restore attachments
     if (quote.attachments?.length) {
       this.attachmentDrafts.set(
-        quote.attachments.map(a => ({
+        quote.attachments.map((a) => ({
           uid: a.id,
           filename: a.filename,
           fileKey: a.fileKey,
@@ -523,7 +767,7 @@ export class OffertesCreateComponent implements OnInit {
     // Restore URLs
     if (quote.urls?.length) {
       this.urlDrafts.set(
-        quote.urls.map(u => ({
+        quote.urls.map((u) => ({
           uid: u.id,
           label: u.label,
           href: u.href,
@@ -531,7 +775,8 @@ export class OffertesCreateComponent implements OnInit {
         })),
       );
     }
-    const discountDisplayValue = quote.discountType === 'fixed' ? centsToEuros(quote.discountValue) : quote.discountValue;
+    const discountDisplayValue =
+      quote.discountType === 'fixed' ? centsToEuros(quote.discountValue) : quote.discountValue;
     const validUntil = quote.validUntil ? (quote.validUntil.split('T')[0] ?? null) : null;
     this.summaryForm.patchValue({
       discountType: quote.discountType,
@@ -543,6 +788,7 @@ export class OffertesCreateComponent implements OnInit {
     this.discountValue.set(discountDisplayValue);
     this.pricingMode.set(quote.pricingMode ?? 'exclusive');
     this.financingDisclaimer.set(quote.financingDisclaimer ?? false);
+    this.applyQuoteSubsidyState(quote.isdeSubsidy);
     const firstItemTaxRate = quote.items.at(0)?.taxRateBps;
     this.lastUsedTaxRate.set(firstItemTaxRate == null ? 21 : taxBpsToDisplay(firstItemTaxRate));
     this.ensureInitialLineItem();
@@ -555,25 +801,25 @@ export class OffertesCreateComponent implements OnInit {
   // Line item management
   protected addLineItem(): void {
     const item = this.createEmptyLineItem();
-    this.lineItems.update(items => [...items, item]);
-    this.descriptionEditState.update(state => ({ ...state, [item.id]: true }));
+    this.lineItems.update((items) => [...items, item]);
+    this.descriptionEditState.update((state) => ({ ...state, [item.id]: true }));
     this.requestCalculation();
   }
 
   protected removeLineItem(id: string): void {
     const removedGeneratedIds = this.lineItems()
-      .filter(item => item.parentLineItemId === id)
-      .map(item => item.id);
+      .filter((item) => item.parentLineItemId === id)
+      .map((item) => item.id);
 
-    this.lineItems.update(items => {
+    this.lineItems.update((items) => {
       if (items.length <= 1) {
         const item = this.createEmptyLineItem();
         this.descriptionEditState.set({ [item.id]: true });
         return [item];
       }
-      return items.filter(item => item.id !== id && item.parentLineItemId !== id);
+      return items.filter((item) => item.id !== id && item.parentLineItemId !== id);
     });
-    this.descriptionEditState.update(state => {
+    this.descriptionEditState.update((state) => {
       const next = { ...state };
       delete next[id];
       for (const generatedId of removedGeneratedIds) delete next[generatedId];
@@ -592,7 +838,7 @@ export class OffertesCreateComponent implements OnInit {
 
   protected onLineItemDrop(event: CdkDragDrop<LineItemDraft[]>): void {
     if (event.previousIndex === event.currentIndex) return;
-    this.lineItems.update(items => {
+    this.lineItems.update((items) => {
       const reordered = [...items];
       moveItemInArray(reordered, event.previousIndex, event.currentIndex);
       return reordered;
@@ -607,19 +853,19 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected setDescriptionEditing(item: LineItemDraft, editing: boolean): void {
-    this.descriptionEditState.update(state => ({ ...state, [item.id]: editing }));
+    this.descriptionEditState.update((state) => ({ ...state, [item.id]: editing }));
   }
 
   protected updateLineItem(
     id: string,
     field: 'title' | 'description' | 'quantity' | 'unitPrice' | 'taxRate' | 'optional',
-    value: string | number | boolean
+    value: string | number | boolean,
   ): void {
-    this.lineItems.update(items =>
-      items.map(item => {
+    this.lineItems.update((items) =>
+      items.map((item) => {
         if (item.id !== id) return item;
         return { ...item, [field]: value };
-      })
+      }),
     );
     this.requestCalculation();
   }
@@ -666,6 +912,151 @@ export class OffertesCreateComponent implements OnInit {
     this.summaryForm.controls.discountValue.setValue(value);
     this.discountValue.set(value);
     this.requestCalculation();
+  }
+
+  protected openSubsidyEditor(): void {
+    this.subsidyEditorOpen.set(true);
+    this.subsidyError.set(null);
+    if (this.subsidyMeasures().length > 0 || this.subsidyInstallations().length > 0) {
+      return;
+    }
+    this.prefillSubsidyFromLineItems();
+  }
+
+  protected closeSubsidyEditor(): void {
+    this.subsidyEditorOpen.set(false);
+    this.subsidyError.set(null);
+  }
+
+  protected addSubsidyMeasureRow(): void {
+    this.subsidyMeasures.update((rows) => [...rows, this.createDefaultSubsidyMeasure()]);
+  }
+
+  protected removeSubsidyMeasureRow(uid: string): void {
+    this.subsidyMeasures.update((rows) => rows.filter((row) => row.uid !== uid));
+  }
+
+  protected addSubsidyInstallationRow(): void {
+    this.subsidyInstallations.update((rows) => [...rows, this.createDefaultSubsidyInstallation()]);
+  }
+
+  protected removeSubsidyInstallationRow(uid: string): void {
+    this.subsidyInstallations.update((rows) => rows.filter((row) => row.uid !== uid));
+  }
+
+  protected updateSubsidyMeasure(
+    uid: string,
+    field: EditableSubsidyMeasureField,
+    value: EditableSubsidyValue,
+  ): void {
+    this.subsidyMeasures.update((rows) =>
+      rows.map((row) =>
+        row.uid === uid ? this.applySubsidyMeasureUpdate(row, field, value) : row,
+      ),
+    );
+  }
+
+  protected updateSubsidyInstallation(
+    uid: string,
+    field: EditableSubsidyInstallationField,
+    value: EditableSubsidyValue,
+  ): void {
+    this.subsidyInstallations.update((rows) =>
+      rows.map((row) =>
+        row.uid === uid ? this.applySubsidyInstallationUpdate(row, field, value) : row,
+      ),
+    );
+  }
+
+  protected calculateSubsidy(): void {
+    const payload = this.buildSubsidyCalculationPayload();
+
+    if (!payload) {
+      this.subsidyError.set(
+        'Voeg minstens een maatregel of meldcode toe om subsidie te berekenen.',
+      );
+      return;
+    }
+
+    this.subsidyCalculating.set(true);
+    this.subsidyError.set(null);
+    this.isdeService
+      .calculate(payload)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.subsidyResult.set(result);
+          this.lastCalculatedSubsidyFingerprint.set(
+            this.serializeSubsidyCalculationPayload(payload),
+          );
+          if ((result.validationMessages?.length ?? 0) > 0) {
+            this.subsidyError.set(result.validationMessages?.join(' ') ?? null);
+            this.subsidyCalculating.set(false);
+            return;
+          }
+          this.includeSubsidyInSummary.set(true);
+          this.subsidyCalculating.set(false);
+          this.closeSubsidyEditor();
+        },
+        error: () => {
+          this.subsidyCalculating.set(false);
+          this.subsidyError.set(
+            'Subsidieberekening mislukt. Controleer de invoer en probeer opnieuw.',
+          );
+        },
+      });
+  }
+
+  protected prefillSubsidyFromLineItems(): void {
+    const measureRows: SubsidyMeasureDraft[] = [];
+    const installations: SubsidyInstallationDraft[] = [];
+    const seenMeasures = new Set<ISDEMeasureID>();
+    const seenMeldcodes = new Set<string>();
+
+    for (const item of this.lineItems()) {
+      const plainDescription = this.stripHtml(item.description || '');
+      const haystack = `${item.title} ${plainDescription}`.toLowerCase();
+      const measureId = this.recognizeMeasureId(haystack);
+      if (measureId && !seenMeasures.has(measureId)) {
+        seenMeasures.add(measureId);
+        const performanceValue = this.recognizePerformanceValue(measureId, haystack);
+        const nextRow: SubsidyMeasureDraft = {
+          uid: crypto.randomUUID(),
+          measureId,
+          areaM2: this.recognizeAreaM2(item.quantity, haystack),
+          hasMKIBonus: /\bmki\b/.test(haystack),
+          frameReplaced: /kozijn|kozijnen/.test(haystack),
+          stackedWithPairedMeasure: false,
+        };
+        if (performanceValue != null) {
+          nextRow.performanceValue = performanceValue;
+        }
+        measureRows.push({
+          ...nextRow,
+        });
+      }
+
+      const matches = haystack.toUpperCase().match(/\b[A-Z]{2}\d{5}\b/g) ?? [];
+      for (const raw of matches) {
+        if (seenMeldcodes.has(raw)) continue;
+        seenMeldcodes.add(raw);
+        installations.push({
+          uid: crypto.randomUUID(),
+          kind: 'meldcode',
+          meldcode: raw,
+          heatPumpType: 'air_water',
+          heatPumpEnergyLabel: 'A++',
+          isAdditionalUnit: false,
+          isSplitSystem: false,
+        });
+      }
+    }
+
+    if (measureRows.length === 0) {
+      measureRows.push(this.createDefaultSubsidyMeasure());
+    }
+    this.subsidyMeasures.set(measureRows);
+    this.subsidyInstallations.set(installations);
   }
 
   // Save actions
@@ -723,6 +1114,7 @@ export class OffertesCreateComponent implements OnInit {
     items: QuoteItemRequest[];
     attachments: QuoteAttachmentRequest[];
     urls: QuoteURLRequest[];
+    isdeSubsidy: QuoteISDESubsidy;
     discountType: DiscountType;
     discountValue: number;
     pricingMode: PricingMode;
@@ -732,9 +1124,10 @@ export class OffertesCreateComponent implements OnInit {
   } | null {
     const values = this.summaryForm.getRawValue();
     const dType = values.discountType;
-    const dVal = dType === 'fixed' ? eurosToCents(values.discountValue ?? 0) : (values.discountValue ?? 0);
+    const dVal =
+      dType === 'fixed' ? eurosToCents(values.discountValue ?? 0) : (values.discountValue ?? 0);
 
-    const items: QuoteItemRequest[] = this.lineItems().map(item => ({
+    const items: QuoteItemRequest[] = this.lineItems().map((item) => ({
       ...(item.title ? { title: item.title } : {}),
       description: item.description,
       quantity: item.quantity,
@@ -745,7 +1138,7 @@ export class OffertesCreateComponent implements OnInit {
     }));
 
     const attachments: QuoteAttachmentRequest[] = this.attachmentDrafts()
-      .filter(a => a.fileKey) // exclude still-uploading entries
+      .filter((a) => a.fileKey) // exclude still-uploading entries
       .map((a, i) => ({
         filename: a.filename,
         fileKey: a.fileKey,
@@ -755,7 +1148,7 @@ export class OffertesCreateComponent implements OnInit {
         sortOrder: i,
       }));
 
-    const urls: QuoteURLRequest[] = this.urlDrafts().map(u => ({
+    const urls: QuoteURLRequest[] = this.urlDrafts().map((u) => ({
       label: u.label,
       href: u.href,
       ...(u.catalogProductId ? { catalogProductId: u.catalogProductId } : {}),
@@ -768,6 +1161,7 @@ export class OffertesCreateComponent implements OnInit {
       items,
       attachments,
       urls,
+      isdeSubsidy: this.buildQuoteSubsidyPayload(),
       discountType: dType,
       discountValue: dVal,
       pricingMode: this.pricingMode(),
@@ -779,12 +1173,14 @@ export class OffertesCreateComponent implements OnInit {
 
   private saveExistingQuote(
     quoteId: string,
-    payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R ? Exclude<R, null> : never,
+    payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R
+      ? Exclude<R, null>
+      : never,
     status: 'Draft' | 'Sent',
   ): void {
     const feedbackRequests = this.buildQuoteFeedbackRequests();
     this.quotesService.update(quoteId, payload).subscribe({
-      next: updated => {
+      next: (updated) => {
         this.submitQuoteFeedbackInBackground(updated.id, feedbackRequests);
         this.navigateAfterSave(updated.id, status, feedbackRequests.length);
         this.saving.set(false);
@@ -802,7 +1198,7 @@ export class OffertesCreateComponent implements OnInit {
       return [];
     }
 
-    const originalItems = new Map(quote.items.map(item => [item.id, item]));
+    const originalItems = new Map(quote.items.map((item) => [item.id, item]));
     const leadServiceId = this.selectedLeadServiceId() ?? quote.leadServiceId;
     const requests: CreateQuoteFeedbackRequest[] = [];
 
@@ -825,7 +1221,110 @@ export class OffertesCreateComponent implements OnInit {
     return requests;
   }
 
-  private buildFeedbackDiffs(original: QuoteResponse['items'][number], item: LineItemDraft): QuoteFeedbackDiff[] {
+  private buildSubsidyCalculationPayload(): ISDECalculationRequest | null {
+    const measures = this.subsidyMeasures()
+      .filter((row) => row.measureId && row.areaM2 > 0)
+      .map((row) => this.toRequestedMeasure(row));
+    const installations = this.subsidyInstallations()
+      .filter((row) => {
+        if (row.kind === 'meldcode') return row.meldcode.trim().length > 0;
+        if (row.kind === 'heat_pump') return row.thermalPowerKW != null && row.thermalPowerKW > 0;
+        return true;
+      })
+      .map((row) => this.toRequestedInstallation(row));
+
+    if (measures.length === 0 && installations.length === 0) {
+      return null;
+    }
+
+    return {
+      executionYear: this.subsidyExecutionYear(),
+      previousSubsidiesWithin24Months: this.previousSubsidiesWithin24Months(),
+      hasExistingWarmtenetConnection: this.hasExistingWarmtenetConnection(),
+      hasReceivedWarmtenetSubsidy: this.hasReceivedWarmtenetSubsidy(),
+      measures,
+      installations,
+    };
+  }
+
+  private buildQuoteSubsidyPayload(): QuoteISDESubsidy {
+    const input = this.buildSubsidyCalculationPayload();
+    const inputFingerprint = this.serializeSubsidyCalculationPayload(input);
+    const result =
+      inputFingerprint !== null && inputFingerprint === this.lastCalculatedSubsidyFingerprint()
+        ? (this.subsidyResult() ?? undefined)
+        : undefined;
+
+    return {
+      includeInSummary: this.includeSubsidyInSummary(),
+      ...(input ? { input } : {}),
+      ...(result ? { result } : {}),
+    };
+  }
+
+  private applyQuoteSubsidyState(snapshot: QuoteISDESubsidy | undefined): void {
+    if (!snapshot) {
+      this.resetSubsidyState();
+      return;
+    }
+
+    this.includeSubsidyInSummary.set(snapshot.includeInSummary ?? false);
+
+    if (!snapshot.input) {
+      this.subsidyMeasures.set([]);
+      this.subsidyInstallations.set([]);
+      this.subsidyResult.set(snapshot.result ?? null);
+      this.lastCalculatedSubsidyFingerprint.set(null);
+      return;
+    }
+
+    const defaultExecutionYear =
+      new Date().getFullYear() >= 2026 ? 2026 : Math.max(new Date().getFullYear(), 2024);
+    this.subsidyExecutionYear.set(snapshot.input.executionYear ?? defaultExecutionYear);
+    this.previousSubsidiesWithin24Months.set(!!snapshot.input.previousSubsidiesWithin24Months);
+    this.hasExistingWarmtenetConnection.set(!!snapshot.input.hasExistingWarmtenetConnection);
+    this.hasReceivedWarmtenetSubsidy.set(!!snapshot.input.hasReceivedWarmtenetSubsidy);
+    this.subsidyMeasures.set(
+      (snapshot.input.measures ?? []).map((measure) => this.toSubsidyMeasureDraft(measure)),
+    );
+    this.subsidyInstallations.set(
+      (snapshot.input.installations ?? []).map((installation) =>
+        this.toSubsidyInstallationDraft(installation),
+      ),
+    );
+    this.subsidyResult.set(snapshot.result ?? null);
+    this.lastCalculatedSubsidyFingerprint.set(
+      this.serializeSubsidyCalculationPayload(snapshot.input),
+    );
+  }
+
+  private resetSubsidyState(): void {
+    const defaultExecutionYear =
+      new Date().getFullYear() >= 2026 ? 2026 : Math.max(new Date().getFullYear(), 2024);
+    this.includeSubsidyInSummary.set(false);
+    this.subsidyResult.set(null);
+    this.lastCalculatedSubsidyFingerprint.set(null);
+    this.subsidyExecutionYear.set(defaultExecutionYear);
+    this.previousSubsidiesWithin24Months.set(false);
+    this.hasExistingWarmtenetConnection.set(false);
+    this.hasReceivedWarmtenetSubsidy.set(false);
+    this.subsidyMeasures.set([]);
+    this.subsidyInstallations.set([]);
+  }
+
+  private serializeSubsidyCalculationPayload(
+    payload: ISDECalculationRequest | null,
+  ): string | null {
+    if (!payload) {
+      return null;
+    }
+    return JSON.stringify(payload);
+  }
+
+  private buildFeedbackDiffs(
+    original: QuoteResponse['items'][number],
+    item: LineItemDraft,
+  ): QuoteFeedbackDiff[] {
     const normalizedUnitPrice = eurosToCents(item.unitPrice);
     const normalizedTaxRate = taxDisplayToBps(item.taxRate);
     const diffs: QuoteFeedbackDiff[] = [];
@@ -887,39 +1386,50 @@ export class OffertesCreateComponent implements OnInit {
     diffs.push({ fieldChanged, aiValue, humanValue });
   }
 
-  private submitQuoteFeedbackInBackground(quoteId: string, requests: CreateQuoteFeedbackRequest[]): void {
+  private submitQuoteFeedbackInBackground(
+    quoteId: string,
+    requests: CreateQuoteFeedbackRequest[],
+  ): void {
     for (const request of requests) {
-      this.quotesService.submitFeedback(quoteId, request).pipe(
-        catchError(() => EMPTY),
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe();
+      this.quotesService
+        .submitFeedback(quoteId, request)
+        .pipe(
+          catchError(() => EMPTY),
+          takeUntilDestroyed(this.destroyRef),
+        )
+        .subscribe();
     }
   }
 
   private createNewQuote(
     leadId: string,
-    payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R ? Exclude<R, null> : never,
+    payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R
+      ? Exclude<R, null>
+      : never,
     status: 'Draft' | 'Sent',
   ): void {
-    this.quotesService.create({ leadId, ...payload }).pipe(
-      switchMap(created =>
-        this.uploadPendingFiles(created.id).pipe(
-          switchMap(() => this.sendIfRequested(created.id, status)),
-          map(() => created.id),
+    this.quotesService
+      .create({ leadId, ...payload })
+      .pipe(
+        switchMap((created) =>
+          this.uploadPendingFiles(created.id).pipe(
+            switchMap(() => this.sendIfRequested(created.id, status)),
+            map(() => created.id),
+          ),
         ),
-      ),
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: quoteId => {
-        this.navigateToQuote(quoteId, 0);
-        this.saving.set(false);
-      },
-      error: () => {
-        this.clearPendingUploadFlags();
-        this.error.set(this.translate.instant('offertes.errors.save'));
-        this.saving.set(false);
-      },
-    });
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe({
+        next: (quoteId) => {
+          this.navigateToQuote(quoteId, 0);
+          this.saving.set(false);
+        },
+        error: () => {
+          this.clearPendingUploadFlags();
+          this.error.set(this.translate.instant('offertes.errors.save'));
+          this.saving.set(false);
+        },
+      });
   }
 
   private sendIfRequested(quoteId: string, status: 'Draft' | 'Sent'): Observable<void> {
@@ -930,12 +1440,18 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   private navigateToQuote(quoteId: string, feedbackCount: number): void {
-    const navigationExtras = feedbackCount > 0 ? { state: { aiFeedbackCount: feedbackCount } } : undefined;
+    const navigationExtras =
+      feedbackCount > 0 ? { state: { aiFeedbackCount: feedbackCount } } : undefined;
     void this.router.navigate(['/app/offertes', quoteId], navigationExtras);
   }
 
-  private navigateAfterSave(quoteId: string, status: 'Draft' | 'Sent', feedbackCount: number): void {
-    const navigationExtras = feedbackCount > 0 ? { state: { aiFeedbackCount: feedbackCount } } : undefined;
+  private navigateAfterSave(
+    quoteId: string,
+    status: 'Draft' | 'Sent',
+    feedbackCount: number,
+  ): void {
+    const navigationExtras =
+      feedbackCount > 0 ? { state: { aiFeedbackCount: feedbackCount } } : undefined;
 
     if (status !== 'Sent') {
       void this.router.navigate(['/app/offertes', quoteId], navigationExtras);
@@ -955,7 +1471,7 @@ export class OffertesCreateComponent implements OnInit {
   // ── AI Generate ─────────────────────────────────────────────────────────────
 
   protected toggleGeneratePanel(): void {
-    this.showGeneratePanel.update(v => !v);
+    this.showGeneratePanel.update((v) => !v);
     this.generateError.set(null);
   }
 
@@ -975,29 +1491,30 @@ export class OffertesCreateComponent implements OnInit {
       request.quoteId = existingQuote.id;
     }
 
-    this.quotesService.generate(request).pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: result => {
-        this.generating.set(false);
-        this.currentGenerateJobId.set(result.jobId);
-        this.aiJobs.track(result.jobId);
-      },
-      error: () => {
-        this.generating.set(false);
-        this.generateError.set(this.translate.instant('offertes.generate.error'));
-      },
-    });
+    this.quotesService
+      .generate(request)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (result) => {
+          this.generating.set(false);
+          this.currentGenerateJobId.set(result.jobId);
+          this.aiJobs.track(result.jobId);
+        },
+        error: () => {
+          this.generating.set(false);
+          this.generateError.set(this.translate.instant('offertes.generate.error'));
+        },
+      });
   }
 
   protected openGeneratedQuote(): void {
-		const job = this.currentGenerateJob();
-		if (!job?.quoteId) return;
-		if (this.isEditMode() && this.existingQuote()) {
-			this.loadQuote(job.quoteId);
-			return;
-		}
-		void this.router.navigate(['/app/offertes', job.quoteId]);
+    const job = this.currentGenerateJob();
+    if (!job?.quoteId) return;
+    if (this.isEditMode() && this.existingQuote()) {
+      this.loadQuote(job.quoteId);
+      return;
+    }
+    void this.router.navigate(['/app/offertes', job.quoteId]);
   }
 
   // ── Catalog Ghost-Text Autocomplete ─────────────────────────────────────────
@@ -1008,11 +1525,14 @@ export class OffertesCreateComponent implements OnInit {
    */
   protected readonly catalogSearchFn = (query: string) =>
     this.catalogService.searchForAutocomplete(query, 10).pipe(
-      map(items =>
-        items.map(item => ({
-          displayText: item.title,
-          payload: item,
-        } satisfies GhostSuggestion)),
+      map((items) =>
+        items.map(
+          (item) =>
+            ({
+              displayText: item.title,
+              payload: item,
+            }) satisfies GhostSuggestion,
+        ),
       ),
     );
 
@@ -1027,19 +1547,24 @@ export class OffertesCreateComponent implements OnInit {
     this.materialExpandRequestSeq.set(itemId, requestSeq);
 
     const previousGeneratedIds = this.lineItems()
-      .filter(item => item.parentLineItemId === itemId)
-      .map(item => item.id);
+      .filter((item) => item.parentLineItemId === itemId)
+      .map((item) => item.id);
+
+    // Snapshot the description set at ghost-accept time so the async materials
+    // callback can detect whether the user manually changed it before the fetch
+    // resolved, and avoid overwriting those manual edits.
+    const initialDescription = this.formatAutocompleteDescription(product);
 
     // Update the line item with product data
-    this.lineItems.update(items => {
-      const withoutGenerated = items.filter(item => item.parentLineItemId !== itemId);
-      return withoutGenerated.map(item => {
+    this.lineItems.update((items) => {
+      const withoutGenerated = items.filter((item) => item.parentLineItemId !== itemId);
+      return withoutGenerated.map((item) => {
         if (item.id !== itemId) return item;
 
         const updatedItem = {
           ...item,
           title: product.title,
-          description: this.formatAutocompleteDescription(product),
+          description: initialDescription,
           quantity: item.quantity || '1 x',
           unitPrice: centsToEuros(product.unitPriceCents || product.priceCents),
           taxRate: taxBpsToDisplay(product.vatRateBps),
@@ -1053,9 +1578,9 @@ export class OffertesCreateComponent implements OnInit {
         return withoutCatalogProductId;
       });
     });
-    this.descriptionEditState.update(state => ({ ...state, [itemId]: false }));
+    this.descriptionEditState.update((state) => ({ ...state, [itemId]: false }));
     if (previousGeneratedIds.length) {
-      this.descriptionEditState.update(state => {
+      this.descriptionEditState.update((state) => {
         const next = { ...state };
         for (const id of previousGeneratedIds) delete next[id];
         return next;
@@ -1074,85 +1599,111 @@ export class OffertesCreateComponent implements OnInit {
         enabled: true,
         sortOrder: this.attachmentDrafts().length + i,
       }));
-      this.attachmentDrafts.update(existing => [...existing, ...newAttachments]);
+      this.attachmentDrafts.update((existing) => [...existing, ...newAttachments]);
     }
 
     // Collect URLs (terms & conditions)
     if (catalogProductId && product.urls?.length) {
-      const newUrls = product.urls.map(url => ({
+      const newUrls = product.urls.map((url) => ({
         uid: crypto.randomUUID(),
         label: url.label,
         href: url.href,
         catalogProductId,
       }));
-      this.urlDrafts.update(existing => [...existing, ...newUrls]);
+      this.urlDrafts.update((existing) => [...existing, ...newUrls]);
     }
 
     if (!catalogProductId) {
-
       this.requestCalculation();
       return;
     }
 
-    this.catalogService.listProductMaterials(catalogProductId).pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: materials => {
-        if (this.materialExpandRequestSeq.get(itemId) !== requestSeq) return;
+    this.catalogService
+      .listProductMaterials(catalogProductId)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (materials) => {
+          if (this.materialExpandRequestSeq.get(itemId) !== requestSeq) return;
 
-        const currentParent = this.lineItems().find(item => item.id === itemId);
-        if (currentParent?.catalogProductId !== catalogProductId) return;
+          const currentParent = this.lineItems().find((item) => item.id === itemId);
+          if (currentParent?.catalogProductId !== catalogProductId) return;
+          // If the user manually edited the description after accepting the ghost
+          // suggestion, don't overwrite their changes with the materials list.
+          if (currentParent.description !== initialDescription) return;
 
-        const includedTitles = materials
-          .filter(material => material.pricingMode === 'included')
-          .map(material => material.title.trim())
-          .filter(Boolean);
+          const includedTitles = materials
+            .filter((material) => material.pricingMode === 'included')
+            .map((material) => material.title.trim())
+            .filter(Boolean);
 
-        const parentDescriptionBase = this.formatCatalogDescription(product.title, product.description || '');
-        const parentDescription = this.formatDescriptionWithIncludedMaterials(parentDescriptionBase, includedTitles);
+          const parentDescriptionBase = this.formatCatalogDescription(
+            product.title,
+            product.description || '',
+          );
+          const parentDescription = this.formatDescriptionWithIncludedMaterials(
+            parentDescriptionBase,
+            includedTitles,
+          );
 
-        const generatedRows = this.createGeneratedMaterialRows(itemId, materials, currentParent.taxRate);
-        this.lineItems.update(items => {
-          const withoutGenerated = items.filter(item => item.parentLineItemId !== itemId);
-          const parentIndex = withoutGenerated.findIndex(item => item.id === itemId);
-          if (parentIndex === -1) return withoutGenerated;
-          const parentLine = withoutGenerated[parentIndex];
-          if (!parentLine) return withoutGenerated;
+          const generatedRows = this.createGeneratedMaterialRows(
+            itemId,
+            materials,
+            currentParent.taxRate,
+          );
+          this.lineItems.update((items) => {
+            const withoutGenerated = items.filter((item) => item.parentLineItemId !== itemId);
+            const parentIndex = withoutGenerated.findIndex((item) => item.id === itemId);
+            if (parentIndex === -1) return withoutGenerated;
+            const parentLine = withoutGenerated[parentIndex];
+            if (!parentLine) return withoutGenerated;
 
-          const updatedParent: LineItemDraft = {
-            ...parentLine,
-            description: parentDescription,
-          };
+            const updatedParent: LineItemDraft = {
+              ...parentLine,
+              description: parentDescription,
+            };
 
-          return [
-            ...withoutGenerated.slice(0, parentIndex),
-            updatedParent,
-            ...generatedRows,
-            ...withoutGenerated.slice(parentIndex + 1),
-          ];
-        });
+            return [
+              ...withoutGenerated.slice(0, parentIndex),
+              updatedParent,
+              ...generatedRows,
+              ...withoutGenerated.slice(parentIndex + 1),
+            ];
+          });
 
-        this.descriptionEditState.update(state => {
-          const next = { ...state, [itemId]: false };
-          for (const row of generatedRows) next[row.id] = false;
-          return next;
-        });
+          this.descriptionEditState.update((state) => {
+            const next = { ...state, [itemId]: false };
+            for (const row of generatedRows) next[row.id] = false;
+            return next;
+          });
 
-        this.requestCalculation();
-      },
-    });
+          this.requestCalculation();
+        },
+      });
 
     this.requestCalculation();
   }
 
-  private createGeneratedMaterialRows(parentLineItemId: string, materials: Product[], fallbackTaxRate: TaxRateDisplay): LineItemDraft[] {
+  private createGeneratedMaterialRows(
+    parentLineItemId: string,
+    materials: Product[],
+    fallbackTaxRate: TaxRateDisplay,
+  ): LineItemDraft[] {
     return materials
-      .filter(material => material.pricingMode === 'additional' || material.pricingMode === 'optional')
-      .map(material => this.createGeneratedMaterialRow(parentLineItemId, material, fallbackTaxRate));
+      .filter(
+        (material) => material.pricingMode === 'additional' || material.pricingMode === 'optional',
+      )
+      .map((material) =>
+        this.createGeneratedMaterialRow(parentLineItemId, material, fallbackTaxRate),
+      );
   }
 
-  private createGeneratedMaterialRow(parentLineItemId: string, material: Product, fallbackTaxRate: TaxRateDisplay): LineItemDraft {
-    const pricingMode: MaterialPricingMode = material.pricingMode === 'optional' ? 'optional' : 'additional';
+  private createGeneratedMaterialRow(
+    parentLineItemId: string,
+    material: Product,
+    fallbackTaxRate: TaxRateDisplay,
+  ): LineItemDraft {
+    const pricingMode: MaterialPricingMode =
+      material.pricingMode === 'optional' ? 'optional' : 'additional';
     return {
       id: crypto.randomUUID(),
       parentLineItemId,
@@ -1191,7 +1742,7 @@ export class OffertesCreateComponent implements OnInit {
 
     if (quote) {
       // Edit mode — upload immediately via presigned URL
-      this.attachmentDrafts.update(existing => [...existing, { ...draft, uploading: true }]);
+      this.attachmentDrafts.update((existing) => [...existing, { ...draft, uploading: true }]);
       this.quotesService
         .presignAttachmentUpload(quote.id, {
           fileName: file.name,
@@ -1199,26 +1750,26 @@ export class OffertesCreateComponent implements OnInit {
           sizeBytes: file.size,
         })
         .pipe(
-          switchMap(presigned =>
-            this.quotesService.uploadToPresignedUrl(presigned.uploadUrl, file).pipe(
-              map(() => presigned.fileKey),
-            ),
+          switchMap((presigned) =>
+            this.quotesService
+              .uploadToPresignedUrl(presigned.uploadUrl, file)
+              .pipe(map(() => presigned.fileKey)),
           ),
           takeUntilDestroyed(this.destroyRef),
         )
         .subscribe({
-          next: fileKey => {
-            this.attachmentDrafts.update(items =>
-              items.map(a => (a.uid === tempUid ? { ...a, fileKey, uploading: false } : a)),
+          next: (fileKey) => {
+            this.attachmentDrafts.update((items) =>
+              items.map((a) => (a.uid === tempUid ? { ...a, fileKey, uploading: false } : a)),
             );
           },
           error: () => {
-            this.attachmentDrafts.update(items => items.filter(a => a.uid !== tempUid));
+            this.attachmentDrafts.update((items) => items.filter((a) => a.uid !== tempUid));
           },
         });
     } else {
       // Create mode — defer upload until after save creates the quote
-      this.attachmentDrafts.update(existing => [...existing, { ...draft, pendingFile: file }]);
+      this.attachmentDrafts.update((existing) => [...existing, { ...draft, pendingFile: file }]);
     }
   }
 
@@ -1226,14 +1777,14 @@ export class OffertesCreateComponent implements OnInit {
    * After a quote is created, upload any pending manual files and re-save attachments.
    */
   private uploadPendingFiles(quoteId: string): Observable<void> {
-    const pending = this.attachmentDrafts().filter(a => a.pendingFile);
+    const pending = this.attachmentDrafts().filter((a) => a.pendingFile);
     if (pending.length === 0) return of(void 0);
 
-    this.attachmentDrafts.update(items =>
-      items.map(item => (item.pendingFile ? { ...item, uploading: true } : item)),
+    this.attachmentDrafts.update((items) =>
+      items.map((item) => (item.pendingFile ? { ...item, uploading: true } : item)),
     );
 
-    const uploads = pending.map(att => {
+    const uploads = pending.map((att) => {
       const file = att.pendingFile;
       if (!file) {
         return of({ uid: att.uid, fileKey: '' });
@@ -1246,20 +1797,20 @@ export class OffertesCreateComponent implements OnInit {
           sizeBytes: file.size,
         })
         .pipe(
-          switchMap(presigned =>
-            this.quotesService.uploadToPresignedUrl(presigned.uploadUrl, file).pipe(
-              map(() => ({ uid: att.uid, fileKey: presigned.fileKey })),
-            ),
+          switchMap((presigned) =>
+            this.quotesService
+              .uploadToPresignedUrl(presigned.uploadUrl, file)
+              .pipe(map(() => ({ uid: att.uid, fileKey: presigned.fileKey }))),
           ),
         );
     });
 
     return forkJoin(uploads).pipe(
-      switchMap(results => {
-        const fileKeyByUid = new Map(results.map(result => [result.uid, result.fileKey]));
+      switchMap((results) => {
+        const fileKeyByUid = new Map(results.map((result) => [result.uid, result.fileKey]));
 
-        this.attachmentDrafts.update(items =>
-          items.map(item => {
+        this.attachmentDrafts.update((items) =>
+          items.map((item) => {
             const fileKey = fileKeyByUid.get(item.uid);
             if (!fileKey) {
               return item.pendingFile ? { ...item, uploading: false } : item;
@@ -1276,7 +1827,7 @@ export class OffertesCreateComponent implements OnInit {
 
   private saveAttachmentsToQuote(quoteId: string): Observable<QuoteResponse> {
     const attachments: QuoteAttachmentRequest[] = this.attachmentDrafts()
-      .filter(a => a.fileKey && !a.pendingFile)
+      .filter((a) => a.fileKey && !a.pendingFile)
       .map((a, i) => ({
         filename: a.filename,
         fileKey: a.fileKey,
@@ -1286,7 +1837,7 @@ export class OffertesCreateComponent implements OnInit {
         sortOrder: i,
       }));
 
-    const urls: QuoteURLRequest[] = this.urlDrafts().map(u => ({
+    const urls: QuoteURLRequest[] = this.urlDrafts().map((u) => ({
       label: u.label,
       href: u.href,
       ...(u.catalogProductId ? { catalogProductId: u.catalogProductId } : {}),
@@ -1296,27 +1847,27 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   private clearPendingUploadFlags(): void {
-    this.attachmentDrafts.update(items =>
-      items.map(item => (item.pendingFile ? { ...item, uploading: false } : item)),
+    this.attachmentDrafts.update((items) =>
+      items.map((item) => (item.pendingFile ? { ...item, uploading: false } : item)),
     );
   }
 
   private hasAttachmentUploadsInProgress(): boolean {
-    return this.attachmentDrafts().some(item => item.uploading);
+    return this.attachmentDrafts().some((item) => item.uploading);
   }
 
   // ── URL Management ──────────────────────────────────────────────────────────
 
   protected addUrl(label: string, href: string): void {
     if (!label.trim() || !href.trim()) return;
-    this.urlDrafts.update(existing => [
+    this.urlDrafts.update((existing) => [
       ...existing,
       { uid: crypto.randomUUID(), label: label.trim(), href: href.trim() },
     ]);
   }
 
   protected removeUrl(uid: string): void {
-    this.urlDrafts.update(existing => existing.filter(u => u.uid !== uid));
+    this.urlDrafts.update((existing) => existing.filter((u) => u.uid !== uid));
   }
 
   // ── File Preview ────────────────────────────────────────────────────────────
@@ -1342,18 +1893,19 @@ export class OffertesCreateComponent implements OnInit {
       this.previewUrl.set(null);
       this.previewAttachment.set(att);
 
-      this.catalogService.getCatalogAssetDownloadUrl(att.catalogProductId, att.catalogAssetId).pipe(
-        takeUntilDestroyed(this.destroyRef),
-      ).subscribe({
-        next: response => {
-          this.previewUrl.set(response.downloadUrl);
-          this.previewLoading.set(false);
-        },
-        error: () => {
-          this.previewError.set(this.translate.instant('offertes.errors.loadPreview'));
-          this.previewLoading.set(false);
-        },
-      });
+      this.catalogService
+        .getCatalogAssetDownloadUrl(att.catalogProductId, att.catalogAssetId)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: (response) => {
+            this.previewUrl.set(response.downloadUrl);
+            this.previewLoading.set(false);
+          },
+          error: () => {
+            this.previewError.set(this.translate.instant('offertes.errors.loadPreview'));
+            this.previewLoading.set(false);
+          },
+        });
       return;
     }
 
@@ -1366,18 +1918,19 @@ export class OffertesCreateComponent implements OnInit {
     this.previewUrl.set(null);
     this.previewAttachment.set(att);
 
-    this.quotesService.getAttachmentDownloadUrl(quote.id, att.uid).pipe(
-      takeUntilDestroyed(this.destroyRef),
-    ).subscribe({
-      next: response => {
-        this.previewUrl.set(response.downloadUrl);
-        this.previewLoading.set(false);
-      },
-      error: () => {
-        this.previewError.set(this.translate.instant('offertes.errors.loadPreview'));
-        this.previewLoading.set(false);
-      },
-    });
+    this.quotesService
+      .getAttachmentDownloadUrl(quote.id, att.uid)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (response) => {
+          this.previewUrl.set(response.downloadUrl);
+          this.previewLoading.set(false);
+        },
+        error: () => {
+          this.previewError.set(this.translate.instant('offertes.errors.loadPreview'));
+          this.previewLoading.set(false);
+        },
+      });
   }
 
   protected closePreview(): void {
@@ -1449,10 +2002,16 @@ export class OffertesCreateComponent implements OnInit {
       .replaceAll("'", '&#39;');
   }
 
-  private formatDescriptionWithIncludedMaterials(baseDescription: string, includedTitles: string[]): string {
+  private formatDescriptionWithIncludedMaterials(
+    baseDescription: string,
+    includedTitles: string[],
+  ): string {
     if (includedTitles.length === 0) return baseDescription;
 
-    const includedBlockLines = [this.translate.instant('offertes.includedMaterialsLabel'), ...includedTitles.map(title => `- ${title}`)];
+    const includedBlockLines = [
+      this.translate.instant('offertes.includedMaterialsLabel'),
+      ...includedTitles.map((title) => `- ${title}`),
+    ];
     return `${baseDescription}<br><br>${includedBlockLines.join('<br>')}`;
   }
 
@@ -1474,5 +2033,414 @@ export class OffertesCreateComponent implements OnInit {
       taxRate: this.lastUsedTaxRate(),
       optional: false,
     };
+  }
+
+  private bindViewportMode(): void {
+    if (globalThis.window === undefined || typeof globalThis.window.matchMedia !== 'function') {
+      this.isMobileViewport.set(false);
+      return;
+    }
+
+    const mediaQuery = globalThis.window.matchMedia('(max-width: 767px)');
+    this.isMobileViewport.set(mediaQuery.matches);
+
+    const updateViewport = (event: MediaQueryListEvent) => {
+      this.isMobileViewport.set(event.matches);
+    };
+
+    mediaQuery.addEventListener('change', updateViewport);
+    this.destroyRef.onDestroy(() => mediaQuery.removeEventListener('change', updateViewport));
+  }
+
+  protected measurePerformanceLabel(measureId: ISDEMeasureID): string {
+    return (
+      this.subsidyMeasureOptions().find((opt) => opt.value === measureId)?.performanceLabel ??
+      'Prestatie'
+    );
+  }
+
+  protected measurePerformanceHint(measureId: ISDEMeasureID): string {
+    if (this.measurePerformanceKind(measureId) === 'u') {
+      return 'Lagere U-waarde is beter. Voor HR++ is meestal 1,2 of lager nodig.';
+    }
+
+    return 'Hogere Rd-waarde is beter. Voor de meeste isolatiemaatregelen is minimaal 3,5 nodig.';
+  }
+
+  protected measurePerformanceExample(measureId: ISDEMeasureID): string {
+   switch (measureId) {
+     case 'hr_plus_plus':
+     case 'glass_panel_low':
+     case 'cavity_wall':
+       return 'Bijv. 1,1';
+     case 'triple_glass':
+     case 'vacuum_glass':
+     case 'glass_panel_high':
+       return 'Bijv. 0,7';
+     case 'insulated_door_low':
+       return 'Bijv. 1,5';
+     case 'insulated_door_high':
+       return 'Bijv. 1,0';
+     default:
+       return 'Bijv. 3,5';
+   }
+  }
+
+  protected measureNeedsFrameFields(measureId: ISDEMeasureID): boolean {
+    return measureId === 'triple_glass' || measureId === 'vacuum_glass';
+  }
+
+  protected measureSupportsMKI(measureId: ISDEMeasureID): boolean {
+    return ['roof', 'attic', 'facade', 'cavity_wall', 'floor', 'crawl_space'].includes(measureId);
+  }
+
+  protected measureSupportsPairStacking(measureId: ISDEMeasureID): boolean {
+    return ['roof', 'attic', 'floor', 'crawl_space'].includes(measureId);
+  }
+
+  protected installationUsesMeldcode(kind: ISDEInstallationKind): boolean {
+    return kind === 'meldcode';
+  }
+
+  protected installationUsesHeatPumpFormula(kind: ISDEInstallationKind): boolean {
+    return kind === 'heat_pump';
+  }
+
+  private createDefaultSubsidyMeasure(): SubsidyMeasureDraft {
+    return {
+      uid: crypto.randomUUID(),
+      measureId: 'roof',
+      areaM2: 20,
+      performanceValue: this.defaultPerformanceValueForMeasure('roof'),
+      hasMKIBonus: false,
+      frameReplaced: false,
+      stackedWithPairedMeasure: false,
+    };
+  }
+
+  private createDefaultSubsidyInstallation(): SubsidyInstallationDraft {
+    return {
+      uid: crypto.randomUUID(),
+      kind: 'meldcode',
+      meldcode: '',
+      heatPumpType: 'air_water',
+      heatPumpEnergyLabel: 'A++',
+      isAdditionalUnit: false,
+      isSplitSystem: false,
+    };
+  }
+
+  private applySubsidyMeasureUpdate(
+    row: SubsidyMeasureDraft,
+    field: EditableSubsidyMeasureField,
+    value: EditableSubsidyValue,
+  ): SubsidyMeasureDraft {
+    switch (field) {
+      case 'measureId':
+        return typeof value === 'string'
+          ? this.normalizeSubsidyMeasureForType(
+              { ...row, measureId: value as ISDEMeasureID },
+              row.measureId,
+            )
+          : row;
+      case 'areaM2':
+        return { ...row, areaM2: Number(value ?? 0) };
+      case 'performanceValue':
+        return this.setOptionalMeasureNumber(row, 'performanceValue', value);
+      case 'framePerformanceValue':
+        return this.setOptionalMeasureNumber(row, 'framePerformanceValue', value);
+      case 'hasMKIBonus':
+        return { ...row, hasMKIBonus: !!value };
+      case 'frameReplaced':
+        return { ...row, frameReplaced: !!value };
+      case 'stackedWithPairedMeasure':
+        return { ...row, stackedWithPairedMeasure: !!value };
+      default:
+        return row;
+    }
+  }
+
+  private normalizeSubsidyMeasureForType(
+    row: SubsidyMeasureDraft,
+    previousMeasureId?: ISDEMeasureID,
+  ): SubsidyMeasureDraft {
+    const performanceKindChanged =
+      previousMeasureId != null &&
+      this.measurePerformanceKind(previousMeasureId) !== this.measurePerformanceKind(row.measureId);
+    const nextRow: SubsidyMeasureDraft = {
+      ...row,
+      performanceValue:
+        performanceKindChanged || row.performanceValue == null
+          ? this.defaultPerformanceValueForMeasure(row.measureId)
+          : row.performanceValue,
+      hasMKIBonus: this.measureSupportsMKI(row.measureId) ? row.hasMKIBonus : false,
+      stackedWithPairedMeasure: this.measureSupportsPairStacking(row.measureId)
+        ? row.stackedWithPairedMeasure
+        : false,
+      frameReplaced: this.measureNeedsFrameFields(row.measureId) ? row.frameReplaced : false,
+    };
+
+    if (!this.measureNeedsFrameFields(row.measureId)) {
+      delete nextRow.framePerformanceValue;
+    }
+
+    return nextRow;
+  }
+
+  private measurePerformanceKind(measureId: ISDEMeasureID): 'rd' | 'u' {
+    switch (measureId) {
+      case 'hr_plus_plus':
+      case 'triple_glass':
+      case 'vacuum_glass':
+      case 'glass_panel_low':
+      case 'glass_panel_high':
+      case 'insulated_door_low':
+      case 'insulated_door_high':
+        return 'u';
+      default:
+        return 'rd';
+    }
+  }
+
+  private defaultPerformanceValueForMeasure(measureId: ISDEMeasureID): number {
+    switch (measureId) {
+      case 'cavity_wall':
+        return 1.1;
+      case 'hr_plus_plus':
+      case 'glass_panel_low':
+        return 1.1;
+      case 'triple_glass':
+      case 'vacuum_glass':
+      case 'glass_panel_high':
+        return 0.7;
+      case 'insulated_door_low':
+        return 1.5;
+      case 'insulated_door_high':
+        return 1;
+      default:
+        return 3.5;
+    }
+  }
+
+  private applySubsidyInstallationUpdate(
+    row: SubsidyInstallationDraft,
+    field: EditableSubsidyInstallationField,
+    value: EditableSubsidyValue,
+  ): SubsidyInstallationDraft {
+    switch (field) {
+      case 'kind':
+        return typeof value === 'string' ? { ...row, kind: value as ISDEInstallationKind } : row;
+      case 'meldcode':
+        return typeof value === 'string' ? { ...row, meldcode: value.toUpperCase().trim() } : row;
+      case 'heatPumpType':
+        return typeof value === 'string'
+          ? { ...row, heatPumpType: value as SubsidyInstallationDraft['heatPumpType'] }
+          : row;
+      case 'heatPumpEnergyLabel':
+        return typeof value === 'string'
+          ? {
+              ...row,
+              heatPumpEnergyLabel: value as SubsidyInstallationDraft['heatPumpEnergyLabel'],
+            }
+          : row;
+      case 'thermalPowerKW':
+        return this.setOptionalInstallationNumber(row, 'thermalPowerKW', value);
+      case 'refrigerantChargeKg':
+        return this.setOptionalInstallationNumber(row, 'refrigerantChargeKg', value);
+      case 'refrigerantGWP':
+        return this.setOptionalInstallationNumber(row, 'refrigerantGWP', value);
+      case 'isAdditionalUnit':
+        return { ...row, isAdditionalUnit: !!value };
+      case 'isSplitSystem':
+        return { ...row, isSplitSystem: !!value };
+      default:
+        return row;
+    }
+  }
+
+  private setOptionalMeasureNumber(
+    row: SubsidyMeasureDraft,
+    field: 'performanceValue' | 'framePerformanceValue',
+    value: EditableSubsidyValue,
+  ): SubsidyMeasureDraft {
+    const parsed = this.parseOptionalNumber(value);
+    if (parsed != null) {
+      return { ...row, [field]: parsed } as SubsidyMeasureDraft;
+    }
+
+    const nextRow = { ...row };
+    delete nextRow[field];
+    return nextRow;
+  }
+
+  private setOptionalInstallationNumber(
+    row: SubsidyInstallationDraft,
+    field: 'thermalPowerKW' | 'refrigerantChargeKg' | 'refrigerantGWP',
+    value: EditableSubsidyValue,
+  ): SubsidyInstallationDraft {
+    const parsed = this.parseOptionalNumber(value);
+    if (parsed != null) {
+      return { ...row, [field]: parsed } as SubsidyInstallationDraft;
+    }
+
+    const nextRow = { ...row };
+    delete nextRow[field];
+    return nextRow;
+  }
+
+  private parseOptionalNumber(value: EditableSubsidyValue): number | undefined {
+    if (value == null || value === '') {
+      return undefined;
+    }
+
+    const parsed = Number(value);
+    return Number.isFinite(parsed) ? parsed : undefined;
+  }
+
+  private toRequestedMeasure(row: SubsidyMeasureDraft): RequestedMeasure {
+    const requestedMeasure: RequestedMeasure = {
+      measureId: row.measureId,
+      areaM2: row.areaM2,
+      hasMKIBonus: row.hasMKIBonus,
+      frameReplaced: row.frameReplaced,
+      stackedWithPairedMeasure: row.stackedWithPairedMeasure,
+    };
+
+    if (row.performanceValue !== undefined) {
+      requestedMeasure.performanceValue = row.performanceValue;
+    }
+    if (row.framePerformanceValue !== undefined) {
+      requestedMeasure.framePerformanceValue = row.framePerformanceValue;
+    }
+
+    return requestedMeasure;
+  }
+
+  private toSubsidyMeasureDraft(measure: RequestedMeasure): SubsidyMeasureDraft {
+    return {
+      uid: crypto.randomUUID(),
+      measureId: measure.measureId as ISDEMeasureID,
+      areaM2: measure.areaM2,
+      ...(measure.performanceValue == null ? {} : { performanceValue: measure.performanceValue }),
+      ...(measure.framePerformanceValue == null
+        ? {}
+        : { framePerformanceValue: measure.framePerformanceValue }),
+      hasMKIBonus: !!measure.hasMKIBonus,
+      frameReplaced: !!measure.frameReplaced,
+      stackedWithPairedMeasure: !!measure.stackedWithPairedMeasure,
+    };
+  }
+
+  private toRequestedInstallation(row: SubsidyInstallationDraft): RequestedInstallation {
+    const requestedInstallation: RequestedInstallation = { kind: row.kind };
+    const normalizedMeldcode = row.meldcode.trim().toUpperCase();
+
+    if (normalizedMeldcode.length > 0) {
+      requestedInstallation.meldcode = normalizedMeldcode;
+    }
+    if (row.kind !== 'heat_pump') {
+      return requestedInstallation;
+    }
+
+    requestedInstallation.heatPumpType = row.heatPumpType;
+    requestedInstallation.heatPumpEnergyLabel = row.heatPumpEnergyLabel;
+    requestedInstallation.isAdditionalUnit = row.isAdditionalUnit;
+    requestedInstallation.isSplitSystem = row.isSplitSystem;
+
+    if (row.thermalPowerKW !== undefined) {
+      requestedInstallation.thermalPowerKW = row.thermalPowerKW;
+    }
+    if (row.refrigerantChargeKg !== undefined) {
+      requestedInstallation.refrigerantChargeKg = row.refrigerantChargeKg;
+    }
+    if (row.refrigerantGWP !== undefined) {
+      requestedInstallation.refrigerantGWP = row.refrigerantGWP;
+    }
+
+    return requestedInstallation;
+  }
+
+  private toSubsidyInstallationDraft(
+    installation: RequestedInstallation,
+  ): SubsidyInstallationDraft {
+    return {
+      uid: crypto.randomUUID(),
+      kind: (installation.kind || 'meldcode') as SubsidyInstallationDraft['kind'],
+      meldcode: installation.meldcode ?? '',
+      heatPumpType: installation.heatPumpType || 'air_water',
+      heatPumpEnergyLabel: (installation.heatPumpEnergyLabel ||
+        'A++') as SubsidyInstallationDraft['heatPumpEnergyLabel'],
+      ...(installation.thermalPowerKW == null
+        ? {}
+        : { thermalPowerKW: installation.thermalPowerKW }),
+      isAdditionalUnit: !!installation.isAdditionalUnit,
+      isSplitSystem: !!installation.isSplitSystem,
+      ...(installation.refrigerantChargeKg == null
+        ? {}
+        : { refrigerantChargeKg: installation.refrigerantChargeKg }),
+      ...(installation.refrigerantGWP == null
+        ? {}
+        : { refrigerantGWP: installation.refrigerantGWP }),
+    };
+  }
+
+  private stripHtml(value: string): string {
+    return value.replaceAll(HTML_TAG_PATTERN, ' ').replaceAll(WHITESPACE_PATTERN, ' ').trim();
+  }
+
+  private recognizeMeasureId(text: string): ISDEMeasureID | null {
+    if (/vacu|vacuum/.test(text)) return 'vacuum_glass';
+    if (/kozijnpaneel|paneel/.test(text)) return 'glass_panel_low';
+    if (/deur/.test(text)) return 'insulated_door_low';
+    if (/\b(hr\+\+\+|triple(\s+glas)?)\b/.test(text)) return 'triple_glass';
+    if (/\b(hr\+\+|hr plus plus)\b/.test(text)) return 'hr_plus_plus';
+    if (/\bspouw\b/.test(text)) return 'cavity_wall';
+    if (/\bkruip\b|bodemisolatie/.test(text)) return 'crawl_space';
+    if (/\bvloer\b/.test(text)) return 'floor';
+    if (/\bgevel\b/.test(text)) return 'facade';
+    if (/\bzolder\b|attic|vliering/.test(text)) return 'attic';
+    if (/\bdak\b/.test(text)) return 'roof';
+    return null;
+  }
+
+  private recognizeAreaM2(quantity: string, text: string): number {
+    const direct = parseQuantityNumber(quantity);
+    if (Number.isFinite(direct) && direct > 0 && /m2|m²/.test(quantity.toLowerCase())) {
+      return direct;
+    }
+    const inText = AREA_PATTERN.exec(text)?.[1];
+    if (inText != null) {
+      const parsed = Number.parseFloat(inText.replace(',', '.'));
+      if (Number.isFinite(parsed) && parsed > 0) return parsed;
+    }
+    if (Number.isFinite(direct) && direct > 0 && direct !== 1) {
+      return direct;
+    }
+    return 20;
+  }
+
+  private recognizePerformanceValue(measureId: ISDEMeasureID, text: string): number | undefined {
+    if (
+      [
+        'hr_plus_plus',
+        'triple_glass',
+        'vacuum_glass',
+        'glass_panel_low',
+        'glass_panel_high',
+        'insulated_door_low',
+        'insulated_door_high',
+      ].includes(measureId)
+    ) {
+      const u = U_VALUE_PATTERN.exec(text)?.[1];
+      if (u != null) {
+        const parsed = Number.parseFloat(u.replace(',', '.'));
+        return Number.isFinite(parsed) ? parsed : undefined;
+      }
+      return undefined;
+    }
+    const rd = RD_VALUE_PATTERN.exec(text)?.[1];
+    if (rd == null) return undefined;
+    const parsed = Number.parseFloat(rd.replace(',', '.'));
+    return Number.isFinite(parsed) ? parsed : undefined;
   }
 }
