@@ -62,8 +62,6 @@ import type {
 import type {
   ISDECalculationRequest,
   ISDECalculationResponse,
-  RequestedInstallation,
-  RequestedMeasure,
 } from '../../../core/services/isde.types';
 import {
   TAX_RATE_OPTIONS,
@@ -105,155 +103,48 @@ import { FilePreviewDialogComponent } from '../../../shared/components/file-prev
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet';
 import { QuoteLineItemRowComponent } from './quote-line-item-row.component';
 import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
-
-interface LineItemDraft {
-  id: string;
-  title: string;
-  description: string;
-  quantity: string; // Free-form: "5 x", "10 m²", "3 uur"
-  unitPrice: number | null;
-  taxRate: TaxRateDisplay;
-  optional: boolean;
-  catalogProductId?: string;
-  parentLineItemId?: string;
-}
-
-interface QuoteFeedbackDiff {
-  fieldChanged: CreateQuoteFeedbackRequest['fieldChanged'];
-  aiValue: Record<string, unknown>;
-  humanValue: Record<string, unknown>;
-}
-
-type ISDEMeasureID =
-  | 'roof'
-  | 'attic'
-  | 'facade'
-  | 'cavity_wall'
-  | 'floor'
-  | 'crawl_space'
-  | 'hr_plus_plus'
-  | 'triple_glass'
-  | 'vacuum_glass'
-  | 'glass_panel_low'
-  | 'glass_panel_high'
-  | 'insulated_door_low'
-  | 'insulated_door_high';
-
-type ISDEInstallationKind =
-  | 'meldcode'
-  | 'ventilation'
-  | 'heat_pump'
-  | 'warmtenet'
-  | 'electric_cooking';
-
-interface SubsidyMeasureDraft {
-  uid: string;
-  measureId: ISDEMeasureID;
-  areaM2: number;
-  performanceValue?: number;
-  framePerformanceValue?: number;
-  hasMKIBonus: boolean;
-  frameReplaced: boolean;
-  stackedWithPairedMeasure: boolean;
-}
-
-interface SubsidyInstallationDraft {
-  uid: string;
-  kind: ISDEInstallationKind;
-  meldcode: string;
-  heatPumpType: 'air_water' | 'ground_water' | 'water_water' | 'heat_pump_boiler';
-  heatPumpEnergyLabel: 'A++' | 'A+++';
-  thermalPowerKW?: number;
-  isAdditionalUnit: boolean;
-  isSplitSystem: boolean;
-  refrigerantChargeKg?: number;
-  refrigerantGWP?: number;
-}
-
-interface ISDEMeasureOption {
-  value: ISDEMeasureID;
-  label: string;
-  performanceLabel: string;
-}
-
-type EditableSubsidyMeasureField =
-  | 'measureId'
-  | 'areaM2'
-  | 'performanceValue'
-  | 'framePerformanceValue'
-  | 'hasMKIBonus'
-  | 'frameReplaced'
-  | 'stackedWithPairedMeasure';
-
-type EditableSubsidyInstallationField =
-  | 'kind'
-  | 'meldcode'
-  | 'heatPumpType'
-  | 'heatPumpEnergyLabel'
-  | 'thermalPowerKW'
-  | 'isAdditionalUnit'
-  | 'isSplitSystem'
-  | 'refrigerantChargeKg'
-  | 'refrigerantGWP';
-
-type EditableSubsidyValue = string | number | boolean | null;
-
-const HTML_TAG_PATTERN = /<[^>]+>/g;
-const WHITESPACE_PATTERN = /\s+/g;
-const AREA_PATTERN = /(\d+(?:[.,]\d+)?)\s*(m2|m²)/i;
-
-
-const ISDE_MEASURE_OPTIONS: ISDEMeasureOption[] = [
-  { value: 'roof', label: 'Dakisolatie', performanceLabel: 'Rd-waarde' },
-  { value: 'attic', label: 'Zolder/vliering isolatie', performanceLabel: 'Rd-waarde' },
-  { value: 'facade', label: 'Gevelisolatie', performanceLabel: 'Rd-waarde' },
-  { value: 'cavity_wall', label: 'Spouwmuurisolatie', performanceLabel: 'Rd-waarde' },
-  { value: 'floor', label: 'Vloerisolatie', performanceLabel: 'Rd-waarde' },
-  { value: 'crawl_space', label: 'Bodemisolatie (kruipruimte)', performanceLabel: 'Rd-waarde' },
-  { value: 'hr_plus_plus', label: 'HR++ glas', performanceLabel: 'U-waarde' },
-  { value: 'triple_glass', label: 'Triple glas', performanceLabel: 'U-waarde' },
-  { value: 'vacuum_glass', label: 'Vacuumglas', performanceLabel: 'U-waarde' },
-  { value: 'glass_panel_low', label: 'Isolerend paneel', performanceLabel: 'U-waarde paneel' },
-  {
-    value: 'glass_panel_high',
-    label: 'Isolerend paneel hoogwaardig',
-    performanceLabel: 'U-waarde paneel',
-  },
-  { value: 'insulated_door_low', label: 'Isolerende deur', performanceLabel: 'Ud-waarde' },
-  {
-    value: 'insulated_door_high',
-    label: 'Isolerende deur hoogwaardig',
-    performanceLabel: 'Ud-waarde',
-  },
-];
-
-const ISDE_INSTALLATION_KIND_OPTIONS: SelectOption<ISDEInstallationKind>[] = [
-  { label: 'Meldcode', value: 'meldcode' },
-  { label: 'Ventilatie', value: 'ventilation' },
-  { label: 'Lucht-water warmtepomp', value: 'heat_pump' },
-  { label: 'Warmtenet', value: 'warmtenet' },
-  { label: 'Elektrische kookvoorziening', value: 'electric_cooking' },
-];
-
-const ISDE_HEAT_PUMP_TYPE_OPTIONS: SelectOption<
-  'air_water' | 'ground_water' | 'water_water' | 'heat_pump_boiler'
->[] = [
-  { label: 'Lucht-water', value: 'air_water' },
-  { label: 'Grond-water', value: 'ground_water' },
-  { label: 'Water-water', value: 'water_water' },
-  { label: 'Warmtepompboiler', value: 'heat_pump_boiler' },
-];
-
-const ISDE_HEAT_PUMP_LABEL_OPTIONS: SelectOption<'A++' | 'A+++'>[] = [
-  { label: 'A++', value: 'A++' },
-  { label: 'A+++', value: 'A+++' },
-];
-
-const ISDE_EXECUTION_YEAR_OPTIONS: SelectOption<number>[] = [
-  { label: '2024', value: 2024 },
-  { label: '2025', value: 2025 },
-  { label: '2026+', value: 2026 },
-];
+import type {
+  EditableSubsidyInstallationField,
+  EditableSubsidyMeasureField,
+  EditableSubsidyValue,
+  ISDEMeasureID,
+  LineItemDraft,
+  SubsidyInstallationDraft,
+  SubsidyMeasureDraft,
+  UrlDraft,
+} from './offertes-create.models';
+import {
+  buildQuoteHydrationSnapshot,
+  buildQuoteDraftPayload,
+  buildQuoteFeedbackRequests,
+  type QuoteDraftPayload,
+} from './offertes-create-quote.utils';
+import {
+  applySubsidyInstallationUpdate,
+  applySubsidyMeasureUpdate,
+  buildSubsidyMeasuresFromAIResult,
+  createDefaultSubsidyInstallation,
+  createDefaultSubsidyMeasure,
+  createDraftUid,
+  defaultSubsidyExecutionYear,
+  inferSubsidyMeasureFromLineItem,
+  installationUsesHeatPumpFormula,
+  installationUsesMeldcode,
+  ISDE_EXECUTION_YEAR_OPTIONS,
+  ISDE_HEAT_PUMP_LABEL_OPTIONS,
+  ISDE_HEAT_PUMP_TYPE_OPTIONS,
+  ISDE_INSTALLATION_KIND_OPTIONS,
+  ISDE_MEASURE_OPTIONS,
+  measureNeedsFrameFields,
+  measurePerformanceExample,
+  measurePerformanceHint,
+  measureSupportsMKI,
+  measureSupportsPairStacking,
+  toRequestedInstallation,
+  toRequestedMeasure,
+  toSubsidyInstallationDraft,
+  toSubsidyMeasureDraft,
+} from './offertes-create-subsidy.utils';
 
 @Component({
   selector: 'app-offertes-create',
@@ -298,6 +189,7 @@ export class OffertesCreateComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly userService = inject(UserService);
   private readonly materialExpandRequestSeq = new Map<string, number>();
+  private readonly createUid = () => createDraftUid();
 
   private readonly currentUser = toSignal(
     this.userService.getProfile().pipe(catchError(() => of(null))),
@@ -373,9 +265,7 @@ export class OffertesCreateComponent implements OnInit {
 
   // Document attachments & URLs (collected from catalog autocomplete + manual uploads)
   protected readonly attachmentDrafts = signal<AttachmentDraft[]>([]);
-  protected readonly urlDrafts = signal<
-    { uid: string; label: string; href: string; catalogProductId?: string }[]
-  >([]);
+  protected readonly urlDrafts = signal<UrlDraft[]>([]);
 
   // File preview dialog state
   protected readonly previewOpen = signal(false);
@@ -739,70 +629,20 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   private applyQuote(quote: QuoteResponse): void {
+    const snapshot = buildQuoteHydrationSnapshot(quote);
+
     this.existingQuote.set(quote);
-    this.lineItems.set(
-      quote.items.map((item) => ({
-        id: item.id,
-        title: item.title ?? '',
-        description: item.description,
-        quantity: item.quantity,
-        unitPrice: centsToEuros(item.unitPriceCents),
-        taxRate: taxBpsToDisplay(item.taxRateBps),
-        optional: item.isOptional,
-        ...(item.catalogProductId == null ? {} : { catalogProductId: item.catalogProductId }),
-      })),
-    );
-    this.descriptionEditState.set(
-      Object.fromEntries(
-        quote.items.map((item) => [
-          item.id,
-          !(item.catalogProductId && /<[^>]+>/.test(item.description)),
-        ]),
-      ),
-    );
-
-    // Restore attachments
-    if (quote.attachments?.length) {
-      this.attachmentDrafts.set(
-        quote.attachments.map((a) => ({
-          uid: a.id,
-          filename: a.filename,
-          fileKey: a.fileKey,
-          source: a.source,
-          ...(a.catalogProductId == null ? {} : { catalogProductId: a.catalogProductId }),
-          enabled: a.enabled,
-          sortOrder: a.sortOrder,
-        })),
-      );
-    }
-
-    // Restore URLs
-    if (quote.urls?.length) {
-      this.urlDrafts.set(
-        quote.urls.map((u) => ({
-          uid: u.id,
-          label: u.label,
-          href: u.href,
-          ...(u.catalogProductId == null ? {} : { catalogProductId: u.catalogProductId }),
-        })),
-      );
-    }
-    const discountDisplayValue =
-      quote.discountType === 'fixed' ? centsToEuros(quote.discountValue) : quote.discountValue;
-    const validUntil = quote.validUntil ? (quote.validUntil.split('T')[0] ?? null) : null;
-    this.summaryForm.patchValue({
-      discountType: quote.discountType,
-      discountValue: discountDisplayValue,
-      validUntil,
-      notes: quote.notes ?? '',
-    });
-    this.discountType.set(quote.discountType);
-    this.discountValue.set(discountDisplayValue);
-    this.pricingMode.set(quote.pricingMode ?? 'exclusive');
-    this.financingDisclaimer.set(quote.financingDisclaimer ?? false);
+    this.lineItems.set(snapshot.lineItems);
+    this.descriptionEditState.set(snapshot.descriptionEditState);
+    this.attachmentDrafts.set(snapshot.attachmentDrafts);
+    this.urlDrafts.set(snapshot.urlDrafts);
+    this.summaryForm.patchValue(snapshot.summary);
+    this.discountType.set(snapshot.summary.discountType);
+    this.discountValue.set(snapshot.discountDisplayValue);
+    this.pricingMode.set(snapshot.pricingMode);
+    this.financingDisclaimer.set(snapshot.financingDisclaimer);
     this.applyQuoteSubsidyState(quote.isdeSubsidy);
-    const firstItemTaxRate = quote.items.at(0)?.taxRateBps;
-    this.lastUsedTaxRate.set(firstItemTaxRate == null ? 21 : taxBpsToDisplay(firstItemTaxRate));
+    this.lastUsedTaxRate.set(snapshot.lastUsedTaxRate);
     this.ensureInitialLineItem();
     this.requestCalculation();
     if (quote.leadId) {
@@ -991,9 +831,9 @@ export class OffertesCreateComponent implements OnInit {
 
   private prefillFromAISuggestion(result: AnalyzeSubsidyDraftResult): void {
     const inferredMeasures = this.getSubsidyAnalysisSourceItems()
-      .map((item) => this.inferSubsidyMeasureFromLineItem(item))
+      .map((item) => inferSubsidyMeasureFromLineItem(item, this.createUid))
       .filter((row): row is SubsidyMeasureDraft => row !== null);
-    const measures = this.buildSubsidyMeasuresFromAIResult(result, inferredMeasures);
+    const measures = buildSubsidyMeasuresFromAIResult(result, inferredMeasures, this.createUid);
 
     if (measures.length > 0) {
       this.subsidyMeasures.set(measures);
@@ -1002,7 +842,7 @@ export class OffertesCreateComponent implements OnInit {
     if (result.installation_meldcode_id) {
       this.subsidyInstallations.set([
         {
-          uid: this.generateUUID(),
+          uid: this.createUid(),
           kind: 'meldcode',
           meldcode: result.installation_meldcode_id,
           heatPumpType: 'air_water',
@@ -1015,72 +855,9 @@ export class OffertesCreateComponent implements OnInit {
 
     this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
   }
-
-  private buildSubsidyMeasuresFromAIResult(
-    result: AnalyzeSubsidyDraftResult,
-    inferredMeasures: SubsidyMeasureDraft[],
-  ): SubsidyMeasureDraft[] {
-    const suggestedMeasureIds = this.extractAISuggestedMeasureIds(result);
-    if (suggestedMeasureIds.length === 0) {
-      return inferredMeasures;
-    }
-
-    const remainingInferred = [...inferredMeasures];
-    const aiMeasures = suggestedMeasureIds.map((measureId) => {
-      const matchingIndex = remainingInferred.findIndex((row) => row.measureId === measureId);
-      if (matchingIndex >= 0) {
-        const [matchingMeasure] = remainingInferred.splice(matchingIndex, 1);
-        if (matchingMeasure) {
-          return matchingMeasure;
-        }
-      }
-
-      return {
-        uid: this.generateUUID(),
-        measureId,
-        areaM2: 20,
-        performanceValue: this.defaultPerformanceValueForMeasure(measureId),
-        hasMKIBonus: false,
-        frameReplaced: measureId === 'triple_glass' || measureId === 'vacuum_glass',
-        stackedWithPairedMeasure: false,
-      } satisfies SubsidyMeasureDraft;
-    });
-
-    return [...aiMeasures, ...remainingInferred];
-  }
-
-  private extractAISuggestedMeasureIds(result: AnalyzeSubsidyDraftResult): ISDEMeasureID[] {
-    let rawMeasureIds: string[] = [];
-    if (Array.isArray(result.measure_type_ids)) {
-      rawMeasureIds = result.measure_type_ids;
-    } else if (result.measure_type_id) {
-      rawMeasureIds = [result.measure_type_id];
-    }
-
-    return rawMeasureIds.filter((value): value is ISDEMeasureID => this.isISDEMeasureID(value));
-  }
-
-  private isISDEMeasureID(value: string): value is ISDEMeasureID {
-    return [
-      'roof',
-      'attic',
-      'facade',
-      'cavity_wall',
-      'floor',
-      'crawl_space',
-      'hr_plus_plus',
-      'triple_glass',
-      'vacuum_glass',
-      'glass_panel_low',
-      'glass_panel_high',
-      'insulated_door_low',
-      'insulated_door_high',
-    ].includes(value);
-  }
-
   private prefillSubsidyFromLineItems(): void {
     const measures = this.getSubsidyAnalysisSourceItems()
-      .map((item) => this.inferSubsidyMeasureFromLineItem(item))
+      .map((item) => inferSubsidyMeasureFromLineItem(item, this.createUid))
       .filter((row): row is SubsidyMeasureDraft => row !== null);
 
     if (measures.length > 0) {
@@ -1090,7 +867,7 @@ export class OffertesCreateComponent implements OnInit {
     }
 
     if (this.subsidyMeasures().length === 0 && this.subsidyInstallations().length === 0) {
-      this.subsidyMeasures.set([this.createDefaultSubsidyMeasure()]);
+      this.subsidyMeasures.set([createDefaultSubsidyMeasure(this.createUid)]);
     }
 
     this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
@@ -1162,84 +939,6 @@ export class OffertesCreateComponent implements OnInit {
     return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
   }
 
-  private inferSubsidyMeasureFromLineItem(item: LineItemDraft): SubsidyMeasureDraft | null {
-    const normalizedText = this.normalizeSubsidySourceText(`${item.title} ${item.description}`);
-    const measureId = this.detectMeasureIdFromText(normalizedText);
-
-    if (!measureId) {
-      return null;
-    }
-
-    return {
-      uid: crypto.randomUUID(),
-      measureId,
-      areaM2: this.detectAreaM2(item.quantity, normalizedText),
-      performanceValue: this.defaultPerformanceValueForMeasure(measureId),
-      hasMKIBonus: false,
-      frameReplaced: measureId === 'triple_glass' || measureId === 'vacuum_glass',
-      stackedWithPairedMeasure: false,
-    };
-  }
-
-  private normalizeSubsidySourceText(value: string): string {
-    return value
-      .replaceAll(HTML_TAG_PATTERN, ' ')
-      .toLowerCase()
-      .replaceAll('＋', '+')
-      .replaceAll('plusplus', '++')
-      .replaceAll('plus plus', '++')
-      .replaceAll('/', ' ')
-      .replaceAll('-', ' ')
-      .replaceAll(WHITESPACE_PATTERN, ' ')
-      .trim();
-  }
-
-  private detectMeasureIdFromText(text: string): ISDEMeasureID | null {
-    if (/\btriple\s*glas|tripleglas|hr\s*\+\+\+|hr\+\+\+/.test(text)) return 'triple_glass';
-    if (/\bhr\s*\+\+|hr\+\+/.test(text)) return 'hr_plus_plus';
-    if (/\bvacu+\w*\s*glas|vacuumglas/.test(text)) return 'vacuum_glass';
-    if (/\bzolder|vliering/.test(text)) return 'attic';
-    if (/\bkruipruimte|bodemisolatie/.test(text)) return 'crawl_space';
-    if (/\bisolerend\s*paneel\s*hoogwaardig|hoogwaardig\s*paneel/.test(text)) return 'glass_panel_high';
-    if (/\bisolerend\s*paneel|glaspaneel|paneelisolatie/.test(text)) return 'glass_panel_low';
-    if (/\bisolerende\s*deur\s*hoogwaardig|hoogwaardige\s*deur/.test(text)) return 'insulated_door_high';
-    if (/\bisolerende\s*deur|geisoleerde\s*deur|geïsoleerde\s*deur/.test(text)) return 'insulated_door_low';
-    if (/\bspouw/.test(text)) return 'cavity_wall';
-    if (/\bdak/.test(text)) return 'roof';
-    if (/\bvloer/.test(text)) return 'floor';
-    if (/\bgevel/.test(text)) return 'facade';
-    return null;
-  }
-
-  private detectAreaM2(quantity: string, text: string): number {
-    const quantityValue = parseQuantityNumber(quantity);
-    if (Number.isFinite(quantityValue) && quantityValue > 0 && /m2|m²/i.test(quantity)) {
-      return quantityValue;
-    }
-
-    const areaInText = AREA_PATTERN.exec(text)?.[1];
-    if (areaInText) {
-      const parsed = Number.parseFloat(areaInText.replace(',', '.'));
-      if (Number.isFinite(parsed) && parsed > 0) {
-        return parsed;
-      }
-    }
-
-    if (Number.isFinite(quantityValue) && quantityValue > 0 && quantityValue !== 1) {
-      return quantityValue;
-    }
-
-    return 20;
-  }
-
-  private generateUUID(): string {
-    return 'xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx'.replaceAll(/[xy]/g, (c: any) => {
-      const r = Math.trunc(Math.random() * 16);
-      const v = c === 'x' ? r : (r & 0x3) | 0x8;
-      return v.toString(16);
-    });
-  }
-
   protected closeSubsidyEditor(): void {
     this.subsidyEditorOpen.set(false);
     this.subsidyError.set(null);
@@ -1250,7 +949,7 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected addSubsidyMeasureRow(): void {
-    this.subsidyMeasures.update((rows) => [...rows, this.createDefaultSubsidyMeasure()]);
+    this.subsidyMeasures.update((rows) => [...rows, createDefaultSubsidyMeasure(this.createUid)]);
   }
 
   protected removeSubsidyMeasureRow(uid: string): void {
@@ -1258,7 +957,10 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected addSubsidyInstallationRow(): void {
-    this.subsidyInstallations.update((rows) => [...rows, this.createDefaultSubsidyInstallation()]);
+    this.subsidyInstallations.update((rows) => [
+      ...rows,
+      createDefaultSubsidyInstallation(this.createUid),
+    ]);
   }
 
   protected removeSubsidyInstallationRow(uid: string): void {
@@ -1271,9 +973,7 @@ export class OffertesCreateComponent implements OnInit {
     value: EditableSubsidyValue,
   ): void {
     this.subsidyMeasures.update((rows) =>
-      rows.map((row) =>
-        row.uid === uid ? this.applySubsidyMeasureUpdate(row, field, value) : row,
-      ),
+      rows.map((row) => (row.uid === uid ? applySubsidyMeasureUpdate(row, field, value) : row)),
     );
   }
 
@@ -1284,7 +984,7 @@ export class OffertesCreateComponent implements OnInit {
   ): void {
     this.subsidyInstallations.update((rows) =>
       rows.map((row) =>
-        row.uid === uid ? this.applySubsidyInstallationUpdate(row, field, value) : row,
+        row.uid === uid ? applySubsidyInstallationUpdate(row, field, value) : row,
       ),
     );
   }
@@ -1378,76 +1078,31 @@ export class OffertesCreateComponent implements OnInit {
     this.createNewQuote(lead.id, payload, status);
   }
 
-  private buildQuotePayload(): {
-    leadServiceId?: string;
-    items: QuoteItemRequest[];
-    attachments: QuoteAttachmentRequest[];
-    urls: QuoteURLRequest[];
-    isdeSubsidy: QuoteISDESubsidy;
-    discountType: DiscountType;
-    discountValue: number;
-    pricingMode: PricingMode;
-    financingDisclaimer: boolean;
-    validUntil?: string;
-    notes?: string;
-  } | null {
-    const values = this.summaryForm.getRawValue();
-    const dType = values.discountType;
-    const dVal =
-      dType === 'fixed' ? eurosToCents(values.discountValue ?? 0) : (values.discountValue ?? 0);
-
-    const items: QuoteItemRequest[] = this.lineItems().map((item) => ({
-      ...(item.title ? { title: item.title } : {}),
-      description: item.description,
-      quantity: item.quantity,
-      unitPriceCents: eurosToCents(this.getUnitPriceValue(item)),
-      taxRateBps: taxDisplayToBps(item.taxRate),
-      isOptional: item.optional,
-      ...(item.catalogProductId ? { catalogProductId: item.catalogProductId } : {}),
-    }));
-
-    const attachments: QuoteAttachmentRequest[] = this.attachmentDrafts()
-      .filter((a) => a.fileKey) // exclude still-uploading entries
-      .map((a, i) => ({
-        filename: a.filename,
-        fileKey: a.fileKey,
-        source: a.source,
-        ...(a.catalogProductId ? { catalogProductId: a.catalogProductId } : {}),
-        enabled: a.enabled,
-        sortOrder: i,
-      }));
-
-    const urls: QuoteURLRequest[] = this.urlDrafts().map((u) => ({
-      label: u.label,
-      href: u.href,
-      ...(u.catalogProductId ? { catalogProductId: u.catalogProductId } : {}),
-    }));
-
-    const leadServiceId = this.selectedLeadServiceId();
-
-    return {
-      ...(leadServiceId ? { leadServiceId } : {}),
-      items,
-      attachments,
-      urls,
-      isdeSubsidy: this.buildQuoteSubsidyPayload(),
-      discountType: dType,
-      discountValue: dVal,
+  private buildQuotePayload(): QuoteDraftPayload {
+    return buildQuoteDraftPayload({
+      summary: this.summaryForm.getRawValue(),
+      lineItems: this.lineItems(),
+      attachmentDrafts: this.attachmentDrafts(),
+      urlDrafts: this.urlDrafts(),
+      leadServiceId: this.selectedLeadServiceId(),
       pricingMode: this.pricingMode(),
       financingDisclaimer: this.financingDisclaimer(),
-      ...(values.validUntil ? { validUntil: values.validUntil + 'T00:00:00Z' } : {}),
-      ...(values.notes ? { notes: values.notes } : {}),
-    };
+      isdeSubsidy: this.buildQuoteSubsidyPayload(),
+      getUnitPriceValue: (item) => this.getUnitPriceValue(item),
+    });
   }
 
   private saveExistingQuote(
     quoteId: string,
-    payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R
-      ? Exclude<R, null>
-      : never,
+    payload: QuoteDraftPayload,
     status: 'Draft' | 'Sent',
   ): void {
-    const feedbackRequests = this.buildQuoteFeedbackRequests();
+    const feedbackRequests = buildQuoteFeedbackRequests({
+      quote: this.existingQuote(),
+      lineItems: this.lineItems(),
+      leadServiceId: this.selectedLeadServiceId(),
+      getUnitPriceValue: (item) => this.getUnitPriceValue(item),
+    });
     this.quotesService.update(quoteId, payload).subscribe({
       next: (updated) => {
         this.submitQuoteFeedbackInBackground(updated.id, feedbackRequests);
@@ -1461,46 +1116,17 @@ export class OffertesCreateComponent implements OnInit {
     });
   }
 
-  private buildQuoteFeedbackRequests(): CreateQuoteFeedbackRequest[] {
-    const quote = this.existingQuote();
-    if (!quote) {
-      return [];
-    }
-
-    const originalItems = new Map(quote.items.map((item) => [item.id, item]));
-    const leadServiceId = this.selectedLeadServiceId() ?? quote.leadServiceId;
-    const requests: CreateQuoteFeedbackRequest[] = [];
-
-    for (const item of this.lineItems()) {
-      const original = originalItems.get(item.id);
-      if (!original) {
-        continue;
-      }
-
-      for (const diff of this.buildFeedbackDiffs(original, item)) {
-        requests.push({
-          ...(leadServiceId ? { leadServiceId } : {}),
-          fieldChanged: diff.fieldChanged,
-          aiValue: diff.aiValue,
-          humanValue: diff.humanValue,
-        });
-      }
-    }
-
-    return requests;
-  }
-
   private buildSubsidyCalculationPayload(): ISDECalculationRequest | null {
     const measures = this.subsidyMeasures()
       .filter((row) => row.measureId && row.areaM2 > 0)
-      .map((row) => this.toRequestedMeasure(row));
+      .map((row) => toRequestedMeasure(row));
     const installations = this.subsidyInstallations()
       .filter((row) => {
         if (row.kind === 'meldcode') return row.meldcode.trim().length > 0;
         if (row.kind === 'heat_pump') return row.thermalPowerKW != null && row.thermalPowerKW > 0;
         return true;
       })
-      .map((row) => this.toRequestedInstallation(row));
+      .map((row) => toRequestedInstallation(row));
 
     if (measures.length === 0 && installations.length === 0) {
       return null;
@@ -1548,18 +1174,17 @@ export class OffertesCreateComponent implements OnInit {
       return;
     }
 
-    const defaultExecutionYear =
-      new Date().getFullYear() >= 2026 ? 2026 : Math.max(new Date().getFullYear(), 2024);
+    const defaultExecutionYear = defaultSubsidyExecutionYear();
     this.subsidyExecutionYear.set(snapshot.input.executionYear ?? defaultExecutionYear);
     this.previousSubsidiesWithin24Months.set(!!snapshot.input.previousSubsidiesWithin24Months);
     this.hasExistingWarmtenetConnection.set(!!snapshot.input.hasExistingWarmtenetConnection);
     this.hasReceivedWarmtenetSubsidy.set(!!snapshot.input.hasReceivedWarmtenetSubsidy);
     this.subsidyMeasures.set(
-      (snapshot.input.measures ?? []).map((measure) => this.toSubsidyMeasureDraft(measure)),
+      (snapshot.input.measures ?? []).map((measure) => toSubsidyMeasureDraft(measure, this.createUid)),
     );
     this.subsidyInstallations.set(
       (snapshot.input.installations ?? []).map((installation) =>
-        this.toSubsidyInstallationDraft(installation),
+        toSubsidyInstallationDraft(installation, this.createUid),
       ),
     );
     this.subsidyResult.set(snapshot.result ?? null);
@@ -1570,8 +1195,7 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   private resetSubsidyState(): void {
-    const defaultExecutionYear =
-      new Date().getFullYear() >= 2026 ? 2026 : Math.max(new Date().getFullYear(), 2024);
+    const defaultExecutionYear = defaultSubsidyExecutionYear();
     this.includeSubsidyInSummary.set(false);
     this.subsidyResult.set(null);
     this.lastCalculatedSubsidyFingerprint.set(null);
@@ -1593,71 +1217,6 @@ export class OffertesCreateComponent implements OnInit {
     return JSON.stringify(payload);
   }
 
-  private buildFeedbackDiffs(
-    original: QuoteResponse['items'][number],
-    item: LineItemDraft,
-  ): QuoteFeedbackDiff[] {
-    const normalizedUnitPrice = eurosToCents(this.getUnitPriceValue(item));
-    const normalizedTaxRate = taxDisplayToBps(item.taxRate);
-    const diffs: QuoteFeedbackDiff[] = [];
-
-    this.appendFeedbackDiff(
-      diffs,
-      original.description !== item.description,
-      'description',
-      { lineItemId: original.id, description: original.description },
-      { lineItemId: original.id, description: item.description },
-    );
-
-    this.appendFeedbackDiff(
-      diffs,
-      original.quantity !== item.quantity,
-      'quantity',
-      { lineItemId: original.id, quantity: original.quantity },
-      { lineItemId: original.id, quantity: item.quantity },
-    );
-
-    this.appendFeedbackDiff(
-      diffs,
-      original.unitPriceCents !== normalizedUnitPrice,
-      'unitPriceCents',
-      { lineItemId: original.id, value: original.unitPriceCents },
-      { lineItemId: original.id, value: normalizedUnitPrice },
-    );
-
-    this.appendFeedbackDiff(
-      diffs,
-      original.taxRateBps !== normalizedTaxRate,
-      'taxRateBps',
-      { lineItemId: original.id, value: original.taxRateBps },
-      { lineItemId: original.id, value: normalizedTaxRate },
-    );
-
-    this.appendFeedbackDiff(
-      diffs,
-      original.isOptional !== item.optional,
-      'isOptional',
-      { lineItemId: original.id, value: original.isOptional },
-      { lineItemId: original.id, value: item.optional },
-    );
-
-    return diffs;
-  }
-
-  private appendFeedbackDiff(
-    diffs: QuoteFeedbackDiff[],
-    condition: boolean,
-    fieldChanged: QuoteFeedbackDiff['fieldChanged'],
-    aiValue: QuoteFeedbackDiff['aiValue'],
-    humanValue: QuoteFeedbackDiff['humanValue'],
-  ): void {
-    if (!condition) {
-      return;
-    }
-
-    diffs.push({ fieldChanged, aiValue, humanValue });
-  }
-
   private submitQuoteFeedbackInBackground(
     quoteId: string,
     requests: CreateQuoteFeedbackRequest[],
@@ -1675,9 +1234,7 @@ export class OffertesCreateComponent implements OnInit {
 
   private createNewQuote(
     leadId: string,
-    payload: ReturnType<OffertesCreateComponent['buildQuotePayload']> extends infer R
-      ? Exclude<R, null>
-      : never,
+    payload: QuoteDraftPayload,
     status: 'Draft' | 'Sent',
   ): void {
     this.quotesService
@@ -2336,329 +1893,12 @@ export class OffertesCreateComponent implements OnInit {
     );
   }
 
-  protected measurePerformanceHint(measureId: ISDEMeasureID): string {
-    if (this.measurePerformanceKind(measureId) === 'u') {
-      return 'Lagere U-waarde is beter. Voor HR++ is meestal 1,2 of lager nodig.';
-    }
-
-    return 'Hogere Rd-waarde is beter. Voor de meeste isolatiemaatregelen is minimaal 3,5 nodig.';
-  }
-
-  protected measurePerformanceExample(measureId: ISDEMeasureID): string {
-    switch (measureId) {
-      case 'hr_plus_plus':
-      case 'glass_panel_low':
-      case 'cavity_wall':
-        return 'Bijv. 1,1';
-      case 'triple_glass':
-      case 'vacuum_glass':
-      case 'glass_panel_high':
-        return 'Bijv. 0,7';
-      case 'insulated_door_low':
-        return 'Bijv. 1,5';
-      case 'insulated_door_high':
-        return 'Bijv. 1,0';
-      default:
-        return 'Bijv. 3,5';
-    }
-  }
-
-  protected measureNeedsFrameFields(measureId: ISDEMeasureID): boolean {
-    return measureId === 'triple_glass' || measureId === 'vacuum_glass';
-  }
-
-  protected measureSupportsMKI(measureId: ISDEMeasureID): boolean {
-    return ['roof', 'attic', 'facade', 'cavity_wall', 'floor', 'crawl_space'].includes(measureId);
-  }
-
-  protected measureSupportsPairStacking(measureId: ISDEMeasureID): boolean {
-    return ['roof', 'attic', 'floor', 'crawl_space'].includes(measureId);
-  }
-
-  protected installationUsesMeldcode(kind: ISDEInstallationKind): boolean {
-    return kind === 'meldcode';
-  }
-
-  protected installationUsesHeatPumpFormula(kind: ISDEInstallationKind): boolean {
-    return kind === 'heat_pump';
-  }
-
-  private createDefaultSubsidyMeasure(): SubsidyMeasureDraft {
-    return {
-      uid: crypto.randomUUID(),
-      measureId: 'roof',
-      areaM2: 20,
-      performanceValue: this.defaultPerformanceValueForMeasure('roof'),
-      hasMKIBonus: false,
-      frameReplaced: false,
-      stackedWithPairedMeasure: false,
-    };
-  }
-
-  private createDefaultSubsidyInstallation(): SubsidyInstallationDraft {
-    return {
-      uid: crypto.randomUUID(),
-      kind: 'meldcode',
-      meldcode: '',
-      heatPumpType: 'air_water',
-      heatPumpEnergyLabel: 'A++',
-      isAdditionalUnit: false,
-      isSplitSystem: false,
-    };
-  }
-
-  private applySubsidyMeasureUpdate(
-    row: SubsidyMeasureDraft,
-    field: EditableSubsidyMeasureField,
-    value: EditableSubsidyValue,
-  ): SubsidyMeasureDraft {
-    switch (field) {
-      case 'measureId':
-        return typeof value === 'string'
-          ? this.normalizeSubsidyMeasureForType(
-              { ...row, measureId: value as ISDEMeasureID },
-              row.measureId,
-            )
-          : row;
-      case 'areaM2':
-        return { ...row, areaM2: Number(value ?? 0) };
-      case 'performanceValue':
-        return this.setOptionalMeasureNumber(row, 'performanceValue', value);
-      case 'framePerformanceValue':
-        return this.setOptionalMeasureNumber(row, 'framePerformanceValue', value);
-      case 'hasMKIBonus':
-        return { ...row, hasMKIBonus: !!value };
-      case 'frameReplaced':
-        return { ...row, frameReplaced: !!value };
-      case 'stackedWithPairedMeasure':
-        return { ...row, stackedWithPairedMeasure: !!value };
-      default:
-        return row;
-    }
-  }
-
-  private normalizeSubsidyMeasureForType(
-    row: SubsidyMeasureDraft,
-    previousMeasureId?: ISDEMeasureID,
-  ): SubsidyMeasureDraft {
-    const performanceKindChanged =
-      previousMeasureId != null &&
-      this.measurePerformanceKind(previousMeasureId) !== this.measurePerformanceKind(row.measureId);
-    const nextRow: SubsidyMeasureDraft = {
-      ...row,
-      performanceValue:
-        performanceKindChanged || row.performanceValue == null
-          ? this.defaultPerformanceValueForMeasure(row.measureId)
-          : row.performanceValue,
-      hasMKIBonus: this.measureSupportsMKI(row.measureId) ? row.hasMKIBonus : false,
-      stackedWithPairedMeasure: this.measureSupportsPairStacking(row.measureId)
-        ? row.stackedWithPairedMeasure
-        : false,
-      frameReplaced: this.measureNeedsFrameFields(row.measureId) ? row.frameReplaced : false,
-    };
-
-    if (!this.measureNeedsFrameFields(row.measureId)) {
-      delete nextRow.framePerformanceValue;
-    }
-
-    return nextRow;
-  }
-
-  private measurePerformanceKind(measureId: ISDEMeasureID): 'rd' | 'u' {
-    switch (measureId) {
-      case 'hr_plus_plus':
-      case 'triple_glass':
-      case 'vacuum_glass':
-      case 'glass_panel_low':
-      case 'glass_panel_high':
-      case 'insulated_door_low':
-      case 'insulated_door_high':
-        return 'u';
-      default:
-        return 'rd';
-    }
-  }
-
-  private defaultPerformanceValueForMeasure(measureId: ISDEMeasureID): number {
-    switch (measureId) {
-      case 'cavity_wall':
-        return 1.1;
-      case 'hr_plus_plus':
-      case 'glass_panel_low':
-        return 1.1;
-      case 'triple_glass':
-      case 'vacuum_glass':
-      case 'glass_panel_high':
-        return 0.7;
-      case 'insulated_door_low':
-        return 1.5;
-      case 'insulated_door_high':
-        return 1;
-      default:
-        return 3.5;
-    }
-  }
-
-  private applySubsidyInstallationUpdate(
-    row: SubsidyInstallationDraft,
-    field: EditableSubsidyInstallationField,
-    value: EditableSubsidyValue,
-  ): SubsidyInstallationDraft {
-    switch (field) {
-      case 'kind':
-        return typeof value === 'string' ? { ...row, kind: value as ISDEInstallationKind } : row;
-      case 'meldcode':
-        return typeof value === 'string' ? { ...row, meldcode: value.toUpperCase().trim() } : row;
-      case 'heatPumpType':
-        return typeof value === 'string'
-          ? { ...row, heatPumpType: value as SubsidyInstallationDraft['heatPumpType'] }
-          : row;
-      case 'heatPumpEnergyLabel':
-        return typeof value === 'string'
-          ? {
-              ...row,
-              heatPumpEnergyLabel: value as SubsidyInstallationDraft['heatPumpEnergyLabel'],
-            }
-          : row;
-      case 'thermalPowerKW':
-        return this.setOptionalInstallationNumber(row, 'thermalPowerKW', value);
-      case 'refrigerantChargeKg':
-        return this.setOptionalInstallationNumber(row, 'refrigerantChargeKg', value);
-      case 'refrigerantGWP':
-        return this.setOptionalInstallationNumber(row, 'refrigerantGWP', value);
-      case 'isAdditionalUnit':
-        return { ...row, isAdditionalUnit: !!value };
-      case 'isSplitSystem':
-        return { ...row, isSplitSystem: !!value };
-      default:
-        return row;
-    }
-  }
-
-  private setOptionalMeasureNumber(
-    row: SubsidyMeasureDraft,
-    field: 'performanceValue' | 'framePerformanceValue',
-    value: EditableSubsidyValue,
-  ): SubsidyMeasureDraft {
-    const parsed = this.parseOptionalNumber(value);
-    if (parsed != null) {
-      return { ...row, [field]: parsed } as SubsidyMeasureDraft;
-    }
-
-    const nextRow = { ...row };
-    delete nextRow[field];
-    return nextRow;
-  }
-
-  private setOptionalInstallationNumber(
-    row: SubsidyInstallationDraft,
-    field: 'thermalPowerKW' | 'refrigerantChargeKg' | 'refrigerantGWP',
-    value: EditableSubsidyValue,
-  ): SubsidyInstallationDraft {
-    const parsed = this.parseOptionalNumber(value);
-    if (parsed != null) {
-      return { ...row, [field]: parsed } as SubsidyInstallationDraft;
-    }
-
-    const nextRow = { ...row };
-    delete nextRow[field];
-    return nextRow;
-  }
-
-  private parseOptionalNumber(value: EditableSubsidyValue): number | undefined {
-    if (value == null || value === '') {
-      return undefined;
-    }
-
-    const parsed = Number(value);
-    return Number.isFinite(parsed) ? parsed : undefined;
-  }
-
-  private toRequestedMeasure(row: SubsidyMeasureDraft): RequestedMeasure {
-    const requestedMeasure: RequestedMeasure = {
-      measureId: row.measureId,
-      areaM2: row.areaM2,
-      hasMKIBonus: row.hasMKIBonus,
-      frameReplaced: row.frameReplaced,
-      stackedWithPairedMeasure: row.stackedWithPairedMeasure,
-    };
-
-    if (row.performanceValue !== undefined) {
-      requestedMeasure.performanceValue = row.performanceValue;
-    }
-    if (row.framePerformanceValue !== undefined) {
-      requestedMeasure.framePerformanceValue = row.framePerformanceValue;
-    }
-
-    return requestedMeasure;
-  }
-
-  private toSubsidyMeasureDraft(measure: RequestedMeasure): SubsidyMeasureDraft {
-    return {
-      uid: crypto.randomUUID(),
-      measureId: measure.measureId as ISDEMeasureID,
-      areaM2: measure.areaM2,
-      ...(measure.performanceValue == null ? {} : { performanceValue: measure.performanceValue }),
-      ...(measure.framePerformanceValue == null
-        ? {}
-        : { framePerformanceValue: measure.framePerformanceValue }),
-      hasMKIBonus: !!measure.hasMKIBonus,
-      frameReplaced: !!measure.frameReplaced,
-      stackedWithPairedMeasure: !!measure.stackedWithPairedMeasure,
-    };
-  }
-
-  private toRequestedInstallation(row: SubsidyInstallationDraft): RequestedInstallation {
-    const requestedInstallation: RequestedInstallation = { kind: row.kind };
-    const normalizedMeldcode = row.meldcode.trim().toUpperCase();
-
-    if (normalizedMeldcode.length > 0) {
-      requestedInstallation.meldcode = normalizedMeldcode;
-    }
-    if (row.kind !== 'heat_pump') {
-      return requestedInstallation;
-    }
-
-    requestedInstallation.heatPumpType = row.heatPumpType;
-    requestedInstallation.heatPumpEnergyLabel = row.heatPumpEnergyLabel;
-    requestedInstallation.isAdditionalUnit = row.isAdditionalUnit;
-    requestedInstallation.isSplitSystem = row.isSplitSystem;
-
-    if (row.thermalPowerKW !== undefined) {
-      requestedInstallation.thermalPowerKW = row.thermalPowerKW;
-    }
-    if (row.refrigerantChargeKg !== undefined) {
-      requestedInstallation.refrigerantChargeKg = row.refrigerantChargeKg;
-    }
-    if (row.refrigerantGWP !== undefined) {
-      requestedInstallation.refrigerantGWP = row.refrigerantGWP;
-    }
-
-    return requestedInstallation;
-  }
-
-  private toSubsidyInstallationDraft(
-    installation: RequestedInstallation,
-  ): SubsidyInstallationDraft {
-    return {
-      uid: crypto.randomUUID(),
-      kind: (installation.kind || 'meldcode') as SubsidyInstallationDraft['kind'],
-      meldcode: installation.meldcode ?? '',
-      heatPumpType: installation.heatPumpType || 'air_water',
-      heatPumpEnergyLabel: (installation.heatPumpEnergyLabel ||
-        'A++') as SubsidyInstallationDraft['heatPumpEnergyLabel'],
-      ...(installation.thermalPowerKW == null
-        ? {}
-        : { thermalPowerKW: installation.thermalPowerKW }),
-      isAdditionalUnit: !!installation.isAdditionalUnit,
-      isSplitSystem: !!installation.isSplitSystem,
-      ...(installation.refrigerantChargeKg == null
-        ? {}
-        : { refrigerantChargeKg: installation.refrigerantChargeKg }),
-      ...(installation.refrigerantGWP == null
-        ? {}
-        : { refrigerantGWP: installation.refrigerantGWP }),
-    };
-  }
+  protected readonly measurePerformanceHint = measurePerformanceHint;
+  protected readonly measurePerformanceExample = measurePerformanceExample;
+  protected readonly measureNeedsFrameFields = measureNeedsFrameFields;
+  protected readonly measureSupportsMKI = measureSupportsMKI;
+  protected readonly measureSupportsPairStacking = measureSupportsPairStacking;
+  protected readonly installationUsesMeldcode = installationUsesMeldcode;
+  protected readonly installationUsesHeatPumpFormula = installationUsesHeatPumpFormula;
 
 }

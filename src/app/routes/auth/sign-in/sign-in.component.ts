@@ -53,9 +53,12 @@ export class SignInComponent {
     event.preventDefault();
     if (!this.canSubmit()) return;
 
+    const email = this.email().trim().toLowerCase();
+    const password = this.password();
+
     this.isSubmitting.set(true);
 
-    this.authService.signIn({ email: this.email(), password: this.password() })
+    this.authService.signIn({ email, password })
       .pipe(
         catchError(error => {
           this.toast.error(getAuthErrorMessage(error));

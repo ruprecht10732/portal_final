@@ -1,15 +1,20 @@
-import { ChangeDetectionStrategy, Component, computed, inject } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { RouterLink, RouterLinkActive } from '@angular/router';
+import { Router, RouterLink, RouterLinkActive } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
+import { AccountRegistryService } from '../../core/services/account-registry.service';
+import { AuthService } from '../../core/services/auth.service';
 import { NotificationsService } from '../../core/services/notifications.service';
 import { UserService } from '../../core/services/user.service';
 import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
+import { isJwtExpired } from '../../core/utils/jwt-token.utils';
 import type { UserProfile } from '../../core/services/user.types';
+import { AddAccountSheetComponent } from '../../shared/components/add-account-sheet/add-account-sheet.component';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-bell.component';
+import { MenuComponent, MenuItem, MenuSection } from '../../shared/components/menu/menu.component';
 
 type MobileNavIcon =
   | 'dashboard'
@@ -34,7 +39,16 @@ interface MobileNavItem {
 
 @Component({
   selector: 'app-authenticated-mobile-nav',
-  imports: [RouterLink, RouterLinkActive, LucideAngularModule, TranslatePipe, NotificationBellComponent, AIJobBellComponent],
+  imports: [
+    RouterLink,
+    RouterLinkActive,
+    LucideAngularModule,
+    TranslatePipe,
+    NotificationBellComponent,
+    AIJobBellComponent,
+    MenuComponent,
+    AddAccountSheetComponent,
+  ],
   styles: `
     :host { display: contents; }
     .mobile-nav-scroll { scrollbar-width: none; -ms-overflow-style: none; }
@@ -45,7 +59,7 @@ interface MobileNavItem {
       class="fixed bottom-0 left-0 right-0 z-50 flex h-16 items-center border-t border-zinc-200 bg-white lg:hidden"
       [attr.aria-label]="'sidebar.mobileNavigation' | translate"
     >
-      <div class="mobile-nav-scroll flex flex-1 items-center gap-0.5 overflow-x-auto px-1">
+      <div class="mobile-nav-scroll flex min-w-0 flex-1 items-center gap-0.5 overflow-x-auto px-1">
         @for (item of items(); track item.route) {
           <a
             class="flex min-w-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-zinc-500 transition-colors active:bg-zinc-100"
@@ -115,21 +129,58 @@ interface MobileNavItem {
             <span class="text-[10px] leading-tight">{{ item.label | translate }}</span>
           </a>
         }
-        <div class="ml-1 flex shrink-0 items-center">
+      </div>
+
+      <div class="flex shrink-0 items-center gap-1 border-l border-zinc-200 bg-white px-2">
+        <div class="flex shrink-0 items-center">
           <app-notification-bell></app-notification-bell>
         </div>
-        <div class="ml-1 flex shrink-0 items-center">
+        <div class="flex shrink-0 items-center">
           <app-ai-job-bell></app-ai-job-bell>
         </div>
+        <shared-menu
+          triggerLabel="navigation.profile"
+          ariaLabel="navigation.profile"
+          [iconOnly]="true"
+          [showChevron]="false"
+          [triggerVariant]="'ghost'"
+          [triggerSize]="'compact'"
+          [triggerShape]="'round'"
+          [fullWidth]="false"
+          [sections]="profileMenu()"
+          [tooltip]="'navigation.profile' | translate"
+          (itemSelected)="handleProfileMenuSelection($event)"
+        >
+          <span menuTrigger class="relative flex shrink-0 items-center justify-center select-none" style="width:2.5rem;height:2.5rem" aria-hidden="true">
+            <span class="absolute inset-0 rounded-full" style="background:conic-gradient(#4285F4 0deg 120deg,#EA4335 120deg 240deg,#34A853 240deg 360deg)"></span>
+            <span class="absolute rounded-full" style="inset:4px;background:#f4f4f5"></span>
+            <span
+              class="relative z-10 flex items-center justify-center rounded-full text-[10px] font-bold leading-none text-white"
+              style="width:calc(2.5rem - 10px);height:calc(2.5rem - 10px)"
+              [style.background-color]="avatarColor()"
+            >{{ userInitials() }}</span>
+          </span>
+        </shared-menu>
       </div>
     </nav>
+
+    <app-add-account-sheet
+      [isOpen]="showAddAccountSheet()"
+      (closed)="handleAddAccountClosed()"
+      (accountAdded)="handleAccountAdded()"
+    ></app-add-account-sheet>
   `,
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class AuthenticatedMobileNavComponent {
+  private readonly router = inject(Router);
+  private readonly accountRegistry = inject(AccountRegistryService);
+  private readonly authService = inject(AuthService);
   private readonly notificationsService = inject(NotificationsService);
   private readonly userService = inject(UserService);
   private readonly whatsappUnreadCountService = inject(WhatsAppUnreadCountService);
+
+  protected readonly showAddAccountSheet = signal(false);
 
   private readonly user = toSignal(
     this.userService.getProfile().pipe(catchError(() => of(null))),
@@ -139,9 +190,78 @@ export class AuthenticatedMobileNavComponent {
   private readonly isAdmin = computed(() => this.user()?.roles?.includes('admin') ?? false);
   private readonly isSuperAdmin = computed(() => this.user()?.roles?.includes('superadmin') ?? false);
 
+  private static readonly AVATAR_COLORS = [
+    '#e53935', '#d81b60', '#8e24aa', '#5e35b1',
+    '#1e88e5', '#039be5', '#00897b', '#43a047',
+    '#f4511e', '#fb8c00', '#fdd835', '#6d4c41',
+  ];
+
+  protected readonly userInitials = computed(() => {
+    const user = this.user();
+    if (!user) {
+      return '?';
+    }
+
+    const first = user.firstName?.trim().charAt(0).toUpperCase() ?? '';
+    const last = user.lastName?.trim().charAt(0).toUpperCase() ?? '';
+    return first + last || user.email.charAt(0).toUpperCase();
+  });
+
+  protected readonly avatarColor = computed(() => {
+    const user = this.user();
+    const seed = user ? (user.firstName ?? user.email) : '';
+    let hash = 0;
+    for (let index = 0; index < seed.length; index++) {
+      hash = (seed.codePointAt(index) ?? 0) + ((hash << 5) - hash);
+    }
+
+    const colors = AuthenticatedMobileNavComponent.AVATAR_COLORS;
+    return colors[Math.abs(hash) % colors.length];
+  });
+
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
   protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
   protected readonly unreadWhatsAppConversations = this.whatsappUnreadCountService.unreadCount;
+
+  protected readonly profileMenu = computed<MenuSection[]>(() => {
+    const accountItems: MenuItem[] = this.accountRegistry.accounts().map(account => {
+      const item: MenuItem = {
+        label: account.email || 'auth.account.unknown',
+        value: `switch:${account.uid}`,
+        tone: account.isExpired ? 'danger' : 'default',
+        disabled: account.isExpired || account.isActive,
+      };
+
+      if (account.isActive) {
+        item.detail = 'auth.account.current';
+      }
+      if (account.isExpired) {
+        item.badge = 'auth.account.sessionExpired';
+      }
+
+      return item;
+    });
+
+    const actionItems: MenuItem[] = [
+      { label: 'navigation.profile', route: '/app/profile', value: 'profile' },
+      { label: 'auth.account.addAccount', value: 'add-account', icon: 'plus' },
+      { label: 'auth.account.signOutCurrent', value: 'sign-out-current', icon: 'log-out' },
+    ];
+
+    if (this.accountRegistry.accounts().length > 1) {
+      actionItems.push({ label: 'auth.account.signOutAll', value: 'sign-out-all', icon: 'log-out' });
+    }
+
+    return [
+      {
+        label: 'menu.account',
+        items: accountItems,
+      },
+      {
+        items: actionItems,
+      },
+    ];
+  });
 
   /** All primary navigation items — mirrors the desktop sidebar. */
   protected readonly items = computed<MobileNavItem[]>(() => {
@@ -167,4 +287,108 @@ export class AuthenticatedMobileNavComponent {
     base.push({ label: 'navigation.profile', route: '/app/profile', icon: 'profile' });
     return base;
   });
+
+  protected handleProfileMenuSelection(item: MenuItem): void {
+    if (!item.value) {
+      return;
+    }
+
+    if (item.value.startsWith('switch:')) {
+      const uid = item.value.replace('switch:', '');
+      const targetAccount = this.accountRegistry.getAccount(uid);
+      if (!targetAccount || targetAccount.isExpired) {
+        return;
+      }
+
+      if (isJwtExpired(targetAccount.token)) {
+        if (!targetAccount.refreshToken) {
+          this.accountRegistry.markExpired(targetAccount.uid);
+          return;
+        }
+
+        this.authService.refresh(targetAccount.refreshToken).subscribe({
+          next: () => {
+            if (!this.accountRegistry.switchAccount(uid)) {
+              return;
+            }
+            globalThis.location.assign('/app/dashboard');
+          },
+          error: () => {
+            this.accountRegistry.markExpired(targetAccount.uid);
+          },
+        });
+        return;
+      }
+
+      if (!this.accountRegistry.switchAccount(uid)) {
+        return;
+      }
+
+      globalThis.location.assign('/app/dashboard');
+      return;
+    }
+
+    switch (item.value) {
+      case 'add-account':
+        this.showAddAccountSheet.set(true);
+        return;
+      case 'sign-out-current':
+        this.signOutCurrentAccount();
+        return;
+      case 'sign-out-all':
+        this.signOutAllAccounts();
+        return;
+      default:
+        return;
+    }
+  }
+
+  protected handleAddAccountClosed(): void {
+    this.showAddAccountSheet.set(false);
+  }
+
+  protected handleAccountAdded(): void {
+    this.showAddAccountSheet.set(false);
+    globalThis.location.assign('/app/dashboard');
+  }
+
+  private signOutCurrentAccount(): void {
+    const activeAccount = this.accountRegistry.activeAccountValue;
+    if (!activeAccount) {
+      void this.router.navigate(['/sign-in']);
+      return;
+    }
+
+    this.authService.signOut(activeAccount.refreshToken).subscribe({
+      next: () => this.finishCurrentAccountSignOut(activeAccount.uid),
+      error: () => this.finishCurrentAccountSignOut(activeAccount.uid),
+    });
+  }
+
+  private finishCurrentAccountSignOut(uid: string): void {
+    const removal = this.accountRegistry.removeAccount(uid);
+    if (removal.nextActive && !removal.nextActive.isExpired) {
+      globalThis.location.assign('/app/dashboard');
+      return;
+    }
+
+    void this.router.navigate(['/sign-in']);
+  }
+
+  private signOutAllAccounts(): void {
+    if (this.accountRegistry.accounts().length > 0) {
+      this.authService.signOutAllAccounts().subscribe({
+        next: () => this.completeSignOutAll(),
+        error: () => this.completeSignOutAll(),
+      });
+      return;
+    }
+
+    this.completeSignOutAll();
+  }
+
+  private completeSignOutAll(): void {
+    this.accountRegistry.logoutAll();
+    void this.router.navigate(['/sign-in']);
+  }
 }

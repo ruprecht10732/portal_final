@@ -25,6 +25,11 @@ import { type TemplateVariable } from '../rich-text-editor/rich-text-editor.comp
           [type]="inputType()"
           [placeholder]="placeholder()"
           [(ngModel)]="value"
+          [attr.autocomplete]="autocomplete() || null"
+          [attr.autocapitalize]="autocapitalize() || null"
+          [attr.autocorrect]="autocorrect() || null"
+          [attr.inputmode]="inputMode() || null"
+          [attr.spellcheck]="spellcheck() === undefined ? null : spellcheck()"
           [disabled]="disabled()"
           [readonly]="readonly()"
           [required]="required()"
@@ -145,6 +150,11 @@ export class InputComponent {
   label = input<string>('');
   type = input('text');
   placeholder = input('');
+  autocomplete = input<string | undefined>(undefined);
+  autocapitalize = input<string | undefined>(undefined);
+  autocorrect = input<string | undefined>(undefined);
+  inputMode = input<string | undefined>(undefined);
+  spellcheck = input<boolean | undefined>(undefined);
   disabled = input(false);
   readonly = input(false);
   required = input(false);
