@@ -87,6 +87,7 @@ export class QuoteLineItemRowComponent implements AfterViewInit, OnDestroy {
   private ghostRequestSequence = 0;
   private ghostDebounceTimer: ReturnType<typeof setTimeout> | null = null;
   private ghostSuppressNext = false;
+  private ghostDismissedQuery: string | null = null;
   private resizeObserver?: ResizeObserver;
 
   private readonly ghostOrigin = viewChild.required<ElementRef<HTMLElement>>('ghostOrigin');
@@ -127,6 +128,8 @@ export class QuoteLineItemRowComponent implements AfterViewInit, OnDestroy {
 
   protected onDescriptionInput(value: string): void {
     this.descriptionChange.emit(value);
+    const query = this.extractPlainText(value);
+
     if (this.ghostSuppressNext) {
       this.ghostSuppressNext = false;
       if (this.ghostDebounceTimer !== null) {
@@ -135,6 +138,16 @@ export class QuoteLineItemRowComponent implements AfterViewInit, OnDestroy {
       }
       return;
     }
+
+    if (query !== this.ghostDismissedQuery) {
+      this.ghostDismissedQuery = null;
+    }
+
+    if (query !== '' && query === this.ghostDismissedQuery) {
+      this.cancelGhostLookup();
+      return;
+    }
+
     if (this.ghostDebounceTimer !== null) {
       clearTimeout(this.ghostDebounceTimer);
     }
@@ -192,6 +205,8 @@ export class QuoteLineItemRowComponent implements AfterViewInit, OnDestroy {
   }
 
   protected closeGhostSuggestions(): void {
+    this.ghostDismissedQuery = this.extractPlainText(this.item().description);
+    this.cancelGhostLookup();
     this.ghostSuggestions.set([]);
     this.ghostSelectedIndex.set(0);
   }
@@ -225,14 +240,21 @@ export class QuoteLineItemRowComponent implements AfterViewInit, OnDestroy {
   }
 
   private acceptGhostSuggestion(suggestion: GhostSuggestion): void {
+    this.cancelGhostLookup();
+    this.ghostDismissedQuery = null;
+    this.ghostSuppressNext = true;
+    this.ghostAccepted.emit(suggestion);
+    this.ghostSuggestions.set([]);
+    this.ghostSelectedIndex.set(0);
+  }
+
+  private cancelGhostLookup(): void {
     if (this.ghostDebounceTimer !== null) {
       clearTimeout(this.ghostDebounceTimer);
       this.ghostDebounceTimer = null;
     }
     this.ghostRequestSequence++;
-    this.ghostSuppressNext = true;
-    this.ghostAccepted.emit(suggestion);
-    this.closeGhostSuggestions();
+    this.ghostLoading.set(false);
   }
 
   private syncGhostOverlayWidth(): void {
