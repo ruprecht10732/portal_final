@@ -7,7 +7,9 @@ import {
   ChangeDetectionStrategy,
   Component,
   computed,
+  DestroyRef,
   effect,
+  inject,
   input,
   output,
   signal,
@@ -24,6 +26,8 @@ import {
   },
 })
 export class BottomSheetComponent {
+  private readonly destroyRef = inject(DestroyRef);
+
   // ============ Inputs ============
   
   /** Whether the sheet is open */
@@ -84,6 +88,12 @@ export class BottomSheetComponent {
     return this.isOpen() ? 1 : 0;
   });
 
+  protected readonly maxHeightStyle = computed(
+    () => `min(${this.maxHeight()}vh, calc(100dvh - env(safe-area-inset-top, 0px)))`,
+  );
+
+  protected readonly accessibleLabel = computed(() => this.title().trim() || 'Bottom sheet');
+
   // ============ Lifecycle ============
   
   constructor() {
@@ -100,14 +110,13 @@ export class BottomSheetComponent {
         document.body.style.overflow = 'hidden';
         this.isBodyScrollLocked.set(true);
       } else if (!this.isOpen() && this.isBodyScrollLocked()) {
-        document.body.style.position = '';
-        document.body.style.top = '';
-        document.body.style.left = '';
-        document.body.style.right = '';
-        document.body.style.width = '';
-        document.body.style.overflow = '';
-        window.scrollTo(0, this.lockedScrollY);
-        this.isBodyScrollLocked.set(false);
+        this.unlockBodyScroll();
+      }
+    });
+
+    this.destroyRef.onDestroy(() => {
+      if (this.isBodyScrollLocked()) {
+        this.unlockBodyScroll();
       }
     });
   }
@@ -188,5 +197,16 @@ export class BottomSheetComponent {
     if (target.scrollTop === 0) {
       // Allow drag gesture
     }
+  }
+
+  private unlockBodyScroll(): void {
+    document.body.style.position = '';
+    document.body.style.top = '';
+    document.body.style.left = '';
+    document.body.style.right = '';
+    document.body.style.width = '';
+    document.body.style.overflow = '';
+    window.scrollTo(0, this.lockedScrollY);
+    this.isBodyScrollLocked.set(false);
   }
 }

@@ -1,73 +1,74 @@
-<!-- Backdrop -->
-@if (isOpen()) {
-  <div 
-    class="fixed inset-0 bg-black/50 z-60 transition-opacity duration-300"
-    [style.opacity]="backdropOpacity()"
-    (click)="onBackdropClick()"
-    (keydown.enter)="onBackdropClick()"
-    (keydown.space)="onBackdropClick()"
-    aria-hidden="true"
-  ></div>
-}
+@if (isOpen() || hasBeenOpened()) {
+  <div class="fixed inset-0 z-[60]" [class.pointer-events-none]="!isOpen()">
+    @if (isOpen()) {
+      <button
+        type="button"
+        class="absolute inset-0 border-0 bg-black/50 p-0 transition-opacity duration-300 appearance-none"
+        [style.opacity]="backdropOpacity()"
+        (click)="onBackdropClick()"
+        aria-label="Close bottom sheet"
+      ></button>
+    }
 
-<!-- Sheet Container -->
-<dialog
-  #sheet
-  [attr.open]="isOpen() ? '' : null"
-  [attr.aria-label]="title()"
-  class="p-0 m-0 border-0 w-full max-w-full fixed inset-x-0 bottom-0 z-70 flex flex-col bg-white border-t border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 rounded-t-3xl"
-  [class.transition-transform]="hasBeenOpened()"
-  [class.duration-300]="hasBeenOpened() && (isAnimating() || !isDragging())"
-  [class.ease-out]="hasBeenOpened() && (isAnimating() || !isDragging())"
-  [class.invisible]="!isOpen() && !hasBeenOpened()"
-  [style.transform]="transformStyle()"
-  [style.max-height.vh]="maxHeight()"
->
-  <!-- Drag Handle -->
-  <div 
-    class="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
-    (touchstart)="onDragStart($event)"
-    (touchmove)="onDragMove($event)"
-    (touchend)="onDragEnd()"
-    (touchcancel)="onDragEnd()"
-    (mousedown)="onDragStart($event)"
-    (mousemove)="onDragMove($event)"
-    (mouseup)="onDragEnd()"
-    (mouseleave)="onDragEnd()"
-  >
-    <div class="w-12 h-1 bg-zinc-300 dark:bg-zinc-700"></div>
-  </div>
+    <div
+      [attr.aria-label]="accessibleLabel()"
+      [attr.aria-modal]="isOpen() ? 'true' : null"
+      [attr.role]="isOpen() ? 'dialog' : null"
+      class="pointer-events-auto p-0 m-0 border-0 w-full max-w-full fixed inset-x-0 bottom-0 z-[70] flex flex-col bg-white border-t border-zinc-200 dark:border-zinc-800 dark:bg-zinc-900 rounded-t-3xl shadow-2xl"
+      [class.transition-transform]="hasBeenOpened()"
+      [class.duration-300]="hasBeenOpened() && (isAnimating() || !isDragging())"
+      [class.ease-out]="hasBeenOpened() && (isAnimating() || !isDragging())"
+      [class.invisible]="!isOpen() && !hasBeenOpened()"
+      [style.transform]="transformStyle()"
+      [style.max-height]="maxHeightStyle()"
+    >
+      <!-- Drag Handle -->
+      <div
+        class="flex justify-center pt-3 pb-2 cursor-grab active:cursor-grabbing touch-none select-none"
+        (touchstart)="onDragStart($event)"
+        (touchmove)="onDragMove($event)"
+        (touchend)="onDragEnd()"
+        (touchcancel)="onDragEnd()"
+        (mousedown)="onDragStart($event)"
+        (mousemove)="onDragMove($event)"
+        (mouseup)="onDragEnd()"
+        (mouseleave)="onDragEnd()"
+      >
+        <div class="w-12 h-1 bg-zinc-300 dark:bg-zinc-700"></div>
+      </div>
 
-  <!-- Header -->
-  @if (title() || showCloseButton()) {
-    <div class="flex items-center justify-between px-4 py-2 border-b border-zinc-200 dark:border-zinc-800">
-      <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
-        {{ title() }}
-      </h2>
-      
-      @if (showCloseButton()) {
-        <button
-          type="button"
-          (click)="onCloseClick()"
-          class="p-2 -mr-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
-          aria-label="Close"
-        >
-          <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-          </svg>
-        </button>
+      <!-- Header -->
+      @if (title() || showCloseButton()) {
+        <div class="flex items-center justify-between px-4 py-2 border-b border-zinc-200 dark:border-zinc-800">
+          <h2 class="text-xs font-bold uppercase tracking-wider text-zinc-500 dark:text-zinc-400">
+            {{ title() }}
+          </h2>
+
+          @if (showCloseButton()) {
+            <button
+              type="button"
+              (click)="onCloseClick()"
+              class="p-2 -mr-2 text-zinc-500 hover:text-zinc-900 dark:hover:text-white transition-colors"
+              aria-label="Close"
+            >
+              <svg class="w-5 h-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+              </svg>
+            </button>
+          }
+        </div>
       }
+
+      <!-- Content (scrollable) -->
+      <div
+        class="flex-1 overflow-y-auto overscroll-contain"
+        (scroll)="onContentScroll($event)"
+      >
+        <ng-content />
+      </div>
+
+      <!-- Footer slot -->
+      <ng-content select="[bottomSheetFooter]" />
     </div>
-  }
-
-  <!-- Content (scrollable) -->
-  <div 
-    class="flex-1 overflow-y-auto overscroll-contain"
-    (scroll)="onContentScroll($event)"
-  >
-    <ng-content />
   </div>
-
-  <!-- Footer slot -->
-  <ng-content select="[bottomSheetFooter]" />
-</dialog>
+}
