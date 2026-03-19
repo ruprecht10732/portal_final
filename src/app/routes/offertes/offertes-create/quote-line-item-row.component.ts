@@ -28,7 +28,7 @@ interface QuoteLineItemRowData {
   id: string;
   description: string;
   quantity: string;
-  unitPrice: number;
+  unitPrice: number | null;
   taxRate: TaxRateDisplay;
   optional: boolean;
 }

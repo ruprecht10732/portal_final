@@ -111,7 +111,7 @@ interface LineItemDraft {
   title: string;
   description: string;
   quantity: string; // Free-form: "5 x", "10 m²", "3 uur"
-  unitPrice: number;
+  unitPrice: number | null;
   taxRate: TaxRateDisplay;
   optional: boolean;
   catalogProductId?: string;
@@ -487,7 +487,7 @@ export class OffertesCreateComponent implements OnInit {
     const dType = this.discountType();
     const dValue = this.discountValue();
     const subtotal = items.reduce(
-      (sum, item) => sum + parseQuantityNumber(item.quantity) * item.unitPrice,
+      (sum, item) => sum + parseQuantityNumber(item.quantity) * this.getUnitPriceValue(item),
       0,
     );
 
@@ -495,7 +495,7 @@ export class OffertesCreateComponent implements OnInit {
     discountAmount = Math.min(Math.max(discountAmount, 0), subtotal);
 
     const taxAmount = items.reduce((sum, item) => {
-      const lineTotal = parseQuantityNumber(item.quantity) * item.unitPrice;
+      const lineTotal = parseQuantityNumber(item.quantity) * this.getUnitPriceValue(item);
       const rate = item.taxRate / 100;
       return sum + (mode === 'exclusive' ? lineTotal * rate : lineTotal - lineTotal / (1 + rate));
     }, 0);
@@ -519,7 +519,7 @@ export class OffertesCreateComponent implements OnInit {
 
     const byRate = new Map<number, number>();
     for (const item of items) {
-      const lineTotal = parseQuantityNumber(item.quantity) * item.unitPrice;
+      const lineTotal = parseQuantityNumber(item.quantity) * this.getUnitPriceValue(item);
       const rate = item.taxRate / 100;
       const tax = mode === 'exclusive' ? lineTotal * rate : lineTotal - lineTotal / (1 + rate);
       byRate.set(item.taxRate, (byRate.get(item.taxRate) ?? 0) + tax);
@@ -579,7 +579,7 @@ export class OffertesCreateComponent implements OnInit {
             items: validItems.map((i) => ({
               description: i.description,
               quantity: i.quantity || '1',
-              unitPriceCents: eurosToCents(i.unitPrice),
+              unitPriceCents: eurosToCents(this.getUnitPriceValue(i)),
               taxRateBps: taxDisplayToBps(i.taxRate),
               isOptional: i.optional,
             })),
@@ -871,7 +871,7 @@ export class OffertesCreateComponent implements OnInit {
   protected updateLineItem(
     id: string,
     field: 'title' | 'description' | 'quantity' | 'unitPrice' | 'taxRate' | 'optional',
-    value: string | number | boolean,
+    value: string | number | boolean | null,
   ): void {
     this.lineItems.update((items) =>
       items.map((item) => {
@@ -883,7 +883,7 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected updateLineItemPrice(id: string, price: number | null): void {
-    this.updateLineItem(id, 'unitPrice', price ?? 0);
+    this.updateLineItem(id, 'unitPrice', price);
   }
 
   protected updateLineItemTaxRate(id: string, rate: TaxRateDisplay | null): void {
@@ -904,12 +904,13 @@ export class OffertesCreateComponent implements OnInit {
 
   protected getLineItemTotal(item: LineItemDraft): number {
     const calc = this.serverCalc();
-    if (calc?.lines) {
-      const idx = this.lineItems().indexOf(item);
-      const serverLine = calc.lines[idx];
+    if (calc?.lines && item.description.trim() !== '') {
+      const validItems = this.lineItems().filter((lineItem) => lineItem.description.trim() !== '');
+      const validIndex = validItems.findIndex((lineItem) => lineItem.id === item.id);
+      const serverLine = validIndex >= 0 ? calc.lines[validIndex] : undefined;
       if (serverLine) return centsToEuros(serverLine.lineTotalCents);
     }
-    return parseQuantityNumber(item.quantity) * item.unitPrice;
+    return parseQuantityNumber(item.quantity) * this.getUnitPriceValue(item);
   }
 
   // Summary form handlers
@@ -1107,7 +1108,7 @@ export class OffertesCreateComponent implements OnInit {
         ...(item.title ? { title: item.title } : {}),
         description: item.description,
         quantity: item.quantity,
-        unitPriceCents: eurosToCents(item.unitPrice),
+        unitPriceCents: eurosToCents(this.getUnitPriceValue(item)),
         taxRateBps: taxDisplayToBps(item.taxRate),
         isOptional: item.optional,
       }));
@@ -1399,7 +1400,7 @@ export class OffertesCreateComponent implements OnInit {
       ...(item.title ? { title: item.title } : {}),
       description: item.description,
       quantity: item.quantity,
-      unitPriceCents: eurosToCents(item.unitPrice),
+      unitPriceCents: eurosToCents(this.getUnitPriceValue(item)),
       taxRateBps: taxDisplayToBps(item.taxRate),
       isOptional: item.optional,
       ...(item.catalogProductId ? { catalogProductId: item.catalogProductId } : {}),
@@ -1596,7 +1597,7 @@ export class OffertesCreateComponent implements OnInit {
     original: QuoteResponse['items'][number],
     item: LineItemDraft,
   ): QuoteFeedbackDiff[] {
-    const normalizedUnitPrice = eurosToCents(item.unitPrice);
+    const normalizedUnitPrice = eurosToCents(this.getUnitPriceValue(item));
     const normalizedTaxRate = taxDisplayToBps(item.taxRate);
     const diffs: QuoteFeedbackDiff[] = [];
 
@@ -2219,7 +2220,12 @@ export class OffertesCreateComponent implements OnInit {
 
   /** Triggers a debounced server-side calculation. */
   private requestCalculation(): void {
+    this.serverCalc.set(null);
     this.calcTrigger$.next();
+  }
+
+  private getUnitPriceValue(item: Pick<LineItemDraft, 'unitPrice'>): number {
+    return item.unitPrice ?? 0;
   }
 
   protected formatCurrency(amount: number): string {
@@ -2300,7 +2306,7 @@ export class OffertesCreateComponent implements OnInit {
       title: '',
       description: '',
       quantity: '1 x',
-      unitPrice: 0,
+      unitPrice: null,
       taxRate: this.lastUsedTaxRate(),
       optional: false,
     };

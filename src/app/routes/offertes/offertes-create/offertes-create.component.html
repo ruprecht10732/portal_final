@@ -430,7 +430,7 @@
                 <ng-template cdkDragPreview>
                   <div class="drag-preview-simple">
                     <lucide-icon name="grip-vertical" class="h-5 w-5"></lucide-icon>
-                    <span>{{ item.quantity }} × {{ formatCurrency(item.unitPrice) }}</span>
+                    <span>{{ item.quantity }} × {{ formatCurrency(item.unitPrice ?? 0) }}</span>
                   </div>
                 </ng-template>
               </app-quote-line-item-row>
