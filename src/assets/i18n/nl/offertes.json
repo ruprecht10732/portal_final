@@ -124,6 +124,27 @@
       "versionBody": "Dit concept is de volgende versie die is gemaakt vanuit offerte {{quoteNumber}}.",
       "openSource": "Bronofferte openen"
     },
+    "versionHistory": {
+      "title": "Versiegeschiedenis",
+      "subtitle": "Bekijk eerdere versies en wat er veranderde ten opzichte van de vorige offerte.",
+      "current": "Huidig",
+      "viewVersion": "Openen",
+      "diffTitle": "Wijzigingen ten opzichte van versie {{version}}",
+      "diffEmpty": "Er zijn geen inhoudelijke itemwijzigingen gevonden tussen deze twee versies.",
+      "summary": {
+        "added": "Toegevoegd",
+        "removed": "Verwijderd",
+        "changed": "Aangepast",
+        "delta": "Totaalverschil"
+      },
+      "before": "Vorige versie",
+      "after": "Nieuwe versie",
+      "changeTypes": {
+        "added": "Toegevoegd",
+        "removed": "Verwijderd",
+        "changed": "Aangepast"
+      }
+    },
     "cancel": "Annuleren",
     "delete": "Verwijderen",
     "pricingIntelligence": {

@@ -8,7 +8,14 @@ import { catchError, finalize, of } from 'rxjs';
 import { QuotesService } from '../../../core/services/quotes.service';
 import { LeadsService } from '../../../core/services/leads.service';
 import { SSEService } from '../../../core/services/sse.service';
-import type { QuoteResponse, QuoteStatus, QuoteActivityResponse } from '../../../core/services/quotes.types';
+import type {
+  QuoteResponse,
+  QuoteStatus,
+  QuoteActivityResponse,
+  QuoteVersionHistoryResponse,
+  QuoteVersionDiffItemResponse,
+  QuoteVersionItemResponse,
+} from '../../../core/services/quotes.types';
 import {
   MONEYBIRD_PROVIDER,
   QUOTE_STATUS_COLORS,
@@ -87,6 +94,8 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly lead = signal<Lead | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly showDeleteConfirm = signal(false);
+  protected readonly versionHistory = signal<QuoteVersionHistoryResponse | null>(null);
+  protected readonly loadingVersionHistory = signal(false);
   protected readonly updating = signal(false);
   protected readonly sending = signal(false);
   protected readonly duplicating = signal(false);
@@ -112,7 +121,7 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly moneybirdExternalUrl = signal<string | null>(null);
   protected readonly canCreateVersion = computed(() => {
     const status = this.quote()?.status;
-    return status === 'Accepted' || status === 'Rejected';
+    return status === 'Draft' || status === 'Sent';
   });
   protected readonly lineageSummary = computed<QuoteLineageSummary | null>(() => {
     const q = this.quote();
@@ -137,6 +146,8 @@ export class OffertesDetailComponent implements OnInit {
     }
     return null;
   });
+  protected readonly versionSummaries = computed(() => this.versionHistory()?.versions ?? []);
+  protected readonly versionDiff = computed(() => this.versionHistory()?.diff ?? null);
 
   // Lead service linking (for Accepted quotes with missing leadServiceId)
   protected readonly selectedLeadServiceId = signal<string | null>(null);
@@ -171,7 +182,7 @@ export class OffertesDetailComponent implements OnInit {
     const previewAvailable = !!this.previewUrl();
     const pdfAvailable = !!q?.pdfFileKey;
     const canOpenPartnerOffer = q?.status === 'Accepted' && !!q?.leadServiceId;
-    const canCreateVersion = q?.status === 'Accepted' || q?.status === 'Rejected';
+    const canCreateVersion = q?.status === 'Draft' || q?.status === 'Sent';
     return [
       {
         items: [
@@ -290,6 +301,7 @@ export class OffertesDetailComponent implements OnInit {
       next: quote => {
         if (quote) {
           this.quote.set(quote);
+          this.loadVersionHistory(quote.id);
           this.selectedLeadServiceId.set(quote.leadServiceId ?? null);
           this.loadPreviewLink(quote);
           this.loadLead(quote.leadId);
@@ -300,8 +312,23 @@ export class OffertesDetailComponent implements OnInit {
         }
       },
       error: () => {
+        this.versionHistory.set(null);
         this.error.set(this.translate.instant('offertes.errors.loadQuote'));
         this.loading.set(false);
+      },
+    });
+  }
+
+  private loadVersionHistory(id: string): void {
+    this.loadingVersionHistory.set(true);
+    this.quotesService.getVersionHistory(id).subscribe({
+      next: history => {
+        this.versionHistory.set(history);
+        this.loadingVersionHistory.set(false);
+      },
+      error: () => {
+        this.versionHistory.set(null);
+        this.loadingVersionHistory.set(false);
       },
     });
   }
@@ -423,6 +450,14 @@ export class OffertesDetailComponent implements OnInit {
     const lineage = this.lineageSummary();
     if (!lineage) return;
     this.router.navigate(['/app/offertes', lineage.sourceQuoteId]);
+  }
+
+  protected openVersion(versionId: string): void {
+    const current = this.quote();
+    if (!versionId || current?.id === versionId) {
+      return;
+    }
+    this.router.navigate(['/app/offertes', versionId]);
   }
 
   protected duplicateQuote(): void {
@@ -615,12 +650,6 @@ export class OffertesDetailComponent implements OnInit {
   }
 
   private loadPreviewLink(q: QuoteResponse): void {
-    if (q.status === 'Draft') {
-      this.previewUrl.set(null);
-      this.loadingPreview.set(false);
-      return;
-    }
-
     this.loadingPreview.set(true);
     this.quotesService.getPreviewLink(q.id).subscribe({
       next: response => {
@@ -767,5 +796,25 @@ export class OffertesDetailComponent implements OnInit {
       hour: '2-digit',
       minute: '2-digit',
     });
+  }
+
+  protected getVersionDiffLabel(changeType: QuoteVersionDiffItemResponse['changeType']): string {
+    return this.translate.instant(`offertes.versionHistory.changeTypes.${changeType}`);
+  }
+
+  protected getVersionDiffHeadline(item: QuoteVersionDiffItemResponse): string {
+    return item.current?.title || item.previous?.title || item.current?.description || item.previous?.description || 'Item';
+  }
+
+  protected getVersionDiffDescription(item: QuoteVersionDiffItemResponse): string | null {
+    return item.current?.description || item.previous?.description || null;
+  }
+
+  protected getVersionDiffBefore(item: QuoteVersionDiffItemResponse): QuoteVersionItemResponse | null {
+    return item.previous ?? null;
+  }
+
+  protected getVersionDiffAfter(item: QuoteVersionDiffItemResponse): QuoteVersionItemResponse | null {
+    return item.current ?? null;
   }
 }

@@ -222,6 +222,53 @@ export interface QuoteResponse {
   updatedAt: string;
 }
 
+export interface QuoteVersionHistoryResponse {
+  versions: QuoteVersionSummaryResponse[];
+  diff?: QuoteVersionDiffResponse;
+}
+
+export interface QuoteVersionSummaryResponse {
+  quoteId: string;
+  quoteNumber: string;
+  versionNumber: number;
+  status: QuoteStatus;
+  totalCents: number;
+  createdAt: string;
+  updatedAt: string;
+  isCurrent: boolean;
+}
+
+export interface QuoteVersionDiffResponse {
+  previousQuoteId: string;
+  previousQuoteNumber: string;
+  previousVersionNumber: number;
+  currentQuoteId: string;
+  currentQuoteNumber: string;
+  currentVersionNumber: number;
+  addedCount: number;
+  removedCount: number;
+  changedCount: number;
+  totalDeltaCents: number;
+  items: QuoteVersionDiffItemResponse[];
+}
+
+export interface QuoteVersionDiffItemResponse {
+  changeType: 'added' | 'removed' | 'changed';
+  previous?: QuoteVersionItemResponse;
+  current?: QuoteVersionItemResponse;
+}
+
+export interface QuoteVersionItemResponse {
+  title: string;
+  description: string;
+  quantity: string;
+  unitPriceCents: number;
+  taxRateBps: number;
+  isOptional: boolean;
+  isSelected: boolean;
+  lineTotalCents: number;
+}
+
 export interface QuoteExportInfo {
   provider: ExternalAccountingProvider;
   externalId?: string;

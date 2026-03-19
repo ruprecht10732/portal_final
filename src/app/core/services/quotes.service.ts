@@ -5,6 +5,7 @@ import { environment } from '../../../environments/environment';
 import { toHttpParams } from '../utils/http-utils';
 import type {
   QuoteResponse,
+  QuoteVersionHistoryResponse,
   QuoteListResponse,
   CreateQuoteRequest,
   UpdateQuoteRequest,
@@ -68,6 +69,10 @@ export class QuotesService {
   /** Get a single quote by ID */
   getById(id: string): Observable<QuoteResponse> {
     return this.http.get<QuoteResponse>(`${this.baseUrl}/${id}`);
+  }
+
+  getVersionHistory(id: string): Observable<QuoteVersionHistoryResponse> {
+    return this.http.get<QuoteVersionHistoryResponse>(`${this.baseUrl}/${id}/version-history`);
   }
 
   /** Create a new quote */

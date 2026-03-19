@@ -124,6 +124,27 @@
       "versionBody": "This draft is the next version created from quote {{quoteNumber}}.",
       "openSource": "Open source quote"
     },
+    "versionHistory": {
+      "title": "Version history",
+      "subtitle": "Review earlier versions and what changed compared with the previous quote.",
+      "current": "Current",
+      "viewVersion": "Open",
+      "diffTitle": "Changes since version {{version}}",
+      "diffEmpty": "No item-level changes were detected between these two versions.",
+      "summary": {
+        "added": "Added",
+        "removed": "Removed",
+        "changed": "Changed",
+        "delta": "Total delta"
+      },
+      "before": "Previous version",
+      "after": "New version",
+      "changeTypes": {
+        "added": "Added",
+        "removed": "Removed",
+        "changed": "Changed"
+      }
+    },
     "cancel": "Cancel",
     "delete": "Delete",
     "pricingIntelligence": {

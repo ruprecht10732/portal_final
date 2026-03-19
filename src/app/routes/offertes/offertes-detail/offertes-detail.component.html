@@ -154,6 +154,106 @@
                 </div>
               </div>
             }
+
+            @if (loadingVersionHistory()) {
+              <div class="mt-4 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-500">
+                {{ 'offertes.loading' | translate }}
+              </div>
+            } @else if (versionSummaries().length > 1 || versionDiff()) {
+              <div class="mt-4 rounded-2xl border border-zinc-200 bg-white px-4 py-4">
+                <p class="text-xs font-black uppercase tracking-[0.14em] text-zinc-500">{{ 'offertes.versionHistory.title' | translate }}</p>
+                <p class="mt-1 text-sm leading-relaxed text-zinc-600">{{ 'offertes.versionHistory.subtitle' | translate }}</p>
+
+                <div class="mt-3 flex flex-wrap gap-2">
+                  @for (version of versionSummaries(); track version.quoteId) {
+                    <button
+                      type="button"
+                      class="rounded-xl border px-3 py-2 text-left transition"
+                      [class]="version.isCurrent ? 'border-slate-900 bg-slate-900 text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-900 hover:bg-zinc-100'"
+                      (click)="openVersion(version.quoteId)"
+                    >
+                      <p class="text-[10px] font-black uppercase tracking-[0.16em]" [class]="version.isCurrent ? 'text-white/70' : 'text-zinc-500'">
+                        V{{ version.versionNumber }} · {{ getStatusLabel(version.status) }}
+                      </p>
+                      <p class="mt-1 text-sm font-semibold">{{ formatCentsCurrency(version.totalCents) }}</p>
+                      <p class="mt-1 text-[11px]" [class]="version.isCurrent ? 'text-white/70' : 'text-zinc-500'">
+                        @if (version.isCurrent) {
+                          {{ 'offertes.versionHistory.current' | translate }}
+                        } @else {
+                          {{ 'offertes.versionHistory.viewVersion' | translate }}
+                        }
+                      </p>
+                    </button>
+                  }
+                </div>
+
+                @if (versionDiff(); as diff) {
+                  <div class="mt-4 rounded-2xl border border-amber-200 bg-amber-50 px-4 py-3">
+                    <p class="text-xs font-black uppercase tracking-[0.14em] text-amber-700">{{ 'offertes.versionHistory.diffTitle' | translate:{ version: diff.previousVersionNumber } }}</p>
+                    <div class="mt-3 grid grid-cols-2 gap-2 text-sm text-amber-950">
+                      <div class="rounded-xl bg-white/70 px-3 py-2">
+                        <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{{ 'offertes.versionHistory.summary.added' | translate }}</p>
+                        <p class="mt-1 text-lg font-bold">{{ diff.addedCount }}</p>
+                      </div>
+                      <div class="rounded-xl bg-white/70 px-3 py-2">
+                        <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{{ 'offertes.versionHistory.summary.removed' | translate }}</p>
+                        <p class="mt-1 text-lg font-bold">{{ diff.removedCount }}</p>
+                      </div>
+                      <div class="rounded-xl bg-white/70 px-3 py-2">
+                        <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{{ 'offertes.versionHistory.summary.changed' | translate }}</p>
+                        <p class="mt-1 text-lg font-bold">{{ diff.changedCount }}</p>
+                      </div>
+                      <div class="rounded-xl bg-white/70 px-3 py-2">
+                        <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{{ 'offertes.versionHistory.summary.delta' | translate }}</p>
+                        <p class="mt-1 text-lg font-bold">{{ formatCentsCurrency(diff.totalDeltaCents) }}</p>
+                      </div>
+                    </div>
+
+                    @if (diff.items.length === 0) {
+                      <p class="mt-3 text-sm text-amber-900">{{ 'offertes.versionHistory.diffEmpty' | translate }}</p>
+                    } @else {
+                      <div class="mt-3 space-y-3">
+                        @for (item of diff.items; track $index) {
+                          <div class="rounded-xl bg-white/70 px-3 py-3">
+                            <div class="flex items-start justify-between gap-3">
+                              <div>
+                                <p class="text-sm font-bold text-zinc-900">{{ getVersionDiffHeadline(item) }}</p>
+                                @if (getVersionDiffDescription(item); as description) {
+                                  <p class="mt-1 text-sm text-zinc-600">{{ description }}</p>
+                                }
+                              </div>
+                              <span
+                                class="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]"
+                                [class]="item.changeType === 'added' ? 'bg-emerald-100 text-emerald-800' : item.changeType === 'removed' ? 'bg-red-100 text-red-800' : 'bg-sky-100 text-sky-800'"
+                              >
+                                {{ getVersionDiffLabel(item.changeType) }}
+                              </span>
+                            </div>
+
+                            <div class="mt-3 grid gap-2">
+                              @if (getVersionDiffBefore(item); as previousItem) {
+                                <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2">
+                                  <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.versionHistory.before' | translate }}</p>
+                                  <p class="mt-1 text-sm text-zinc-900">{{ formatQuantitySummary(previousItem.quantity, previousItem.unitPriceCents) }}</p>
+                                  <p class="mt-1 text-sm font-semibold text-zinc-900">{{ formatCentsCurrency(previousItem.lineTotalCents) }}</p>
+                                </div>
+                              }
+                              @if (getVersionDiffAfter(item); as currentItem) {
+                                <div class="rounded-lg border border-zinc-200 bg-white px-3 py-2">
+                                  <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.versionHistory.after' | translate }}</p>
+                                  <p class="mt-1 text-sm text-zinc-900">{{ formatQuantitySummary(currentItem.quantity, currentItem.unitPriceCents) }}</p>
+                                  <p class="mt-1 text-sm font-semibold text-zinc-900">{{ formatCentsCurrency(currentItem.lineTotalCents) }}</p>
+                                </div>
+                              }
+                            </div>
+                          </div>
+                        }
+                      </div>
+                    }
+                  </div>
+                }
+              </div>
+            }
           </div>
 
           <div class="border-b border-gray-100 bg-white px-5 py-4">
@@ -753,12 +853,13 @@
             </div>
           </div>
 
-          @if (q.status === 'Accepted' && leadServiceOptions().length > 0) {
-            <div class="rounded-xl border border-zinc-200 bg-white p-5 sm:p-6">
-
-            @if (lineageSummary(); as lineage) {
+          @if (lineageSummary(); as lineage) {
+            <div
+              class="rounded-xl border bg-white px-4 py-4"
+              [class]="lineage.kind === 'version' ? 'border-sky-200' : 'border-violet-200'"
+            >
               <div
-                class="mt-5 rounded-xl border px-4 py-3"
+                class="rounded-xl border px-4 py-3"
                 [class]="lineage.kind === 'version' ? 'border-sky-200 bg-sky-50/80' : 'border-violet-200 bg-violet-50/80'"
               >
                 <div class="flex items-start justify-between gap-4">
@@ -777,7 +878,115 @@
                   </shared-button>
                 </div>
               </div>
-            }
+            </div>
+          }
+
+          @if (loadingVersionHistory()) {
+            <div class="rounded-xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-500">
+              {{ 'offertes.loading' | translate }}
+            </div>
+          } @else if (versionSummaries().length > 1 || versionDiff()) {
+            <div class="rounded-xl border border-zinc-200 bg-white px-4 py-4">
+              <div class="flex items-start justify-between gap-4">
+                <div>
+                  <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.versionHistory.title' | translate }}</p>
+                  <p class="mt-1 text-sm text-zinc-600">{{ 'offertes.versionHistory.subtitle' | translate }}</p>
+                </div>
+              </div>
+
+              <div class="mt-3 flex flex-wrap gap-2">
+                @for (version of versionSummaries(); track version.quoteId) {
+                  <button
+                    type="button"
+                    class="rounded-xl border px-3 py-2 text-left transition"
+                    [class]="version.isCurrent ? 'border-slate-900 bg-slate-900 text-white' : 'border-zinc-200 bg-zinc-50 text-zinc-900 hover:bg-zinc-100'"
+                    (click)="openVersion(version.quoteId)"
+                  >
+                    <p class="text-[10px] font-black uppercase tracking-[0.16em]" [class]="version.isCurrent ? 'text-white/70' : 'text-zinc-500'">
+                      V{{ version.versionNumber }} · {{ getStatusLabel(version.status) }}
+                    </p>
+                    <p class="mt-1 text-sm font-semibold">{{ formatCentsCurrency(version.totalCents) }}</p>
+                    <p class="mt-1 text-[11px]" [class]="version.isCurrent ? 'text-white/70' : 'text-zinc-500'">
+                      @if (version.isCurrent) {
+                        {{ 'offertes.versionHistory.current' | translate }}
+                      } @else {
+                        {{ 'offertes.versionHistory.viewVersion' | translate }}
+                      }
+                    </p>
+                  </button>
+                }
+              </div>
+
+              @if (versionDiff(); as diff) {
+                <div class="mt-4 rounded-xl border border-amber-200 bg-amber-50 px-4 py-4">
+                  <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{{ 'offertes.versionHistory.diffTitle' | translate:{ version: diff.previousVersionNumber } }}</p>
+                  <div class="mt-3 grid gap-3 sm:grid-cols-4">
+                    <div class="rounded-xl bg-white/70 px-3 py-2">
+                      <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{{ 'offertes.versionHistory.summary.added' | translate }}</p>
+                      <p class="mt-1 text-lg font-bold text-zinc-900">{{ diff.addedCount }}</p>
+                    </div>
+                    <div class="rounded-xl bg-white/70 px-3 py-2">
+                      <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{{ 'offertes.versionHistory.summary.removed' | translate }}</p>
+                      <p class="mt-1 text-lg font-bold text-zinc-900">{{ diff.removedCount }}</p>
+                    </div>
+                    <div class="rounded-xl bg-white/70 px-3 py-2">
+                      <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{{ 'offertes.versionHistory.summary.changed' | translate }}</p>
+                      <p class="mt-1 text-lg font-bold text-zinc-900">{{ diff.changedCount }}</p>
+                    </div>
+                    <div class="rounded-xl bg-white/70 px-3 py-2">
+                      <p class="text-[10px] font-black uppercase tracking-[0.16em] text-amber-700">{{ 'offertes.versionHistory.summary.delta' | translate }}</p>
+                      <p class="mt-1 text-lg font-bold text-zinc-900">{{ formatCentsCurrency(diff.totalDeltaCents) }}</p>
+                    </div>
+                  </div>
+
+                  @if (diff.items.length === 0) {
+                    <p class="mt-3 text-sm text-amber-900">{{ 'offertes.versionHistory.diffEmpty' | translate }}</p>
+                  } @else {
+                    <div class="mt-4 space-y-3">
+                      @for (item of diff.items; track $index) {
+                        <div class="rounded-xl bg-white/70 px-4 py-3">
+                          <div class="flex items-start justify-between gap-4">
+                            <div>
+                              <p class="text-sm font-bold text-zinc-900">{{ getVersionDiffHeadline(item) }}</p>
+                              @if (getVersionDiffDescription(item); as description) {
+                                <p class="mt-1 text-sm text-zinc-600">{{ description }}</p>
+                              }
+                            </div>
+                            <span
+                              class="rounded-full px-2.5 py-1 text-[10px] font-black uppercase tracking-[0.16em]"
+                              [class]="item.changeType === 'added' ? 'bg-emerald-100 text-emerald-800' : item.changeType === 'removed' ? 'bg-red-100 text-red-800' : 'bg-sky-100 text-sky-800'"
+                            >
+                              {{ getVersionDiffLabel(item.changeType) }}
+                            </span>
+                          </div>
+
+                          <div class="mt-3 grid gap-3 sm:grid-cols-2">
+                            @if (getVersionDiffBefore(item); as previousItem) {
+                              <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-3">
+                                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.versionHistory.before' | translate }}</p>
+                                <p class="mt-1 text-sm text-zinc-900">{{ formatQuantitySummary(previousItem.quantity, previousItem.unitPriceCents) }}</p>
+                                <p class="mt-1 text-sm font-semibold text-zinc-900">{{ formatCentsCurrency(previousItem.lineTotalCents) }}</p>
+                              </div>
+                            }
+                            @if (getVersionDiffAfter(item); as currentItem) {
+                              <div class="rounded-lg border border-zinc-200 bg-white px-3 py-3">
+                                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{ 'offertes.versionHistory.after' | translate }}</p>
+                                <p class="mt-1 text-sm text-zinc-900">{{ formatQuantitySummary(currentItem.quantity, currentItem.unitPriceCents) }}</p>
+                                <p class="mt-1 text-sm font-semibold text-zinc-900">{{ formatCentsCurrency(currentItem.lineTotalCents) }}</p>
+                              </div>
+                            }
+                          </div>
+                        </div>
+                      }
+                    </div>
+                  }
+                </div>
+              }
+            </div>
+          }
+
+          @if (q.status === 'Accepted' && leadServiceOptions().length > 0) {
+            <div class="rounded-xl border border-zinc-200 bg-white p-5 sm:p-6">
               <div class="flex items-start justify-between gap-4">
                 <div class="min-w-0">
                   <h3 class="text-xs font-extrabold uppercase tracking-[0.15em] text-slate-400">
