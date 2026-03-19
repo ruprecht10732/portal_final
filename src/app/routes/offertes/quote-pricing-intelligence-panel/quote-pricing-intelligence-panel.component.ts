@@ -26,12 +26,14 @@ import { ButtonComponent } from '../../../shared/components/button/button.compon
 export class QuotePricingIntelligencePanelComponent {
   serviceType = input<string | null>(null);
   postcodePrefix = input<string | null>(null);
+  variant = input<'default' | 'embedded'>('default');
 
   private readonly quotesService = inject(QuotesService);
   private readonly router = inject(Router);
 
   protected readonly loading = signal(false);
   protected readonly error = signal<string | null>(null);
+  protected readonly isEmbedded = computed(() => this.variant() === 'embedded');
   protected readonly summary = signal<PricingIntelligenceSummaryResponse | null>(null);
 
   protected readonly requestParams = computed(() => {
