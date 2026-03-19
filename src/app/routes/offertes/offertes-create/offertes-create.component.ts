@@ -2068,22 +2068,22 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected measurePerformanceExample(measureId: ISDEMeasureID): string {
-   switch (measureId) {
-     case 'hr_plus_plus':
-     case 'glass_panel_low':
-     case 'cavity_wall':
-       return 'Bijv. 1,1';
-     case 'triple_glass':
-     case 'vacuum_glass':
-     case 'glass_panel_high':
-       return 'Bijv. 0,7';
-     case 'insulated_door_low':
-       return 'Bijv. 1,5';
-     case 'insulated_door_high':
-       return 'Bijv. 1,0';
-     default:
-       return 'Bijv. 3,5';
-   }
+    switch (measureId) {
+      case 'hr_plus_plus':
+      case 'glass_panel_low':
+      case 'cavity_wall':
+        return 'Bijv. 1,1';
+      case 'triple_glass':
+      case 'vacuum_glass':
+      case 'glass_panel_high':
+        return 'Bijv. 0,7';
+      case 'insulated_door_low':
+        return 'Bijv. 1,5';
+      case 'insulated_door_high':
+        return 'Bijv. 1,0';
+      default:
+        return 'Bijv. 3,5';
+    }
   }
 
   protected measureNeedsFrameFields(measureId: ISDEMeasureID): boolean {
