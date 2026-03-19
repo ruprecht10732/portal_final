@@ -41,6 +41,16 @@
         [required]="true"
       />
 
+      <shared-input
+        [label]="'profile.personal.phone' | translate"
+        type="tel"
+        [value]="phone()"
+        (valueChange)="phone.set($event)"
+        [placeholder]="'profile.personal.phonePlaceholder' | translate"
+        [hint]="'profile.personal.phoneHint' | translate"
+        [error]="phoneError()"
+      />
+
       <shared-select
         [label]="'profile.personal.preferredLanguage' | translate"
         [options]="languageOptions()"

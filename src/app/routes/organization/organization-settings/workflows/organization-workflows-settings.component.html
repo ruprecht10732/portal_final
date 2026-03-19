@@ -104,6 +104,12 @@
                           {{ card.titleKey | translate }}
                         </p>
 
+                        @if (card.noteKey) {
+                          <p class="text-sm text-zinc-500">
+                            {{ card.noteKey | translate }}
+                          </p>
+                        }
+
                         <shared-checkbox
                           [label]="'organization.settings.workflows.enabled' | translate"
                           [checked]="card.state.enabled"
@@ -181,6 +187,12 @@
                         <p class="text-xs font-bold uppercase tracking-widest text-zinc-500">
                           {{ card.titleKey | translate }}
                         </p>
+
+                        @if (card.noteKey) {
+                          <p class="text-sm text-zinc-500">
+                            {{ card.noteKey | translate }}
+                          </p>
+                        }
 
                         <shared-checkbox
                           [label]="'organization.settings.workflows.enabled' | translate"

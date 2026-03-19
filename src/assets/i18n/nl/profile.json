@@ -9,6 +9,9 @@
       "firstName": "Voornaam",
       "lastName": "Achternaam",
       "email": "E-mailadres",
+      "phone": "Telefoonnummer",
+      "phonePlaceholder": "+31 6 12345678",
+      "phoneHint": "Wordt gebruikt voor WhatsApp-meldingen wanneer een klant een vraag stelt over jouw offerte.",
       "preferredLanguage": "Voorkeurstaal",
       "organization": "Organisatie",
       "organizationEmail": "Organisatie e-mail",
@@ -36,6 +39,7 @@
       "errors": {
         "emailRequired": "E-mailadres is verplicht",
         "emailInvalid": "Voer een geldig e-mailadres in",
+        "phoneInvalid": "Voer een geldig telefoonnummer in",
         "firstNameMax": "Voornaam mag maximaal 100 tekens bevatten",
         "lastNameMax": "Achternaam mag maximaal 100 tekens bevatten",
         "organizationRequired": "Organisatienaam is verplicht",

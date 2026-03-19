@@ -174,6 +174,8 @@
         "actions": {
           "leadWelcome": "Lead welkom",
           "quoteSent": "Offerte verstuurd",
+          "quoteQuestionAsked": "Vraag gesteld over offerte",
+          "quoteQuestionAnswered": "Vraag beantwoord over offerte",
           "quoteAccepted": "Offerte geaccepteerd",
           "quoteRejected": "Offerte afgewezen",
           "appointmentCreated": "Afspraak bevestigd",
@@ -190,6 +192,27 @@
             "title": "Offerte verstuurd (WhatsApp)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
             "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{quote.number}}, {{quote.previewUrl}}, {{quote.downloadUrl}}, {{org.name}}"
+          },
+          "quoteQuestionAskedPartnerWhatsApp": {
+            "title": "Vraag over offerte (WhatsApp naar adviseur)",
+            "note": "Gebruikt het telefoonnummer van de maker van de offerte uit het persoonlijke profiel. Als daar geen nummer is ingesteld, wordt deze WhatsApp-stap overgeslagen.",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.phone}}, {{lead.email}}, {{partner.name}}, {{partner.phone}}, {{partner.email}}, {{quote.number}}, {{quote.previewUrl}}, {{annotation.text}}, {{annotation.itemDescription}}, {{org.name}}"
+          },
+          "quoteQuestionAskedPartnerEmail": {
+            "title": "Vraag over offerte (E-mail naar adviseur)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.phone}}, {{lead.email}}, {{partner.name}}, {{partner.phone}}, {{partner.email}}, {{quote.number}}, {{quote.previewUrl}}, {{annotation.text}}, {{annotation.itemDescription}}, {{org.name}}"
+          },
+          "quoteQuestionAnsweredLeadWhatsApp": {
+            "title": "Antwoord op offertevraag (WhatsApp naar lead)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.phone}}, {{lead.email}}, {{partner.name}}, {{partner.phone}}, {{partner.email}}, {{quote.number}}, {{quote.previewUrl}}, {{annotation.text}}, {{annotation.itemDescription}}, {{org.name}}"
+          },
+          "quoteQuestionAnsweredLeadEmail": {
+            "title": "Antwoord op offertevraag (E-mail naar lead)",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.phone}}, {{lead.email}}, {{partner.name}}, {{partner.phone}}, {{partner.email}}, {{quote.number}}, {{quote.previewUrl}}, {{annotation.text}}, {{annotation.itemDescription}}, {{org.name}}"
           },
           "quoteAcceptedLeadWhatsApp": {
             "title": "Offerte geaccepteerd (WhatsApp naar lead)",

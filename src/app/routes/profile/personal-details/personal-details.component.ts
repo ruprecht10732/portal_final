@@ -2,12 +2,14 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
+import { isValidPhoneNumber } from 'libphonenumber-js';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { UserService } from '../../../core/services/user.service';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import type { UserProfile } from '../../../core/services/user.types';
 import { isEmailValid } from '../../../core/utils/email.util';
+import { normalizePhoneE164 } from '../../../core/utils/phone.util';
 
 @Component({
   selector: 'app-personal-details',
@@ -22,6 +24,8 @@ export class PersonalDetailsComponent {
   protected readonly lastName = signal('');
   protected readonly initialFirstName = signal('');
   protected readonly initialLastName = signal('');
+  protected readonly phone = signal('');
+  protected readonly initialPhone = signal('');
   protected readonly preferredLanguage = signal<'en' | 'nl'>('nl');
   protected readonly initialPreferredLanguage = signal<'en' | 'nl'>('nl');
   protected readonly email = signal('');
@@ -77,10 +81,20 @@ export class PersonalDetailsComponent {
       : this.translate.instant('profile.personal.errors.lastNameMax');
   });
 
+  protected readonly phoneError = computed(() => {
+    this.lang();
+    const value = this.phone().trim();
+    if (!value) return '';
+    return isValidPhoneNumber(value, 'NL')
+      ? ''
+      : this.translate.instant('profile.personal.errors.phoneInvalid');
+  });
+
   protected readonly hasChanges = computed(() =>
     this.email().trim() !== this.initialEmail().trim() ||
     this.firstName().trim() !== this.initialFirstName().trim() ||
     this.lastName().trim() !== this.initialLastName().trim() ||
+    this.phone().trim() !== this.initialPhone().trim() ||
     this.preferredLanguage() !== this.initialPreferredLanguage()
   );
 
@@ -89,6 +103,7 @@ export class PersonalDetailsComponent {
     !this.emailError() &&
     !this.firstNameError() &&
     !this.lastNameError() &&
+    !this.phoneError() &&
     !!this.email() &&
     this.hasChanges()
   );
@@ -125,6 +140,7 @@ export class PersonalDetailsComponent {
         email: this.email(),
         firstName: this.firstName().trim() || null,
         lastName: this.lastName().trim() || null,
+        phone: normalizePhoneE164(this.phone()),
         preferredLanguage: this.preferredLanguage(),
       })
       .pipe(
@@ -148,6 +164,7 @@ export class PersonalDetailsComponent {
   ): void {
     const first = profile.firstName ?? '';
     const last = profile.lastName ?? '';
+    const phone = profile.phone ?? '';
     const language = profile.preferredLanguage === 'en' ? 'en' : 'nl';
     const setRoles = options.setRoles ?? true;
     const setCreatedAt = options.setCreatedAt ?? true;
@@ -158,9 +175,11 @@ export class PersonalDetailsComponent {
     if (setRoles) this.roles.set(profile.roles ?? []);
     this.firstName.set(first);
     this.lastName.set(last);
+    this.phone.set(phone);
     if (options.setInitials) {
       this.initialFirstName.set(first);
       this.initialLastName.set(last);
+      this.initialPhone.set(phone);
     }
     this.preferredLanguage.set(language);
     if (options.setInitials) this.initialPreferredLanguage.set(language);

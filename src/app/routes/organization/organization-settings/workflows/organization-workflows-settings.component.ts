@@ -24,6 +24,8 @@ import { SkeletonComponent } from '../../../../shared/components/skeleton/skelet
 type WorkflowTrigger =
   | 'lead_welcome'
   | 'quote_sent'
+  | 'quote_question_asked'
+  | 'quote_question_answered'
   | 'quote_accepted'
   | 'quote_rejected'
   | 'appointment_created'
@@ -38,6 +40,10 @@ type WorkflowCardKey =
   | 'lead_welcome_email_lead'
   | 'quote_sent_whatsapp_lead'
   | 'quote_sent_email_lead'
+  | 'quote_question_asked_whatsapp_partner'
+  | 'quote_question_asked_email_partner'
+  | 'quote_question_answered_whatsapp_lead'
+  | 'quote_question_answered_email_lead'
   | 'quote_accepted_whatsapp_lead'
   | 'quote_accepted_email_lead'
   | 'quote_accepted_email_partner'
@@ -56,6 +62,7 @@ interface WorkflowCardConfig {
   channel: WorkflowChannel;
   audience: WorkflowAudience;
   titleKey: string;
+  noteKey?: string;
   hintKey: string;
   varsKey: string;
 }
@@ -90,6 +97,7 @@ interface WorkflowActionConfig {
 interface WorkflowSelectedChannelCardState {
   key: WorkflowCardKey;
   titleKey: string;
+  noteKey?: string;
   hintKey: string;
   varsKey: string;
   state: WorkflowFormState;
@@ -168,6 +176,43 @@ export class OrganizationWorkflowsSettingsComponent {
       titleKey: 'organization.settings.workflows.cards.quoteSent.title',
       hintKey: 'organization.settings.workflows.cards.quoteSent.hint',
       varsKey: 'organization.settings.workflows.cards.quoteSent.vars',
+    },
+    {
+      key: 'quote_question_asked_whatsapp_partner',
+      trigger: 'quote_question_asked',
+      channel: 'whatsapp',
+      audience: 'partner',
+      titleKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerWhatsApp.title',
+      noteKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerWhatsApp.note',
+      hintKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerWhatsApp.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerWhatsApp.vars',
+    },
+    {
+      key: 'quote_question_asked_email_partner',
+      trigger: 'quote_question_asked',
+      channel: 'email',
+      audience: 'partner',
+      titleKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerEmail.title',
+      hintKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerEmail.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerEmail.vars',
+    },
+    {
+      key: 'quote_question_answered_whatsapp_lead',
+      trigger: 'quote_question_answered',
+      channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadWhatsApp.title',
+      hintKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadWhatsApp.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadWhatsApp.vars',
+    },
+    {
+      key: 'quote_question_answered_email_lead',
+      trigger: 'quote_question_answered',
+      channel: 'email',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadEmail.title',
+      hintKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadEmail.hint',
+      varsKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadEmail.vars',
     },
     {
       key: 'quote_accepted_whatsapp_lead',
@@ -304,6 +349,38 @@ export class OrganizationWorkflowsSettingsComponent {
       },
     },
     {
+      id: 'quote_question_asked',
+      titleKey: 'organization.settings.workflows.actions.quoteQuestionAsked',
+      channels: {
+        whatsapp: {
+          cardKeys: ['quote_question_asked_whatsapp_partner'],
+          hintKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerWhatsApp.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerWhatsApp.vars',
+        },
+        email: {
+          cardKeys: ['quote_question_asked_email_partner'],
+          hintKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerEmail.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteQuestionAskedPartnerEmail.vars',
+        },
+      },
+    },
+    {
+      id: 'quote_question_answered',
+      titleKey: 'organization.settings.workflows.actions.quoteQuestionAnswered',
+      channels: {
+        whatsapp: {
+          cardKeys: ['quote_question_answered_whatsapp_lead'],
+          hintKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadWhatsApp.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadWhatsApp.vars',
+        },
+        email: {
+          cardKeys: ['quote_question_answered_email_lead'],
+          hintKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadEmail.hint',
+          varsKey: 'organization.settings.workflows.cards.quoteQuestionAnsweredLeadEmail.vars',
+        },
+      },
+    },
+    {
       id: 'quote_accepted',
       titleKey: 'organization.settings.workflows.actions.quoteAccepted',
       channels: {
@@ -415,6 +492,26 @@ export class OrganizationWorkflowsSettingsComponent {
       { label: 'Offerte preview', value: 'quote.previewUrl' },
       { label: 'Offerte download', value: 'quote.downloadUrl' },
     ],
+    quote_question_asked: [
+      ...this.baseLeadVars,
+      { label: 'Adviseur', value: 'partner.name' },
+      { label: 'Adviseur telefoon', value: 'partner.phone' },
+      { label: 'Adviseur e-mail', value: 'partner.email' },
+      { label: 'Offertenummer', value: 'quote.number' },
+      { label: 'Offerte preview', value: 'quote.previewUrl' },
+      { label: 'Vraag of antwoord', value: 'annotation.text' },
+      { label: 'Regelomschrijving', value: 'annotation.itemDescription' },
+    ],
+    quote_question_answered: [
+      ...this.baseLeadVars,
+      { label: 'Adviseur', value: 'partner.name' },
+      { label: 'Adviseur telefoon', value: 'partner.phone' },
+      { label: 'Adviseur e-mail', value: 'partner.email' },
+      { label: 'Offertenummer', value: 'quote.number' },
+      { label: 'Offerte preview', value: 'quote.previewUrl' },
+      { label: 'Vraag of antwoord', value: 'annotation.text' },
+      { label: 'Regelomschrijving', value: 'annotation.itemDescription' },
+    ],
     quote_accepted: [
       ...this.baseLeadVars,
       { label: 'Offertenummer', value: 'quote.number' },
@@ -478,6 +575,10 @@ export class OrganizationWorkflowsSettingsComponent {
       lead_welcome_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
       quote_sent_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
       quote_sent_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_question_asked_whatsapp_partner: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_question_asked_email_partner: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_question_answered_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      quote_question_answered_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
       quote_accepted_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
       quote_accepted_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
       quote_accepted_email_partner: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
@@ -692,13 +793,19 @@ export class OrganizationWorkflowsSettingsComponent {
           return null;
         }
 
-        return {
+        const baseCard: WorkflowSelectedChannelCardState = {
           key,
           titleKey: config.titleKey,
           hintKey: config.hintKey,
           varsKey: config.varsKey,
           state,
         };
+
+        if (config.noteKey) {
+          return { ...baseCard, noteKey: config.noteKey };
+        }
+
+        return baseCard;
       })
       .filter((card): card is WorkflowSelectedChannelCardState => card !== null);
   }
@@ -921,6 +1028,8 @@ export class OrganizationWorkflowsSettingsComponent {
     switch (value) {
       case 'lead_welcome':
       case 'quote_sent':
+      case 'quote_question_asked':
+      case 'quote_question_answered':
       case 'quote_accepted':
       case 'quote_rejected':
       case 'appointment_created':

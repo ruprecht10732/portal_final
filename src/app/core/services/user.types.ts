@@ -6,6 +6,7 @@ export interface UserProfile {
   emailVerified: boolean;
   firstName: string | null;
   lastName: string | null;
+  phone: string | null;
   preferredLanguage: string;
   roles: string[];
   hasOrganization: boolean;
@@ -26,6 +27,7 @@ export interface UpdateProfileRequest {
   email?: string;
   firstName?: string | null;
   lastName?: string | null;
+  phone?: string;
   preferredLanguage?: string;
 }
 

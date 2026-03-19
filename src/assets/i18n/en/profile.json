@@ -9,6 +9,9 @@
       "firstName": "First name",
       "lastName": "Last name",
       "email": "Email",
+      "phone": "Phone number",
+      "phonePlaceholder": "+31 6 12345678",
+      "phoneHint": "Used for WhatsApp notifications when a customer asks a question about your quote.",
       "preferredLanguage": "Preferred language",
       "organization": "Organization",
       "organizationEmail": "Organization email",
@@ -36,6 +39,7 @@
       "errors": {
         "emailRequired": "Email is required",
         "emailInvalid": "Enter a valid email address",
+        "phoneInvalid": "Enter a valid phone number",
         "firstNameMax": "First name must be 100 characters or less",
         "lastNameMax": "Last name must be 100 characters or less",
         "organizationRequired": "Organization name is required",
