@@ -517,12 +517,24 @@
                                   (input)="updateReplyText(item.id, $any($event.target).value)"
                                   (keydown.enter)="submitReply(item.id)"
                                 />
+                                @if (canSuggestReply(item)) {
+                                  <shared-button
+                                    variant="secondary"
+                                    size="compact"
+                                    [fullWidth]="false"
+                                    [loading]="draftingReplyItemId() === item.id"
+                                    [disabled]="replyingItemId() === item.id"
+                                    (clicked)="suggestReply(item.id)"
+                                  >
+                                    {{ 'offertes.replyDraftAction' | translate }}
+                                  </shared-button>
+                                }
                                 <shared-button
                                   variant="primary"
                                   size="compact"
                                   [fullWidth]="false"
                                   [loading]="replyingItemId() === item.id"
-                                  [disabled]="!(replyTexts()[item.id] ?? '').trim()"
+                                  [disabled]="!(replyTexts()[item.id] ?? '').trim() || draftingReplyItemId() === item.id"
                                   (clicked)="submitReply(item.id)"
                                 >
                                   <lucide-icon name="send" class="h-3.5 w-3.5"></lucide-icon>
@@ -1126,12 +1138,24 @@
                                   (input)="updateReplyText(item.id, $any($event.target).value)"
                                   (keydown.enter)="submitReply(item.id)"
                                 />
+                                @if (canSuggestReply(item)) {
+                                  <shared-button
+                                    variant="secondary"
+                                    size="compact"
+                                    [fullWidth]="false"
+                                    [loading]="draftingReplyItemId() === item.id"
+                                    [disabled]="replyingItemId() === item.id"
+                                    (clicked)="suggestReply(item.id)"
+                                  >
+                                    {{ 'offertes.replyDraftAction' | translate }}
+                                  </shared-button>
+                                }
                                 <shared-button
                                   variant="primary"
                                   size="compact"
                                   [fullWidth]="false"
                                   [loading]="replyingItemId() === item.id"
-                                  [disabled]="!(replyTexts()[item.id] ?? '').trim()"
+                                  [disabled]="!(replyTexts()[item.id] ?? '').trim() || draftingReplyItemId() === item.id"
                                   (clicked)="submitReply(item.id)"
                                 >
                                   <lucide-icon name="send" class="h-3.5 w-3.5"></lucide-icon>

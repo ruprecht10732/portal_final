@@ -11,6 +11,7 @@ import { SSEService } from '../../../core/services/sse.service';
 import type {
   QuoteResponse,
   QuoteStatus,
+  QuoteItemResponse,
   QuoteActivityResponse,
   QuoteVersionHistoryResponse,
   QuoteVersionDiffItemResponse,
@@ -173,6 +174,7 @@ export class OffertesDetailComponent implements OnInit {
   // Reply text per item (keyed by item ID)
   protected readonly replyTexts = signal<Record<string, string>>({});
   protected readonly replyingItemId = signal<string | null>(null);
+  protected readonly draftingReplyItemId = signal<string | null>(null);
 
   // SSE activity feed — starts with persisted history, live events prepend
   protected readonly realtimeEvents = signal<{ type: string; message: string; time: Date }[]>([]);
@@ -351,6 +353,32 @@ export class OffertesDetailComponent implements OnInit {
 
   protected updateReplyText(itemId: string, text: string): void {
     this.replyTexts.update(prev => ({ ...prev, [itemId]: text }));
+  }
+
+  protected canSuggestReply(item: QuoteItemResponse): boolean {
+    return item.annotations.some(annotation => annotation.authorType === 'customer');
+  }
+
+  protected suggestReply(itemId: string): void {
+    const q = this.quote();
+    if (!q || this.draftingReplyItemId() === itemId) return;
+
+    this.draftingReplyItemId.set(itemId);
+    this.quotesService.suggestAnnotationReplyDraft(q.id, itemId).subscribe({
+      next: draft => {
+        this.replyTexts.update(prev => ({ ...prev, [itemId]: draft.text }));
+        this.draftingReplyItemId.set(null);
+      },
+      error: err => {
+        this.draftingReplyItemId.set(null);
+        const message = extractErrorMessage(err, this.translate.instant('offertes.errors.replyDraft'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
+        this.toast.error(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
   }
 
   protected submitReply(itemId: string): void {

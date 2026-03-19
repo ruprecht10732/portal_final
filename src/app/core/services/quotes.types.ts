@@ -521,6 +521,10 @@ export interface AnnotationResponse {
   createdAt: string;
 }
 
+export interface SuggestAnnotationReplyDraftResponse {
+  text: string;
+}
+
 export interface PublicQuoteItemResponse {
   id: string;
   description: string;

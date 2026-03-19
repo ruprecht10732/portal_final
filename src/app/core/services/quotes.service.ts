@@ -13,6 +13,7 @@ import type {
   QuoteCalculationRequest,
   QuoteCalculationResponse,
   AnnotationResponse,
+  SuggestAnnotationReplyDraftResponse,
   QuoteActivityResponse,
   QuotePreviewLinkResponse,
   PresignAttachmentUploadRequest,
@@ -130,6 +131,13 @@ export class QuotesService {
     return this.http.post<AnnotationResponse>(
       `${this.baseUrl}/${quoteId}/items/${itemId}/annotations`,
       { text },
+    );
+  }
+
+  suggestAnnotationReplyDraft(quoteId: string, itemId: string): Observable<SuggestAnnotationReplyDraftResponse> {
+    return this.http.post<SuggestAnnotationReplyDraftResponse>(
+      `${this.baseUrl}/${quoteId}/items/${itemId}/annotations/draft-reply`,
+      {},
     );
   }
 
