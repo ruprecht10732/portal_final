@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnInit, signal } from '@angular/core';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, DragDropModule, moveItemInArray, CdkDragStart, CdkDragEnd } from '@angular/cdk/drag-drop';
 import { toSignal, takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
@@ -170,6 +170,7 @@ export class OffertesCreateComponent implements OnInit {
 
   // Line items
   protected readonly lineItems = signal<LineItemDraft[]>([]);
+  protected readonly isDraggingLineItems = signal(false);
   protected readonly descriptionEditState = signal<Record<string, boolean>>({});
 
   // Document attachments & URLs (collected from catalog autocomplete + manual uploads)
@@ -579,6 +580,14 @@ export class OffertesCreateComponent implements OnInit {
       return next;
     });
     this.requestCalculation();
+  }
+
+  protected onLineItemDragStarted(_event: CdkDragStart): void {
+    this.isDraggingLineItems.set(true);
+  }
+
+  protected onLineItemDragEnded(_event: CdkDragEnd): void {
+    this.isDraggingLineItems.set(false);
   }
 
   protected onLineItemDrop(event: CdkDragDrop<LineItemDraft[]>): void {

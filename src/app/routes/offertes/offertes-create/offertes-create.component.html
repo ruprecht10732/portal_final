@@ -242,10 +242,17 @@
             <span></span>
           </div>
 
-          <div cdkDropList class="space-y-3 pt-4" (cdkDropListDropped)="onLineItemDrop($event)">
+          <div cdkDropList 
+               [cdkDropListData]="lineItems()"
+               cdkDropListLockAxis="y"
+               cdkDropListOrientation="vertical"
+               class="space-y-3 pt-4"
+               (cdkDropListDropped)="onLineItemDrop($event)">
             @for (item of lineItems(); track item.id) {
               <app-quote-line-item-row 
                 cdkDrag 
+                [cdkDragData]="item"
+                [cdkDragStartDelay]="{touch: 0, mouse: 0}"
                 [item]="item" 
                 [totalDisplay]="formatCurrency(getLineItemTotal(item))"
                 [taxRateOptions]="taxRateOptions()"
@@ -256,7 +263,17 @@
                 (taxRateChange)="updateLineItemTaxRate(item.id, $event)"
                 (optionalChange)="updateLineItemOptional(item.id, $event)"
                 (ghostAccepted)="onGhostAccepted(item.id, $event)"
-                (remove)="removeLineItem(item.id)" />
+                (remove)="removeLineItem(item.id)">
+                
+                <!-- Minimal drag preview - just a simple box, not the full component -->
+                <ng-template cdkDragPreview>
+                  <div class="drag-preview-simple">
+                    <lucide-icon name="grip-vertical" class="h-5 w-5"></lucide-icon>
+                    <span>{{ item.quantity }} × {{ formatCurrency(item.unitPrice) }}</span>
+                  </div>
+                </ng-template>
+                
+              </app-quote-line-item-row>
             }
           </div>
 
