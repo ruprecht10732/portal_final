@@ -30,6 +30,7 @@ export interface QuoteDraftPayloadInput {
   leadServiceId: string | null;
   pricingMode: PricingMode;
   financingDisclaimer: boolean;
+  pagePerItem: boolean;
   isdeSubsidy: QuoteISDESubsidy;
   getUnitPriceValue: (item: Pick<LineItemDraft, 'unitPrice'>) => number;
 }
@@ -44,6 +45,7 @@ export interface QuoteDraftPayload {
   discountValue: number;
   pricingMode: PricingMode;
   financingDisclaimer: boolean;
+  pagePerItem: boolean;
   validUntil?: string;
   notes?: string;
 }
@@ -64,6 +66,7 @@ export interface QuoteHydrationSnapshot {
   discountDisplayValue: number;
   pricingMode: PricingMode;
   financingDisclaimer: boolean;
+  pagePerItem: boolean;
   lastUsedTaxRate: LineItemDraft['taxRate'];
 }
 
@@ -113,6 +116,7 @@ export function buildQuoteDraftPayload(input: QuoteDraftPayloadInput): QuoteDraf
     discountValue: dVal,
     pricingMode: input.pricingMode,
     financingDisclaimer: input.financingDisclaimer,
+    pagePerItem: input.pagePerItem,
     ...(input.summary.validUntil ? { validUntil: `${input.summary.validUntil}T00:00:00Z` } : {}),
     ...(input.summary.notes ? { notes: input.summary.notes } : {}),
   };
@@ -196,6 +200,7 @@ export function buildQuoteHydrationSnapshot(quote: QuoteResponse): QuoteHydratio
       quote.discountType === 'fixed' ? centsToEuros(quote.discountValue) : quote.discountValue,
     pricingMode: quote.pricingMode ?? 'exclusive',
     financingDisclaimer: quote.financingDisclaimer ?? false,
+    pagePerItem: quote.pagePerItem ?? false,
     lastUsedTaxRate:
       quote.items[0]?.taxRateBps == null ? 21 : taxBpsToDisplay(quote.items[0].taxRateBps),
   };

@@ -11,6 +11,24 @@
       (back)="cancel()"
     >
       <div actions class="flex items-center gap-2">
+        <label
+          class="group hidden md:inline-flex cursor-pointer select-none items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-all"
+          [class]="pagePerItem()
+            ? 'border-zinc-900 bg-zinc-900 text-white shadow-sm'
+            : 'border-zinc-200 bg-white text-zinc-500 hover:border-zinc-300 hover:text-zinc-700'"
+        >
+          <input
+            type="checkbox"
+            class="sr-only"
+            [checked]="pagePerItem()"
+            (change)="pagePerItem.set(!pagePerItem())"
+          />
+          <lucide-icon
+            [name]="pagePerItem() ? 'book-open' : 'book-open'"
+            class="h-3.5 w-3.5"
+          ></lucide-icon>
+          <span>Pagina per regel</span>
+        </label>
         <shared-button
           variant="secondary"
           size="compact"

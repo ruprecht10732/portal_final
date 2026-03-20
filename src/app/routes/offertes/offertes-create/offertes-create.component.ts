@@ -244,6 +244,7 @@ export class OffertesCreateComponent implements OnInit {
     return status === 'pending' || status === 'running';
   });
   protected readonly financingDisclaimer = signal(false);
+  protected readonly pagePerItem = signal(false);
 
   // Lead's services
   // Single source of truth:
@@ -669,6 +670,7 @@ export class OffertesCreateComponent implements OnInit {
     this.discountValue.set(snapshot.discountDisplayValue);
     this.pricingMode.set(snapshot.pricingMode);
     this.financingDisclaimer.set(snapshot.financingDisclaimer);
+    this.pagePerItem.set(snapshot.pagePerItem);
     this.applyQuoteSubsidyState(quote.isdeSubsidy);
     this.lastUsedTaxRate.set(snapshot.lastUsedTaxRate);
     this.ensureInitialLineItem();
@@ -1081,6 +1083,7 @@ export class OffertesCreateComponent implements OnInit {
       leadServiceId: this.selectedLeadServiceId(),
       pricingMode: this.pricingMode(),
       financingDisclaimer: this.financingDisclaimer(),
+      pagePerItem: this.pagePerItem(),
       isdeSubsidy: this.buildQuoteSubsidyPayload(),
       getUnitPriceValue: (item) => this.getUnitPriceValue(item),
     });

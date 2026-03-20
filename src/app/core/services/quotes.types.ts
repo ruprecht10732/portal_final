@@ -219,6 +219,7 @@ export interface QuoteResponse {
   urls: QuoteURLResponse[];
   pdfFileKey?: string;
   financingDisclaimer: boolean;
+  pagePerItem: boolean;
   exports?: QuoteExportInfo[];
   createdAt: string;
   updatedAt: string;
@@ -392,6 +393,7 @@ export interface CreateQuoteRequest {
   urls?: QuoteURLRequest[];
   isdeSubsidy?: QuoteISDESubsidy;
   financingDisclaimer?: boolean;
+  pagePerItem?: boolean;
 }
 
 export interface UpdateQuoteRequest {
@@ -406,6 +408,7 @@ export interface UpdateQuoteRequest {
   urls?: QuoteURLRequest[];
   isdeSubsidy?: QuoteISDESubsidy;
   financingDisclaimer?: boolean;
+  pagePerItem?: boolean;
 }
 
 export interface QuoteCalculationRequest {
