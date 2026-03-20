@@ -29,7 +29,6 @@ import {
   map,
   catchError,
   of,
-  forkJoin,
 } from 'rxjs';
 
 import { LeadsService } from '../../../core/services/leads.service';
@@ -38,8 +37,6 @@ import { OrganizationService } from '../../../core/services/organization.service
 import {
   CatalogService,
   type AutocompleteItemResponse,
-  type MaterialPricingMode,
-  type Product,
 } from '../../../core/services/catalog.service';
 import { AIJobService } from '../../../core/services/ai-job.service';
 import { IsdeService } from '../../../core/services/isde.service';
@@ -52,8 +49,6 @@ import type {
   PricingMode,
   QuoteItemRequest,
   QuoteCalculationResponse,
-  QuoteAttachmentRequest,
-  QuoteURLRequest,
   GenerateQuoteRequest,
   CreateQuoteFeedbackRequest,
   AnalyzeSubsidyDraftRequest,
@@ -70,7 +65,6 @@ import {
   eurosToCents,
   centsToEuros,
   taxDisplayToBps,
-  taxBpsToDisplay,
   derivePostcodePrefixZip4,
 } from '../../../core/services/quotes.types';
 import { UserService } from '../../../core/services/user.service';
@@ -101,8 +95,19 @@ import {
 } from '../../../shared/components/attachment-panel/attachment-panel.component';
 import { FilePreviewDialogComponent } from '../../../shared/components/file-preview-dialog/file-preview-dialog.component';
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet';
+import { OffertesCreateAttachmentsService } from './offertes-create-attachments.service';
+import {
+  buildGhostAcceptanceSnapshot,
+  buildMaterialExpansionSnapshot,
+} from './offertes-create-catalog.utils';
 import { QuoteLineItemRowComponent } from './quote-line-item-row.component';
 import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
+import {
+  buildCreateLeadOption,
+  buildLeadAutocompleteOptions,
+  CREATE_LEAD_OPTION_VALUE,
+  deriveLeadSelectionState,
+} from './offertes-create-lead.utils';
 import type {
   EditableSubsidyInstallationField,
   EditableSubsidyMeasureField,
@@ -188,6 +193,7 @@ export class OffertesCreateComponent implements OnInit {
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
   private readonly userService = inject(UserService);
+  private readonly attachmentsService = inject(OffertesCreateAttachmentsService);
   private readonly materialExpandRequestSeq = new Map<string, number>();
   private readonly createUid = () => createDraftUid();
 
@@ -255,8 +261,6 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly leadSearchQuery = signal('');
   protected readonly leadOptions = signal<AutocompleteOption[]>([]);
   private readonly leadSuggestions = signal<Lead[]>([]);
-
-  private static readonly CREATE_LEAD_OPTION_VALUE = '__create_new_lead__';
 
   // Line items
   protected readonly lineItems = signal<LineItemDraft[]>([]);
@@ -530,37 +534,55 @@ export class OffertesCreateComponent implements OnInit {
     // When a suggestion is clicked, the shared autocomplete emits the option label.
     // Avoid triggering a new search when the clicked value is one of our current options.
     const selectedOption = this.leadOptions().find((o) => o.label === value);
-    if (selectedOption?.value === OffertesCreateComponent.CREATE_LEAD_OPTION_VALUE) {
+    if (selectedOption?.value === CREATE_LEAD_OPTION_VALUE) {
       return;
     }
 
     const query = value.trim();
     if (query.length < 2) {
       this.leadSuggestions.set([]);
-      this.leadOptions.set(query ? [this.buildCreateLeadOption(query)] : []);
+      this.leadOptions.set(
+        query
+          ? [
+              buildCreateLeadOption(
+                this.translate.instant('offertes.leadAutocomplete.createNewWithQuery', { query }),
+              ),
+            ]
+          : [],
+      );
       return;
     }
 
     this.leadsService.list({ search: value, pageSize: 10 }).subscribe({
       next: (response) => {
         this.leadSuggestions.set(response.items);
-        const options = response.items.map((lead) => ({
-          label: `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
-          value: lead.id,
-        }));
-        options.push(this.buildCreateLeadOption(query));
-        this.leadOptions.set(options);
+        this.leadOptions.set(
+          buildLeadAutocompleteOptions(
+            response.items,
+            buildCreateLeadOption(
+              this.translate.instant('offertes.leadAutocomplete.createNewWithQuery', { query }),
+            ),
+          ),
+        );
       },
       error: () => {
         this.leadSuggestions.set([]);
-        this.leadOptions.set(query ? [this.buildCreateLeadOption(query)] : []);
+        this.leadOptions.set(
+          query
+            ? [
+                buildCreateLeadOption(
+                  this.translate.instant('offertes.leadAutocomplete.createNewWithQuery', { query }),
+                ),
+              ]
+            : [],
+        );
       },
     });
   }
 
   protected onLeadSelected(value: string): void {
     const selectedOption = this.leadOptions().find((o) => o.label === value);
-    if (selectedOption?.value === OffertesCreateComponent.CREATE_LEAD_OPTION_VALUE) {
+    if (selectedOption?.value === CREATE_LEAD_OPTION_VALUE) {
       const returnTo = this.router.url.split('?')[0] ?? '/app/offertes/new';
       this.router.navigate(['/app/leads/new'], { queryParams: { returnTo, source: 'quote_flow' } });
       return;
@@ -570,18 +592,11 @@ export class OffertesCreateComponent implements OnInit {
     const lead = leadId ? this.leadSuggestions().find((l) => l.id === leadId) : null;
 
     if (lead) {
+      const selection = deriveLeadSelectionState(lead);
       this.selectedLead.set(lead);
-      // Default to the first service; user can change it explicitly.
-      this.selectedLeadServiceId.set(lead.services?.[0]?.id ?? null);
-      this.leadSearchQuery.set(
-        `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
-      );
+      this.selectedLeadServiceId.set(selection.selectedLeadServiceId);
+      this.leadSearchQuery.set(selection.leadSearchLabel);
     }
-  }
-
-  private buildCreateLeadOption(query: string): AutocompleteOption {
-    const label = this.translate.instant('offertes.leadAutocomplete.createNewWithQuery', { query });
-    return { label, value: OffertesCreateComponent.CREATE_LEAD_OPTION_VALUE };
   }
 
   protected clearLead(): void {
@@ -596,15 +611,10 @@ export class OffertesCreateComponent implements OnInit {
     this.loading.set(true);
     this.leadsService.getById(id).subscribe({
       next: (lead) => {
+        const selection = deriveLeadSelectionState(lead, preferredServiceId);
         this.selectedLead.set(lead);
-        const nextServiceId =
-          preferredServiceId && lead.services?.some((s) => s.id === preferredServiceId)
-            ? preferredServiceId
-            : (lead.services?.[0]?.id ?? null);
-        this.selectedLeadServiceId.set(nextServiceId);
-        this.leadSearchQuery.set(
-          `${lead.consumer.firstName} ${lead.consumer.lastName} — ${lead.address.street} ${lead.address.houseNumber}, ${lead.address.city}`,
-        );
+        this.selectedLeadServiceId.set(selection.selectedLeadServiceId);
+        this.leadSearchQuery.set(selection.leadSearchLabel);
         this.loading.set(false);
       },
       error: () => {
@@ -1371,137 +1381,72 @@ export class OffertesCreateComponent implements OnInit {
    */
   protected onGhostAccepted(itemId: string, suggestion: GhostSuggestion): void {
     const product = suggestion.payload as AutocompleteItemResponse;
-    const catalogProductId = this.catalogProductId(product);
+    const accepted = buildGhostAcceptanceSnapshot({
+      itemId,
+      product,
+      lineItems: this.lineItems(),
+      attachmentCount: this.attachmentDrafts().length,
+      createUid: this.createUid,
+    });
     const requestSeq = (this.materialExpandRequestSeq.get(itemId) ?? 0) + 1;
     this.materialExpandRequestSeq.set(itemId, requestSeq);
-
-    const previousGeneratedIds = this.lineItems()
-      .filter((item) => item.parentLineItemId === itemId)
-      .map((item) => item.id);
 
     // Snapshot the description set at ghost-accept time so the async materials
     // callback can detect whether the user manually changed it before the fetch
     // resolved, and avoid overwriting those manual edits.
-    const initialDescription = this.formatAutocompleteDescription(product);
+    const initialDescription = accepted.initialDescription;
 
-    // Update the line item with product data
-    this.lineItems.update((items) => {
-      const withoutGenerated = items.filter((item) => item.parentLineItemId !== itemId);
-      return withoutGenerated.map((item) => {
-        if (item.id !== itemId) return item;
-
-        const updatedItem = {
-          ...item,
-          title: product.title,
-          description: initialDescription,
-          quantity: item.quantity || '1 x',
-          unitPrice: centsToEuros(product.unitPriceCents || product.priceCents),
-          taxRate: taxBpsToDisplay(product.vatRateBps),
-        };
-
-        if (catalogProductId) {
-          return { ...updatedItem, catalogProductId };
-        }
-
-        const { catalogProductId: _catalogProductId, ...withoutCatalogProductId } = updatedItem;
-        return withoutCatalogProductId;
-      });
-    });
+    this.lineItems.set(accepted.nextLineItems);
     this.descriptionEditState.update((state) => ({ ...state, [itemId]: false }));
-    if (previousGeneratedIds.length) {
+    if (accepted.previousGeneratedIds.length) {
       this.descriptionEditState.update((state) => {
         const next = { ...state };
-        for (const id of previousGeneratedIds) delete next[id];
+        for (const id of accepted.previousGeneratedIds) delete next[id];
         return next;
       });
     }
 
-    // Collect documents from the catalog product
-    if (catalogProductId && product.documents?.length) {
-      const newAttachments: AttachmentDraft[] = product.documents.map((doc, i) => ({
-        uid: crypto.randomUUID(),
-        filename: doc.filename,
-        fileKey: doc.fileKey,
-        source: 'catalog' as const,
-        catalogProductId,
-        catalogAssetId: doc.id,
-        enabled: true,
-        sortOrder: this.attachmentDrafts().length + i,
-      }));
-      this.attachmentDrafts.update((existing) => [...existing, ...newAttachments]);
+    if (accepted.newAttachments.length > 0) {
+      this.attachmentDrafts.update((existing) => [...existing, ...accepted.newAttachments]);
     }
 
-    // Collect URLs (terms & conditions)
-    if (catalogProductId && product.urls?.length) {
-      const newUrls = product.urls.map((url) => ({
-        uid: crypto.randomUUID(),
-        label: url.label,
-        href: url.href,
-        catalogProductId,
-      }));
-      this.urlDrafts.update((existing) => [...existing, ...newUrls]);
+    if (accepted.newUrls.length > 0) {
+      this.urlDrafts.update((existing) => [...existing, ...accepted.newUrls]);
     }
 
-    if (!catalogProductId) {
+    if (!accepted.catalogProductId) {
       this.requestCalculation();
       return;
     }
 
     this.catalogService
-      .listProductMaterials(catalogProductId)
+      .listProductMaterials(accepted.catalogProductId)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (materials) => {
           if (this.materialExpandRequestSeq.get(itemId) !== requestSeq) return;
 
           const currentParent = this.lineItems().find((item) => item.id === itemId);
-          if (currentParent?.catalogProductId !== catalogProductId) return;
+          if (currentParent?.catalogProductId !== accepted.catalogProductId) return;
+          if (!currentParent) return;
           // If the user manually edited the description after accepting the ghost
           // suggestion, don't overwrite their changes with the materials list.
           if (currentParent.description !== initialDescription) return;
 
-          const includedTitles = materials
-            .filter((material) => material.pricingMode === 'included')
-            .map((material) => material.title.trim())
-            .filter(Boolean);
-
-          const parentDescriptionBase = this.formatCatalogDescription(
-            product.title,
-            product.description || '',
-          );
-          const parentDescription = this.formatDescriptionWithIncludedMaterials(
-            parentDescriptionBase,
-            includedTitles,
-          );
-
-          const generatedRows = this.createGeneratedMaterialRows(
+          const expansion = buildMaterialExpansionSnapshot({
             itemId,
             materials,
-            currentParent.taxRate,
-          );
-          this.lineItems.update((items) => {
-            const withoutGenerated = items.filter((item) => item.parentLineItemId !== itemId);
-            const parentIndex = withoutGenerated.findIndex((item) => item.id === itemId);
-            if (parentIndex === -1) return withoutGenerated;
-            const parentLine = withoutGenerated[parentIndex];
-            if (!parentLine) return withoutGenerated;
-
-            const updatedParent: LineItemDraft = {
-              ...parentLine,
-              description: parentDescription,
-            };
-
-            return [
-              ...withoutGenerated.slice(0, parentIndex),
-              updatedParent,
-              ...generatedRows,
-              ...withoutGenerated.slice(parentIndex + 1),
-            ];
+            lineItems: this.lineItems(),
+            parentTaxRate: currentParent.taxRate,
+            product,
+            includedMaterialsLabel: this.translate.instant('offertes.includedMaterialsLabel'),
+            createUid: this.createUid,
           });
+          this.lineItems.set(expansion.nextLineItems);
 
           this.descriptionEditState.update((state) => {
             const next = { ...state, [itemId]: false };
-            for (const row of generatedRows) next[row.id] = false;
+            for (const row of expansion.generatedRows) next[row.id] = false;
             return next;
           });
 
@@ -1510,40 +1455,6 @@ export class OffertesCreateComponent implements OnInit {
       });
 
     this.requestCalculation();
-  }
-
-  private createGeneratedMaterialRows(
-    parentLineItemId: string,
-    materials: Product[],
-    fallbackTaxRate: TaxRateDisplay,
-  ): LineItemDraft[] {
-    return materials
-      .filter(
-        (material) => material.pricingMode === 'additional' || material.pricingMode === 'optional',
-      )
-      .map((material) =>
-        this.createGeneratedMaterialRow(parentLineItemId, material, fallbackTaxRate),
-      );
-  }
-
-  private createGeneratedMaterialRow(
-    parentLineItemId: string,
-    material: Product,
-    fallbackTaxRate: TaxRateDisplay,
-  ): LineItemDraft {
-    const pricingMode: MaterialPricingMode =
-      material.pricingMode === 'optional' ? 'optional' : 'additional';
-    return {
-      id: crypto.randomUUID(),
-      parentLineItemId,
-      title: material.title,
-      description: this.formatCatalogDescription(material.title, material.description || ''),
-      quantity: '1 x',
-      unitPrice: centsToEuros(material.unitPriceCents || material.priceCents),
-      taxRate: fallbackTaxRate,
-      optional: pricingMode === 'optional',
-      catalogProductId: material.id,
-    };
   }
 
   // ── Attachment Panel ────────────────────────────────────────────────────────
@@ -1559,41 +1470,26 @@ export class OffertesCreateComponent implements OnInit {
    */
   protected onManualUploadRequested(file: File): void {
     const quote = this.existingQuote();
-    const tempUid = crypto.randomUUID();
-    const draft: AttachmentDraft = {
-      uid: tempUid,
-      filename: file.name,
-      fileKey: '',
-      source: 'manual',
-      enabled: true,
-      sortOrder: this.attachmentDrafts().length,
-    };
+    const draft = this.attachmentsService.createManualDraft(
+      file,
+      this.attachmentDrafts().length,
+      this.createUid,
+    );
 
     if (quote) {
       // Edit mode — upload immediately via presigned URL
       this.attachmentDrafts.update((existing) => [...existing, { ...draft, uploading: true }]);
-      this.quotesService
-        .presignAttachmentUpload(quote.id, {
-          fileName: file.name,
-          contentType: file.type,
-          sizeBytes: file.size,
-        })
-        .pipe(
-          switchMap((presigned) =>
-            this.quotesService
-              .uploadToPresignedUrl(presigned.uploadUrl, file)
-              .pipe(map(() => presigned.fileKey)),
-          ),
-          takeUntilDestroyed(this.destroyRef),
-        )
+      this.attachmentsService
+        .uploadManualAttachment(quote.id, file)
+        .pipe(takeUntilDestroyed(this.destroyRef))
         .subscribe({
           next: (fileKey) => {
             this.attachmentDrafts.update((items) =>
-              items.map((a) => (a.uid === tempUid ? { ...a, fileKey, uploading: false } : a)),
+              items.map((a) => (a.uid === draft.uid ? { ...a, fileKey, uploading: false } : a)),
             );
           },
           error: () => {
-            this.attachmentDrafts.update((items) => items.filter((a) => a.uid !== tempUid));
+            this.attachmentDrafts.update((items) => items.filter((a) => a.uid !== draft.uid));
           },
         });
     } else {
@@ -1609,80 +1505,26 @@ export class OffertesCreateComponent implements OnInit {
     const pending = this.attachmentDrafts().filter((a) => a.pendingFile);
     if (pending.length === 0) return of(void 0);
 
-    this.attachmentDrafts.update((items) =>
-      items.map((item) => (item.pendingFile ? { ...item, uploading: true } : item)),
-    );
+    this.attachmentDrafts.set(this.attachmentsService.markPendingUploads(this.attachmentDrafts()));
 
-    const uploads = pending.map((att) => {
-      const file = att.pendingFile;
-      if (!file) {
-        return of({ uid: att.uid, fileKey: '' });
-      }
-
-      return this.quotesService
-        .presignAttachmentUpload(quoteId, {
-          fileName: file.name,
-          contentType: file.type,
-          sizeBytes: file.size,
-        })
-        .pipe(
-          switchMap((presigned) =>
-            this.quotesService
-              .uploadToPresignedUrl(presigned.uploadUrl, file)
-              .pipe(map(() => ({ uid: att.uid, fileKey: presigned.fileKey }))),
-          ),
-        );
-    });
-
-    return forkJoin(uploads).pipe(
-      switchMap((results) => {
-        const fileKeyByUid = new Map(results.map((result) => [result.uid, result.fileKey]));
-
-        this.attachmentDrafts.update((items) =>
-          items.map((item) => {
-            const fileKey = fileKeyByUid.get(item.uid);
-            if (!fileKey) {
-              return item.pendingFile ? { ...item, uploading: false } : item;
-            }
-            const { pendingFile: _pendingFile, ...rest } = item;
-            return { ...rest, fileKey, uploading: false };
-          }),
-        );
-
-        return this.saveAttachmentsToQuote(quoteId).pipe(map(() => void 0));
+    return this.attachmentsService.uploadPendingDrafts(quoteId, this.attachmentDrafts()).pipe(
+      switchMap((updatedDrafts) => {
+        this.attachmentDrafts.set(updatedDrafts);
+        return this.attachmentsService
+          .saveAttachmentsToQuote(quoteId, updatedDrafts, this.urlDrafts())
+          .pipe(map(() => void 0));
       }),
     );
   }
 
-  private saveAttachmentsToQuote(quoteId: string): Observable<QuoteResponse> {
-    const attachments: QuoteAttachmentRequest[] = this.attachmentDrafts()
-      .filter((a) => a.fileKey && !a.pendingFile)
-      .map((a, i) => ({
-        filename: a.filename,
-        fileKey: a.fileKey,
-        source: a.source,
-        ...(a.catalogProductId ? { catalogProductId: a.catalogProductId } : {}),
-        enabled: a.enabled,
-        sortOrder: i,
-      }));
-
-    const urls: QuoteURLRequest[] = this.urlDrafts().map((u) => ({
-      label: u.label,
-      href: u.href,
-      ...(u.catalogProductId ? { catalogProductId: u.catalogProductId } : {}),
-    }));
-
-    return this.quotesService.update(quoteId, { attachments, urls });
-  }
-
   private clearPendingUploadFlags(): void {
-    this.attachmentDrafts.update((items) =>
-      items.map((item) => (item.pendingFile ? { ...item, uploading: false } : item)),
+    this.attachmentDrafts.set(
+      this.attachmentsService.clearPendingUploadFlags(this.attachmentDrafts()),
     );
   }
 
   private hasAttachmentUploadsInProgress(): boolean {
-    return this.attachmentDrafts().some((item) => item.uploading);
+    return this.attachmentsService.hasUploadsInProgress(this.attachmentDrafts());
   }
 
   // ── URL Management ──────────────────────────────────────────────────────────
@@ -1715,30 +1557,6 @@ export class OffertesCreateComponent implements OnInit {
     }
 
     // 2. Catalog attachment with known asset ID → use catalog download endpoint
-    if (att.source === 'catalog' && att.catalogProductId && att.catalogAssetId) {
-      this.previewOpen.set(true);
-      this.previewLoading.set(true);
-      this.previewError.set(null);
-      this.previewUrl.set(null);
-      this.previewAttachment.set(att);
-
-      this.catalogService
-        .getCatalogAssetDownloadUrl(att.catalogProductId, att.catalogAssetId)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (response) => {
-            this.previewUrl.set(response.downloadUrl);
-            this.previewLoading.set(false);
-          },
-          error: () => {
-            this.previewError.set(this.translate.instant('offertes.errors.loadPreview'));
-            this.previewLoading.set(false);
-          },
-        });
-      return;
-    }
-
-    // 3. Saved attachment on a persisted quote → use quote attachment download
     if (!quote) return;
 
     this.previewOpen.set(true);
@@ -1747,12 +1565,12 @@ export class OffertesCreateComponent implements OnInit {
     this.previewUrl.set(null);
     this.previewAttachment.set(att);
 
-    this.quotesService
-      .getAttachmentDownloadUrl(quote.id, att.uid)
+    this.attachmentsService
+      .getRemotePreviewUrl(att, quote.id)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (response) => {
-          this.previewUrl.set(response.downloadUrl);
+        next: (downloadUrl) => {
+          this.previewUrl.set(downloadUrl);
           this.previewLoading.set(false);
         },
         error: () => {
@@ -1790,63 +1608,6 @@ export class OffertesCreateComponent implements OnInit {
       style: 'currency',
       currency: 'EUR',
     }).format(amount);
-  }
-
-  private catalogProductId(item: AutocompleteItemResponse): string | undefined {
-    if (item.sourceType !== 'catalog') {
-      return undefined;
-    }
-    return item.catalogProductId ?? item.id;
-  }
-
-  private formatAutocompleteDescription(item: AutocompleteItemResponse): string {
-    if (item.sourceType === 'catalog') {
-      return this.formatCatalogDescription(item.title, item.description ?? '');
-    }
-
-    return this.formatReferenceDescription(item.title, item.description ?? '');
-  }
-
-  private formatCatalogDescription(title: string, descriptionHtml: string): string {
-    const safeTitle = this.escapeHtml(title.trim());
-    const body = descriptionHtml.trim();
-    if (!safeTitle) return body;
-    if (!body) return `<p><strong>${safeTitle}</strong></p>`;
-    return `<p><strong>${safeTitle}</strong></p>${body}`;
-  }
-
-  private formatReferenceDescription(title: string, description: string): string {
-    const safeTitle = this.escapeHtml(title.trim());
-    const safeBody = this.escapeHtml(description.trim()).replaceAll('\n', '<br>');
-    if (!safeTitle) {
-      return safeBody;
-    }
-    if (!safeBody) {
-      return `<p><strong>${safeTitle}</strong></p>`;
-    }
-    return `<p><strong>${safeTitle}</strong></p><p>${safeBody}</p>`;
-  }
-
-  private escapeHtml(value: string): string {
-    return value
-      .replaceAll('&', '&amp;')
-      .replaceAll('<', '&lt;')
-      .replaceAll('>', '&gt;')
-      .replaceAll('"', '&quot;')
-      .replaceAll("'", '&#39;');
-  }
-
-  private formatDescriptionWithIncludedMaterials(
-    baseDescription: string,
-    includedTitles: string[],
-  ): string {
-    if (includedTitles.length === 0) return baseDescription;
-
-    const includedBlockLines = [
-      this.translate.instant('offertes.includedMaterialsLabel'),
-      ...includedTitles.map((title) => `- ${title}`),
-    ];
-    return `${baseDescription}<br><br>${includedBlockLines.join('<br>')}`;
   }
 
   private ensureInitialLineItem(): void {
