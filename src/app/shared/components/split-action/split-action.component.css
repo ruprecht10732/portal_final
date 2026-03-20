@@ -4,6 +4,35 @@
 
 .split-action {
   display: inline-flex;
-  align-items: center;
-  gap: 0.25rem;
+  align-items: stretch;
+}
+
+/* Primary button: round left corners, flat right */
+:host ::ng-deep .split-primary button {
+  border-top-right-radius: 0;
+  border-bottom-right-radius: 0;
+}
+
+/* Menu trigger: round right corners, flat left, match height */
+:host ::ng-deep .split-menu,
+:host ::ng-deep .split-menu shared-button,
+:host ::ng-deep .split-menu button {
+  display: flex;
+  align-self: stretch;
+}
+
+:host ::ng-deep .split-menu button {
+  border-top-left-radius: 0;
+  border-bottom-left-radius: 0;
+  border-left: none;
+  box-shadow: none;
+  padding-inline: 0.5rem;
+  height: 100%;
+}
+
+/* Thin divider between the two halves */
+.split-divider {
+  width: 1px;
+  align-self: stretch;
+  background-color: rgba(255, 255, 255, 0.25);
 }

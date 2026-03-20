@@ -1,33 +1,39 @@
 <div class="split-action">
-  <shared-button
-    [variant]="primaryVariant()"
-    [size]="size()"
-    [fullWidth]="false"
-    [disabled]="primaryDisabled()"
-    [loading]="primaryLoading()"
-    [uppercase]="false"
-    [ariaLabel]="primaryAriaLabel() || (primaryLabel() | translate)"
-    (clicked)="onPrimaryClick()"
-  >
-    <ng-content select="[primaryIcon]"></ng-content>
-    {{ primaryLabel() | translate }}
-  </shared-button>
+  <div class="split-primary">
+    <shared-button
+      [variant]="primaryVariant()"
+      [size]="size()"
+      [fullWidth]="false"
+      [disabled]="primaryDisabled()"
+      [loading]="primaryLoading()"
+      [uppercase]="false"
+      [ariaLabel]="primaryAriaLabel() || (primaryLabel() | translate)"
+      (clicked)="onPrimaryClick()"
+    >
+      <ng-content select="[primaryIcon]"></ng-content>
+      {{ primaryLabel() | translate }}
+    </shared-button>
+  </div>
 
-  <shared-menu
-    [triggerLabel]="menuTriggerLabel()"
-    [triggerVariant]="menuVariant()"
-    [triggerSize]="size()"
-    [triggerShape]="'square'"
-    [iconOnly]="true"
-    [showChevron]="false"
-    [fullWidth]="false"
-    [disabled]="menuDisabled()"
-    [sections]="menuSections()"
-    [ariaLabel]="menuAriaLabel() || menuTriggerLabel()"
-    (itemSelected)="onMenuItemSelected($event)"
-  >
-    <svg menuTrigger class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
-      <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
-    </svg>
-  </shared-menu>
+  <div class="split-divider"></div>
+
+  <div class="split-menu">
+    <shared-menu
+      [triggerLabel]="menuTriggerLabel()"
+      [triggerVariant]="primaryVariant()"
+      [triggerSize]="size()"
+      [triggerShape]="'default'"
+      [iconOnly]="true"
+      [showChevron]="false"
+      [fullWidth]="false"
+      [disabled]="menuDisabled()"
+      [sections]="menuSections()"
+      [ariaLabel]="menuAriaLabel() || menuTriggerLabel()"
+      (itemSelected)="onMenuItemSelected($event)"
+    >
+      <svg menuTrigger class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" aria-hidden="true">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 9l6 6 6-6" />
+      </svg>
+    </shared-menu>
+  </div>
 </div>
