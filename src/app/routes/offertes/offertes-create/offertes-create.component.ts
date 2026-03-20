@@ -10,7 +10,6 @@ import {
 import {
   CdkDragDrop,
   DragDropModule,
-  moveItemInArray,
   CdkDragStart,
   CdkDragEnd,
 } from '@angular/cdk/drag-drop';
@@ -23,10 +22,8 @@ import { FormBuilder, ReactiveFormsModule } from '@angular/forms';
 import {
   EMPTY,
   Subject,
-  Observable,
   debounceTime,
   switchMap,
-  map,
   catchError,
   of,
 } from 'rxjs';
@@ -34,10 +31,7 @@ import {
 import { LeadsService } from '../../../core/services/leads.service';
 import { QuotesService } from '../../../core/services/quotes.service';
 import { OrganizationService } from '../../../core/services/organization.service';
-import {
-  CatalogService,
-  type AutocompleteItemResponse,
-} from '../../../core/services/catalog.service';
+import { CatalogService } from '../../../core/services/catalog.service';
 import { AIJobService } from '../../../core/services/ai-job.service';
 import { IsdeService } from '../../../core/services/isde.service';
 import type { Lead } from '../../../core/services/leads.types';
@@ -47,7 +41,6 @@ import type {
   TaxRateDisplay,
   DiscountType,
   PricingMode,
-  QuoteItemRequest,
   QuoteCalculationResponse,
   GenerateQuoteRequest,
   CreateQuoteFeedbackRequest,
@@ -95,11 +88,33 @@ import {
 } from '../../../shared/components/attachment-panel/attachment-panel.component';
 import { FilePreviewDialogComponent } from '../../../shared/components/file-preview-dialog/file-preview-dialog.component';
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet';
-import { OffertesCreateAttachmentsService } from './offertes-create-attachments.service';
 import {
-  buildGhostAcceptanceSnapshot,
-  buildMaterialExpansionSnapshot,
+  OffertesCreateAttachmentsService,
+  type AttachmentPreviewState,
+} from './offertes-create-attachments.service';
+import { OffertesCreatePersistenceService } from './offertes-create-persistence.service';
+import {
+  acceptGhostSuggestion,
+  buildGhostAcceptanceDescriptionState,
+  buildMaterialExpansionDescriptionState,
+  expandAcceptedMaterials,
+  searchCatalogSuggestions,
 } from './offertes-create-catalog.utils';
+import {
+  buildSubsidyAnalysisDraftPayload as buildDraftSubsidyAnalysisPayload,
+  buildSubsidyAnalysisSourceFingerprint as buildDraftSubsidyAnalysisSourceFingerprint,
+  getSubsidyAnalysisSourceItems as getDraftSubsidyAnalysisSourceItems,
+} from './offertes-create-subsidy-analysis.utils';
+import {
+  addLineItemEditorState,
+  ensureInitialLineItemState,
+  getLineItemTotal as getDraftLineItemTotal,
+  isDescriptionEditing as isLineItemDescriptionEditing,
+  reorderLineItems,
+  removeLineItemEditorState,
+  setDescriptionEditing as setLineItemDescriptionEditing,
+  updateLineItemValue,
+} from './offertes-create-line-items.utils';
 import { QuoteLineItemRowComponent } from './quote-line-item-row.component';
 import { QuotePricingIntelligencePanelComponent } from '../quote-pricing-intelligence-panel/quote-pricing-intelligence-panel.component';
 import {
@@ -109,10 +124,12 @@ import {
   deriveLeadSelectionState,
 } from './offertes-create-lead.utils';
 import type {
+  DescriptionEditState,
   EditableSubsidyInstallationField,
   EditableSubsidyMeasureField,
   EditableSubsidyValue,
   ISDEMeasureID,
+  LineItemField,
   LineItemDraft,
   SubsidyInstallationDraft,
   SubsidyMeasureDraft,
@@ -125,14 +142,12 @@ import {
   type QuoteDraftPayload,
 } from './offertes-create-quote.utils';
 import {
-  applySubsidyInstallationUpdate,
-  applySubsidyMeasureUpdate,
-  buildSubsidyMeasuresFromAIResult,
-  createDefaultSubsidyInstallation,
-  createDefaultSubsidyMeasure,
+  addSubsidyInstallationRow,
+  addSubsidyMeasureRow,
+  buildAISubsidyPrefillSnapshot,
+  buildAppliedQuoteSubsidyState,
+  buildLineItemSubsidyPrefillSnapshot,
   createDraftUid,
-  defaultSubsidyExecutionYear,
-  inferSubsidyMeasureFromLineItem,
   installationUsesHeatPumpFormula,
   installationUsesMeldcode,
   ISDE_EXECUTION_YEAR_OPTIONS,
@@ -145,10 +160,13 @@ import {
   measurePerformanceHint,
   measureSupportsMKI,
   measureSupportsPairStacking,
+  removeSubsidyInstallationRow,
+  removeSubsidyMeasureRow,
+  serializeSubsidyCalculationPayload as serializeDraftSubsidyCalculationPayload,
   toRequestedInstallation,
   toRequestedMeasure,
-  toSubsidyInstallationDraft,
-  toSubsidyMeasureDraft,
+  updateSubsidyInstallationRow,
+  updateSubsidyMeasureRow,
 } from './offertes-create-subsidy.utils';
 
 @Component({
@@ -194,7 +212,7 @@ export class OffertesCreateComponent implements OnInit {
   private readonly destroyRef = inject(DestroyRef);
   private readonly userService = inject(UserService);
   private readonly attachmentsService = inject(OffertesCreateAttachmentsService);
-  private readonly materialExpandRequestSeq = new Map<string, number>();
+  private readonly persistenceService = inject(OffertesCreatePersistenceService);
   private readonly createUid = () => createDraftUid();
 
   private readonly currentUser = toSignal(
@@ -265,7 +283,7 @@ export class OffertesCreateComponent implements OnInit {
   // Line items
   protected readonly lineItems = signal<LineItemDraft[]>([]);
   protected readonly isDraggingLineItems = signal(false);
-  protected readonly descriptionEditState = signal<Record<string, boolean>>({});
+  protected readonly descriptionEditState = signal<DescriptionEditState>({});
 
   // Document attachments & URLs (collected from catalog autocomplete + manual uploads)
   protected readonly attachmentDrafts = signal<AttachmentDraft[]>([]);
@@ -662,31 +680,27 @@ export class OffertesCreateComponent implements OnInit {
 
   // Line item management
   protected addLineItem(): void {
-    const item = this.createEmptyLineItem();
-    this.lineItems.update((items) => [...items, item]);
-    this.descriptionEditState.update((state) => ({ ...state, [item.id]: true }));
+    const nextState = addLineItemEditorState({
+      lineItems: this.lineItems(),
+      descriptionEditState: this.descriptionEditState(),
+      lastUsedTaxRate: this.lastUsedTaxRate(),
+      createUid: this.createUid,
+    });
+    this.lineItems.set(nextState.lineItems);
+    this.descriptionEditState.set(nextState.descriptionEditState);
     this.requestCalculation();
   }
 
   protected removeLineItem(id: string): void {
-    const removedGeneratedIds = this.lineItems()
-      .filter((item) => item.parentLineItemId === id)
-      .map((item) => item.id);
-
-    this.lineItems.update((items) => {
-      if (items.length <= 1) {
-        const item = this.createEmptyLineItem();
-        this.descriptionEditState.set({ [item.id]: true });
-        return [item];
-      }
-      return items.filter((item) => item.id !== id && item.parentLineItemId !== id);
+    const nextState = removeLineItemEditorState({
+      lineItems: this.lineItems(),
+      descriptionEditState: this.descriptionEditState(),
+      id,
+      lastUsedTaxRate: this.lastUsedTaxRate(),
+      createUid: this.createUid,
     });
-    this.descriptionEditState.update((state) => {
-      const next = { ...state };
-      delete next[id];
-      for (const generatedId of removedGeneratedIds) delete next[generatedId];
-      return next;
-    });
+    this.lineItems.set(nextState.lineItems);
+    this.descriptionEditState.set(nextState.descriptionEditState);
     this.requestCalculation();
   }
 
@@ -700,35 +714,28 @@ export class OffertesCreateComponent implements OnInit {
 
   protected onLineItemDrop(event: CdkDragDrop<LineItemDraft[]>): void {
     if (event.previousIndex === event.currentIndex) return;
-    this.lineItems.update((items) => {
-      const reordered = [...items];
-      moveItemInArray(reordered, event.previousIndex, event.currentIndex);
-      return reordered;
-    });
+    this.lineItems.set(
+      reorderLineItems(this.lineItems(), event.previousIndex, event.currentIndex),
+    );
     this.requestCalculation();
   }
 
   protected isDescriptionEditing(item: LineItemDraft): boolean {
-    const current = this.descriptionEditState()[item.id];
-    if (current !== undefined) return current;
-    return !(item.catalogProductId && /<[^>]+>/.test(item.description));
+    return isLineItemDescriptionEditing(item, this.descriptionEditState());
   }
 
   protected setDescriptionEditing(item: LineItemDraft, editing: boolean): void {
-    this.descriptionEditState.update((state) => ({ ...state, [item.id]: editing }));
+    this.descriptionEditState.set(
+      setLineItemDescriptionEditing(this.descriptionEditState(), item.id, editing),
+    );
   }
 
   protected updateLineItem(
     id: string,
-    field: 'title' | 'description' | 'quantity' | 'unitPrice' | 'taxRate' | 'optional',
+    field: LineItemField,
     value: string | number | boolean | null,
   ): void {
-    this.lineItems.update((items) =>
-      items.map((item) => {
-        if (item.id !== id) return item;
-        return { ...item, [field]: value };
-      }),
-    );
+    this.lineItems.set(updateLineItemValue(this.lineItems(), id, field, value));
     this.requestCalculation();
   }
 
@@ -753,14 +760,12 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected getLineItemTotal(item: LineItemDraft): number {
-    const calc = this.serverCalc();
-    if (calc?.lines && item.description.trim() !== '') {
-      const validItems = this.lineItems().filter((lineItem) => lineItem.description.trim() !== '');
-      const validIndex = validItems.findIndex((lineItem) => lineItem.id === item.id);
-      const serverLine = validIndex >= 0 ? calc.lines[validIndex] : undefined;
-      if (serverLine) return centsToEuros(serverLine.lineTotalCents);
-    }
-    return parseQuantityNumber(item.quantity) * this.getUnitPriceValue(item);
+    return getDraftLineItemTotal({
+      item,
+      lineItems: this.lineItems(),
+      serverCalc: this.serverCalc(),
+      getUnitPriceValue: (lineItem) => this.getUnitPriceValue(lineItem),
+    });
   }
 
   // Summary form handlers
@@ -840,113 +845,45 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   private prefillFromAISuggestion(result: AnalyzeSubsidyDraftResult): void {
-    const inferredMeasures = this.getSubsidyAnalysisSourceItems()
-      .map((item) => inferSubsidyMeasureFromLineItem(item, this.createUid))
-      .filter((row): row is SubsidyMeasureDraft => row !== null);
-    const measures = buildSubsidyMeasuresFromAIResult(result, inferredMeasures, this.createUid);
+    const snapshot = buildAISubsidyPrefillSnapshot({
+      result,
+      sourceItems: this.getSubsidyAnalysisSourceItems(),
+      createUid: this.createUid,
+      buildAnalysisSourceFingerprint: () => this.buildSubsidyAnalysisSourceFingerprint(),
+    });
 
-    if (measures.length > 0) {
-      this.subsidyMeasures.set(measures);
-    }
-
-    if (result.installation_meldcode_id) {
-      this.subsidyInstallations.set([
-        {
-          uid: this.createUid(),
-          kind: 'meldcode',
-          meldcode: result.installation_meldcode_id,
-          heatPumpType: 'air_water',
-          heatPumpEnergyLabel: 'A++',
-          isAdditionalUnit: false,
-          isSplitSystem: false,
-        }
-      ]);
-    }
-
-    this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
+    this.subsidyMeasures.set(snapshot.subsidyMeasures);
+    this.subsidyInstallations.set(snapshot.subsidyInstallations);
+    this.lastSubsidyAnalysisSourceFingerprint.set(snapshot.lastSubsidyAnalysisSourceFingerprint);
   }
+
   private prefillSubsidyFromLineItems(): void {
-    const measures = this.getSubsidyAnalysisSourceItems()
-      .map((item) => inferSubsidyMeasureFromLineItem(item, this.createUid))
-      .filter((row): row is SubsidyMeasureDraft => row !== null);
+    const snapshot = buildLineItemSubsidyPrefillSnapshot({
+      sourceItems: this.getSubsidyAnalysisSourceItems(),
+      existingMeasures: this.subsidyMeasures(),
+      existingInstallations: this.subsidyInstallations(),
+      createUid: this.createUid,
+      buildAnalysisSourceFingerprint: () => this.buildSubsidyAnalysisSourceFingerprint(),
+    });
 
-    if (measures.length > 0) {
-      this.subsidyMeasures.set(measures);
-      this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
-      return;
-    }
-
-    if (this.subsidyMeasures().length === 0 && this.subsidyInstallations().length === 0) {
-      this.subsidyMeasures.set([createDefaultSubsidyMeasure(this.createUid)]);
-    }
-
-    this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
+    this.subsidyMeasures.set(snapshot.subsidyMeasures);
+    this.subsidyInstallations.set(snapshot.subsidyInstallations);
+    this.lastSubsidyAnalysisSourceFingerprint.set(snapshot.lastSubsidyAnalysisSourceFingerprint);
   }
 
   private buildSubsidyAnalysisSourceFingerprint(): string | null {
-    const payload = this.buildSubsidyAnalysisDraftPayload();
-    return payload ? JSON.stringify(payload.items) : null;
+    return buildDraftSubsidyAnalysisSourceFingerprint(this.buildSubsidyAnalysisDraftPayload());
   }
 
   private buildSubsidyAnalysisDraftPayload(): AnalyzeSubsidyDraftRequest | null {
-    const items: QuoteItemRequest[] = this.getSubsidyAnalysisSourceItems()
-      .filter((item) => item.description.trim() !== '' || item.title.trim() !== '')
-      .map((item) => ({
-        ...(item.title ? { title: item.title } : {}),
-        description: item.description,
-        quantity: item.quantity,
-        unitPriceCents: eurosToCents(this.getUnitPriceValue(item)),
-        taxRateBps: taxDisplayToBps(item.taxRate),
-        isOptional: item.optional,
-      }));
-
-    if (items.length === 0) {
-      return null;
-    }
-
-    return { items };
+    return buildDraftSubsidyAnalysisPayload({
+      lineItems: this.getSubsidyAnalysisSourceItems(),
+      getUnitPriceValue: (item) => this.getUnitPriceValue(item),
+    });
   }
 
   private getSubsidyAnalysisSourceItems(): LineItemDraft[] {
-    const items = this.lineItems();
-    const liveDescriptions = this.readLiveSubsidyDescriptions();
-    const liveQuantities = this.readLiveSubsidyQuantities();
-
-    return items.map((item, index) => ({
-      ...item,
-      description: liveDescriptions[index] ?? item.description,
-      quantity: liveQuantities[index] ?? item.quantity,
-    }));
-  }
-
-  private readLiveSubsidyDescriptions(): string[] {
-    if (globalThis.document === undefined) {
-      return [];
-    }
-
-    return Array.from(globalThis.document.querySelectorAll<HTMLElement>('app-quote-line-item-row .ql-editor'))
-      .filter((element) => this.isElementVisible(element))
-      .map((element) => element.innerHTML.trim())
-      .filter((value) => value !== '');
-  }
-
-  private readLiveSubsidyQuantities(): string[] {
-    if (globalThis.document === undefined) {
-      return [];
-    }
-
-    return Array.from(
-      globalThis.document.querySelectorAll<HTMLInputElement>('app-quote-line-item-row input[placeholder="1, 10 m2, 1 stuk"]'),
-    )
-      .filter((element) => this.isElementVisible(element))
-      .map((element) => element.value.trim())
-      .filter((value) => value !== '');
-  }
-
-  private isElementVisible(element: HTMLElement): boolean {
-    const rect = element.getBoundingClientRect();
-    const style = globalThis.getComputedStyle(element);
-    return rect.width > 0 && rect.height > 0 && style.visibility !== 'hidden' && style.display !== 'none';
+    return getDraftSubsidyAnalysisSourceItems(this.lineItems());
   }
 
   protected closeSubsidyEditor(): void {
@@ -959,22 +896,23 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   protected addSubsidyMeasureRow(): void {
-    this.subsidyMeasures.update((rows) => [...rows, createDefaultSubsidyMeasure(this.createUid)]);
+    this.subsidyMeasures.set(addSubsidyMeasureRow(this.subsidyMeasures(), this.createUid));
   }
 
   protected removeSubsidyMeasureRow(uid: string): void {
-    this.subsidyMeasures.update((rows) => rows.filter((row) => row.uid !== uid));
+    this.subsidyMeasures.set(removeSubsidyMeasureRow(this.subsidyMeasures(), uid));
   }
 
   protected addSubsidyInstallationRow(): void {
-    this.subsidyInstallations.update((rows) => [
-      ...rows,
-      createDefaultSubsidyInstallation(this.createUid),
-    ]);
+    this.subsidyInstallations.set(
+      addSubsidyInstallationRow(this.subsidyInstallations(), this.createUid),
+    );
   }
 
   protected removeSubsidyInstallationRow(uid: string): void {
-    this.subsidyInstallations.update((rows) => rows.filter((row) => row.uid !== uid));
+    this.subsidyInstallations.set(
+      removeSubsidyInstallationRow(this.subsidyInstallations(), uid),
+    );
   }
 
   protected updateSubsidyMeasure(
@@ -982,8 +920,8 @@ export class OffertesCreateComponent implements OnInit {
     field: EditableSubsidyMeasureField,
     value: EditableSubsidyValue,
   ): void {
-    this.subsidyMeasures.update((rows) =>
-      rows.map((row) => (row.uid === uid ? applySubsidyMeasureUpdate(row, field, value) : row)),
+    this.subsidyMeasures.set(
+      updateSubsidyMeasureRow(this.subsidyMeasures(), uid, field, value),
     );
   }
 
@@ -992,10 +930,8 @@ export class OffertesCreateComponent implements OnInit {
     field: EditableSubsidyInstallationField,
     value: EditableSubsidyValue,
   ): void {
-    this.subsidyInstallations.update((rows) =>
-      rows.map((row) =>
-        row.uid === uid ? applySubsidyInstallationUpdate(row, field, value) : row,
-      ),
+    this.subsidyInstallations.set(
+      updateSubsidyInstallationRow(this.subsidyInstallations(), uid, field, value),
     );
   }
 
@@ -1065,7 +1001,7 @@ export class OffertesCreateComponent implements OnInit {
     const lead = this.selectedLead();
     if (!lead || this.lineItems().length === 0) return;
 
-    if (this.hasAttachmentUploadsInProgress()) {
+    if (this.attachmentsService.hasUploadsInProgress(this.attachmentDrafts())) {
       this.error.set(this.translate.instant('offertes.errors.save'));
       return;
     }
@@ -1081,11 +1017,59 @@ export class OffertesCreateComponent implements OnInit {
 
     const existing = this.isEditMode() ? this.existingQuote() : null;
     if (existing) {
-      this.saveExistingQuote(existing.id, payload, status);
+      const feedbackRequests = buildQuoteFeedbackRequests({
+        quote: this.existingQuote(),
+        lineItems: this.lineItems(),
+        leadServiceId: this.selectedLeadServiceId(),
+        getUnitPriceValue: (item) => this.getUnitPriceValue(item),
+      });
+
+      this.persistenceService
+        .saveExistingQuote({
+          quoteId: existing.id,
+          payload,
+          status,
+        })
+        .subscribe({
+          next: (quoteId) => {
+            this.submitQuoteFeedbackInBackground(quoteId, feedbackRequests);
+            this.navigateToQuote(quoteId, feedbackRequests.length);
+            this.saving.set(false);
+          },
+          error: () => {
+            this.error.set(this.translate.instant('offertes.errors.save'));
+            this.saving.set(false);
+          },
+        });
       return;
     }
 
-    this.createNewQuote(lead.id, payload, status);
+    const nextAttachmentDrafts = this.attachmentsService.markPendingUploads(this.attachmentDrafts());
+    this.attachmentDrafts.set(nextAttachmentDrafts);
+
+    this.persistenceService
+      .createNewQuote({
+        leadId: lead.id,
+        payload,
+        status,
+        attachmentDrafts: nextAttachmentDrafts,
+        urlDrafts: this.urlDrafts(),
+      })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: ({ quoteId, attachmentDrafts }) => {
+          this.attachmentDrafts.set(attachmentDrafts);
+          this.navigateToQuote(quoteId, 0);
+          this.saving.set(false);
+        },
+        error: () => {
+          this.attachmentDrafts.set(
+            this.attachmentsService.clearPendingUploadFlags(this.attachmentDrafts()),
+          );
+          this.error.set(this.translate.instant('offertes.errors.save'));
+          this.saving.set(false);
+        },
+      });
   }
 
   private buildQuotePayload(): QuoteDraftPayload {
@@ -1099,30 +1083,6 @@ export class OffertesCreateComponent implements OnInit {
       financingDisclaimer: this.financingDisclaimer(),
       isdeSubsidy: this.buildQuoteSubsidyPayload(),
       getUnitPriceValue: (item) => this.getUnitPriceValue(item),
-    });
-  }
-
-  private saveExistingQuote(
-    quoteId: string,
-    payload: QuoteDraftPayload,
-    status: 'Draft' | 'Sent',
-  ): void {
-    const feedbackRequests = buildQuoteFeedbackRequests({
-      quote: this.existingQuote(),
-      lineItems: this.lineItems(),
-      leadServiceId: this.selectedLeadServiceId(),
-      getUnitPriceValue: (item) => this.getUnitPriceValue(item),
-    });
-    this.quotesService.update(quoteId, payload).subscribe({
-      next: (updated) => {
-        this.submitQuoteFeedbackInBackground(updated.id, feedbackRequests);
-        this.navigateAfterSave(updated.id, status, feedbackRequests.length);
-        this.saving.set(false);
-      },
-      error: () => {
-        this.error.set(this.translate.instant('offertes.errors.save'));
-        this.saving.set(false);
-      },
     });
   }
 
@@ -1168,63 +1128,28 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   private applyQuoteSubsidyState(snapshot: QuoteISDESubsidy | undefined): void {
-    if (!snapshot) {
-      this.resetSubsidyState();
-      return;
-    }
+    const nextState = buildAppliedQuoteSubsidyState({
+      snapshot,
+      createUid: this.createUid,
+      buildAnalysisSourceFingerprint: () => this.buildSubsidyAnalysisSourceFingerprint(),
+    });
 
-    this.includeSubsidyInSummary.set(snapshot.includeInSummary ?? false);
-
-    if (!snapshot.input) {
-      this.subsidyMeasures.set([]);
-      this.subsidyInstallations.set([]);
-      this.subsidyResult.set(snapshot.result ?? null);
-      this.lastCalculatedSubsidyFingerprint.set(null);
-      this.lastSubsidyAnalysisSourceFingerprint.set(null);
-      return;
-    }
-
-    const defaultExecutionYear = defaultSubsidyExecutionYear();
-    this.subsidyExecutionYear.set(snapshot.input.executionYear ?? defaultExecutionYear);
-    this.previousSubsidiesWithin24Months.set(!!snapshot.input.previousSubsidiesWithin24Months);
-    this.hasExistingWarmtenetConnection.set(!!snapshot.input.hasExistingWarmtenetConnection);
-    this.hasReceivedWarmtenetSubsidy.set(!!snapshot.input.hasReceivedWarmtenetSubsidy);
-    this.subsidyMeasures.set(
-      (snapshot.input.measures ?? []).map((measure) => toSubsidyMeasureDraft(measure, this.createUid)),
-    );
-    this.subsidyInstallations.set(
-      (snapshot.input.installations ?? []).map((installation) =>
-        toSubsidyInstallationDraft(installation, this.createUid),
-      ),
-    );
-    this.subsidyResult.set(snapshot.result ?? null);
-    this.lastCalculatedSubsidyFingerprint.set(
-      this.serializeSubsidyCalculationPayload(snapshot.input),
-    );
-    this.lastSubsidyAnalysisSourceFingerprint.set(this.buildSubsidyAnalysisSourceFingerprint());
-  }
-
-  private resetSubsidyState(): void {
-    const defaultExecutionYear = defaultSubsidyExecutionYear();
-    this.includeSubsidyInSummary.set(false);
-    this.subsidyResult.set(null);
-    this.lastCalculatedSubsidyFingerprint.set(null);
-    this.lastSubsidyAnalysisSourceFingerprint.set(null);
-    this.subsidyExecutionYear.set(defaultExecutionYear);
-    this.previousSubsidiesWithin24Months.set(false);
-    this.hasExistingWarmtenetConnection.set(false);
-    this.hasReceivedWarmtenetSubsidy.set(false);
-    this.subsidyMeasures.set([]);
-    this.subsidyInstallations.set([]);
+    this.includeSubsidyInSummary.set(nextState.includeInSummary);
+    this.subsidyResult.set(nextState.subsidyResult);
+    this.lastCalculatedSubsidyFingerprint.set(nextState.lastCalculatedSubsidyFingerprint);
+    this.lastSubsidyAnalysisSourceFingerprint.set(nextState.lastSubsidyAnalysisSourceFingerprint);
+    this.subsidyExecutionYear.set(nextState.subsidyExecutionYear);
+    this.previousSubsidiesWithin24Months.set(nextState.previousSubsidiesWithin24Months);
+    this.hasExistingWarmtenetConnection.set(nextState.hasExistingWarmtenetConnection);
+    this.hasReceivedWarmtenetSubsidy.set(nextState.hasReceivedWarmtenetSubsidy);
+    this.subsidyMeasures.set(nextState.subsidyMeasures);
+    this.subsidyInstallations.set(nextState.subsidyInstallations);
   }
 
   private serializeSubsidyCalculationPayload(
     payload: ISDECalculationRequest | null,
   ): string | null {
-    if (!payload) {
-      return null;
-    }
-    return JSON.stringify(payload);
+    return serializeDraftSubsidyCalculationPayload(payload);
   }
 
   private submitQuoteFeedbackInBackground(
@@ -1242,65 +1167,10 @@ export class OffertesCreateComponent implements OnInit {
     }
   }
 
-  private createNewQuote(
-    leadId: string,
-    payload: QuoteDraftPayload,
-    status: 'Draft' | 'Sent',
-  ): void {
-    this.quotesService
-      .create({ leadId, ...payload })
-      .pipe(
-        switchMap((created) =>
-          this.uploadPendingFiles(created.id).pipe(
-            switchMap(() => this.sendIfRequested(created.id, status)),
-            map(() => created.id),
-          ),
-        ),
-        takeUntilDestroyed(this.destroyRef),
-      )
-      .subscribe({
-        next: (quoteId) => {
-          this.navigateToQuote(quoteId, 0);
-          this.saving.set(false);
-        },
-        error: () => {
-          this.clearPendingUploadFlags();
-          this.error.set(this.translate.instant('offertes.errors.save'));
-          this.saving.set(false);
-        },
-      });
-  }
-
-  private sendIfRequested(quoteId: string, status: 'Draft' | 'Sent'): Observable<void> {
-    if (status !== 'Sent') {
-      return of(void 0);
-    }
-    return this.quotesService.updateStatus(quoteId, 'Sent').pipe(map(() => void 0));
-  }
-
   private navigateToQuote(quoteId: string, feedbackCount: number): void {
     const navigationExtras =
       feedbackCount > 0 ? { state: { aiFeedbackCount: feedbackCount } } : undefined;
     void this.router.navigate(['/app/offertes', quoteId], navigationExtras);
-  }
-
-  private navigateAfterSave(
-    quoteId: string,
-    status: 'Draft' | 'Sent',
-    feedbackCount: number,
-  ): void {
-    const navigationExtras =
-      feedbackCount > 0 ? { state: { aiFeedbackCount: feedbackCount } } : undefined;
-
-    if (status !== 'Sent') {
-      void this.router.navigate(['/app/offertes', quoteId], navigationExtras);
-      return;
-    }
-
-    this.quotesService.updateStatus(quoteId, 'Sent').subscribe({
-      next: () => void this.router.navigate(['/app/offertes', quoteId], navigationExtras),
-      error: () => void this.router.navigate(['/app/offertes', quoteId], navigationExtras),
-    });
   }
 
   protected cancel(): void {
@@ -1363,48 +1233,29 @@ export class OffertesCreateComponent implements OnInit {
    * Returns catalog product suggestions as GhostSuggestion[].
    */
   protected readonly catalogSearchFn = (query: string) =>
-    this.catalogService.searchForAutocomplete(query, 10).pipe(
-      map((items) =>
-        items.map(
-          (item) =>
-            ({
-              displayText: item.title,
-              payload: item,
-            }) satisfies GhostSuggestion,
-        ),
-      ),
-    );
+    searchCatalogSuggestions(this.catalogService, query);
 
   /**
    * Called when a ghost-text suggestion is accepted (Tab) for a line item.
    * Populates the line item with catalog product data and collects its documents/urls.
    */
   protected onGhostAccepted(itemId: string, suggestion: GhostSuggestion): void {
-    const product = suggestion.payload as AutocompleteItemResponse;
-    const accepted = buildGhostAcceptanceSnapshot({
+    const { accepted, product, requestSeq } = acceptGhostSuggestion({
       itemId,
-      product,
+      suggestion,
       lineItems: this.lineItems(),
       attachmentCount: this.attachmentDrafts().length,
       createUid: this.createUid,
     });
-    const requestSeq = (this.materialExpandRequestSeq.get(itemId) ?? 0) + 1;
-    this.materialExpandRequestSeq.set(itemId, requestSeq);
-
-    // Snapshot the description set at ghost-accept time so the async materials
-    // callback can detect whether the user manually changed it before the fetch
-    // resolved, and avoid overwriting those manual edits.
-    const initialDescription = accepted.initialDescription;
 
     this.lineItems.set(accepted.nextLineItems);
-    this.descriptionEditState.update((state) => ({ ...state, [itemId]: false }));
-    if (accepted.previousGeneratedIds.length) {
-      this.descriptionEditState.update((state) => {
-        const next = { ...state };
-        for (const id of accepted.previousGeneratedIds) delete next[id];
-        return next;
-      });
-    }
+    this.descriptionEditState.update((state) =>
+      buildGhostAcceptanceDescriptionState({
+        state,
+        itemId,
+        previousGeneratedIds: accepted.previousGeneratedIds,
+      }),
+    );
 
     if (accepted.newAttachments.length > 0) {
       this.attachmentDrafts.update((existing) => [...existing, ...accepted.newAttachments]);
@@ -1419,36 +1270,31 @@ export class OffertesCreateComponent implements OnInit {
       return;
     }
 
-    this.catalogService
-      .listProductMaterials(accepted.catalogProductId)
+    expandAcceptedMaterials(this.catalogService, {
+        itemId,
+        requestSeq,
+        accepted,
+        product,
+        includedMaterialsLabel: this.translate.instant('offertes.includedMaterialsLabel'),
+        createUid: this.createUid,
+        getLineItems: () => this.lineItems(),
+      })
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
-        next: (materials) => {
-          if (this.materialExpandRequestSeq.get(itemId) !== requestSeq) return;
+        next: (expansion) => {
+          if (!expansion) {
+            return;
+          }
 
-          const currentParent = this.lineItems().find((item) => item.id === itemId);
-          if (currentParent?.catalogProductId !== accepted.catalogProductId) return;
-          if (!currentParent) return;
-          // If the user manually edited the description after accepting the ghost
-          // suggestion, don't overwrite their changes with the materials list.
-          if (currentParent.description !== initialDescription) return;
-
-          const expansion = buildMaterialExpansionSnapshot({
-            itemId,
-            materials,
-            lineItems: this.lineItems(),
-            parentTaxRate: currentParent.taxRate,
-            product,
-            includedMaterialsLabel: this.translate.instant('offertes.includedMaterialsLabel'),
-            createUid: this.createUid,
-          });
           this.lineItems.set(expansion.nextLineItems);
 
-          this.descriptionEditState.update((state) => {
-            const next = { ...state, [itemId]: false };
-            for (const row of expansion.generatedRows) next[row.id] = false;
-            return next;
-          });
+          this.descriptionEditState.update((state) =>
+            buildMaterialExpansionDescriptionState({
+              state,
+              itemId,
+              generatedRows: expansion.generatedRows,
+            }),
+          );
 
           this.requestCalculation();
         },
@@ -1469,62 +1315,36 @@ export class OffertesCreateComponent implements OnInit {
    * In create mode: stores the File in the draft; upload is deferred to save().
    */
   protected onManualUploadRequested(file: File): void {
-    const quote = this.existingQuote();
-    const draft = this.attachmentsService.createManualDraft(
+    const plan = this.attachmentsService.createManualUploadPlan({
       file,
-      this.attachmentDrafts().length,
-      this.createUid,
-    );
+      quoteId: this.existingQuote()?.id ?? null,
+      drafts: this.attachmentDrafts(),
+      createUid: this.createUid,
+    });
 
-    if (quote) {
-      // Edit mode — upload immediately via presigned URL
-      this.attachmentDrafts.update((existing) => [...existing, { ...draft, uploading: true }]);
-      this.attachmentsService
-        .uploadManualAttachment(quote.id, file)
-        .pipe(takeUntilDestroyed(this.destroyRef))
-        .subscribe({
-          next: (fileKey) => {
-            this.attachmentDrafts.update((items) =>
-              items.map((a) => (a.uid === draft.uid ? { ...a, fileKey, uploading: false } : a)),
-            );
-          },
-          error: () => {
-            this.attachmentDrafts.update((items) => items.filter((a) => a.uid !== draft.uid));
-          },
-        });
-    } else {
-      // Create mode — defer upload until after save creates the quote
-      this.attachmentDrafts.update((existing) => [...existing, { ...draft, pendingFile: file }]);
+    this.attachmentDrafts.set(plan.nextDrafts);
+
+    if (!plan.upload$) {
+      return;
     }
-  }
 
-  /**
-   * After a quote is created, upload any pending manual files and re-save attachments.
-   */
-  private uploadPendingFiles(quoteId: string): Observable<void> {
-    const pending = this.attachmentDrafts().filter((a) => a.pendingFile);
-    if (pending.length === 0) return of(void 0);
+    const uploadedDraftUid = plan.nextDrafts.at(-1)?.uid;
+    if (!uploadedDraftUid) {
+      return;
+    }
 
-    this.attachmentDrafts.set(this.attachmentsService.markPendingUploads(this.attachmentDrafts()));
-
-    return this.attachmentsService.uploadPendingDrafts(quoteId, this.attachmentDrafts()).pipe(
-      switchMap((updatedDrafts) => {
-        this.attachmentDrafts.set(updatedDrafts);
-        return this.attachmentsService
-          .saveAttachmentsToQuote(quoteId, updatedDrafts, this.urlDrafts())
-          .pipe(map(() => void 0));
-      }),
-    );
-  }
-
-  private clearPendingUploadFlags(): void {
-    this.attachmentDrafts.set(
-      this.attachmentsService.clearPendingUploadFlags(this.attachmentDrafts()),
-    );
-  }
-
-  private hasAttachmentUploadsInProgress(): boolean {
-    return this.attachmentsService.hasUploadsInProgress(this.attachmentDrafts());
+    plan.upload$
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: (drafts) => {
+          this.attachmentDrafts.set(drafts);
+        },
+        error: () => {
+          this.attachmentDrafts.update((items) =>
+            this.attachmentsService.removeDraft(items, uploadedDraftUid),
+          );
+        },
+      });
   }
 
   // ── URL Management ──────────────────────────────────────────────────────────
@@ -1544,53 +1364,52 @@ export class OffertesCreateComponent implements OnInit {
   // ── File Preview ────────────────────────────────────────────────────────────
 
   protected openPreview(att: AttachmentDraft): void {
-    const quote = this.existingQuote();
+    const plan = this.attachmentsService.buildRemotePreviewOpenPlan(
+      att,
+      this.existingQuote()?.id ?? null,
+    );
 
-    // 1. For pending (not-yet-uploaded) files, use a local object URL
-    if (att.pendingFile) {
-      this.previewOpen.set(true);
-      this.previewAttachment.set(att);
-      this.previewUrl.set(URL.createObjectURL(att.pendingFile));
-      this.previewLoading.set(false);
-      this.previewError.set(null);
+    if (!plan) {
       return;
     }
 
-    // 2. Catalog attachment with known asset ID → use catalog download endpoint
-    if (!quote) return;
+    this.applyPreviewState(plan.state);
 
-    this.previewOpen.set(true);
-    this.previewLoading.set(true);
-    this.previewError.set(null);
-    this.previewUrl.set(null);
-    this.previewAttachment.set(att);
+    if (!plan.remoteUrl$) {
+      return;
+    }
 
-    this.attachmentsService
-      .getRemotePreviewUrl(att, quote.id)
+    plan.remoteUrl$
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: (downloadUrl) => {
-          this.previewUrl.set(downloadUrl);
-          this.previewLoading.set(false);
+          const nextState = this.attachmentsService.buildRemotePreviewSuccessState(
+            att,
+            downloadUrl,
+          );
+          this.applyPreviewState(nextState);
         },
         error: () => {
-          this.previewError.set(this.translate.instant('offertes.errors.loadPreview'));
-          this.previewLoading.set(false);
+          const nextState = this.attachmentsService.buildRemotePreviewErrorState(
+            att,
+            this.translate.instant('offertes.errors.loadPreview'),
+          );
+          this.applyPreviewState(nextState);
         },
       });
   }
 
   protected closePreview(): void {
-    // Revoke object URL if it was a local preview
-    const url = this.previewUrl();
-    if (url?.startsWith('blob:')) {
-      URL.revokeObjectURL(url);
-    }
-    this.previewOpen.set(false);
-    this.previewLoading.set(false);
-    this.previewError.set(null);
-    this.previewUrl.set(null);
-    this.previewAttachment.set(null);
+    const nextState = this.attachmentsService.buildClosedPreviewState(this.previewUrl());
+    this.applyPreviewState(nextState);
+  }
+
+  private applyPreviewState(state: AttachmentPreviewState): void {
+    this.previewOpen.set(state.previewOpen);
+    this.previewLoading.set(state.previewLoading);
+    this.previewError.set(state.previewError);
+    this.previewUrl.set(state.previewUrl);
+    this.previewAttachment.set(state.previewAttachment);
   }
 
   /** Triggers a debounced server-side calculation. */
@@ -1611,23 +1430,14 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   private ensureInitialLineItem(): void {
-    if (this.lineItems().length === 0) {
-      const item = this.createEmptyLineItem();
-      this.lineItems.set([item]);
-      this.descriptionEditState.set({ [item.id]: true });
-    }
-  }
-
-  private createEmptyLineItem(): LineItemDraft {
-    return {
-      id: crypto.randomUUID(),
-      title: '',
-      description: '',
-      quantity: '1 x',
-      unitPrice: null,
-      taxRate: this.lastUsedTaxRate(),
-      optional: false,
-    };
+    const nextState = ensureInitialLineItemState({
+      lineItems: this.lineItems(),
+      descriptionEditState: this.descriptionEditState(),
+      lastUsedTaxRate: this.lastUsedTaxRate(),
+      createUid: this.createUid,
+    });
+    this.lineItems.set(nextState.lineItems);
+    this.descriptionEditState.set(nextState.descriptionEditState);
   }
 
   private bindViewportMode(): void {

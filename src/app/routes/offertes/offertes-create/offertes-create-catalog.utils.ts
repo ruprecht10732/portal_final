@@ -1,11 +1,16 @@
+import { map, Observable, of } from 'rxjs';
 import {
+  CatalogService,
   type AutocompleteItemResponse,
   type MaterialPricingMode,
   type Product,
 } from '../../../core/services/catalog.service';
 import { centsToEuros, taxBpsToDisplay, type TaxRateDisplay } from '../../../core/services/quotes.types';
+import { type GhostSuggestion } from '../../../shared/components/ghost-text/ghost-text.directive';
 import type { AttachmentDraft } from '../../../shared/components/attachment-panel/attachment-panel.component';
-import type { LineItemDraft, UrlDraft } from './offertes-create.models';
+import type { DescriptionEditState, LineItemDraft, UrlDraft } from './offertes-create.models';
+
+const materialExpandRequestSeq = new Map<string, number>();
 
 export interface GhostAcceptanceSnapshot {
   catalogProductId?: string;
@@ -19,6 +24,128 @@ export interface GhostAcceptanceSnapshot {
 export interface MaterialExpansionSnapshot {
   generatedRows: LineItemDraft[];
   nextLineItems: LineItemDraft[];
+}
+
+export interface GhostAcceptanceResult {
+  accepted: GhostAcceptanceSnapshot;
+  product: AutocompleteItemResponse;
+  requestSeq: number;
+}
+
+export function searchCatalogSuggestions(
+  catalogService: CatalogService,
+  query: string,
+): Observable<GhostSuggestion[]> {
+  return catalogService.searchForAutocomplete(query, 10).pipe(
+    map((items) =>
+      items.map(
+        (item) =>
+          ({
+            displayText: item.title,
+            payload: item,
+          }) satisfies GhostSuggestion,
+      ),
+    ),
+  );
+}
+
+export function acceptGhostSuggestion(input: {
+  itemId: string;
+  suggestion: GhostSuggestion;
+  lineItems: LineItemDraft[];
+  attachmentCount: number;
+  createUid: () => string;
+}): GhostAcceptanceResult {
+  const product = input.suggestion.payload as AutocompleteItemResponse;
+  const accepted = buildGhostAcceptanceSnapshot({
+    itemId: input.itemId,
+    product,
+    lineItems: input.lineItems,
+    attachmentCount: input.attachmentCount,
+    createUid: input.createUid,
+  });
+  const requestSeq = (materialExpandRequestSeq.get(input.itemId) ?? 0) + 1;
+  materialExpandRequestSeq.set(input.itemId, requestSeq);
+
+  return {
+    accepted,
+    product,
+    requestSeq,
+  };
+}
+
+export function expandAcceptedMaterials(
+  catalogService: CatalogService,
+  input: {
+    itemId: string;
+    requestSeq: number;
+    accepted: GhostAcceptanceSnapshot;
+    product: AutocompleteItemResponse;
+    includedMaterialsLabel: string;
+    createUid: () => string;
+    getLineItems: () => LineItemDraft[];
+  },
+): Observable<MaterialExpansionSnapshot | null> {
+  const catalogProductId = input.accepted.catalogProductId;
+  if (!catalogProductId) {
+    return of(null);
+  }
+
+  return catalogService.listProductMaterials(catalogProductId).pipe(
+    map((materials) => {
+      if (materialExpandRequestSeq.get(input.itemId) !== input.requestSeq) {
+        return null;
+      }
+
+      const lineItems = input.getLineItems();
+      const currentParent = lineItems.find((item) => item.id === input.itemId);
+      if (!currentParent) {
+        return null;
+      }
+
+      if (currentParent.catalogProductId !== catalogProductId) {
+        return null;
+      }
+
+      if (currentParent.description !== input.accepted.initialDescription) {
+        return null;
+      }
+
+      return buildMaterialExpansionSnapshot({
+        itemId: input.itemId,
+        materials,
+        lineItems,
+        parentTaxRate: currentParent.taxRate,
+        product: input.product,
+        includedMaterialsLabel: input.includedMaterialsLabel,
+        createUid: input.createUid,
+      });
+    }),
+  );
+}
+
+export function buildGhostAcceptanceDescriptionState(input: {
+  state: DescriptionEditState;
+  itemId: string;
+  previousGeneratedIds: string[];
+}): DescriptionEditState {
+  const next = { ...input.state, [input.itemId]: false };
+  for (const id of input.previousGeneratedIds) {
+    delete next[id];
+  }
+  return next;
+}
+
+export function buildMaterialExpansionDescriptionState(input: {
+  state: DescriptionEditState;
+  itemId: string;
+  generatedRows: LineItemDraft[];
+}): DescriptionEditState {
+  const next = { ...input.state, [input.itemId]: false };
+  for (const row of input.generatedRows) {
+    next[row.id] = false;
+  }
+  return next;
 }
 
 export function catalogProductId(item: AutocompleteItemResponse): string | undefined {

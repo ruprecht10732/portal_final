@@ -1,7 +1,15 @@
 import type { SelectOption } from '../../../shared/components/select/select.component';
-import type { AnalyzeSubsidyDraftResult } from '../../../core/services/quotes.types';
+import type {
+  AnalyzeSubsidyDraftResult,
+  QuoteISDESubsidy,
+} from '../../../core/services/quotes.types';
 import { parseQuantityNumber } from '../../../core/services/quotes.types';
-import type { RequestedInstallation, RequestedMeasure } from '../../../core/services/isde.types';
+import type {
+  ISDECalculationRequest,
+  ISDECalculationResponse,
+  RequestedInstallation,
+  RequestedMeasure,
+} from '../../../core/services/isde.types';
 import type {
   EditableSubsidyInstallationField,
   EditableSubsidyMeasureField,
@@ -17,6 +25,25 @@ import type {
 const HTML_TAG_PATTERN = /<[^>]+>/g;
 const WHITESPACE_PATTERN = /\s+/g;
 const AREA_PATTERN = /(\d+(?:[.,]\d+)?)\s*(m2|m²)/i;
+
+export interface SubsidyStateSnapshot {
+  includeInSummary: boolean;
+  subsidyResult: ISDECalculationResponse | null;
+  lastCalculatedSubsidyFingerprint: string | null;
+  lastSubsidyAnalysisSourceFingerprint: string | null;
+  subsidyExecutionYear: number;
+  previousSubsidiesWithin24Months: boolean;
+  hasExistingWarmtenetConnection: boolean;
+  hasReceivedWarmtenetSubsidy: boolean;
+  subsidyMeasures: SubsidyMeasureDraft[];
+  subsidyInstallations: SubsidyInstallationDraft[];
+}
+
+export interface SubsidyPrefillSnapshot {
+  subsidyMeasures: SubsidyMeasureDraft[];
+  subsidyInstallations: SubsidyInstallationDraft[];
+  lastSubsidyAnalysisSourceFingerprint: string | null;
+}
 
 export const ISDE_MEASURE_OPTIONS: ISDEMeasureOption[] = [
   { value: 'roof', label: 'Dakisolatie', performanceLabel: 'Rd-waarde' },
@@ -231,6 +258,177 @@ export function applySubsidyInstallationUpdate(
     default:
       return row;
   }
+}
+
+export function addSubsidyMeasureRow(
+  rows: SubsidyMeasureDraft[],
+  createUid: () => string,
+): SubsidyMeasureDraft[] {
+  return [...rows, createDefaultSubsidyMeasure(createUid)];
+}
+
+export function removeSubsidyMeasureRow(
+  rows: SubsidyMeasureDraft[],
+  uid: string,
+): SubsidyMeasureDraft[] {
+  return rows.filter((row) => row.uid !== uid);
+}
+
+export function addSubsidyInstallationRow(
+  rows: SubsidyInstallationDraft[],
+  createUid: () => string,
+): SubsidyInstallationDraft[] {
+  return [...rows, createDefaultSubsidyInstallation(createUid)];
+}
+
+export function removeSubsidyInstallationRow(
+  rows: SubsidyInstallationDraft[],
+  uid: string,
+): SubsidyInstallationDraft[] {
+  return rows.filter((row) => row.uid !== uid);
+}
+
+export function updateSubsidyMeasureRow(
+  rows: SubsidyMeasureDraft[],
+  uid: string,
+  field: EditableSubsidyMeasureField,
+  value: EditableSubsidyValue,
+): SubsidyMeasureDraft[] {
+  return rows.map((row) =>
+    row.uid === uid ? applySubsidyMeasureUpdate(row, field, value) : row,
+  );
+}
+
+export function updateSubsidyInstallationRow(
+  rows: SubsidyInstallationDraft[],
+  uid: string,
+  field: EditableSubsidyInstallationField,
+  value: EditableSubsidyValue,
+): SubsidyInstallationDraft[] {
+  return rows.map((row) =>
+    row.uid === uid ? applySubsidyInstallationUpdate(row, field, value) : row,
+  );
+}
+
+export function serializeSubsidyCalculationPayload(
+  payload: ISDECalculationRequest | null,
+): string | null {
+  if (!payload) {
+    return null;
+  }
+
+  return JSON.stringify(payload);
+}
+
+export function buildResetSubsidyState(): SubsidyStateSnapshot {
+  return {
+    includeInSummary: false,
+    subsidyResult: null,
+    lastCalculatedSubsidyFingerprint: null,
+    lastSubsidyAnalysisSourceFingerprint: null,
+    subsidyExecutionYear: defaultSubsidyExecutionYear(),
+    previousSubsidiesWithin24Months: false,
+    hasExistingWarmtenetConnection: false,
+    hasReceivedWarmtenetSubsidy: false,
+    subsidyMeasures: [],
+    subsidyInstallations: [],
+  };
+}
+
+export function buildAppliedQuoteSubsidyState(input: {
+  snapshot: QuoteISDESubsidy | undefined;
+  createUid: () => string;
+  buildAnalysisSourceFingerprint: () => string | null;
+}): SubsidyStateSnapshot {
+  if (!input.snapshot) {
+    return buildResetSubsidyState();
+  }
+
+  if (!input.snapshot.input) {
+    return {
+      ...buildResetSubsidyState(),
+      includeInSummary: input.snapshot.includeInSummary ?? false,
+      subsidyResult: input.snapshot.result ?? null,
+    };
+  }
+
+  return {
+    includeInSummary: input.snapshot.includeInSummary ?? false,
+    subsidyResult: input.snapshot.result ?? null,
+    lastCalculatedSubsidyFingerprint: serializeSubsidyCalculationPayload(input.snapshot.input),
+    lastSubsidyAnalysisSourceFingerprint: input.buildAnalysisSourceFingerprint(),
+    subsidyExecutionYear:
+      input.snapshot.input.executionYear ?? defaultSubsidyExecutionYear(),
+    previousSubsidiesWithin24Months: !!input.snapshot.input.previousSubsidiesWithin24Months,
+    hasExistingWarmtenetConnection: !!input.snapshot.input.hasExistingWarmtenetConnection,
+    hasReceivedWarmtenetSubsidy: !!input.snapshot.input.hasReceivedWarmtenetSubsidy,
+    subsidyMeasures: (input.snapshot.input.measures ?? []).map((measure) =>
+      toSubsidyMeasureDraft(measure, input.createUid),
+    ),
+    subsidyInstallations: (input.snapshot.input.installations ?? []).map((installation) =>
+      toSubsidyInstallationDraft(installation, input.createUid),
+    ),
+  };
+}
+
+export function buildAISubsidyPrefillSnapshot(input: {
+  result: AnalyzeSubsidyDraftResult;
+  sourceItems: LineItemDraft[];
+  createUid: () => string;
+  buildAnalysisSourceFingerprint: () => string | null;
+}): SubsidyPrefillSnapshot {
+  const inferredMeasures = input.sourceItems
+    .map((item) => inferSubsidyMeasureFromLineItem(item, input.createUid))
+    .filter((row): row is SubsidyMeasureDraft => row !== null);
+  const subsidyMeasures = buildSubsidyMeasuresFromAIResult(
+    input.result,
+    inferredMeasures,
+    input.createUid,
+  );
+
+  const subsidyInstallations = input.result.installation_meldcode_id
+    ? [
+        {
+          ...createDefaultSubsidyInstallation(input.createUid),
+          meldcode: input.result.installation_meldcode_id,
+        },
+      ]
+    : [];
+
+  return {
+    subsidyMeasures,
+    subsidyInstallations,
+    lastSubsidyAnalysisSourceFingerprint: input.buildAnalysisSourceFingerprint(),
+  };
+}
+
+export function buildLineItemSubsidyPrefillSnapshot(input: {
+  sourceItems: LineItemDraft[];
+  existingMeasures: SubsidyMeasureDraft[];
+  existingInstallations: SubsidyInstallationDraft[];
+  createUid: () => string;
+  buildAnalysisSourceFingerprint: () => string | null;
+}): SubsidyPrefillSnapshot {
+  const inferredMeasures = input.sourceItems
+    .map((item) => inferSubsidyMeasureFromLineItem(item, input.createUid))
+    .filter((row): row is SubsidyMeasureDraft => row !== null);
+
+  if (inferredMeasures.length > 0) {
+    return {
+      subsidyMeasures: inferredMeasures,
+      subsidyInstallations: input.existingInstallations,
+      lastSubsidyAnalysisSourceFingerprint: input.buildAnalysisSourceFingerprint(),
+    };
+  }
+
+  return {
+    subsidyMeasures:
+      input.existingMeasures.length === 0 && input.existingInstallations.length === 0
+        ? [createDefaultSubsidyMeasure(input.createUid)]
+        : input.existingMeasures,
+    subsidyInstallations: input.existingInstallations,
+    lastSubsidyAnalysisSourceFingerprint: input.buildAnalysisSourceFingerprint(),
+  };
 }
 
 export function toRequestedMeasure(row: SubsidyMeasureDraft): RequestedMeasure {

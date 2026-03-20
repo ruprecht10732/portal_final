@@ -11,6 +11,24 @@ import type {
 import type { AttachmentDraft } from '../../../shared/components/attachment-panel/attachment-panel.component';
 import type { UrlDraft } from './offertes-create.models';
 
+export interface AttachmentPreviewState {
+  previewOpen: boolean;
+  previewLoading: boolean;
+  previewError: string | null;
+  previewUrl: string | null;
+  previewAttachment: AttachmentDraft | null;
+}
+
+export interface ManualUploadPlan {
+  nextDrafts: AttachmentDraft[];
+  upload$?: Observable<AttachmentDraft[]>;
+}
+
+export interface PreviewOpenPlan {
+  state: AttachmentPreviewState;
+  remoteUrl$?: Observable<string>;
+}
+
 @Injectable({ providedIn: 'root' })
 export class OffertesCreateAttachmentsService {
   private readonly quotesService = inject(QuotesService);
@@ -24,6 +42,29 @@ export class OffertesCreateAttachmentsService {
       source: 'manual',
       enabled: true,
       sortOrder,
+    };
+  }
+
+  createManualUploadPlan(input: {
+    file: File;
+    quoteId: string | null;
+    drafts: AttachmentDraft[];
+    createUid: () => string;
+  }): ManualUploadPlan {
+    const draft = this.createManualDraft(input.file, input.drafts.length, input.createUid);
+
+    if (!input.quoteId) {
+      return {
+        nextDrafts: [...input.drafts, { ...draft, pendingFile: input.file }],
+      };
+    }
+
+    const nextDrafts = [...input.drafts, { ...draft, uploading: true }];
+    return {
+      nextDrafts,
+      upload$: this.uploadManualAttachment(input.quoteId, input.file).pipe(
+        map((fileKey) => this.applyUploadedManualDraft(nextDrafts, draft.uid, fileKey)),
+      ),
     };
   }
 
@@ -49,6 +90,20 @@ export class OffertesCreateAttachmentsService {
 
   clearPendingUploadFlags(items: AttachmentDraft[]): AttachmentDraft[] {
     return items.map((item) => (item.pendingFile ? { ...item, uploading: false } : item));
+  }
+
+  removeDraft(items: AttachmentDraft[], uid: string): AttachmentDraft[] {
+    return items.filter((item) => item.uid !== uid);
+  }
+
+  applyUploadedManualDraft(
+    items: AttachmentDraft[],
+    uid: string,
+    fileKey: string,
+  ): AttachmentDraft[] {
+    return items.map((item) =>
+      item.uid === uid ? { ...item, fileKey, uploading: false } : item,
+    );
   }
 
   hasUploadsInProgress(items: AttachmentDraft[]): boolean {
@@ -111,6 +166,80 @@ export class OffertesCreateAttachmentsService {
     }));
 
     return this.quotesService.update(quoteId, { attachments, urls });
+  }
+
+  buildPendingPreviewState(attachment: AttachmentDraft): AttachmentPreviewState {
+    return {
+      previewOpen: true,
+      previewLoading: false,
+      previewError: null,
+      previewUrl: attachment.pendingFile ? URL.createObjectURL(attachment.pendingFile) : null,
+      previewAttachment: attachment,
+    };
+  }
+
+  buildRemotePreviewOpenPlan(
+    attachment: AttachmentDraft,
+    quoteId: string | null,
+  ): PreviewOpenPlan | null {
+    if (attachment.pendingFile) {
+      return { state: this.buildPendingPreviewState(attachment) };
+    }
+
+    if (!quoteId) {
+      return null;
+    }
+
+    return {
+      state: {
+        previewOpen: true,
+        previewLoading: true,
+        previewError: null,
+        previewUrl: null,
+        previewAttachment: attachment,
+      },
+      remoteUrl$: this.getRemotePreviewUrl(attachment, quoteId),
+    };
+  }
+
+  buildRemotePreviewSuccessState(
+    attachment: AttachmentDraft,
+    downloadUrl: string,
+  ): AttachmentPreviewState {
+    return {
+      previewOpen: true,
+      previewLoading: false,
+      previewError: null,
+      previewUrl: downloadUrl,
+      previewAttachment: attachment,
+    };
+  }
+
+  buildRemotePreviewErrorState(
+    attachment: AttachmentDraft,
+    errorMessage: string,
+  ): AttachmentPreviewState {
+    return {
+      previewOpen: true,
+      previewLoading: false,
+      previewError: errorMessage,
+      previewUrl: null,
+      previewAttachment: attachment,
+    };
+  }
+
+  buildClosedPreviewState(currentUrl: string | null): AttachmentPreviewState {
+    if (currentUrl?.startsWith('blob:')) {
+      URL.revokeObjectURL(currentUrl);
+    }
+
+    return {
+      previewOpen: false,
+      previewLoading: false,
+      previewError: null,
+      previewUrl: null,
+      previewAttachment: null,
+    };
   }
 
   getRemotePreviewUrl(attachment: AttachmentDraft, quoteId: string): Observable<string> {

@@ -18,6 +18,16 @@ export interface QuoteFeedbackDiff {
   humanValue: Record<string, unknown>;
 }
 
+export type DescriptionEditState = Record<string, boolean>;
+
+export type LineItemField =
+  | 'title'
+  | 'description'
+  | 'quantity'
+  | 'unitPrice'
+  | 'taxRate'
+  | 'optional';
+
 export interface UrlDraft {
   uid: string;
   label: string;
