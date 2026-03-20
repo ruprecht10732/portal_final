@@ -595,10 +595,14 @@
             }
           </div>
 
-          <!-- ISDE Subsidie -->
-          <div class="rounded-xl border border-zinc-100 p-4">
+          <!-- ISDE Subsidie (trigger → modal) -->
+          <button
+            type="button"
+            class="w-full rounded-xl border border-zinc-100 p-4 text-left transition-colors hover:border-zinc-200 hover:bg-zinc-50/40"
+            (click)="openSubsidySummaryModal()"
+          >
             <div class="flex items-center gap-2.5">
-              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
+              <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-amber-50">
                 <lucide-icon name="leaf" class="h-4 w-4 text-amber-600"></lucide-icon>
               </div>
               <div class="min-w-0 flex-1">
@@ -613,56 +617,36 @@
                   <p class="text-xs text-zinc-400">Nog geen berekening</p>
                 }
               </div>
+              <lucide-icon name="chevron-right" class="h-4 w-4 shrink-0 text-zinc-300"></lucide-icon>
             </div>
-
-            <div class="mt-4 border-t border-zinc-100 pt-3">
-              <shared-checkbox
-                label="Meesturen in offertesamenvatting"
-                [checked]="includeSubsidyInSummary()"
-                [disabled]="!hasSubsidyResult()"
-                (checkedChange)="includeSubsidyInSummary.set($event)"
-                [dense]="true"
-              />
-              @if (includeSubsidyInSummary() && hasSubsidyResult()) {
-                <p class="mt-2 text-[11px] leading-relaxed text-zinc-400">
-                  Subsidie wordt opgenomen in de interne samenvatting voor workflow-verzending.
-                </p>
-              }
-            </div>
-          </div>
-
-          <!-- Admin pricing intelligence -->
-          @if (isAdmin()) {
-            <div class="rounded-xl border border-dashed border-zinc-200 p-4">
-              <div class="flex items-center gap-2 mb-4">
-                <lucide-icon name="bar-chart-3" class="h-3.5 w-3.5 text-zinc-400"></lucide-icon>
-                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">
-                  {{ 'offertes.pricingIntelligence.panelEyebrow' | translate }}
-                </p>
+            @if (includeSubsidyInSummary() && hasSubsidyResult()) {
+              <div class="mt-2 flex items-center gap-1.5 text-[10px] font-semibold uppercase tracking-wider text-emerald-600">
+                <lucide-icon name="check-circle" class="h-3 w-3"></lucide-icon>
+                Opgenomen in samenvatting
               </div>
-              <app-quote-pricing-intelligence-panel
-                [serviceType]="pricingIntelligenceServiceType()"
-                [postcodePrefix]="pricingIntelligencePostcodePrefix()"
-                [variant]="'embedded'"
-              />
-            </div>
-          }
+            }
+          </button>
 
-          <!-- Save button -->
-          <div class="hidden lg:block pt-4">
-            <shared-button
-              variant="primary"
-              size="default"
-              [fullWidth]="true"
-              [disabled]="!canSave() || saving()"
-              [loading]="saving()"
-              (clicked)="saveDraft()"
-              class="h-12"
+          <!-- Admin pricing intelligence (trigger → modal) -->
+          @if (isAdmin()) {
+            <button
+              type="button"
+              class="w-full rounded-xl border border-dashed border-zinc-200 p-4 text-left transition-colors hover:border-zinc-300 hover:bg-zinc-50/40"
+              (click)="openAdminIntelligenceModal()"
             >
-              <lucide-icon name="send" class="h-5 w-5 mr-3"></lucide-icon>
-              {{ 'offertes.saveDraft' | translate }}
-            </shared-button>
-          </div>
+              <div class="flex items-center gap-2.5">
+                <div class="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-zinc-100">
+                  <lucide-icon name="bar-chart-3" class="h-4 w-4 text-zinc-500"></lucide-icon>
+                </div>
+                <div class="min-w-0 flex-1">
+                  <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">
+                    {{ 'offertes.pricingIntelligence.panelEyebrow' | translate }}
+                  </p>
+                </div>
+                <lucide-icon name="chevron-right" class="h-4 w-4 shrink-0 text-zinc-300"></lucide-icon>
+              </div>
+            </button>
+          }
         </div>
       </div>
     </aside>
@@ -1098,6 +1082,154 @@
           </div>
         </div>
       }
+    </div>
+  </ng-template>
+
+  <!-- ISDE Summary modal (desktop) -->
+  @if (showSubsidySummaryModal() && !isMobileViewport()) {
+    <dialog class="detail-modal" aria-modal="true" open>
+      <button
+        class="detail-modal-backdrop"
+        type="button"
+        (click)="closeSubsidySummaryModal()"
+        aria-label="Sluiten"
+      ></button>
+      <div class="detail-modal-panel">
+        <div class="detail-modal-header">
+          <div class="flex items-center gap-3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
+              <lucide-icon name="leaf" class="h-4 w-4 text-amber-600"></lucide-icon>
+            </div>
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">ISDE Subsidie</p>
+              @if (hasSubsidyResult()) {
+                <p class="text-sm font-bold text-zinc-900">{{ formatCurrency(subsidyTotalEuros()) }}</p>
+              }
+            </div>
+          </div>
+          <button type="button" class="detail-modal-close" (click)="closeSubsidySummaryModal()" aria-label="Sluiten">
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
+        <ng-container [ngTemplateOutlet]="subsidySummaryContent"></ng-container>
+      </div>
+    </dialog>
+  }
+
+  <app-bottom-sheet
+    [isOpen]="showSubsidySummaryModal() && isMobileViewport()"
+    [title]="'ISDE Subsidie'"
+    [showCloseButton]="true"
+    [maxHeight]="85"
+    (closed)="closeSubsidySummaryModal()"
+  >
+    <ng-container [ngTemplateOutlet]="subsidySummaryContent"></ng-container>
+  </app-bottom-sheet>
+
+  <ng-template #subsidySummaryContent>
+    <div class="space-y-5 p-5 sm:p-6">
+      @if (!hasSubsidyResult()) {
+        <div class="rounded-xl border border-zinc-100 bg-zinc-50 p-6 text-center">
+          <lucide-icon name="leaf" class="mx-auto h-8 w-8 text-zinc-300"></lucide-icon>
+          <p class="mt-3 text-sm font-semibold text-zinc-500">Nog geen berekening</p>
+          <p class="mt-1 text-xs text-zinc-400">Gebruik "Bereken subsidie" in de header om een ISDE subsidieberekening te starten.</p>
+        </div>
+      }
+
+      @if (hasSubsidyResult()) {
+        <div class="rounded-2xl bg-amber-50 p-5">
+          <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-amber-700">Geschat subsidiebedrag</p>
+          <p class="mt-2 font-mono text-2xl font-black tracking-tight text-amber-900">{{ formatCurrency(subsidyTotalEuros()) }}</p>
+        </div>
+
+        @if (subsidyBreakdownRows().length > 0) {
+          <div class="space-y-2">
+            <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-400">Overzicht</p>
+            <div class="space-y-1">
+              @for (entry of subsidyBreakdownRows(); track entry.description + '-' + entry.amountCents) {
+                <div class="flex items-center justify-between gap-3 rounded-lg bg-zinc-50 px-3 py-2 text-sm">
+                  <span class="truncate text-zinc-700">{{ entry.description }}</span>
+                  <span class="font-mono tabular-nums font-semibold text-zinc-900">{{ formatCurrency(entry.amountCents / 100) }}</span>
+                </div>
+              }
+            </div>
+          </div>
+        }
+      }
+
+      <div class="border-t border-zinc-100 pt-4">
+        <shared-checkbox
+          label="Meesturen in offertesamenvatting"
+          [checked]="includeSubsidyInSummary()"
+          [disabled]="!hasSubsidyResult()"
+          (checkedChange)="includeSubsidyInSummary.set($event)"
+        />
+        @if (includeSubsidyInSummary() && hasSubsidyResult()) {
+          <p class="mt-2 text-[11px] leading-relaxed text-zinc-400">
+            Subsidie wordt opgenomen in de interne samenvatting voor workflow-verzending.
+          </p>
+        }
+      </div>
+
+      <div class="flex items-center justify-end gap-2 border-t border-zinc-100 pt-3">
+        <shared-button variant="ghost" (clicked)="closeSubsidySummaryModal()">Sluiten</shared-button>
+        <shared-button
+          variant="secondary"
+          [disabled]="lineItems().length === 0 || subsidyAnalysisLoading()"
+          (clicked)="closeSubsidySummaryModal(); openSubsidyEditor()"
+        >
+          <lucide-icon name="calculator" class="mr-2 h-4 w-4"></lucide-icon>
+          Opnieuw berekenen
+        </shared-button>
+      </div>
+    </div>
+  </ng-template>
+
+  <!-- Admin Intelligence modal (desktop) -->
+  @if (showAdminIntelligenceModal() && !isMobileViewport()) {
+    <dialog class="detail-modal" aria-modal="true" open>
+      <button
+        class="detail-modal-backdrop"
+        type="button"
+        (click)="closeAdminIntelligenceModal()"
+        aria-label="Sluiten"
+      ></button>
+      <div class="detail-modal-panel">
+        <div class="detail-modal-header">
+          <div class="flex items-center gap-3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-zinc-100">
+              <lucide-icon name="bar-chart-3" class="h-4 w-4 text-zinc-500"></lucide-icon>
+            </div>
+            <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500">
+              {{ 'offertes.pricingIntelligence.panelEyebrow' | translate }}
+            </p>
+          </div>
+          <button type="button" class="detail-modal-close" (click)="closeAdminIntelligenceModal()" aria-label="Sluiten">
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
+        <ng-container [ngTemplateOutlet]="adminIntelligenceContent"></ng-container>
+      </div>
+    </dialog>
+  }
+
+  <app-bottom-sheet
+    [isOpen]="showAdminIntelligenceModal() && isMobileViewport()"
+    [title]="'offertes.pricingIntelligence.panelEyebrow' | translate"
+    [showCloseButton]="true"
+    [maxHeight]="90"
+    (closed)="closeAdminIntelligenceModal()"
+  >
+    <ng-container [ngTemplateOutlet]="adminIntelligenceContent"></ng-container>
+  </app-bottom-sheet>
+
+  <ng-template #adminIntelligenceContent>
+    <div class="p-5 sm:p-6">
+      <app-quote-pricing-intelligence-panel
+        [serviceType]="pricingIntelligenceServiceType()"
+        [postcodePrefix]="pricingIntelligencePostcodePrefix()"
+        [variant]="'embedded'"
+      />
     </div>
   </ng-template>
 

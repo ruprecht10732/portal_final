@@ -236,6 +236,8 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly generateError = signal<string | null>(null);
   protected readonly showGeneratePanel = signal(true);
   protected readonly showAIGenerateModal = signal(false);
+  protected readonly showSubsidySummaryModal = signal(false);
+  protected readonly showAdminIntelligenceModal = signal(false);
   protected readonly currentGenerateJobId = signal<string | null>(null);
   protected readonly currentGenerateJob = computed(() =>
     this.aiJobs.job(this.currentGenerateJobId()),
@@ -1193,6 +1195,22 @@ export class OffertesCreateComponent implements OnInit {
 
   protected closeAIGenerateModal(): void {
     this.showAIGenerateModal.set(false);
+  }
+
+  protected openSubsidySummaryModal(): void {
+    this.showSubsidySummaryModal.set(true);
+  }
+
+  protected closeSubsidySummaryModal(): void {
+    this.showSubsidySummaryModal.set(false);
+  }
+
+  protected openAdminIntelligenceModal(): void {
+    this.showAdminIntelligenceModal.set(true);
+  }
+
+  protected closeAdminIntelligenceModal(): void {
+    this.showAdminIntelligenceModal.set(false);
   }
 
   protected toggleGeneratePanel(): void {

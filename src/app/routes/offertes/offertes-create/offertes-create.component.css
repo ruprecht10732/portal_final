@@ -203,3 +203,66 @@ app-quote-line-item-row:hover [cdkDragHandle] {
   background: rgb(244 244 245);
   color: rgb(24 24 27);
 }
+
+/* Detail modal (ISDE summary + Admin intelligence) */
+.detail-modal {
+  display: flex;
+  position: fixed;
+  inset: 0;
+  z-index: 65;
+  margin: 0;
+  height: 100%;
+  width: 100%;
+  max-height: none;
+  max-width: none;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  border: 0;
+  background: transparent;
+  overflow: hidden;
+}
+
+.detail-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  border: 0;
+  background: rgb(24 24 27 / 0.45);
+}
+
+.detail-modal-panel {
+  position: relative;
+  z-index: 1;
+  width: min(520px, 96vw);
+  max-height: 85vh;
+  overflow: auto;
+  border-radius: 1rem;
+  border: 1px solid rgb(228 228 231);
+  background: white;
+  box-shadow: 0 30px 60px -20px rgb(24 24 27 / 0.35);
+}
+
+.detail-modal-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid rgb(244 244 245);
+  padding: 0.9rem 1rem;
+}
+
+.detail-modal-close {
+  display: inline-flex;
+  height: 2rem;
+  width: 2rem;
+  align-items: center;
+  justify-content: center;
+  border-radius: 0.5rem;
+  border: 0;
+  background: transparent;
+  color: rgb(113 113 122);
+}
+
+.detail-modal-close:hover {
+  background: rgb(244 244 245);
+  color: rgb(24 24 27);
+}
