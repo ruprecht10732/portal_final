@@ -11,6 +11,17 @@
       (back)="cancel()"
     >
       <div actions class="flex items-center gap-2">
+        @if (canShowAIGenerate()) {
+          <shared-button
+            variant="secondary"
+            size="compact"
+            [disabled]="isGenerateLocked()"
+            (clicked)="openAIGenerateModal()"
+          >
+            <lucide-icon name="sparkles" class="mr-2 h-4 w-4"></lucide-icon>
+            {{ 'offertes.generate.title' | translate }}
+          </shared-button>
+        }
         <label
           class="group hidden md:inline-flex cursor-pointer select-none items-center gap-2 rounded-lg border px-3 py-1.5 text-xs font-semibold uppercase tracking-wide transition-all"
           [class]="pagePerItem()
@@ -53,6 +64,18 @@
           <lucide-icon name="save" class="h-4 w-4" primaryIcon></lucide-icon>
         </shared-split-action>
       </div>
+      @if (canShowAIGenerate()) {
+        <button
+          mobileActions
+          type="button"
+          class="flex h-9 w-9 items-center justify-center rounded-full bg-indigo-50 text-indigo-600 transition-colors active:scale-95"
+          [disabled]="isGenerateLocked()"
+          (click)="openAIGenerateModal()"
+          [attr.aria-label]="'offertes.generate.title' | translate"
+        >
+          <lucide-icon name="sparkles" class="h-4 w-4"></lucide-icon>
+        </button>
+      }
     </shared-page-header>
   </header>
 
@@ -222,119 +245,6 @@
               (valueChange)="summaryForm.controls.notes.setValue($event)"
             />
           </div>
-        </div>
-      </details>
-
-      <details
-        class="group overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm"
-        [open]="selectedLead() ? showGeneratePanel() : true"
-      >
-        <summary
-          class="flex list-none items-center justify-between p-4 sm:p-5 transition-colors"
-          [class.cursor-pointer]="!!selectedLead()"
-          [class.hover:bg-zinc-50]="!!selectedLead()"
-          (click)="selectedLead() && toggleGeneratePanel()"
-        >
-          <div class="flex items-center gap-4">
-            <div
-              class="flex h-10 w-10 items-center justify-center rounded-full"
-              [class.bg-indigo-50]="!!selectedLead()"
-              [class.text-indigo-600]="!!selectedLead()"
-              [class.bg-zinc-100]="!selectedLead()"
-              [class.text-zinc-400]="!selectedLead()"
-            >
-              <lucide-icon name="sparkles" class="h-5 w-5"></lucide-icon>
-            </div>
-            <div>
-              <h2
-                class="text-[10px] font-black uppercase tracking-[0.15em] text-zinc-400"
-                [class.group-open:text-indigo-900]="!!selectedLead()"
-              >
-                {{ 'offertes.generate.title' | translate }}
-              </h2>
-              <p
-                class="text-[10px] font-bold uppercase tracking-tighter"
-                [class.text-indigo-400/70]="!!selectedLead()"
-                [class.text-zinc-400]="!selectedLead()"
-              >
-                {{
-                  (selectedLead()
-                    ? 'offertes.generate.panelReady'
-                    : 'offertes.generate.panelLocked'
-                  ) | translate
-                }}
-              </p>
-            </div>
-          </div>
-          <lucide-icon
-            name="chevron-down"
-            class="h-5 w-5 text-zinc-300 transition-transform group-open:rotate-180"
-          ></lucide-icon>
-        </summary>
-        <div class="border-t border-zinc-100 bg-white p-5 sm:p-8">
-          @if (!selectedLead()) {
-            <div
-              class="rounded-lg border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-600"
-            >
-              {{ 'offertes.generate.selectLeadFirstBody' | translate }}
-            </div>
-          }
-
-          <shared-textarea
-            [label]="'offertes.generate.promptLabel' | translate"
-            [rows]="3"
-            [placeholder]="
-              selectedLead()
-                ? ('offertes.generate.promptPlaceholder' | translate)
-                : ('offertes.generate.selectLeadFirstPlaceholder' | translate)
-            "
-            [disabled]="!selectedLead()"
-            [value]="generatePrompt()"
-            (valueChange)="generatePrompt.set($event)"
-          />
-          <div class="mt-4 flex items-center justify-between gap-3">
-            <div class="text-[10px] font-bold uppercase text-zinc-400">
-              {{ 'offertes.generate.service' | translate }}:
-              <span
-                [class.text-indigo-600]="!!selectedLeadServiceLabel()"
-                [class.text-zinc-400]="!selectedLeadServiceLabel()"
-                >{{
-                  selectedLeadServiceLabel() ?? ('offertes.generate.noServiceSelected' | translate)
-                }}</span
-              >
-            </div>
-            <shared-button
-              variant="secondary"
-              [disabled]="
-                !selectedLead() ||
-                !selectedLeadServiceId() ||
-                !generatePrompt().trim() ||
-                generating()
-              "
-              [loading]="generating()"
-              (clicked)="generateQuote()"
-            >
-              <lucide-icon name="sparkles" class="h-4 w-4 mr-2"></lucide-icon>
-              {{ 'offertes.generate.submit' | translate }}
-            </shared-button>
-          </div>
-
-          @if (currentGenerateJob(); as job) {
-            <div class="mt-6 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-              <div class="flex justify-between mb-2">
-                <span class="text-[10px] font-black uppercase text-zinc-700">{{ job.step }}</span>
-                <span class="text-[10px] font-mono font-bold text-zinc-400"
-                  >{{ job.progressPercent }}%</span
-                >
-              </div>
-              <div class="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
-                <div
-                  class="h-full bg-zinc-900 transition-all duration-500"
-                  [style.width.%]="job.progressPercent"
-                ></div>
-              </div>
-            </div>
-          }
         </div>
       </details>
 
@@ -588,150 +498,158 @@
     <aside
       class="w-full shrink-0 lg:w-80 xl:w-96 lg:sticky lg:top-[73px] lg:h-[calc(100dvh-73px)] lg:overflow-y-auto"
     >
-      <div class="h-full border-t border-zinc-200 bg-white p-6 lg:border-l lg:border-t-0 xl:p-10">
-        <div class="flex items-center gap-3 mb-10">
+      <div class="h-full border-t border-zinc-200 bg-white p-6 lg:border-l lg:border-t-0 xl:p-8">
+        <div class="flex items-center gap-3 mb-8">
           <div class="h-2 w-2 rounded-full bg-zinc-900"></div>
           <h2 class="text-[10px] font-black uppercase tracking-[0.2em] text-zinc-500">
             {{ 'offertes.summary' | translate }}
           </h2>
         </div>
 
-        <div class="space-y-8">
-          <section class="rounded-xl border border-zinc-200 bg-white p-5">
-            <div class="space-y-4">
-              <div class="flex items-baseline justify-between gap-4">
-                <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{
-                  'offertes.subtotal' | translate
-                }}</span>
-                <span class="font-mono text-base font-bold tabular-nums text-zinc-900">{{
-                  formatCurrency(totals().subtotal)
-                }}</span>
-              </div>
-
-              <div class="space-y-3 rounded-lg border border-zinc-200 bg-zinc-50 p-4">
-                <div class="flex items-center justify-between">
-                  <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{
-                    'offertes.discount' | translate
-                  }}</span>
-                  <lucide-icon name="tag" class="h-4 w-4 text-zinc-300"></lucide-icon>
-                </div>
-                <div class="flex gap-2">
-                  <shared-number-input
-                    class="flex-1 [&_input]:h-9 [&_input]:text-xs [&_input]:font-bold"
-                    [value]="summaryForm.controls.discountValue.value"
-                    (valueChange)="setDiscountValue($event ?? 0)"
-                    [prefix]="discountPrefix()"
-                  />
-                  <shared-select
-                    class="w-20 [&_button]:h-9 [&_button]:text-[10px] [&_button]:font-black"
-                    [options]="discountTypeOptions()"
-                    [value]="summaryForm.controls.discountType.value"
-                    (valueChange)="setDiscountType($event)"
-                  />
-                </div>
-                @if (totals().discountAmount > 0) {
-                  <div class="flex items-center justify-between text-emerald-600">
-                    <span class="text-[10px] font-black uppercase tracking-[0.16em]">{{
-                      'offertes.savings' | translate
-                    }}</span>
-                    <span class="font-mono text-sm font-bold tabular-nums"
-                      >-{{ formatCurrency(totals().discountAmount) }}</span
-                    >
-                  </div>
-                }
-              </div>
-
-              <div class="space-y-2 border-t border-zinc-200 pt-4">
-                <div class="flex items-baseline justify-between gap-4 text-zinc-600">
-                  <span class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">{{
-                    'offertes.taxTotal' | translate
-                  }}</span>
-                  <span class="font-mono text-sm font-bold tabular-nums text-zinc-800">{{
-                    formatCurrency(totals().taxAmount)
-                  }}</span>
-                </div>
-
-                @if (taxBreakdown().length > 0) {
-                  <div class="space-y-1.5 rounded-lg bg-zinc-50 px-3 py-2">
-                    @for (entry of taxBreakdown(); track entry.rate) {
-                      <div class="flex items-center justify-between text-xs text-zinc-500">
-                        <span>{{ 'offertes.tax' | translate }} {{ entry.rate }}%</span>
-                        <span class="font-mono tabular-nums text-zinc-700">{{
-                          formatCurrency(entry.amount)
-                        }}</span>
-                      </div>
-                    }
-                  </div>
-                }
-              </div>
-            </div>
-          </section>
-
-          <section class="rounded-xl border border-zinc-200 bg-zinc-50 px-5 py-4">
-            <div class="flex items-start justify-between gap-4">
-              <div>
-                <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
-                  {{ 'offertes.totalAmount' | translate }}
-                </p>
-                <p
-                  class="mt-2 font-mono text-[1.75rem] font-black leading-none tracking-tight tabular-nums text-zinc-900"
-                >
-                  {{ formatCurrency(totals().total) }}
-                </p>
-              </div>
+        <div class="space-y-6">
+          <!-- Grand total hero -->
+          <div class="rounded-2xl bg-zinc-900 p-5 text-white">
+            <div class="flex items-center justify-between">
+              <span class="text-[10px] font-bold uppercase tracking-[0.16em] text-zinc-400">
+                {{ 'offertes.totalAmount' | translate }}
+              </span>
               <span
-                class="rounded-full border border-zinc-200 bg-white px-2.5 py-1 text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-500"
+                class="rounded-full bg-white/10 px-2.5 py-0.5 text-[10px] font-bold uppercase tracking-[0.12em] text-zinc-300"
               >
                 {{ 'offertes.pricesInclVat' | translate }}
               </span>
             </div>
+            <p
+              class="mt-3 font-mono text-3xl font-black leading-none tracking-tight tabular-nums"
+            >
+              {{ formatCurrency(totals().total) }}
+            </p>
+          </div>
 
-            <div class="mt-5 rounded-xl border border-zinc-200 bg-white p-4">
-              <div class="flex items-center justify-between gap-3">
-                <div>
-                  <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
-                    ISDE Subsidie
-                  </p>
-                  @if (hasSubsidyResult()) {
-                    <p class="mt-1 text-sm font-bold text-zinc-900">
-                      {{ formatCurrency(subsidyTotalEuros()) }}
-                    </p>
-                  } @else {
-                    <p class="mt-1 text-xs text-zinc-500">Nog geen berekening uitgevoerd</p>
-                  }
-                </div>
+          <!-- Line item breakdown -->
+          <div class="space-y-3">
+            <div class="flex items-baseline justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                {{ 'offertes.subtotal' | translate }}
+              </span>
+              <span class="font-mono text-sm font-bold tabular-nums text-zinc-900">
+                {{ formatCurrency(totals().subtotal) }}
+              </span>
+            </div>
+
+            <!-- Discount -->
+            <div class="rounded-xl border border-zinc-100 bg-zinc-50/60 p-4">
+              <div class="flex items-center gap-2 mb-3">
+                <lucide-icon name="tag" class="h-3.5 w-3.5 text-zinc-400"></lucide-icon>
+                <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                  {{ 'offertes.discount' | translate }}
+                </span>
               </div>
-
-              <div class="mt-4 border-t border-zinc-100 pt-4">
-                <shared-checkbox
-                  label="Meesturen in offertesamenvatting"
-                  [checked]="includeSubsidyInSummary()"
-                  [disabled]="!hasSubsidyResult()"
-                  (checkedChange)="includeSubsidyInSummary.set($event)"
+              <div class="flex gap-2">
+                <shared-number-input
+                  class="flex-1 [&_input]:h-9 [&_input]:text-xs [&_input]:font-bold"
+                  [value]="summaryForm.controls.discountValue.value"
+                  (valueChange)="setDiscountValue($event ?? 0)"
+                  [prefix]="discountPrefix()"
                 />
-                @if (includeSubsidyInSummary() && hasSubsidyResult()) {
-                  <p class="mt-2 text-xs text-zinc-500">
-                    Subsidie wordt opgenomen in de interne samenvatting voor workflow-verzending.
+                <shared-select
+                  class="w-20 [&_button]:h-9 [&_button]:text-[10px] [&_button]:font-black"
+                  [options]="discountTypeOptions()"
+                  [value]="summaryForm.controls.discountType.value"
+                  (valueChange)="setDiscountType($event)"
+                />
+              </div>
+              @if (totals().discountAmount > 0) {
+                <div class="mt-3 flex items-center justify-between">
+                  <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-600">
+                    {{ 'offertes.savings' | translate }}
+                  </span>
+                  <span class="font-mono text-sm font-bold tabular-nums text-emerald-600">
+                    -{{ formatCurrency(totals().discountAmount) }}
+                  </span>
+                </div>
+              }
+            </div>
+
+            <!-- Tax -->
+            <div class="flex items-baseline justify-between">
+              <span class="text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+                {{ 'offertes.taxTotal' | translate }}
+              </span>
+              <span class="font-mono text-sm font-bold tabular-nums text-zinc-900">
+                {{ formatCurrency(totals().taxAmount) }}
+              </span>
+            </div>
+
+            @if (taxBreakdown().length > 0) {
+              <div class="space-y-1 rounded-lg bg-zinc-50/60 px-3 py-2">
+                @for (entry of taxBreakdown(); track entry.rate) {
+                  <div class="flex items-center justify-between text-xs">
+                    <span class="text-zinc-500">{{ 'offertes.tax' | translate }} {{ entry.rate }}%</span>
+                    <span class="font-mono tabular-nums text-zinc-600">
+                      {{ formatCurrency(entry.amount) }}
+                    </span>
+                  </div>
+                }
+              </div>
+            }
+          </div>
+
+          <!-- ISDE Subsidie -->
+          <div class="rounded-xl border border-zinc-100 p-4">
+            <div class="flex items-center gap-2.5">
+              <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-50">
+                <lucide-icon name="leaf" class="h-4 w-4 text-amber-600"></lucide-icon>
+              </div>
+              <div class="min-w-0 flex-1">
+                <p class="text-[10px] font-bold uppercase tracking-[0.14em] text-zinc-400">
+                  ISDE Subsidie
+                </p>
+                @if (hasSubsidyResult()) {
+                  <p class="text-sm font-bold text-zinc-900">
+                    {{ formatCurrency(subsidyTotalEuros()) }}
                   </p>
+                } @else {
+                  <p class="text-xs text-zinc-400">Nog geen berekening</p>
                 }
               </div>
             </div>
 
-            @if (isAdmin()) {
-              <div class="mt-6 pt-6 border-t border-zinc-200">
-                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-500 mb-4">
+            <div class="mt-4 border-t border-zinc-100 pt-3">
+              <shared-checkbox
+                label="Meesturen in offertesamenvatting"
+                [checked]="includeSubsidyInSummary()"
+                [disabled]="!hasSubsidyResult()"
+                (checkedChange)="includeSubsidyInSummary.set($event)"
+                [dense]="true"
+              />
+              @if (includeSubsidyInSummary() && hasSubsidyResult()) {
+                <p class="mt-2 text-[11px] leading-relaxed text-zinc-400">
+                  Subsidie wordt opgenomen in de interne samenvatting voor workflow-verzending.
+                </p>
+              }
+            </div>
+          </div>
+
+          <!-- Admin pricing intelligence -->
+          @if (isAdmin()) {
+            <div class="rounded-xl border border-dashed border-zinc-200 p-4">
+              <div class="flex items-center gap-2 mb-4">
+                <lucide-icon name="bar-chart-3" class="h-3.5 w-3.5 text-zinc-400"></lucide-icon>
+                <p class="text-[10px] font-black uppercase tracking-[0.18em] text-zinc-400">
                   {{ 'offertes.pricingIntelligence.panelEyebrow' | translate }}
                 </p>
-                <app-quote-pricing-intelligence-panel
-                  [serviceType]="pricingIntelligenceServiceType()"
-                  [postcodePrefix]="pricingIntelligencePostcodePrefix()"
-                  [variant]="'embedded'"
-                />
               </div>
-            }
-          </section>
+              <app-quote-pricing-intelligence-panel
+                [serviceType]="pricingIntelligenceServiceType()"
+                [postcodePrefix]="pricingIntelligencePostcodePrefix()"
+                [variant]="'embedded'"
+              />
+            </div>
+          }
 
-          <div class="hidden lg:block pt-6">
+          <!-- Save button -->
+          <div class="hidden lg:block pt-4">
             <shared-button
               variant="primary"
               size="default"
@@ -1088,6 +1006,100 @@
   >
     <ng-container [ngTemplateOutlet]="subsidyEditorContent"></ng-container>
   </app-bottom-sheet>
+
+  <!-- AI Generate modal (desktop) -->
+  @if (showAIGenerateModal() && !isMobileViewport()) {
+    <dialog class="ai-generate-modal" aria-modal="true" open>
+      <button
+        class="ai-generate-modal-backdrop"
+        type="button"
+        (click)="closeAIGenerateModal()"
+        aria-label="Sluiten"
+      ></button>
+      <div class="ai-generate-modal-panel">
+        <div class="ai-generate-modal-header">
+          <div class="flex items-center gap-3">
+            <div class="flex h-8 w-8 items-center justify-center rounded-lg bg-indigo-50">
+              <lucide-icon name="sparkles" class="h-4 w-4 text-indigo-600"></lucide-icon>
+            </div>
+            <div>
+              <p class="text-[10px] font-black uppercase tracking-[0.16em] text-zinc-500">
+                {{ 'offertes.generate.title' | translate }}
+              </p>
+              <p class="text-xs text-zinc-400">
+                {{ selectedLeadServiceLabel() }}
+              </p>
+            </div>
+          </div>
+          <button
+            type="button"
+            class="ai-generate-modal-close"
+            (click)="closeAIGenerateModal()"
+            aria-label="Sluiten"
+          >
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
+        <ng-container [ngTemplateOutlet]="aiGenerateContent"></ng-container>
+      </div>
+    </dialog>
+  }
+
+  <!-- AI Generate bottom sheet (mobile) -->
+  <app-bottom-sheet
+    [isOpen]="showAIGenerateModal() && isMobileViewport()"
+    [title]="'offertes.generate.title' | translate"
+    [showCloseButton]="true"
+    [maxHeight]="85"
+    (closed)="closeAIGenerateModal()"
+  >
+    <ng-container [ngTemplateOutlet]="aiGenerateContent"></ng-container>
+  </app-bottom-sheet>
+
+  <!-- AI Generate shared content -->
+  <ng-template #aiGenerateContent>
+    <div class="space-y-5 p-5 sm:p-6">
+      <shared-textarea
+        [label]="'offertes.generate.promptLabel' | translate"
+        [rows]="4"
+        [placeholder]="'offertes.generate.promptPlaceholder' | translate"
+        [value]="generatePrompt()"
+        (valueChange)="generatePrompt.set($event)"
+      />
+
+      <div class="flex items-center justify-between gap-3">
+        <div class="flex items-center gap-2 text-[11px] font-semibold uppercase tracking-wider text-zinc-400">
+          <lucide-icon name="briefcase" class="h-3.5 w-3.5"></lucide-icon>
+          {{ selectedLeadServiceLabel() }}
+        </div>
+        <shared-button
+          variant="primary"
+          size="compact"
+          [disabled]="!generatePrompt().trim() || generating()"
+          [loading]="generating()"
+          (clicked)="generateQuote()"
+        >
+          <lucide-icon name="sparkles" class="h-4 w-4 mr-2"></lucide-icon>
+          {{ 'offertes.generate.submit' | translate }}
+        </shared-button>
+      </div>
+
+      @if (currentGenerateJob(); as job) {
+        <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
+          <div class="flex justify-between mb-2">
+            <span class="text-[10px] font-black uppercase text-zinc-700">{{ job.step }}</span>
+            <span class="text-[10px] font-mono font-bold text-zinc-400">{{ job.progressPercent }}%</span>
+          </div>
+          <div class="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+            <div
+              class="h-full bg-zinc-900 transition-all duration-500"
+              [style.width.%]="job.progressPercent"
+            ></div>
+          </div>
+        </div>
+      }
+    </div>
+  </ng-template>
 
   @if (subsidyAnalysisLoading() && !subsidyEditorOpen()) {
     <div

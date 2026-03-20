@@ -235,6 +235,7 @@ export class OffertesCreateComponent implements OnInit {
   protected readonly generating = signal(false);
   protected readonly generateError = signal<string | null>(null);
   protected readonly showGeneratePanel = signal(true);
+  protected readonly showAIGenerateModal = signal(false);
   protected readonly currentGenerateJobId = signal<string | null>(null);
   protected readonly currentGenerateJob = computed(() =>
     this.aiJobs.job(this.currentGenerateJobId()),
@@ -1181,6 +1182,18 @@ export class OffertesCreateComponent implements OnInit {
   }
 
   // ── AI Generate ─────────────────────────────────────────────────────────────
+
+  protected readonly canShowAIGenerate = computed(
+    () => !!this.selectedLead() && !!this.selectedLeadServiceId(),
+  );
+
+  protected openAIGenerateModal(): void {
+    this.showAIGenerateModal.set(true);
+  }
+
+  protected closeAIGenerateModal(): void {
+    this.showAIGenerateModal.set(false);
+  }
 
   protected toggleGeneratePanel(): void {
     this.showGeneratePanel.update((v) => !v);
