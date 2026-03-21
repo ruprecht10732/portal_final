@@ -39,6 +39,7 @@ interface SidebarItem {
     | 'offertes'
     | 'catalog'
     | 'organization'
+    | 'agentWhatsapp'
     | 'profile';
 }
 
@@ -148,7 +149,7 @@ export class AuthenticatedSidebarComponent {
       base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
     }
     if (this.isSuperAdmin()) {
-      base.push({ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'whatsapp' });
+      base.push({ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'agentWhatsapp' });
     }
     return base;
   });

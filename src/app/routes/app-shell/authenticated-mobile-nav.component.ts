@@ -29,6 +29,7 @@ type MobileNavIcon =
   | 'catalog'
   | 'services'
   | 'organization'
+  | 'agentWhatsapp'
   | 'profile';
 
 interface MobileNavItem {
@@ -121,6 +122,9 @@ interface MobileNavItem {
               }
               @case ('organization') {
                 <lucide-icon name="building" class="h-5 w-5"></lucide-icon>
+              }
+              @case ('agentWhatsapp') {
+                <lucide-icon name="brain-circuit" class="h-5 w-5"></lucide-icon>
               }
               @case ('profile') {
                 <lucide-icon name="user" class="h-5 w-5"></lucide-icon>
@@ -282,7 +286,7 @@ export class AuthenticatedMobileNavComponent {
       base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
     }
     if (this.isSuperAdmin()) {
-      base.push({ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'whatsapp' });
+      base.push({ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'agentWhatsapp' });
     }
     base.push({ label: 'navigation.profile', route: '/app/profile', icon: 'profile' });
     return base;
