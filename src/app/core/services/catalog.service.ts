@@ -281,8 +281,9 @@ export class CatalogService {
 
   /** Search for products with autocomplete metadata (documents, urls, vatRateBps). */
   searchForAutocomplete(query: string, limit = 5): Observable<AutocompleteItemResponse[]> {
+    const truncated = query.slice(0, 200);
     return this.http.get<AutocompleteItemResponse[]>(`${this.baseUrl}/products/search`, {
-      params: toHttpParams({ q: query, limit }),
+      params: toHttpParams({ q: truncated, limit }),
     });
   }
 

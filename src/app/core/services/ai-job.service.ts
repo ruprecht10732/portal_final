@@ -1,6 +1,7 @@
 import { DestroyRef, computed, effect, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, map, Observable, tap, throwError } from 'rxjs';
+import { catchError, map, Observable, of, tap, throwError } from 'rxjs';
+import { HttpErrorResponse } from '@angular/common/http';
 import { TranslateService } from '@ngx-translate/core';
 import type { GenerateQuoteJobResponse, GenerateQuoteJobStatus } from './quotes.types';
 import type { AutomationRunKind, AutomationRunResponse, LeadAIAnalysisResponse } from './leads.types';
@@ -299,6 +300,13 @@ export class AIJobService {
         this.upsertJob(this.mapJob(job));
       }),
       catchError(error => {
+        if (error instanceof HttpErrorResponse && error.status === 404) {
+          this.jobsState.update(current => ({
+            ...current,
+            [jobId]: { ...target, viewedAt: new Date().toISOString() },
+          }));
+          return of(undefined);
+        }
         return throwError(() => error);
       }),
       map(() => undefined),
@@ -437,7 +445,18 @@ export class AIJobService {
         this.upsertJob(this.mapJob(job));
         this.resetPollDelay();
       },
-      error: () => {
+      error: (err: unknown) => {
+        if (err instanceof HttpErrorResponse && err.status === 404) {
+          this.removeTrackedJob(jobId);
+          const existing = this.jobsState()[jobId];
+          if (existing) {
+            this.jobsState.update(current => ({
+              ...current,
+              [jobId]: { ...existing, status: 'failed', error: 'not_found', finishedAt: new Date().toISOString(), updatedAt: new Date().toISOString() },
+            }));
+          }
+          return;
+        }
         this.increasePollDelay();
       },
     });
