@@ -1,5 +1,6 @@
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { finalize } from 'rxjs';
 import { AIJobService } from '../../../core/services/ai-job.service';
@@ -10,7 +11,7 @@ import { RightSidebarComponent } from '../right-sidebar/right-sidebar.component'
 
 @Component({
   selector: 'app-ai-job-sidebar-panel',
-  imports: [ButtonComponent, LucideAngularModule, RightSidebarComponent],
+  imports: [ButtonComponent, LucideAngularModule, RightSidebarComponent, TranslatePipe],
   templateUrl: './ai-job-sidebar-panel.component.html',
   styleUrl: './ai-job-sidebar-panel.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -19,6 +20,7 @@ export class AIJobSidebarPanelComponent {
   private readonly aiJobs = inject(AIJobService);
   private readonly sidebarState = inject(NotificationSidebarStateService);
   private readonly router = inject(Router);
+  private readonly translate = inject(TranslateService);
 
   protected readonly isOpen = this.sidebarState.isAiJobsOpen;
   protected readonly jobs = this.aiJobs.jobs;
@@ -59,7 +61,7 @@ export class AIJobSidebarPanelComponent {
       return;
     }
 
-    const reason = globalThis.window?.prompt('Waarom annuleer je deze AI taak? (optioneel)')?.trim();
+    const reason = globalThis.window?.prompt(this.translate.instant('aiJobs.cancelPrompt'))?.trim();
     this.cancellingJobId.set(job.jobId);
     this.aiJobs.cancel(job.jobId, reason).pipe(
       finalize(() => this.cancellingJobId.set(null)),
@@ -73,7 +75,7 @@ export class AIJobSidebarPanelComponent {
       return;
     }
 
-    const promptLabel = rating === 1 ? 'Wat werkte goed? (optioneel)' : 'Wat ging er mis? (optioneel)';
+    const promptLabel = rating === 1 ? this.translate.instant('aiJobs.feedbackPositivePrompt') : this.translate.instant('aiJobs.feedbackNegativePrompt');
     const comment = globalThis.window?.prompt(promptLabel, job.feedbackComment ?? '')?.trim();
     this.feedbackJobId.set(job.jobId);
     this.aiJobs.submitFeedback(job.jobId, rating, comment).pipe(
@@ -85,17 +87,13 @@ export class AIJobSidebarPanelComponent {
     this.aiJobs.clearCompleted().subscribe();
   }
 
-  protected viewJob(jobId?: string, quoteId?: string): void {
-    if (!jobId && !quoteId) {
-      return;
+  protected viewJob(job: AIJobState): void {
+    if (job.jobId) {
+      this.aiJobs.markViewed(job.jobId).subscribe();
     }
 
-    if (jobId) {
-      this.aiJobs.markViewed(jobId).subscribe();
-    }
-
-    if (quoteId) {
-      void this.router.navigate(['/app/offertes', quoteId]);
+    if (job.quoteId) {
+      void this.router.navigate(['/app/offertes', job.quoteId]);
       this.close();
       return;
     }
@@ -109,12 +107,15 @@ export class AIJobSidebarPanelComponent {
 
   protected jobLabel(job: AIJobState): string {
 	if (job.kind === 'lead_analysis') {
-	  return 'Lead analyse';
+	  return this.translate.instant('aiJobs.kind.leadAnalysis');
 	}
 	if (job.kind === 'photo_analysis') {
-	  return 'Foto analyse';
+	  return this.translate.instant('aiJobs.kind.photoAnalysis');
 	}
-	return 'Offerte generatie';
+	if (job.kind === 'subsidy_analysis') {
+	  return this.translate.instant('aiJobs.kind.subsidyAnalysis');
+	}
+	return this.translate.instant('aiJobs.kind.quoteGeneration');
   }
 
   protected canCancel(job: AIJobState): boolean {

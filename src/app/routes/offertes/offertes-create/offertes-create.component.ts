@@ -824,6 +824,29 @@ export class OffertesCreateComponent implements OnInit {
     this.subsidyMeasures.set([]);
     this.subsidyInstallations.set([]);
 
+    const existingQuote = this.existingQuote();
+    if (this.isEditMode() && existingQuote) {
+      this.quotesService.startSubsidyAnalysis(existingQuote.id).pipe(
+        takeUntilDestroyed(this.destroyRef),
+      ).subscribe({
+        next: (startResponse) => {
+          this.subsidyAnalysisJobId.set(startResponse.jobId);
+          this.aiJobs.trackSubsidyAnalysisJob(startResponse.jobId, existingQuote.leadId, existingQuote.leadServiceId ?? '');
+          this.pollSubsidyAnalysisJob(startResponse.jobId, hasExistingSubsidyData);
+        },
+        error: () => {
+          this.subsidyAnalysisLoading.set(false);
+          this.subsidyAnalysisStep.set(null);
+          this.subsidyAnalysisProgress.set(null);
+          this.subsidyError.set('AI analyse mislukt. Controleer of de voorgestelde subsidie klopt.');
+          this.subsidyNotice.set('De velden zijn ingevuld op basis van de huidige regels.');
+          this.prefillSubsidyFromLineItems();
+          this.subsidyEditorOpen.set(true);
+        },
+      });
+      return;
+    }
+
     this.quotesService.analyzeSubsidyDraft(payload).subscribe({
       next: (response) => {
         this.subsidyAnalysisLoading.set(false);
@@ -898,6 +921,49 @@ export class OffertesCreateComponent implements OnInit {
     this.subsidyAnalysisStep.set(null);
     this.subsidyAnalysisProgress.set(null);
     this.subsidyNotice.set(null);
+  }
+
+  private pollSubsidyAnalysisJob(jobId: string, hadExistingData: boolean): void {
+    this.quotesService.getSubsidyAnalysisJob(jobId).pipe(
+      takeUntilDestroyed(this.destroyRef),
+    ).subscribe({
+      next: (job) => {
+        this.subsidyAnalysisStep.set(job.step || null);
+        this.subsidyAnalysisProgress.set(job.progressPercent ?? null);
+
+        if (job.status === 'completed' && job.result) {
+          this.subsidyAnalysisLoading.set(false);
+          this.subsidyAnalysisStep.set(null);
+          this.subsidyAnalysisProgress.set(null);
+          this.subsidyNotice.set(
+            hadExistingData
+              ? 'AI voorstel vernieuwd op basis van de aangepaste offertelijnen. Controleer de waarden voordat je berekent.'
+              : 'AI voorstel ingevuld. Controleer de waarden voordat je berekent.',
+          );
+          this.prefillFromAISuggestion(job.result);
+          this.subsidyEditorOpen.set(true);
+        } else if (job.status === 'failed') {
+          this.subsidyAnalysisLoading.set(false);
+          this.subsidyAnalysisStep.set(null);
+          this.subsidyAnalysisProgress.set(null);
+          this.subsidyError.set(job.error || 'AI analyse mislukt. Controleer of de voorgestelde subsidie klopt.');
+          this.subsidyNotice.set('De velden zijn ingevuld op basis van de huidige regels.');
+          this.prefillSubsidyFromLineItems();
+          this.subsidyEditorOpen.set(true);
+        } else {
+          setTimeout(() => this.pollSubsidyAnalysisJob(jobId, hadExistingData), 3000);
+        }
+      },
+      error: () => {
+        this.subsidyAnalysisLoading.set(false);
+        this.subsidyAnalysisStep.set(null);
+        this.subsidyAnalysisProgress.set(null);
+        this.subsidyError.set('AI analyse mislukt. Controleer of de voorgestelde subsidie klopt.');
+        this.subsidyNotice.set('De velden zijn ingevuld op basis van de huidige regels.');
+        this.prefillSubsidyFromLineItems();
+        this.subsidyEditorOpen.set(true);
+      },
+    });
   }
 
   protected addSubsidyMeasureRow(): void {

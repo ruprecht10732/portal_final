@@ -1,0 +1,45 @@
+{
+  "aiJobs": {
+    "title": "AI taken",
+    "loading": "Laden...",
+    "empty": "Geen taken",
+    "new": "Nieuw",
+    "cancel": "Annuleren",
+    "cancelPrompt": "Waarom annuleer je deze AI taak? (optioneel)",
+    "feedbackPositivePrompt": "Wat werkte goed? (optioneel)",
+    "feedbackNegativePrompt": "Wat ging er mis? (optioneel)",
+    "feedbackPositive": "Goed",
+    "feedbackNegative": "Slecht",
+    "feedbackLabel": "Feedback",
+    "feedbackPositiveValue": "positief",
+    "feedbackNegativeValue": "negatief",
+    "reason": "Reden:",
+    "clearCompleted": "Voltooide wissen",
+    "close": "Sluiten",
+    "openQuote": "Offerte openen",
+    "deleteAriaLabel": "Verwijder AI taak",
+    "cancelAriaLabel": "Annuleer AI taak",
+    "clearCompletedAriaLabel": "Wis voltooide AI taken",
+    "closeAriaLabel": "Sluit AI taken",
+    "feedbackPositiveAriaLabel": "Positieve AI feedback",
+    "feedbackNegativeAriaLabel": "Negatieve AI feedback",
+    "bellAriaLabel": "AI taken",
+    "errors": {
+      "delete": "Kon AI taak niet verwijderen",
+      "cancel": "Kon AI taak niet annuleren",
+      "feedback": "Kon AI feedback niet opslaan",
+      "clearCompleted": "Kon voltooide AI taken niet wissen"
+    },
+    "kind": {
+      "quoteGeneration": "Offerte generatie",
+      "leadAnalysis": "Lead analyse",
+      "photoAnalysis": "Foto analyse",
+      "subsidyAnalysis": "Subsidie analyse"
+    },
+    "step": {
+      "completed": "Voltooid",
+      "failed": "Mislukt"
+    },
+    "stale": "Taak lijkt vast te zitten – controleer de backend"
+  }
+}

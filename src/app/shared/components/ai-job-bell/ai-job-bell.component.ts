@@ -1,4 +1,5 @@
 import { ChangeDetectionStrategy, Component, inject } from '@angular/core';
+import { TranslatePipe } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { ButtonComponent } from '../button/button.component';
 import { AIJobService } from '../../../core/services/ai-job.service';
@@ -6,7 +7,7 @@ import { NotificationSidebarStateService } from '../../../core/services/notifica
 
 @Component({
   selector: 'app-ai-job-bell',
-  imports: [ButtonComponent, LucideAngularModule],
+  imports: [ButtonComponent, LucideAngularModule, TranslatePipe],
   templateUrl: './ai-job-bell.component.html',
   styleUrl: './ai-job-bell.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,

@@ -1,6 +1,7 @@
 import { DestroyRef, computed, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, map, Observable, tap, throwError } from 'rxjs';
+import { TranslateService } from '@ngx-translate/core';
 import type { GenerateQuoteJobResponse, GenerateQuoteJobStatus } from './quotes.types';
 import type { AutomationRunKind, AutomationRunResponse, LeadAIAnalysisResponse } from './leads.types';
 import { LeadsService } from './leads.service';
@@ -8,7 +9,7 @@ import { QuotesService } from './quotes.service';
 import { SSEService } from './sse.service';
 import { ToastService } from './toast.service';
 
-export type AIJobKind = 'quote_generation' | AutomationRunKind;
+export type AIJobKind = 'quote_generation' | 'subsidy_analysis' | AutomationRunKind;
 
 export interface AIJobState {
   jobId: string;
@@ -39,10 +40,12 @@ export class AIJobService {
   private readonly leadsService = inject(LeadsService);
   private readonly sse = inject(SSEService);
   private readonly toast = inject(ToastService);
+  private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly trackedStorageKey = 'ai_job_tracked_ids';
   private readonly basePollMs = 5000;
   private readonly maxPollMs = 60000;
+  private readonly staleThresholdMs = 5 * 60 * 1000;
 
   private readonly jobsState = signal<Record<string, AIJobState>>({});
   private readonly trackedJobIds = signal<string[]>([]);
@@ -177,7 +180,7 @@ export class AIJobService {
         this.removeTrackedJob(jobId);
       }),
       catchError(error => {
-        this.toast.error('Kon AI taak niet verwijderen');
+        this.toast.error(this.translate.instant('aiJobs.errors.delete'));
         return throwError(() => error);
       }),
       map(() => undefined),
@@ -198,7 +201,7 @@ export class AIJobService {
         this.upsertJob(this.mapJob(job));
       }),
       catchError(error => {
-        this.toast.error('Kon AI taak niet annuleren');
+        this.toast.error(this.translate.instant('aiJobs.errors.cancel'));
         return throwError(() => error);
       }),
       map(() => undefined),
@@ -220,7 +223,7 @@ export class AIJobService {
         this.upsertJob(this.mapJob(job));
       }),
       catchError(error => {
-        this.toast.error('Kon AI feedback niet opslaan');
+        this.toast.error(this.translate.instant('aiJobs.errors.feedback'));
         return throwError(() => error);
       }),
       map(() => undefined),
@@ -286,7 +289,7 @@ export class AIJobService {
         });
       }),
       catchError(error => {
-        this.toast.error('Kon voltooide AI taken niet wissen');
+        this.toast.error(this.translate.instant('aiJobs.errors.clearCompleted'));
         return throwError(() => error);
       }),
       map(() => undefined),
@@ -300,11 +303,28 @@ export class AIJobService {
 
   track(jobId: string): void {
     this.addTrackedJob(jobId);
+    this.resetPollDelay();
     this.fetchJob(jobId);
   }
 
   trackAutomationRun(run: AutomationRunResponse): void {
     this.upsertJob(this.mapAutomationRun(run));
+  }
+
+  trackSubsidyAnalysisJob(jobId: string, leadId: string, leadServiceId: string): void {
+    const now = new Date().toISOString();
+    this.upsertJob({
+      jobId,
+      kind: 'subsidy_analysis',
+      status: 'pending',
+      step: '',
+      progressPercent: 0,
+      leadId,
+      leadServiceId,
+      startedAt: now,
+      updatedAt: now,
+    });
+    this.resetPollDelay();
   }
 
   private upsertJob(job: AIJobState): void {
@@ -347,8 +367,37 @@ export class AIJobService {
         this.fetchLeadAnalysisJob(job);
       } else if (job.kind === 'photo_analysis') {
         this.fetchPhotoAnalysisJob(job);
+      } else if (job.kind === 'subsidy_analysis') {
+        this.fetchSubsidyAnalysisJob(job);
       }
     }
+
+    this.detectStaleJobs();
+  }
+
+  private detectStaleJobs(): void {
+    const now = Date.now();
+    this.jobsState.update(current => {
+      let changed = false;
+      const next = { ...current };
+      for (const [jobId, job] of Object.entries(current)) {
+        if (!this.isActive(job.status)) continue;
+        const elapsed = now - new Date(job.updatedAt).getTime();
+        if (elapsed > this.staleThresholdMs) {
+          changed = true;
+          next[jobId] = {
+            ...job,
+            status: 'failed',
+            step: 'stale',
+            error: 'stale',
+            updatedAt: new Date().toISOString(),
+            finishedAt: new Date().toISOString(),
+          };
+          this.removeTrackedJob(jobId);
+        }
+      }
+      return changed ? next : current;
+    });
   }
 
   private startPollingLoop(): void {
@@ -369,6 +418,7 @@ export class AIJobService {
 
     this.visibilityListener = () => {
       if (!globalThis.document.hidden) {
+        this.resetPollDelay();
         this.reconcileActiveJobs();
         this.startPollingLoop();
       }
@@ -577,6 +627,28 @@ export class AIJobService {
     });
   }
 
+  private fetchSubsidyAnalysisJob(job: AIJobState): void {
+    this.quotesService.getSubsidyAnalysisJob(job.jobId).subscribe({
+      next: (response) => {
+        const status = this.normalizeStatus(response.status) ?? 'running';
+        this.upsertJob({
+          ...job,
+          status,
+          step: response.step ?? job.step,
+          progressPercent: response.progressPercent ?? job.progressPercent,
+          ...(response.error ? { error: response.error } : {}),
+          updatedAt: response.updatedAt ?? job.updatedAt,
+          ...(response.startedAt ? { startedAt: response.startedAt } : {}),
+          ...(response.finishedAt ? { finishedAt: response.finishedAt } : {}),
+        });
+        this.resetPollDelay();
+      },
+      error: () => {
+        this.increasePollDelay();
+      },
+    });
+  }
+
   private completeAutomationJob(kind: AutomationRunKind, leadId?: string, leadServiceId?: string, status: GenerateQuoteJobStatus = 'completed', error?: string): void {
     if (!leadId || !leadServiceId) {
       return;
@@ -592,7 +664,7 @@ export class AIJobService {
         next[jobId] = {
           ...job,
           status,
-          step: status === 'failed' ? 'Mislukt' : 'Voltooid',
+          step: status === 'failed' ? this.translate.instant('aiJobs.step.failed') : this.translate.instant('aiJobs.step.completed'),
           progressPercent: status === 'failed' ? job.progressPercent : 100,
           updatedAt: finishedAt,
           finishedAt,

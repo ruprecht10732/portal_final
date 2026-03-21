@@ -1070,16 +1070,34 @@
 
       @if (currentGenerateJob(); as job) {
         <div class="rounded-xl border border-zinc-200 bg-zinc-50 p-4">
-          <div class="flex justify-between mb-2">
-            <span class="text-[10px] font-black uppercase text-zinc-700">{{ job.step }}</span>
-            <span class="text-[10px] font-mono font-bold text-zinc-400">{{ job.progressPercent }}%</span>
-          </div>
-          <div class="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
-            <div
-              class="h-full bg-zinc-900 transition-all duration-500"
-              [style.width.%]="job.progressPercent"
-            ></div>
-          </div>
+          @if (job.status === 'completed') {
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-bold text-green-700">{{ 'aiJobs.step.completed' | translate }}</span>
+              <shared-button
+                variant="primary"
+                size="compact"
+                [fullWidth]="false"
+                (clicked)="openGeneratedQuote()"
+              >
+                {{ 'aiJobs.openQuote' | translate }}
+              </shared-button>
+            </div>
+          } @else if (job.status === 'failed' || job.status === 'cancelled') {
+            <div class="text-xs font-bold text-red-700">
+              {{ job.error || ('aiJobs.step.failed' | translate) }}
+            </div>
+          } @else {
+            <div class="flex justify-between mb-2">
+              <span class="text-[10px] font-black uppercase text-zinc-700">{{ job.step }}</span>
+              <span class="text-[10px] font-mono font-bold text-zinc-400">{{ job.progressPercent }}%</span>
+            </div>
+            <div class="h-1.5 w-full bg-zinc-100 rounded-full overflow-hidden">
+              <div
+                class="h-full bg-zinc-900 transition-all duration-500"
+                [style.width.%]="job.progressPercent"
+              ></div>
+            </div>
+          }
         </div>
       }
     </div>

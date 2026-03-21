@@ -1,8 +1,8 @@
-<app-right-sidebar [isOpen]="isOpen()" title="AI taken" (closed)="close()">
+<app-right-sidebar [isOpen]="isOpen()" [title]="'aiJobs.title' | translate" (closed)="close()">
   @if (loading()) {
-    <div class="px-4 py-4 text-xs text-zinc-600">Laden...</div>
+    <div class="px-4 py-4 text-xs text-zinc-600">{{ 'aiJobs.loading' | translate }}</div>
   } @else if (jobs().length === 0) {
-    <div class="px-4 py-4 text-xs text-zinc-600">Geen taken</div>
+    <div class="px-4 py-4 text-xs text-zinc-600">{{ 'aiJobs.empty' | translate }}</div>
   } @else {
     <ul class="m-0 list-none p-0">
       @for (job of jobs(); track job.jobId) {
@@ -10,13 +10,13 @@
           <button
             type="button"
             class="w-full text-left"
-            (click)="viewJob(job.jobId, job.quoteId)"
+            (click)="viewJob(job)"
           >
             <div class="flex items-center justify-between gap-2 pr-8">
               <span class="flex items-center gap-2 text-xs font-bold text-zinc-900">
                 <span>{{ jobLabel(job) }}</span>
                 @if (unviewedJobIds().has(job.jobId)) {
-                  <span class="job-badge">Nieuw</span>
+                  <span class="job-badge">{{ 'aiJobs.new' | translate }}</span>
                 }
               </span>
               <span class="text-[11px] font-semibold uppercase"
@@ -41,11 +41,11 @@
               <div class="mt-2 text-[11px] text-red-600">{{ job.error }}</div>
             }
             @if (job.cancellationReason) {
-              <div class="mt-2 text-[11px] text-zinc-500">Reden: {{ job.cancellationReason }}</div>
+              <div class="mt-2 text-[11px] text-zinc-500">{{ 'aiJobs.reason' | translate }} {{ job.cancellationReason }}</div>
             }
             @if (job.feedbackRating) {
               <div class="mt-2 text-[11px] text-zinc-500">
-                Feedback: {{ job.feedbackRating === 1 ? 'positief' : 'negatief' }}
+                {{ 'aiJobs.feedbackLabel' | translate }}: {{ job.feedbackRating === 1 ? ('aiJobs.feedbackPositiveValue' | translate) : ('aiJobs.feedbackNegativeValue' | translate) }}
                 @if (job.feedbackComment) {
                   <span class="block pt-1 text-zinc-600">{{ job.feedbackComment }}</span>
                 }
@@ -60,10 +60,10 @@
                 size="compact"
                 [fullWidth]="false"
                 [loading]="cancellingJobId() === job.jobId"
-                ariaLabel="Annuleer AI taak"
+                [ariaLabel]="'aiJobs.cancelAriaLabel' | translate"
                 (clicked)="onCancelJob($event, job)"
               >
-                Annuleren
+                {{ 'aiJobs.cancel' | translate }}
               </shared-button>
             </div>
           }
@@ -75,20 +75,20 @@
                 size="compact"
                 [fullWidth]="false"
                 [loading]="feedbackJobId() === job.jobId"
-                ariaLabel="Positieve AI feedback"
+                [ariaLabel]="'aiJobs.feedbackPositiveAriaLabel' | translate"
                 (clicked)="onSubmitFeedback($event, job, 1)"
               >
-                Goed
+                {{ 'aiJobs.feedbackPositive' | translate }}
               </shared-button>
               <shared-button
                 variant="secondary"
                 size="compact"
                 [fullWidth]="false"
                 [loading]="feedbackJobId() === job.jobId"
-                ariaLabel="Negatieve AI feedback"
+                [ariaLabel]="'aiJobs.feedbackNegativeAriaLabel' | translate"
                 (clicked)="onSubmitFeedback($event, job, -1)"
               >
-                Slecht
+                {{ 'aiJobs.feedbackNegative' | translate }}
               </shared-button>
             </div>
           }
@@ -97,7 +97,7 @@
             <button
               type="button"
               class="absolute right-2 top-2 inline-flex h-6 w-6 items-center justify-center rounded-md text-zinc-500 hover:bg-zinc-100 hover:text-zinc-900"
-              aria-label="Verwijder AI taak"
+              [attr.aria-label]="'aiJobs.deleteAriaLabel' | translate"
               (click)="onDeleteJob($event, job)"
             >
               <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
@@ -113,12 +113,12 @@
       variant="secondary"
       [disabled]="!hasCompleted()"
       (clicked)="onClearCompleted()"
-      ariaLabel="Wis voltooide AI taken"
+      [ariaLabel]="'aiJobs.clearCompletedAriaLabel' | translate"
     >
-      Voltooide wissen
+      {{ 'aiJobs.clearCompleted' | translate }}
     </shared-button>
-    <shared-button variant="primary" (clicked)="close()" ariaLabel="Sluit AI taken">
-      Sluiten
+    <shared-button variant="primary" (clicked)="close()" [ariaLabel]="'aiJobs.closeAriaLabel' | translate">
+      {{ 'aiJobs.close' | translate }}
     </shared-button>
   </div>
 </app-right-sidebar>

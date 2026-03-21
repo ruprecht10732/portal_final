@@ -1,0 +1,45 @@
+{
+  "aiJobs": {
+    "title": "AI tasks",
+    "loading": "Loading...",
+    "empty": "No tasks",
+    "new": "New",
+    "cancel": "Cancel",
+    "cancelPrompt": "Why are you cancelling this AI task? (optional)",
+    "feedbackPositivePrompt": "What worked well? (optional)",
+    "feedbackNegativePrompt": "What went wrong? (optional)",
+    "feedbackPositive": "Good",
+    "feedbackNegative": "Bad",
+    "feedbackLabel": "Feedback",
+    "feedbackPositiveValue": "positive",
+    "feedbackNegativeValue": "negative",
+    "reason": "Reason:",
+    "clearCompleted": "Clear completed",
+    "close": "Close",
+    "openQuote": "Open quote",
+    "deleteAriaLabel": "Delete AI task",
+    "cancelAriaLabel": "Cancel AI task",
+    "clearCompletedAriaLabel": "Clear completed AI tasks",
+    "closeAriaLabel": "Close AI tasks",
+    "feedbackPositiveAriaLabel": "Positive AI feedback",
+    "feedbackNegativeAriaLabel": "Negative AI feedback",
+    "bellAriaLabel": "AI tasks",
+    "errors": {
+      "delete": "Could not delete AI task",
+      "cancel": "Could not cancel AI task",
+      "feedback": "Could not save AI feedback",
+      "clearCompleted": "Could not clear completed AI tasks"
+    },
+    "kind": {
+      "quoteGeneration": "Quote generation",
+      "leadAnalysis": "Lead analysis",
+      "photoAnalysis": "Photo analysis",
+      "subsidyAnalysis": "Subsidy analysis"
+    },
+    "step": {
+      "completed": "Completed",
+      "failed": "Failed"
+    },
+    "stale": "Task appears to be stuck – check backend"
+  }
+}
