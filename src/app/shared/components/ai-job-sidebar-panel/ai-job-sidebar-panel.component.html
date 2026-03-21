@@ -93,6 +93,20 @@
             </div>
           }
 
+          @if (canRetry(job)) {
+            <div class="mt-3 flex justify-end">
+              <shared-button
+                variant="primary"
+                size="compact"
+                [fullWidth]="false"
+                [ariaLabel]="'aiJobs.retryAriaLabel' | translate"
+                (clicked)="onRetryJob($event, job)"
+              >
+                {{ 'aiJobs.retry' | translate }}
+              </shared-button>
+            </div>
+          }
+
           @if (job.status === 'completed' || job.status === 'failed' || job.status === 'cancelled') {
             <button
               type="button"

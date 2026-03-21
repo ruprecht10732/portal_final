@@ -135,8 +135,7 @@ import {
   Unlink2,
   ChartColumn,
   Leaf,
-  BarChart3,
-  CheckCircle,
+  CircleCheck,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -321,8 +320,7 @@ export const appConfig: ApplicationConfig = {
         Undo2,
         ChartColumn,
         Leaf,
-        BarChart3,
-        CheckCircle,
+        CircleCheck,
       }),
     ),
   ]

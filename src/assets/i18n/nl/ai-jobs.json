@@ -40,6 +40,14 @@
       "completed": "Voltooid",
       "failed": "Mislukt"
     },
-    "stale": "Taak lijkt vast te zitten – controleer de backend"
+    "stale": "Taak lijkt vast te zitten – controleer de backend",
+    "toast": {
+      "completed": "{{kind}} voltooid",
+      "failed": "{{kind}} mislukt",
+      "viewQuote": "Offerte bekijken"
+    },
+    "retry": "Opnieuw",
+    "retryAriaLabel": "AI taak opnieuw proberen",
+    "tabBadge": "({{count}}) "
   }
 }

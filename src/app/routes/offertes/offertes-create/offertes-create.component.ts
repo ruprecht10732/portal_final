@@ -3,6 +3,7 @@ import {
   Component,
   computed,
   DestroyRef,
+  effect,
   inject,
   OnInit,
   signal,
@@ -246,6 +247,15 @@ export class OffertesCreateComponent implements OnInit {
     const status = this.currentGenerateJob()?.status;
     return status === 'pending' || status === 'running';
   });
+
+  // Auto-navigate to the generated quote once it completes
+  protected readonly autoNavEffect = effect(() => {
+    const job = this.currentGenerateJob();
+    if (job?.status === 'completed' && job.quoteId) {
+      this.openGeneratedQuote();
+    }
+  });
+
   protected readonly financingDisclaimer = signal(false);
   protected readonly pagePerItem = signal(false);
 

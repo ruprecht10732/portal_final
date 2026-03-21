@@ -1,4 +1,4 @@
-import { DestroyRef, computed, inject, Injectable, signal } from '@angular/core';
+import { DestroyRef, computed, effect, inject, Injectable, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { catchError, map, Observable, tap, throwError } from 'rxjs';
 import { TranslateService } from '@ngx-translate/core';
@@ -46,6 +46,7 @@ export class AIJobService {
   private readonly basePollMs = 5000;
   private readonly maxPollMs = 60000;
   private readonly staleThresholdMs = 5 * 60 * 1000;
+  private originalTitle = '';
 
   private readonly jobsState = signal<Record<string, AIJobState>>({});
   private readonly trackedJobIds = signal<string[]>([]);
@@ -110,9 +111,49 @@ export class AIJobService {
         }
       });
 
+    this.sse.events
+      .pipe(takeUntilDestroyed())
+      .subscribe(event => {
+        if (event.type !== 'subsidy_analysis_progress') return;
+        const payload = event.data?.['job'];
+        if (!payload || typeof payload !== 'object') return;
+
+        const raw = payload as Record<string, unknown>;
+        const jobId = typeof raw['jobId'] === 'string' ? raw['jobId'] : undefined;
+        const status = this.normalizeStatus(typeof raw['status'] === 'string' ? raw['status'] : undefined);
+        if (!jobId || !status) return;
+
+        const existing = this.jobsState()[jobId];
+        if (existing?.kind !== 'subsidy_analysis') return;
+
+        this.upsertJob({
+          ...existing,
+          status,
+          step: typeof raw['step'] === 'string' ? raw['step'] : existing.step,
+          progressPercent: typeof raw['progressPercent'] === 'number' ? raw['progressPercent'] : existing.progressPercent,
+          updatedAt: typeof raw['updatedAt'] === 'string' ? raw['updatedAt'] : new Date().toISOString(),
+        });
+      });
+
     this.restoreTrackedJobs();
     this.bindVisibilityReconcile();
     this.startPollingLoop();
+    this.requestNotificationPermission();
+
+    if (typeof document !== 'undefined') {
+      this.originalTitle = document.title;
+    }
+
+    effect(() => {
+      const count = this.activeCount();
+      if (typeof document === 'undefined') return;
+      if (!this.originalTitle) {
+        this.originalTitle = document.title.replace(/^\(\d+\)\s/, '');
+      }
+      document.title = count > 0
+        ? this.translate.instant('aiJobs.tabBadge', { count }) + this.originalTitle
+        : this.originalTitle;
+    });
 
     this.destroyRef.onDestroy(() => {
       if (this.pollTimer) {
@@ -328,6 +369,10 @@ export class AIJobService {
   }
 
   private upsertJob(job: AIJobState): void {
+    const prev = this.jobsState()[job.jobId];
+    const wasActive = prev && this.isActive(prev.status);
+    const isNowTerminal = job.status === 'completed' || job.status === 'failed';
+
     this.jobsState.update(current => ({
       ...current,
       [job.jobId]: job,
@@ -338,6 +383,52 @@ export class AIJobService {
     } else if (job.kind === 'quote_generation') {
       this.removeTrackedJob(job.jobId);
     }
+
+    if (wasActive && isNowTerminal) {
+      this.notifyJobCompletion(job);
+    }
+  }
+
+  private notifyJobCompletion(job: AIJobState): void {
+    const kind = this.kindLabel(job.kind);
+    const isSuccess = job.status === 'completed';
+    const messageKey = isSuccess ? 'aiJobs.toast.completed' : 'aiJobs.toast.failed';
+    const message = this.translate.instant(messageKey, { kind });
+
+    const link = isSuccess && job.kind === 'quote_generation' && job.quoteId
+      ? { label: this.translate.instant('aiJobs.toast.viewQuote'), url: ['/app/offertes', job.quoteId] as string[] }
+      : undefined;
+
+    this.toast.show({
+      message,
+      variant: isSuccess ? 'success' : 'error',
+      ...(link ? { link } : {}),
+      durationMs: 8000,
+    });
+
+    this.sendBrowserNotification(message);
+  }
+
+  private kindLabel(kind: AIJobKind): string {
+    switch (kind) {
+      case 'quote_generation': return this.translate.instant('aiJobs.kind.quoteGeneration');
+      case 'lead_analysis': return this.translate.instant('aiJobs.kind.leadAnalysis');
+      case 'photo_analysis': return this.translate.instant('aiJobs.kind.photoAnalysis');
+      case 'subsidy_analysis': return this.translate.instant('aiJobs.kind.subsidyAnalysis');
+      default: return kind;
+    }
+  }
+
+  private requestNotificationPermission(): void {
+    if (typeof Notification !== 'undefined' && Notification.permission === 'default') {
+      void Notification.requestPermission();
+    }
+  }
+
+  private sendBrowserNotification(body: string): void {
+    if (typeof document === 'undefined' || !document.hidden) return;
+    if (typeof Notification === 'undefined' || Notification.permission !== 'granted') return;
+    new Notification('Portal', { body, icon: '/favicon.ico' });
   }
 
   private fetchJob(jobId: string): void {

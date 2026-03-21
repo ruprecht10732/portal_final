@@ -122,6 +122,24 @@ export class AIJobSidebarPanelComponent {
 	return job.kind === 'quote_generation' && (job.status === 'pending' || job.status === 'running');
   }
 
+  protected canRetry(job: AIJobState): boolean {
+	return (job.kind === 'quote_generation' || job.kind === 'subsidy_analysis') && (job.status === 'failed' || job.status === 'cancelled');
+  }
+
+  protected onRetryJob(event: MouseEvent, job: AIJobState): void {
+	event.stopPropagation();
+	if (!this.canRetry(job)) return;
+
+	this.aiJobs.delete(job.jobId).subscribe(() => {
+	  if (job.kind === 'quote_generation') {
+		void this.router.navigate(['/app/offertes/new'], {
+		  queryParams: { leadId: job.leadId, serviceId: job.leadServiceId },
+		});
+	  }
+	  this.close();
+	});
+  }
+
   protected canSubmitFeedback(job: AIJobState): boolean {
 	return job.kind === 'quote_generation' && (job.status === 'completed' || job.status === 'failed');
   }

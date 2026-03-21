@@ -40,6 +40,14 @@
       "completed": "Completed",
       "failed": "Failed"
     },
-    "stale": "Task appears to be stuck – check backend"
+    "stale": "Task appears to be stuck – check backend",
+    "toast": {
+      "completed": "{{kind}} completed",
+      "failed": "{{kind}} failed",
+      "viewQuote": "View quote"
+    },
+    "retry": "Retry",
+    "retryAriaLabel": "Retry AI task",
+    "tabBadge": "({{count}}) "
   }
 }
