@@ -3,7 +3,8 @@ import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslatePipe } from '@ngx-translate/core';
-import { filter, map } from 'rxjs';
+import { catchError, filter, map, of } from 'rxjs';
+import { UserService } from '../../core/services/user.service';
 import { SidebarPanelItem } from './sidebar-panel.config';
 
 @Component({
@@ -45,6 +46,12 @@ import { SidebarPanelItem } from './sidebar-panel.config';
 export class MobileSectionTabsComponent {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
+  private readonly userService = inject(UserService);
+
+  private readonly user = toSignal(
+    this.userService.getProfile().pipe(catchError(() => of(null))),
+    { initialValue: null },
+  );
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -54,7 +61,7 @@ export class MobileSectionTabsComponent {
     { initialValue: this.router.url },
   );
 
-  protected readonly panelItems = toSignal(
+  private readonly rawPanelItems = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
       map(() => this.resolvePanelItems()),
@@ -62,7 +69,9 @@ export class MobileSectionTabsComponent {
     { initialValue: this.resolvePanelItems() },
   );
 
-  protected readonly showTabs = computed(() => this.panelItems().length > 0);
+  protected readonly panelItems = computed(() => this.filterPanelItemsForCurrentUser(this.rawPanelItems()));
+
+  protected readonly showTabs = computed(() => this.panelItems().length > 1);
 
   protected isActive(route: string, exact: boolean): boolean {
     const url = this.currentUrl();
@@ -81,5 +90,16 @@ export class MobileSectionTabsComponent {
     }
 
     return items;
+  }
+
+  private filterPanelItemsForCurrentUser(items: SidebarPanelItem[]): SidebarPanelItem[] {
+    const roles = this.user()?.roles ?? [];
+    return items.filter((item) => {
+      if (!item.roles || item.roles.length === 0) {
+        return true;
+      }
+
+      return item.roles.some((role) => roles.includes(role));
+    });
   }
 }

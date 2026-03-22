@@ -10,6 +10,38 @@ import { partnersOfferListResolver } from './routes/partners/partners-offer-list
 import { quoteIntroGuard } from './core/guards/quote-intro.guard';
 import { SidebarPanelConfig } from './routes/app-shell/sidebar-panel.config';
 
+const partnersPanelItems: SidebarPanelConfig['panelItems'] = [
+	{ label: 'partners.overview', route: '/app/partners', icon: 'list', exact: true },
+	{ label: 'partners.create', route: '/app/partners/new', icon: 'plus' },
+	{ label: 'partners.offersOverview', route: '/app/offers', icon: 'handshake', exact: true },
+	{ label: 'partners.createOffer', route: '/app/offers/new', icon: 'plus' },
+];
+
+const inboxPanelItems: SidebarPanelConfig['panelItems'] = [
+	{ label: 'navigation.emailInbox', route: '/app/inbox', icon: 'mail', exact: true },
+	{ label: 'navigation.whatsappInbox', route: '/app/inbox/whatsapp', icon: 'message-circle', roles: ['admin'] },
+];
+
+const settingsPanelItems: SidebarPanelConfig['panelItems'] = [
+	{ group: 'sidebar.groups.channels', label: 'profile.emailAccounts', route: '/app/settings/email-accounts', icon: 'mail', exact: true },
+	{ group: 'sidebar.groups.channels', label: 'organization.settings.whatsapp.title', route: '/app/settings/whatsapp', icon: 'message-circle', roles: ['admin'] },
+	{ group: 'sidebar.groups.channels', label: 'organization.settings.smtp.title', route: '/app/settings/smtp', icon: 'mail', roles: ['admin'] },
+	{ group: 'sidebar.groups.channels', label: 'organization.settings.workflows.title', route: '/app/settings/workflows', icon: 'settings', roles: ['admin'] },
+	{ group: 'sidebar.groups.operations', label: 'appointments.availabilityNav', route: '/app/settings/availability', icon: 'clock', exact: true },
+	{ group: 'sidebar.groups.operations', label: 'organization.settings.quoteDefaults', route: '/app/settings/quote-defaults', icon: 'file-text', roles: ['admin'] },
+	{ group: 'sidebar.groups.operations', label: 'organization.settings.partnerOfferTerms.title', route: '/app/settings/partner-offer-terms', icon: 'file-text', roles: ['admin'] },
+	{ group: 'sidebar.groups.operations', label: 'navigation.services', route: '/app/settings/services', icon: 'wrench', roles: ['admin'], exact: true },
+	{ group: 'sidebar.groups.operations', label: 'navigation.catalog', route: '/app/settings/catalog', icon: 'book-open', exact: true },
+	{ group: 'sidebar.groups.operations', label: 'catalog.vatRates.title', route: '/app/settings/catalog/vat-rates', icon: 'settings' },
+	{ group: 'sidebar.groups.automation', label: 'organization.settings.ai.title', route: '/app/settings/ai', icon: 'brain-circuit', roles: ['admin'] },
+	{ group: 'sidebar.groups.company', label: 'organization.overview', route: '/app/settings/company', icon: 'building', exact: true, roles: ['admin'] },
+	{ group: 'sidebar.groups.company', label: 'organization.team.navLabel', route: '/app/settings/team', icon: 'users', roles: ['admin'] },
+	{ group: 'sidebar.groups.integrations', label: 'organization.integrations.moneybird.navLabel', route: '/app/settings/moneybird', icon: 'settings', exact: true, roles: ['admin'] },
+	{ group: 'sidebar.groups.integrations', label: 'webhook.navLabel', route: '/app/settings/webhooks', icon: 'webhook', exact: true, roles: ['admin'] },
+	{ group: 'sidebar.groups.integrations', label: 'webhook.googleLeads.navLabel', route: '/app/settings/google-leads', icon: 'globe', roles: ['admin'] },
+	{ group: 'sidebar.groups.integrations', label: 'googleAds.navLabel', route: '/app/settings/google-ads-export', icon: 'download', roles: ['admin'] },
+];
+
 export const routes: Routes = [
 	{
 		path: '',
@@ -139,179 +171,189 @@ export const routes: Routes = [
 					},
 					{
 						path: 'email-accounts',
-						redirectTo: '/app/inbox/settings',
+						redirectTo: '/app/settings/email-accounts',
 						pathMatch: 'full',
 					},
 				],
 			},
 			{
-				path: 'organization',
+				path: 'settings',
 				loadComponent: () => import('./routes/organization/organization-layout/organization-layout.component').then(m => m.OrganizationLayoutComponent),
-				canActivate: [adminGuard],
 				data: {
-					panelItems: [
-						{ label: 'organization.overview', route: '/app/organization', icon: 'building', exact: true },
-						{ label: 'organization.settings.navLabel', route: '/app/organization/settings', icon: 'settings' },
-						{ label: 'organization.team.navLabel', route: '/app/organization/team', icon: 'mail' },
-						{ label: 'organization.integrations.navLabel', route: '/app/organization/integrations', icon: 'webhook' },
-					],
+					panelItems: settingsPanelItems,
 				} satisfies SidebarPanelConfig,
 				children: [
 					{
 						path: '',
+						pathMatch: 'full',
+						redirectTo: 'email-accounts',
+					},
+					{
+						path: 'email-accounts',
+						loadComponent: () => import('./routes/profile/email-accounts/email-accounts.component').then(m => m.EmailAccountsComponent),
+					},
+					{
+						path: 'company',
+						canActivate: [adminGuard],
 						loadComponent: () => import('./routes/organization/organization-overview/organization-overview.component').then(m => m.OrganizationOverviewComponent),
 					},
 					{
-						path: 'settings',
-						loadComponent: () =>
-							import('./routes/organization/organization-settings-layout/organization-settings-layout.component').then(
-								m => m.OrganizationSettingsLayoutComponent,
-							),
-						data: {
-							panelItems: [
-								{ label: 'organization.backToOrg', route: '/app/organization', icon: 'building', exact: true },
-								{ label: 'organization.settings.quoteDefaults', route: '/app/organization/settings/quote-defaults', icon: 'settings', exact: true },
-								{ label: 'organization.settings.partnerOfferTerms.title', route: '/app/organization/settings/partner-offer-terms', icon: 'file-text' },
-								{ label: 'organization.settings.ai.title', route: '/app/organization/settings/ai', icon: 'settings' },
-								{ label: 'organization.settings.smtp.title', route: '/app/organization/settings/smtp', icon: 'mail' },
-								{ label: 'organization.settings.workflows.title', route: '/app/organization/settings/workflows', icon: 'settings' },
-							],
-						} satisfies SidebarPanelConfig,
-						children: [
-							{
-								path: '',
-								pathMatch: 'full',
-								redirectTo: 'quote-defaults',
-							},
-							{
-								path: 'quote-defaults',
-								loadComponent: () =>
-									import(
-										'./routes/organization/organization-settings/quote-defaults/organization-quote-defaults-settings.component'
-									).then(m => m.OrganizationQuoteDefaultsSettingsComponent),
-							},
-							{
-								path: 'partner-offer-terms',
-								loadComponent: () =>
-									import(
-										'./routes/organization/organization-settings/partner-offer-terms/organization-partner-offer-terms-settings.component'
-									).then(m => m.OrganizationPartnerOfferTermsSettingsComponent),
-							},
-							{
-								path: 'ai',
-								loadComponent: () =>
-									import('./routes/organization/organization-settings/ai/organization-ai-settings.component').then(
-										m => m.OrganizationAiSettingsComponent,
-									),
-							},
-							{
-								path: 'whatsapp',
-								redirectTo: '/app/whatsapp/settings',
-								pathMatch: 'full',
-							},
-							{
-								path: 'smtp',
-								loadComponent: () =>
-									import('./routes/organization/organization-settings/smtp/organization-smtp-settings.component').then(
-										m => m.OrganizationSmtpSettingsComponent,
-									),
-							},
-							{
-								path: 'workflows',
-								loadComponent: () =>
-									import('./routes/organization/organization-settings/workflows/organization-workflows-settings.component').then(
-										m => m.OrganizationWorkflowsSettingsComponent,
-									),
-							},
-						],
-					},
-					{
 						path: 'team',
-						loadComponent: () => import('./routes/organization/organization-team-layout/organization-team-layout.component').then(m => m.OrganizationTeamLayoutComponent),
-						data: {
-							panelItems: [
-								{ label: 'organization.backToOrg', route: '/app/organization', icon: 'building', exact: true },
-								{ label: 'organization.invites', route: '/app/organization/team', icon: 'mail', exact: true },
-								{ label: 'organization.newInvite', route: '/app/organization/team/new', icon: 'plus' },
-							],
-						} satisfies SidebarPanelConfig,
-						children: [
-							{
-								path: '',
-								loadComponent: () =>
-									import('./routes/organization/organization-invites/organization-invites.component').then(m => m.OrganizationInvitesComponent),
-							},
-							{
-								path: 'new',
-								loadComponent: () =>
-									import('./routes/organization/organization-invite-create/organization-invite-create.component').then(
-										m => m.OrganizationInviteCreateComponent,
-									),
-							},
-							{
-								path: ':inviteId/edit',
-								loadComponent: () =>
-									import('./routes/organization/organization-invite-edit/organization-invite-edit.component').then(
-										m => m.OrganizationInviteEditComponent,
-									),
-							},
-						],
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/organization/organization-invites/organization-invites.component').then(m => m.OrganizationInvitesComponent),
 					},
 					{
-						path: 'integrations',
+						path: 'team/new',
+						canActivate: [adminGuard],
 						loadComponent: () =>
-							import('./routes/organization/organization-integrations-layout/organization-integrations-layout.component').then(
-								m => m.OrganizationIntegrationsLayoutComponent,
+							import('./routes/organization/organization-invite-create/organization-invite-create.component').then(
+								m => m.OrganizationInviteCreateComponent,
 							),
-						data: {
-							panelItems: [
-								{ label: 'organization.backToOrg', route: '/app/organization', icon: 'building', exact: true },
-								{ label: 'organization.integrations.moneybird.navLabel', route: '/app/organization/integrations/moneybird', icon: 'settings', exact: true },
-								{ label: 'webhook.navLabel', route: '/app/organization/integrations/webhooks', icon: 'webhook', exact: true },
-								{ label: 'webhook.googleLeads.navLabel', route: '/app/organization/integrations/google-leads', icon: 'globe' },
-								{ label: 'googleAds.navLabel', route: '/app/organization/integrations/google-ads-export', icon: 'download' },
-							],
-						} satisfies SidebarPanelConfig,
-						children: [
-							{
-								path: '',
-								pathMatch: 'full',
-								redirectTo: 'moneybird',
-							},
-							{
-								path: 'moneybird',
-								loadComponent: () =>
-									import('./routes/organization/moneybird-integration/moneybird-integration.component').then(
-										m => m.MoneybirdIntegrationComponent,
-									),
-							},
-							{
-								path: 'webhooks',
-								loadComponent: () => import('./routes/organization/webhook-keys/webhook-keys.component').then(m => m.WebhookKeysComponent),
-							},
-							{
-								path: 'google-leads',
-								loadComponent: () =>
-									import('./routes/organization/google-lead-webhooks/google-lead-webhooks.component').then(
-										m => m.GoogleLeadWebhooksComponent,
-									),
-							},
-							{
-								path: 'google-ads-export',
-								loadComponent: () =>
-									import('./routes/organization/google-ads-export/google-ads-export.component').then(m => m.GoogleAdsExportComponent),
-							},
-						],
+					},
+					{
+						path: 'team/:inviteId/edit',
+						canActivate: [adminGuard],
+						loadComponent: () =>
+							import('./routes/organization/organization-invite-edit/organization-invite-edit.component').then(
+								m => m.OrganizationInviteEditComponent,
+							),
+					},
+					{
+						path: 'quote-defaults',
+						canActivate: [adminGuard],
+						loadComponent: () =>
+							import('./routes/organization/organization-settings/quote-defaults/organization-quote-defaults-settings.component').then(
+								m => m.OrganizationQuoteDefaultsSettingsComponent,
+							),
+					},
+					{
+						path: 'partner-offer-terms',
+						canActivate: [adminGuard],
+						loadComponent: () =>
+							import('./routes/organization/organization-settings/partner-offer-terms/organization-partner-offer-terms-settings.component').then(
+								m => m.OrganizationPartnerOfferTermsSettingsComponent,
+							),
+					},
+					{
+						path: 'ai',
+						canActivate: [adminGuard],
+						loadComponent: () =>
+							import('./routes/organization/organization-settings/ai/organization-ai-settings.component').then(
+								m => m.OrganizationAiSettingsComponent,
+							),
+					},
+					{
+						path: 'whatsapp',
+						canActivate: [adminGuard],
+						loadComponent: () =>
+							import('./routes/organization/organization-settings/whatsapp/organization-whatsapp-settings.component').then(
+								m => m.OrganizationWhatsAppSettingsComponent,
+							),
+					},
+					{
+						path: 'smtp',
+						canActivate: [adminGuard],
+						loadComponent: () =>
+							import('./routes/organization/organization-settings/smtp/organization-smtp-settings.component').then(
+								m => m.OrganizationSmtpSettingsComponent,
+							),
+					},
+					{
+						path: 'workflows',
+						canActivate: [adminGuard],
+						loadComponent: () =>
+							import('./routes/organization/organization-settings/workflows/organization-workflows-settings.component').then(
+								m => m.OrganizationWorkflowsSettingsComponent,
+							),
+					},
+					{
+						path: 'availability',
+						loadComponent: () => import('./routes/appointments/availability-settings/availability-settings.component').then(m => m.AvailabilitySettingsComponent),
+					},
+					{
+						path: 'catalog',
+						loadComponent: () => import('./routes/catalog/catalog-list/catalog-list.component').then(m => m.CatalogListComponent),
+					},
+					{
+						path: 'catalog/new',
+						loadComponent: () => import('./routes/catalog/catalog-create/catalog-create.component').then(m => m.CatalogCreateComponent),
+					},
+					{
+						path: 'catalog/vat-rates',
+						loadComponent: () => import('./routes/catalog/vat-rates/vat-rates-list/vat-rates-list.component').then(m => m.VatRatesListComponent),
+					},
+					{
+						path: 'catalog/:id',
+						loadComponent: () => import('./routes/catalog/catalog-detail/catalog-detail.component').then(m => m.CatalogDetailComponent),
+						resolve: { resolved: catalogDetailResolver },
+					},
+					{
+						path: 'catalog/:id/edit',
+						loadComponent: () => import('./routes/catalog/catalog-edit/catalog-edit.component').then(m => m.CatalogEditComponent),
+					},
+					{
+						path: 'services',
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/services/service-types/service-types.component').then(m => m.ServiceTypesComponent),
+					},
+					{
+						path: 'services/new',
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/services/service-types/service-type-create.component').then(m => m.ServiceTypeCreateComponent),
+					},
+					{
+						path: 'services/:id',
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/services/service-type-detail/service-type-detail.component').then(m => m.ServiceTypeDetailComponent),
+					},
+					{
+						path: 'moneybird',
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/organization/moneybird-integration/moneybird-integration.component').then(m => m.MoneybirdIntegrationComponent),
+					},
+					{
+						path: 'webhooks',
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/organization/webhook-keys/webhook-keys.component').then(m => m.WebhookKeysComponent),
+					},
+					{
+						path: 'google-leads',
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/organization/google-lead-webhooks/google-lead-webhooks.component').then(m => m.GoogleLeadWebhooksComponent),
+					},
+					{
+						path: 'google-ads-export',
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/organization/google-ads-export/google-ads-export.component').then(m => m.GoogleAdsExportComponent),
 					},
 				],
 			},
 			{
+				path: 'organization',
+				canActivate: [adminGuard],
+				children: [
+					{ path: '', pathMatch: 'full', redirectTo: '/app/settings/company' },
+					{ path: 'settings', pathMatch: 'full', redirectTo: '/app/settings' },
+					{ path: 'settings/quote-defaults', redirectTo: '/app/settings/quote-defaults' },
+					{ path: 'settings/partner-offer-terms', redirectTo: '/app/settings/partner-offer-terms' },
+					{ path: 'settings/ai', redirectTo: '/app/settings/ai' },
+					{ path: 'settings/whatsapp', redirectTo: '/app/settings/whatsapp' },
+					{ path: 'settings/smtp', redirectTo: '/app/settings/smtp' },
+					{ path: 'settings/workflows', redirectTo: '/app/settings/workflows' },
+					{ path: 'team', pathMatch: 'full', redirectTo: '/app/settings/team' },
+					{ path: 'team/new', redirectTo: '/app/settings/team/new' },
+					{ path: 'team/:inviteId/edit', redirectTo: '/app/settings/team/:inviteId/edit' },
+					{ path: 'integrations', pathMatch: 'full', redirectTo: '/app/settings/moneybird' },
+					{ path: 'integrations/moneybird', redirectTo: '/app/settings/moneybird' },
+					{ path: 'integrations/webhooks', redirectTo: '/app/settings/webhooks' },
+					{ path: 'integrations/google-leads', redirectTo: '/app/settings/google-leads' },
+					{ path: 'integrations/google-ads-export', redirectTo: '/app/settings/google-ads-export' },
+				],
+					},
+			{
 				path: 'inbox',
 				data: {
-					panelItems: [
-						{ label: 'navigation.inbox', route: '/app/inbox', icon: 'mail', exact: true },
-						{ label: 'profile.emailAccounts', route: '/app/inbox/settings', icon: 'settings' },
-					],
+					panelItems: inboxPanelItems,
 				} satisfies SidebarPanelConfig,
 				children: [
 					{
@@ -320,57 +362,49 @@ export const routes: Routes = [
 						loadComponent: () => import('./routes/inbox/inbox.component').then(m => m.InboxComponent),
 					},
 					{
+						path: 'whatsapp',
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/whatsapp/whatsapp-inbox.component').then(m => m.WhatsAppInboxComponent),
+					},
+					{
 						path: 'settings',
-						loadComponent: () => import('./routes/profile/email-accounts/email-accounts.component').then(m => m.EmailAccountsComponent),
+						redirectTo: '/app/settings/email-accounts',
+						pathMatch: 'full',
+					},
+					{
+						path: 'email-accounts',
+						redirectTo: '/app/settings/email-accounts',
+						pathMatch: 'full',
 					},
 				],
 			},
 			{
 				path: 'whatsapp',
-				data: {
-					panelItems: [
-						{ label: 'navigation.whatsapp', route: '/app/whatsapp/inbox', icon: 'mail' },
-						{ label: 'navigation.settings', route: '/app/whatsapp/settings', icon: 'globe', exact: true },
-					],
-				} satisfies SidebarPanelConfig,
 				children: [
 					{
 						path: '',
 						pathMatch: 'full',
-						redirectTo: 'inbox',
+						redirectTo: '/app/inbox/whatsapp',
 					},
 					{
 						path: 'settings',
-						canActivate: [adminGuard],
-						loadComponent: () =>
-							import('./routes/organization/organization-settings/whatsapp/organization-whatsapp-settings.component').then(
-								m => m.OrganizationWhatsAppSettingsComponent,
-							),
+						redirectTo: '/app/settings/whatsapp',
+						pathMatch: 'full',
 					},
 					{
 						path: 'inbox',
-						canActivate: [adminGuard],
-						loadComponent: () => import('./routes/whatsapp/whatsapp-inbox.component').then(m => m.WhatsAppInboxComponent),
+						redirectTo: '/app/inbox/whatsapp',
+						pathMatch: 'full',
 					},
 				],
 			},
 			{
 				path: 'agent-whatsapp',
 				canActivate: [superadminGuard],
-				data: {
-					panelItems: [
-						{ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'globe', exact: true },
-					],
-				} satisfies SidebarPanelConfig,
 				loadComponent: () => import('./routes/whatsapp-agent/whatsapp-agent-admin.component').then(m => m.WhatsAppAgentAdminComponent),
 			},
 			{
 				path: 'tasks',
-				data: {
-					panelItems: [
-						{ label: 'navigation.tasks', route: '/app/tasks', icon: 'list', exact: true },
-					],
-				} satisfies SidebarPanelConfig,
 				loadComponent: () => import('./routes/tasks/tasks-page.component').then(m => m.TasksPageComponent),
 			},
 			{
@@ -406,10 +440,7 @@ export const routes: Routes = [
 				path: 'partners',
 				loadComponent: () => import('./routes/partners/partners-layout/partners-layout.component').then(m => m.PartnersLayoutComponent),
 				data: {
-					panelItems: [
-						{ label: 'partners.overview', route: '/app/partners', icon: 'list', exact: true },
-						{ label: 'partners.create', route: '/app/partners/new', icon: 'plus' },
-					],
+					panelItems: partnersPanelItems,
 				} satisfies SidebarPanelConfig,
 				children: [
 					{
@@ -451,10 +482,7 @@ export const routes: Routes = [
 						m => m.PartnersOffersLayoutComponent,
 					),
 				data: {
-					panelItems: [
-						{ label: 'partners.offersOverview', route: '/app/offers', icon: 'briefcase', exact: true },
-						{ label: 'partners.createOffer', route: '/app/offers/new', icon: 'handshake' },
-					],
+					panelItems: partnersPanelItems,
 				} satisfies SidebarPanelConfig,
 				children: [
 					{
@@ -531,61 +559,21 @@ export const routes: Routes = [
 			},
 			{
 				path: 'catalog',
-				loadComponent: () => import('./routes/catalog/catalog-layout/catalog-layout.component').then(m => m.CatalogLayoutComponent),
-				data: {
-					panelItems: [
-						{ label: 'catalog.overview', route: '/app/catalog', icon: 'list', exact: true },
-						{ label: 'catalog.create', route: '/app/catalog/new', icon: 'plus' },
-						{ label: 'catalog.vatRates.title', route: '/app/catalog/vat-rates', icon: 'settings' },
-					],
-				} satisfies SidebarPanelConfig,
 				children: [
-					{
-						path: '',
-						loadComponent: () => import('./routes/catalog/catalog-list/catalog-list.component').then(m => m.CatalogListComponent),
-					},
-					{
-						path: 'new',
-						loadComponent: () => import('./routes/catalog/catalog-create/catalog-create.component').then(m => m.CatalogCreateComponent),
-					},
-					{
-						path: 'vat-rates',
-						loadComponent: () => import('./routes/catalog/vat-rates/vat-rates-list/vat-rates-list.component').then(m => m.VatRatesListComponent),
-					},
-					{
-						path: ':id',
-						loadComponent: () => import('./routes/catalog/catalog-detail/catalog-detail.component').then(m => m.CatalogDetailComponent),
-						resolve: { resolved: catalogDetailResolver },
-					},
-					{
-						path: ':id/edit',
-						loadComponent: () => import('./routes/catalog/catalog-edit/catalog-edit.component').then(m => m.CatalogEditComponent),
-					},
+					{ path: '', pathMatch: 'full', redirectTo: '/app/settings/catalog' },
+					{ path: 'new', redirectTo: '/app/settings/catalog/new' },
+					{ path: 'vat-rates', redirectTo: '/app/settings/catalog/vat-rates' },
+					{ path: ':id', redirectTo: '/app/settings/catalog/:id' },
+					{ path: ':id/edit', redirectTo: '/app/settings/catalog/:id/edit' },
 				],
 			},
 			{
 				path: 'services',
-				loadComponent: () => import('./routes/services/services-layout/services-layout.component').then(m => m.ServicesLayoutComponent),
 				canActivate: [adminGuard],
-				data: {
-					panelItems: [
-						{ label: 'services.types', route: '/app/services', icon: 'list', exact: true },
-						{ label: 'services.createType', route: '/app/services/new', icon: 'plus' },
-					],
-				} satisfies SidebarPanelConfig,
 				children: [
-					{
-						path: '',
-						loadComponent: () => import('./routes/services/service-types/service-types.component').then(m => m.ServiceTypesComponent),
-					},
-					{
-						path: 'new',
-						loadComponent: () => import('./routes/services/service-types/service-type-create.component').then(m => m.ServiceTypeCreateComponent),
-					},
-					{
-						path: ':id',
-						loadComponent: () => import('./routes/services/service-type-detail/service-type-detail.component').then(m => m.ServiceTypeDetailComponent),
-					},
+					{ path: '', pathMatch: 'full', redirectTo: '/app/settings/services' },
+					{ path: 'new', redirectTo: '/app/settings/services/new' },
+					{ path: ':id', redirectTo: '/app/settings/services/:id' },
 				],
 			},
 			{
@@ -599,7 +587,6 @@ export const routes: Routes = [
 					panelItems: [
 						{ label: 'appointments.calendar', route: '/app/appointments', icon: 'calendar', exact: true },
 						{ label: 'appointments.listView', route: '/app/appointments/list', icon: 'list' },
-						{ label: 'appointments.availabilityNav', route: '/app/appointments/availability', icon: 'clock' },
 					],
 				} satisfies SidebarPanelConfig,
 				children: [
@@ -613,7 +600,8 @@ export const routes: Routes = [
 					},
 					{
 						path: 'availability',
-						loadComponent: () => import('./routes/appointments/availability-settings/availability-settings.component').then(m => m.AvailabilitySettingsComponent),
+						redirectTo: '/app/settings/availability',
+						pathMatch: 'full',
 					},
 					{
 						path: 'new',

@@ -2162,7 +2162,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   protected openWhatsAppDeviceSettings(): void {
-    void this.router.navigate(['/app/whatsapp/settings']);
+    void this.router.navigate(['/app/settings/whatsapp']);
   }
 
   protected composeEmail(email: string | undefined, message: string): void {

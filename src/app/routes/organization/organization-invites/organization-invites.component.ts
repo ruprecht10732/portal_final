@@ -214,7 +214,7 @@ export class OrganizationInvitesComponent {
 
   protected onRowDoubleClick(row: InviteRow): void {
     this.selectedInvite.set(row);
-		this.router.navigate(['/app/organization/team', row.id, 'edit']);
+		this.router.navigate(['/app/settings/team', row.id, 'edit']);
   }
 
   private getStatusValue(invite: OrganizationInvite): InviteStatus {

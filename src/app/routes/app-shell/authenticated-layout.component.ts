@@ -1,5 +1,5 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
-import { RouterLink, RouterOutlet } from '@angular/router';
+import { Router, RouterLink, RouterOutlet } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { SSEService } from '../../core/services/sse.service';
 import { WhatsAppDeviceStatusService } from '../../core/services/whatsapp-device-status.service';
@@ -32,10 +32,14 @@ import { LucideAngularModule } from 'lucide-angular';
   templateUrl: './authenticated-layout.component.html',
   styleUrl: './authenticated-layout.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    '(document:keydown)': 'handleGlobalKeydown($event)',
+  },
 })
 export class AuthenticatedLayoutComponent {
   // Initialize SSE service for real-time notifications (side-effect injection)
   protected readonly _ = inject(SSEService);
+  private readonly router = inject(Router);
   protected readonly whatsAppDeviceStatus = inject(WhatsAppDeviceStatusService);
   private readonly translate = inject(TranslateService);
   private readonly browserNotifications = inject(BrowserNotificationService);
@@ -108,5 +112,22 @@ export class AuthenticatedLayoutComponent {
   protected dismissNotificationBanner(): void {
     this.showNotificationBanner.set(false);
     this.browserNotifications.markDismissed();
+  }
+
+  protected handleGlobalKeydown(event: KeyboardEvent): void {
+    if (!(event.metaKey || event.ctrlKey) || event.altKey || event.shiftKey || event.key.toLowerCase() !== 'k') {
+      return;
+    }
+
+    const target = event.target;
+    if (target instanceof HTMLElement) {
+      const tagName = target.tagName;
+      if (target.isContentEditable || tagName === 'INPUT' || tagName === 'TEXTAREA' || tagName === 'SELECT') {
+        return;
+      }
+    }
+
+    event.preventDefault();
+    void this.router.navigate(['/app/search']);
   }
 }

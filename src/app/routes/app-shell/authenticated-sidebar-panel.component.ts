@@ -15,4 +15,15 @@ import { LucideAngularModule } from 'lucide-angular';
 export class AuthenticatedSidebarPanelComponent {
   title = input('');
   items = input<readonly SidebarPanelItem[]>([]);
+
+  protected shouldShowGroupHeading(index: number): boolean {
+    const items = this.items();
+    const currentGroup = items[index]?.group?.trim();
+    if (!currentGroup) {
+      return false;
+    }
+
+    const previousGroup = items[index - 1]?.group?.trim();
+    return index === 0 || previousGroup !== currentGroup;
+  }
 }

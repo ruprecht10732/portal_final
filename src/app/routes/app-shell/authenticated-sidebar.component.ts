@@ -25,20 +25,16 @@ import type { UserProfile } from '../../core/services/user.types';
 interface SidebarItem {
   label: string;
   route: string;
+  matchPrefixes?: readonly string[];
   icon:
     | 'dashboard'
-    | 'search'
     | 'leads'
     | 'tasks'
     | 'inbox'
-    | 'whatsapp'
     | 'partners'
-    | 'partnerOffers'
     | 'appointments'
-    | 'services'
     | 'offertes'
-    | 'catalog'
-    | 'organization'
+    | 'settings'
     | 'agentWhatsapp'
     | 'profile';
 }
@@ -129,30 +125,74 @@ export class AuthenticatedSidebarComponent {
   protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
   protected readonly unreadInboxMessages = this.imapUnreadCountService.unreadCount;
   protected readonly unreadWhatsAppConversations = this.whatsappUnreadCountService.unreadCount;
+  protected readonly unreadMessagingCount = computed(() => {
+    const emailCount = this.unreadInboxMessages();
+    const whatsAppCount = this.isAdmin() ? this.unreadWhatsAppConversations() : 0;
+    return emailCount + whatsAppCount;
+  });
 
   protected readonly items = computed<SidebarItem[]>(() => {
     const base: SidebarItem[] = [
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
-      { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
-      { label: 'navigation.tasks', route: '/app/tasks', icon: 'tasks' },
-      { label: 'navigation.inbox', route: '/app/inbox', icon: 'inbox' },
-      { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
-      { label: 'navigation.partnerOffers', route: '/app/offers', icon: 'partnerOffers' },
-      { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
+      { label: 'navigation.messages', route: '/app/inbox', icon: 'inbox' },
       { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },
-      { label: 'navigation.catalog', route: '/app/catalog', icon: 'catalog' },
+      { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
+      { label: 'navigation.partners', route: '/app/partners', matchPrefixes: ['/app/offers'], icon: 'partners' },
+      { label: 'navigation.tasks', route: '/app/tasks', icon: 'tasks' },
+      { label: 'navigation.settings', route: '/app/settings', icon: 'settings' },
     ];
-    if (this.isAdmin()) {
-      base.splice(4, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
-      base.splice(5, 0, { label: 'navigation.whatsapp', route: '/app/whatsapp/inbox', icon: 'whatsapp' });
-      base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
-    }
     if (this.isSuperAdmin()) {
       base.push({ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'agentWhatsapp' });
     }
     return base;
   });
+
+  private readonly rawPanelItems = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map(() => this.getPanelItemsFromRoute()),
+    ),
+    { initialValue: this.getPanelItemsFromRoute() },
+  );
+
+  protected readonly panelItems = computed(() => this.filterPanelItemsForCurrentUser(this.rawPanelItems()));
+  protected readonly showPanel = computed(() => this.isExpanded() && this.panelItems().length > 1);
+
+  protected readonly activeTitle = computed(() => {
+    const panelItem = this.getActivePanelItem();
+    if (panelItem) {
+      return panelItem.label;
+    }
+
+    const item = this.items().find((candidate) => this.isNavItemActive(candidate));
+    return item?.label ?? '';
+  });
+
+  protected isNavItemActive(item: SidebarItem): boolean {
+    if (this.isRouteActive(item.route, false)) {
+      return true;
+    }
+
+    return item.matchPrefixes?.some((prefix) => this.isRouteActive(prefix, false)) ?? false;
+  }
+
+  private getActivePanelItem(): SidebarPanelItem | undefined {
+    return this.panelItems()
+      .filter((item) => this.isRouteActive(item.route, item.exact ?? false))
+      .sort((left, right) => right.route.length - left.route.length)[0];
+  }
+
+  private filterPanelItemsForCurrentUser(items: SidebarPanelItem[]): SidebarPanelItem[] {
+    const roles = this.user()?.roles ?? [];
+    return items.filter((item) => {
+      if (!item.roles || item.roles.length === 0) {
+        return true;
+      }
+
+      return item.roles.some((role) => roles.includes(role));
+    });
+  }
 
   protected readonly profileMenu = computed<MenuSection[]>(() => {
     const accountItems: MenuItem[] = this.accountRegistry.accounts().map(account => {
@@ -193,36 +233,6 @@ export class AuthenticatedSidebarComponent {
       },
     ];
   });
-
-  protected readonly activeTitle = computed(() => {
-    const panelItem = this.getActivePanelItem();
-    if (panelItem) {
-      return panelItem.label;
-    }
-
-    const item = this.items().find((i) => this.isNavItemActive(i));
-    return item?.label ?? '';
-  });
-
-  protected isNavItemActive(item: SidebarItem): boolean {
-    return this.isRouteActive(item.route, false);
-  }
-
-  protected readonly panelItems = toSignal(
-    this.router.events.pipe(
-      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.getPanelItemsFromRoute()),
-    ),
-    { initialValue: this.getPanelItemsFromRoute() },
-  );
-
-  protected readonly hasPanelItems = computed(() => this.panelItems().length > 0);
-
-  private getActivePanelItem(): SidebarPanelItem | undefined {
-    return this.panelItems()
-      .filter((item) => this.isRouteActive(item.route, item.exact ?? false))
-      .sort((left, right) => right.route.length - left.route.length)[0];
-  }
 
   private isRouteActive(route: string, exact: boolean): boolean {
     const url = this.currentUrl();

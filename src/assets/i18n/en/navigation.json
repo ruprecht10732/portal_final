@@ -4,8 +4,11 @@
     "search": "Search",
     "leads": "Leads",
     "tasks": "Tasks",
+    "messages": "Messages",
     "inbox": "Inbox",
+    "emailInbox": "Email inbox",
     "whatsapp": "WhatsApp",
+    "whatsappInbox": "WhatsApp inbox",
     "partners": "Partners",
     "partnerOffers": "Work Offers",
     "appointments": "Appointments",
@@ -13,8 +16,8 @@
     "catalog": "Catalog",
     "services": "Services",
     "organization": "Organization",
+    "settings": "Settings",
     "agentWhatsApp": "Agent",
-    "profile": "Profile",
-    "settings": "Settings"
+    "profile": "Profile"
   }
 }

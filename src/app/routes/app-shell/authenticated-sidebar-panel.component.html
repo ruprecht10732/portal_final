@@ -20,8 +20,12 @@
   @if (items().length > 0) {
     <nav class="flex flex-1 flex-col gap-2 overflow-y-auto pb-safe md:pb-0" 
          [attr.aria-label]="'sidebar.sectionNavigation' | translate">
-      
-      @for (item of items(); track item.route) {
+      @for (item of items(); track item.route; let index = $index) {
+        @if (shouldShowGroupHeading(index)) {
+          <p class="mt-4 px-1 text-[10px] font-semibold uppercase tracking-[0.16em] text-zinc-400 first:mt-0">
+            {{ item.group! | translate }}
+          </p>
+        }
         <app-authenticated-sidebar-nav-item
           class="block"
           [label]="item.label"

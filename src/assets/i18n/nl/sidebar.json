@@ -7,6 +7,13 @@
     "expand": "Zijbalk uitklappen",
     "quickLinks": "Snelle links",
     "mobileNavigation": "Mobiele navigatie",
+    "groups": {
+      "channels": "Kanalen",
+      "operations": "Operatie",
+      "automation": "Automatisering",
+      "company": "Bedrijf",
+      "integrations": "Integraties"
+    },
     "search": "Zoeken"
   }
 }

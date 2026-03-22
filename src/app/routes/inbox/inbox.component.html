@@ -1,5 +1,5 @@
 <shared-page-layout
-  [title]="'navigation.inbox' | translate"
+  [title]="'navigation.emailInbox' | translate"
   [subtitle]="formatDayHeader(today())"
   [removeMobilePadding]="true"
 >
@@ -69,7 +69,7 @@
                       ></lucide-icon>
                     </button>
                   }
-                  <a class="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100" routerLink="/app/inbox/settings">
+                  <a class="rounded-full p-2 text-zinc-500 transition-colors hover:bg-zinc-100" routerLink="/app/settings/email-accounts">
                     <lucide-icon name="settings" class="h-4 w-4"></lucide-icon>
                   </a>
                 </div>

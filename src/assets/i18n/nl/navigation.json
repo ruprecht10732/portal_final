@@ -4,8 +4,11 @@
     "search": "Zoeken",
     "leads": "Leads",
     "tasks": "Taken",
+    "messages": "Berichten",
     "inbox": "Inbox",
+    "emailInbox": "E-mailinbox",
     "whatsapp": "WhatsApp",
+    "whatsappInbox": "WhatsApp-inbox",
     "partners": "Partners",
     "partnerOffers": "Werkaanbiedingen",
     "appointments": "Afspraken",
@@ -13,8 +16,8 @@
     "catalog": "Catalogus",
     "services": "Diensten",
     "organization": "Organisatie",
+    "settings": "Instellingen",
     "agentWhatsApp": "Agent",
-    "profile": "Profiel",
-    "settings": "Instellingen"
+    "profile": "Profiel"
   }
 }

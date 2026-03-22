@@ -3,6 +3,8 @@ export interface SidebarPanelItem {
   route: string;
   icon?: string | null;
   exact?: boolean;
+  group?: string;
+  roles?: string[];
 }
 
 export interface SidebarPanelConfig {

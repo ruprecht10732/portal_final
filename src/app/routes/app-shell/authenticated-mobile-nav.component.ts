@@ -1,13 +1,14 @@
 import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { Router, RouterLink, RouterLinkActive } from '@angular/router';
+import { NavigationEnd, Router, RouterLink } from '@angular/router';
 import { LucideAngularModule } from 'lucide-angular';
 import { TranslatePipe } from '@ngx-translate/core';
-import { catchError, of } from 'rxjs';
+import { catchError, filter, map, of } from 'rxjs';
 import { AccountRegistryService } from '../../core/services/account-registry.service';
 import { AuthService } from '../../core/services/auth.service';
 import { NotificationsService } from '../../core/services/notifications.service';
 import { UserService } from '../../core/services/user.service';
+import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
 import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
 import { isJwtExpired } from '../../core/utils/jwt-token.utils';
 import type { UserProfile } from '../../core/services/user.types';
@@ -18,23 +19,20 @@ import { MenuComponent, MenuItem, MenuSection } from '../../shared/components/me
 
 type MobileNavIcon =
   | 'dashboard'
-  | 'search'
   | 'leads'
   | 'tasks'
   | 'inbox'
-  | 'whatsapp'
   | 'partners'
   | 'appointments'
   | 'offertes'
-  | 'catalog'
-  | 'services'
-  | 'organization'
+  | 'settings'
   | 'agentWhatsapp'
   | 'profile';
 
 interface MobileNavItem {
   label: string;
   route: string;
+  matchPrefixes?: readonly string[];
   icon: MobileNavIcon;
 }
 
@@ -42,7 +40,6 @@ interface MobileNavItem {
   selector: 'app-authenticated-mobile-nav',
   imports: [
     RouterLink,
-    RouterLinkActive,
     LucideAngularModule,
     TranslatePipe,
     NotificationBellComponent,
@@ -64,19 +61,14 @@ interface MobileNavItem {
         @for (item of items(); track item.route) {
           <a
             class="flex min-w-14 flex-1 flex-col items-center justify-center gap-0.5 rounded-lg py-1.5 text-zinc-500 transition-colors active:bg-zinc-100"
-            [class.text-black]="navActive.isActive"
-            [class.font-semibold]="navActive.isActive"
+            [class.text-black]="isNavItemActive(item)"
+            [class.font-semibold]="isNavItemActive(item)"
             [routerLink]="item.route"
-            routerLinkActive
-            #navActive="routerLinkActive"
             [attr.aria-label]="item.label | translate"
           >
             @switch (item.icon) {
               @case ('dashboard') {
                 <lucide-icon name="layout-dashboard" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('search') {
-                <lucide-icon name="search" class="h-5 w-5"></lucide-icon>
               }
               @case ('leads') {
                 <span class="relative inline-flex">
@@ -90,13 +82,10 @@ interface MobileNavItem {
                 <lucide-icon name="list-checks" class="h-5 w-5"></lucide-icon>
               }
               @case ('inbox') {
-                <lucide-icon name="mail" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('whatsapp') {
                 <span class="relative inline-flex">
-                  <lucide-icon name="message-circle" class="h-5 w-5"></lucide-icon>
-                  @if (unreadWhatsAppConversations() > 0) {
-                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadWhatsAppConversations() }}</span>
+                  <lucide-icon name="mail" class="h-5 w-5"></lucide-icon>
+                  @if (unreadMessagingCount() > 0) {
+                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadMessagingCount() }}</span>
                   }
                 </span>
               }
@@ -114,14 +103,8 @@ interface MobileNavItem {
                   }
                 </span>
               }
-              @case ('catalog') {
-                <lucide-icon name="book-open" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('services') {
-                <lucide-icon name="wrench" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('organization') {
-                <lucide-icon name="building" class="h-5 w-5"></lucide-icon>
+              @case ('settings') {
+                <lucide-icon name="settings" class="h-5 w-5"></lucide-icon>
               }
               @case ('agentWhatsapp') {
                 <lucide-icon name="brain-circuit" class="h-5 w-5"></lucide-icon>
@@ -182,9 +165,18 @@ export class AuthenticatedMobileNavComponent {
   private readonly authService = inject(AuthService);
   private readonly notificationsService = inject(NotificationsService);
   private readonly userService = inject(UserService);
+  private readonly imapUnreadCountService = inject(IMAPUnreadCountService);
   private readonly whatsappUnreadCountService = inject(WhatsAppUnreadCountService);
 
   protected readonly showAddAccountSheet = signal(false);
+
+  private readonly currentUrl = toSignal(
+    this.router.events.pipe(
+      filter((event): event is NavigationEnd => event instanceof NavigationEnd),
+      map((event) => event.urlAfterRedirects),
+    ),
+    { initialValue: this.router.url },
+  );
 
   private readonly user = toSignal(
     this.userService.getProfile().pipe(catchError(() => of(null))),
@@ -225,7 +217,13 @@ export class AuthenticatedMobileNavComponent {
 
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
   protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
+  protected readonly unreadInboxMessages = this.imapUnreadCountService.unreadCount;
   protected readonly unreadWhatsAppConversations = this.whatsappUnreadCountService.unreadCount;
+  protected readonly unreadMessagingCount = computed(() => {
+    const emailCount = this.unreadInboxMessages();
+    const whatsAppCount = this.isAdmin() ? this.unreadWhatsAppConversations() : 0;
+    return emailCount + whatsAppCount;
+  });
 
   protected readonly profileMenu = computed<MenuSection[]>(() => {
     const accountItems: MenuItem[] = this.accountRegistry.accounts().map(account => {
@@ -271,26 +269,28 @@ export class AuthenticatedMobileNavComponent {
   protected readonly items = computed<MobileNavItem[]>(() => {
     const base: MobileNavItem[] = [
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
-      { label: 'navigation.search', route: '/app/search', icon: 'search' },
       { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
-      { label: 'navigation.tasks', route: '/app/tasks', icon: 'tasks' },
-      { label: 'navigation.inbox', route: '/app/inbox', icon: 'inbox' },
-      { label: 'navigation.partners', route: '/app/partners', icon: 'partners' },
-      { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
+      { label: 'navigation.messages', route: '/app/inbox', icon: 'inbox' },
       { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },
-      { label: 'navigation.catalog', route: '/app/catalog', icon: 'catalog' },
+      { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
+      { label: 'navigation.partners', route: '/app/partners', matchPrefixes: ['/app/offers'], icon: 'partners' },
+      { label: 'navigation.tasks', route: '/app/tasks', icon: 'tasks' },
+      { label: 'navigation.settings', route: '/app/settings', icon: 'settings' },
     ];
-    if (this.isAdmin()) {
-      base.splice(4, 0, { label: 'navigation.services', route: '/app/services', icon: 'services' });
-      base.splice(5, 0, { label: 'navigation.whatsapp', route: '/app/whatsapp/inbox', icon: 'whatsapp' });
-      base.push({ label: 'navigation.organization', route: '/app/organization', icon: 'organization' });
-    }
     if (this.isSuperAdmin()) {
       base.push({ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'agentWhatsapp' });
     }
-    base.push({ label: 'navigation.profile', route: '/app/profile', icon: 'profile' });
     return base;
   });
+
+  protected isNavItemActive(item: MobileNavItem): boolean {
+    const currentUrl = this.currentUrl();
+    if (currentUrl === item.route || currentUrl.startsWith(item.route + '/')) {
+      return true;
+    }
+
+    return item.matchPrefixes?.some((prefix) => currentUrl === prefix || currentUrl.startsWith(prefix + '/')) ?? false;
+  }
 
   protected handleProfileMenuSelection(item: MenuItem): void {
     if (!item.value) {

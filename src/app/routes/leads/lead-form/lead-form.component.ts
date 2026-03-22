@@ -525,7 +525,7 @@ export class LeadFormComponent implements OnInit {
   }
 
   protected goToSettings(): void {
-    this.router.navigate(['/app/organization/settings']);
+    this.router.navigate(['/app/settings']);
   }
 
   protected requiredControlError(control: AbstractControl | null): string {

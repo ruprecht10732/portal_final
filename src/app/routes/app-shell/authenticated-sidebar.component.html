@@ -30,9 +30,6 @@
               @case ('dashboard') {
                 <lucide-icon name="layout-dashboard" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
               }
-              @case ('search') {
-                <lucide-icon name="search" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
               @case ('leads') {
                 <span class="relative inline-flex">
                   <lucide-icon name="users" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
@@ -47,30 +44,16 @@
               @case ('inbox') {
                 <span class="relative inline-flex">
                   <lucide-icon name="mail" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-                  @if (unreadInboxMessages() > 0) {
-                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadInboxMessages() }}</span>
-                  }
-                </span>
-              }
-              @case ('whatsapp') {
-                <span class="relative inline-flex">
-                  <lucide-icon name="message-circle" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-                  @if (unreadWhatsAppConversations() > 0) {
-                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadWhatsAppConversations() }}</span>
+                  @if (unreadMessagingCount() > 0) {
+                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadMessagingCount() }}</span>
                   }
                 </span>
               }
               @case ('partners') {
                 <lucide-icon name="briefcase" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
               }
-              @case ('partnerOffers') {
-                <lucide-icon name="handshake" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
               @case ('appointments') {
                 <lucide-icon name="calendar-check" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
-              @case ('services') {
-                <lucide-icon name="wrench" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
               }
               @case ('offertes') {
                 <span class="relative inline-flex">
@@ -80,11 +63,8 @@
                   }
                 </span>
               }
-              @case ('catalog') {
-                <lucide-icon name="book-open" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
-              @case ('organization') {
-                <lucide-icon name="building" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+              @case ('settings') {
+                <lucide-icon name="settings" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
               }
               @case ('agentWhatsapp') {
                 <lucide-icon name="brain-circuit" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
@@ -167,7 +147,7 @@
     (accountAdded)="handleAccountAdded()"
   ></app-add-account-sheet>
 
-  @if (isExpanded()) {
+  @if (showPanel()) {
     <app-authenticated-sidebar-panel
       class="border-r border-zinc-200 bg-white fixed inset-0 z-40 w-full pt-safe-top pb-20 md:static md:h-auto md:w-auto md:pb-0"
       [title]="activeTitle()"

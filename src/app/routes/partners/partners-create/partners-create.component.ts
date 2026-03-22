@@ -418,6 +418,6 @@ export class PartnersCreateComponent implements OnInit {
   }
 
   protected goToSettings(): void {
-    this.router.navigate(['/app/organization/settings']);
+    this.router.navigate(['/app/settings']);
   }
 }

@@ -44,7 +44,7 @@ export class StaleLeadsComponent {
   }
 
   protected navigateToLead(leadId: string): void {
-    this.router.navigate(['/leads', leadId]);
+    void this.router.navigate(['/app/leads', leadId]);
   }
 
   protected reasonBadgeClass(reason: string): string {
