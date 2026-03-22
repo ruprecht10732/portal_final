@@ -15,7 +15,10 @@
       "edit": "Edit",
       "complete": "Complete",
       "cancel": "Cancel",
-      "reset": "Reset"
+      "reset": "Reset",
+      "sort": "Sort",
+      "filter": "Filter",
+      "more": "More"
     },
     "editor": {
       "newTitle": "Create task",
@@ -82,7 +85,36 @@
       "createSuccess": "Task created.",
       "updateSuccess": "Task updated.",
       "completeSuccess": "Task completed.",
-      "cancelSuccess": "Task cancelled."
+      "cancelSuccess": "Task cancelled.",
+      "bulkCompleteSuccess": "All open tasks completed.",
+      "bulkCancelSuccess": "All open tasks cancelled."
+    },
+    "sections": {
+      "open": "Open tasks",
+      "completed": "Completed tasks",
+      "cancelled": "Cancelled tasks",
+      "emptyOpen": "No open tasks.",
+      "emptyCompleted": "No completed tasks.",
+      "emptyCancelled": "No cancelled tasks."
+    },
+    "sort": {
+      "newest": "Newest first",
+      "oldest": "Oldest first",
+      "priority": "Priority",
+      "due": "Due date"
+    },
+    "sortSheet": {
+      "title": "Sort by"
+    },
+    "filterSheet": {
+      "title": "Filters",
+      "reset": "Clear",
+      "apply": "Apply"
+    },
+    "bulkSheet": {
+      "title": "Actions",
+      "completeAll": "Complete all",
+      "cancelAll": "Cancel all"
     }
   }
 }

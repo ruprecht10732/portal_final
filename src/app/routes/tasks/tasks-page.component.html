@@ -2,48 +2,297 @@
   [title]="'tasks.title' | translate"
   [subtitle]="'tasks.subtitle' | translate"
   [error]="error()"
+  [removeMobilePadding]="true"
 >
-  <div class="flex flex-col gap-4 py-4 sm:gap-6 sm:py-6">
+  <div class="flex flex-col gap-0 sm:gap-4 sm:px-0 sm:py-4">
 
-    <!-- Summary strip -->
-    <div class="grid grid-cols-2 gap-3 sm:grid-cols-4">
-      <shared-kpi-card [label]="'tasks.summary.open' | translate" [value]="openCount().toString()" />
-      <shared-kpi-card [label]="'tasks.summary.completed' | translate" [value]="completionCount().toString()" />
-      <shared-kpi-card [label]="'tasks.summary.cancelled' | translate" [value]="cancellationCount().toString()" />
-      <shared-kpi-card [label]="'tasks.summary.visible' | translate" [value]="tasks().length.toString()" />
+    <!-- ── Status pills + action bar ── -->
+    <div class="sticky top-0 z-30 border-b border-zinc-200 bg-white px-3 py-2.5 sm:relative sm:rounded-xl sm:border sm:bg-white sm:px-4 sm:py-3">
+      <div class="flex items-center gap-2">
+        <!-- Status pill tabs -->
+        <div class="flex flex-1 gap-1.5 overflow-x-auto">
+          @for (tab of [{ key: 'open', count: openCount() }, { key: 'completed', count: completedCount() }, { key: 'cancelled', count: cancelledCount() }]; track tab.key) {
+            <button
+              type="button"
+              class="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-semibold whitespace-nowrap transition-colors"
+              [class]="activeTab() === tab.key
+                ? 'border-zinc-900 bg-zinc-900 text-white'
+                : 'border-zinc-200 bg-zinc-50 text-zinc-500 active:bg-zinc-100'"
+              (click)="setActiveTab($any(tab.key))"
+            >
+              {{ ('tasks.status.' + tab.key) | translate }}
+              <span
+                class="inline-flex h-4.5 min-w-4.5 items-center justify-center rounded-full px-1 text-[10px] font-bold leading-none"
+                [class]="activeTab() === tab.key ? 'bg-white/20 text-white' : 'bg-zinc-200 text-zinc-500'"
+              >{{ tab.count }}</span>
+            </button>
+          }
+        </div>
+
+        <!-- Action buttons -->
+        <div class="flex shrink-0 items-center gap-1">
+          <!-- Filter -->
+          <button
+            type="button"
+            class="relative flex h-8 w-8 items-center justify-center rounded-lg transition"
+            [class]="hasActiveFilters() ? 'bg-zinc-900 text-white' : 'text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600'"
+            (click)="openFilterSheet()"
+            [attr.aria-label]="'tasks.actions.filter' | translate"
+          >
+            <lucide-icon name="settings" class="h-4 w-4"></lucide-icon>
+            @if (hasActiveFilters()) {
+              <span class="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-blue-500"></span>
+            }
+          </button>
+          <!-- Sort -->
+          <button
+            type="button"
+            class="flex h-8 w-8 items-center justify-center rounded-lg text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600"
+            (click)="openSortSheet()"
+            [attr.aria-label]="'tasks.actions.sort' | translate"
+          >
+            <lucide-icon name="arrow-up-right" class="h-4 w-4 rotate-90"></lucide-icon>
+          </button>
+          <!-- New task -->
+          <button
+            type="button"
+            class="flex h-8 items-center gap-1 rounded-lg bg-zinc-900 px-2.5 text-xs font-semibold text-white transition hover:bg-zinc-800"
+            (click)="startCreate()"
+          >
+            <lucide-icon name="plus" class="h-3.5 w-3.5"></lucide-icon>
+            <span class="hidden sm:inline">{{ 'tasks.actions.new' | translate }}</span>
+          </button>
+        </div>
+      </div>
     </div>
 
-    <!-- Task list panel -->
-    <shared-card padding="none" className="overflow-hidden">
-
-      <!-- Header + filters -->
-      <div class="border-b border-zinc-100 px-3 pb-3 pt-4 sm:px-5 sm:pb-4 sm:pt-5">
-        <div class="mb-4 flex items-start justify-between gap-4">
-          <div>
-            <h2 class="text-base font-semibold text-zinc-900">{{ 'tasks.list.title' | translate }}</h2>
-            <p class="mt-0.5 text-sm text-zinc-400">{{ 'tasks.list.subtitle' | translate }}</p>
-          </div>
-          <shared-button variant="primary" size="compact" [fullWidth]="false" (clicked)="startCreate()">
-            {{ 'tasks.actions.new' | translate }}
-          </shared-button>
+    <!-- ── Loading ── -->
+    @if (loading()) {
+      <div class="px-3 py-10 sm:px-0">
+        <div class="rounded-xl border border-dashed border-zinc-200 px-6 py-14 text-center text-sm text-zinc-400">
+          {{ 'tasks.list.loading' | translate }}
         </div>
-        <div class="grid grid-cols-2 gap-3 sm:grid-cols-3">
-          <label class="flex flex-col gap-1">
-            <span class="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">{{ 'tasks.filters.status' | translate }}</span>
+      </div>
+    } @else {
+
+      <!-- ── Tab: Open tasks ── -->
+      @if (activeTab() === 'open') {
+        <div class="flex flex-col">
+          <!-- Section header -->
+          <div class="flex items-center justify-between px-4 py-3 sm:px-1">
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm font-semibold text-zinc-900">{{ 'tasks.sections.open' | translate }}</h2>
+              <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-blue-100 px-1.5 text-[11px] font-bold text-blue-700">{{ openCount() }}</span>
+            </div>
+            @if (openCount() > 0) {
+              <button
+                type="button"
+                class="flex items-center gap-1 rounded-lg px-2 py-1 text-xs font-medium text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-600"
+                (click)="openBulkActions('open')"
+              >
+                <lucide-icon name="ellipsis-vertical" class="h-3.5 w-3.5"></lucide-icon>
+                <span class="hidden sm:inline">{{ 'tasks.actions.more' | translate }}</span>
+              </button>
+            }
+          </div>
+
+          @if (openTasks().length === 0) {
+            <div class="mx-3 rounded-xl border border-dashed border-zinc-200 px-6 py-10 text-center text-sm text-zinc-400 sm:mx-0">
+              {{ 'tasks.sections.emptyOpen' | translate }}
+            </div>
+          } @else {
+            <ul class="flex flex-col gap-1.5 px-3 sm:gap-2 sm:px-0">
+              @for (task of openTasks(); track task.id) {
+                <li>
+                  <article class="group rounded-xl border border-zinc-100 bg-white px-3 py-3 transition-all hover:border-zinc-200 hover:shadow-sm sm:px-4 sm:py-3.5">
+                    <div class="flex gap-3">
+                      <!-- Checkbox -->
+                      <button
+                        type="button"
+                        class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-zinc-300 transition hover:border-zinc-500 hover:bg-zinc-50 active:scale-90"
+                        (click)="toggleTaskComplete(task)"
+                        [attr.aria-label]="'tasks.actions.complete' | translate"
+                      >
+                        <lucide-icon name="check" class="h-3 w-3 text-transparent group-hover:text-zinc-300"></lucide-icon>
+                      </button>
+                      <!-- Content -->
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-2">
+                          <div class="min-w-0">
+                            <h3 class="text-sm font-semibold text-zinc-900 leading-snug">{{ task.title }}</h3>
+                            @if (task.description) {
+                              <p class="mt-0.5 line-clamp-1 text-xs leading-relaxed text-zinc-400">{{ task.description }}</p>
+                            }
+                          </div>
+                          <button
+                            type="button"
+                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-zinc-100 hover:text-zinc-500"
+                            (click)="editTask(task)"
+                            [attr.aria-label]="'tasks.actions.edit' | translate"
+                          >
+                            <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
+                          </button>
+                        </div>
+                        <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
+                          <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold" [class]="priorityClass(task.priority)">
+                            {{ ('tasks.priority.' + task.priority) | translate }}
+                          </span>
+                          <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[10px] font-semibold text-amber-700">
+                            {{ ('tasks.scope.' + (task.scopeType === 'lead_service' ? 'leadService' : 'global')) | translate }}
+                          </span>
+                          @if (task.dueAt) {
+                            <span class="text-[10px] text-zinc-400">
+                              <lucide-icon name="clock" class="mr-0.5 inline h-3 w-3 align-[-2px]"></lucide-icon>
+                              {{ task.dueAt | date:'shortDate' }}
+                            </span>
+                          }
+                          <span class="text-[10px] text-zinc-400">{{ assigneeLabel(task) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      <!-- ── Tab: Completed tasks ── -->
+      @if (activeTab() === 'completed') {
+        <div class="flex flex-col">
+          <div class="flex items-center justify-between px-4 py-3 sm:px-1">
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm font-semibold text-zinc-900">{{ 'tasks.sections.completed' | translate }}</h2>
+              <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-emerald-100 px-1.5 text-[11px] font-bold text-emerald-700">{{ completedCount() }}</span>
+            </div>
+          </div>
+
+          @if (completedTasks().length === 0) {
+            <div class="mx-3 rounded-xl border border-dashed border-zinc-200 px-6 py-10 text-center text-sm text-zinc-400 sm:mx-0">
+              {{ 'tasks.sections.emptyCompleted' | translate }}
+            </div>
+          } @else {
+            <ul class="flex flex-col gap-1.5 px-3 sm:gap-2 sm:px-0">
+              @for (task of completedTasks(); track task.id) {
+                <li>
+                  <article class="rounded-xl border border-zinc-100 bg-white px-3 py-3 transition-all hover:border-zinc-200 hover:shadow-sm sm:px-4 sm:py-3.5">
+                    <div class="flex gap-3">
+                      <!-- Completed checkbox -->
+                      <div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-emerald-400 bg-emerald-50">
+                        <lucide-icon name="check" class="h-3 w-3 text-emerald-600"></lucide-icon>
+                      </div>
+                      <!-- Content -->
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-2">
+                          <h3 class="text-sm font-medium text-zinc-400 line-through leading-snug">{{ task.title }}</h3>
+                          <button
+                            type="button"
+                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-zinc-100 hover:text-zinc-500"
+                            (click)="editTask(task)"
+                            [attr.aria-label]="'tasks.actions.edit' | translate"
+                          >
+                            <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
+                          </button>
+                        </div>
+                        <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                          @if (task.completedAt) {
+                            <span class="text-[10px] text-zinc-400">{{ task.completedAt | date:'shortDate' }}</span>
+                          }
+                          <span class="text-[10px] text-zinc-400">{{ assigneeLabel(task) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      <!-- ── Tab: Cancelled tasks ── -->
+      @if (activeTab() === 'cancelled') {
+        <div class="flex flex-col">
+          <div class="flex items-center justify-between px-4 py-3 sm:px-1">
+            <div class="flex items-center gap-2">
+              <h2 class="text-sm font-semibold text-zinc-900">{{ 'tasks.sections.cancelled' | translate }}</h2>
+              <span class="inline-flex h-5 min-w-5 items-center justify-center rounded-full bg-red-100 px-1.5 text-[11px] font-bold text-red-600">{{ cancelledCount() }}</span>
+            </div>
+          </div>
+
+          @if (cancelledTasks().length === 0) {
+            <div class="mx-3 rounded-xl border border-dashed border-zinc-200 px-6 py-10 text-center text-sm text-zinc-400 sm:mx-0">
+              {{ 'tasks.sections.emptyCancelled' | translate }}
+            </div>
+          } @else {
+            <ul class="flex flex-col gap-1.5 px-3 sm:gap-2 sm:px-0">
+              @for (task of cancelledTasks(); track task.id) {
+                <li>
+                  <article class="rounded-xl border border-zinc-100 bg-white px-3 py-3 transition-all hover:border-zinc-200 hover:shadow-sm sm:px-4 sm:py-3.5">
+                    <div class="flex gap-3">
+                      <div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-red-300 bg-red-50">
+                        <lucide-icon name="x" class="h-3 w-3 text-red-400"></lucide-icon>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <div class="flex items-start justify-between gap-2">
+                          <h3 class="text-sm font-medium text-zinc-400 line-through leading-snug">{{ task.title }}</h3>
+                          <button
+                            type="button"
+                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-zinc-100 hover:text-zinc-500"
+                            (click)="editTask(task)"
+                            [attr.aria-label]="'tasks.actions.edit' | translate"
+                          >
+                            <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
+                          </button>
+                        </div>
+                        <div class="mt-1 flex flex-wrap items-center gap-1.5">
+                          @if (task.cancelledAt) {
+                            <span class="text-[10px] text-zinc-400">{{ task.cancelledAt | date:'shortDate' }}</span>
+                          }
+                          <span class="text-[10px] text-zinc-400">{{ assigneeLabel(task) }}</span>
+                        </div>
+                      </div>
+                    </div>
+                  </article>
+                </li>
+              }
+            </ul>
+          }
+        </div>
+      }
+
+      <!-- Bottom spacer for mobile nav -->
+      <div class="h-4 sm:h-0"></div>
+    }
+  </div>
+
+  <!-- ── Filter sheet ── -->
+  @if (filterSheetOpen()) {
+    <div
+      class="fixed inset-0 z-60 flex items-end bg-zinc-900/50 backdrop-blur-sm md:items-center md:justify-center"
+      (click)="closeFilterSheet()"
+      (keydown.escape)="closeFilterSheet()"
+      aria-hidden="true"
+    >
+      <div
+        class="relative flex w-full max-h-[80dvh] flex-col overflow-hidden rounded-t-3xl bg-white md:max-h-[70dvh] md:w-[calc(100%-2rem)] md:max-w-md md:rounded-2xl"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="flex justify-center pb-1 pt-3 md:hidden" aria-hidden="true">
+          <div class="h-1 w-10 rounded-full bg-zinc-200"></div>
+        </div>
+        <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
+          <h2 class="text-base font-semibold text-zinc-900">{{ 'tasks.filterSheet.title' | translate }}</h2>
+          <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700" (click)="closeFilterSheet()">
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
+        <div class="flex-1 overflow-y-auto px-5 py-5 space-y-5">
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-semibold uppercase tracking-widest text-zinc-400">{{ 'tasks.filters.scope' | translate }}</span>
             <select
-              class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-800 outline-none transition focus:border-zinc-400 focus:bg-white"
-              [value]="statusFilter()"
-              (change)="setStatusFilter($any($event.target).value)"
-            >
-              <option value="open">{{ 'tasks.status.open' | translate }}</option>
-              <option value="completed">{{ 'tasks.status.completed' | translate }}</option>
-              <option value="cancelled">{{ 'tasks.status.cancelled' | translate }}</option>
-            </select>
-          </label>
-          <label class="flex flex-col gap-1">
-            <span class="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">{{ 'tasks.filters.scope' | translate }}</span>
-            <select
-              class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-800 outline-none transition focus:border-zinc-400 focus:bg-white"
+              class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-800 outline-none transition focus:border-zinc-400 focus:bg-white"
               [value]="scopeFilter()"
               (change)="setScopeFilter($any($event.target).value)"
             >
@@ -52,10 +301,10 @@
               <option value="lead_service">{{ 'tasks.scope.leadService' | translate }}</option>
             </select>
           </label>
-          <label class="flex flex-col gap-1">
-            <span class="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">{{ 'tasks.filters.assignee' | translate }}</span>
+          <label class="flex flex-col gap-2">
+            <span class="text-xs font-semibold uppercase tracking-widest text-zinc-400">{{ 'tasks.filters.assignee' | translate }}</span>
             <select
-              class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-sm text-zinc-800 outline-none transition focus:border-zinc-400 focus:bg-white"
+              class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5 text-sm text-zinc-800 outline-none transition focus:border-zinc-400 focus:bg-white"
               [value]="assigneeFilter()"
               (change)="setAssigneeFilter($any($event.target).value)"
             >
@@ -66,83 +315,113 @@
             </select>
           </label>
         </div>
+        <div class="flex items-center gap-3 border-t border-zinc-100 px-5 py-4">
+          @if (hasActiveFilters()) {
+            <shared-button variant="ghost" size="compact" [fullWidth]="false" (clicked)="clearFilters()">
+              {{ 'tasks.filterSheet.reset' | translate }}
+            </shared-button>
+          }
+          <shared-button variant="primary" size="compact" class="ml-auto" [fullWidth]="false" (clicked)="closeFilterSheet()">
+            {{ 'tasks.filterSheet.apply' | translate }}
+          </shared-button>
+        </div>
       </div>
+    </div>
+  }
 
-      <!-- Task items -->
-      <div class="p-3 sm:p-5">
-        @if (loading()) {
-          <div class="rounded-xl border border-dashed border-zinc-200 px-6 py-14 text-center text-sm text-zinc-400">
-            {{ 'tasks.list.loading' | translate }}
-          </div>
-        } @else if (tasks().length === 0) {
-          <div class="rounded-xl border border-dashed border-zinc-200 px-6 py-14 text-center text-sm text-zinc-400">
-            {{ 'tasks.list.empty' | translate }}
-          </div>
-        } @else {
-          <ul class="space-y-2">
-            @for (task of tasks(); track trackTask($index, task)) {
-              <li>
-                <article class="rounded-xl border border-zinc-100 bg-zinc-50/60 px-3 py-3 sm:px-4 sm:py-3.5 transition-all hover:border-zinc-200 hover:bg-white">
-                  <div class="flex flex-col gap-2 sm:gap-3 sm:flex-row sm:items-start sm:justify-between">
-                    <div class="min-w-0 space-y-1">
-                      <div class="flex flex-wrap items-center gap-1.5">
-                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold" [class]="statusClass(task.status)">
-                          {{ ('tasks.status.' + task.status) | translate }}
-                        </span>
-                        <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[11px] font-semibold" [class]="priorityClass(task.priority)">
-                          {{ ('tasks.priority.' + task.priority) | translate }}
-                        </span>
-                        <span class="inline-flex items-center rounded-full bg-amber-50 px-2 py-0.5 text-[11px] font-semibold text-amber-700">
-                          {{ ('tasks.scope.' + (task.scopeType === 'lead_service' ? 'leadService' : 'global')) | translate }}
-                        </span>
-                      </div>
-                      <h3 class="text-sm font-semibold text-zinc-900">{{ task.title }}</h3>
-                      @if (task.description) {
-                        <p class="line-clamp-2 max-w-2xl text-sm leading-5 text-zinc-500">{{ task.description }}</p>
-                      }
-                      <div class="flex flex-wrap gap-x-4 gap-y-0.5 text-xs">
-                        <span class="text-zinc-400">{{ 'tasks.card.assignee' | translate }}: <span class="font-medium text-zinc-600">{{ assigneeLabel(task) }}</span></span>
-                        @if (task.dueAt) {
-                          <span class="text-zinc-400">{{ 'tasks.card.dueAt' | translate }}: <span class="font-medium text-zinc-600">{{ task.dueAt | date:'shortDate' }}</span></span>
-                        }
-                        @if (task.reminder?.enabled && task.reminder?.nextRunAt) {
-                          <span class="text-zinc-400">{{ 'tasks.card.reminderAt' | translate }}: <span class="font-medium text-zinc-600">{{ task.reminder?.nextRunAt | date:'shortDate' }}</span></span>
-                        }
-                      </div>
-                    </div>
-                    <div class="flex shrink-0 items-center gap-1.5 sm:gap-2 border-t border-zinc-100 pt-2 sm:border-0 sm:pt-0">
-                      <shared-button variant="ghost" size="compact" [fullWidth]="false" (clicked)="editTask(task)">
-                        {{ 'tasks.actions.edit' | translate }}
-                      </shared-button>
-                      @if (task.status === 'open') {
-                        <shared-button variant="secondary" size="compact" [fullWidth]="false" (clicked)="completeTask(task)">
-                          {{ 'tasks.actions.complete' | translate }}
-                        </shared-button>
-                        <shared-button variant="danger" size="compact" [fullWidth]="false" (clicked)="cancelTask(task)">
-                          {{ 'tasks.actions.cancel' | translate }}
-                        </shared-button>
-                      }
-                    </div>
-                  </div>
-                </article>
-              </li>
-            }
-          </ul>
-        }
+  <!-- ── Sort sheet ── -->
+  @if (sortSheetOpen()) {
+    <div
+      class="fixed inset-0 z-60 flex items-end bg-zinc-900/50 backdrop-blur-sm md:items-center md:justify-center"
+      (click)="closeSortSheet()"
+      (keydown.escape)="closeSortSheet()"
+      aria-hidden="true"
+    >
+      <div
+        class="relative flex w-full max-h-[70dvh] flex-col overflow-hidden rounded-t-3xl bg-white md:max-h-[60dvh] md:w-[calc(100%-2rem)] md:max-w-sm md:rounded-2xl"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="flex justify-center pb-1 pt-3 md:hidden" aria-hidden="true">
+          <div class="h-1 w-10 rounded-full bg-zinc-200"></div>
+        </div>
+        <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
+          <h2 class="text-base font-semibold text-zinc-900">{{ 'tasks.sortSheet.title' | translate }}</h2>
+          <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700" (click)="closeSortSheet()">
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
+        <div class="flex flex-col py-2">
+          @for (option of [{ key: 'newest', label: 'tasks.sort.newest' }, { key: 'oldest', label: 'tasks.sort.oldest' }, { key: 'priority', label: 'tasks.sort.priority' }, { key: 'due', label: 'tasks.sort.due' }]; track option.key) {
+            <button
+              type="button"
+              class="flex items-center justify-between px-5 py-3 text-sm transition hover:bg-zinc-50"
+              [class]="sortField() === option.key ? 'font-semibold text-zinc-900' : 'text-zinc-600'"
+              (click)="setSortField($any(option.key))"
+            >
+              {{ option.label | translate }}
+              @if (sortField() === option.key) {
+                <lucide-icon name="check" class="h-4 w-4 text-zinc-900"></lucide-icon>
+              }
+            </button>
+          }
+        </div>
       </div>
-    </shared-card>
-  </div>
+    </div>
+  }
+
+  <!-- ── Bulk actions sheet ── -->
+  @if (bulkActionsSheetOpen()) {
+    <div
+      class="fixed inset-0 z-60 flex items-end bg-zinc-900/50 backdrop-blur-sm md:items-center md:justify-center"
+      (click)="closeBulkActions()"
+      (keydown.escape)="closeBulkActions()"
+      aria-hidden="true"
+    >
+      <div
+        class="relative flex w-full max-h-[60dvh] flex-col overflow-hidden rounded-t-3xl bg-white md:max-h-[50dvh] md:w-[calc(100%-2rem)] md:max-w-sm md:rounded-2xl"
+        (click)="$event.stopPropagation()"
+      >
+        <div class="flex justify-center pb-1 pt-3 md:hidden" aria-hidden="true">
+          <div class="h-1 w-10 rounded-full bg-zinc-200"></div>
+        </div>
+        <div class="flex items-center justify-between border-b border-zinc-100 px-5 py-4">
+          <h2 class="text-base font-semibold text-zinc-900">{{ 'tasks.bulkSheet.title' | translate }}</h2>
+          <button type="button" class="flex h-8 w-8 items-center justify-center rounded-full text-zinc-400 transition hover:bg-zinc-100 hover:text-zinc-700" (click)="closeBulkActions()">
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
+          </button>
+        </div>
+        <div class="flex flex-col py-2">
+          @if (bulkActionsSection() === 'open') {
+            <button
+              type="button"
+              class="flex items-center gap-3 px-5 py-3.5 text-sm text-zinc-700 transition hover:bg-zinc-50"
+              (click)="completeAllOpen()"
+            >
+              <lucide-icon name="check-check" class="h-4 w-4 text-emerald-600"></lucide-icon>
+              {{ 'tasks.bulkSheet.completeAll' | translate }}
+            </button>
+            <button
+              type="button"
+              class="flex items-center gap-3 px-5 py-3.5 text-sm text-zinc-700 transition hover:bg-zinc-50"
+              (click)="cancelAllOpen()"
+            >
+              <lucide-icon name="x" class="h-4 w-4 text-red-500"></lucide-icon>
+              {{ 'tasks.bulkSheet.cancelAll' | translate }}
+            </button>
+          }
+        </div>
+      </div>
+    </div>
+  }
 
   <!-- ── Create / Edit modal (desktop) + bottom sheet (mobile) ── -->
   @if (modalOpen()) {
-    <!-- Backdrop flex container that positions the panel -->
     <div
       class="fixed inset-0 z-60 flex items-end bg-zinc-900/50 backdrop-blur-sm md:items-center md:justify-center"
       (click)="closeModal()"
       (keydown.escape)="closeModal()"
       aria-hidden="true"
     >
-      <!-- Panel — stopPropagation prevents backdrop click from firing on panel clicks -->
       <dialog
         [attr.open]="''"
         [attr.aria-label]="(isEditing() ? 'tasks.editor.editTitle' : 'tasks.editor.newTitle') | translate"
@@ -150,12 +429,10 @@
         (click)="$event.stopPropagation()"
         (keydown.escape)="closeModal()"
       >
-        <!-- Mobile drag handle -->
         <div class="flex justify-center pb-1 pt-3 md:hidden" aria-hidden="true">
           <div class="h-1 w-10 rounded-full bg-zinc-200"></div>
         </div>
 
-        <!-- Header -->
         <div class="flex items-start justify-between border-b border-zinc-100 px-5 py-4">
           <div>
             <h2 class="text-base font-semibold text-zinc-900">
@@ -169,13 +446,10 @@
             (click)="closeModal()"
             aria-label="Close"
           >
-            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
-              <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-            </svg>
+            <lucide-icon name="x" class="h-4 w-4"></lucide-icon>
           </button>
         </div>
 
-        <!-- Scrollable form body -->
         <div class="flex-1 overflow-y-auto">
           <form [formGroup]="form" class="grid gap-4 px-5 py-5 sm:grid-cols-2">
 
@@ -215,11 +489,9 @@
             </label>
 
             @if (form.controls.scopeType.value === 'lead_service') {
-              <!-- Lead search -->
               <div class="col-span-full flex flex-col gap-1.5">
                 <span class="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">{{ 'tasks.form.lead' | translate }}</span>
                 @if (selectedLead(); as lead) {
-                  <!-- Selected lead chip -->
                   <div class="flex items-center justify-between rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2.5">
                     <span class="text-sm font-medium text-zinc-900">{{ lead.label }}</span>
                     <button
@@ -228,13 +500,10 @@
                       (click)="clearLead()"
                       [attr.aria-label]="'tasks.form.clearLead' | translate"
                     >
-                      <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2.5" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" d="M6 18L18 6M6 6l12 12" />
-                      </svg>
+                      <lucide-icon name="x" class="h-3 w-3"></lucide-icon>
                     </button>
                   </div>
                 } @else {
-                  <!-- Search input with results dropdown -->
                   <div class="relative">
                     <div class="relative">
                       <input
@@ -248,17 +517,12 @@
                       />
                       @if (leadSearchLoading()) {
                         <span class="pointer-events-none absolute right-3 top-1/2 -translate-y-1/2">
-                          <svg class="h-4 w-4 animate-spin text-zinc-400" fill="none" viewBox="0 0 24 24">
-                            <circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle>
-                            <path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4l3-3-3-3v4a8 8 0 00-8 8h4z"></path>
-                          </svg>
+                          <lucide-icon name="loader-circle" class="h-4 w-4 animate-spin text-zinc-400"></lucide-icon>
                         </span>
                       }
                     </div>
                     @if (leadSearchOpen() && leadResults().length > 0) {
-                      <ul
-                        class="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-zinc-200 bg-white py-1"
-                      >
+                      <ul class="absolute z-20 mt-1 max-h-52 w-full overflow-y-auto rounded-xl border border-zinc-200 bg-white py-1">
                         @for (result of leadResults(); track result.id) {
                           <li>
                             <button
@@ -277,7 +541,6 @@
                 }
               </div>
 
-              <!-- Service select — shown once a lead is picked -->
               @if (selectedLead()) {
                 <div class="col-span-full flex flex-col gap-1.5">
                   <span class="text-[10px] font-semibold uppercase tracking-widest text-zinc-400">{{ 'tasks.form.leadService' | translate }}</span>
@@ -323,7 +586,6 @@
               />
             </label>
 
-            <!-- Reminder section -->
             <div class="col-span-full rounded-xl border border-zinc-100 bg-zinc-50 p-4">
               <label class="flex cursor-pointer select-none items-center justify-between gap-3">
                 <span class="text-sm font-medium text-zinc-700">{{ 'tasks.form.reminderEnabled' | translate }}</span>
@@ -361,10 +623,9 @@
           </form>
         </div>
 
-        <!-- Footer -->
         <div class="flex items-center justify-end gap-3 border-t border-zinc-100 px-5 py-4">
           <shared-button variant="ghost" size="compact" [fullWidth]="false" (clicked)="closeModal()">
-            {{ 'tasks.actions.reset' | translate }}
+            {{ 'tasks.actions.cancel' | translate }}
           </shared-button>
           <shared-button variant="primary" size="compact" [fullWidth]="false" [loading]="saving()" [disabled]="form.invalid" (clicked)="saveTask()">
             {{ (isEditing() ? 'tasks.actions.update' : 'tasks.actions.create') | translate }}

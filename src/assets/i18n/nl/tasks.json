@@ -15,7 +15,10 @@
       "edit": "Bewerken",
       "complete": "Afronden",
       "cancel": "Annuleren",
-      "reset": "Resetten"
+      "reset": "Resetten",
+      "sort": "Sorteren",
+      "filter": "Filteren",
+      "more": "Meer"
     },
     "editor": {
       "newTitle": "Taak aanmaken",
@@ -82,7 +85,36 @@
       "createSuccess": "Taak aangemaakt.",
       "updateSuccess": "Taak bijgewerkt.",
       "completeSuccess": "Taak afgerond.",
-      "cancelSuccess": "Taak geannuleerd."
+      "cancelSuccess": "Taak geannuleerd.",
+      "bulkCompleteSuccess": "Alle open taken afgerond.",
+      "bulkCancelSuccess": "Alle open taken geannuleerd."
+    },
+    "sections": {
+      "open": "Open taken",
+      "completed": "Afgeronde taken",
+      "cancelled": "Geannuleerde taken",
+      "emptyOpen": "Geen open taken.",
+      "emptyCompleted": "Geen afgeronde taken.",
+      "emptyCancelled": "Geen geannuleerde taken."
+    },
+    "sort": {
+      "newest": "Nieuwste eerst",
+      "oldest": "Oudste eerst",
+      "priority": "Prioriteit",
+      "due": "Deadline"
+    },
+    "sortSheet": {
+      "title": "Sorteren"
+    },
+    "filterSheet": {
+      "title": "Filteren",
+      "reset": "Wissen",
+      "apply": "Toepassen"
+    },
+    "bulkSheet": {
+      "title": "Acties",
+      "completeAll": "Alles afronden",
+      "cancelAll": "Alles annuleren"
     }
   }
 }

@@ -2,8 +2,9 @@ import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { LucideAngularModule } from 'lucide-angular';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { catchError, debounceTime, distinctUntilChanged, finalize, of, switchMap, tap } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, forkJoin, finalize, of, switchMap, tap } from 'rxjs';
 import { ErrorReportingService } from '../../core/services/error-reporting.service';
 import { LeadsService } from '../../core/services/leads.service';
 import type { Lead } from '../../core/services/leads.types';
@@ -16,8 +17,6 @@ import { UserService } from '../../core/services/user.service';
 import type { UserSummary } from '../../core/services/user.types';
 import { extractErrorMessage } from '../../core/utils/error-utils';
 import { ButtonComponent } from '../../shared/components/button/button.component';
-import { CardComponent } from '../../shared/components/card/card.component';
-import { KpiCardComponent } from '../../shared/components/kpi-card/kpi-card.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
 
 interface UserOption {
@@ -25,12 +24,13 @@ interface UserOption {
   label: string;
 }
 
-type TaskStatusFilter = 'open' | 'completed' | 'cancelled';
+type TaskStatusTab = 'open' | 'completed' | 'cancelled';
 type TaskScopeFilter = 'all' | 'global' | 'lead_service';
+type TaskSortField = 'newest' | 'oldest' | 'priority' | 'due';
 
 @Component({
   selector: 'app-tasks-page',
-  imports: [ReactiveFormsModule, TranslatePipe, DatePipe, ButtonComponent, CardComponent, KpiCardComponent, PageLayoutComponent],
+  imports: [ReactiveFormsModule, TranslatePipe, DatePipe, ButtonComponent, LucideAngularModule, PageLayoutComponent],
   templateUrl: './tasks-page.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
@@ -51,10 +51,19 @@ export class TasksPageComponent {
   protected readonly loading = signal(false);
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
-  protected readonly tasks = signal<TaskItem[]>([]);
+  protected readonly allTasks = signal<TaskItem[]>([]);
   protected readonly users = signal<UserOption[]>([]);
   protected readonly editingTaskId = signal<string | null>(null);
   protected readonly modalOpen = signal(false);
+
+  // Sheet/modal state
+  protected readonly filterSheetOpen = signal(false);
+  protected readonly sortSheetOpen = signal(false);
+  protected readonly bulkActionsSheetOpen = signal(false);
+  protected readonly bulkActionsSection = signal<'open' | 'completed'>('open');
+
+  // Sort
+  protected readonly sortField = signal<TaskSortField>('newest');
 
   // Lead search state
   protected readonly leadQuery = signal('');
@@ -64,7 +73,7 @@ export class TasksPageComponent {
   protected readonly selectedLead = signal<{ id: string; label: string } | null>(null);
   protected readonly leadServices = signal<{ id: string; label: string }[]>([]);
   protected readonly servicesLoading = signal(false);
-  protected readonly statusFilter = signal<TaskStatusFilter>('open');
+  protected readonly activeTab = signal<TaskStatusTab>('open');
   protected readonly scopeFilter = signal<TaskScopeFilter>('all');
   protected readonly assigneeFilter = signal('');
   private readonly refreshToken = signal(0);
@@ -86,15 +95,52 @@ export class TasksPageComponent {
   });
 
   private readonly filterState = computed(() => ({
-    status: this.statusFilter(),
     scope: this.scopeFilter(),
     assignedUserId: this.assigneeFilter().trim(),
     refreshToken: this.refreshToken(),
   }));
 
-  protected readonly openCount = computed(() => this.tasks().filter(task => task.status === 'open').length);
-  protected readonly completionCount = computed(() => this.tasks().filter(task => task.status === 'completed').length);
-  protected readonly cancellationCount = computed(() => this.tasks().filter(task => task.status === 'cancelled').length);
+  protected readonly hasActiveFilters = computed(() =>
+    this.scopeFilter() !== 'all' || this.assigneeFilter().trim() !== '',
+  );
+
+  private readonly filteredTasks = computed(() => {
+    const tasks = this.allTasks();
+    const scope = this.scopeFilter();
+    const assignee = this.assigneeFilter().trim();
+    return tasks.filter(task => {
+      if (scope !== 'all' && task.scopeType !== scope) return false;
+      if (assignee && task.assignedUserId !== assignee) return false;
+      return true;
+    });
+  });
+
+  private sortTasks(tasks: TaskItem[]): TaskItem[] {
+    const field = this.sortField();
+    const priorityOrder: Record<string, number> = { urgent: 0, high: 1, normal: 2, low: 3 };
+    return [...tasks].sort((a, b) => {
+      switch (field) {
+        case 'newest': return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+        case 'oldest': return new Date(a.createdAt).getTime() - new Date(b.createdAt).getTime();
+        case 'priority': return (priorityOrder[a.priority] ?? 2) - (priorityOrder[b.priority] ?? 2);
+        case 'due': {
+          if (!a.dueAt && !b.dueAt) return 0;
+          if (!a.dueAt) return 1;
+          if (!b.dueAt) return -1;
+          return new Date(a.dueAt).getTime() - new Date(b.dueAt).getTime();
+        }
+        default: return 0;
+      }
+    });
+  }
+
+  protected readonly openTasks = computed(() => this.sortTasks(this.filteredTasks().filter(t => t.status === 'open')));
+  protected readonly completedTasks = computed(() => this.sortTasks(this.filteredTasks().filter(t => t.status === 'completed')));
+  protected readonly cancelledTasks = computed(() => this.sortTasks(this.filteredTasks().filter(t => t.status === 'cancelled')));
+
+  protected readonly openCount = computed(() => this.openTasks().length);
+  protected readonly completedCount = computed(() => this.completedTasks().length);
+  protected readonly cancelledCount = computed(() => this.cancelledTasks().length);
   protected readonly isEditing = computed(() => this.editingTaskId() !== null);
 
   constructor() {
@@ -109,30 +155,25 @@ export class TasksPageComponent {
           this.loading.set(true);
           this.error.set(null);
         }),
-        switchMap((state) => {
-          const params: { status: 'open' | 'completed' | 'cancelled'; scope?: 'global' | 'lead_service'; assignedUserId?: string } = {
-            status: state.status,
-          };
-          if (state.scope !== 'all') {
-            params.scope = state.scope;
-          }
-          if (state.assignedUserId) {
-            params.assignedUserId = state.assignedUserId;
-          }
-          return this.tasksService.list(params).pipe(
-          catchError((err) => {
-            const message = extractErrorMessage(err, this.translate.instant('tasks.messages.loadError'));
-            this.error.set(message);
-            this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-            return of({ items: [] });
-          }),
-          finalize(() => this.loading.set(false)),
+        switchMap(() => {
+          return forkJoin({
+            open: this.tasksService.list({ status: 'open' }).pipe(catchError(() => of({ items: [] as TaskItem[] }))),
+            completed: this.tasksService.list({ status: 'completed' }).pipe(catchError(() => of({ items: [] as TaskItem[] }))),
+            cancelled: this.tasksService.list({ status: 'cancelled' }).pipe(catchError(() => of({ items: [] as TaskItem[] }))),
+          }).pipe(
+            catchError((err) => {
+              const message = extractErrorMessage(err, this.translate.instant('tasks.messages.loadError'));
+              this.error.set(message);
+              this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+              return of({ open: { items: [] as TaskItem[] }, completed: { items: [] as TaskItem[] }, cancelled: { items: [] as TaskItem[] } });
+            }),
+            finalize(() => this.loading.set(false)),
           );
         }),
         takeUntilDestroyed(this.destroyRef),
       )
-      .subscribe((response) => {
-        this.tasks.set(response.items);
+      .subscribe((responses) => {
+        this.allTasks.set([...responses.open.items, ...responses.completed.items, ...responses.cancelled.items]);
       });
   }
 
@@ -240,8 +281,8 @@ export class TasksPageComponent {
       });
   }
 
-  protected setStatusFilter(value: TaskStatusFilter): void {
-    this.statusFilter.set(value);
+  protected setActiveTab(value: TaskStatusTab): void {
+    this.activeTab.set(value);
   }
 
   protected setScopeFilter(value: TaskScopeFilter): void {
@@ -250,6 +291,89 @@ export class TasksPageComponent {
 
   protected setAssigneeFilter(value: string): void {
     this.assigneeFilter.set(value);
+  }
+
+  protected setSortField(value: TaskSortField): void {
+    this.sortField.set(value);
+    this.sortSheetOpen.set(false);
+  }
+
+  protected clearFilters(): void {
+    this.scopeFilter.set('all');
+    this.assigneeFilter.set('');
+  }
+
+  protected openFilterSheet(): void {
+    this.filterSheetOpen.set(true);
+  }
+
+  protected closeFilterSheet(): void {
+    this.filterSheetOpen.set(false);
+  }
+
+  protected openSortSheet(): void {
+    this.sortSheetOpen.set(true);
+  }
+
+  protected closeSortSheet(): void {
+    this.sortSheetOpen.set(false);
+  }
+
+  protected openBulkActions(section: 'open' | 'completed'): void {
+    this.bulkActionsSection.set(section);
+    this.bulkActionsSheetOpen.set(true);
+  }
+
+  protected closeBulkActions(): void {
+    this.bulkActionsSheetOpen.set(false);
+  }
+
+  protected completeAllOpen(): void {
+    const openTasks = this.openTasks();
+    if (openTasks.length === 0) return;
+    this.bulkActionsSheetOpen.set(false);
+    let completed = 0;
+    for (const task of openTasks) {
+      this.tasksService.complete(task.id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            completed++;
+            if (completed === openTasks.length) {
+              this.toast.success(this.translate.instant('tasks.messages.bulkCompleteSuccess'));
+              this.refreshToken.update(v => v + 1);
+            }
+          },
+          error: (err) => this.reporter.report(err, { source: 'http', silent: true }),
+        });
+    }
+  }
+
+  protected cancelAllOpen(): void {
+    const openTasks = this.openTasks();
+    if (openTasks.length === 0) return;
+    this.bulkActionsSheetOpen.set(false);
+    let cancelled = 0;
+    for (const task of openTasks) {
+      this.tasksService.cancel(task.id)
+        .pipe(takeUntilDestroyed(this.destroyRef))
+        .subscribe({
+          next: () => {
+            cancelled++;
+            if (cancelled === openTasks.length) {
+              this.toast.success(this.translate.instant('tasks.messages.bulkCancelSuccess'));
+              this.refreshToken.update(v => v + 1);
+            }
+          },
+          error: (err) => this.reporter.report(err, { source: 'http', silent: true }),
+        });
+    }
+  }
+
+  protected toggleTaskComplete(task: TaskItem): void {
+    if (task.status === 'open') {
+      this.completeTask(task);
+    }
   }
 
   protected startCreate(): void {

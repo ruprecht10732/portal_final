@@ -90,6 +90,9 @@ export interface OrganizationSettings {
   quoteRelatedReplyScenario: string;
   appointmentRelatedReplyScenario: string;
   whatsAppPresence?: 'available' | 'unavailable';
+  whatsAppWelcomeDelayMinutes: number;
+  dailyDigestEnabled: boolean;
+  smtpConfigured: boolean;
 }
 
 export interface ReplyScenarioAnalyticsItem {
@@ -133,6 +136,7 @@ export interface UpdateOrganizationSettingsRequest {
   quoteRelatedReplyScenario?: string;
   appointmentRelatedReplyScenario?: string;
   whatsAppPresence?: 'available' | 'unavailable';
+  dailyDigestEnabled?: boolean;
 }
 
 export interface WhatsAppStatus {

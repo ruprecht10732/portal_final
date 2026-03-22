@@ -109,6 +109,9 @@ export class OrganizationAiSettingsComponent {
   protected readonly appointmentRelatedReplyScenario = signal<ReplySuggestionScenario>('appointment_reminder');
   private readonly initialAppointmentRelatedReplyScenario = signal<ReplySuggestionScenario>('appointment_reminder');
 
+  protected readonly dailyDigestEnabled = signal(true);
+  private readonly initialDailyDigestEnabled = signal(true);
+
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
   protected readonly analyticsLoading = signal(true);
@@ -155,7 +158,8 @@ export class OrganizationAiSettingsComponent {
     this.whatsAppDefaultReplyScenario() !== this.initialWhatsAppDefaultReplyScenario() ||
     this.emailDefaultReplyScenario() !== this.initialEmailDefaultReplyScenario() ||
     this.quoteRelatedReplyScenario() !== this.initialQuoteRelatedReplyScenario() ||
-    this.appointmentRelatedReplyScenario() !== this.initialAppointmentRelatedReplyScenario()
+    this.appointmentRelatedReplyScenario() !== this.initialAppointmentRelatedReplyScenario() ||
+    this.dailyDigestEnabled() !== this.initialDailyDigestEnabled()
   );
 
   protected readonly hasScenarioAnalytics = computed(() => this.whatsAppScenarioAnalytics().length > 0 || this.emailScenarioAnalytics().length > 0);
