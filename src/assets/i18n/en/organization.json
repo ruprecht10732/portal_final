@@ -141,6 +141,9 @@
         "photoAnalysisPerspectiveNormalizationEnabledHint": "Apply best-effort keystone normalization before analysis for allowed service types.",
         "photoAnalysisPerspectiveNormalizationServiceTypes": "Perspective normalization service types",
         "photoAnalysisServiceTypesHint": "Leave empty for all service types. Otherwise enter one service type per line or comma-separated.",
+        "notificationsSection": "Notifications",
+        "dailyDigestEnabled": "Morning digest email",
+        "dailyDigestEnabledHint": "Receive a daily email summary of AI activity, pipeline snapshot, and stale leads at 07:00.",
         "loadFailed": "Failed to load AI settings.",
         "saveFailed": "Failed to save AI settings.",
         "saved": "AI settings updated."

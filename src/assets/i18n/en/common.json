@@ -329,7 +329,19 @@
     "needsAttention": {
       "title": "Needs Attention",
       "actionItems": "Action Items",
-      "draftApprovals": "Draft Approvals"
+      "draftApprovals": "Draft Approvals",
+      "staleLeads": "Stale Leads"
+    },
+    "staleLeads": {
+      "loadFailed": "Unable to load stale leads.",
+      "empty": "No stale leads right now.",
+      "reasons": {
+        "no_activity": "No activity (7d)",
+        "stuck_nurturing": "Stuck nurturing",
+        "no_quote_sent": "No quote sent (14d)",
+        "stale_draft": "Stale draft (30d)",
+        "needs_rescheduling": "Needs rescheduling"
+      }
     },
     "pipeline": {
       "title": "Pipeline Overview",

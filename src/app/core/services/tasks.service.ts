@@ -38,4 +38,12 @@ export class TasksService {
   cancel(taskId: string): Observable<TaskItem> {
     return this.http.post<TaskItem>(`${this.baseUrl}/${taskId}/cancel`, {});
   }
+
+  reopen(taskId: string): Observable<TaskItem> {
+    return this.http.post<TaskItem>(`${this.baseUrl}/${taskId}/reopen`, {});
+  }
+
+  delete(taskId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/${taskId}`);
+  }
 }

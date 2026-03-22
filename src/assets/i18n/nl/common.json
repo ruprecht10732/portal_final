@@ -329,7 +329,19 @@
     "needsAttention": {
       "title": "Directe aandacht",
       "actionItems": "Actie-items",
-      "draftApprovals": "Offertecontrole"
+      "draftApprovals": "Offertecontrole",
+      "staleLeads": "Stagnerende leads"
+    },
+    "staleLeads": {
+      "loadFailed": "Stagnerende leads laden mislukt.",
+      "empty": "Geen stagnerende leads op dit moment.",
+      "reasons": {
+        "no_activity": "Geen activiteit (7d)",
+        "stuck_nurturing": "Stagneert in nurturing",
+        "no_quote_sent": "Geen offerte verstuurd (14d)",
+        "stale_draft": "Verouderd concept (30d)",
+        "needs_rescheduling": "Moet opnieuw ingepland"
+      }
     },
     "pipeline": {
       "title": "Pipeline Overzicht",

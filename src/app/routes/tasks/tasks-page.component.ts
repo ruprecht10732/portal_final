@@ -373,6 +373,8 @@ export class TasksPageComponent {
   protected toggleTaskComplete(task: TaskItem): void {
     if (task.status === 'open') {
       this.completeTask(task);
+    } else if (task.status === 'completed') {
+      this.reopenTask(task);
     }
   }
 
@@ -497,6 +499,34 @@ export class TasksPageComponent {
       .subscribe({
         next: () => {
           this.toast.success(this.translate.instant('tasks.messages.cancelSuccess'));
+          this.refreshToken.update((value) => value + 1);
+        },
+        error: (err) => {
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: this.translate.instant('tasks.messages.saveError') });
+        },
+      });
+  }
+
+  protected reopenTask(task: TaskItem): void {
+    this.tasksService.reopen(task.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.success(this.translate.instant('tasks.messages.reopenSuccess'));
+          this.refreshToken.update((value) => value + 1);
+        },
+        error: (err) => {
+          this.reporter.report(err, { source: 'http', silent: true, userMessage: this.translate.instant('tasks.messages.saveError') });
+        },
+      });
+  }
+
+  protected deleteTask(task: TaskItem): void {
+    this.tasksService.delete(task.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.toast.success(this.translate.instant('tasks.messages.deleteSuccess'));
           this.refreshToken.update((value) => value + 1);
         },
         error: (err) => {

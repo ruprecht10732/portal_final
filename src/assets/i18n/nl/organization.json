@@ -141,6 +141,9 @@
         "photoAnalysisPerspectiveNormalizationEnabledHint": "Pas best-effort keystone-normalisatie toe voor analyse bij toegestane service types.",
         "photoAnalysisPerspectiveNormalizationServiceTypes": "Service types voor perspectiefnormalisatie",
         "photoAnalysisServiceTypesHint": "Laat leeg voor alle service types. Vul anders per regel of komma-gescheiden service types in.",
+        "notificationsSection": "Notificaties",
+        "dailyDigestEnabled": "Ochtend-samenvatting e-mail",
+        "dailyDigestEnabledHint": "Ontvang dagelijks om 07:00 een e-mail met AI-activiteit, pipeline-overzicht en stagnerende leads.",
         "loadFailed": "AI-instellingen laden mislukt.",
         "saveFailed": "AI-instellingen opslaan mislukt.",
         "saved": "AI-instellingen bijgewerkt."

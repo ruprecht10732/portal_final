@@ -10,6 +10,7 @@ import {
   ArrowDownLeft,
   ArrowLeft,
   ArrowUpRight,
+  ArrowUpDown,
   ArrowLeftRight,
   BookOpen,
   BrainCircuit,
@@ -92,6 +93,7 @@ import {
   ShieldCheck,
   Signature,
   Share2,
+  SlidersHorizontal,
   Sparkles,
   Star,
   Sun,
@@ -136,6 +138,7 @@ import {
   ChartColumn,
   Leaf,
   CircleCheck,
+  CircleX,
 } from 'lucide-angular';
 
 import { routes } from './app.routes';
@@ -196,6 +199,7 @@ export const appConfig: ApplicationConfig = {
         ArrowDownLeft,
         ArrowLeft,
         ArrowUpRight,
+        ArrowUpDown,
         ArrowLeftRight,
         BookOpen,
         BrainCircuit,
@@ -275,6 +279,7 @@ export const appConfig: ApplicationConfig = {
         ShieldCheck,
         Signature,
         Share2,
+        SlidersHorizontal,
         Sparkles,
         Star,
         Sun,
@@ -321,6 +326,7 @@ export const appConfig: ApplicationConfig = {
         ChartColumn,
         Leaf,
         CircleCheck,
+        CircleX,
       }),
     ),
   ]

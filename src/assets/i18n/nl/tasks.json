@@ -18,7 +18,9 @@
       "reset": "Resetten",
       "sort": "Sorteren",
       "filter": "Filteren",
-      "more": "Meer"
+      "more": "Meer",
+      "delete": "Verwijderen",
+      "reopen": "Heropenen"
     },
     "editor": {
       "newTitle": "Taak aanmaken",
@@ -87,7 +89,9 @@
       "completeSuccess": "Taak afgerond.",
       "cancelSuccess": "Taak geannuleerd.",
       "bulkCompleteSuccess": "Alle open taken afgerond.",
-      "bulkCancelSuccess": "Alle open taken geannuleerd."
+      "bulkCancelSuccess": "Alle open taken geannuleerd.",
+      "deleteSuccess": "Taak verwijderd.",
+      "reopenSuccess": "Taak heropend."
     },
     "sections": {
       "open": "Open taken",

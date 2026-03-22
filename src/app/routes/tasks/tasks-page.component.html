@@ -39,7 +39,7 @@
             (click)="openFilterSheet()"
             [attr.aria-label]="'tasks.actions.filter' | translate"
           >
-            <lucide-icon name="settings" class="h-4 w-4"></lucide-icon>
+            <lucide-icon name="sliders-horizontal" class="h-4 w-4"></lucide-icon>
             @if (hasActiveFilters()) {
               <span class="absolute -right-0.5 -top-0.5 h-2 w-2 rounded-full bg-blue-500"></span>
             }
@@ -51,7 +51,7 @@
             (click)="openSortSheet()"
             [attr.aria-label]="'tasks.actions.sort' | translate"
           >
-            <lucide-icon name="arrow-up-right" class="h-4 w-4 rotate-90"></lucide-icon>
+            <lucide-icon name="arrow-up-down" class="h-4 w-4"></lucide-icon>
           </button>
           <!-- New task -->
           <button
@@ -124,14 +124,32 @@
                               <p class="mt-0.5 line-clamp-1 text-xs leading-relaxed text-zinc-400">{{ task.description }}</p>
                             }
                           </div>
-                          <button
-                            type="button"
-                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-zinc-100 hover:text-zinc-500"
-                            (click)="editTask(task)"
-                            [attr.aria-label]="'tasks.actions.edit' | translate"
-                          >
-                            <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
-                          </button>
+                          <div class="flex shrink-0 items-center gap-0.5">
+                            <button
+                              type="button"
+                              class="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-zinc-100 hover:text-zinc-500"
+                              (click)="editTask(task)"
+                              [attr.aria-label]="'tasks.actions.edit' | translate"
+                            >
+                              <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
+                            </button>
+                            <button
+                              type="button"
+                              class="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-red-50 hover:text-red-400"
+                              (click)="cancelTask(task)"
+                              [attr.aria-label]="'tasks.actions.cancel' | translate"
+                            >
+                              <lucide-icon name="circle-x" class="h-3.5 w-3.5"></lucide-icon>
+                            </button>
+                            <button
+                              type="button"
+                              class="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-red-50 hover:text-red-500"
+                              (click)="deleteTask(task)"
+                              [attr.aria-label]="'tasks.actions.delete' | translate"
+                            >
+                              <lucide-icon name="trash-2" class="h-3.5 w-3.5"></lucide-icon>
+                            </button>
+                          </div>
                         </div>
                         <div class="mt-1.5 flex flex-wrap items-center gap-1.5">
                           <span class="inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold" [class]="priorityClass(task.priority)">
@@ -178,22 +196,37 @@
                 <li>
                   <article class="rounded-xl border border-zinc-100 bg-white px-3 py-3 transition-all hover:border-zinc-200 hover:shadow-sm sm:px-4 sm:py-3.5">
                     <div class="flex gap-3">
-                      <!-- Completed checkbox -->
-                      <div class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-emerald-400 bg-emerald-50">
+                      <!-- Completed checkbox — click to reopen -->
+                      <button
+                        type="button"
+                        class="mt-0.5 flex h-5 w-5 shrink-0 items-center justify-center rounded-md border-2 border-emerald-400 bg-emerald-50 transition hover:border-amber-400 hover:bg-amber-50 active:scale-90"
+                        (click)="toggleTaskComplete(task)"
+                        [attr.aria-label]="'tasks.actions.reopen' | translate"
+                      >
                         <lucide-icon name="check" class="h-3 w-3 text-emerald-600"></lucide-icon>
-                      </div>
+                      </button>
                       <!-- Content -->
                       <div class="min-w-0 flex-1">
                         <div class="flex items-start justify-between gap-2">
                           <h3 class="text-sm font-medium text-zinc-400 line-through leading-snug">{{ task.title }}</h3>
-                          <button
-                            type="button"
-                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-zinc-100 hover:text-zinc-500"
-                            (click)="editTask(task)"
-                            [attr.aria-label]="'tasks.actions.edit' | translate"
-                          >
-                            <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
-                          </button>
+                          <div class="flex shrink-0 items-center gap-0.5">
+                            <button
+                              type="button"
+                              class="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-zinc-100 hover:text-zinc-500"
+                              (click)="editTask(task)"
+                              [attr.aria-label]="'tasks.actions.edit' | translate"
+                            >
+                              <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
+                            </button>
+                            <button
+                              type="button"
+                              class="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-red-50 hover:text-red-500"
+                              (click)="deleteTask(task)"
+                              [attr.aria-label]="'tasks.actions.delete' | translate"
+                            >
+                              <lucide-icon name="trash-2" class="h-3.5 w-3.5"></lucide-icon>
+                            </button>
+                          </div>
                         </div>
                         <div class="mt-1 flex flex-wrap items-center gap-1.5">
                           @if (task.completedAt) {
@@ -237,14 +270,24 @@
                       <div class="min-w-0 flex-1">
                         <div class="flex items-start justify-between gap-2">
                           <h3 class="text-sm font-medium text-zinc-400 line-through leading-snug">{{ task.title }}</h3>
-                          <button
-                            type="button"
-                            class="flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-zinc-100 hover:text-zinc-500"
-                            (click)="editTask(task)"
-                            [attr.aria-label]="'tasks.actions.edit' | translate"
-                          >
-                            <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
-                          </button>
+                          <div class="flex shrink-0 items-center gap-0.5">
+                            <button
+                              type="button"
+                              class="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-zinc-100 hover:text-zinc-500"
+                              (click)="editTask(task)"
+                              [attr.aria-label]="'tasks.actions.edit' | translate"
+                            >
+                              <lucide-icon name="pencil" class="h-3.5 w-3.5"></lucide-icon>
+                            </button>
+                            <button
+                              type="button"
+                              class="flex h-7 w-7 items-center justify-center rounded-lg text-zinc-300 transition hover:bg-red-50 hover:text-red-500"
+                              (click)="deleteTask(task)"
+                              [attr.aria-label]="'tasks.actions.delete' | translate"
+                            >
+                              <lucide-icon name="trash-2" class="h-3.5 w-3.5"></lucide-icon>
+                            </button>
+                          </div>
                         </div>
                         <div class="mt-1 flex flex-wrap items-center gap-1.5">
                           @if (task.cancelledAt) {

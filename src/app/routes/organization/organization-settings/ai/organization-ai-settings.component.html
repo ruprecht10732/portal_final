@@ -229,6 +229,20 @@
         }
       </shared-card>
 
+      <shared-card>
+        <h4 class="text-xs font-bold uppercase tracking-widest text-zinc-400 mb-6">
+          {{ 'organization.settings.ai.notificationsSection' | translate }}
+        </h4>
+
+        <div class="grid grid-cols-1 gap-5">
+          <shared-checkbox
+            [label]="'organization.settings.ai.dailyDigestEnabled' | translate"
+            [hint]="'organization.settings.ai.dailyDigestEnabledHint' | translate"
+            [(checked)]="dailyDigestEnabled"
+          />
+        </div>
+      </shared-card>
+
       <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 pt-2">
         <div>
           @if (successMessage()) {

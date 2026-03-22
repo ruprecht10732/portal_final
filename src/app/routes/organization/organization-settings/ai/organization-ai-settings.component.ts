@@ -256,6 +256,9 @@ export class OrganizationAiSettingsComponent {
 
         this.appointmentRelatedReplyScenario.set((settings.appointmentRelatedReplyScenario as ReplySuggestionScenario | undefined) ?? 'appointment_reminder');
         this.initialAppointmentRelatedReplyScenario.set((settings.appointmentRelatedReplyScenario as ReplySuggestionScenario | undefined) ?? 'appointment_reminder');
+
+        this.dailyDigestEnabled.set(settings.dailyDigestEnabled ?? true);
+        this.initialDailyDigestEnabled.set(settings.dailyDigestEnabled ?? true);
       });
   }
 
@@ -318,6 +321,7 @@ export class OrganizationAiSettingsComponent {
         emailDefaultReplyScenario: this.emailDefaultReplyScenario(),
         quoteRelatedReplyScenario: this.quoteRelatedReplyScenario(),
         appointmentRelatedReplyScenario: this.appointmentRelatedReplyScenario(),
+        dailyDigestEnabled: this.dailyDigestEnabled(),
       })
       .pipe(
         catchError(() => {
@@ -393,6 +397,9 @@ export class OrganizationAiSettingsComponent {
 
         this.appointmentRelatedReplyScenario.set((settings.appointmentRelatedReplyScenario as ReplySuggestionScenario | undefined) ?? 'appointment_reminder');
         this.initialAppointmentRelatedReplyScenario.set((settings.appointmentRelatedReplyScenario as ReplySuggestionScenario | undefined) ?? 'appointment_reminder');
+
+        this.dailyDigestEnabled.set(settings.dailyDigestEnabled ?? true);
+        this.initialDailyDigestEnabled.set(settings.dailyDigestEnabled ?? true);
 
         this.successMessage.set(this.translate.instant('organization.settings.ai.saved'));
       });

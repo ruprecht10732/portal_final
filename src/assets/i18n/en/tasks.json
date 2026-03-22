@@ -18,7 +18,9 @@
       "reset": "Reset",
       "sort": "Sort",
       "filter": "Filter",
-      "more": "More"
+      "more": "More",
+      "delete": "Delete",
+      "reopen": "Reopen"
     },
     "editor": {
       "newTitle": "Create task",
@@ -87,7 +89,9 @@
       "completeSuccess": "Task completed.",
       "cancelSuccess": "Task cancelled.",
       "bulkCompleteSuccess": "All open tasks completed.",
-      "bulkCancelSuccess": "All open tasks cancelled."
+      "bulkCancelSuccess": "All open tasks cancelled.",
+      "deleteSuccess": "Task deleted.",
+      "reopenSuccess": "Task reopened."
     },
     "sections": {
       "open": "Open tasks",
