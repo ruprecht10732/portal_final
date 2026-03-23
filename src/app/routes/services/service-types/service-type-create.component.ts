@@ -73,7 +73,7 @@ export class ServiceTypeCreateComponent {
     this.serviceTypesService.create(request).subscribe({
       next: () => {
         this.resetForm();
-        this.router.navigate(['/app/services']);
+        this.router.navigate(['/app/settings/services']);
       },
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant('services.errors.createFailed'));

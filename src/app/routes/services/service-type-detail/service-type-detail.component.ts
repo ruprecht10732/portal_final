@@ -113,7 +113,7 @@ export class ServiceTypeDetailComponent implements OnInit {
   }
 
   protected goBack(): void {
-    this.router.navigate(['/app/services']);
+    this.router.navigate(['/app/settings/services']);
   }
 
   protected openDeleteDialog(): void {
@@ -177,7 +177,7 @@ export class ServiceTypeDetailComponent implements OnInit {
     this.serviceTypesService.delete(item.id).subscribe({
       next: () => {
         this.toast.success(this.translate.instant('services.detail.deleteSuccess'));
-        this.router.navigate(['/app/services']);
+        this.router.navigate(['/app/settings/services']);
       },
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant('services.errors.deleteFailed'));

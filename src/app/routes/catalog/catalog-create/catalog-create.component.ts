@@ -108,7 +108,7 @@ export class CatalogCreateComponent implements OnInit {
 
         if (!isServiceType || rows.length === 0) {
           this.toast.success(this.translate.instant('catalog.products.createSuccess'));
-          this.router.navigate(['/app/catalog', product.id]);
+          this.router.navigate(['/app/settings/catalog', product.id]);
           return;
         }
 
@@ -169,7 +169,7 @@ export class CatalogCreateComponent implements OnInit {
   }
 
   protected cancel(): void {
-    this.router.navigate(['/app/catalog']);
+    this.router.navigate(['/app/settings/catalog']);
   }
 
   protected handleTypeChange(value: ProductType): void {
@@ -291,7 +291,7 @@ export class CatalogCreateComponent implements OnInit {
         }).subscribe({
           next: () => {
             this.toast.success(this.translate.instant('catalog.products.createSuccess'));
-            this.router.navigate(['/app/catalog', serviceId]);
+            this.router.navigate(['/app/settings/catalog', serviceId]);
           },
           error: (err) => {
             const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.addMaterials'));

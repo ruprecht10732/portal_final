@@ -281,12 +281,12 @@ export class CatalogDetailComponent implements OnInit {
   protected edit(): void {
     const product = this.product();
     if (product) {
-      this.router.navigate(['/app/catalog', product.id, 'edit']);
+      this.router.navigate(['/app/settings/catalog', product.id, 'edit']);
     }
   }
 
   protected goBack(): void {
-    this.router.navigate(['/app/catalog']);
+    this.router.navigate(['/app/settings/catalog']);
   }
 
   protected openDeleteDialog(): void {
@@ -305,7 +305,7 @@ export class CatalogDetailComponent implements OnInit {
     this.catalogService.deleteProduct(product.id).subscribe({
       next: () => {
         this.toast.success(this.translate.instant('catalog.products.deleteSuccess'));
-        this.router.navigate(['/app/catalog']);
+        this.router.navigate(['/app/settings/catalog']);
       },
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.deleteProduct'));

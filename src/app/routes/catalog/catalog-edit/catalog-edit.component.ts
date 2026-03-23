@@ -244,7 +244,7 @@ export class CatalogEditComponent implements OnInit {
     this.catalogService.updateProduct(product.id, request).subscribe({
       next: () => {
         this.toast.success(this.translate.instant('catalog.products.updateSuccess'));
-        this.router.navigate(['/app/catalog', product.id]);
+        this.router.navigate(['/app/settings/catalog', product.id]);
       },
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
@@ -258,9 +258,9 @@ export class CatalogEditComponent implements OnInit {
   protected cancel(): void {
     const product = this.product();
     if (product) {
-      this.router.navigate(['/app/catalog', product.id]);
+      this.router.navigate(['/app/settings/catalog', product.id]);
     } else {
-      this.router.navigate(['/app/catalog']);
+      this.router.navigate(['/app/settings/catalog']);
     }
   }
 

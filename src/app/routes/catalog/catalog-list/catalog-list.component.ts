@@ -219,11 +219,11 @@ export class CatalogListComponent {
   protected readonly gridFetchDataFn = this.fetchDataFn as unknown as (request: DataRequest) => Observable<DataResponse<Record<string, unknown>>>;
 
   protected createProduct(): void {
-    this.router.navigate(['/app/catalog/new']);
+    this.router.navigate(['/app/settings/catalog/new']);
   }
 
   protected viewProduct(product: Product): void {
-    this.router.navigate(['/app/catalog', product.id]);
+    this.router.navigate(['/app/settings/catalog', product.id]);
   }
 
   protected onRowDoubleClick(product: ProductRow): void {

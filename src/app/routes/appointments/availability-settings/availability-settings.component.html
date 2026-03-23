@@ -155,17 +155,17 @@
 
   <!-- Rule Form Modal -->
   @if (showRuleForm()) {
-    <button 
-      type="button"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 cursor-default"
-      [attr.aria-label]="'common.close' | translate"
-      (click)="closeRuleForm()" 
-      (keydown.escape)="closeRuleForm()"
-    >
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        type="button"
+        class="absolute inset-0 bg-black/50"
+        [attr.aria-label]="'common.close' | translate"
+        (click)="closeRuleForm()"
+      ></button>
       <dialog 
-        class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+        class="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
         [open]="true"
-        tabindex="0"
+        tabindex="-1"
         (click)="$event.stopPropagation()"
         (keydown.escape)="closeRuleForm()"
       >
@@ -210,22 +210,22 @@
           </div>
         </form>
       </dialog>
-    </button>
+    </div>
   }
 
   <!-- Override Form Modal -->
   @if (showOverrideForm()) {
-    <button 
-      type="button"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 cursor-default"
-      [attr.aria-label]="'common.close' | translate"
-      (click)="closeOverrideForm()" 
-      (keydown.escape)="closeOverrideForm()"
-    >
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        type="button"
+        class="absolute inset-0 bg-black/50"
+        [attr.aria-label]="'common.close' | translate"
+        (click)="closeOverrideForm()"
+      ></button>
       <dialog 
-        class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+        class="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
         [open]="true"
-        tabindex="0"
+        tabindex="-1"
         (click)="$event.stopPropagation()"
         (keydown.escape)="closeOverrideForm()"
       >
@@ -277,22 +277,22 @@
           </div>
         </form>
       </dialog>
-    </button>
+    </div>
   }
 
   <!-- Quick Setup Modal -->
   @if (showQuickSetup()) {
-    <button 
-      type="button"
-      class="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4 cursor-default"
-      [attr.aria-label]="'common.close' | translate"
-      (click)="closeQuickSetup()" 
-      (keydown.escape)="closeQuickSetup()"
-    >
+    <div class="fixed inset-0 z-50 flex items-center justify-center p-4">
+      <button
+        type="button"
+        class="absolute inset-0 bg-black/50"
+        [attr.aria-label]="'common.close' | translate"
+        (click)="closeQuickSetup()"
+      ></button>
       <dialog 
-        class="relative w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
+        class="relative z-10 w-full max-w-md rounded-lg bg-white p-6 shadow-xl"
         [open]="true"
-        tabindex="0"
+        tabindex="-1"
         (click)="$event.stopPropagation()"
         (keydown.escape)="closeQuickSetup()"
       >
@@ -380,7 +380,7 @@
           </div>
         </div>
       </dialog>
-    </button>
+    </div>
   }
 
   <!-- Delete Confirmation Dialog -->

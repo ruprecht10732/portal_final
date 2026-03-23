@@ -177,7 +177,7 @@ export class ServiceTypesComponent implements OnInit {
   }
 
   protected goToCreate(): void {
-    this.router.navigate(['/app/services/new']);
+    this.router.navigate(['/app/settings/services/new']);
   }
 
   private loadServiceTypes(params: ListServiceTypesParams): void {
@@ -490,7 +490,7 @@ export class ServiceTypesComponent implements OnInit {
 
   protected onServiceTypeDoubleClick(row: ServiceTypeRow): void {
     if (row.id) {
-      this.router.navigate(['/app/services', row.id]);
+      this.router.navigate(['/app/settings/services', row.id]);
     }
   }
 
