@@ -55,7 +55,6 @@ export class OffertesPartnerOfferComponent implements OnInit {
   protected readonly marginPercent = signal<number>(10);
   protected readonly vakmanPriceOverrideEuros = signal<number | null>(null);
   protected readonly selectedItemIds = signal<string[]>([]);
-  protected readonly jobSummaryShort = signal<string>('');
 
   protected readonly offerCreating = signal(false);
   protected readonly offerError = signal<string | null>(null);
@@ -214,14 +213,12 @@ export class OffertesPartnerOfferComponent implements OnInit {
     this.createdOfferVakmanPriceCents.set(null);
 
     const vakmanPriceOverrideEuros = this.vakmanPriceOverrideEuros();
-    const jobSummaryShort = this.jobSummaryShort().trim();
     const request = {
       partnerId,
       quoteId: q.id,
       expiresInHours,
       marginBasisPoints: Math.round(this.marginPercent() * 100),
       selectedItemIds: this.selectedItemIds(),
-      ...(jobSummaryShort ? { jobSummaryShort } : {}),
       ...(vakmanPriceOverrideEuros == null ? {} : { vakmanPriceCents: Math.round(vakmanPriceOverrideEuros * 100) }),
     };
 

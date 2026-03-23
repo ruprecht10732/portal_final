@@ -438,7 +438,6 @@ export class LeadDetailComponent implements OnInit {
   protected readonly selectedPartnerId = signal<string | null>(null);
 
   protected readonly expiresInHours = signal<number>(12);
-  protected readonly manualPartnerJobSummaryShort = signal<string>('');
   protected readonly manualPartnerMarginPercent = signal<number>(10);
   protected readonly manualPartnerVakmanPriceOverrideEuros = signal<number | null>(null);
   protected readonly manualPartnerSelectedItemIds = signal<string[]>([]);
@@ -1481,14 +1480,12 @@ export class LeadDetailComponent implements OnInit {
 
     const expiresInHours = Math.max(1, Math.min(72, Math.floor(this.expiresInHours() || 12)));
     const vakmanPriceOverrideEuros = this.manualPartnerVakmanPriceOverrideEuros();
-    const jobSummaryShort = this.manualPartnerJobSummaryShort().trim();
     const request = {
       partnerId,
       quoteId: quote.id,
       expiresInHours,
       marginBasisPoints: Math.round(this.manualPartnerMarginPercent() * 100),
       selectedItemIds: this.manualPartnerSelectedItemIds(),
-      ...(jobSummaryShort ? { jobSummaryShort } : {}),
       ...(vakmanPriceOverrideEuros == null ? {} : { vakmanPriceCents: Math.round(vakmanPriceOverrideEuros * 100) }),
     };
 

@@ -113,21 +113,6 @@
         [suffix]="'u'"
       />
 
-      <div>
-        <label class="mb-1 block text-xs font-bold uppercase tracking-widest text-zinc-500">
-          Praktische samenvatting voor vakman (zonder klantgegevens)
-        </label>
-        <textarea
-          rows="3"
-          maxlength="200"
-          class="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-200"
-          [value]="jobSummaryShort()"
-          (input)="jobSummaryShortChange.emit($any($event.target).value)"
-          placeholder="Bijv. daklekkage achterzijde, 2 dakpannen vervangen, steiger nodig"
-        ></textarea>
-        <p class="mt-1 text-xs text-zinc-500">{{ jobSummaryShort().length }}/200</p>
-      </div>
-
       <shared-number-input
         [label]="'leads.detail.manualPartner.marginPercentLabel' | translate"
         [hint]="'leads.detail.manualPartner.marginPercentHint' | translate"

@@ -94,7 +94,6 @@ export class PartnersOfferCreateComponent {
   protected readonly vakmanPriceOverrideEuros = signal<number | null>(null);
   protected readonly selectedItemIds = signal<string[]>([]);
   protected readonly requiresInspection = signal<boolean>(true);
-  protected readonly jobSummaryShort = signal<string>('');
 
   protected readonly creating = signal(false);
   protected readonly createError = signal<string | null>(null);
@@ -356,7 +355,6 @@ export class PartnersOfferCreateComponent {
     this.createdOffer.set(null);
 
     const vakmanPriceOverrideEuros = this.vakmanPriceOverrideEuros();
-    const jobSummaryShort = this.jobSummaryShort().trim();
     const request = {
       partnerId,
       quoteId: quote.id,
@@ -364,7 +362,6 @@ export class PartnersOfferCreateComponent {
       marginBasisPoints: Math.round(this.marginPercent() * 100),
       selectedItemIds: this.selectedItemIds(),
       requiresInspection: this.requiresInspection(),
-      ...(jobSummaryShort ? { jobSummaryShort } : {}),
       ...(vakmanPriceOverrideEuros == null ? {} : { vakmanPriceCents: Math.round(vakmanPriceOverrideEuros * 100) }),
     };
 
