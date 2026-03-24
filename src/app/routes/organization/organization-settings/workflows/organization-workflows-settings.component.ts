@@ -12,7 +12,6 @@ import {
   OrganizationService,
 } from '../../../../core/services/organization.service';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
-import { CardComponent } from '../../../../shared/components/card/card.component';
 import { CheckboxComponent } from '../../../../shared/components/checkbox/checkbox.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
 import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
@@ -20,6 +19,7 @@ import { PageLayoutComponent } from '../../../../shared/components/page-layout/p
 import { RichTextEditorComponent, type TemplateVariable } from '../../../../shared/components/rich-text-editor/rich-text-editor.component';
 import { SelectComponent, type SelectOption } from '../../../../shared/components/select/select.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
+import { TabBarComponent, type TabItem } from '../../../../shared/components/tab-bar/tab-bar.component';
 
 type WorkflowTrigger =
   | 'lead_welcome'
@@ -107,7 +107,6 @@ interface WorkflowSelectedChannelCardState {
   selector: 'app-organization-workflows-settings',
   imports: [
     ButtonComponent,
-    CardComponent,
     CheckboxComponent,
     InputComponent,
     NumberInputComponent,
@@ -115,6 +114,7 @@ interface WorkflowSelectedChannelCardState {
     RichTextEditorComponent,
     SelectComponent,
     SkeletonComponent,
+    TabBarComponent,
     TranslatePipe,
   ],
   templateUrl: './organization-workflows-settings.component.html',
@@ -139,6 +139,12 @@ export class OrganizationWorkflowsSettingsComponent {
   protected readonly selectedWorkflowKey = signal('');
   protected readonly selectedDefaultWorkflowKey = signal('');
   protected readonly selectedAction = signal<WorkflowTrigger>('lead_welcome');
+  protected readonly selectedChannel = signal<WorkflowChannel>('whatsapp');
+
+  protected readonly channelTabs = computed<TabItem[]>(() => [
+    { id: 'whatsapp', label: this.translate.instant('organization.settings.workflows.whatsappColumnTitle') },
+    { id: 'email', label: this.translate.instant('organization.settings.workflows.emailColumnTitle') },
+  ]);
 
   protected readonly actionOptions = computed<SelectOption<WorkflowTrigger>[]>(() =>
     this.actions.map(action => ({
