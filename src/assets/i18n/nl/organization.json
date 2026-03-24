@@ -187,7 +187,8 @@
           "quoteRejected": "Offerte afgewezen",
           "appointmentCreated": "Afspraak bevestigd",
           "appointmentReminder": "Afspraak herinnering",
-          "partnerOfferCreated": "Werkaanbod aangemaakt"
+          "partnerOfferCreated": "Werkaanbod aangemaakt",
+          "jobCompleted": "Werk afgerond"
         },
         "cards": {
           "leadWelcome": {
@@ -260,6 +261,11 @@
             "title": "Werkaanbod aangemaakt (WhatsApp)",
             "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
             "vars": "Variabelen: {{partner.name}}, {{offer.id}}, {{links.accept}}"
+          },
+          "jobCompleted": {
+            "title": "Werk afgerond – review verzoek",
+            "hint": "Aantal minuten wachten voordat dit bericht wordt verstuurd.",
+            "vars": "Variabelen: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{org.name}}, {{org.reviewUrl}}"
           }
         }
       },
@@ -271,6 +277,10 @@
       "notificationEmailPlaceholder": "ops@bedrijf.nl",
       "notificationEmailHint": "Partner-aanbod meldingen naar admins worden naar dit adres gestuurd. Laat leeg voor de standaardwaarde.",
       "notificationEmailInvalid": "Vul een geldig notificatie e-mailadres in.",
+      "reviews": "Reviews",
+      "reviewUrl": "Review URL",
+      "reviewUrlPlaceholder": "https://g.page/r/uw-bedrijf/review",
+      "reviewUrlHint": "Link naar uw reviewpagina (bijv. Google Reviews). Beschikbaar als {{org.reviewUrl}} in workflow templates.",
       "save": "Instellingen opslaan",
       "saved": "Instellingen bijgewerkt.",
       "loadFailed": "Instellingen laden mislukt.",

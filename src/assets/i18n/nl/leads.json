@@ -124,7 +124,10 @@
         "createdLabel": "Aangemaakt",
         "validUntilLabel": "Geldig tot",
         "noValidity": "Geen vervaldatum",
-        "viewAction": "Bekijk offerte"
+        "viewAction": "Bekijk offerte",
+        "schedulingTitle": "Afspraak inplannen",
+        "schedulingSubtitle": "Deel deze link met de klant zodat zij een geschikt moment kunnen kiezen voor de vakman.",
+        "schedulingLabel": "Inplanlink"
       },
       "emails": {
         "title": "Gekoppelde e-mails",

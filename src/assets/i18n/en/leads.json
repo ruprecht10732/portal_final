@@ -124,7 +124,10 @@
         "createdLabel": "Created",
         "validUntilLabel": "Valid until",
         "noValidity": "No expiry date",
-        "viewAction": "View quote"
+        "viewAction": "View quote",
+        "schedulingTitle": "Schedule appointment",
+        "schedulingSubtitle": "Share this link with the customer so they can pick a suitable time for the technician.",
+        "schedulingLabel": "Scheduling link"
       },
       "emails": {
         "title": "Associated emails",

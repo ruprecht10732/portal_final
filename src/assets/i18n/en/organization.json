@@ -187,7 +187,8 @@
           "quoteRejected": "Quote rejected",
           "appointmentCreated": "Appointment confirmed",
           "appointmentReminder": "Appointment reminder",
-          "partnerOfferCreated": "Partner offer created"
+          "partnerOfferCreated": "Partner offer created",
+          "jobCompleted": "Job completed"
         },
         "cards": {
           "leadWelcome": {
@@ -260,6 +261,11 @@
             "title": "Partner offer created (WhatsApp)",
             "hint": "Minutes to wait before sending this message.",
             "vars": "Variables: {{partner.name}}, {{offer.id}}, {{links.accept}}"
+          },
+          "jobCompleted": {
+            "title": "Job completed – review request",
+            "hint": "Minutes to wait before sending this message.",
+            "vars": "Variables: {{lead.name}}, {{lead.firstName}}, {{lead.lastName}}, {{lead.address}}, {{lead.city}}, {{lead.serviceType}}, {{org.name}}, {{org.reviewUrl}}"
           }
         }
       },
@@ -271,6 +277,10 @@
       "notificationEmailPlaceholder": "ops@company.com",
       "notificationEmailHint": "Partner-offer admin alerts are sent to this email. Leave empty to use default.",
       "notificationEmailInvalid": "Enter a valid notification email.",
+      "reviews": "Reviews",
+      "reviewUrl": "Review URL",
+      "reviewUrlPlaceholder": "https://g.page/r/your-business/review",
+      "reviewUrlHint": "Link to your review page (e.g. Google Reviews). Available as {{org.reviewUrl}} in workflow templates.",
       "save": "Save settings",
       "saved": "Settings updated.",
       "loadFailed": "Failed to load settings.",

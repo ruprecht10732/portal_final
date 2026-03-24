@@ -32,6 +32,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
   protected readonly notificationEmail = signal('');
   private readonly initialNotificationEmail = signal('');
 
+  protected readonly reviewUrl = signal('');
+  private readonly initialReviewUrl = signal('');
+
   protected readonly isLoading = signal(true);
   protected readonly isSaving = signal(false);
   protected readonly successMessage = signal('');
@@ -45,7 +48,8 @@ export class OrganizationQuoteDefaultsSettingsComponent {
     (this.quotePaymentDays() ?? this.initialQuotePaymentDays()) !== this.initialQuotePaymentDays() ||
     (this.quoteValidDays() ?? this.initialQuoteValidDays()) !== this.initialQuoteValidDays() ||
     (this.offerMarginPercent() ?? this.initialOfferMarginPercent()) !== this.initialOfferMarginPercent() ||
-    this.notificationEmail().trim() !== this.initialNotificationEmail().trim()
+    this.notificationEmail().trim() !== this.initialNotificationEmail().trim() ||
+    this.reviewUrl().trim() !== this.initialReviewUrl().trim()
   );
 
   protected readonly notificationEmailError = computed(() => {
@@ -95,6 +99,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
         const notificationEmail = settings.notificationEmail ?? '';
         this.notificationEmail.set(notificationEmail);
         this.initialNotificationEmail.set(notificationEmail);
+        const reviewUrl = settings.reviewUrl ?? '';
+        this.reviewUrl.set(reviewUrl);
+        this.initialReviewUrl.set(reviewUrl);
       });
   }
 
@@ -111,6 +118,7 @@ export class OrganizationQuoteDefaultsSettingsComponent {
         ...(this.quoteValidDays() == null ? {} : { quoteValidDays: this.quoteValidDays()! }),
         ...(this.offerMarginPercent() == null ? {} : { offerMarginBasisPoints: Math.round(this.offerMarginPercent()! * 100) }),
         notificationEmail: this.notificationEmail().trim(),
+        ...(this.reviewUrl().trim() ? { reviewUrl: this.reviewUrl().trim() } : {}),
       })
       .pipe(
         catchError(() => {
@@ -131,6 +139,9 @@ export class OrganizationQuoteDefaultsSettingsComponent {
         const notificationEmail = settings.notificationEmail ?? '';
         this.notificationEmail.set(notificationEmail);
         this.initialNotificationEmail.set(notificationEmail);
+        const reviewUrl = settings.reviewUrl ?? '';
+        this.reviewUrl.set(reviewUrl);
+        this.initialReviewUrl.set(reviewUrl);
         this.successMessage.set(this.translate.instant('organization.settings.saved'));
       });
   }

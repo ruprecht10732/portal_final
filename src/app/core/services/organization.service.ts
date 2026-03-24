@@ -92,6 +92,7 @@ export interface OrganizationSettings {
   whatsAppPresence?: 'available' | 'unavailable';
   whatsAppWelcomeDelayMinutes: number;
   dailyDigestEnabled: boolean;
+  reviewUrl?: string | null;
   smtpConfigured: boolean;
 }
 
@@ -137,6 +138,7 @@ export interface UpdateOrganizationSettingsRequest {
   appointmentRelatedReplyScenario?: string;
   whatsAppPresence?: 'available' | 'unavailable';
   dailyDigestEnabled?: boolean;
+  reviewUrl?: string;
 }
 
 export interface WhatsAppStatus {

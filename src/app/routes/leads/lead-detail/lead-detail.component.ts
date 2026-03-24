@@ -498,6 +498,12 @@ export class LeadDetailComponent implements OnInit {
   protected readonly energyLabel = computed(() => this.lead()?.energyLabel ?? null);
   protected readonly leadEnrichment = computed(() => this.lead()?.leadEnrichment ?? null);
   protected readonly leadScore = computed(() => this.lead()?.leadScore ?? null);
+  protected readonly schedulingUrl = computed<string | null>(() => {
+    const token = this.lead()?.publicToken;
+    if (!token) return null;
+    const origin = globalThis.location?.origin ?? '';
+    return origin ? `${origin}/track/${token}` : `/track/${token}`;
+  });
   protected readonly energyLabelClass = computed<string | null>(() => this.energyLabel()?.energieklasse ?? null);
   protected readonly energyLabelVariant = computed<ChipVariant>(() => {
     const label = this.energyLabelClass();

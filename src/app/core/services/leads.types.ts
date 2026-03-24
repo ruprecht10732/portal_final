@@ -116,6 +116,7 @@ export interface Lead {
   consumer: Consumer;
   address: Address;
   source?: string;
+  publicToken?: string;
   services: LeadService[];
   currentService?: LeadService;
   aggregateStatus?: LeadStatus;

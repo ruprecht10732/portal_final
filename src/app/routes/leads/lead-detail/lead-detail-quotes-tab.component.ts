@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, input, output } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, input, output } from '@angular/core';
 import { TranslatePipe } from '@ngx-translate/core';
 import type { QuoteResponse, QuoteStatus } from '../../../core/services/quotes.types';
 
@@ -12,12 +12,15 @@ export class LeadDetailQuotesTabComponent {
   quotes = input<QuoteResponse[]>([]);
   quotesLoading = input<boolean>(false);
   quotesError = input<string | null>(null);
+  schedulingUrl = input<string | null>(null);
   formatHumanDateTime = input<(value: string | undefined | null) => string>((value) => value ?? '-');
   formatEuroCents = input<(value: number) => string>(String);
   quoteStatusLabelKey = input<(status: QuoteStatus) => string>((status) => status);
   quoteStatusClass = input<(status: QuoteStatus) => string>(() => 'bg-zinc-100 text-zinc-600');
 
   viewQuote = output<string>();
+
+  protected readonly hasAcceptedQuote = computed(() => this.quotes().some((q) => q.status === 'Accepted'));
 
   protected readonly trackByQuoteId = (_index: number, quote: QuoteResponse): string => quote.id;
 }

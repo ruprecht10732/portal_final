@@ -64,4 +64,17 @@
       </div>
     }
   </section>
+
+  @if (hasAcceptedQuote() && schedulingUrl()) {
+    <section class="rounded-2xl border border-zinc-200 bg-white p-4 shadow-sm">
+      <h3 class="mb-2 text-sm font-semibold text-slate-950">{{ 'leads.detail.quotes.schedulingTitle' | translate }}</h3>
+      <p class="mb-2 text-sm text-zinc-500">{{ 'leads.detail.quotes.schedulingSubtitle' | translate }}</p>
+      <div class="rounded-lg border border-zinc-200 bg-white p-3 text-sm">
+        <p class="text-zinc-600">{{ 'leads.detail.quotes.schedulingLabel' | translate }}</p>
+        <a class="break-all font-semibold text-indigo-600" [href]="schedulingUrl()" target="_blank" rel="noopener noreferrer">
+          {{ schedulingUrl() }}
+        </a>
+      </div>
+    </section>
+  }
 </div>

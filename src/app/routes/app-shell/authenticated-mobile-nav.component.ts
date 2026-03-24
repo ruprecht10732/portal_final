@@ -107,7 +107,7 @@ interface MobileNavItem {
                 <lucide-icon name="settings" class="h-5 w-5"></lucide-icon>
               }
               @case ('agentWhatsapp') {
-                <lucide-icon name="brain-circuit" class="h-5 w-5"></lucide-icon>
+                <lucide-icon name="bot" class="h-5 w-5"></lucide-icon>
               }
               @case ('profile') {
                 <lucide-icon name="user" class="h-5 w-5"></lucide-icon>

@@ -30,7 +30,8 @@ type WorkflowTrigger =
   | 'quote_rejected'
   | 'appointment_created'
   | 'appointment_reminder'
-  | 'partner_offer_created';
+  | 'partner_offer_created'
+  | 'job_completed';
 
 type WorkflowChannel = 'whatsapp' | 'email';
 type WorkflowAudience = 'lead' | 'partner';
@@ -54,7 +55,9 @@ type WorkflowCardKey =
   | 'appointment_reminder_whatsapp_lead'
   | 'appointment_reminder_email_lead'
   | 'partner_offer_created_whatsapp_partner'
-  | 'partner_offer_created_email_partner';
+  | 'partner_offer_created_email_partner'
+  | 'job_completed_whatsapp_lead'
+  | 'job_completed_email_lead';
 
 interface WorkflowCardConfig {
   key: WorkflowCardKey;
@@ -326,6 +329,24 @@ export class OrganizationWorkflowsSettingsComponent {
       hintKey: 'organization.settings.workflows.cards.partnerOfferCreated.hint',
       varsKey: 'organization.settings.workflows.cards.partnerOfferCreated.vars',
     },
+    {
+      key: 'job_completed_whatsapp_lead',
+      trigger: 'job_completed',
+      channel: 'whatsapp',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.jobCompleted.title',
+      hintKey: 'organization.settings.workflows.cards.jobCompleted.hint',
+      varsKey: 'organization.settings.workflows.cards.jobCompleted.vars',
+    },
+    {
+      key: 'job_completed_email_lead',
+      trigger: 'job_completed',
+      channel: 'email',
+      audience: 'lead',
+      titleKey: 'organization.settings.workflows.cards.jobCompleted.title',
+      hintKey: 'organization.settings.workflows.cards.jobCompleted.hint',
+      varsKey: 'organization.settings.workflows.cards.jobCompleted.vars',
+    },
   ];
 
   protected readonly actions: readonly WorkflowActionConfig[] = [
@@ -473,6 +494,22 @@ export class OrganizationWorkflowsSettingsComponent {
         },
       },
     },
+    {
+      id: 'job_completed',
+      titleKey: 'organization.settings.workflows.actions.jobCompleted',
+      channels: {
+        whatsapp: {
+          cardKeys: ['job_completed_whatsapp_lead'],
+          hintKey: 'organization.settings.workflows.cards.jobCompleted.hint',
+          varsKey: 'organization.settings.workflows.cards.jobCompleted.vars',
+        },
+        email: {
+          cardKeys: ['job_completed_email_lead'],
+          hintKey: 'organization.settings.workflows.cards.jobCompleted.hint',
+          varsKey: 'organization.settings.workflows.cards.jobCompleted.vars',
+        },
+      },
+    },
   ];
 
   private readonly cardConfigsByKey = new Map<WorkflowCardKey, WorkflowCardConfig>(
@@ -530,6 +567,7 @@ export class OrganizationWorkflowsSettingsComponent {
       { label: 'Offertenummer', value: 'quote.number' },
       { label: 'Offerte totaal', value: 'quote.total' },
       { label: 'Offerte download', value: 'quote.downloadUrl' },
+      { label: 'Inplanlink', value: 'links.scheduling' },
     ],
     quote_rejected: [
       ...this.baseLeadVars,
@@ -550,6 +588,10 @@ export class OrganizationWorkflowsSettingsComponent {
       { label: 'Partner naam', value: 'partner.name' },
       { label: 'Aanbod ID', value: 'offer.id' },
       { label: 'Accepteer link', value: 'links.accept' },
+    ],
+    job_completed: [
+      ...this.baseLeadVars,
+      { label: 'Review URL', value: 'org.reviewUrl' },
     ],
   };
 
@@ -603,6 +645,8 @@ export class OrganizationWorkflowsSettingsComponent {
       appointment_reminder_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
       partner_offer_created_whatsapp_partner: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
       partner_offer_created_email_partner: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      job_completed_whatsapp_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
+      job_completed_email_lead: { enabled: true, delayMinutes: 0, templateSubject: '', templateText: '' },
     };
   }
 
