@@ -341,6 +341,17 @@
         "no_quote_sent": "Geen offerte verstuurd (14d)",
         "stale_draft": "Verouderd concept (30d)",
         "needs_rescheduling": "Moet opnieuw ingepland"
+      },
+      "channels": {
+        "whatsapp": "WhatsApp",
+        "email": "E-mail",
+        "phone": "Telefoon"
+      },
+      "ai": {
+        "showDraft": "Toon conceptbericht",
+        "hideDraft": "Verberg conceptbericht",
+        "copyDraft": "Kopieer",
+        "copied": "Gekopieerd!"
       }
     },
     "pipeline": {

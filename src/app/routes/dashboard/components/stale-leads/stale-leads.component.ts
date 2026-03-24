@@ -1,3 +1,4 @@
+import { Clipboard } from '@angular/cdk/clipboard';
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
@@ -18,9 +19,13 @@ export class StaleLeadsComponent {
   private readonly destroyRef = inject(DestroyRef);
   private readonly router = inject(Router);
 
+  private readonly clipboard = inject(Clipboard);
+
   protected readonly items = signal<StaleLeadItem[]>([]);
   protected readonly isLoading = signal(true);
   protected readonly hasError = signal(false);
+  protected readonly expandedDraft = signal<string | null>(null);
+  protected readonly copiedId = signal<string | null>(null);
 
   constructor() {
     this.load();
@@ -45,6 +50,31 @@ export class StaleLeadsComponent {
 
   protected navigateToLead(leadId: string): void {
     void this.router.navigate(['/app/leads', leadId]);
+  }
+
+  protected toggleDraft(serviceId: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.expandedDraft.update(cur => (cur === serviceId ? null : serviceId));
+  }
+
+  protected copyDraft(serviceId: string, message: string, event: MouseEvent): void {
+    event.stopPropagation();
+    this.clipboard.copy(message);
+    this.copiedId.set(serviceId);
+    setTimeout(() => this.copiedId.set(null), 2000);
+  }
+
+  protected channelBadgeClass(channel: string | undefined): string {
+    switch (channel) {
+      case 'whatsapp':
+        return 'bg-green-50 text-green-700 ring-green-600/10';
+      case 'email':
+        return 'bg-sky-50 text-sky-700 ring-sky-600/10';
+      case 'phone':
+        return 'bg-violet-50 text-violet-700 ring-violet-600/10';
+      default:
+        return 'bg-zinc-50 text-zinc-700 ring-zinc-600/10';
+    }
   }
 
   protected reasonBadgeClass(reason: string): string {

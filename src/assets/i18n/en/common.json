@@ -341,6 +341,17 @@
         "no_quote_sent": "No quote sent (14d)",
         "stale_draft": "Stale draft (30d)",
         "needs_rescheduling": "Needs rescheduling"
+      },
+      "channels": {
+        "whatsapp": "WhatsApp",
+        "email": "E-mail",
+        "phone": "Phone"
+      },
+      "ai": {
+        "showDraft": "Show draft message",
+        "hideDraft": "Hide draft message",
+        "copyDraft": "Copy",
+        "copied": "Copied!"
       }
     },
     "pipeline": {

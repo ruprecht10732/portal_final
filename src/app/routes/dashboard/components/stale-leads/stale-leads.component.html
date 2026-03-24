@@ -14,6 +14,7 @@
       <li
         class="group flex cursor-pointer items-start gap-3 rounded-lg border border-zinc-100 bg-white p-3 transition-shadow hover:shadow-sm dark:border-zinc-800 dark:bg-zinc-900"
         (click)="navigateToLead(item.leadId)"
+        (keydown.enter)="navigateToLead(item.leadId)"
       >
         <div class="min-w-0 flex-1">
           <div class="flex items-center gap-2">
@@ -35,6 +36,51 @@
               <span>{{ item.lastActivityAt | date:'shortDate' }}</span>
             }
           </div>
+
+          @if (item.recommendedAction) {
+            <div class="mt-1.5 flex items-center gap-1.5">
+              @if (item.preferredContactChannel) {
+                <span
+                  class="inline-flex items-center rounded-full px-1.5 py-0.5 text-[10px] font-medium ring-1 ring-inset"
+                  [class]="channelBadgeClass(item.preferredContactChannel)"
+                >
+                  {{ 'dashboard.staleLeads.channels.' + item.preferredContactChannel | translate }}
+                </span>
+              }
+              <span class="text-[11px] font-medium text-zinc-700 dark:text-zinc-300">{{ item.recommendedAction }}</span>
+            </div>
+          }
+
+          @if (item.aiSummary) {
+            <p class="mt-1 text-[11px] leading-snug text-zinc-400 dark:text-zinc-500 line-clamp-2">{{ item.aiSummary }}</p>
+          }
+
+          @if (item.suggestedContactMessage) {
+            <button
+              type="button"
+              class="mt-1.5 inline-flex items-center gap-1 text-[10px] font-medium text-indigo-600 hover:text-indigo-500 dark:text-indigo-400"
+              (click)="toggleDraft(item.serviceId, $event)"
+            >
+              <svg class="h-3 w-3" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">
+                <path stroke-linecap="round" stroke-linejoin="round" d="M7.5 8.25h9m-9 3H12m-9.75 1.51c0 1.6 1.123 2.994 2.707 3.227 1.087.16 2.185.283 3.293.369V21l4.076-4.076a1.526 1.526 0 011.037-.443 48.282 48.282 0 005.68-.494c1.584-.233 2.707-1.626 2.707-3.228V6.741c0-1.602-1.123-2.995-2.707-3.228A48.394 48.394 0 0012 3c-2.392 0-4.744.175-7.043.513C3.373 3.746 2.25 5.14 2.25 6.741v6.018z" />
+              </svg>
+              {{ (expandedDraft() === item.serviceId ? 'dashboard.staleLeads.ai.hideDraft' : 'dashboard.staleLeads.ai.showDraft') | translate }}
+            </button>
+
+            @if (expandedDraft() === item.serviceId) {
+              <div class="mt-1.5 rounded-md border border-zinc-100 bg-zinc-50 p-2 dark:border-zinc-700 dark:bg-zinc-800" (click)="$event.stopPropagation()" (keydown.enter)="$event.stopPropagation()">
+                <p class="whitespace-pre-line text-[11px] leading-relaxed text-zinc-600 dark:text-zinc-300">{{ item.suggestedContactMessage }}</p>
+                <button
+                  type="button"
+                  class="mt-1.5 inline-flex items-center gap-1 rounded px-1.5 py-0.5 text-[10px] font-medium transition-colors"
+                  [class]="copiedId() === item.serviceId ? 'bg-green-100 text-green-700' : 'bg-zinc-200 text-zinc-600 hover:bg-zinc-300 dark:bg-zinc-700 dark:text-zinc-300'"
+                  (click)="copyDraft(item.serviceId, item.suggestedContactMessage!, $event)"
+                >
+                  {{ (copiedId() === item.serviceId ? 'dashboard.staleLeads.ai.copied' : 'dashboard.staleLeads.ai.copyDraft') | translate }}
+                </button>
+              </div>
+            }
+          }
         </div>
 
         <svg class="mt-1 h-4 w-4 shrink-0 text-zinc-300 transition-colors group-hover:text-zinc-500" fill="none" viewBox="0 0 24 24" stroke-width="2" stroke="currentColor">

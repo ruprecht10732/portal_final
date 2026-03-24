@@ -16,6 +16,10 @@ export interface StaleLeadItem {
   consumerPhone: string;
   consumerEmail?: string;
   serviceType: string;
+  recommendedAction?: string;
+  suggestedContactMessage?: string;
+  preferredContactChannel?: string;
+  aiSummary?: string;
 }
 
 export interface StaleLeadsResponse {
