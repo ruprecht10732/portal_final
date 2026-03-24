@@ -1,6 +1,6 @@
-<main class="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-y-auto bg-transparent px-0 pb-0 sm:px-3 sm:pb-4 lg:overflow-hidden">
+<main class="flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden bg-transparent px-0 pb-0 sm:px-3 sm:pb-4">
     @if (deviceStatus.needsReconnectBanner() || deviceStatus.needsDeviceConnection()) {
-      <section class="mb-3 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+      <section class="mb-3 shrink-0 rounded-sm border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
         <div class="flex items-center gap-2 font-semibold">
           <lucide-icon name="circle-alert" class="h-4 w-4"></lucide-icon>
           WhatsApp-apparaat heeft aandacht nodig
@@ -9,9 +9,10 @@
       </section>
     }
 
-    <section class="grid min-h-0 min-w-0 flex-1 grid-cols-1 gap-3 overflow-visible sm:gap-4 xl:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)] xl:overflow-hidden">
+    <section class="flex min-h-0 min-w-0 flex-1 flex-col gap-3 overflow-hidden sm:gap-4 xl:grid xl:grid-cols-[minmax(22rem,26rem)_minmax(0,1fr)]">
       @if (showListPane()) {
         <app-whatsapp-inbox-conversation-list
+          class="flex-1 min-h-0"
           [filteredCount]="filteredConversations().length"
           [totalCount]="conversations().length"
           [loadingConversations]="loadingConversations()"
@@ -41,7 +42,7 @@
       }
 
       @if (showThreadPane()) {
-        <section class="relative flex h-full min-h-0 min-w-0 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white">
+        <section class="relative flex h-full min-h-0 min-w-0 flex-1 flex-col overflow-hidden rounded-[1.75rem] border border-zinc-200 bg-white">
           @if (activeThreadConversation(); as activeConversation) {
             <app-whatsapp-inbox-thread-header
               [isDraftThreadOpen]="isDraftThreadOpen()"
