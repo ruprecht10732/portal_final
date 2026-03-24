@@ -130,7 +130,9 @@ export class DataGridToolbarComponent<T = unknown> {
   }
 
   protected toggleFilters(): void {
-    this.showFilters.update(v => !v);
+    const opening = !this.showFilters();
+    if (opening) this.showColumnPicker.set(false);
+    this.showFilters.set(opening);
   }
 
   protected closeFilters(): void {
@@ -193,7 +195,9 @@ export class DataGridToolbarComponent<T = unknown> {
   // ============ Column Picker Methods ============
 
   protected toggleColumnPicker(): void {
-    this.showColumnPicker.update(v => !v);
+    const opening = !this.showColumnPicker();
+    if (opening) this.closeFilters();
+    this.showColumnPicker.set(opening);
   }
 
   protected closeColumnPicker(): void {
