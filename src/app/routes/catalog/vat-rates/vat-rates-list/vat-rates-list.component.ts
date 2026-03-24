@@ -9,6 +9,7 @@ import { InputComponent } from '../../../../shared/components/input/input.compon
 import { NumberInputComponent } from '../../../../shared/components/number-input/number-input.component';
 import { ConfirmDialogComponent } from '../../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { DataGridComponent } from '../../../../shared/components/data-grid/data-grid.component';
+import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
 import type { GridColumn, GridConfig } from '../../../../shared/components/data-grid/data-grid.types';
 import { MOBILE_BREAKPOINT } from '../../../../core/config';
 import { toSignal } from '@angular/core/rxjs-interop';
@@ -28,6 +29,7 @@ type VatRateRow = VatRate & { rateDisplay: string } & Record<string, unknown>;
     NumberInputComponent,
     ConfirmDialogComponent,
     DataGridComponent,
+    PageLayoutComponent,
   ],
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })

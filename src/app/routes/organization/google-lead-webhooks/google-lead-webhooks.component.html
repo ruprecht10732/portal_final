@@ -1,10 +1,10 @@
-<section class="w-full space-y-6 bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm">
-  <!-- Header -->
-  <div class="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-    <div class="space-y-1">
-      <h3 class="text-lg font-semibold text-zinc-900">{{ 'webhook.googleLeads.title' | translate }}</h3>
-      <p class="text-sm text-zinc-500">{{ 'webhook.googleLeads.subtitle' | translate }}</p>
-    </div>
+<shared-page-layout
+  [title]="'webhook.googleLeads.title' | translate"
+  [subtitle]="'webhook.googleLeads.subtitle' | translate"
+  [error]="errorMessage()"
+>
+  <div class="mx-auto w-full max-w-7xl flex flex-col gap-6 py-6">
+  <div class="flex justify-end">
     <shared-button
       variant="primary"
       size="compact"
@@ -19,16 +19,9 @@
     </shared-button>
   </div>
 
-  <!-- Error -->
-  @if (errorMessage()) {
-    <div class="border-y border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 sm:border sm:rounded-sm">
-      {{ errorMessage() }}
-    </div>
-  }
-
   <!-- Success -->
   @if (successMessage()) {
-    <div class="border-y border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800 sm:border sm:rounded-sm">
+    <div class="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-3 text-sm text-emerald-800">
       {{ successMessage() }}
     </div>
   }
@@ -267,7 +260,8 @@
       </div>
     }
   }
-</section>
+  </div>
+</shared-page-layout>
 
 <!-- Delete Confirm Dialog -->
 <shared-confirm-dialog

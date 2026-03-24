@@ -1,10 +1,9 @@
-<section class="flex flex-col gap-6">
-  <!-- Header -->
-  <header class="flex flex-col gap-1 sm:flex-row sm:items-center sm:justify-between">
-    <div>
-      <h1 class="text-xl font-semibold text-zinc-900">{{ 'catalog.vatRates.title' | translate }}</h1>
-      <p class="text-sm text-zinc-500">{{ 'catalog.vatRates.subtitle' | translate }}</p>
-    </div>
+<shared-page-layout
+  [title]="'catalog.vatRates.title' | translate"
+  [subtitle]="'catalog.vatRates.subtitle' | translate"
+>
+  <div class="mx-auto w-full max-w-7xl flex flex-col gap-6 py-6">
+  <div class="flex justify-end">
     <shared-button
       variant="primary"
       (clicked)="openAddModal()"
@@ -15,7 +14,7 @@
       </svg>
       {{ 'catalog.vatRates.addButton' | translate }}
     </shared-button>
-  </header>
+  </div>
 
   <shared-data-grid
     [columns]="columns()"
@@ -26,7 +25,8 @@
     (deleteRows)="onDeleteRows($event)"
     [ariaLabel]="'catalog.vatRates.title'"
   />
-</section>
+  </div>
+</shared-page-layout>
 
 <!-- Add/Edit Modal -->
 @if (isModalOpen()) {

@@ -7,6 +7,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { WebhookService, WebhookAPIKey, CreateWebhookAPIKeyResponse } from '../../../core/services/webhook.service';
 import { environment } from '../../../../environments/environment';
 import { formatDateValue } from '../../../core/utils/date-utils';
@@ -17,6 +18,7 @@ import { formatDateValue } from '../../../core/utils/date-utils';
     ButtonComponent,
     ConfirmDialogComponent,
     InputComponent,
+    PageLayoutComponent,
     TranslatePipe,
     FormsModule,
     LucideAngularModule,

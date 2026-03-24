@@ -140,6 +140,13 @@ export class OrganizationWorkflowsSettingsComponent {
   protected readonly selectedDefaultWorkflowKey = signal('');
   protected readonly selectedAction = signal<WorkflowTrigger>('lead_welcome');
 
+  protected readonly actionOptions = computed<SelectOption<WorkflowTrigger>[]>(() =>
+    this.actions.map(action => ({
+      value: action.id,
+      label: this.translate.instant(action.titleKey),
+    }))
+  );
+
   protected readonly cards: readonly WorkflowCardConfig[] = [
     {
       key: 'lead_welcome_whatsapp_lead',

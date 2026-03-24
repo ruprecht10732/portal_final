@@ -5,6 +5,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import {
   GoogleAdsExportService,
   type GoogleAdsExportCredential,
@@ -16,7 +17,7 @@ import { formatDateValue } from '../../../core/utils/date-utils';
 
 @Component({
   selector: 'app-google-ads-export',
-  imports: [ButtonComponent, ConfirmDialogComponent, TranslatePipe, LucideAngularModule],
+  imports: [ButtonComponent, ConfirmDialogComponent, PageLayoutComponent, TranslatePipe, LucideAngularModule],
   templateUrl: './google-ads-export.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },

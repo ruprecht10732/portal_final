@@ -4,13 +4,14 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { catchError, EMPTY, finalize } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { QuotesService } from '../../../core/services/quotes.service';
 import { MONEYBIRD_PROVIDER } from '../../../core/services/quotes.types';
 import { formatDateValue } from '../../../core/utils/date-utils';
 
 @Component({
   selector: 'app-moneybird-integration',
-  imports: [ButtonComponent, TranslatePipe],
+  imports: [ButtonComponent, PageLayoutComponent, TranslatePipe],
   templateUrl: './moneybird-integration.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },

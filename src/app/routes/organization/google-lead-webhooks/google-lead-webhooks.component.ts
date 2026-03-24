@@ -7,6 +7,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import {
   CreateGoogleWebhookConfigResponse,
   GoogleWebhookConfig,
@@ -22,6 +23,7 @@ import { formatDateValue } from '../../../core/utils/date-utils';
     ButtonComponent,
     ConfirmDialogComponent,
     InputComponent,
+    PageLayoutComponent,
     TranslatePipe,
     FormsModule,
     LucideAngularModule,

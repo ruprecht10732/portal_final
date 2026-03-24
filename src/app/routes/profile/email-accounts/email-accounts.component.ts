@@ -3,14 +3,16 @@ import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
 import { catchError, debounceTime, distinctUntilChanged, EMPTY, filter, finalize, switchMap } from 'rxjs';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
+import { CardComponent } from '../../../shared/components/card/card.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
+import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { UserService } from '../../../core/services/user.service';
 import { ToastService } from '../../../core/services/toast.service';
 import type { CreateIMAPAccountRequest, IMAPAccount, UpdateIMAPAccountRequest } from '../../../core/services/user.types';
 
 @Component({
   selector: 'app-email-accounts',
-  imports: [TranslateModule, ButtonComponent, InputComponent],
+  imports: [TranslateModule, ButtonComponent, CardComponent, InputComponent, PageLayoutComponent],
   templateUrl: './email-accounts.component.html',
   styleUrl: './email-accounts.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
