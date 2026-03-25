@@ -1092,6 +1092,7 @@ export class OrganizationWorkflowsSettingsComponent {
       case 'appointment_created':
       case 'appointment_reminder':
       case 'partner_offer_created':
+      case 'job_completed':
         return value;
       default:
         return null;
