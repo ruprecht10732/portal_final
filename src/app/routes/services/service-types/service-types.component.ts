@@ -11,7 +11,7 @@ import { DataGridComponent } from '../../../shared/components/data-grid/data-gri
 import type { DataRequest, DataResponse, GridColumn, GridConfig } from '../../../shared/components/data-grid/data-grid.types';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { normalizeIconName } from '../../../core/services/icon-utils';
-import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
+import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { DEFAULT_PAGE_SIZE } from '../../../core/config';
 
@@ -20,15 +20,17 @@ export type ServiceTypeRow = ServiceTypeItem & Record<string, unknown>;
 @Component({
   selector: 'app-service-types',
   templateUrl: './service-types.component.html',
-  styleUrl: './service-types.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
+    ButtonComponent,
     DataGridComponent,
     ConfirmDialogComponent,
-    FabButtonComponent,
     PageLayoutComponent,
     TranslatePipe,
   ],
+  host: {
+    class: 'block min-h-full xl:flex xl:h-full xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-hidden',
+  },
 })
 export class ServiceTypesComponent implements OnInit {
   private readonly serviceTypesService = inject(ServiceTypesService);

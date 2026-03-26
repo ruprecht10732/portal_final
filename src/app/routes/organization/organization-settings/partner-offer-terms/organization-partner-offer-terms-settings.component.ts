@@ -16,7 +16,6 @@ import { TextareaComponent } from '../../../../shared/components/textarea/textar
   selector: 'app-organization-partner-offer-terms-settings',
   imports: [ButtonComponent, CardComponent, DatePipe, PageLayoutComponent, SkeletonComponent, TextareaComponent, TranslatePipe],
   templateUrl: './organization-partner-offer-terms-settings.component.html',
-  styleUrl: './organization-partner-offer-terms-settings.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: { class: 'xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto' },
 })

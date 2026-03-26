@@ -17,7 +17,6 @@ import { PageHeaderComponent } from '../../../shared/components/page-header/page
 @Component({
   selector: 'app-service-type-create',
   templateUrl: './service-type-create.component.html',
-  styleUrl: './service-type-create.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   imports: [
     FormsModule,
