@@ -27,8 +27,10 @@ type ProductRow = Product & {
   selector: 'app-catalog-list',
   imports: [TranslateModule, ButtonComponent, DataGridComponent, ConfirmDialogComponent, PageLayoutComponent],
   templateUrl: './catalog-list.component.html',
-  styleUrl: './catalog-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: {
+    class: 'block min-h-full xl:flex xl:h-full xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-hidden',
+  },
 })
 export class CatalogListComponent {
   private readonly catalogService = inject(CatalogService);

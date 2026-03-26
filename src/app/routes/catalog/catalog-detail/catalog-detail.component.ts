@@ -42,8 +42,8 @@ import { CatalogDetailMaterialsCardComponent } from './catalog-detail-materials-
     CatalogDetailMaterialsCardComponent,
   ],
   templateUrl: './catalog-detail.component.html',
-  styleUrl: './catalog-detail.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
+  host: { class: 'block xl:flex xl:flex-col xl:flex-1 xl:min-h-0 xl:overflow-y-auto xl:overflow-x-hidden' },
 })
 export class CatalogDetailComponent implements OnInit {
   private readonly catalogService = inject(CatalogService);

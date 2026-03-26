@@ -4,11 +4,27 @@
   [error]="error()"
   [removeMobilePadding]="true"
 >
+  <div class="sm:hidden flex flex-wrap items-center gap-2 px-4 pt-4">
+    <shared-button
+      variant="primary"
+      size="compact"
+      [ariaLabel]="'catalog.products.newProduct' | translate"
+      (clicked)="createProduct()"
+    >
+      <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+      </svg>
+      {{ 'catalog.products.newProduct' | translate }}
+    </shared-button>
+  </div>
+
   <shared-button
-    actions
+    actionsDesktop
+    class="hidden sm:flex"
     variant="primary"
-    (clicked)="createProduct()"
+    [fullWidth]="false"
     [ariaLabel]="'catalog.products.newProduct' | translate"
+    (clicked)="createProduct()"
   >
     <svg class="w-4 h-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
       <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
@@ -16,6 +32,7 @@
     {{ 'catalog.products.newProduct' | translate }}
   </shared-button>
   <shared-data-grid
+    class="min-h-0 flex-1"
     [columns]="gridColumns()"
     [data]="gridData()"
     [totalItems]="total()"
