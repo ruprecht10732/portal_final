@@ -6,6 +6,7 @@ import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
+import { WebAuthnService } from '../../../core/services/webauthn.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { MIN_LENGTH } from '../../../core/config';
 import { OrganizationService } from '../../../core/services/organization.service';
@@ -24,14 +25,18 @@ export class SignInComponent {
   protected readonly email = signal('');
   protected readonly password = signal('');
   protected readonly isSubmitting = signal(false);
+  protected readonly isPasskeyLoading = signal(false);
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
+  private readonly webauthnService = inject(WebAuthnService);
   private readonly orgService = inject(OrganizationService);
   private readonly userService = inject(UserService);
   private readonly router = inject(Router);
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
+
+  protected readonly isPasskeySupported = this.webauthnService.isSupported;
 
   protected readonly emailError = computed(() => {
     const raw = getEmailError(this.email());
@@ -44,7 +49,7 @@ export class SignInComponent {
   });
 
   protected readonly canSubmit = computed(() =>
-    !this.isSubmitting() && !!this.email() && !!this.password() && !this.emailError() && !this.passwordError()
+    !this.isSubmitting() && !this.isPasskeyLoading() && !!this.email() && !!this.password() && !this.emailError() && !this.passwordError()
   );
 
   // removed empty constructor to satisfy lint rule
@@ -67,28 +72,50 @@ export class SignInComponent {
         finalize(() => this.isSubmitting.set(false)),
         takeUntilDestroyed(this.destroyRef)
       )
-      .subscribe(() => {
-        this.userService.getProfile()
-          .pipe(
-            catchError(() => of(null)),
-            switchMap(profile => {
-              if (!profile) {
-                return of({ profile: null, org: null });
-              }
-              if (!profile.roles.includes('admin')) {
-                return of({ profile, org: null });
-              }
-              return this.orgService.getOrganization().pipe(
-                map(org => ({ profile, org })),
-                catchError(() => of({ profile, org: null }))
-              );
-            }),
-            takeUntilDestroyed(this.destroyRef)
-          )
-          .subscribe(({ profile, org }) => {
-            const needsOnboarding = !profile?.firstName || !profile?.lastName || (profile?.roles.includes('admin') && !org?.name);
-            void this.router.navigate([needsOnboarding ? '/onboarding' : '/app']);
-          });
+      .subscribe(() => this.postLoginRedirect());
+  }
+
+  protected onPasskeyLogin(): void {
+    if (this.isPasskeyLoading() || this.isSubmitting()) return;
+    this.isPasskeyLoading.set(true);
+
+    this.webauthnService.beginLogin()
+      .pipe(
+        catchError(error => {
+          // DOMException name "NotAllowedError" means user cancelled the prompt
+          if (error instanceof DOMException && error.name === 'NotAllowedError') {
+            return EMPTY;
+          }
+          this.toast.error(getAuthErrorMessage(error));
+          return EMPTY;
+        }),
+        finalize(() => this.isPasskeyLoading.set(false)),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe(() => this.postLoginRedirect());
+  }
+
+  private postLoginRedirect(): void {
+    this.userService.getProfile()
+      .pipe(
+        catchError(() => of(null)),
+        switchMap(profile => {
+          if (!profile) {
+            return of({ profile: null, org: null });
+          }
+          if (!profile.roles.includes('admin')) {
+            return of({ profile, org: null });
+          }
+          return this.orgService.getOrganization().pipe(
+            map(org => ({ profile, org })),
+            catchError(() => of({ profile, org: null }))
+          );
+        }),
+        takeUntilDestroyed(this.destroyRef)
+      )
+      .subscribe(({ profile, org }) => {
+        const needsOnboarding = !profile?.firstName || !profile?.lastName || (profile?.roles.includes('admin') && !org?.name);
+        void this.router.navigate([needsOnboarding ? '/onboarding' : '/app']);
       });
   }
 }

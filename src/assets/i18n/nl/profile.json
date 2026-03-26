@@ -61,6 +61,26 @@
         "minPassword": "Wachtwoord moet minstens {{count}} tekens bevatten",
         "passwordsNoMatch": "Wachtwoorden komen niet overeen",
         "generic": "Er ging iets mis. Probeer het opnieuw."
+      },
+      "passkeys": {
+        "title": "Passkeys",
+        "subtitle": "Log veilig in zonder wachtwoord met biometrie of een beveiligingssleutel.",
+        "notSupported": "Passkeys worden niet ondersteund door deze browser.",
+        "addPasskey": "Passkey toevoegen",
+        "noPasskeys": "Nog geen passkeys geregistreerd.",
+        "nickname": "Passkey naam",
+        "nicknamePlaceholder": "bijv. MacBook Touch ID",
+        "registered": "Geregistreerd {{date}}",
+        "lastUsed": "Laatst gebruikt {{date}}",
+        "neverUsed": "Nooit gebruikt",
+        "rename": "Hernoemen",
+        "delete": "Verwijderen",
+        "confirmDelete": "Weet je zeker dat je deze passkey wilt verwijderen?",
+        "addSuccess": "Passkey succesvol geregistreerd.",
+        "renameSuccess": "Passkey hernoemd.",
+        "deleteSuccess": "Passkey verwijderd.",
+        "addError": "Passkey kon niet worden geregistreerd. Probeer het opnieuw.",
+        "genericError": "Er ging iets mis. Probeer het opnieuw."
       }
     },
     "imap": {

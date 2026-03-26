@@ -30,7 +30,6 @@ type LeadRow = Lead & Record<string, unknown>;
 @Component({
   selector: 'app-lead-list',
   templateUrl: './lead-list.component.html',
-  styleUrl: './lead-list.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
   host: {
     class: 'block min-h-full xl:flex xl:h-full xl:min-h-0 xl:flex-1 xl:flex-col xl:overflow-hidden',

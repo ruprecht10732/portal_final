@@ -51,6 +51,24 @@
         </shared-button>
       </form>
 
+      @if (isPasskeySupported) {
+        <div class="flex items-center gap-3 text-xs uppercase tracking-widest font-semibold text-zinc-400">
+          <div class="flex-1 border-t border-zinc-200"></div>
+          <span>{{ 'auth.signIn.or' | translate }}</span>
+          <div class="flex-1 border-t border-zinc-200"></div>
+        </div>
+
+        <shared-button
+          variant="secondary"
+          [loading]="isPasskeyLoading()"
+          [disabled]="isSubmitting()"
+          [ariaLabel]="'auth.signIn.passkeyAriaLabel' | translate"
+          (clicked)="onPasskeyLogin()"
+        >
+          {{ 'auth.signIn.passkey' | translate }}
+        </shared-button>
+      }
+
       <footer class="text-xs uppercase tracking-widest font-semibold text-zinc-400">
         {{ 'auth.signIn.footer' | translate }}
         <a class="text-black hover:text-zinc-600" routerLink="/sign-up">{{ 'auth.signIn.createAccount' | translate }}</a>

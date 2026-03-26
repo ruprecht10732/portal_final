@@ -60,3 +60,107 @@
     <p class="text-sm text-green-600 text-center sm:text-left">{{ successMessage() }}</p>
   }
 </section>
+
+<!-- Passkeys Section -->
+@if (isWebAuthnSupported) {
+  <section class="w-full space-y-6 bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm mt-6">
+    <div class="flex items-center justify-between">
+      <div class="space-y-1">
+        <h3 class="text-lg font-semibold text-zinc-900">{{ 'profile.securityPage.passkeys.title' | translate }}</h3>
+        <p class="text-sm text-zinc-500">{{ 'profile.securityPage.passkeys.subtitle' | translate }}</p>
+      </div>
+      <shared-button
+        variant="secondary"
+        size="compact"
+        [disabled]="isAddingPasskey()"
+        (clicked)="toggleAddPasskey()"
+      >
+        {{ 'profile.securityPage.passkeys.addPasskey' | translate }}
+      </shared-button>
+    </div>
+
+    <!-- Add passkey form -->
+    @if (showAddPasskey()) {
+      <div class="border border-zinc-200 rounded-sm p-4 space-y-4 bg-zinc-50">
+        <shared-input
+          [label]="'profile.securityPage.passkeys.nickname' | translate"
+          [placeholder]="'profile.securityPage.passkeys.nicknamePlaceholder' | translate"
+          [value]="passkeyNickname()"
+          (valueChange)="passkeyNickname.set($event)"
+          [required]="true"
+        />
+        <div class="flex gap-2 justify-end">
+          <shared-button variant="ghost" size="compact" (clicked)="toggleAddPasskey()">
+            {{ 'common.cancel' | translate }}
+          </shared-button>
+          <shared-button
+            variant="primary"
+            size="compact"
+            [loading]="isAddingPasskey()"
+            [disabled]="!passkeyNickname().trim()"
+            (clicked)="addPasskey()"
+          >
+            {{ 'profile.securityPage.passkeys.addPasskey' | translate }}
+          </shared-button>
+        </div>
+      </div>
+    }
+
+    <!-- Passkey list -->
+    @if (isLoadingPasskeys()) {
+      <div class="py-4 text-sm text-zinc-500 text-center">...</div>
+    } @else if (passkeys().length === 0) {
+      <p class="text-sm text-zinc-500">{{ 'profile.securityPage.passkeys.noPasskeys' | translate }}</p>
+    } @else {
+      <ul class="divide-y divide-zinc-200 border border-zinc-200 rounded-sm">
+        @for (passkey of passkeys(); track passkey.id) {
+          <li class="p-4 flex items-center justify-between gap-4">
+            <div class="min-w-0 flex-1">
+              @if (renamingPasskeyId() === passkey.id) {
+                <div class="flex items-center gap-2">
+                  <shared-input
+                    class="flex-1"
+                    [value]="renameNickname()"
+                    (valueChange)="renameNickname.set($event)"
+                    [required]="true"
+                  />
+                  <shared-button variant="primary" size="compact" [disabled]="!renameNickname().trim()" (clicked)="confirmRename(passkey)">
+                    {{ 'common.save' | translate }}
+                  </shared-button>
+                  <shared-button variant="ghost" size="compact" (clicked)="cancelRename()">
+                    {{ 'common.cancel' | translate }}
+                  </shared-button>
+                </div>
+              } @else {
+                <p class="font-medium text-zinc-900 truncate">{{ passkey.nickname }}</p>
+                <p class="text-xs text-zinc-500">
+                  {{ 'profile.securityPage.passkeys.registered' | translate: { date: (passkey.createdAt | date:'mediumDate') } }}
+                  ·
+                  @if (passkey.lastUsedAt) {
+                    {{ 'profile.securityPage.passkeys.lastUsed' | translate: { date: (passkey.lastUsedAt | date:'mediumDate') } }}
+                  } @else {
+                    {{ 'profile.securityPage.passkeys.neverUsed' | translate }}
+                  }
+                </p>
+              }
+            </div>
+            @if (renamingPasskeyId() !== passkey.id) {
+              <div class="flex gap-2 shrink-0">
+                <shared-button variant="ghost" size="compact" (clicked)="startRename(passkey)">
+                  {{ 'profile.securityPage.passkeys.rename' | translate }}
+                </shared-button>
+                <shared-button variant="ghost" size="compact" (clicked)="deletePasskey(passkey)">
+                  {{ 'profile.securityPage.passkeys.delete' | translate }}
+                </shared-button>
+              </div>
+            }
+          </li>
+        }
+      </ul>
+    }
+  </section>
+} @else {
+  <section class="w-full bg-transparent border-none p-0 sm:bg-white sm:border sm:border-zinc-200 sm:p-6 sm:rounded-sm mt-6">
+    <p class="text-sm text-zinc-500">{{ 'profile.securityPage.passkeys.notSupported' | translate }}</p>
+  </section>
+}
