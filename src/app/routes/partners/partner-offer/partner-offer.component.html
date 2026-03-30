@@ -1,11 +1,6 @@
 <!-- Loading State -->
 @if (loading()) {
-  <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">
-    <div class="text-center">
-      <div class="mx-auto h-8 w-8 animate-spin rounded-full border-4 border-zinc-300 border-t-blue-600"></div>
-      <p class="mt-4 text-sm text-zinc-500">{{ 'partners.offer.loading' | translate }}</p>
-    </div>
-  </div>
+  <app-partner-offer-loading-skeleton />
 } @else if (errorKey() && !offer()) {
   <!-- Error State -->
   <div class="flex h-screen items-center justify-center bg-linear-to-br from-zinc-50 to-zinc-100">

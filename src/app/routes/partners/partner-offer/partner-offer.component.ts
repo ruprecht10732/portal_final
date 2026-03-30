@@ -31,6 +31,7 @@ import { PartnerOfferWizardStepTermsComponent } from './partner-offer-wizard-ste
 import { PartnerOfferWizardStepDetailsComponent } from './partner-offer-wizard-step-details.component';
 import { PartnerOfferWizardStepSignatureComponent } from './partner-offer-wizard-step-signature.component';
 import { PartnerOfferWizardStepSlotsComponent } from './partner-offer-wizard-step-slots.component';
+import { PartnerOfferLoadingSkeletonComponent } from './partner-offer-loading-skeleton.component';
 import { type AcceptDetailsFormGroup, type PartnerOfferCalendarDay, type PartnerOfferSlotOption } from './partner-offer-wizard.types';
 
 @Component({
@@ -51,7 +52,8 @@ import { type AcceptDetailsFormGroup, type PartnerOfferCalendarDay, type Partner
     PartnerOfferWizardStepTermsComponent,
     PartnerOfferWizardStepDetailsComponent,
     PartnerOfferWizardStepSignatureComponent,
-    PartnerOfferWizardStepSlotsComponent, 
+    PartnerOfferWizardStepSlotsComponent,
+    PartnerOfferLoadingSkeletonComponent,
   ],
   templateUrl: './partner-offer.component.html',
   changeDetection: ChangeDetectionStrategy.OnPush,
