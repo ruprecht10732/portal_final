@@ -12,8 +12,21 @@ import { MapPreviewComponent } from '../../../shared/components/map-preview/map-
         <span class="text-xs font-semibold text-zinc-500">{{ locationLabel() }}</span>
       </div>
       <div class="mx-5 overflow-hidden rounded-2xl bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)]">
-        <shared-map-preview [address]="mapQuery()" [height]="180" />
-        <p class="px-4 py-3 text-[11px] text-zinc-400">{{ 'partners.offer.locationHint' | translate }}</p>
+        <div class="relative">
+          <shared-map-preview [address]="mapQuery()" [height]="190" />
+          <a
+            class="absolute bottom-3 right-3 inline-flex items-center rounded-full bg-white/95 px-4 py-2 text-xs font-bold text-zinc-900 shadow-lg ring-1 ring-black/5 transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+            [href]="mapsHref()"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ 'partners.offer.locationAction' | translate }}
+          </a>
+        </div>
+        <div class="px-4 py-4">
+          <p class="text-sm font-semibold text-zinc-900">{{ locationLabel() }}</p>
+          <p class="mt-1 text-[11px] leading-5 text-zinc-500">{{ 'partners.offer.locationHint' | translate }}</p>
+        </div>
       </div>
     } @else {
       <div class="overflow-hidden rounded-xl bg-white shadow-sm">
@@ -22,9 +35,23 @@ import { MapPreviewComponent } from '../../../shared/components/map-preview/map-
             <h2 class="text-lg font-semibold text-zinc-900">{{ 'partners.offer.locationTitle' | translate }}</h2>
             <span class="text-xs font-semibold text-zinc-500">{{ locationLabel() }}</span>
           </div>
+          <p class="mt-1 text-sm text-zinc-500">{{ 'partners.offer.locationBody' | translate }}</p>
         </div>
-        <shared-map-preview [address]="mapQuery()" [height]="200" />
-        <p class="px-6 py-3 text-xs text-zinc-400">{{ 'partners.offer.locationHint' | translate }}</p>
+        <div class="relative">
+          <shared-map-preview [address]="mapQuery()" [height]="220" />
+          <a
+            class="absolute bottom-4 right-4 inline-flex items-center rounded-full bg-white/95 px-4 py-2 text-sm font-bold text-zinc-900 shadow-lg ring-1 ring-black/5 transition hover:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600"
+            [href]="mapsHref()"
+            target="_blank"
+            rel="noopener noreferrer"
+          >
+            {{ 'partners.offer.locationAction' | translate }}
+          </a>
+        </div>
+        <div class="px-6 py-4">
+          <p class="text-sm font-semibold text-zinc-900">{{ locationLabel() }}</p>
+          <p class="mt-1 text-xs leading-5 text-zinc-500">{{ 'partners.offer.locationHint' | translate }}</p>
+        </div>
       </div>
     }
   `,
@@ -34,4 +61,8 @@ export class PartnerOfferLocationCardComponent {
   readonly layout = input<'mobile' | 'desktop'>('desktop');
   readonly locationLabel = input.required<string>();
   readonly mapQuery = input.required<string>();
+
+  protected mapsHref(): string {
+    return `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(this.mapQuery())}`;
+  }
 }

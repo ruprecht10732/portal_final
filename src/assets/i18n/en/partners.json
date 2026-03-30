@@ -223,7 +223,11 @@
       "photosNext": "Next",
       "detailsTitle": "Offer details",
       "practicalTitle": "Practical",
+      "practicalBody": "The key details for planning, compensation and preparation.",
+      "practicalJobLabel": "What you will handle",
       "locationTitle": "Location",
+      "locationBody": "See the area right away and open the route in your navigation app.",
+      "locationAction": "Open in Maps",
       "locationHint": "This map shows the area (wijk) only. The exact address is shared after acceptance.",
       "meta": {
         "constructionYear": "Construction year",

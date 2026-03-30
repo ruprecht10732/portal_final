@@ -225,7 +225,11 @@
       "photosNext": "Volgende",
       "detailsTitle": "Aanboddetails",
       "practicalTitle": "Praktisch",
+      "practicalBody": "Belangrijkste gegevens voor planning, vergoeding en voorbereiding.",
+      "practicalJobLabel": "Wat u uitvoert",
       "locationTitle": "Locatie",
+      "locationBody": "Bekijk direct in welke buurt de klus ligt en open de route in uw navigatie-app.",
+      "locationAction": "Open in Maps",
       "locationHint": "Deze kaart toont alleen de wijk. Het exacte adres delen we na acceptatie.",
       "meta": {
         "constructionYear": "Bouwjaar",
