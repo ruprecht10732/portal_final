@@ -1,0 +1,250 @@
+.typeform-step {
+  animation: typeform-fade-in 0.35s ease-out;
+}
+
+.typeform-step-number {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border-radius: 10px;
+  background: #e0f2fe;
+  color: #0369a1;
+  font-size: 13px;
+  font-weight: 800;
+  margin-bottom: 12px;
+}
+
+@keyframes typeform-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.calendar-card {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+  background: #fafafa;
+}
+
+.calendar-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 14px;
+  font-weight: 600;
+  color: #111827;
+  margin-bottom: 12px;
+}
+
+.calendar-nav {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 8px;
+  width: 32px;
+  height: 32px;
+  cursor: pointer;
+  font-size: 16px;
+  color: #111827;
+  transition: background 0.15s;
+}
+
+.calendar-nav:hover {
+  background: #f3f4f6;
+}
+
+.calendar-nav:active {
+  background: #e5e7eb;
+}
+
+.calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 4px;
+}
+
+.calendar-weekday {
+  font-size: 10px;
+  text-transform: uppercase;
+  letter-spacing: 0.1em;
+  color: #9ca3af;
+  text-align: center;
+  padding-bottom: 4px;
+}
+
+.calendar-day {
+  position: relative;
+  border: 1.5px solid transparent;
+  background: #fff;
+  border-radius: 10px;
+  height: 36px;
+  font-size: 13px;
+  font-weight: 500;
+  color: #111827;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.calendar-day:hover:not(.is-outside) {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.calendar-day:active:not(.is-outside, .is-disabled, :disabled) {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.calendar-day.is-outside {
+  color: #d1d5db;
+  background: transparent;
+}
+
+.calendar-day.is-today {
+  border-color: #60a5fa;
+  color: #1d4ed8;
+  font-weight: 700;
+}
+
+.calendar-day.is-selected {
+  background: #1d4ed8;
+  color: #fff;
+  border-color: #1d4ed8;
+  font-weight: 700;
+  box-shadow: 0 2px 8px -2px rgba(29, 78, 216, 0.4);
+}
+
+.calendar-day.is-disabled,
+.calendar-day:disabled {
+  color: #d1d5db;
+  background: transparent;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+.calendar-day.has-slots:not(.is-selected)::after {
+  content: '';
+  position: absolute;
+  bottom: 3px;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #2563eb;
+}
+
+.time-panel {
+  border: 1px solid #e5e7eb;
+  border-radius: 16px;
+  padding: 16px;
+  background: #fff;
+}
+
+.slot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+@media (min-width: 640px) {
+  .slot-grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+.slot-button {
+  border: 1px solid #e5e7eb;
+  background: #fff;
+  border-radius: 12px;
+  padding: 10px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #1f2937;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.slot-button:hover:not(:is(.is-disabled, :disabled)) {
+  background: #eff6ff;
+  border-color: #bfdbfe;
+}
+
+.slot-button:active:not(:is(.is-disabled, :disabled)) {
+  background: #dbeafe;
+  border-color: #93c5fd;
+}
+
+.slot-button.is-selected {
+  background: #1d4ed8;
+  border-color: #1d4ed8;
+  color: #fff;
+  box-shadow: 0 2px 8px -2px rgba(29, 78, 216, 0.4);
+}
+
+.slot-button.is-disabled,
+.slot-button:disabled {
+  color: #475569;
+  border-color: #e5e7eb;
+  background: #f8fafc;
+  cursor: not-allowed;
+}
+
+.slot-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin-top: 12px;
+}
+
+.slot-chip {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #f1f5f9;
+  font-size: 13px;
+  font-weight: 500;
+  color: #1e293b;
+}
+
+.slot-chip button {
+  border: none;
+  background: transparent;
+  font-size: 18px;
+  color: #94a3b8;
+  cursor: pointer;
+  transition: color 0.15s;
+  padding: 0 2px;
+}
+
+.slot-chip button:hover {
+  color: #ef4444;
+}
+
+.validation-list {
+  margin-top: 12px;
+  padding: 10px 14px;
+  border-radius: 12px;
+  background: #fef2f2;
+  border: 1px solid #fecaca;
+  color: #b91c1c;
+  font-size: 12px;
+  display: grid;
+  gap: 4px;
+}
+
+.signature-frame {
+  border: 1px solid #e5e7eb;
+  border-radius: 24px;
+  overflow: hidden;
+  background: #fff;
+}

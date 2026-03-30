@@ -6,28 +6,56 @@ import {
   inject,
   OnInit,
   signal,
-  viewChild,
 } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute } from '@angular/router';
-import { DatePipe } from '@angular/common';
-import { FormsModule } from '@angular/forms';
+import { FormBuilder, Validators } from '@angular/forms';
 import { TranslatePipe } from '@ngx-translate/core';
 import { interval, startWith } from 'rxjs';
 import { PublicPartnerOfferService } from '../../../core/services/public-partner-offer.service';
 import { PartnersService } from '../../../core/services/partners.service';
 import { type PartnerOfferTermsResponse, type PublicPartnerOfferLeadContact, type PublicPartnerOfferResponse, type TimeSlot, centsToEuros } from '../../../core/services/partner-offer.types';
-import { MapPreviewComponent } from '../../../shared/components/map-preview/map-preview.component';
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
-import { SignaturePadComponent } from '../../../shared/components/signature-pad/signature-pad.component';
-import { MarkdownPipe } from '../../../shared/pipes/markdown.pipe';
-import { SafeHtmlPipe } from '../../../shared/pipes/safe-html.pipe';
+import { buildFallbackAttentionPoints, normalizeSummaryForPlainText, parseOfferSummarySections, type ParsedOfferSummary } from './partner-offer-summary.utils';
+import { PartnerOfferSummaryCardComponent } from './partner-offer-summary-card.component';
+import { PartnerOfferHighlightsSectionComponent } from './partner-offer-highlights-section.component';
+import { PartnerOfferLineItemsCardComponent } from './partner-offer-line-items-card.component';
+import { PartnerOfferPhotosCardComponent } from './partner-offer-photos-card.component';
+import { PartnerOfferLocationCardComponent } from './partner-offer-location-card.component';
+import { PartnerOfferPracticalCardComponent } from './partner-offer-practical-card.component';
+import { PartnerOfferHeroCardComponent } from './partner-offer-hero-card.component';
+import { PartnerOfferStatusBannerComponent } from './partner-offer-status-banner.component';
+import { PartnerOfferConfirmationCardComponent } from './partner-offer-confirmation-card.component';
+import { PartnerOfferActionsComponent } from './partner-offer-actions.component';
+import { PartnerOfferRejectFormComponent } from './partner-offer-reject-form.component';
+import { PartnerOfferWizardStepTermsComponent } from './partner-offer-wizard-step-terms.component';
+import { PartnerOfferWizardStepDetailsComponent } from './partner-offer-wizard-step-details.component';
+import { PartnerOfferWizardStepSignatureComponent } from './partner-offer-wizard-step-signature.component';
+import { PartnerOfferWizardStepSlotsComponent } from './partner-offer-wizard-step-slots.component';
+import { type AcceptDetailsFormGroup, type PartnerOfferCalendarDay, type PartnerOfferSlotOption } from './partner-offer-wizard.types';
 
 @Component({
   selector: 'app-partner-offer',
-  imports: [DatePipe, FormsModule, TranslatePipe, MapPreviewComponent, BottomSheetComponent, SignaturePadComponent, MarkdownPipe, SafeHtmlPipe],
+  imports: [
+    TranslatePipe,
+    BottomSheetComponent,
+    PartnerOfferSummaryCardComponent,
+    PartnerOfferHighlightsSectionComponent,
+    PartnerOfferLineItemsCardComponent,
+    PartnerOfferPhotosCardComponent,
+    PartnerOfferLocationCardComponent,
+    PartnerOfferPracticalCardComponent,
+    PartnerOfferHeroCardComponent,
+    PartnerOfferStatusBannerComponent,
+    PartnerOfferConfirmationCardComponent,
+    PartnerOfferActionsComponent,
+    PartnerOfferRejectFormComponent,
+    PartnerOfferWizardStepTermsComponent,
+    PartnerOfferWizardStepDetailsComponent,
+    PartnerOfferWizardStepSignatureComponent,
+    PartnerOfferWizardStepSlotsComponent, 
+  ],
   templateUrl: './partner-offer.component.html',
-  styleUrl: './partner-offer.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class PartnerOfferComponent implements OnInit {
@@ -35,6 +63,7 @@ export class PartnerOfferComponent implements OnInit {
   private readonly offerService = inject(PublicPartnerOfferService);
   private readonly partnersService = inject(PartnersService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly fb = inject(FormBuilder);
 
   // Mode
   protected readonly isPreview = signal(false);
@@ -81,7 +110,6 @@ export class PartnerOfferComponent implements OnInit {
   });
 
   // Accept form
-  protected readonly showAcceptForm = signal(false);
   protected readonly inspectionSlots = signal<TimeSlot[]>([]);
   protected readonly jobSlots = signal<TimeSlot[]>([]);
 
@@ -90,25 +118,26 @@ export class PartnerOfferComponent implements OnInit {
   protected readonly selectedInspectionDate = signal<string | null>(null);
   protected readonly selectedJobDate = signal<string | null>(null);
   private readonly slotMinutes = 60;
-  protected readonly slotOptions = this.buildSlotOptions();
+  protected readonly slotOptions: PartnerOfferSlotOption[] = this.buildSlotOptions();
 
   // Accept wizard (bottom sheet, 4 steps)
   protected readonly showAcceptSheet = signal(false);
   protected readonly acceptStep = signal<1 | 2 | 3 | 4>(1);
   protected readonly termsAccepted = signal(false);
-  protected readonly signerFullName = signal('');
-  protected readonly signerBusinessName = signal('');
-  protected readonly signerAddress = signal('');
+  protected readonly acceptDetailsForm = this.fb.nonNullable.group({
+    signerFullName: ['', [Validators.required]],
+    signerBusinessName: ['', [Validators.required]],
+    signerAddress: ['', [Validators.required]],
+  }) as AcceptDetailsFormGroup;
   protected readonly signatureData = signal<string | null>(null);
-  private readonly signaturePad = viewChild<SignaturePadComponent>(SignaturePadComponent);
   protected readonly step2Attempted = signal(false);
+  private readonly acceptDetailsStatus = toSignal(
+    this.acceptDetailsForm.statusChanges.pipe(startWith(this.acceptDetailsForm.status)),
+    { initialValue: this.acceptDetailsForm.status },
+  );
 
   protected readonly canProceedStep1 = computed(() => this.termsAccepted());
-  protected readonly canProceedStep2 = computed(() =>
-    this.signerFullName().trim().length > 0 &&
-    this.signerBusinessName().trim().length > 0 &&
-    this.signerAddress().trim().length > 0,
-  );
+  protected readonly canProceedStep2 = computed(() => this.acceptDetailsStatus() === 'VALID');
   protected readonly canProceedStep3 = computed(() => !!this.signatureData());
   protected readonly canSubmitStep4 = computed(() => {
     const needsInspection = this.offer()?.requiresInspection !== false;
@@ -150,7 +179,75 @@ export class PartnerOfferComponent implements OnInit {
   });
 
   protected readonly summaryPlainDisplay = computed(() => {
-    return this.normalizeSummaryForPlainText(this.summaryDisplay());
+    return normalizeSummaryForPlainText(this.summaryDisplay());
+  });
+
+  protected readonly summaryHeadline = computed(() => {
+    const o = this.offer();
+    if (!o) return '';
+
+    const shortSummary = normalizeSummaryForPlainText(o.jobSummaryShort || '');
+    if (shortSummary) return shortSummary;
+
+    const normalizedSummary = this.summaryPlainDisplay();
+    if (!normalizedSummary) return o.jobSummary;
+
+    return normalizedSummary.length > 160
+      ? `${normalizedSummary.slice(0, 157).trimEnd()}...`
+      : normalizedSummary;
+  });
+
+  protected readonly summaryIntro = computed(() => {
+    const o = this.offer();
+    if (!o) return '';
+
+    const normalizedSummary = this.summaryPlainDisplay();
+    if (!normalizedSummary) return '';
+
+    const headline = this.summaryHeadline();
+    if (!headline) return normalizedSummary;
+
+    if (normalizedSummary === headline) return o.jobSummary;
+
+    const remainder = normalizedSummary.startsWith(headline)
+      ? normalizedSummary.slice(headline.length).trim()
+      : normalizedSummary;
+
+    return remainder.replaceAll(/^[.:;,-]+\s*/, '') || o.jobSummary;
+  });
+
+  protected readonly parsedSummary = computed<ParsedOfferSummary>(() => {
+    const offer = this.offer();
+    const summary = this.summaryDisplay();
+    const parsed = parseOfferSummarySections(summary);
+
+    if (!parsed.intro) {
+      parsed.intro = this.summaryIntro() || this.summaryHeadline();
+    }
+
+    if (parsed.workItems.length === 0 && offer?.lineItems?.length) {
+      parsed.workItems = offer.lineItems
+        .map((item) => normalizeSummaryForPlainText(item.description))
+        .filter((item) => item.length > 0)
+        .slice(0, 3);
+    }
+
+    if (parsed.attentionPoints.length === 0) {
+      parsed.attentionPoints = buildFallbackAttentionPoints(offer);
+    }
+
+    return parsed;
+  });
+
+  protected readonly workItemsPreview = computed(() => this.parsedSummary().workItems.slice(0, 3));
+
+  protected readonly attentionPointsPreview = computed(() => this.parsedSummary().attentionPoints.slice(0, 3));
+
+  protected readonly inspectionRequirementKey = computed(() => {
+    const requiresInspection = this.offer()?.requiresInspection;
+    if (requiresInspection === false) return 'partners.offer.meta.inspectionNotRequired';
+    if (requiresInspection === true) return 'partners.offer.meta.inspectionRequired';
+    return '';
   });
 
   protected readonly constructionYearDisplay = computed(() => {
@@ -220,6 +317,7 @@ export class PartnerOfferComponent implements OnInit {
     return offer.photos.map((photo) => ({
       ...photo,
       url: this.resolvePhotoUrl(token, offerId, photo.id),
+      label: this.attachmentLabel(photo.fileName),
     })).filter((photo) => photo.url !== '');
   });
 
@@ -247,25 +345,8 @@ export class PartnerOfferComponent implements OnInit {
 
   protected readonly isMobile = signal(globalThis.window !== undefined && globalThis.window.innerWidth < 640);
 
-  protected readonly inspectionCalendarDays = computed(() => this.buildCalendarDays(this.inspectionMonth()));
-  protected readonly jobCalendarDays = computed(() => this.buildCalendarDays(this.jobMonth()));
-
-  /** Check if a date string (YYYY-MM-DD) is before today */
-  protected isPastDate(dateStr: string): boolean {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const date = new Date(dateStr + 'T00:00:00');
-    return date < today;
-  }
-
-  protected isPastSlot(dateStr: string | null, startTime: string): boolean {
-    if (!dateStr) return true;
-    if (this.isPastDate(dateStr)) return true;
-    const startValue = this.toIsoString(dateStr, startTime);
-    const startDate = this.parseDate(startValue);
-    if (!startDate) return true;
-    return startDate <= new Date();
-  }
+  protected readonly inspectionCalendarDays = computed<PartnerOfferCalendarDay[]>(() => this.buildCalendarDays(this.inspectionMonth()));
+  protected readonly jobCalendarDays = computed<PartnerOfferCalendarDay[]>(() => this.buildCalendarDays(this.jobMonth()));
 
   protected readonly isActionable = computed(() => {
     if (this.isPreview()) return false;
@@ -370,42 +451,20 @@ export class PartnerOfferComponent implements OnInit {
     this.jobSlots.update((slots) => slots.filter((_, i) => i !== index));
   }
 
-  protected isInspectionSlotActive(startTime: string): boolean {
-    const date = this.selectedInspectionDate();
-    if (!date) return false;
-    return this.inspectionSlots().some((s) => s.start === this.toIsoString(date, startTime));
-  }
-
-  protected isJobSlotActive(startTime: string): boolean {
-    const date = this.selectedJobDate();
-    if (!date) return false;
-    return this.jobSlots().some((s) => s.start === this.toIsoString(date, startTime));
-  }
-
-  protected dateHasInspectionSlots(date: string): boolean {
-    return this.inspectionSlots().some((s) => s.start.startsWith(`${date}T`));
-  }
-
-  protected dateHasJobSlots(date: string): boolean {
-    return this.jobSlots().some((s) => s.start.startsWith(`${date}T`));
-  }
-
-  protected openAcceptForm(): void {
-    this.showAcceptForm.set(true);
-    this.showRejectForm.set(false);
-  }
-
   /** Open the accept bottom-sheet wizard directly */
   protected openAcceptSheet(): void {
     const partnerPrefill = this.offer()?.partnerPrefill;
 
-    this.showAcceptForm.set(false);
     this.showRejectForm.set(false);
     this.acceptStep.set(1);
     this.termsAccepted.set(false);
-    this.signerFullName.set((partnerPrefill?.fullName ?? '').trim());
-    this.signerBusinessName.set((partnerPrefill?.businessName ?? '').trim());
-    this.signerAddress.set((partnerPrefill?.address ?? '').trim());
+    this.acceptDetailsForm.reset({
+      signerFullName: (partnerPrefill?.fullName ?? '').trim(),
+      signerBusinessName: (partnerPrefill?.businessName ?? '').trim(),
+      signerAddress: (partnerPrefill?.address ?? '').trim(),
+    });
+    this.acceptDetailsForm.markAsPristine();
+    this.acceptDetailsForm.markAsUntouched();
     this.signatureData.set(null);
     this.inspectionSlots.set([]);
     this.jobSlots.set([]);
@@ -430,6 +489,7 @@ export class PartnerOfferComponent implements OnInit {
         this.acceptStep.set(3);
       } else {
         this.step2Attempted.set(true);
+        this.acceptDetailsForm.markAllAsTouched();
       }
     } else if (step === 3 && this.canProceedStep3()) {
       this.acceptStep.set(4);
@@ -447,19 +507,11 @@ export class PartnerOfferComponent implements OnInit {
     this.signatureData.set(data);
   }
 
-  protected clearSignature(): void {
-    const pad = this.signaturePad();
-    if (pad) pad.clear();
-    this.signatureData.set(null);
-  }
-
   protected openRejectForm(): void {
     this.showRejectForm.set(true);
-    this.showAcceptForm.set(false);
   }
 
   protected cancelForm(): void {
-    this.showAcceptForm.set(false);
     this.showRejectForm.set(false);
     this.showAcceptSheet.set(false);
   }
@@ -474,9 +526,10 @@ export class PartnerOfferComponent implements OnInit {
     this.accepting.set(true);
 
     const jobSlots = this.jobSlots();
-    const signerFullName = this.signerFullName().trim();
-    const signerBusinessName = this.signerBusinessName().trim();
-    const signerAddress = this.signerAddress().trim();
+    const details = this.acceptDetailsForm.getRawValue();
+    const signerFullName = details.signerFullName.trim();
+    const signerBusinessName = details.signerBusinessName.trim();
+    const signerAddress = details.signerAddress.trim();
     const signatureData = this.signatureData();
     const acceptPayload = {
       ...(needsInspection && slots.length > 0 ? { inspectionSlots: slots } : {}),
@@ -496,14 +549,12 @@ export class PartnerOfferComponent implements OnInit {
               this.accepting.set(false);
               this.offer.set(offer);
               this.done.set('accepted');
-              this.showAcceptForm.set(false);
               this.showAcceptSheet.set(false);
               this.updateAcceptedState(token, offer, true);
             },
             error: () => {
               this.accepting.set(false);
               this.done.set('accepted');
-              this.showAcceptForm.set(false);
               this.showAcceptSheet.set(false);
               this.updateAcceptedState(token, null, true);
             },
@@ -554,16 +605,6 @@ export class PartnerOfferComponent implements OnInit {
     this.jobMonth.set(this.addMonths(this.jobMonth(), offset));
   }
 
-  protected formatSlotLabel(slot: TimeSlot): string {
-    const start = this.parseDate(slot.start);
-    const end = this.parseDate(slot.end);
-    if (!start || !end) return '';
-    const dateLabel = start.toLocaleDateString('nl-NL', { weekday: 'short', day: '2-digit', month: 'short' });
-    const startTime = start.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-    const endTime = end.toLocaleTimeString('nl-NL', { hour: '2-digit', minute: '2-digit' });
-    return `${dateLabel} · ${startTime} - ${endTime}`;
-  }
-
   protected attachmentLabel(fileName: string): string {
     const withoutExtension = fileName.replace(/\.[^.]+$/, '');
     const normalized = withoutExtension
@@ -574,31 +615,6 @@ export class PartnerOfferComponent implements OnInit {
       .trim();
 
     return normalized || 'Afbeelding';
-  }
-
-  private normalizeSummaryForPlainText(value: string): string {
-    const decoded = this.decodeHtmlEntities(value);
-    return decoded
-      .replaceAll(/<[^>]*>/g, ' ')
-      .replaceAll('**', '')
-      .replaceAll(/^\d+\.\s+/gm, '')
-      .replaceAll(/^\s*-\s+/gm, '')
-      .replaceAll(/\n+/g, ' ')
-      .replaceAll(/\s+/g, ' ')
-      .trim();
-  }
-
-  private decodeHtmlEntities(value: string): string {
-    return value
-      .replaceAll('&nbsp;', ' ')
-      .replaceAll('&#160;', ' ')
-      .replaceAll('&lt;', '<')
-      .replaceAll('&gt;', '>')
-      .replaceAll('&amp;', '&')
-      .replaceAll('&quot;', '"')
-      .replaceAll('&#34;', '"')
-      .replaceAll('&#39;', "'")
-      .replaceAll('&apos;', "'");
   }
 
   private validateSlots(slots: TimeSlot[], requireAtLeastOne: boolean): string[] {
@@ -668,8 +684,8 @@ export class PartnerOfferComponent implements OnInit {
     return `${date}T${normalizedTime}${sign}${offsetHours}:${offsetMins}`;
   }
 
-  private buildSlotOptions(): { start: string; end: string; label: string }[] {
-    const options: { start: string; end: string; label: string }[] = [];
+  private buildSlotOptions(): PartnerOfferSlotOption[] {
+    const options: PartnerOfferSlotOption[] = [];
     for (let hour = 8; hour < 18; hour += 1) {
       const start = `${String(hour).padStart(2, '0')}:00`;
       const end = this.getSlotEndTime(start);
@@ -700,13 +716,13 @@ export class PartnerOfferComponent implements OnInit {
     return new Date(date.getFullYear(), date.getMonth() + offset, 1);
   }
 
-  private buildCalendarDays(month: Date): { key: string; label: number; date: string; isCurrentMonth: boolean; isToday: boolean }[] {
+  private buildCalendarDays(month: Date): PartnerOfferCalendarDay[] {
     const year = month.getFullYear();
     const monthIndex = month.getMonth();
     const firstOfMonth = new Date(year, monthIndex, 1);
     const startOffset = (firstOfMonth.getDay() + 6) % 7;
     const start = new Date(year, monthIndex, 1 - startOffset);
-    const days: { key: string; label: number; date: string; isCurrentMonth: boolean; isToday: boolean }[] = [];
+    const days: PartnerOfferCalendarDay[] = [];
     for (let i = 0; i < 42; i += 1) {
       const current = new Date(start.getFullYear(), start.getMonth(), start.getDate() + i);
       const dateKey = this.formatDate(current);

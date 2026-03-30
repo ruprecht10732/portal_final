@@ -198,16 +198,29 @@
       "previewBanner": "Voorbeeld - dit is wat de vakman ziet",
       "title": "Werkaanbod",
       "fromOrg": "Van",
+      "scanTitle": "Klus in het kort",
+      "highlightsTitle": "Direct overzicht",
+      "workItemsTitle": "Wat u waarschijnlijk gaat doen",
+      "workItemsBody": "De belangrijkste werkzaamheden en inbegrepen onderdelen uit dit aanbod.",
+      "attentionTitle": "Aandachtspunten",
+      "attentionHeading": "Waar u vooraf op wilt letten",
+      "attentionBody": "Praktische punten die de uitvoering, schouw of planning waarschijnlijk beïnvloeden.",
       "summaryTitle": "Samenvatting",
+      "summaryBody": "AI vat hieronder de klus samen in duidelijke taal voor de uitvoerende vakman.",
+      "fullSummaryTitle": "Volledige AI-toelichting",
+      "fullSummaryBody": "De volledige AI-samenvatting met extra context over de klus en inbegrepen werkzaamheden.",
       "lineItemsTitle": "Inbegrepen posten",
       "photosTitle": "Foto's",
       "detailsTitle": "Aanboddetails",
+      "practicalTitle": "Praktisch",
       "locationTitle": "Locatie",
       "locationHint": "Deze kaart toont alleen de wijk. Het exacte adres delen we na acceptatie.",
       "meta": {
         "constructionYear": "Bouwjaar",
         "scope": "Omvang",
-        "urgency": "Urgentie"
+        "urgency": "Urgentie",
+        "inspectionRequired": "Schouw vooraf gevraagd",
+        "inspectionNotRequired": "Geen schouw nodig"
       },
       "scope": {
         "small": "Klein",
@@ -223,6 +236,7 @@
         "job": "Opdracht",
         "location": "Locatie",
         "fee": "Uw vergoeding",
+        "inspection": "Inspectie",
         "source": "Bron",
         "validUntil": "Geldig tot"
       },

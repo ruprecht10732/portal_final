@@ -196,16 +196,29 @@
       "previewBanner": "Preview - this is what the partner sees",
       "title": "Work offer",
       "fromOrg": "From",
+      "scanTitle": "Job at a glance",
+      "highlightsTitle": "Quick overview",
+      "workItemsTitle": "What you will likely do",
+      "workItemsBody": "The main work items and included parts in this offer.",
+      "attentionTitle": "Attention points",
+      "attentionHeading": "What to check before you accept",
+      "attentionBody": "Practical points that will likely affect the inspection, execution or planning.",
       "summaryTitle": "Summary",
+      "summaryBody": "AI summarizes the job below in clear, practical language for the contractor.",
+      "fullSummaryTitle": "Full AI summary",
+      "fullSummaryBody": "The complete AI summary with extra context about the job and included work.",
       "lineItemsTitle": "Included items",
       "photosTitle": "Photos",
       "detailsTitle": "Offer details",
+      "practicalTitle": "Practical",
       "locationTitle": "Location",
       "locationHint": "This map shows the area (wijk) only. The exact address is shared after acceptance.",
       "meta": {
         "constructionYear": "Construction year",
         "scope": "Scope",
-        "urgency": "Urgency"
+        "urgency": "Urgency",
+        "inspectionRequired": "Pre-inspection requested",
+        "inspectionNotRequired": "No pre-inspection needed"
       },
       "scope": {
         "small": "Small",
@@ -221,6 +234,7 @@
         "job": "Job",
         "location": "Location",
         "fee": "Your compensation",
+        "inspection": "Inspection",
         "source": "Source",
         "validUntil": "Valid until"
       },
