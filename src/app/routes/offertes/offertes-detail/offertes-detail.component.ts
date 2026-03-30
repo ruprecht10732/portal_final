@@ -191,17 +191,22 @@ export class OffertesDetailComponent implements OnInit {
     const pdfAvailable = !!q?.pdfFileKey;
     const canOpenPartnerOffer = q?.status === 'Accepted' && !!q?.leadServiceId;
     const canCreateVersion = q?.status === 'Draft' || q?.status === 'Sent';
+    const items: MenuItem[] = [
+      ...(q?.status === 'Draft'
+        ? [{ label: 'offertes.markSent', disabled: this.updating() }]
+        : []),
+      { label: 'offertes.transfer.action', disabled: !this.isAdmin() },
+      { label: 'offertes.duplicate' },
+      { label: 'offertes.newVersion', disabled: !canCreateVersion },
+      { label: 'offertes.preview', disabled: !previewAvailable },
+      { label: 'offertes.downloadPdf', disabled: !pdfAvailable },
+      { label: 'offertes.partnerOffer.title', disabled: !canOpenPartnerOffer },
+      { label: 'common.delete' },
+    ];
+
     return [
       {
-        items: [
-          { label: 'offertes.transfer.action', disabled: !this.isAdmin() },
-          { label: 'offertes.duplicate' },
-          { label: 'offertes.newVersion', disabled: !canCreateVersion },
-          { label: 'offertes.preview', disabled: !previewAvailable },
-          { label: 'offertes.downloadPdf', disabled: !pdfAvailable },
-          { label: 'offertes.partnerOffer.title', disabled: !canOpenPartnerOffer },
-          { label: 'common.delete' },
-        ],
+        items,
       },
     ];
   });
@@ -213,15 +218,23 @@ export class OffertesDetailComponent implements OnInit {
     const pdfAvailable = !!q.pdfFileKey;
     const canOpenPartnerOffer = q.status === 'Accepted' && !!q.leadServiceId;
     const canCreateVersion = q.status === 'Draft' || q.status === 'Sent';
-    const items: SplitMenuItem[] = [];
-
-    if (q.status === 'Draft') {
-      items.push({
-        label: 'offertes.edit',
-        action: 'edit',
-        icon: 'pencil',
-      });
-    }
+    const items: SplitMenuItem[] = [
+      ...(q.status === 'Draft'
+        ? [
+            {
+              label: 'offertes.edit',
+              action: 'edit',
+              icon: 'pencil',
+            },
+            {
+              label: 'offertes.markSent',
+              action: 'markSent',
+              icon: 'badge-check',
+              disabled: this.updating(),
+            },
+          ]
+        : []),
+    ];
 
     if (this.isAdmin()) {
       items.push({
@@ -503,6 +516,9 @@ export class OffertesDetailComponent implements OnInit {
 
   protected handleMobileMenuSelection(item: MenuItem): void {
     switch (item.label) {
+      case 'offertes.markSent':
+        this.updateStatus('Sent');
+        break;
       case 'offertes.transfer.action':
         this.openTransferDialog();
         break;
@@ -533,6 +549,9 @@ export class OffertesDetailComponent implements OnInit {
     switch (action) {
       case 'edit':
         this.editQuote();
+        break;
+      case 'markSent':
+        this.updateStatus('Sent');
         break;
       case 'transfer':
         this.openTransferDialog();

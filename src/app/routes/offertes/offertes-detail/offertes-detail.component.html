@@ -270,16 +270,6 @@
                       <lucide-icon name="send" class="h-4 w-4"></lucide-icon>
                       {{ 'offertes.sendProposal' | translate }}
                     </shared-button>
-                    <shared-button
-                      variant="secondary"
-                      size="compact"
-                      [fullWidth]="true"
-                      [loading]="updating()"
-                      (clicked)="updateStatus('Sent')"
-                    >
-                      <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
-                      {{ 'offertes.markSent' | translate }}
-                    </shared-button>
                   }
                   @case ('Sent') {
                     <shared-button
@@ -653,16 +643,6 @@
                       >
                         <lucide-icon primaryIcon name="send" class="h-4 w-4"></lucide-icon>
                       </shared-split-action>
-                      <shared-button
-                        variant="secondary"
-                        size="compact"
-                        [fullWidth]="false"
-                        [loading]="updating()"
-                        (clicked)="updateStatus('Sent')"
-                      >
-                        <lucide-icon name="check" class="h-4 w-4"></lucide-icon>
-                        {{ 'offertes.markSent' | translate }}
-                      </shared-button>
                     }
                     @case ('Sent') {
                       <shared-split-action
