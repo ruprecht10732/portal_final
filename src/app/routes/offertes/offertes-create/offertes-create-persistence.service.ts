@@ -1,5 +1,5 @@
 import { inject, Injectable } from '@angular/core';
-import { catchError, map, Observable, of, switchMap } from 'rxjs';
+import { map, Observable, of, switchMap } from 'rxjs';
 
 import { QuotesService } from '../../../core/services/quotes.service';
 import type { QuoteDraftPayload } from './offertes-create-quote.utils';
@@ -23,10 +23,7 @@ export class OffertesCreatePersistenceService {
           return of(updated.id);
         }
 
-        return this.quotesService.updateStatus(updated.id, 'Sent').pipe(
-          map(() => updated.id),
-          catchError(() => of(updated.id)),
-        );
+        return this.quotesService.send(updated.id).pipe(map(() => updated.id));
       }),
     );
   }
@@ -73,6 +70,6 @@ export class OffertesCreatePersistenceService {
       return of(void 0);
     }
 
-    return this.quotesService.updateStatus(quoteId, 'Sent').pipe(map(() => void 0));
+    return this.quotesService.send(quoteId).pipe(map(() => void 0));
   }
 }

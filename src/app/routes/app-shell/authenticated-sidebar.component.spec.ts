@@ -20,6 +20,7 @@ const buildToken = (payload: Record<string, unknown>): string => {
 const createProfile = (): UserProfile => ({
   id: 'user-a',
   email: 'user-a@example.com',
+  phone: null,
   emailVerified: true,
   firstName: 'Dev',
   lastName: 'User',
