@@ -54,9 +54,12 @@
               [scopeDisplay]="scopeDisplayKey() ? (scopeDisplayKey() | translate) : ''"
               [constructionYearDisplay]="constructionYearDisplay()"
               [urgencyDisplay]="urgencyDisplayKey() ? (urgencyDisplayKey() | translate) : ''"
+              [urgencyTone]="urgencyTone()"
               [expiresAt]="o.expiresAt"
               [statusLabelKey]="statusLabelKey()"
               [deadlineBadgeClass]="deadlineBadgeClass()"
+              [deadlineProgressPercent]="deadlineProgressPercent()"
+              [deadlineProgressBarClass]="deadlineProgressBarClass()"
               [mobileStatusBadge]="mobileStatusBadge()"
               [timeRemaining]="timeRemaining()"
             />
@@ -90,12 +93,6 @@
             @if (!isActionable() && !done()) {
               <app-partner-offer-status-banner layout="mobile" variant="inactive" [statusLabelKey]="statusLabelKey()" />
             }
-
-            <app-partner-offer-highlights-section
-              layout="mobile"
-              [workItems]="workItemsPreview()"
-              [attentionPoints]="attentionPointsPreview()"
-            />
 
             <!-- Mobile sections -->
             <div class="mt-4">
@@ -161,17 +158,14 @@
           [scopeDisplay]="scopeDisplayKey() ? (scopeDisplayKey() | translate) : ''"
           [constructionYearDisplay]="constructionYearDisplay()"
           [urgencyDisplay]="urgencyDisplayKey() ? (urgencyDisplayKey() | translate) : ''"
+          [urgencyTone]="urgencyTone()"
           [expiresAt]="o.expiresAt"
           [statusLabelKey]="statusLabelKey()"
           [deadlineBadgeClass]="deadlineBadgeClass()"
+          [deadlineProgressPercent]="deadlineProgressPercent()"
+          [deadlineProgressBarClass]="deadlineProgressBarClass()"
           [statusBadgeClass]="statusBadgeClass()"
           [timeRemaining]="timeRemaining()"
-        />
-
-        <app-partner-offer-highlights-section
-          layout="desktop"
-          [workItems]="workItemsPreview()"
-          [attentionPoints]="attentionPointsPreview()"
         />
 
         @if (isActionable() && timeRemaining(); as tr) {

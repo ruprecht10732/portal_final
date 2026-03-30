@@ -18,7 +18,6 @@ import { type PartnerOfferTermsResponse, type PublicPartnerOfferLeadContact, typ
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
 import { buildFallbackAttentionPoints, normalizeSummaryForPlainText, parseOfferSummarySections, type ParsedOfferSummary } from './partner-offer-summary.utils';
 import { PartnerOfferSummaryCardComponent } from './partner-offer-summary-card.component';
-import { PartnerOfferHighlightsSectionComponent } from './partner-offer-highlights-section.component';
 import { PartnerOfferLineItemsCardComponent } from './partner-offer-line-items-card.component';
 import { PartnerOfferPhotosCardComponent } from './partner-offer-photos-card.component';
 import { PartnerOfferLocationCardComponent } from './partner-offer-location-card.component';
@@ -40,7 +39,6 @@ import { type AcceptDetailsFormGroup, type PartnerOfferCalendarDay, type Partner
     TranslatePipe,
     BottomSheetComponent,
     PartnerOfferSummaryCardComponent,
-    PartnerOfferHighlightsSectionComponent,
     PartnerOfferLineItemsCardComponent,
     PartnerOfferPhotosCardComponent,
     PartnerOfferLocationCardComponent,
@@ -107,6 +105,32 @@ export class PartnerOfferComponent implements OnInit {
     if (totalMinutes <= 120) return 'bg-red-50 text-red-700';
     if (totalMinutes <= 360) return 'bg-amber-50 text-amber-700';
     return 'bg-emerald-50 text-emerald-700';
+  });
+
+  protected readonly deadlineProgressPercent = computed(() => {
+    const offer = this.offer();
+    if (!offer) return 0;
+
+    const createdMs = new Date(offer.createdAt).getTime();
+    const expiresMs = new Date(offer.expiresAt).getTime();
+    const nowMs = this.now().getTime();
+
+    if (Number.isNaN(createdMs) || Number.isNaN(expiresMs) || expiresMs <= createdMs) {
+      return this.isExpired() ? 0 : 100;
+    }
+
+    const total = expiresMs - createdMs;
+    const remaining = Math.max(0, expiresMs - nowMs);
+    return Math.max(0, Math.min(100, Math.round((remaining / total) * 100)));
+  });
+
+  protected readonly deadlineProgressBarClass = computed(() => {
+    const tr = this.timeRemaining();
+    if (!tr || this.isExpired()) return 'bg-zinc-400';
+    const totalMinutes = tr.hours * 60 + tr.minutes;
+    if (totalMinutes <= 120) return 'bg-rose-500 animate-pulse';
+    if (totalMinutes <= 360) return 'bg-amber-500';
+    return 'bg-emerald-500';
   });
 
   // Accept form
@@ -311,6 +335,18 @@ export class PartnerOfferComponent implements OnInit {
         return 'partners.offer.urgency.low';
       default:
         return '';
+    }
+  });
+
+  protected readonly urgencyTone = computed(() => {
+    const urgency = (this.offer()?.urgencyLevel || '').toLowerCase();
+    switch (urgency) {
+      case 'high':
+        return 'critical';
+      case 'medium':
+        return 'warning';
+      default:
+        return 'neutral';
     }
   });
 
