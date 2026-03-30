@@ -189,6 +189,14 @@ export class PartnerOfferComponent implements OnInit {
     const shortSummary = normalizeSummaryForPlainText(o.jobSummaryShort || '');
     if (shortSummary) return shortSummary;
 
+    const parsedDetailedSummary = parseOfferSummarySections(this.summaryDisplay());
+    const detailedIntro = normalizeSummaryForPlainText(parsedDetailedSummary.intro);
+    if (detailedIntro) {
+      return detailedIntro.length > 160
+        ? `${detailedIntro.slice(0, 157).trimEnd()}...`
+        : detailedIntro;
+    }
+
     const normalizedSummary = this.summaryPlainDisplay();
     if (!normalizedSummary) return o.jobSummary;
 
@@ -200,6 +208,15 @@ export class PartnerOfferComponent implements OnInit {
   protected readonly summaryIntro = computed(() => {
     const o = this.offer();
     if (!o) return '';
+
+    const parsedDetailedSummary = parseOfferSummarySections(this.summaryDisplay());
+    const detailedIntro = normalizeSummaryForPlainText(parsedDetailedSummary.intro);
+    if (detailedIntro) {
+      const headline = this.summaryHeadline();
+      if (detailedIntro !== headline) {
+        return detailedIntro;
+      }
+    }
 
     const normalizedSummary = this.summaryPlainDisplay();
     if (!normalizedSummary) return '';
@@ -237,6 +254,15 @@ export class PartnerOfferComponent implements OnInit {
     }
 
     return parsed;
+  });
+
+  protected readonly summaryCardIntro = computed(() => {
+    const parsedIntro = this.parsedSummary().intro;
+    if (parsedIntro) {
+      return parsedIntro;
+    }
+
+    return this.summaryIntro() || this.summaryHeadline();
   });
 
   protected readonly workItemsPreview = computed(() => this.parsedSummary().workItems.slice(0, 3));
