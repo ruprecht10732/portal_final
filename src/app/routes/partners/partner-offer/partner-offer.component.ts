@@ -213,7 +213,7 @@ export class PartnerOfferComponent implements OnInit {
       ? normalizedSummary.slice(headline.length).trim()
       : normalizedSummary;
 
-    return remainder.replaceAll(/^[.:;,-]+\s*/, '') || o.jobSummary;
+    return remainder.replace(/^[.:;,-]+\s*/, '') || o.jobSummary;
   });
 
   protected readonly parsedSummary = computed<ParsedOfferSummary>(() => {
