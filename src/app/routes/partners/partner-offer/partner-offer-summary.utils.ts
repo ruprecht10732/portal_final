@@ -10,8 +10,8 @@ export type ParsedOfferSummary = {
 type SummarySection = 'intro' | 'work' | 'attention';
 
 const META_LINE_PATTERN = /^\*\*Omvang\*\*|^\*\*Urgentie\*\*/i;
-const WORK_SECTION_PATTERN = /^#{1,6}\s*(werkzaamheden|inbegrepen|wat je gaat doen|uitvoering)/i;
-const ATTENTION_SECTION_PATTERN = /^#{1,6}\s*(let op|aandachtspunten|belangrijk|inspectie|vooraf checken)/i;
+const WORK_SECTION_PATTERN = /^(?:#{1,6}\s*|\*\*\s*)?(werkzaamheden|inbegrepen|wat je gaat doen|uitvoering)[:*]*\s*$/i;
+const ATTENTION_SECTION_PATTERN = /^(?:#{1,6}\s*|\*\*\s*)?(let op|aandachtspunten|belangrijk|inspectie|vooraf checken)[:*]*\s*$/i;
 const BULLET_LINE_PATTERN = /^(-|\*|\d+\.)\s+(.+)$/;
 
 export function normalizeSummaryForPlainText(value: string): string {
@@ -28,7 +28,7 @@ export function normalizeSummaryForPlainText(value: string): string {
 }
 
 export function parseOfferSummarySections(summary: string): ParsedOfferSummary {
-  const lines = summary
+  const lines = normalizeSummarySections(summary)
     .replaceAll('\r\n', '\n')
     .replaceAll('\r', '\n')
     .split('\n')
@@ -115,6 +115,32 @@ function detectSummarySection(line: string): Exclude<SummarySection, 'intro'> | 
   }
 
   return null;
+}
+
+function normalizeSummarySections(summary: string): string {
+  let normalized = summary;
+
+  const sectionLabels = [
+    'Werkzaamheden',
+    'Inbegrepen',
+    'Wat je gaat doen',
+    'Uitvoering',
+    'Let op',
+    'Aandachtspunten',
+    'Belangrijk',
+    'Inspectie',
+    'Vooraf checken',
+  ];
+
+  for (const label of sectionLabels) {
+    const escapedLabel = label.replaceAll(/[.*+?^${}()|[\]\\]/g, String.raw`\$&`);
+    normalized = normalized.replaceAll(
+      new RegExp(String.raw`\s+(${escapedLabel})\s+`, 'gi'),
+      (_match, matchedLabel: string) => `\n${matchedLabel}\n`,
+    );
+  }
+
+  return normalized;
 }
 
 function parseBulletLine(line: string): string {

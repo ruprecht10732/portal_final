@@ -250,13 +250,13 @@ export class PartnerOfferComponent implements OnInit {
     const headline = this.summaryHeadline();
     if (!headline) return normalizedSummary;
 
-    if (normalizedSummary === headline) return o.jobSummary;
+    if (normalizedSummary === headline) return '';
 
     const remainder = normalizedSummary.startsWith(headline)
       ? normalizedSummary.slice(headline.length).trim()
       : normalizedSummary;
 
-    return remainder.replace(/^[.:;,-]+\s*/, '') || o.jobSummary;
+    return remainder.replace(/^[.:;,-]+\s*/, '');
   });
 
   protected readonly parsedSummary = computed<ParsedOfferSummary>(() => {
@@ -285,10 +285,10 @@ export class PartnerOfferComponent implements OnInit {
   protected readonly summaryCardIntro = computed(() => {
     const parsedIntro = this.parsedSummary().intro;
     if (parsedIntro) {
-      return parsedIntro;
+      return parsedIntro === this.summaryHeadline() ? '' : parsedIntro;
     }
 
-    return this.summaryIntro() || this.summaryHeadline();
+    return this.summaryIntro();
   });
 
   protected readonly workItemsPreview = computed(() => this.parsedSummary().workItems.slice(0, 3));
