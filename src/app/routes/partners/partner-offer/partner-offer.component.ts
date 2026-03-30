@@ -214,6 +214,13 @@ export class PartnerOfferComponent implements OnInit {
     const o = this.offer();
     if (!o) return '';
 
+    const shortAiSummary = (o.jobSummaryShort || '').trim();
+    if (shortAiSummary) {
+      return shortAiSummary.length > 160
+        ? `${shortAiSummary.slice(0, 157).trimEnd()}...`
+        : shortAiSummary;
+    }
+
     const parsedDetailedSummary = parseOfferSummarySections(this.summaryDisplay());
     const detailedIntro = normalizeSummaryForPlainText(parsedDetailedSummary.intro);
     if (detailedIntro) {
@@ -222,12 +229,12 @@ export class PartnerOfferComponent implements OnInit {
         : detailedIntro;
     }
 
-    const normalizedSummary = this.summaryPlainDisplay();
-    if (!normalizedSummary) return o.jobSummary;
+    const firstWorkItem = parsedDetailedSummary.workItems[0] || '';
+    if (!firstWorkItem) return '';
 
-    return normalizedSummary.length > 160
-      ? `${normalizedSummary.slice(0, 157).trimEnd()}...`
-      : normalizedSummary;
+    return firstWorkItem.length > 160
+      ? `${firstWorkItem.slice(0, 157).trimEnd()}...`
+      : firstWorkItem;
   });
 
   protected readonly summaryIntro = computed(() => {
@@ -242,19 +249,7 @@ export class PartnerOfferComponent implements OnInit {
       }
     }
 
-    const normalizedSummary = this.summaryPlainDisplay();
-    if (!normalizedSummary) return '';
-
-    const headline = this.summaryHeadline();
-    if (!headline) return normalizedSummary;
-
-    if (normalizedSummary === headline) return '';
-
-    const remainder = normalizedSummary.startsWith(headline)
-      ? normalizedSummary.slice(headline.length).trim()
-      : normalizedSummary;
-
-    return remainder.replace(/^[.:;,-]+\s*/, '');
+    return '';
   });
 
   protected readonly parsedSummary = computed<ParsedOfferSummary>(() => {
@@ -262,7 +257,7 @@ export class PartnerOfferComponent implements OnInit {
     const parsed = parseOfferSummarySections(summary);
 
     if (!parsed.intro) {
-      parsed.intro = this.summaryIntro() || this.summaryHeadline();
+      parsed.intro = this.summaryIntro();
     }
 
     return parsed;

@@ -12,6 +12,7 @@ type SummarySection = 'intro' | 'work' | 'attention';
 const META_LINE_PATTERN = /^\*\*Omvang\*\*|^\*\*Urgentie\*\*/i;
 const WORK_SECTION_PATTERN = /^(?:#{1,6}\s*|\*\*\s*)?(werkzaamheden|inbegrepen|wat je gaat doen|uitvoering)[:*]*\s*$/i;
 const ATTENTION_SECTION_PATTERN = /^(?:#{1,6}\s*|\*\*\s*)?(let op|aandachtspunten|belangrijk|inspectie|vooraf checken)[:*]*\s*$/i;
+const EMPTY_MARKDOWN_HEADING_PATTERN = /^#{1,6}\s*$/;
 const BULLET_LINE_PATTERN = /^(-|\*|\d+\.)\s+(.+)$/;
 
 export function normalizeSummaryForPlainText(value: string): string {
@@ -20,7 +21,7 @@ export function normalizeSummaryForPlainText(value: string): string {
     .replaceAll(/<[^>]*>/g, ' ')
     .replaceAll('**', '')
     .replaceAll(/^\d+\.\s+/gm, '')
-    .replaceAll(/^#{1,6}\s+/gm, '')
+    .replaceAll(/^#{1,6}(?:\s+|$)/gm, '')
     .replaceAll(/^\s*-\s+/gm, '')
     .replaceAll(/\n+/g, ' ')
     .replaceAll(/\s+/g, ' ')
@@ -47,6 +48,10 @@ export function parseOfferSummarySections(summary: string): ParsedOfferSummary {
   for (const line of lines) {
     if (META_LINE_PATTERN.test(line)) {
       parsed.metaLine = normalizeSummaryForPlainText(line);
+      continue;
+    }
+
+    if (EMPTY_MARKDOWN_HEADING_PATTERN.test(line)) {
       continue;
     }
 
