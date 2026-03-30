@@ -316,8 +316,32 @@
       },
       "reject": {
         "title": "Aanbod afwijzen",
+        "quickTitle": "Waarom wilt u afwijzen?",
+        "quickBody": "Kies de reden die het beste past. U kunt ook zelf een korte toelichting geven.",
         "reasonLabel": "Reden (optioneel)",
-        "placeholder": "Waarom wilt u dit aanbod afwijzen?"
+        "placeholder": "Waarom wilt u dit aanbod afwijzen?",
+        "tapHint": "Kies een reden en bevestig direct, of kies 'Anders' om zelf tekst toe te voegen.",
+        "quickReasons": {
+          "tooBusy": {
+            "label": "Te druk",
+            "value": "Te druk"
+          },
+          "tooFarAway": {
+            "label": "Te ver rijden",
+            "value": "Te ver rijden"
+          },
+          "priceTooLow": {
+            "label": "Vergoeding te laag",
+            "value": "Vergoeding te laag"
+          },
+          "notMyExpertise": {
+            "label": "Niet mijn specialisme",
+            "value": "Niet mijn specialisme"
+          },
+          "other": {
+            "label": "Anders"
+          }
+        }
       },
       "success": {
         "thanks": "Bedankt!",

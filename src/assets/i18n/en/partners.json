@@ -314,8 +314,32 @@
       },
       "reject": {
         "title": "Reject offer",
+        "quickTitle": "Why are you rejecting this offer?",
+        "quickBody": "Choose the closest reason below, or add a short explanation yourself.",
         "reasonLabel": "Reason (optional)",
-        "placeholder": "Why do you want to reject this offer?"
+        "placeholder": "Why do you want to reject this offer?",
+        "tapHint": "Choose a reason and confirm immediately, or pick 'Other' to type your own explanation.",
+        "quickReasons": {
+          "tooBusy": {
+            "label": "Too busy",
+            "value": "Too busy"
+          },
+          "tooFarAway": {
+            "label": "Too far away",
+            "value": "Too far away"
+          },
+          "priceTooLow": {
+            "label": "Price too low",
+            "value": "Price too low"
+          },
+          "notMyExpertise": {
+            "label": "Not my expertise",
+            "value": "Not my expertise"
+          },
+          "other": {
+            "label": "Other"
+          }
+        }
       },
       "success": {
         "thanks": "Thank you!",
