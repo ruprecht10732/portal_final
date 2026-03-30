@@ -91,13 +91,15 @@
 
             <!-- Mobile sections -->
             <div class="mt-4">
-              <app-partner-offer-summary-card
-                layout="mobile"
-                [headline]="summaryHeadline()"
-                [intro]="summaryCardIntro()"
-                [workItems]="parsedSummary().workItems"
-                [attentionPoints]="parsedSummary().attentionPoints"
-              />
+              @if (hasAiSummary()) {
+                <app-partner-offer-summary-card
+                  layout="mobile"
+                  [headline]="summaryHeadline()"
+                  [intro]="summaryCardIntro()"
+                  [workItems]="parsedSummary().workItems"
+                  [attentionPoints]="parsedSummary().attentionPoints"
+                />
+              }
 
               @if (lineItems().length > 0) {
                 <app-partner-offer-line-items-card layout="mobile" [items]="lineItems()" />
@@ -194,13 +196,15 @@
         <!-- Desktop content grid -->
         <div class="grid gap-6 lg:grid-cols-2">
           <div class="space-y-6">
-            <app-partner-offer-summary-card
-              layout="desktop"
-              [headline]="summaryHeadline()"
-              [intro]="summaryCardIntro()"
-              [workItems]="parsedSummary().workItems"
-              [attentionPoints]="parsedSummary().attentionPoints"
-            />
+            @if (hasAiSummary()) {
+              <app-partner-offer-summary-card
+                layout="desktop"
+                [headline]="summaryHeadline()"
+                [intro]="summaryCardIntro()"
+                [workItems]="parsedSummary().workItems"
+                [attentionPoints]="parsedSummary().attentionPoints"
+              />
+            }
 
             @if (lineItems().length > 0) {
               <app-partner-offer-line-items-card layout="desktop" [items]="lineItems()" />

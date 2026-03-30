@@ -16,7 +16,7 @@ import { PublicPartnerOfferService } from '../../../core/services/public-partner
 import { PartnersService } from '../../../core/services/partners.service';
 import { type PartnerOfferTermsResponse, type PublicPartnerOfferLeadContact, type PublicPartnerOfferResponse, type TimeSlot, centsToEuros } from '../../../core/services/partner-offer.types';
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
-import { buildFallbackAttentionPoints, normalizeSummaryForPlainText, parseOfferSummarySections, type ParsedOfferSummary } from './partner-offer-summary.utils';
+import { normalizeSummaryForPlainText, parseOfferSummarySections, type ParsedOfferSummary } from './partner-offer-summary.utils';
 import { PartnerOfferSummaryCardComponent } from './partner-offer-summary-card.component';
 import { PartnerOfferLineItemsCardComponent } from './partner-offer-line-items-card.component';
 import { PartnerOfferPhotosCardComponent } from './partner-offer-photos-card.component';
@@ -195,13 +195,15 @@ export class PartnerOfferComponent implements OnInit {
     return o ? centsToEuros(o.vakmanPriceCents) : '';
   });
 
+  protected readonly hasAiSummary = computed(() => {
+    const o = this.offer();
+    return !!o?.builderSummary?.trim();
+  });
+
   protected readonly summaryDisplay = computed(() => {
     const o = this.offer();
     if (!o) return '';
-    const builderSummary = (o.builderSummary || '').trim();
-    if (builderSummary) return builderSummary;
-    const summary = (o.jobSummaryShort || '').trim();
-    return summary || o.jobSummary;
+    return (o.builderSummary || '').trim();
   });
 
   protected readonly summaryPlainDisplay = computed(() => {
@@ -211,9 +213,6 @@ export class PartnerOfferComponent implements OnInit {
   protected readonly summaryHeadline = computed(() => {
     const o = this.offer();
     if (!o) return '';
-
-    const shortSummary = normalizeSummaryForPlainText(o.jobSummaryShort || '');
-    if (shortSummary) return shortSummary;
 
     const parsedDetailedSummary = parseOfferSummarySections(this.summaryDisplay());
     const detailedIntro = normalizeSummaryForPlainText(parsedDetailedSummary.intro);
@@ -232,8 +231,7 @@ export class PartnerOfferComponent implements OnInit {
   });
 
   protected readonly summaryIntro = computed(() => {
-    const o = this.offer();
-    if (!o) return '';
+    if (!this.hasAiSummary()) return '';
 
     const parsedDetailedSummary = parseOfferSummarySections(this.summaryDisplay());
     const detailedIntro = normalizeSummaryForPlainText(parsedDetailedSummary.intro);
@@ -260,23 +258,11 @@ export class PartnerOfferComponent implements OnInit {
   });
 
   protected readonly parsedSummary = computed<ParsedOfferSummary>(() => {
-    const offer = this.offer();
     const summary = this.summaryDisplay();
     const parsed = parseOfferSummarySections(summary);
 
     if (!parsed.intro) {
       parsed.intro = this.summaryIntro() || this.summaryHeadline();
-    }
-
-    if (parsed.workItems.length === 0 && offer?.lineItems?.length) {
-      parsed.workItems = offer.lineItems
-        .map((item) => normalizeSummaryForPlainText(item.description))
-        .filter((item) => item.length > 0)
-        .slice(0, 3);
-    }
-
-    if (parsed.attentionPoints.length === 0) {
-      parsed.attentionPoints = buildFallbackAttentionPoints(offer);
     }
 
     return parsed;
