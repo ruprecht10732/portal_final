@@ -186,7 +186,7 @@ export function buildGhostAcceptanceSnapshot(input: {
 
       const updatedItem = {
         ...item,
-        title: input.product.title,
+        title: '',
         description: initialDescription,
         quantity: item.quantity || '1 x',
         unitPrice: centsToEuros(input.product.unitPriceCents || input.product.priceCents),
@@ -319,7 +319,7 @@ function createGeneratedMaterialRow(
   return {
     id: createUid(),
     parentLineItemId,
-    title: material.title,
+    title: '',
     description: formatCatalogDescription(material.title, material.description || ''),
     quantity: '1 x',
     unitPrice: centsToEuros(material.unitPriceCents || material.priceCents),
