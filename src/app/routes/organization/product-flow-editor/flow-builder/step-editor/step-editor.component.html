@@ -32,26 +32,34 @@
     </div>
 
     <div>
-      <label class="block text-xs font-medium text-zinc-500 mb-1.5">Wat voor stap is dit?</label>
-      <div class="grid grid-cols-3 gap-2">
-        @for (st of stepTypes; track st.value) {
-          <button
-            type="button"
-            class="flex flex-col items-center gap-1 rounded-lg border-2 p-2.5 text-center transition-all"
-            [class.border-blue-500]="step().type === st.value"
-            [class.bg-blue-50]="step().type === st.value"
-            [class.ring-1]="step().type === st.value"
-            [class.ring-blue-200]="step().type === st.value"
-            [class.border-zinc-200]="step().type !== st.value"
-            [class.bg-white]="step().type !== st.value"
-            [class.hover:border-zinc-300]="step().type !== st.value"
-            [class.hover:bg-zinc-50]="step().type !== st.value"
-            (click)="updateField('type', st.value)"
-          >
-            <span class="text-xl leading-none">{{ st.icon }}</span>
-            <span class="text-xs font-medium text-zinc-800 leading-tight">{{ st.label }}</span>
-            <span class="text-[10px] text-zinc-500 leading-tight">{{ st.description }}</span>
-          </button>
+      <label class="block text-xs font-medium text-zinc-500 mb-1.5">Element type</label>
+      <div class="space-y-3">
+        @for (cat of elementCategories; track cat.id) {
+          <div>
+            <span class="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider flex items-center gap-1 mb-1">
+              <span>{{ cat.icon }}</span> {{ cat.label }}
+            </span>
+            <div class="grid grid-cols-3 gap-1.5">
+              @for (el of getElementsByCategory(cat.id); track el.value) {
+                <button
+                  type="button"
+                  class="flex flex-col items-center gap-1 rounded-lg border-2 p-2 text-center transition-all"
+                  [class.border-blue-500]="step().type === el.value"
+                  [class.bg-blue-50]="step().type === el.value"
+                  [class.ring-1]="step().type === el.value"
+                  [class.ring-blue-200]="step().type === el.value"
+                  [class.border-zinc-200]="step().type !== el.value"
+                  [class.bg-white]="step().type !== el.value"
+                  [class.hover:border-zinc-300]="step().type !== el.value"
+                  [class.hover:bg-zinc-50]="step().type !== el.value"
+                  (click)="updateField('type', el.value)"
+                >
+                  <span class="text-lg leading-none">{{ el.icon }}</span>
+                  <span class="text-[11px] font-medium text-zinc-800 leading-tight">{{ el.label }}</span>
+                </button>
+              }
+            </div>
+          </div>
         }
       </div>
     </div>

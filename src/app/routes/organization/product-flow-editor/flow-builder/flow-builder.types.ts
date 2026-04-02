@@ -113,18 +113,179 @@ export interface FlowDefinition {
   payloadSchema: PayloadSchema;
 }
 
-// ── Known step types ─────────────────────────────────────────────────────────
-export const STEP_TYPES = [
-  { value: 'single-select-grid', label: 'Grid keuze', description: 'Klant kiest 1 optie uit een raster van afbeeldingen', icon: '▦', hasOptions: true },
-  { value: 'single-select-cards', label: 'Kaart keuze', description: 'Klant kiest 1 optie uit een lijst met kaarten', icon: '▤', hasOptions: true },
-  { value: 'measurements-door', label: 'Deur opmeten', description: 'Meetformulier voor deurmaten', icon: '📐', hasOptions: false },
-  { value: 'preferences-door', label: 'Deur voorkeur', description: 'Klant geeft deurstijtl voorkeuren aan', icon: '🚪', hasOptions: false },
-  { value: 'media-upload', label: 'Foto\'s uploaden', description: 'Klant uploadt foto\'s of bestanden', icon: '📷', hasOptions: false },
-  { value: 'review-summary', label: 'Samenvatting', description: 'Overzicht van alle ingevulde gegevens', icon: '✅', hasOptions: false },
-  { value: 'kozijn-preset', label: 'Kozijn type', description: 'Klant kiest een kozijntype uit voorinstellingen', icon: '🪟', hasOptions: true },
-  { value: 'kozijn-dimensions', label: 'Kozijn opmeten', description: 'Meetformulier voor kozijnmaten', icon: '📏', hasOptions: false },
-  { value: 'kozijn-specs', label: 'Kozijn details', description: 'Technische specificaties van het kozijn', icon: '⚙️', hasOptions: false },
+// ── Element categories & palette ─────────────────────────────────────────────
+
+export interface ElementTypeDefinition {
+  value: string;
+  label: string;
+  description: string;
+  icon: string;
+  category: 'keuze' | 'invoer' | 'media' | 'weergave';
+  hasOptions: boolean;
+  /** Default output config when this element is added */
+  defaultOutput: OutputMap;
+  /** Default input config when this element is added */
+  defaultInput: InputMap;
+}
+
+export interface ElementCategory {
+  id: 'keuze' | 'invoer' | 'media' | 'weergave';
+  label: string;
+  icon: string;
+  description: string;
+}
+
+export const ELEMENT_CATEGORIES: readonly ElementCategory[] = [
+  { id: 'keuze', label: 'Keuze', icon: '☰', description: 'Klant maakt een selectie' },
+  { id: 'invoer', label: 'Invoer', icon: '✏️', description: 'Klant vult gegevens in' },
+  { id: 'media', label: 'Media', icon: '📷', description: 'Bestanden & foto\'s' },
+  { id: 'weergave', label: 'Weergave', icon: '👁️', description: 'Informatie tonen' },
 ] as const;
+
+export const ELEMENT_TYPES: readonly ElementTypeDefinition[] = [
+  // ─── Keuze ────────────────────────────────────────────────────
+  {
+    value: 'single-select-grid',
+    label: 'Keuzerooster',
+    description: 'Keuze uit afbeeldingen in een raster',
+    icon: '▦',
+    category: 'keuze',
+    hasOptions: true,
+    defaultOutput: {
+      select: { patchDraft: { categoryId: { $value: true } } },
+    },
+    defaultInput: {
+      options: { $stepOptions: true },
+      title: { $stepField: 'title' },
+    },
+  },
+  {
+    value: 'single-select-cards',
+    label: 'Keuzekaarten',
+    description: 'Keuze uit een lijst met beschrijvingen',
+    icon: '▤',
+    category: 'keuze',
+    hasOptions: true,
+    defaultOutput: {
+      select: { patchDraft: { selectedOption: { $value: true } } },
+    },
+    defaultInput: {
+      options: { $stepOptions: true },
+      title: { $stepField: 'title' },
+    },
+  },
+  // ─── Invoer ───────────────────────────────────────────────────
+  {
+    value: 'measurements-door',
+    label: 'Meetformulier',
+    description: 'Klant vult afmetingen in',
+    icon: '📐',
+    category: 'invoer',
+    hasOptions: false,
+    defaultOutput: {
+      measure: { patchDraft: {} },
+    },
+    defaultInput: {
+      title: { $stepField: 'title' },
+    },
+  },
+  {
+    value: 'preferences-door',
+    label: 'Voorkeuren formulier',
+    description: 'Klant geeft wensen en voorkeuren aan',
+    icon: '📝',
+    category: 'invoer',
+    hasOptions: false,
+    defaultOutput: {
+      preferences: { patchDraft: {} },
+    },
+    defaultInput: {
+      title: { $stepField: 'title' },
+    },
+  },
+  {
+    value: 'kozijn-dimensions',
+    label: 'Afmetingen invoer',
+    description: 'Gedetailleerd meetformulier met voorvertoning',
+    icon: '📏',
+    category: 'invoer',
+    hasOptions: false,
+    defaultOutput: {
+      measure: { patchDraft: {} },
+    },
+    defaultInput: {
+      title: { $stepField: 'title' },
+    },
+  },
+  {
+    value: 'kozijn-specs',
+    label: 'Specificaties formulier',
+    description: 'Technische details invullen',
+    icon: '⚙️',
+    category: 'invoer',
+    hasOptions: false,
+    defaultOutput: {
+      specs: { patchDraft: {} },
+    },
+    defaultInput: {
+      title: { $stepField: 'title' },
+    },
+  },
+  {
+    value: 'kozijn-preset',
+    label: 'Preset keuze',
+    description: 'Keuze uit voorinstellingen met afbeeldingen',
+    icon: '🪟',
+    category: 'keuze',
+    hasOptions: true,
+    defaultOutput: {
+      select: { patchDraft: { presetId: { $value: true } } },
+    },
+    defaultInput: {
+      options: { $stepOptions: true },
+      title: { $stepField: 'title' },
+    },
+  },
+  // ─── Media ────────────────────────────────────────────────────
+  {
+    value: 'media-upload',
+    label: 'Bestanden uploaden',
+    description: 'Foto\'s, documenten of video\'s toevoegen',
+    icon: '📷',
+    category: 'media',
+    hasOptions: false,
+    defaultOutput: {
+      upload: { mediaFiles: true },
+    },
+    defaultInput: {
+      title: { $stepField: 'title' },
+      description: { $stepField: 'description' },
+    },
+  },
+  // ─── Weergave ─────────────────────────────────────────────────
+  {
+    value: 'review-summary',
+    label: 'Samenvatting',
+    description: 'Overzicht van alle gegeven antwoorden',
+    icon: '✅',
+    category: 'weergave',
+    hasOptions: false,
+    defaultOutput: {},
+    defaultInput: {
+      title: { $stepField: 'title' },
+    },
+  },
+] as const;
+
+export function getElementType(value: string): ElementTypeDefinition | undefined {
+  return ELEMENT_TYPES.find(t => t.value === value);
+}
+
+export function getElementsByCategory(category: string): readonly ElementTypeDefinition[] {
+  return ELEMENT_TYPES.filter(t => t.category === category);
+}
+
+// ── Condition configuration ──────────────────────────────────────────────────
 
 export const CONDITION_OPERATORS = [
   { value: 'truthy', label: 'Is ingevuld', fields: ['field'] },

@@ -1,7 +1,11 @@
 import { ChangeDetectionStrategy, Component, model, computed, signal, type OnInit } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
-import { type FlowDefinition, type StepSchema, type ReviewSectionTemplate, type PayloadSchema, STEP_TYPES } from './flow-builder.types';
+import {
+  type FlowDefinition, type StepSchema, type ReviewSectionTemplate, type PayloadSchema,
+  type ElementTypeDefinition,
+  ELEMENT_TYPES, ELEMENT_CATEGORIES, getElementType, getElementsByCategory,
+} from './flow-builder.types';
 import { StepEditorComponent } from './step-editor/step-editor.component';
 import { ConditionEditorComponent } from './condition-editor/condition-editor.component';
 
@@ -20,8 +24,10 @@ export class FlowBuilderComponent implements OnInit {
   protected readonly jsonPreview = signal('');
   protected readonly jsonEdit = signal('');
   protected readonly jsonError = signal<string | null>(null);
+  protected readonly showElementPalette = signal(false);
 
-  protected readonly stepTypes = STEP_TYPES;
+  protected readonly elementTypes = ELEMENT_TYPES;
+  protected readonly elementCategories = ELEMENT_CATEGORIES;
 
   protected readonly preferencesSchemaJson = computed(() => {
     const ps = this.definition().payloadSchema.preferencesSchema;
@@ -40,25 +46,32 @@ export class FlowBuilderComponent implements OnInit {
     }
   }
 
+  protected getElementsByCategory(categoryId: string): readonly ElementTypeDefinition[] {
+    return getElementsByCategory(categoryId);
+  }
+
   // ── Steps management ───────────────────────────────────────────────────────
 
-  protected addStep(): void {
+  protected addElementFromPalette(elementType: ElementTypeDefinition): void {
     const def = this.definition();
     const id = `step-${Date.now().toString(36)}`;
     const newStep: StepSchema = {
       id,
-      type: 'single-select-grid',
-      title: 'Nieuwe stap',
+      type: elementType.value,
+      title: elementType.label,
+      description: elementType.description,
       visibleWhen: null,
       completeWhen: null,
-      inputMap: {},
-      outputMap: {},
+      inputMap: { ...elementType.defaultInput },
+      outputMap: structuredClone(elementType.defaultOutput),
+      ...(elementType.hasOptions ? { options: [] } : {}),
     };
     this.definition.set({
       ...def,
       steps: [...def.steps, newStep],
     });
     this.selectedStepIndex.set(def.steps.length);
+    this.showElementPalette.set(false);
   }
 
   protected duplicateStep(idx: number): void {
@@ -68,7 +81,7 @@ export class FlowBuilderComponent implements OnInit {
     const copy: StepSchema = {
       ...structuredClone(original),
       id: `${original.id}-copy`,
-      title: `${original.title} (copy)`,
+      title: `${original.title} (kopie)`,
     };
     const steps = [...def.steps];
     steps.splice(idx + 1, 0, copy);
@@ -107,7 +120,11 @@ export class FlowBuilderComponent implements OnInit {
   }
 
   protected getStepTypeLabel(type: string): string {
-    return STEP_TYPES.find(t => t.value === type)?.label ?? type;
+    return getElementType(type)?.label ?? type;
+  }
+
+  protected getStepTypeIcon(type: string): string {
+    return getElementType(type)?.icon ?? '?';
   }
 
   // ── Review template management ─────────────────────────────────────────────

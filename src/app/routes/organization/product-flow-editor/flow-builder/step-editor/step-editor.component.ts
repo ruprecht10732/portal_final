@@ -3,7 +3,8 @@ import { FormsModule } from '@angular/forms';
 import {
   type StepSchema, type OptionSchema, type InputMap, type InputValue,
   type OutputMap, type OutputAction, type OutputValueSource,
-  STEP_TYPES, INPUT_SOURCE_TYPES, OUTPUT_SOURCE_TYPES,
+  ELEMENT_TYPES, ELEMENT_CATEGORIES, getElementType, getElementsByCategory,
+  INPUT_SOURCE_TYPES, OUTPUT_SOURCE_TYPES,
 } from '../flow-builder.types';
 import { ConditionEditorComponent } from '../condition-editor/condition-editor.component';
 
@@ -16,7 +17,8 @@ import { ConditionEditorComponent } from '../condition-editor/condition-editor.c
 export class StepEditorComponent {
   step = model.required<StepSchema>();
 
-  protected readonly stepTypes = STEP_TYPES;
+  protected readonly elementTypes = ELEMENT_TYPES;
+  protected readonly elementCategories = ELEMENT_CATEGORIES;
   protected readonly inputSourceTypes = INPUT_SOURCE_TYPES;
   protected readonly outputSourceTypes = OUTPUT_SOURCE_TYPES;
 
@@ -24,8 +26,12 @@ export class StepEditorComponent {
 
   protected readonly hasOptions = computed(() => {
     const type = this.step().type;
-    return STEP_TYPES.find(t => t.value === type)?.hasOptions ?? true;
+    return getElementType(type)?.hasOptions ?? true;
   });
+
+  protected getElementsByCategory(categoryId: string) {
+    return getElementsByCategory(categoryId);
+  }
 
   // ── General field setters ──────────────────────────────────────────────────
 
