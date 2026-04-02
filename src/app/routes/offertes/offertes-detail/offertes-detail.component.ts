@@ -229,7 +229,7 @@ export class OffertesDetailComponent implements OnInit {
             {
               label: 'offertes.markSent',
               action: 'markSent',
-              icon: 'badge-check',
+              icon: 'send',
               disabled: this.updating(),
             },
           ]
