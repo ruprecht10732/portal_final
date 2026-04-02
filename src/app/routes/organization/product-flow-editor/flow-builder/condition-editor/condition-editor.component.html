@@ -1,0 +1,139 @@
+<div class="rounded-lg border border-zinc-200 bg-zinc-50/50">
+  <!-- Header -->
+  <button
+    type="button"
+    class="flex w-full items-center justify-between px-3 py-2 text-left text-sm hover:bg-zinc-100 rounded-lg transition-colors"
+    (click)="toggle()"
+  >
+    <span class="font-medium text-zinc-700">{{ label() }}</span>
+    <span class="text-xs text-zinc-500 truncate ml-2 max-w-[200px]">{{ conditionSummary() }}</span>
+  </button>
+
+  @if (expanded()) {
+    <div class="border-t border-zinc-200 px-3 py-3 space-y-3">
+      <!-- Enable/Disable toggle -->
+      @if (allowNull()) {
+        <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
+          <input
+            type="checkbox"
+            [checked]="condition() !== null"
+            (change)="$any($event.target).checked ? enable() : disable()"
+            class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
+          />
+          <span>Voorwaarde actief</span>
+        </label>
+      }
+
+      @if (condition() !== null) {
+        <!-- Operator Select -->
+        <div>
+          <label class="block text-xs font-medium text-zinc-500 mb-1" for="condition-op">Voorwaarde</label>
+          <select
+            id="condition-op"
+            class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none"
+            [ngModel]="currentOp()"
+            (ngModelChange)="setOp($event)"
+          >
+            @for (op of operators; track op.value) {
+              <option [value]="op.value">{{ op.label }}</option>
+            }
+          </select>
+        </div>
+
+        <!-- Field input (for field-based conditions) -->
+        @if (hasField()) {
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1" for="condition-field">Veldnaam</label>
+            <input
+              id="condition-field"
+              type="text"
+              class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none font-mono"
+              placeholder="bijv. categoryId"
+              [ngModel]="getField()"
+              (ngModelChange)="setField($event)"
+            />
+          </div>
+        }
+
+        <!-- Single value (eq / neq) -->
+        @if (hasValue()) {
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1" for="condition-value">Waarde</label>
+            <input
+              id="condition-value"
+              type="text"
+              class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none font-mono"
+              placeholder="waarde"
+              [ngModel]="getValueStr()"
+              (ngModelChange)="setValue($event)"
+            />
+          </div>
+        }
+
+        <!-- Multiple values (in / not_in) -->
+        @if (hasValues()) {
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1" for="condition-values">Waarden (komma-gescheiden)</label>
+            <input
+              id="condition-values"
+              type="text"
+              class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none font-mono"
+              placeholder="waarde1, waarde2, waarde3"
+              [ngModel]="getValuesStr()"
+              (ngModelChange)="setValues($event)"
+            />
+          </div>
+        }
+
+        <!-- Sub-conditions for and/or -->
+        @if (currentOp() === 'and' || currentOp() === 'or') {
+          <div class="space-y-2 pl-3 border-l-2 border-zinc-300">
+            @for (sub of getSubConditions(); track $index) {
+              <div class="flex items-start gap-2">
+                <div class="flex-1">
+                  <app-condition-editor
+                    [condition]="sub"
+                    (conditionChange)="updateSubCondition($index, $event)"
+                    [label]="'Voorwaarde ' + ($index + 1)"
+                    [allowNull]="false"
+                  />
+                </div>
+                <button
+                  type="button"
+                  class="mt-2 flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                  (click)="removeSubCondition($index)"
+                >
+                  <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/>
+                  </svg>
+                </button>
+              </div>
+            }
+            <button
+              type="button"
+              class="inline-flex items-center gap-1.5 rounded-md px-2.5 py-1.5 text-xs font-medium text-zinc-600 hover:bg-zinc-100 transition-colors"
+              (click)="addSubCondition()"
+            >
+              <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/>
+              </svg>
+              Voorwaarde toevoegen
+            </button>
+          </div>
+        }
+
+        <!-- NOT sub-condition -->
+        @if (currentOp() === 'not') {
+          <div class="pl-3 border-l-2 border-zinc-300">
+            <app-condition-editor
+              [condition]="getSubCondition()"
+              (conditionChange)="updateNotCondition($event)"
+              label="Negated condition"
+              [allowNull]="false"
+            />
+          </div>
+        }
+      }
+    </div>
+  }
+</div>

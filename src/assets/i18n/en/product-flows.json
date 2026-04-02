@@ -1,0 +1,39 @@
+{
+  "productFlows": {
+    "navLabel": "Intake flows",
+    "title": "Intake flows",
+    "subtitle": "Manage server-driven intake flow definitions.",
+    "create": "New flow",
+    "empty": "No intake flows found. Create one to get started.",
+    "global": "Global",
+    "version": "Version",
+    "steps": "Steps",
+    "duplicate": "Duplicate",
+    "delete": "Delete",
+    "deleteTitle": "Delete flow",
+    "deleteMessage": "Are you sure you want to delete this flow? This action cannot be undone.",
+    "deleteConfirm": "Delete",
+    "deleteCancel": "Cancel",
+    "deleted": "Flow deleted.",
+    "deleteFailed": "Failed to delete flow.",
+    "duplicated": "Flow duplicated.",
+    "duplicateFailed": "Failed to duplicate flow.",
+    "loadFailed": "Failed to load flows.",
+    "notFound": "Flow not found.",
+    "editor": {
+      "createTitle": "New flow",
+      "editTitle": "Edit flow",
+      "subtitle": "Define the steps and structure for an intake flow.",
+      "details": "Flow details",
+      "productGroupId": "Product group ID",
+      "productGroupIdPlaceholder": "e.g. deuren, kozijnen, ramen",
+      "definition": "Flow definition (JSON)",
+      "definitionPlaceholder": "Paste the full JSON flow definition here…",
+      "invalidJson": "Invalid JSON",
+      "save": "Save changes",
+      "create": "Create flow",
+      "cancel": "Cancel",
+      "saveFailed": "Failed to save flow."
+    }
+  }
+}

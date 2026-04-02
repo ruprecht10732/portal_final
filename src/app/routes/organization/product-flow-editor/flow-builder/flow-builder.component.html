@@ -1,0 +1,279 @@
+<div class="flow-builder">
+  <!-- Top tabs -->
+  <div class="flex border-b border-zinc-200">
+    @for (tab of [
+      { id: 'steps', label: 'Stappen' },
+      { id: 'review', label: 'Samenvatting scherm' },
+      { id: 'payload', label: 'Geavanceerd' },
+      { id: 'json', label: 'JSON' }
+    ]; track tab.id) {
+      <button
+        type="button"
+        class="px-4 py-2 text-sm font-medium border-b-2 -mb-px transition-colors"
+        [class.border-blue-500]="activeTab() === tab.id"
+        [class.text-blue-600]="activeTab() === tab.id"
+        [class.border-transparent]="activeTab() !== tab.id"
+        [class.text-zinc-500]="activeTab() !== tab.id"
+        [class.hover:text-zinc-700]="activeTab() !== tab.id"
+        (click)="onTabChange($any(tab.id))">
+        {{ tab.label }}
+      </button>
+    }
+  </div>
+
+  <!-- ═══ STEPS TAB ═══ -->
+  @if (activeTab() === 'steps') {
+    <div class="flex gap-4 min-h-[500px]">
+      <!-- Step list sidebar -->
+      <div class="step-list-panel flex flex-col gap-2 w-64 shrink-0">
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-sm font-medium text-zinc-700">Stappen ({{ definition().steps.length }})</span>
+          <button type="button"
+            class="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
+            (click)="addStep()">
+            + Stap toevoegen
+          </button>
+        </div>
+
+        <div cdkDropList (cdkDropListDropped)="onStepDrop($event)" class="flex flex-col gap-1">
+          @for (step of definition().steps; track step.id; let i = $index) {
+            <div cdkDrag
+              class="step-card flex items-center gap-2 rounded-lg border group"
+              [class.bg-blue-50]="selectedStepIndex() === i"
+              [class.border-blue-300]="selectedStepIndex() === i"
+              [class.bg-white]="selectedStepIndex() !== i"
+              [class.border-zinc-200]="selectedStepIndex() !== i"
+              [class.hover:bg-zinc-50]="selectedStepIndex() !== i">
+              <button
+                type="button"
+                class="flex min-w-0 flex-1 items-center gap-2 p-2 text-left"
+                (click)="selectedStepIndex.set(i)">
+                <span cdkDragHandle class="cursor-grab text-zinc-400 hover:text-zinc-600">⠿</span>
+                <div class="flex-1 min-w-0">
+                  <div class="text-sm font-medium text-zinc-800 truncate">{{ step.title || step.id }}</div>
+                  <div class="text-xs text-zinc-400">{{ getStepTypeLabel(step.type) }}</div>
+                </div>
+              </button>
+              <div class="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                <button type="button" class="text-zinc-400 hover:text-blue-500 text-xs" title="Duplicate"
+                  (click)="duplicateStep(i); $event.stopPropagation()">⧉</button>
+                <button type="button" class="text-zinc-400 hover:text-red-500 text-xs" title="Remove"
+                  (click)="removeStep(i); $event.stopPropagation()">✕</button>
+              </div>
+            </div>
+          }
+        </div>
+
+        @if (definition().steps.length === 0) {
+          <div class="text-center text-zinc-400 text-sm py-8">
+            Nog geen stappen.<br>Klik op "Stap toevoegen" om te beginnen.
+          </div>
+        }
+      </div>
+
+      <!-- Step editor panel -->
+      <div class="flex-1 min-w-0">
+        @if (selectedStep(); as step) {
+          <app-step-editor [step]="step"
+            (stepChange)="updateStep($event)" />
+        } @else {
+          <div class="flex items-center justify-center h-full text-zinc-400 text-sm">
+            Selecteer een stap om te bewerken, of voeg een nieuwe toe.
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  <!-- ═══ REVIEW TEMPLATE TAB ═══ -->
+  @if (activeTab() === 'review') {
+    <div class="flex flex-col gap-4">
+      <div class="flex items-center justify-between">
+        <span class="text-sm font-medium text-zinc-700">Secties</span>
+        <button type="button"
+          class="text-xs px-2 py-1 bg-blue-50 text-blue-600 rounded hover:bg-blue-100 transition-colors"
+          (click)="addReviewSection()">
+          + Sectie toevoegen
+        </button>
+      </div>
+
+      @for (section of definition().reviewTemplate; track $index; let si = $index) {
+        <div class="border border-zinc-200 rounded-lg p-4 bg-white">
+          <div class="flex items-center gap-3 mb-3">
+            <div class="flex-1">
+              <label class="block text-xs text-zinc-500 mb-1" [for]="'section-title-' + si">Sectie naam</label>
+              <input type="text" [id]="'section-title-' + si" [ngModel]="section.title"
+                (ngModelChange)="updateReviewSection(si, 'title', $event)"
+                class="w-full px-2 py-1 text-sm border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs text-zinc-500 mb-1" [for]="'section-editstep-' + si">Bewerkstap ID</label>
+              <input type="text" [id]="'section-editstep-' + si" [ngModel]="section.editStepId"
+                (ngModelChange)="updateReviewSection(si, 'editStepId', $event)"
+                class="w-full px-2 py-1 text-sm border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+            </div>
+            <button type="button" class="text-zinc-400 hover:text-red-500 mt-4" (click)="removeReviewSection(si)">✕</button>
+          </div>
+
+          @if (section.visibleWhen !== undefined) {
+            <app-condition-editor
+              [condition]="section.visibleWhen ?? null"
+              (conditionChange)="updateReviewSection(si, 'visibleWhen', $event)"
+              label="Zichtbaar wanneer"
+              [allowNull]="true" />
+          }
+
+          <div class="mt-3">
+            <div class="flex items-center justify-between mb-2">
+              <span class="text-xs font-medium text-zinc-600">Velden</span>
+              <button type="button" class="text-xs text-blue-600 hover:text-blue-800" (click)="addReviewItem(si)">+ Veld toevoegen</button>
+            </div>
+
+            @for (item of section.items; track $index; let ii = $index) {
+              <div class="flex items-start gap-2 mb-2 p-2 bg-zinc-50 rounded">
+                <div class="flex-1">
+                  <label class="block text-xs text-zinc-500 mb-1" [for]="'item-label-' + si + '-' + ii">Naam</label>
+                  <input type="text" [id]="'item-label-' + si + '-' + ii" [ngModel]="item.label"
+                    (ngModelChange)="updateReviewItemLabel(si, ii, $event)"
+                    class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+                <div class="w-24">
+                  <label class="block text-xs text-zinc-500 mb-1" [for]="'item-source-' + si + '-' + ii">Bron</label>
+                  <select [id]="'item-source-' + si + '-' + ii" [ngModel]="getReviewItemSourceType(item)"
+                    (ngModelChange)="updateReviewItemSource(si, ii, $event, getReviewItemSourceField(item), getReviewItemFormat(item))"
+                    class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none">
+                    <option value="draft">Concept veld</option>
+                    <option value="literal">Vaste waarde</option>
+                  </select>
+                </div>
+                <div class="flex-1">
+                  <label class="block text-xs text-zinc-500 mb-1" [for]="'item-field-' + si + '-' + ii">Veld</label>
+                  <input type="text" [id]="'item-field-' + si + '-' + ii" [ngModel]="getReviewItemSourceField(item)"
+                    (ngModelChange)="updateReviewItemSource(si, ii, getReviewItemSourceType(item), $event, getReviewItemFormat(item))"
+                    class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500" />
+                </div>
+                @if (getReviewItemSourceType(item) === 'draft') {
+                  <div class="w-28">
+                    <label class="block text-xs text-zinc-500 mb-1" [for]="'item-format-' + si + '-' + ii">Formaat</label>
+                    <select [id]="'item-format-' + si + '-' + ii" [ngModel]="getReviewItemFormat(item)"
+                      (ngModelChange)="updateReviewItemSource(si, ii, 'draft', getReviewItemSourceField(item), $event)"
+                      class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none">
+                      <option value="">geen</option>
+                      <option value="mm">mm</option>
+                      <option value="boolean">ja/nee</option>
+                      <option value="option-label">keuze label</option>
+                    </select>
+                  </div>
+                }
+                <button type="button" class="text-zinc-400 hover:text-red-500 mt-5" (click)="removeReviewItem(si, ii)">✕</button>
+              </div>
+            }
+          </div>
+        </div>
+      }
+
+      @if (definition().reviewTemplate.length === 0) {
+        <div class="text-center text-zinc-400 text-sm py-8">
+          Nog geen samenvatting secties gedefinieerd.
+        </div>
+      }
+    </div>
+  }
+
+  <!-- ═══ PAYLOAD SCHEMA TAB ═══ -->
+  @if (activeTab() === 'payload') {
+    <div class="flex flex-col gap-4">
+      <div class="grid grid-cols-2 gap-4">
+        <div>
+          <label class="block text-xs text-zinc-500 mb-1" for="payload-product-group">Productgroep</label>
+          <input type="text" id="payload-product-group" [ngModel]="definition().payloadSchema.productGroup"
+            (ngModelChange)="updatePayload('productGroup', $event)"
+            class="w-full px-2 py-1 text-sm border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none" />
+        </div>
+      </div>
+
+      <!-- Fields -->
+      <div>
+        <label class="block text-xs font-medium text-zinc-600 mb-2" for="payload-category-field">Categorie veld</label>
+        <input type="text" id="payload-category-field" [ngModel]="definition().payloadSchema.categoryField"
+          (ngModelChange)="updatePayload('categoryField', $event)"
+          class="w-full px-2 py-1 text-sm border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="e.g. doorCategory" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-zinc-600 mb-2" for="payload-category-label-fallback">Categorie label terugval</label>
+        <input type="text" id="payload-category-label-fallback" [ngModel]="definition().payloadSchema.categoryLabelFallback"
+          (ngModelChange)="updatePayload('categoryLabelFallback', $event)"
+          class="w-full px-2 py-1 text-sm border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="e.g. Unknown Category" />
+      </div>
+
+      <!-- Measurement Fields -->
+      <div>
+        <div class="flex items-center justify-between mb-2">
+          <span class="text-xs font-medium text-zinc-600">Meetvelden</span>
+          <button type="button" class="text-xs text-blue-600 hover:text-blue-800" (click)="addMeasurementField()">+ Toevoegen</button>
+        </div>
+
+        @for (mf of definition().payloadSchema.measurementFields; track $index; let mi = $index) {
+          <div class="flex items-center gap-2 mb-2 p-2 bg-zinc-50 rounded">
+            <div class="flex-1">
+              <label class="block text-xs text-zinc-500 mb-1" [for]="'mf-key-' + mi">Key</label>
+              <input type="text" [id]="'mf-key-' + mi" [ngModel]="mf.key"
+                (ngModelChange)="updateMeasurementField(mi, 'key', $event)"
+                class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500" />
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs text-zinc-500 mb-1" [for]="'mf-label-' + mi">Naam</label>
+              <input type="text" [id]="'mf-label-' + mi" [ngModel]="mf.label"
+                (ngModelChange)="updateMeasurementField(mi, 'label', $event)"
+                class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500" />
+            </div>
+            <div class="w-20">
+              <label class="block text-xs text-zinc-500 mb-1" [for]="'mf-unit-' + mi">Eenheid</label>
+              <input type="text" [id]="'mf-unit-' + mi" [ngModel]="mf.unit"
+                (ngModelChange)="updateMeasurementField(mi, 'unit', $event)"
+                class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500" />
+            </div>
+            <div class="flex-1">
+              <label class="block text-xs text-zinc-500 mb-1" [for]="'mf-draftfield-' + mi">Concept veld</label>
+              <input type="text" [id]="'mf-draftfield-' + mi" [ngModel]="mf.draftField"
+                (ngModelChange)="updateMeasurementField(mi, 'draftField', $event)"
+                class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500" />
+            </div>
+            <button type="button" class="text-zinc-400 hover:text-red-500 mt-4" (click)="removeMeasurementField(mi)">✕</button>
+          </div>
+        }
+      </div>
+
+      <!-- Preferences Schema -->
+      <div>
+        <label class="block text-xs font-medium text-zinc-600 mb-2" for="payload-preferences-schema">Voorkeurschema (JSON)</label>
+        <textarea id="payload-preferences-schema" [ngModel]="preferencesSchemaJson()"
+          (ngModelChange)="tryParsePreferencesSchema($event)"
+          rows="6"
+          class="w-full px-2 py-1 text-xs font-mono border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"></textarea>
+      </div>
+    </div>
+  }
+
+  <!-- ═══ RAW JSON TAB ═══ -->
+  @if (activeTab() === 'json') {
+    <div class="flex flex-col gap-2">
+      <textarea [(ngModel)]="jsonEdit"
+        rows="20"
+        class="w-full px-3 py-2 text-xs font-mono border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 outline-none resize-y"></textarea>
+      @if (jsonError()) {
+        <p class="text-xs text-red-600">{{ jsonError() }}</p>
+      }
+      <div>
+        <button type="button"
+          class="text-xs px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700 transition-colors"
+          (click)="applyJson()">
+          JSON toepassen
+        </button>
+      </div>
+    </div>
+  }
+</div>

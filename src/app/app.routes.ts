@@ -33,6 +33,7 @@ const settingsPanelItems: SidebarPanelConfig['panelItems'] = [
 	{ group: 'sidebar.groups.operations', label: 'navigation.services', route: '/app/settings/services', icon: 'wrench', roles: ['admin'], exact: true },
 	{ group: 'sidebar.groups.operations', label: 'navigation.catalog', route: '/app/settings/catalog', icon: 'book-open', exact: true },
 	{ group: 'sidebar.groups.operations', label: 'catalog.vatRates.title', route: '/app/settings/catalog/vat-rates', icon: 'settings' },
+	{ group: 'sidebar.groups.operations', label: 'productFlows.navLabel', route: '/app/settings/flows', icon: 'git-branch', roles: ['admin'], exact: true },
 	{ group: 'sidebar.groups.automation', label: 'organization.settings.ai.title', route: '/app/settings/ai', icon: 'brain-circuit', roles: ['admin'] },
 	{ group: 'sidebar.groups.company', label: 'organization.overview', route: '/app/settings/company', icon: 'building', exact: true, roles: ['admin'] },
 	{ group: 'sidebar.groups.company', label: 'organization.team.navLabel', route: '/app/settings/team', icon: 'users', roles: ['admin'] },
@@ -305,6 +306,23 @@ export const routes: Routes = [
 						path: 'services/:id',
 						canActivate: [adminGuard],
 						loadComponent: () => import('./routes/services/service-type-detail/service-type-detail.component').then(m => m.ServiceTypeDetailComponent),
+					},
+					{
+						path: 'flows',
+						canActivate: [adminGuard],
+						loadComponent: () => import('./routes/organization/product-flows/product-flows.component').then(m => m.ProductFlowsComponent),
+					},
+					{
+						path: 'flows/new',
+						canActivate: [adminGuard],
+						loadComponent: () =>
+							import('./routes/organization/product-flow-editor/product-flow-editor.component').then(m => m.ProductFlowEditorComponent),
+					},
+					{
+						path: 'flows/:id/edit',
+						canActivate: [adminGuard],
+						loadComponent: () =>
+							import('./routes/organization/product-flow-editor/product-flow-editor.component').then(m => m.ProductFlowEditorComponent),
 					},
 					{
 						path: 'moneybird',

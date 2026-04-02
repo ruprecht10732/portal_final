@@ -1,0 +1,35 @@
+.flow-builder {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-height: 500px;
+}
+
+.step-list-panel {
+  min-width: 240px;
+  max-height: 500px;
+  overflow-y: auto;
+}
+
+.step-card {
+  transition: background-color 0.15s;
+}
+
+.cdk-drag-preview {
+  background: white;
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1);
+  border-radius: 0.5rem;
+  border: 1px solid #d4d4d8;
+  padding: 0.75rem;
+}
+
+.cdk-drag-placeholder {
+  background: #f4f4f5;
+  border: 2px dashed #d4d4d8;
+  border-radius: 0.5rem;
+  opacity: 0;
+}
+
+.cdk-drag-animating {
+  transition: transform 250ms cubic-bezier(0, 0, 0.2, 1);
+}

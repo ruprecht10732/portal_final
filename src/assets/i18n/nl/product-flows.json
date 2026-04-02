@@ -1,0 +1,39 @@
+{
+  "productFlows": {
+    "navLabel": "Intake flows",
+    "title": "Intake flows",
+    "subtitle": "Beheer server-driven intake flow definities.",
+    "create": "Nieuwe flow",
+    "empty": "Geen intake flows gevonden. Maak er een aan om te beginnen.",
+    "global": "Globaal",
+    "version": "Versie",
+    "steps": "Stappen",
+    "duplicate": "Dupliceren",
+    "delete": "Verwijderen",
+    "deleteTitle": "Flow verwijderen",
+    "deleteMessage": "Weet je zeker dat je deze flow wilt verwijderen? Dit kan niet ongedaan worden.",
+    "deleteConfirm": "Verwijderen",
+    "deleteCancel": "Annuleren",
+    "deleted": "Flow verwijderd.",
+    "deleteFailed": "Kan flow niet verwijderen.",
+    "duplicated": "Flow gedupliceerd.",
+    "duplicateFailed": "Kan flow niet dupliceren.",
+    "loadFailed": "Kan flows niet laden.",
+    "notFound": "Flow niet gevonden.",
+    "editor": {
+      "createTitle": "Nieuwe flow",
+      "editTitle": "Flow bewerken",
+      "subtitle": "Definieer de stappen en structuur voor een intake flow.",
+      "details": "Flow details",
+      "productGroupId": "Product groep ID",
+      "productGroupIdPlaceholder": "bijv. deuren, kozijnen, ramen",
+      "definition": "Flow definitie (JSON)",
+      "definitionPlaceholder": "Plak hier de volledige JSON flow definitie…",
+      "invalidJson": "Ongeldige JSON",
+      "save": "Wijzigingen opslaan",
+      "create": "Flow aanmaken",
+      "cancel": "Annuleren",
+      "saveFailed": "Kan flow niet opslaan."
+    }
+  }
+}

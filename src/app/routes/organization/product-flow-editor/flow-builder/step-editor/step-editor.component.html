@@ -1,0 +1,419 @@
+<!-- Tab bar -->
+<div class="flex border-b border-zinc-200 mb-4">
+  @for (tab of ['general', 'options', 'conditions', 'input', 'output']; track tab) {
+    <button
+      type="button"
+      class="px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
+      [class.border-zinc-900]="activeTab() === tab"
+      [class.text-zinc-900]="activeTab() === tab"
+      [class.border-transparent]="activeTab() !== tab"
+      [class.text-zinc-500]="activeTab() !== tab"
+      [class.hover:text-zinc-700]="activeTab() !== tab"
+      (click)="activeTab.set($any(tab))"
+    >
+      {{ tab === 'general' ? 'Algemeen' : tab === 'options' ? 'Keuzes' : tab === 'conditions' ? 'Zichtbaarheid' : tab === 'input' ? 'Invoer koppeling' : 'Uitvoer koppeling' }}
+    </button>
+  }
+</div>
+
+<!-- ═══ General Tab ═══ -->
+@if (activeTab() === 'general') {
+  <div class="space-y-4">
+    <div>
+      <label class="block text-xs font-medium text-zinc-500 mb-1" for="step-id">Stap ID</label>
+      <input
+        type="text"
+        id="step-id"
+        class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-mono text-zinc-900 focus:border-zinc-900 focus:outline-none"
+        [ngModel]="step().id"
+        (ngModelChange)="updateField('id', $event)"
+        placeholder="bijv. kies-deur-type"
+      />
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-zinc-500 mb-1.5">Wat voor stap is dit?</label>
+      <div class="grid grid-cols-3 gap-2">
+        @for (st of stepTypes; track st.value) {
+          <button
+            type="button"
+            class="flex flex-col items-center gap-1 rounded-lg border-2 p-2.5 text-center transition-all"
+            [class.border-blue-500]="step().type === st.value"
+            [class.bg-blue-50]="step().type === st.value"
+            [class.ring-1]="step().type === st.value"
+            [class.ring-blue-200]="step().type === st.value"
+            [class.border-zinc-200]="step().type !== st.value"
+            [class.bg-white]="step().type !== st.value"
+            [class.hover:border-zinc-300]="step().type !== st.value"
+            [class.hover:bg-zinc-50]="step().type !== st.value"
+            (click)="updateField('type', st.value)"
+          >
+            <span class="text-xl leading-none">{{ st.icon }}</span>
+            <span class="text-xs font-medium text-zinc-800 leading-tight">{{ st.label }}</span>
+            <span class="text-[10px] text-zinc-500 leading-tight">{{ st.description }}</span>
+          </button>
+        }
+      </div>
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-zinc-500 mb-1" for="step-title">Titel</label>
+      <input
+        type="text"
+        id="step-title"
+        class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none"
+        [ngModel]="step().title"
+        (ngModelChange)="updateField('title', $event)"
+        placeholder="Bijv. 'Kies uw deur type'"
+      />
+    </div>
+
+    <div>
+      <label class="block text-xs font-medium text-zinc-500 mb-1" for="step-description">Omschrijving</label>
+      <textarea
+        id="step-description"
+        class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none resize-y min-h-[60px]"
+        [ngModel]="step().description ?? ''"
+        (ngModelChange)="updateField('description', $event || undefined)"
+        placeholder="Optionele toelichting die de klant ziet"
+      ></textarea>
+    </div>
+
+    <label class="flex items-center gap-2 text-sm text-zinc-700 cursor-pointer">
+      <input
+        type="checkbox"
+        [checked]="step().autoAdvance ?? false"
+        (change)="updateField('autoAdvance', $any($event.target).checked || undefined)"
+        class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
+      />
+      Automatisch door naar volgende stap
+    </label>
+  </div>
+}
+
+<!-- ═══ Options Tab ═══ -->
+@if (activeTab() === 'options') {
+  <div class="space-y-3">
+    @if (!hasOptions()) {
+      <p class="text-sm text-zinc-500 italic">Dit stap type heeft geen keuze-opties.</p>
+    } @else {
+      @for (opt of getOptions(); track $index) {
+        <div class="rounded-lg border border-zinc-200 bg-white p-3 space-y-2.5">
+          <div class="flex items-center justify-between">
+            <span class="text-xs font-medium text-zinc-400">Keuze {{ $index + 1 }}</span>
+            <div class="flex items-center gap-1">
+              <button
+                type="button"
+                class="h-6 w-6 flex items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors disabled:opacity-30"
+                [disabled]="$index === 0"
+                (click)="moveOption($index, -1)"
+              >
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 15l7-7 7 7"/></svg>
+              </button>
+              <button
+                type="button"
+                class="h-6 w-6 flex items-center justify-center rounded text-zinc-400 hover:bg-zinc-100 hover:text-zinc-600 transition-colors disabled:opacity-30"
+                [disabled]="$index === getOptions().length - 1"
+                (click)="moveOption($index, 1)"
+              >
+                <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/></svg>
+              </button>
+              <button
+                type="button"
+                class="h-6 w-6 flex items-center justify-center rounded text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+                (click)="removeOption($index)"
+              >
+                <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs text-zinc-500 mb-0.5" [for]="'opt-id-' + $index">ID</label>
+              <input
+                type="text"
+                [id]="'opt-id-' + $index"
+                class="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs font-mono text-zinc-900 focus:border-zinc-900 focus:outline-none"
+                [ngModel]="opt.id"
+                (ngModelChange)="updateOption($index, 'id', $event)"
+              />
+            </div>
+            <div>
+              <label class="block text-xs text-zinc-500 mb-0.5" [for]="'opt-label-' + $index">Titel</label>
+              <input
+                type="text"
+                [id]="'opt-label-' + $index"
+                class="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs text-zinc-900 focus:border-zinc-900 focus:outline-none"
+                [ngModel]="opt.label"
+                (ngModelChange)="updateOption($index, 'label', $event)"
+              />
+            </div>
+          </div>
+
+          <div>
+              <label class="block text-xs text-zinc-500 mb-0.5" [for]="'opt-desc-' + $index">Omschrijving</label>
+            <input
+              type="text"
+              [id]="'opt-desc-' + $index"
+              class="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs text-zinc-900 focus:border-zinc-900 focus:outline-none"
+              [ngModel]="opt.description ?? ''"
+              (ngModelChange)="updateOption($index, 'description', $event || undefined)"
+              placeholder="Optional"
+            />
+          </div>
+
+          <div class="grid grid-cols-2 gap-2">
+            <div>
+              <label class="block text-xs text-zinc-500 mb-0.5" [for]="'opt-image-' + $index">Afbeelding pad</label>
+              <input
+                type="text"
+                [id]="'opt-image-' + $index"
+                class="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs font-mono text-zinc-900 focus:border-zinc-900 focus:outline-none"
+                [ngModel]="opt.imagePath ?? ''"
+                (ngModelChange)="updateOption($index, 'imagePath', $event || undefined)"
+                placeholder="/intake/..."
+              />
+            </div>
+            <div class="flex items-end pb-1">
+              <label class="flex items-center gap-1.5 text-xs text-zinc-600 cursor-pointer">
+                <input
+                  type="checkbox"
+                  [checked]="opt.available !== false"
+                  (change)="updateOption($index, 'available', $any($event.target).checked)"
+                  class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
+                />
+                Beschikbaar
+              </label>
+            </div>
+          </div>
+        </div>
+      }
+
+      <button
+        type="button"
+        class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:border-zinc-400 transition-colors w-full justify-center"
+        (click)="addOption()"
+      >
+        <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+        Keuze toevoegen
+      </button>
+    }
+  </div>
+}
+
+<!-- ═══ Conditions Tab ═══ -->
+@if (activeTab() === 'conditions') {
+  <div class="space-y-4">
+    <app-condition-editor
+      [condition]="step().visibleWhen"
+      (conditionChange)="updateField('visibleWhen', $event)"
+      label="Zichtbaar wanneer"
+    />
+
+    <app-condition-editor
+      [condition]="step().completeWhen"
+      (conditionChange)="updateField('completeWhen', $event)"
+      label="Voltooid wanneer"
+    />
+  </div>
+}
+
+<!-- ═══ Input Map Tab ═══ -->
+@if (activeTab() === 'input') {
+  <div class="space-y-3">
+    @for (entry of getInputEntries(); track entry.key) {
+      <div class="rounded-lg border border-zinc-200 bg-white p-3 space-y-2">
+        <div class="flex items-center justify-between">
+          <input
+            type="text"
+            class="rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-mono font-medium text-zinc-900 focus:border-zinc-900 focus:outline-none w-32"
+            [ngModel]="entry.key"
+            (ngModelChange)="updateInputKey(entry.key, $event)"
+            placeholder="key"
+          />
+          <button
+            type="button"
+            class="h-6 w-6 flex items-center justify-center rounded text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+            (click)="removeInputEntry(entry.key)"
+          >
+            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <div class="grid grid-cols-2 gap-2">
+          <div>
+            <label class="block text-xs text-zinc-500 mb-0.5" [for]="'input-source-' + entry.key">Bron type</label>
+            <select
+              [id]="'input-source-' + entry.key"
+              class="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs text-zinc-900 focus:border-zinc-900 focus:outline-none"
+              [ngModel]="getInputSourceType(entry.value)"
+              (ngModelChange)="updateInputSourceType(entry.key, $event)"
+            >
+              @for (src of inputSourceTypes; track src.value) {
+                <option [value]="src.value">{{ src.label }}</option>
+              }
+            </select>
+          </div>
+
+          @if (getInputSourceType(entry.value) !== '$stepOptions') {
+            <div>
+              <label class="block text-xs text-zinc-500 mb-0.5" [for]="'input-value-' + entry.key">Waarde</label>
+              @if (getInputSourceType(entry.value) === '$meta') {
+                <select
+                  [id]="'input-value-' + entry.key"
+                  class="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs text-zinc-900 focus:border-zinc-900 focus:outline-none"
+                  [ngModel]="getInputSourceValue(entry.value)"
+                  (ngModelChange)="updateInputSourceValue(entry.key, $event)"
+                >
+                  <option value="stepNumber">stepNumber</option>
+                  <option value="totalSteps">totalSteps</option>
+                </select>
+              } @else if (getInputSourceType(entry.value) === '$stepField') {
+                <select
+                  [id]="'input-value-' + entry.key"
+                  class="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs text-zinc-900 focus:border-zinc-900 focus:outline-none"
+                  [ngModel]="getInputSourceValue(entry.value)"
+                  (ngModelChange)="updateInputSourceValue(entry.key, $event)"
+                >
+                  <option value="title">title</option>
+                  <option value="description">description</option>
+                  <option value="type">type</option>
+                </select>
+              } @else {
+                <input
+                  type="text"
+                  [id]="'input-value-' + entry.key"
+                  class="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs font-mono text-zinc-900 focus:border-zinc-900 focus:outline-none"
+                  [ngModel]="getInputSourceValue(entry.value)"
+                  (ngModelChange)="updateInputSourceValue(entry.key, $event)"
+                />
+              }
+            </div>
+          }
+        </div>
+      </div>
+    }
+
+    <button
+      type="button"
+      class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:border-zinc-400 transition-colors w-full justify-center"
+      (click)="addInputEntry()"
+    >
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Invoer koppeling toevoegen
+    </button>
+  </div>
+}
+
+<!-- ═══ Output Map Tab ═══ -->
+@if (activeTab() === 'output') {
+  <div class="space-y-4">
+    @for (entry of getOutputEntries(); track entry.eventName) {
+      <div class="rounded-lg border border-zinc-200 bg-white p-3 space-y-3">
+        <div class="flex items-center justify-between">
+          <div class="flex items-center gap-2">
+            <span class="text-xs text-zinc-400">Gebeurtenis:</span>
+            <input
+              type="text"
+              class="rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-mono font-medium text-zinc-900 focus:border-zinc-900 focus:outline-none w-40"
+              [ngModel]="entry.eventName"
+              (ngModelChange)="updateOutputEventName(entry.eventName, $event)"
+            />
+          </div>
+          <button
+            type="button"
+            class="h-6 w-6 flex items-center justify-center rounded text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors"
+            (click)="removeOutputEntry(entry.eventName)"
+          >
+            <svg class="h-3.5 w-3.5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+          </button>
+        </div>
+
+        <!-- Patch draft fields -->
+        <div>
+          <span class="text-xs font-medium text-zinc-500 block mb-2">Velden bijwerken bij keuze</span>
+          <div class="space-y-2 pl-2 border-l-2 border-zinc-200">
+            @for (pf of getPatchDraftEntries(entry.action); track pf.field) {
+              <div class="flex items-center gap-2">
+                <input
+                  type="text"
+                  class="rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-mono text-zinc-900 focus:border-zinc-900 focus:outline-none w-28"
+                  [ngModel]="pf.field"
+                  (ngModelChange)="updatePatchDraftFieldName(entry.eventName, pf.field, $event)"
+                  placeholder="field"
+                />
+                <span class="text-zinc-400 text-xs">←</span>
+                <select
+                  class="rounded border border-zinc-200 bg-zinc-50 px-1.5 py-1 text-xs text-zinc-900 focus:border-zinc-900 focus:outline-none w-28"
+                  [ngModel]="getOutputSourceType(pf.source)"
+                  (ngModelChange)="updatePatchDraftSourceType(entry.eventName, pf.field, $event)"
+                >
+                  @for (ost of outputSourceTypes; track ost.value) {
+                    <option [value]="ost.value">{{ ost.label }}</option>
+                  }
+                </select>
+                @if (getOutputSourceType(pf.source) !== '$value') {
+                  <input
+                    type="text"
+                    class="rounded border border-zinc-200 bg-zinc-50 px-2 py-1 text-xs font-mono text-zinc-900 focus:border-zinc-900 focus:outline-none flex-1"
+                    [ngModel]="getOutputSourceValue(pf.source)"
+                    (ngModelChange)="updatePatchDraftSourceValue(entry.eventName, pf.field, $event)"
+                  />
+                }
+                <button
+                  type="button"
+                  class="h-5 w-5 flex items-center justify-center rounded text-zinc-400 hover:text-red-600 transition-colors"
+                  (click)="removePatchDraftField(entry.eventName, pf.field)"
+                >
+                  <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+                </button>
+              </div>
+            }
+            <button
+              type="button"
+              class="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-zinc-700 transition-colors"
+              (click)="addPatchDraftField(entry.eventName)"
+            >
+              <svg class="h-3 w-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+              Veld toevoegen
+            </button>
+          </div>
+        </div>
+
+        <!-- Reset fields -->
+        <div>
+          <label class="block text-xs font-medium text-zinc-500 mb-1" [for]="'reset-fields-' + entry.eventName">Velden resetten (komma-gescheiden)</label>
+          <input
+            type="text"
+            [id]="'reset-fields-' + entry.eventName"
+            class="w-full rounded border border-zinc-200 bg-zinc-50 px-2 py-1.5 text-xs font-mono text-zinc-900 focus:border-zinc-900 focus:outline-none"
+            [ngModel]="getResetFieldsStr(entry.action)"
+            (ngModelChange)="setResetFields(entry.eventName, $event)"
+            placeholder="field1, field2"
+          />
+        </div>
+
+        <!-- Media files toggle -->
+        <label class="flex items-center gap-1.5 text-xs text-zinc-600 cursor-pointer">
+          <input
+            type="checkbox"
+            [checked]="entry.action.mediaFiles ?? false"
+            (change)="toggleMediaFiles(entry.eventName)"
+            class="rounded border-zinc-300 text-zinc-900 focus:ring-zinc-500"
+          />
+          Accepteert media bestanden
+        </label>
+      </div>
+    }
+
+    <button
+      type="button"
+      class="inline-flex items-center gap-1.5 rounded-lg border border-dashed border-zinc-300 px-3 py-2 text-sm font-medium text-zinc-600 hover:bg-zinc-50 hover:border-zinc-400 transition-colors w-full justify-center"
+      (click)="addOutputEntry()"
+    >
+      <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg>
+      Uitvoer actie toevoegen
+    </button>
+  </div>
+}
