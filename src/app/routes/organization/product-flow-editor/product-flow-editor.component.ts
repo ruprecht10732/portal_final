@@ -11,7 +11,7 @@ import { PageLayoutComponent } from '../../../shared/components/page-layout/page
 import { SkeletonComponent } from '../../../shared/components/skeleton/skeleton.component';
 import { ProductFlowService } from '../../../core/services/product-flow.service';
 import { FlowBuilderComponent } from './flow-builder/flow-builder.component';
-import { type FlowDefinition } from './flow-builder/flow-builder.types';
+import { type FlowDefinition, createEmptyDefinition } from './flow-builder/flow-builder.types';
 
 @Component({
   selector: 'app-product-flow-editor',
@@ -45,16 +45,7 @@ export class ProductFlowEditorComponent {
 
   protected readonly productGroupId = signal('');
   protected readonly definitionJson = signal('');
-  protected readonly flowDefinition = signal<FlowDefinition>({
-    steps: [],
-    reviewTemplate: [],
-    payloadSchema: {
-      productGroup: '',
-      categoryField: '',
-      categoryLabelFallback: '',
-      measurementFields: [],
-    },
-  });
+  protected readonly flowDefinition = signal<FlowDefinition>(createEmptyDefinition());
   protected readonly definitionReady = signal(false);
 
   protected readonly jsonError = computed(() => {
@@ -97,8 +88,12 @@ export class ProductFlowEditorComponent {
           return;
         }
         this.productGroupId.set(flow.productGroupId);
-        this.definitionJson.set(JSON.stringify(flow.definition, null, 2));
-        this.flowDefinition.set(flow.definition as FlowDefinition);
+        const def = (flow.editorDefinition ?? flow.definition) as FlowDefinition;
+        if (!def.settings) {
+          def.settings = { productGroup: '', summaryTitle: 'Samenvatting' };
+        }
+        this.definitionJson.set(JSON.stringify(def, null, 2));
+        this.flowDefinition.set(def);
         this.definitionReady.set(true);
       });
   }
@@ -113,8 +108,8 @@ export class ProductFlowEditorComponent {
     const definition = this.flowDefinition();
 
     const request$ = this.isEditMode()
-      ? this.flowService.update(this.flowId()!, { definition })
-      : this.flowService.create({ productGroupId: this.productGroupId().trim(), definition });
+      ? this.flowService.update(this.flowId()!, { editorDefinition: definition })
+      : this.flowService.create({ productGroupId: this.productGroupId().trim(), editorDefinition: definition, definition: {} });
 
     request$
       .pipe(

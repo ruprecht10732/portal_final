@@ -9,6 +9,7 @@ export interface ProductFlow {
   version: number;
   isGlobal: boolean;
   definition: unknown;
+  editorDefinition?: unknown;
 }
 
 export interface ProductFlowListResponse {
@@ -18,10 +19,12 @@ export interface ProductFlowListResponse {
 export interface CreateProductFlowRequest {
   productGroupId: string;
   definition: unknown;
+  editorDefinition?: unknown;
 }
 
 export interface UpdateProductFlowRequest {
-  definition: unknown;
+  definition?: unknown;
+  editorDefinition?: unknown;
 }
 
 @Injectable({ providedIn: 'root' })

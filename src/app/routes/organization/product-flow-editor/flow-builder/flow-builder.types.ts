@@ -1,4 +1,4 @@
-// ── Conditions ──────────────────────────────────────────────────────────────
+// ── Conditions (kept from V1 — these are solid) ─────────────────────────────
 export type FieldCondition =
   | { op: 'truthy'; field: string }
   | { op: 'falsy'; field: string }
@@ -14,279 +14,6 @@ export type CompoundCondition =
 
 export type Condition = FieldCondition | CompoundCondition;
 
-// ── Options ──────────────────────────────────────────────────────────────
-export interface OptionSchema {
-  id: string;
-  label: string;
-  description?: string;
-  imagePath?: string;
-  available?: boolean;
-  metadata?: Record<string, unknown>;
-}
-
-// ── Input mapping ────────────────────────────────────────────────────────────
-export type InputValue =
-  | { $literal: unknown }
-  | { $draft: string }
-  | { $meta: 'stepNumber' | 'totalSteps' }
-  | { $stepOptions: true }
-  | { $stepField: 'title' | 'description' | 'type' };
-
-export type InputMap = Record<string, InputValue>;
-
-// ── Output mapping ───────────────────────────────────────────────────────────
-export type OutputValueSource =
-  | { $value: true }
-  | { $literal: unknown }
-  | { $valueField: string };
-
-export interface OutputAction {
-  patchDraft?: Record<string, OutputValueSource>;
-  resetFields?: string[];
-  mediaFiles?: boolean;
-}
-
-export type OutputMap = Record<string, OutputAction>;
-
-// ── Review template ──────────────────────────────────────────────────────────
-export interface ReviewItemTemplate {
-  label: string;
-  source:
-    | { $draft: string; format?: 'mm' | 'boolean' | 'option-label'; stepId?: string }
-    | { $literal: string };
-}
-
-export interface ReviewSectionTemplate {
-  title: string;
-  editStepId: string;
-  visibleWhen?: Condition | null;
-  items: ReviewItemTemplate[];
-}
-
-// ── Payload schema ───────────────────────────────────────────────────────────
-export interface PayloadMeasurementFieldSchema {
-  key: string;
-  label: string;
-  unit: string;
-  draftField: string;
-  conditionalKey?: { condition: Condition; alternateKey: string };
-  conditionalLabel?: { condition: Condition; alternateLabel: string };
-}
-
-export interface PayloadSchema {
-  productGroup: string;
-  categoryField: string;
-  categoryLabelFallback: string;
-  frameOptionField?: string;
-  frameOptionLabelFallback?: string;
-  productTypeField?: string;
-  productTypeLabelFallback?: string;
-  supplierField?: string;
-  supplierLabelFallback?: string;
-  measurementFields: PayloadMeasurementFieldSchema[];
-  measurementVisibleWhen?: Condition | null;
-  preferencesSchema?: {
-    customerWishesField: string;
-    examplePreferenceField: string;
-    exampleNotesField: string;
-  };
-}
-
-// ── Step schema ──────────────────────────────────────────────────────────────
-export interface StepSchema {
-  id: string;
-  type: string;
-  title: string;
-  description?: string;
-  options?: OptionSchema[];
-  visibleWhen: Condition | null;
-  completeWhen: Condition | null;
-  autoAdvance?: boolean;
-  inputMap: InputMap;
-  outputMap: OutputMap;
-}
-
-// ── Flow definition (root) ───────────────────────────────────────────────────
-export interface FlowDefinition {
-  steps: StepSchema[];
-  reviewTemplate: ReviewSectionTemplate[];
-  payloadSchema: PayloadSchema;
-}
-
-// ── Element categories & palette ─────────────────────────────────────────────
-
-export interface ElementTypeDefinition {
-  value: string;
-  label: string;
-  description: string;
-  icon: string;
-  category: 'keuze' | 'invoer' | 'media' | 'weergave';
-  hasOptions: boolean;
-  /** Default output config when this element is added */
-  defaultOutput: OutputMap;
-  /** Default input config when this element is added */
-  defaultInput: InputMap;
-}
-
-export interface ElementCategory {
-  id: 'keuze' | 'invoer' | 'media' | 'weergave';
-  label: string;
-  icon: string;
-  description: string;
-}
-
-export const ELEMENT_CATEGORIES: readonly ElementCategory[] = [
-  { id: 'keuze', label: 'Keuze', icon: '☰', description: 'Klant maakt een selectie' },
-  { id: 'invoer', label: 'Invoer', icon: '✏️', description: 'Klant vult gegevens in' },
-  { id: 'media', label: 'Media', icon: '📷', description: 'Bestanden & foto\'s' },
-  { id: 'weergave', label: 'Weergave', icon: '👁️', description: 'Informatie tonen' },
-] as const;
-
-export const ELEMENT_TYPES: readonly ElementTypeDefinition[] = [
-  // ─── Keuze ────────────────────────────────────────────────────
-  {
-    value: 'single-select-grid',
-    label: 'Keuzerooster',
-    description: 'Keuze uit afbeeldingen in een raster',
-    icon: '▦',
-    category: 'keuze',
-    hasOptions: true,
-    defaultOutput: {
-      select: { patchDraft: { categoryId: { $value: true } } },
-    },
-    defaultInput: {
-      options: { $stepOptions: true },
-      title: { $stepField: 'title' },
-    },
-  },
-  {
-    value: 'single-select-cards',
-    label: 'Keuzekaarten',
-    description: 'Keuze uit een lijst met beschrijvingen',
-    icon: '▤',
-    category: 'keuze',
-    hasOptions: true,
-    defaultOutput: {
-      select: { patchDraft: { selectedOption: { $value: true } } },
-    },
-    defaultInput: {
-      options: { $stepOptions: true },
-      title: { $stepField: 'title' },
-    },
-  },
-  // ─── Invoer ───────────────────────────────────────────────────
-  {
-    value: 'measurements-door',
-    label: 'Meetformulier',
-    description: 'Klant vult afmetingen in',
-    icon: '📐',
-    category: 'invoer',
-    hasOptions: false,
-    defaultOutput: {
-      measure: { patchDraft: {} },
-    },
-    defaultInput: {
-      title: { $stepField: 'title' },
-    },
-  },
-  {
-    value: 'preferences-door',
-    label: 'Voorkeuren formulier',
-    description: 'Klant geeft wensen en voorkeuren aan',
-    icon: '📝',
-    category: 'invoer',
-    hasOptions: false,
-    defaultOutput: {
-      preferences: { patchDraft: {} },
-    },
-    defaultInput: {
-      title: { $stepField: 'title' },
-    },
-  },
-  {
-    value: 'kozijn-dimensions',
-    label: 'Afmetingen invoer',
-    description: 'Gedetailleerd meetformulier met voorvertoning',
-    icon: '📏',
-    category: 'invoer',
-    hasOptions: false,
-    defaultOutput: {
-      measure: { patchDraft: {} },
-    },
-    defaultInput: {
-      title: { $stepField: 'title' },
-    },
-  },
-  {
-    value: 'kozijn-specs',
-    label: 'Specificaties formulier',
-    description: 'Technische details invullen',
-    icon: '⚙️',
-    category: 'invoer',
-    hasOptions: false,
-    defaultOutput: {
-      specs: { patchDraft: {} },
-    },
-    defaultInput: {
-      title: { $stepField: 'title' },
-    },
-  },
-  {
-    value: 'kozijn-preset',
-    label: 'Preset keuze',
-    description: 'Keuze uit voorinstellingen met afbeeldingen',
-    icon: '🪟',
-    category: 'keuze',
-    hasOptions: true,
-    defaultOutput: {
-      select: { patchDraft: { presetId: { $value: true } } },
-    },
-    defaultInput: {
-      options: { $stepOptions: true },
-      title: { $stepField: 'title' },
-    },
-  },
-  // ─── Media ────────────────────────────────────────────────────
-  {
-    value: 'media-upload',
-    label: 'Bestanden uploaden',
-    description: 'Foto\'s, documenten of video\'s toevoegen',
-    icon: '📷',
-    category: 'media',
-    hasOptions: false,
-    defaultOutput: {
-      upload: { mediaFiles: true },
-    },
-    defaultInput: {
-      title: { $stepField: 'title' },
-      description: { $stepField: 'description' },
-    },
-  },
-  // ─── Weergave ─────────────────────────────────────────────────
-  {
-    value: 'review-summary',
-    label: 'Samenvatting',
-    description: 'Overzicht van alle gegeven antwoorden',
-    icon: '✅',
-    category: 'weergave',
-    hasOptions: false,
-    defaultOutput: {},
-    defaultInput: {
-      title: { $stepField: 'title' },
-    },
-  },
-] as const;
-
-export function getElementType(value: string): ElementTypeDefinition | undefined {
-  return ELEMENT_TYPES.find(t => t.value === value);
-}
-
-export function getElementsByCategory(category: string): readonly ElementTypeDefinition[] {
-  return ELEMENT_TYPES.filter(t => t.category === category);
-}
-
-// ── Condition configuration ──────────────────────────────────────────────────
-
 export const CONDITION_OPERATORS = [
   { value: 'truthy', label: 'Is ingevuld', fields: ['field'] },
   { value: 'falsy', label: 'Is niet ingevuld', fields: ['field'] },
@@ -299,16 +26,182 @@ export const CONDITION_OPERATORS = [
   { value: 'not', label: 'Niet (omgekeerd)', fields: ['condition'] },
 ] as const;
 
-export const INPUT_SOURCE_TYPES = [
-  { value: '$literal', label: 'Vaste waarde' },
-  { value: '$draft', label: 'Concept veld' },
-  { value: '$meta', label: 'Stap info' },
-  { value: '$stepOptions', label: 'Stap keuzes' },
-  { value: '$stepField', label: 'Stap eigenschap' },
+// ── Input field types ────────────────────────────────────────────────────────
+export type InputFieldType =
+  | 'text'
+  | 'textarea'
+  | 'number'
+  | 'radio'
+  | 'checkbox'
+  | 'select'
+  | 'image-select'
+  | 'file-upload'
+  | 'date';
+
+export interface InputFieldOption {
+  id: string;
+  label: string;
+  description?: string;
+  imagePath?: string;
+  available?: boolean;
+}
+
+export interface InputFieldSchema {
+  id: string;
+  type: InputFieldType;
+  label: string;
+  description?: string;
+  placeholder?: string;
+  required: boolean;
+  visibleWhen: Condition | null;
+  draftField: string;
+
+  // Type-specific config (only relevant fields used per type)
+  options?: InputFieldOption[];       // radio, select, checkbox, image-select
+  min?: number;                       // number
+  max?: number;                       // number
+  step?: number;                      // number
+  unit?: string;                      // number (mm, cm, m)
+  accept?: string;                    // file-upload (e.g., "image/*")
+  multiple?: boolean;                 // file-upload, select
+  rows?: number;                      // textarea
+}
+
+// ── Go-to (skip) rules ───────────────────────────────────────────────────────
+export interface GoToRule {
+  condition: Condition;
+  targetStepId: string;
+  label?: string;
+}
+
+// ── Step presets ─────────────────────────────────────────────────────────────
+export type StepPreset = 'technical-drawing';
+
+export interface DrawingMeasurementField {
+  id: string;
+  label: string;
+  unit: string;
+  draftField: string;
+  positions?: string[];               // e.g., ['top', 'middle', 'bottom']
+}
+
+export interface TechnicalDrawingConfig {
+  drawingType: 'wooden-frame';
+  measurementFields: DrawingMeasurementField[];
+}
+
+// ── Step schema (V2) ─────────────────────────────────────────────────────────
+export interface StepSchema {
+  id: string;
+  title: string;
+  description?: string;
+  visibleWhen: Condition | null;
+  inputs: InputFieldSchema[];
+  goToRules: GoToRule[];
+  preset: StepPreset | null;
+  technicalDrawingConfig?: TechnicalDrawingConfig;
+}
+
+// ── Flow settings ────────────────────────────────────────────────────────────
+export interface FlowSettings {
+  productGroup: string;
+  summaryTitle: string;
+  summaryDescription?: string;
+}
+
+// ── Flow definition V2 (root) ────────────────────────────────────────────────
+export interface FlowDefinition {
+  version: 2;
+  steps: StepSchema[];
+  settings: FlowSettings;
+}
+
+// ── Input field type palette ─────────────────────────────────────────────────
+export interface InputFieldTypeDefinition {
+  value: InputFieldType;
+  label: string;
+  description: string;
+  icon: string;
+  category: 'tekst' | 'keuze' | 'media' | 'overig';
+  hasOptions: boolean;
+}
+
+export interface InputFieldTypeCategory {
+  id: 'tekst' | 'keuze' | 'media' | 'overig';
+  label: string;
+  icon: string;
+}
+
+export const INPUT_FIELD_CATEGORIES: readonly InputFieldTypeCategory[] = [
+  { id: 'tekst', label: 'Tekst & Getallen', icon: '✏️' },
+  { id: 'keuze', label: 'Keuze', icon: '☰' },
+  { id: 'media', label: 'Media', icon: '📷' },
+  { id: 'overig', label: 'Overig', icon: '📅' },
 ] as const;
 
-export const OUTPUT_SOURCE_TYPES = [
-  { value: '$value', label: 'Gekozen waarde' },
-  { value: '$literal', label: 'Vaste waarde' },
-  { value: '$valueField', label: 'Veld uit waarde' },
+export const INPUT_FIELD_TYPES: readonly InputFieldTypeDefinition[] = [
+  // ─── Tekst & Getallen ──────────────────────────────────────────
+  { value: 'text', label: 'Tekstveld', description: 'Kort tekstveld', icon: 'Aa', category: 'tekst', hasOptions: false },
+  { value: 'textarea', label: 'Tekstvak', description: 'Groter tekstvak voor langere antwoorden', icon: '¶', category: 'tekst', hasOptions: false },
+  { value: 'number', label: 'Getal', description: 'Numerieke invoer met optionele eenheid', icon: '#', category: 'tekst', hasOptions: false },
+  // ─── Keuze ─────────────────────────────────────────────────────
+  { value: 'radio', label: 'Keuzerondje', description: 'Eén optie selecteren', icon: '◉', category: 'keuze', hasOptions: true },
+  { value: 'checkbox', label: 'Selectievak', description: 'Meerdere opties selecteren', icon: '☑', category: 'keuze', hasOptions: true },
+  { value: 'select', label: 'Dropdown', description: 'Keuze uit een uitklaplijst', icon: '▾', category: 'keuze', hasOptions: true },
+  { value: 'image-select', label: 'Afbeeldingskeuze', description: 'Selectie met afbeeldingen', icon: '🖼', category: 'keuze', hasOptions: true },
+  // ─── Media ─────────────────────────────────────────────────────
+  { value: 'file-upload', label: 'Bestand uploaden', description: 'Foto\'s of documenten toevoegen', icon: '📎', category: 'media', hasOptions: false },
+  // ─── Overig ────────────────────────────────────────────────────
+  { value: 'date', label: 'Datum', description: 'Datumkiezer', icon: '📅', category: 'overig', hasOptions: false },
 ] as const;
+
+export const STEP_PRESETS: readonly { value: StepPreset; label: string; icon: string; description: string }[] = [
+  { value: 'technical-drawing', label: 'Technische tekening', icon: '📐', description: 'Meetformulier met configureerbare meetvelden' },
+] as const;
+
+// ── Helpers ──────────────────────────────────────────────────────────────────
+export function getInputFieldType(value: InputFieldType): InputFieldTypeDefinition | undefined {
+  return INPUT_FIELD_TYPES.find(t => t.value === value);
+}
+
+export function getInputFieldTypesByCategory(category: string): readonly InputFieldTypeDefinition[] {
+  return INPUT_FIELD_TYPES.filter(t => t.category === category);
+}
+
+export function createEmptyStep(): StepSchema {
+  return {
+    id: `step-${Date.now().toString(36)}`,
+    title: 'Nieuwe stap',
+    visibleWhen: null,
+    inputs: [],
+    goToRules: [],
+    preset: null,
+  };
+}
+
+export function createEmptyInput(type: InputFieldType): InputFieldSchema {
+  const typeDef = getInputFieldType(type);
+  return {
+    id: `input-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 6)}`,
+    type,
+    label: typeDef?.label ?? type,
+    required: false,
+    visibleWhen: null,
+    draftField: '',
+    ...(typeDef?.hasOptions ? { options: [] } : {}),
+    ...(type === 'textarea' ? { rows: 3 } : {}),
+    ...(type === 'number' ? { unit: 'mm' } : {}),
+    ...(type === 'file-upload' ? { accept: 'image/*', multiple: true } : {}),
+  };
+}
+
+export function createEmptyDefinition(): FlowDefinition {
+  return {
+    version: 2,
+    steps: [],
+    settings: {
+      productGroup: '',
+      summaryTitle: 'Samenvatting',
+    },
+  };
+}

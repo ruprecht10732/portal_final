@@ -12,6 +12,7 @@ export class ConditionEditorComponent {
   condition = model<Condition | null>(null);
   label = input('Condition');
   allowNull = input(true);
+  draftFieldSuggestions = input<string[]>([]);
 
   protected readonly operators = CONDITION_OPERATORS;
   protected readonly expanded = signal(false);

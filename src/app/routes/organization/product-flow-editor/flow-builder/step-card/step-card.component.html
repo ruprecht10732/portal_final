@@ -1,0 +1,85 @@
+<div class="border border-zinc-200 rounded-xl bg-white shadow-sm transition-shadow hover:shadow-md">
+  <!-- Header -->
+  <div class="flex items-center gap-2 px-4 py-3 bg-zinc-50 border-b border-zinc-200 cursor-pointer select-none rounded-t-xl"
+       (click)="toggleExpand()">
+    <!-- Drag handle (used by parent cdkDrag) -->
+    <span cdkDragHandle class="text-zinc-300 hover:text-zinc-500 cursor-grab active:cursor-grabbing mr-1" title="Sleep om te herordenen">
+      ⠿
+    </span>
+
+    <!-- Step number & title -->
+    <span class="text-xs font-bold text-zinc-400 mr-1">{{ stepIndex() + 1 }}.</span>
+    <input type="text"
+      class="flex-1 bg-transparent text-sm font-semibold text-zinc-800 outline-none placeholder:text-zinc-400 focus:ring-1 focus:ring-blue-400 rounded px-1"
+      [ngModel]="step().title"
+      (ngModelChange)="updateTitle($event)"
+      (click)="$event.stopPropagation()"
+      placeholder="Stap titel" />
+
+    <!-- Badges -->
+    @if (hasConditions) {
+      <span class="text-[10px] px-1.5 py-0.5 rounded bg-amber-100 text-amber-700 font-medium" title="Heeft voorwaarden of skip-logica">⚡ Logica</span>
+    }
+    @if (hasPreset) {
+      <span class="text-[10px] px-1.5 py-0.5 rounded bg-purple-100 text-purple-700 font-medium" title="Preset actief">📐 Preset</span>
+    }
+
+    <!-- Step actions -->
+    <div class="flex items-center gap-1 ml-2" (click)="$event.stopPropagation()">
+      <button type="button" class="p-1 rounded text-zinc-400 hover:bg-blue-50 hover:text-blue-600 transition-colors text-xs" title="Stap instellingen" (click)="openSettings.emit()">⚙</button>
+      <button type="button" class="p-1 rounded text-zinc-400 hover:bg-blue-50 hover:text-blue-600 transition-colors text-xs" title="Dupliceren" (click)="duplicate.emit()">⧉</button>
+      <button type="button" class="p-1 rounded text-zinc-400 hover:bg-red-50 hover:text-red-600 transition-colors text-xs" title="Verwijderen" (click)="remove.emit()">✕</button>
+    </div>
+
+    <!-- Expand/collapse -->
+    <span class="text-zinc-400 text-xs ml-1 transition-transform" [class.rotate-180]="expanded()">▾</span>
+  </div>
+
+  <!-- Body (expanded) -->
+  @if (expanded()) {
+    <div class="p-4 space-y-3">
+      <!-- Description -->
+      <div>
+        <input type="text"
+          class="w-full text-xs text-zinc-500 bg-transparent outline-none placeholder:text-zinc-300 focus:ring-1 focus:ring-blue-300 rounded px-1 py-0.5"
+          [ngModel]="step().description ?? ''"
+          (ngModelChange)="updateDescription($event)"
+          placeholder="Beschrijving (optioneel)" />
+      </div>
+
+      <!-- Input fields list (drag-drop) -->
+      <div cdkDropList [cdkDropListData]="step().inputs" (cdkDropListDropped)="dropInput($event)" class="space-y-2">
+        @for (inp of step().inputs; track inp.id; let i = $index) {
+          <div cdkDrag [cdkDragData]="inp">
+            <app-input-field-editor
+              [field]="inp"
+              (fieldChange)="updateInput(i, $event)"
+              [availableDraftFields]="draftFieldSuggestions()"
+              (remove)="removeInput(i)" />
+          </div>
+        }
+      </div>
+
+      @if (step().inputs.length === 0) {
+        <div class="text-center py-6 text-zinc-400 text-sm">
+          Nog geen invoervelden. Klik op <strong>+ Invoer toevoegen</strong> om te beginnen.
+        </div>
+      }
+
+      <!-- Add input button + palette toggle -->
+      <div class="relative">
+        <button type="button"
+          class="inline-flex items-center gap-1.5 px-3 py-1.5 text-xs font-medium text-blue-600 border border-blue-200 rounded-lg hover:bg-blue-50 transition-colors"
+          (click)="togglePalette()">
+          <span class="text-sm">+</span> Invoer toevoegen
+        </button>
+
+        @if (showPalette()) {
+          <div class="absolute left-0 top-full mt-1 z-20 w-72 shadow-lg rounded-lg">
+            <app-input-type-palette (selectType)="addInput($event)" />
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>

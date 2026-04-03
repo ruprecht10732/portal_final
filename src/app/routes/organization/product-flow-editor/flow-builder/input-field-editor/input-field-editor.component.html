@@ -1,0 +1,185 @@
+<!-- Input field card (inline in step card) -->
+<div class="group rounded-lg border border-zinc-200 bg-white transition-colors"
+  [class.border-blue-300]="expanded()"
+  [class.shadow-sm]="expanded()">
+
+  <!-- Collapsed header -->
+  <div class="flex items-center gap-2 px-3 py-2 cursor-pointer select-none" (click)="toggle()">
+    <span cdkDragHandle class="cursor-grab text-zinc-400 hover:text-zinc-600 text-sm" (click)="$event.stopPropagation()">⠿</span>
+    <span class="text-sm font-medium text-zinc-500 w-6 text-center">{{ typeIcon() }}</span>
+    <div class="flex-1 min-w-0">
+      <span class="text-sm text-zinc-800 truncate">{{ field().label || 'Naamloos veld' }}</span>
+      @if (field().draftField) {
+        <span class="text-xs text-zinc-400 ml-2 font-mono">{{ field().draftField }}</span>
+      }
+    </div>
+    @if (field().required) {
+      <span class="text-xs bg-amber-100 text-amber-700 px-1.5 py-0.5 rounded">Verplicht</span>
+    }
+    @if (field().visibleWhen) {
+      <span class="text-xs bg-purple-100 text-purple-700 px-1.5 py-0.5 rounded">Voorwaarde</span>
+    }
+    <button type="button"
+      class="text-zinc-400 hover:text-red-500 text-xs opacity-0 group-hover:opacity-100 transition-opacity"
+      title="Verwijderen"
+      (click)="remove.emit(); $event.stopPropagation()">✕</button>
+  </div>
+
+  <!-- Expanded editor -->
+  @if (expanded()) {
+    <div class="border-t border-zinc-200 px-3 py-3 space-y-3">
+      <!-- Label -->
+      <div>
+        <label class="block text-xs font-medium text-zinc-500 mb-1">Label</label>
+        <input type="text" [ngModel]="field().label"
+          (ngModelChange)="updateField('label', $event)"
+          class="w-full px-2 py-1.5 text-sm border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="Veldnaam voor de klant" />
+      </div>
+
+      <div class="grid grid-cols-2 gap-3">
+        <!-- Draft field -->
+        <div>
+          <label class="block text-xs font-medium text-zinc-500 mb-1">Conceptveld (draftField)</label>
+          <input type="text" [ngModel]="field().draftField"
+            (ngModelChange)="updateField('draftField', $event)"
+            class="w-full px-2 py-1.5 text-sm border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none font-mono"
+            placeholder="bijv. doorType" />
+        </div>
+        <!-- Type (read-only) -->
+        <div>
+          <label class="block text-xs font-medium text-zinc-500 mb-1">Type</label>
+          <div class="px-2 py-1.5 text-sm bg-zinc-100 border border-zinc-200 rounded text-zinc-600">{{ typeLabel() }}</div>
+        </div>
+      </div>
+
+      <!-- Description -->
+      <div>
+        <label class="block text-xs font-medium text-zinc-500 mb-1">Beschrijving (optioneel)</label>
+        <input type="text" [ngModel]="field().description ?? ''"
+          (ngModelChange)="updateField('description', $event || undefined)"
+          class="w-full px-2 py-1.5 text-sm border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="Hulptekst onder het veld" />
+      </div>
+
+      <!-- Placeholder -->
+      <div>
+        <label class="block text-xs font-medium text-zinc-500 mb-1">Placeholder (optioneel)</label>
+        <input type="text" [ngModel]="field().placeholder ?? ''"
+          (ngModelChange)="updateField('placeholder', $event || undefined)"
+          class="w-full px-2 py-1.5 text-sm border border-zinc-300 rounded focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="Placeholder tekst" />
+      </div>
+
+      <!-- Required toggle -->
+      <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer">
+        <input type="checkbox" [ngModel]="field().required"
+          (ngModelChange)="updateField('required', $event)"
+          class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500" />
+        <span>Verplicht</span>
+      </label>
+
+      <!-- Type-specific: Number -->
+      @if (field().type === 'number') {
+        <div class="grid grid-cols-3 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1">Min</label>
+            <input type="number" [ngModel]="field().min ?? ''"
+              (ngModelChange)="updateField('min', $event !== '' ? +$event : undefined)"
+              class="w-full px-2 py-1.5 text-sm border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1">Max</label>
+            <input type="number" [ngModel]="field().max ?? ''"
+              (ngModelChange)="updateField('max', $event !== '' ? +$event : undefined)"
+              class="w-full px-2 py-1.5 text-sm border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500" />
+          </div>
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1">Eenheid</label>
+            <input type="text" [ngModel]="field().unit ?? ''"
+              (ngModelChange)="updateField('unit', $event || undefined)"
+              class="w-full px-2 py-1.5 text-sm border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="mm" />
+          </div>
+        </div>
+      }
+
+      <!-- Type-specific: Textarea -->
+      @if (field().type === 'textarea') {
+        <div>
+          <label class="block text-xs font-medium text-zinc-500 mb-1">Rijen</label>
+          <input type="number" [ngModel]="field().rows ?? 3" min="1" max="20"
+            (ngModelChange)="updateField('rows', +$event || 3)"
+            class="w-24 px-2 py-1.5 text-sm border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500" />
+        </div>
+      }
+
+      <!-- Type-specific: File upload -->
+      @if (field().type === 'file-upload') {
+        <div class="grid grid-cols-2 gap-3">
+          <div>
+            <label class="block text-xs font-medium text-zinc-500 mb-1">Accepteer</label>
+            <input type="text" [ngModel]="field().accept ?? ''"
+              (ngModelChange)="updateField('accept', $event || undefined)"
+              class="w-full px-2 py-1.5 text-sm border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500"
+              placeholder="image/*" />
+          </div>
+          <label class="flex items-center gap-2 text-sm text-zinc-600 cursor-pointer mt-5">
+            <input type="checkbox" [ngModel]="field().multiple ?? false"
+              (ngModelChange)="updateField('multiple', $event)"
+              class="rounded border-zinc-300 text-blue-600 focus:ring-blue-500" />
+            <span>Meerdere bestanden</span>
+          </label>
+        </div>
+      }
+
+      <!-- Options (for choice types) -->
+      @if (hasOptions()) {
+        <div>
+          <div class="flex items-center justify-between mb-2">
+            <label class="text-xs font-medium text-zinc-500">Opties</label>
+            <button type="button" class="text-xs text-blue-600 hover:text-blue-800" (click)="addOption()">+ Optie toevoegen</button>
+          </div>
+
+          @for (opt of field().options ?? []; track opt.id; let oi = $index) {
+            <div class="flex items-center gap-2 mb-2 p-2 bg-zinc-50 rounded">
+              <div class="flex-1">
+                <input type="text" [ngModel]="opt.label"
+                  (ngModelChange)="updateOption(oi, 'label', $event)"
+                  class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500"
+                  placeholder="Label" />
+              </div>
+              <div class="w-28">
+                <input type="text" [ngModel]="opt.id"
+                  (ngModelChange)="updateOption(oi, 'id', $event)"
+                  class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500 font-mono"
+                  placeholder="ID" />
+              </div>
+              @if (field().type === 'image-select') {
+                <div class="w-36">
+                  <input type="text" [ngModel]="opt.imagePath ?? ''"
+                    (ngModelChange)="updateOption(oi, 'imagePath', $event)"
+                    class="w-full px-2 py-1 text-xs border border-zinc-300 rounded outline-none focus:ring-1 focus:ring-blue-500"
+                    placeholder="Afbeelding pad" />
+                </div>
+              }
+              <button type="button" class="text-zinc-400 hover:text-red-500 text-xs" (click)="removeOption(oi)">✕</button>
+            </div>
+          }
+
+          @if ((field().options ?? []).length === 0) {
+            <div class="text-xs text-zinc-400 text-center py-2">Nog geen opties. Voeg er een toe.</div>
+          }
+        </div>
+      }
+
+      <!-- Condition -->
+      <app-condition-editor
+        [condition]="field().visibleWhen"
+        (conditionChange)="updateVisibleWhen($event)"
+        label="Zichtbaar wanneer"
+        [allowNull]="true"
+        [draftFieldSuggestions]="availableDraftFields()" />
+    </div>
+  }
+</div>

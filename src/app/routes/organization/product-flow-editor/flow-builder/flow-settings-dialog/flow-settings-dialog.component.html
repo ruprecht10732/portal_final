@@ -1,0 +1,53 @@
+<!-- Overlay backdrop -->
+<div class="fixed inset-0 bg-black/20 z-40" (click)="close.emit()"></div>
+
+<!-- Dialog -->
+<div class="fixed inset-0 flex items-center justify-center z-50 p-4">
+  <div class="bg-white rounded-xl shadow-2xl w-full max-w-md space-y-4 overflow-hidden">
+    <!-- Header -->
+    <div class="flex items-center justify-between px-5 pt-5">
+      <h3 class="text-base font-semibold text-zinc-800">Flow instellingen</h3>
+      <button type="button" class="text-zinc-400 hover:text-zinc-700 text-lg" (click)="close.emit()">✕</button>
+    </div>
+
+    <!-- Body -->
+    <div class="px-5 space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-zinc-500 mb-1">Productgroep</label>
+        <input type="text"
+          [ngModel]="settings().productGroup"
+          (ngModelChange)="updateField('productGroup', $event)"
+          class="w-full px-3 py-2 text-sm border border-zinc-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="bijv. kozijnen, deuren" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-zinc-500 mb-1">Samenvatting titel</label>
+        <input type="text"
+          [ngModel]="settings().summaryTitle"
+          (ngModelChange)="updateField('summaryTitle', $event)"
+          class="w-full px-3 py-2 text-sm border border-zinc-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none"
+          placeholder="Samenvatting" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-zinc-500 mb-1">Samenvatting beschrijving (optioneel)</label>
+        <textarea
+          [ngModel]="settings().summaryDescription ?? ''"
+          (ngModelChange)="updateField('summaryDescription', $event || undefined)"
+          rows="2"
+          class="w-full px-3 py-2 text-sm border border-zinc-300 rounded-lg focus:ring-1 focus:ring-blue-500 focus:border-blue-500 outline-none resize-none"
+          placeholder="Korte tekst boven de samenvatting"></textarea>
+      </div>
+    </div>
+
+    <!-- Footer -->
+    <div class="flex justify-end px-5 pb-5">
+      <button type="button"
+        class="px-4 py-2 text-sm font-medium text-white bg-blue-600 rounded-lg hover:bg-blue-700 transition-colors"
+        (click)="close.emit()">
+        Sluiten
+      </button>
+    </div>
+  </div>
+</div>

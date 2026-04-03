@@ -47,11 +47,19 @@
             <input
               id="condition-field"
               type="text"
+              list="condition-field-suggestions"
               class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none font-mono"
               placeholder="bijv. categoryId"
               [ngModel]="getField()"
               (ngModelChange)="setField($event)"
             />
+            @if (draftFieldSuggestions().length) {
+              <datalist id="condition-field-suggestions">
+                @for (f of draftFieldSuggestions(); track f) {
+                  <option [value]="f"></option>
+                }
+              </datalist>
+            }
           </div>
         }
 
@@ -96,6 +104,7 @@
                     (conditionChange)="updateSubCondition($index, $event)"
                     [label]="'Voorwaarde ' + ($index + 1)"
                     [allowNull]="false"
+                    [draftFieldSuggestions]="draftFieldSuggestions()"
                   />
                 </div>
                 <button
@@ -130,6 +139,7 @@
               (conditionChange)="updateNotCondition($event)"
               label="Negated condition"
               [allowNull]="false"
+              [draftFieldSuggestions]="draftFieldSuggestions()"
             />
           </div>
         }

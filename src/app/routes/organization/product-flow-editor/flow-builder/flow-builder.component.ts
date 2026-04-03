@@ -1,77 +1,58 @@
-import { ChangeDetectionStrategy, Component, model, computed, signal, type OnInit } from '@angular/core';
+import { ChangeDetectionStrategy, Component, model, computed, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { CdkDragDrop, DragDropModule, moveItemInArray } from '@angular/cdk/drag-drop';
+import { CdkDragDrop, CdkDrag, CdkDropList, moveItemInArray } from '@angular/cdk/drag-drop';
 import {
-  type FlowDefinition, type StepSchema, type ReviewSectionTemplate, type PayloadSchema,
-  type ElementTypeDefinition,
-  ELEMENT_TYPES, ELEMENT_CATEGORIES, getElementType, getElementsByCategory,
+  type FlowDefinition, type StepSchema,
+  createEmptyStep,
 } from './flow-builder.types';
-import { StepEditorComponent } from './step-editor/step-editor.component';
-import { ConditionEditorComponent } from './condition-editor/condition-editor.component';
+import { StepCardComponent } from './step-card/step-card.component';
+import { StepSettingsPanelComponent } from './step-settings-panel/step-settings-panel.component';
+import { FlowSettingsDialogComponent } from './flow-settings-dialog/flow-settings-dialog.component';
+import { FlowPreviewSimulatorComponent } from './flow-preview/flow-preview-simulator.component';
 
 @Component({
   selector: 'app-flow-builder',
-  imports: [FormsModule, DragDropModule, StepEditorComponent, ConditionEditorComponent],
+  imports: [
+    FormsModule, CdkDrag, CdkDropList,
+    StepCardComponent, StepSettingsPanelComponent,
+    FlowSettingsDialogComponent, FlowPreviewSimulatorComponent,
+  ],
   templateUrl: './flow-builder.component.html',
   styleUrl: './flow-builder.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class FlowBuilderComponent implements OnInit {
+export class FlowBuilderComponent {
   definition = model.required<FlowDefinition>();
 
-  protected readonly activeTab = signal<'steps' | 'review' | 'payload' | 'json'>('steps');
-  protected readonly selectedStepIndex = signal<number | null>(null);
-  protected readonly jsonPreview = signal('');
+  protected readonly showPreview = signal(false);
+  protected readonly showSettings = signal(false);
+  protected readonly settingsStepIndex = signal<number | null>(null);
   protected readonly jsonEdit = signal('');
   protected readonly jsonError = signal<string | null>(null);
-  protected readonly showElementPalette = signal(false);
+  protected readonly showJson = signal(false);
 
-  protected readonly elementTypes = ELEMENT_TYPES;
-  protected readonly elementCategories = ELEMENT_CATEGORIES;
-
-  protected readonly preferencesSchemaJson = computed(() => {
-    const ps = this.definition().payloadSchema.preferencesSchema;
-    return ps ? JSON.stringify(ps, null, 2) : '';
+  /** Collect ALL draftFields across the entire flow for condition suggestions. */
+  protected readonly allDraftFields = computed(() => {
+    const fields: string[] = [];
+    for (const s of this.definition().steps) {
+      for (const inp of s.inputs) {
+        if (inp.draftField) fields.push(inp.draftField);
+      }
+    }
+    return [...new Set(fields)];
   });
 
-  protected readonly selectedStep = computed(() => {
-    const idx = this.selectedStepIndex();
+  protected readonly settingsStep = computed<StepSchema | null>(() => {
+    const idx = this.settingsStepIndex();
     if (idx === null) return null;
     return this.definition().steps[idx] ?? null;
   });
 
-  ngOnInit(): void {
-    if (this.definition().steps.length > 0) {
-      this.selectedStepIndex.set(0);
-    }
-  }
-
-  protected getElementsByCategory(categoryId: string): readonly ElementTypeDefinition[] {
-    return getElementsByCategory(categoryId);
-  }
-
   // ── Steps management ───────────────────────────────────────────────────────
 
-  protected addElementFromPalette(elementType: ElementTypeDefinition): void {
+  protected addStep(): void {
     const def = this.definition();
-    const id = `step-${Date.now().toString(36)}`;
-    const newStep: StepSchema = {
-      id,
-      type: elementType.value,
-      title: elementType.label,
-      description: elementType.description,
-      visibleWhen: null,
-      completeWhen: null,
-      inputMap: { ...elementType.defaultInput },
-      outputMap: structuredClone(elementType.defaultOutput),
-      ...(elementType.hasOptions ? { options: [] } : {}),
-    };
-    this.definition.set({
-      ...def,
-      steps: [...def.steps, newStep],
-    });
-    this.selectedStepIndex.set(def.steps.length);
-    this.showElementPalette.set(false);
+    this.definition.set({ ...def, steps: [...def.steps, createEmptyStep()] });
   }
 
   protected duplicateStep(idx: number): void {
@@ -80,24 +61,17 @@ export class FlowBuilderComponent implements OnInit {
     if (!original) return;
     const copy: StepSchema = {
       ...structuredClone(original),
-      id: `${original.id}-copy`,
+      id: `step-${Date.now().toString(36)}`,
       title: `${original.title} (kopie)`,
     };
     const steps = [...def.steps];
     steps.splice(idx + 1, 0, copy);
     this.definition.set({ ...def, steps });
-    this.selectedStepIndex.set(idx + 1);
   }
 
   protected removeStep(idx: number): void {
     const def = this.definition();
-    const steps = def.steps.filter((_, i) => i !== idx);
-    this.definition.set({ ...def, steps });
-    if (this.selectedStepIndex() === idx) {
-      this.selectedStepIndex.set(steps.length > 0 ? Math.min(idx, steps.length - 1) : null);
-    } else if ((this.selectedStepIndex() ?? 0) > idx) {
-      this.selectedStepIndex.update(v => v === null ? null : v - 1);
-    }
+    this.definition.set({ ...def, steps: def.steps.filter((_, i) => i !== idx) });
   }
 
   protected onStepDrop(event: CdkDragDrop<StepSchema[]>): void {
@@ -105,171 +79,41 @@ export class FlowBuilderComponent implements OnInit {
     const steps = [...def.steps];
     moveItemInArray(steps, event.previousIndex, event.currentIndex);
     this.definition.set({ ...def, steps });
-    if (this.selectedStepIndex() === event.previousIndex) {
-      this.selectedStepIndex.set(event.currentIndex);
-    }
   }
 
-  protected updateStep(step: StepSchema): void {
-    const idx = this.selectedStepIndex();
-    if (idx === null) return;
+  protected updateStep(idx: number, step: StepSchema): void {
     const def = this.definition();
     const steps = [...def.steps];
     steps[idx] = step;
     this.definition.set({ ...def, steps });
   }
 
-  protected getStepTypeLabel(type: string): string {
-    return getElementType(type)?.label ?? type;
+  protected openStepSettings(idx: number): void {
+    this.settingsStepIndex.set(idx);
   }
 
-  protected getStepTypeIcon(type: string): string {
-    return getElementType(type)?.icon ?? '?';
+  protected closeStepSettings(): void {
+    this.settingsStepIndex.set(null);
   }
 
-  // ── Review template management ─────────────────────────────────────────────
-
-  protected getReviewSections(): ReviewSectionTemplate[] {
-    return [...this.definition().reviewTemplate];
+  protected updateSettingsStep(step: StepSchema): void {
+    const idx = this.settingsStepIndex();
+    if (idx === null) return;
+    this.updateStep(idx, step);
   }
 
-  protected addReviewSection(): void {
-    const def = this.definition();
-    const section: ReviewSectionTemplate = {
-      title: 'Nieuwe sectie',
-      editStepId: '',
-      items: [],
-    };
-    this.definition.set({
-      ...def,
-      reviewTemplate: [...def.reviewTemplate, section],
-    });
+  // ── Flow settings ─────────────────────────────────────────────────────────
+
+  protected updateSettings(settings: FlowDefinition['settings']): void {
+    this.definition.set({ ...this.definition(), settings });
   }
 
-  protected removeReviewSection(idx: number): void {
-    const def = this.definition();
-    const reviewTemplate = def.reviewTemplate.filter((_, i) => i !== idx);
-    this.definition.set({ ...def, reviewTemplate });
-  }
+  // ── JSON editor ───────────────────────────────────────────────────────────
 
-  protected updateReviewSection(idx: number, key: string, value: unknown): void {
-    const def = this.definition();
-    const reviewTemplate: ReviewSectionTemplate[] = [...def.reviewTemplate];
-    const existing = reviewTemplate[idx];
-    if (!existing) return;
-    reviewTemplate[idx] = { title: existing.title, editStepId: existing.editStepId, items: existing.items, [key]: value };
-    this.definition.set({ ...def, reviewTemplate });
-  }
-
-  protected addReviewItem(sectionIdx: number): void {
-    const def = this.definition();
-    const reviewTemplate: ReviewSectionTemplate[] = [...def.reviewTemplate];
-    const existing = reviewTemplate[sectionIdx];
-    if (!existing) return;
-    reviewTemplate[sectionIdx] = { ...existing, items: [...existing.items, { label: '', source: { $draft: '' } }] };
-    this.definition.set({ ...def, reviewTemplate });
-  }
-
-  protected removeReviewItem(sectionIdx: number, itemIdx: number): void {
-    const def = this.definition();
-    const reviewTemplate: ReviewSectionTemplate[] = [...def.reviewTemplate];
-    const existing = reviewTemplate[sectionIdx];
-    if (!existing) return;
-    reviewTemplate[sectionIdx] = { ...existing, items: existing.items.filter((_, i) => i !== itemIdx) };
-    this.definition.set({ ...def, reviewTemplate });
-  }
-
-  protected updateReviewItemLabel(sectionIdx: number, itemIdx: number, label: string): void {
-    const def = this.definition();
-    const reviewTemplate: ReviewSectionTemplate[] = [...def.reviewTemplate];
-    const existing = reviewTemplate[sectionIdx];
-    if (!existing) return;
-    const items = [...existing.items];
-    const item = items[itemIdx];
-    if (!item) return;
-    items[itemIdx] = { ...item, label };
-    reviewTemplate[sectionIdx] = { ...existing, items };
-    this.definition.set({ ...def, reviewTemplate });
-  }
-
-  protected getReviewItemSourceType(item: ReviewSectionTemplate['items'][0]): string {
-    return '$draft' in item.source ? 'draft' : 'literal';
-  }
-
-  protected getReviewItemSourceField(item: ReviewSectionTemplate['items'][0]): string {
-    if ('$draft' in item.source) return item.source.$draft;
-    if ('$literal' in item.source) return item.source.$literal;
-    return '';
-  }
-
-  protected getReviewItemFormat(item: ReviewSectionTemplate['items'][0]): string {
-    if ('$draft' in item.source) return item.source.format ?? '';
-    return '';
-  }
-
-  protected updateReviewItemSource(sectionIdx: number, itemIdx: number, type: string, field: string, format: string): void {
-    const def = this.definition();
-    const reviewTemplate: ReviewSectionTemplate[] = [...def.reviewTemplate];
-    const existing = reviewTemplate[sectionIdx];
-    if (!existing) return;
-    const items = [...existing.items];
-    const item = items[itemIdx];
-    if (!item) return;
-    if (type === 'draft') {
-      items[itemIdx] = { ...item, source: { $draft: field, ...(format ? { format: format as 'mm' | 'boolean' | 'option-label' } : {}) } };
-    } else {
-      items[itemIdx] = { ...item, source: { $literal: field } };
-    }
-    reviewTemplate[sectionIdx] = { ...existing, items };
-    this.definition.set({ ...def, reviewTemplate });
-  }
-
-  // ── Payload schema management ──────────────────────────────────────────────
-
-  protected updatePayload<K extends keyof PayloadSchema>(key: K, value: PayloadSchema[K]): void {
-    const def = this.definition();
-    this.definition.set({
-      ...def,
-      payloadSchema: { ...def.payloadSchema, [key]: value },
-    });
-  }
-
-  protected addMeasurementField(): void {
-    const def = this.definition();
-    const fields = [...def.payloadSchema.measurementFields];
-    fields.push({ key: '', label: '', unit: 'mm', draftField: '' });
-    this.definition.set({
-      ...def,
-      payloadSchema: { ...def.payloadSchema, measurementFields: fields },
-    });
-  }
-
-  protected removeMeasurementField(idx: number): void {
-    const def = this.definition();
-    const fields = def.payloadSchema.measurementFields.filter((_, i) => i !== idx);
-    this.definition.set({
-      ...def,
-      payloadSchema: { ...def.payloadSchema, measurementFields: fields },
-    });
-  }
-
-  protected updateMeasurementField(idx: number, key: string, value: string): void {
-    const def = this.definition();
-    const fields = [...def.payloadSchema.measurementFields];
-    const existing = fields[idx];
-    if (!existing) return;
-    fields[idx] = { key: existing.key, label: existing.label, unit: existing.unit, draftField: existing.draftField, [key]: value };
-    this.definition.set({
-      ...def,
-      payloadSchema: { ...def.payloadSchema, measurementFields: fields },
-    });
-  }
-
-  // ── JSON tab ──────────────────────────────────────────────────────────────
-
-  protected onTabChange(tab: 'steps' | 'review' | 'payload' | 'json'): void {
-    this.activeTab.set(tab);
-    if (tab === 'json') {
+  protected toggleJson(): void {
+    const next = !this.showJson();
+    this.showJson.set(next);
+    if (next) {
       this.jsonEdit.set(JSON.stringify(this.definition(), null, 2));
       this.jsonError.set(null);
     }
@@ -281,16 +125,7 @@ export class FlowBuilderComponent implements OnInit {
       this.definition.set(parsed);
       this.jsonError.set(null);
     } catch (e) {
-      this.jsonError.set('Invalid JSON: ' + (e instanceof Error ? e.message : String(e)));
-    }
-  }
-
-  protected tryParsePreferencesSchema(raw: string): void {
-    try {
-      const parsed = JSON.parse(raw);
-      this.updatePayload('preferencesSchema', parsed);
-    } catch {
-      // ignore parse errors while typing
+      this.jsonError.set('Ongeldige JSON: ' + (e instanceof Error ? e.message : String(e)));
     }
   }
 }
