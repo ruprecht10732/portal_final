@@ -1,0 +1,206 @@
+<div class="space-y-4">
+  <div class="flex border-b border-zinc-200">
+    <button
+      type="button"
+      class="px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
+      [class.border-zinc-900]="activeTab() === 'general'"
+      [class.text-zinc-900]="activeTab() === 'general'"
+      [class.border-transparent]="activeTab() !== 'general'"
+      [class.text-zinc-500]="activeTab() !== 'general'"
+      (click)="activeTab.set('general')">
+      Algemeen
+    </button>
+    <button
+      type="button"
+      class="px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
+      [class.border-zinc-900]="activeTab() === 'inputs'"
+      [class.text-zinc-900]="activeTab() === 'inputs'"
+      [class.border-transparent]="activeTab() !== 'inputs'"
+      [class.text-zinc-500]="activeTab() !== 'inputs'"
+      (click)="activeTab.set('inputs')">
+      Invoer
+    </button>
+    <button
+      type="button"
+      class="px-3 py-2 text-sm font-medium border-b-2 transition-colors -mb-px"
+      [class.border-zinc-900]="activeTab() === 'logic'"
+      [class.text-zinc-900]="activeTab() === 'logic'"
+      [class.border-transparent]="activeTab() !== 'logic'"
+      [class.text-zinc-500]="activeTab() !== 'logic'"
+      (click)="activeTab.set('logic')">
+      Logica
+    </button>
+  </div>
+
+  @if (activeTab() === 'general') {
+    <div class="space-y-4">
+      <div>
+        <label class="block text-xs font-medium text-zinc-500 mb-1" [for]="inputId('step-id')">Stap ID</label>
+        <input
+          [id]="inputId('step-id')"
+          type="text"
+          class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm font-mono text-zinc-900 focus:border-zinc-900 focus:outline-none"
+          [ngModel]="step().id"
+          (ngModelChange)="updateField('id', $event)"
+          placeholder="bijv. kies-deur-type" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-zinc-500 mb-1" [for]="inputId('step-title')">Titel</label>
+        <input
+          [id]="inputId('step-title')"
+          type="text"
+          class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none"
+          [ngModel]="step().title"
+          (ngModelChange)="updateField('title', $event)"
+          placeholder="Stap titel" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-zinc-500 mb-1" [for]="inputId('step-description')">Omschrijving</label>
+        <textarea
+          [id]="inputId('step-description')"
+          class="w-full rounded-lg border border-zinc-200 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-900 focus:outline-none resize-y min-h-[72px]"
+          [ngModel]="step().description ?? ''"
+          (ngModelChange)="updateDescription($event)"
+          placeholder="Optionele toelichting die de klant ziet"></textarea>
+      </div>
+
+      <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs text-zinc-600">
+        <span class="font-medium text-zinc-800">Doorstuurregels:</span>
+        {{ step().goToRules.length }}
+      </div>
+    </div>
+  }
+
+  @if (activeTab() === 'inputs') {
+    <div class="space-y-3">
+      @for (field of step().inputs; track field.id; let i = $index) {
+        <app-input-field-editor
+          [field]="field"
+          (fieldChange)="updateInput(i, $event)"
+          [availableDraftFields]="availableDraftFields()"
+          (remove)="removeInput(i)" />
+      }
+
+      @if (step().inputs.length === 0) {
+        <div class="rounded-lg border border-dashed border-zinc-300 px-4 py-6 text-center text-sm text-zinc-500">
+          Nog geen invoervelden voor deze stap.
+        </div>
+      }
+
+      <div class="relative">
+        <button
+          type="button"
+          class="inline-flex items-center gap-1.5 rounded-lg border border-blue-200 px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 transition-colors"
+          (click)="togglePalette()">
+          <span class="text-base leading-none">+</span>
+          Invoer toevoegen
+        </button>
+
+        @if (showPalette()) {
+          <div class="mt-2 rounded-lg shadow-lg">
+            <app-input-type-palette (selectType)="addInput($event)" />
+          </div>
+        }
+      </div>
+    </div>
+  }
+
+  @if (activeTab() === 'logic') {
+    <div class="space-y-4">
+      <app-condition-editor
+        [condition]="step().visibleWhen"
+        (conditionChange)="updateVisibleWhen($event)"
+        label="Zichtbaar wanneer"
+        [draftFieldSuggestions]="availableDraftFields()" />
+
+      <div class="space-y-3 rounded-lg border border-zinc-200 bg-white p-4">
+        <div>
+          <div class="text-sm font-medium text-zinc-800">Preset</div>
+          <div class="text-xs text-zinc-500">Voeg optionele stapfunctionaliteit toe.</div>
+        </div>
+
+        @for (preset of presets; track preset.value) {
+          <button
+            type="button"
+            class="flex w-full items-start gap-3 rounded-lg border p-3 text-left transition-colors"
+            [class.border-purple-400]="step().preset === preset.value"
+            [class.bg-purple-50/50]="step().preset === preset.value"
+            [class.border-zinc-200]="step().preset !== preset.value"
+            (click)="selectPreset(step().preset === preset.value ? null : preset.value)">
+            <span
+              class="mt-0.5 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border"
+              [class.border-purple-500]="step().preset === preset.value"
+              [class.border-zinc-300]="step().preset !== preset.value">
+              @if (step().preset === preset.value) {
+                <span class="h-2 w-2 rounded-full bg-purple-500"></span>
+              }
+            </span>
+            <span class="block">
+              <span class="block text-sm font-medium text-zinc-800">{{ preset.icon }} {{ preset.label }}</span>
+              <span class="block text-xs text-zinc-500">{{ preset.description }}</span>
+            </span>
+          </button>
+        }
+
+        @if (step().preset === 'technical-drawing' && step().technicalDrawingConfig) {
+          <div class="space-y-3 border-l-2 border-purple-200 pl-4">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-semibold text-zinc-600">Meetvelden</span>
+              <button
+                type="button"
+                class="text-xs text-purple-600 hover:text-purple-800"
+                (click)="addMeasurementField()">
+                + Meetveld toevoegen
+              </button>
+            </div>
+
+            @for (field of step().technicalDrawingConfig!.measurementFields; track field.id; let i = $index) {
+              <div class="grid grid-cols-[1fr_9rem_5rem_auto] gap-2 items-center">
+                <div>
+                  <label class="sr-only" [for]="inputId('measurement-label-' + i)">Meetveld label</label>
+                  <input
+                    [id]="inputId('measurement-label-' + i)"
+                    type="text"
+                    class="w-full rounded border border-zinc-200 px-2 py-1 text-xs"
+                    [ngModel]="field.label"
+                    (ngModelChange)="updateMeasurementField(i, { label: $event })"
+                    placeholder="Label" />
+                </div>
+                <div>
+                  <label class="sr-only" [for]="inputId('measurement-draft-' + i)">Meetveld draftField</label>
+                  <input
+                    [id]="inputId('measurement-draft-' + i)"
+                    type="text"
+                    class="w-full rounded border border-zinc-200 px-2 py-1 text-xs font-mono"
+                    [ngModel]="field.draftField"
+                    (ngModelChange)="updateMeasurementField(i, { draftField: $event })"
+                    placeholder="draftField" />
+                </div>
+                <div>
+                  <label class="sr-only" [for]="inputId('measurement-unit-' + i)">Meetveld eenheid</label>
+                  <select
+                    [id]="inputId('measurement-unit-' + i)"
+                    class="w-full rounded border border-zinc-200 px-2 py-1 text-xs"
+                    [ngModel]="field.unit"
+                    (ngModelChange)="updateMeasurementField(i, { unit: $event })">
+                    <option value="mm">mm</option>
+                    <option value="cm">cm</option>
+                    <option value="m">m</option>
+                  </select>
+                </div>
+                <button
+                  type="button"
+                  class="text-xs text-zinc-400 hover:text-red-500"
+                  (click)="removeMeasurementField(i)">
+                  ✕
+                </button>
+              </div>
+            }
+          </div>
+        }
+      </div>
+    </div>
+  }
+</div>
