@@ -1,4 +1,4 @@
-import { ChangeDetectionStrategy, Component, computed, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
 import {
@@ -18,6 +18,7 @@ import { NotificationsService } from '../../core/services/notifications.service'
 import { UserService } from '../../core/services/user.service';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-bell.component';
+import { AgentApprovalsService } from '../../core/services/agent-approvals.service';
 import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
 import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
 import type { UserProfile } from '../../core/services/user.types';
@@ -63,7 +64,7 @@ interface SidebarTooltip {
   styleUrl: './authenticated-sidebar.component.css',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class AuthenticatedSidebarComponent {
+export class AuthenticatedSidebarComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly accountRegistry = inject(AccountRegistryService);
@@ -72,6 +73,16 @@ export class AuthenticatedSidebarComponent {
   private readonly imapUnreadCountService = inject(IMAPUnreadCountService);
   private readonly whatsappUnreadCountService = inject(WhatsAppUnreadCountService);
   private readonly userService = inject(UserService);
+  private readonly agentApprovalsService = inject(AgentApprovalsService);
+  private readonly stopPollingCount: () => void;
+
+  constructor() {
+    this.stopPollingCount = this.agentApprovalsService.startPollingCount(30000);
+  }
+
+  ngOnDestroy(): void {
+    this.stopPollingCount();
+  }
 
   private readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -156,7 +167,15 @@ export class AuthenticatedSidebarComponent {
     { initialValue: this.getPanelItemsFromRoute() },
   );
 
-  protected readonly panelItems = computed(() => this.filterPanelItemsForCurrentUser(this.rawPanelItems()));
+  protected readonly panelItems = computed(() => {
+    const items = this.filterPanelItemsForCurrentUser(this.rawPanelItems());
+    const pending = this.agentApprovalsService.pendingCount();
+    return items.map((item) =>
+      item.route === '/app/settings/agent-approvals' && pending > 0
+        ? { ...item, badge: pending }
+        : item,
+    );
+  });
   protected readonly showPanel = computed(() => this.isExpanded() && this.panelItems().length > 1);
 
   protected readonly activeTitle = computed(() => {

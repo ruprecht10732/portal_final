@@ -383,5 +383,28 @@
       "noAppointments": "No appointments",
       "appointmentsCount": "{{count}} appointments"
     }
+  },
+  "agentApprovals": {
+    "title": "Agent Approvals",
+    "subtitle": "Review and approve high-stakes agent actions",
+    "allClear": "All clear",
+    "noPending": "There are no pending approvals.",
+    "viewArguments": "View arguments",
+    "approve": "Approve",
+    "reject": "Reject",
+    "approved": "Approved",
+    "rejected": "Rejected",
+    "approveFailed": "Approval failed. Please try again.",
+    "rejectFailed": "Rejection failed. Please try again.",
+    "rejectDialogTitle": "Reject Action",
+    "rejectDialogMessage": "Are you sure you want to reject this agent action? The agent will not proceed with this operation.",
+    "loadFailed": "Failed to load approvals.",
+    "tools": {
+      "UpdatePipelineStage": "Update Pipeline Stage",
+      "DraftQuote": "Draft Quote",
+      "GenerateQuote": "Generate Quote",
+      "CreatePartnerOffer": "Create Partner Offer",
+      "CancelVisit": "Cancel Visit"
+    }
   }
 }

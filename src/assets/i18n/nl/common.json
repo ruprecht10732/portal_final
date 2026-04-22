@@ -383,5 +383,28 @@
       "noAppointments": "Geen afspraken",
       "appointmentsCount": "{{count}} afspraken"
     }
+  },
+  "agentApprovals": {
+    "title": "Agent-goedkeuringen",
+    "subtitle": "Beoordeel en keur hoge-risico agentacties goed",
+    "allClear": "Alles in orde",
+    "noPending": "Er zijn geen openstaande goedkeuringen.",
+    "viewArguments": "Bekijk argumenten",
+    "approve": "Goedkeuren",
+    "reject": "Afwijzen",
+    "approved": "Goedgekeurd",
+    "rejected": "Afgewezen",
+    "approveFailed": "Goedkeuren mislukt. Probeer het opnieuw.",
+    "rejectFailed": "Afwijzen mislukt. Probeer het opnieuw.",
+    "rejectDialogTitle": "Actie afwijzen",
+    "rejectDialogMessage": "Weet je zeker dat je deze agentactie wilt afwijzen? De agent zal niet doorgaan met deze operatie.",
+    "loadFailed": "Goedkeuringen laden mislukt.",
+    "tools": {
+      "UpdatePipelineStage": "Pijplijnfase bijwerken",
+      "DraftQuote": "Offerte opstellen",
+      "GenerateQuote": "Offerte genereren",
+      "CreatePartnerOffer": "Partneraanbod maken",
+      "CancelVisit": "Bezoek annuleren"
+    }
   }
 }

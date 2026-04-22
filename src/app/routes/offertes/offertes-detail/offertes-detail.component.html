@@ -1106,6 +1106,14 @@
   }
 </div>
 
+<!-- Extend quote dialog -->
+<shared-extend-quote-dialog
+  [isOpen]="showExtendDialog()"
+  [currentValidUntil]="quote()?.validUntil"
+  (confirm)="extendQuote($event)"
+  (cancelled)="closeExtendDialog()"
+/>
+
 <!-- Delete confirmation dialog -->
 <shared-confirm-dialog
   [isOpen]="showDeleteConfirm()"

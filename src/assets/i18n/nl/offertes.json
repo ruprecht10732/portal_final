@@ -434,6 +434,12 @@
         "hint": "Onthul uw offerte",
         "continue": "Bekijk offerte"
       }
-    }
+    },
+    "extend": "Verlengen",
+    "extendQuote": "Offerte verlengen",
+    "extendQuoteDescription": "Verleng de geldigheidsdatum van deze offerte.",
+    "extendDays": "Aantal dagen",
+    "newValidUntil": "Nieuwe geldig tot: {{date}}",
+    "extendSuccess": "Offerte verlengd tot {{date}}"
   }
 }

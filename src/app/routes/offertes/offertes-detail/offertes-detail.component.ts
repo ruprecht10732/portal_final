@@ -35,6 +35,7 @@ import { CrossOrgTransferService, type TransferDestinationAccount } from '../../
 
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
+import { ExtendQuoteDialogComponent } from '../../../shared/components/extend-quote-dialog/extend-quote-dialog.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { MenuComponent, type MenuItem, type MenuSection } from '../../../shared/components/menu/menu.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
@@ -66,6 +67,7 @@ interface QuoteLineageSummary {
     LucideAngularModule,
     ButtonComponent,
     ConfirmDialogComponent,
+    ExtendQuoteDialogComponent,
     PageHeaderComponent,
     MenuComponent,
     SelectComponent,
@@ -101,6 +103,8 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly lead = signal<Lead | null>(null);
   protected readonly error = signal<string | null>(null);
   protected readonly showDeleteConfirm = signal(false);
+  protected readonly showExtendDialog = signal(false);
+  protected readonly extendingQuote = signal(false);
   protected readonly versionHistory = signal<QuoteVersionHistoryResponse | null>(null);
   protected readonly loadingVersionHistory = signal(false);
   protected readonly updating = signal(false);
@@ -129,6 +133,10 @@ export class OffertesDetailComponent implements OnInit {
   protected readonly canCreateVersion = computed(() => {
     const status = this.quote()?.status;
     return status === 'Draft' || status === 'Sent';
+  });
+  protected readonly canExtendQuote = computed(() => {
+    const status = this.quote()?.status;
+    return status === 'Sent' || status === 'Accepted';
   });
   protected readonly lineageSummary = computed<QuoteLineageSummary | null>(() => {
     const q = this.quote();
@@ -191,11 +199,13 @@ export class OffertesDetailComponent implements OnInit {
     const pdfAvailable = !!q?.pdfFileKey;
     const canOpenPartnerOffer = q?.status === 'Accepted' && !!q?.leadServiceId;
     const canCreateVersion = q?.status === 'Draft' || q?.status === 'Sent';
+    const canExtend = q?.status === 'Sent' || q?.status === 'Accepted';
     const items: MenuItem[] = [
       ...(q?.status === 'Draft'
         ? [{ label: 'offertes.markSent', disabled: this.updating() }]
         : []),
       { label: 'offertes.transfer.action', disabled: !this.isAdmin() },
+      ...(canExtend ? [{ label: 'offertes.extend', disabled: this.extendingQuote() }] : []),
       { label: 'offertes.duplicate' },
       { label: 'offertes.newVersion', disabled: !canCreateVersion },
       { label: 'offertes.preview', disabled: !previewAvailable },
@@ -250,6 +260,15 @@ export class OffertesDetailComponent implements OnInit {
       icon: 'copy',
       disabled: this.duplicating(),
     });
+
+    if (q.status === 'Sent' || q.status === 'Accepted') {
+      items.push({
+        label: 'offertes.extend',
+        action: 'extend',
+        icon: 'clock',
+        disabled: this.extendingQuote(),
+      });
+    }
 
     if (canCreateVersion) {
       items.push({
@@ -522,6 +541,9 @@ export class OffertesDetailComponent implements OnInit {
       case 'offertes.transfer.action':
         this.openTransferDialog();
         break;
+      case 'offertes.extend':
+        this.openExtendDialog();
+        break;
       case 'offertes.duplicate':
         this.duplicateQuote();
         break;
@@ -555,6 +577,9 @@ export class OffertesDetailComponent implements OnInit {
         break;
       case 'transfer':
         this.openTransferDialog();
+        break;
+      case 'extend':
+        this.openExtendDialog();
         break;
       case 'duplicate':
         this.duplicateQuote();
@@ -705,6 +730,44 @@ export class OffertesDetailComponent implements OnInit {
 
   protected cancelDelete(): void {
     this.showDeleteConfirm.set(false);
+  }
+
+  protected openExtendDialog(): void {
+    this.showExtendDialog.set(true);
+  }
+
+  protected closeExtendDialog(): void {
+    this.showExtendDialog.set(false);
+  }
+
+  protected extendQuote(data: { extendDays: number }): void {
+    const q = this.quote();
+    if (!q || !this.canExtendQuote() || this.extendingQuote()) return;
+
+    const newDate = new Date();
+    newDate.setDate(newDate.getDate() + data.extendDays);
+    const validUntil = newDate.toISOString().split('T')[0]!;
+
+    this.extendingQuote.set(true);
+    this.quotesService.update(q.id, { validUntil }).subscribe({
+      next: updated => {
+        this.extendingQuote.set(false);
+        this.quote.set(updated);
+        this.showExtendDialog.set(false);
+        this.toast.success(
+          this.translate.instant('offertes.extendSuccess', { date: validUntil })
+        );
+      },
+      error: err => {
+        this.extendingQuote.set(false);
+        const message = extractErrorMessage(err, this.translate.instant('common.error'), {
+          allowErrorMessage: true,
+          allowMessageField: true,
+        });
+        this.toast.error(message);
+        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+    });
   }
 
   protected deleteQuote(): void {

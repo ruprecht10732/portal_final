@@ -18,6 +18,7 @@
     "organization": "Organization",
     "settings": "Settings",
     "agentWhatsApp": "Agent",
+    "agentApprovals": "Approvals",
     "profile": "Profile"
   }
 }

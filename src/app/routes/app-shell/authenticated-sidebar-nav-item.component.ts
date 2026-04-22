@@ -15,4 +15,5 @@ export class AuthenticatedSidebarNavItemComponent {
   route = input.required<string>();
   icon = input<string | null>(null);
   exact = input(false);
+  badge = input<number>(0);
 }

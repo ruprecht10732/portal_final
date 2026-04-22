@@ -5,6 +5,7 @@ export interface SidebarPanelItem {
   exact?: boolean;
   group?: string;
   roles?: string[];
+  badge?: number;
 }
 
 export interface SidebarPanelConfig {

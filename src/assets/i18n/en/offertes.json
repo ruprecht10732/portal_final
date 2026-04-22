@@ -434,6 +434,12 @@
         "hint": "Reveal your quote",
         "continue": "View quote"
       }
-    }
+    },
+    "extend": "Extend",
+    "extendQuote": "Extend Quote",
+    "extendQuoteDescription": "Extend the validity date of this quote.",
+    "extendDays": "Number of days",
+    "newValidUntil": "New valid until: {{date}}",
+    "extendSuccess": "Quote extended until {{date}}"
   }
 }

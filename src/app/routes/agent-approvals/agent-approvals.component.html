@@ -1,0 +1,102 @@
+<shared-page-layout
+  [title]="'agentApprovals.title' | translate"
+  [subtitle]="'agentApprovals.subtitle' | translate"
+  [error]="errorMessage()"
+>
+  <div class="mx-auto w-full max-w-5xl flex flex-col gap-6 py-6">
+    @if (isLoading()) {
+      <shared-skeleton height="8rem" width="100%" />
+      <shared-skeleton height="8rem" width="100%" />
+      <shared-skeleton height="8rem" width="100%" />
+    } @else if (!hasPending()) {
+      <shared-card class="text-center py-12">
+        <div class="flex flex-col items-center gap-3">
+          <lucide-icon name="circle-check" class="h-10 w-10 text-emerald-500"></lucide-icon>
+          <h3 class="text-lg font-semibold text-zinc-900">
+            {{ 'agentApprovals.allClear' | translate }}
+          </h3>
+          <p class="text-sm text-zinc-500">
+            {{ 'agentApprovals.noPending' | translate }}
+          </p>
+        </div>
+      </shared-card>
+    } @else {
+      <div class="flex flex-col gap-4">
+        @for (approval of approvals(); track approval.id) {
+          <shared-card [padding]="'compact'">
+            <div class="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div class="flex flex-col gap-1.5 min-w-0">
+                <div class="flex items-center gap-2 flex-wrap">
+                  <span
+                    class="inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-semibold"
+                    [class]="decisionClass(approval.decision)"
+                  >
+                    {{ approval.decision }}
+                  </span>
+                  <span class="text-xs text-zinc-400 font-mono">{{ approval.agentName }}</span>
+                </div>
+
+                <h4 class="text-base font-semibold text-zinc-900 truncate">
+                  {{ toolLabel(approval.toolName) }}
+                </h4>
+
+                @if (approval.reason) {
+                  <p class="text-sm text-zinc-600">{{ approval.reason }}</p>
+                }
+
+                @if (approval.arguments) {
+                  <details class="group">
+                    <summary class="cursor-pointer text-xs font-medium text-zinc-500 hover:text-zinc-700 select-none">
+                      {{ 'agentApprovals.viewArguments' | translate }}
+                    </summary>
+                    <pre class="mt-2 rounded-lg bg-zinc-50 p-3 text-xs text-zinc-700 overflow-x-auto border border-zinc-200">{{ approval.arguments | json }}</pre>
+                  </details>
+                }
+
+                <div class="flex items-center gap-3 text-xs text-zinc-400 mt-1">
+                  <span>{{ formatDate(approval.requestedAt) }}</span>
+                  @if (approval.leadId) {
+                    <span class="font-mono">Lead: {{ approval.leadId.slice(0, 8) }}</span>
+                  }
+                  @if (approval.serviceId) {
+                    <span class="font-mono">Svc: {{ approval.serviceId.slice(0, 8) }}</span>
+                  }
+                </div>
+              </div>
+
+              <div class="flex items-center gap-2 shrink-0">
+                <shared-button
+                  variant="secondary"
+                  size="compact"
+                  [loading]="isProcessing() === approval.id && showRejectDialog() === false"
+                  (clicked)="onRejectClick(approval)"
+                >
+                  {{ 'agentApprovals.reject' | translate }}
+                </shared-button>
+                <shared-button
+                  variant="primary"
+                  size="compact"
+                  [loading]="isProcessing() === approval.id && showRejectDialog() === false"
+                  (clicked)="onApprove(approval)"
+                >
+                  {{ 'agentApprovals.approve' | translate }}
+                </shared-button>
+              </div>
+            </div>
+          </shared-card>
+        }
+      </div>
+    }
+  </div>
+</shared-page-layout>
+
+<shared-confirm-dialog
+  [isOpen]="showRejectDialog()"
+  [title]="'agentApprovals.rejectDialogTitle' | translate"
+  [message]="'agentApprovals.rejectDialogMessage' | translate"
+  [confirmText]="'agentApprovals.reject' | translate"
+  [cancelText]="'common.cancel' | translate"
+  confirmVariant="danger"
+  (confirm)="onConfirmReject()"
+  (cancelled)="onCancelReject()"
+></shared-confirm-dialog>
