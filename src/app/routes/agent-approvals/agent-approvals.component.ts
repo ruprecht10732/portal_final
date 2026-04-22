@@ -122,7 +122,7 @@ export class AgentApprovalsComponent implements OnInit {
   }
 
   protected formatDate(iso: string): string {
-    return new Date(iso).toLocaleString(this.translate.currentLang === 'nl' ? 'nl-NL' : 'en-US', {
+    return new Date(iso).toLocaleString(this.translate.getCurrentLang() === 'nl' ? 'nl-NL' : 'en-US', {
       dateStyle: 'medium',
       timeStyle: 'short',
     });

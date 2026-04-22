@@ -52,8 +52,8 @@ export class ExtendQuoteDialogComponent {
   });
 
   protected onExtendDaysChange(value: string): void {
-    const num = parseInt(value, 10);
-    this.form.patchValue({ extendDays: isNaN(num) ? 30 : num });
+    const num = Number.parseInt(value, 10);
+    this.form.patchValue({ extendDays: Number.isNaN(num) ? 30 : num });
   }
 
   constructor() {
