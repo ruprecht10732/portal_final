@@ -1,4 +1,4 @@
-import { HttpErrorResponse, HttpInterceptorFn } from '@angular/common/http';
+import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
 import { catchError, switchMap, throwError } from 'rxjs';
@@ -11,27 +11,28 @@ import { getAuthErrorMessage } from '../utils/auth-error-mapper';
 import { isJwtExpired } from '../utils/jwt-token.utils';
 
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
+  // 1. Dependency Injections
   const accounts = inject(AccountRegistryService);
   const authService = inject(AuthService);
   const router = inject(Router);
   const toast = inject(ToastService);
+
+  // 2. Request Context & URL Analysis
   const requestedAccountUID = req.context.get(AUTH_ACCOUNT_UID);
   const selectedAccount = requestedAccountUID
     ? accounts.getUsableAccount(requestedAccountUID)
     : accounts.usableActiveAccountValue;
+
   const accessToken = selectedAccount?.token ?? null;
-  const apiBaseUrl = environment.apiBaseUrl;
+  const { apiBaseUrl } = environment;
+
   const isApiRequest = req.url.startsWith(apiBaseUrl);
   const isAuthRequest = req.url.startsWith(`${apiBaseUrl}/auth/`);
   const isRefreshRequest = req.url.startsWith(`${apiBaseUrl}/auth/refresh`);
 
-  const authReq = accessToken && isApiRequest && !req.headers.has('Authorization')
-    ? req.clone({
-      setHeaders: {
-        Authorization: `Bearer ${accessToken}`,
-      },
-    })
-    : req;
+  // 3. Reusable Helpers
+  const withToken = (request: HttpRequest<unknown>, token: string) =>
+    request.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
 
   const handleExpiredAccount = (error: unknown) => {
     if (selectedAccount?.uid) {
@@ -41,37 +42,39 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     const nextAccount = accounts.findNextAvailableAccount(selectedAccount?.uid);
     toast.error(getAuthErrorMessage(error));
 
+    // Consolidated routing logic
     if (!requestedAccountUID && nextAccount) {
       accounts.switchAccount(nextAccount.uid);
       globalThis.location.assign('/app/dashboard');
-      return throwError(() => error);
+    } else {
+      void router.navigate(['/sign-in']);
     }
 
-    void router.navigate(['/sign-in']);
     return throwError(() => error);
   };
 
   const handleRefreshFailure = (error: unknown) => {
-    if (!(error instanceof HttpErrorResponse) || error.status !== 401) {
-      toast.error(getAuthErrorMessage(error));
-      return throwError(() => error);
+    // Inverted logic for clarity
+    if (error instanceof HttpErrorResponse && error.status === 401) {
+      return handleExpiredAccount(error);
     }
-
-    return handleExpiredAccount(error);
+    
+    toast.error(getAuthErrorMessage(error));
+    return throwError(() => error);
   };
 
-  const shouldProactivelyRefresh = !!(
-    selectedAccount?.refreshToken
-    && accessToken
-    && isApiRequest
-    && !isAuthRequest
-    && !isRefreshRequest
-    && isJwtExpired(accessToken)
-  );
+  // 4. Initial Request Setup
+  const authReq = (accessToken && isApiRequest && !req.headers.has('Authorization'))
+    ? withToken(req, accessToken)
+    : req;
 
+  // 5. Core Execution & Reactive Refresh (Catches 401s)
   const executeRequest = (request = authReq) => next(request).pipe(
     catchError(error => {
-      if (!isApiRequest || isRefreshRequest || isAuthRequest || !(error instanceof HttpErrorResponse) || error.status !== 401) {
+      const isUnauthorized = error instanceof HttpErrorResponse && error.status === 401;
+      const isEligibleForRefresh = isApiRequest && !isAuthRequest && !isRefreshRequest && isUnauthorized;
+
+      if (!isEligibleForRefresh) {
         return throwError(() => error);
       }
 
@@ -80,34 +83,31 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
       }
 
       return authService.refresh(selectedAccount.refreshToken, selectedAccount.uid).pipe(
-        switchMap(response =>
-          next(
-            request.clone({
-              setHeaders: {
-                Authorization: `Bearer ${response.accessToken}`,
-              },
-            })
-          )
-        ),
-        catchError(refreshError => handleRefreshFailure(refreshError))
+        // Passes to `next` directly to prevent infinite loops if the refreshed request also 401s
+        switchMap(response => next(withToken(request, response.accessToken))),
+        catchError(handleRefreshFailure)
       );
     })
   );
 
-  if (shouldProactivelyRefresh) {
+  // 6. Proactive Refresh (Checks expiration before sending)
+  const shouldProactivelyRefresh = Boolean(
+    selectedAccount?.refreshToken &&
+    accessToken &&
+    isApiRequest &&
+    !isAuthRequest &&
+    !isRefreshRequest &&
+    isJwtExpired(accessToken)
+  );
+
+  if (shouldProactivelyRefresh && selectedAccount?.refreshToken) {
     return authService.refresh(selectedAccount.refreshToken, selectedAccount.uid).pipe(
-      switchMap(response =>
-        executeRequest(
-          req.clone({
-            setHeaders: {
-              Authorization: `Bearer ${response.accessToken}`,
-            },
-          })
-        )
-      ),
-      catchError(refreshError => handleRefreshFailure(refreshError))
+      // Passes back to `executeRequest` so we still catch 401s just in case
+      switchMap(response => executeRequest(withToken(req, response.accessToken))),
+      catchError(handleRefreshFailure)
     );
   }
 
+  // 7. Default Fallthrough
   return executeRequest();
 };
