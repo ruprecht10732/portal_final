@@ -323,7 +323,8 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
           return;
         }
 
-        this.authService.refresh(targetAccount.refreshToken).subscribe({
+        // Fix: Pass targetAccount.uid to utilize the concurrency lock
+        this.authService.refresh(targetAccount.refreshToken, targetAccount.uid).subscribe({
           next: () => {
             if (!this.accountRegistry.switchAccount(uid)) {
               return;
@@ -370,7 +371,8 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
   }
 
   private signOutCurrentAccount(): void {
-    const activeAccount = this.accountRegistry.activeAccountValue;
+    // Fix: Execute the computed signal instead of the deprecated getter
+    const activeAccount = this.accountRegistry.activeAccount();
     if (!activeAccount) {
       void this.router.navigate(['/sign-in']);
       return;

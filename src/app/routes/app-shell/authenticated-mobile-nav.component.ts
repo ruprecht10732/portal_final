@@ -194,9 +194,7 @@ export class AuthenticatedMobileNavComponent {
 
   protected readonly userInitials = computed(() => {
     const user = this.user();
-    if (!user) {
-      return '?';
-    }
+    if (!user) return '?';
 
     const first = user.firstName?.trim().charAt(0).toUpperCase() ?? '';
     const last = user.lastName?.trim().charAt(0).toUpperCase() ?? '';
@@ -234,12 +232,8 @@ export class AuthenticatedMobileNavComponent {
         disabled: account.isExpired || account.isActive,
       };
 
-      if (account.isActive) {
-        item.detail = 'auth.account.current';
-      }
-      if (account.isExpired) {
-        item.badge = 'auth.account.sessionExpired';
-      }
+      if (account.isActive) item.detail = 'auth.account.current';
+      if (account.isExpired) item.badge = 'auth.account.sessionExpired';
 
       return item;
     });
@@ -255,17 +249,11 @@ export class AuthenticatedMobileNavComponent {
     }
 
     return [
-      {
-        label: 'menu.account',
-        items: accountItems,
-      },
-      {
-        items: actionItems,
-      },
+      { label: 'menu.account', items: accountItems },
+      { items: actionItems },
     ];
   });
 
-  /** All primary navigation items — mirrors the desktop sidebar. */
   protected readonly items = computed<MobileNavItem[]>(() => {
     const base: MobileNavItem[] = [
       { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
@@ -285,24 +273,18 @@ export class AuthenticatedMobileNavComponent {
 
   protected isNavItemActive(item: MobileNavItem): boolean {
     const currentUrl = this.currentUrl();
-    if (currentUrl === item.route || currentUrl.startsWith(item.route + '/')) {
-      return true;
-    }
-
+    if (currentUrl === item.route || currentUrl.startsWith(item.route + '/')) return true;
     return item.matchPrefixes?.some((prefix) => currentUrl === prefix || currentUrl.startsWith(prefix + '/')) ?? false;
   }
 
   protected handleProfileMenuSelection(item: MenuItem): void {
-    if (!item.value) {
-      return;
-    }
+    if (!item.value) return;
 
     if (item.value.startsWith('switch:')) {
       const uid = item.value.replace('switch:', '');
       const targetAccount = this.accountRegistry.getAccount(uid);
-      if (!targetAccount || targetAccount.isExpired) {
-        return;
-      }
+      
+      if (!targetAccount || targetAccount.isExpired) return;
 
       if (isJwtExpired(targetAccount.token)) {
         if (!targetAccount.refreshToken) {
@@ -310,40 +292,34 @@ export class AuthenticatedMobileNavComponent {
           return;
         }
 
-        this.authService.refresh(targetAccount.refreshToken).subscribe({
+        // Pass both token and UID to utilize the multi-tenant lock we built
+        this.authService.refresh(targetAccount.refreshToken, targetAccount.uid).subscribe({
           next: () => {
-            if (!this.accountRegistry.switchAccount(uid)) {
-              return;
+            if (this.accountRegistry.switchAccount(uid)) {
+              globalThis.location.assign('/app/dashboard');
             }
-            globalThis.location.assign('/app/dashboard');
           },
-          error: () => {
-            this.accountRegistry.markExpired(targetAccount.uid);
-          },
+          error: () => this.accountRegistry.markExpired(targetAccount.uid),
         });
         return;
       }
 
-      if (!this.accountRegistry.switchAccount(uid)) {
-        return;
+      if (this.accountRegistry.switchAccount(uid)) {
+        globalThis.location.assign('/app/dashboard');
       }
-
-      globalThis.location.assign('/app/dashboard');
       return;
     }
 
     switch (item.value) {
       case 'add-account':
         this.showAddAccountSheet.set(true);
-        return;
+        break;
       case 'sign-out-current':
         this.signOutCurrentAccount();
-        return;
+        break;
       case 'sign-out-all':
         this.signOutAllAccounts();
-        return;
-      default:
-        return;
+        break;
     }
   }
 
@@ -357,7 +333,8 @@ export class AuthenticatedMobileNavComponent {
   }
 
   private signOutCurrentAccount(): void {
-    const activeAccount = this.accountRegistry.activeAccountValue;
+    // Replaced the deprecated getter with the signal execution
+    const activeAccount = this.accountRegistry.activeAccount();
     if (!activeAccount) {
       void this.router.navigate(['/sign-in']);
       return;

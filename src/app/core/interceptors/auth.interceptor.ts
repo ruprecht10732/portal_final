@@ -1,7 +1,8 @@
 import { HttpErrorResponse, HttpInterceptorFn, HttpRequest } from '@angular/common/http';
 import { inject } from '@angular/core';
 import { Router } from '@angular/router';
-import { catchError, switchMap, throwError } from 'rxjs';
+import { Observable, throwError } from 'rxjs';
+import { catchError, finalize, map, share, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { AUTH_ACCOUNT_UID } from './account-request-context';
 import { AccountRegistryService } from '../services/account-registry.service';
@@ -10,42 +11,51 @@ import { ToastService } from '../services/toast.service';
 import { getAuthErrorMessage } from '../utils/auth-error-mapper';
 import { isJwtExpired } from '../utils/jwt-token.utils';
 
+// State stored outside the functional interceptor to share across concurrent requests
+const inFlightRefreshes = new Map<string, Observable<string>>();
+
 export const authInterceptor: HttpInterceptorFn = (req, next) => {
-  // 1. Dependency Injections
+  const { apiBaseUrl } = environment;
+
+  // 1. Early Exit: Ignore non-API routes, Auth routes, or requests that already have an Auth header
+  if (
+    !req.url.startsWith(apiBaseUrl) || 
+    req.url.startsWith(`${apiBaseUrl}/auth/`) || 
+    req.headers.has('Authorization')
+  ) {
+    return next(req);
+  }
+
+  // 2. Dependency Injections
   const accounts = inject(AccountRegistryService);
   const authService = inject(AuthService);
   const router = inject(Router);
   const toast = inject(ToastService);
 
-  // 2. Request Context & URL Analysis
-  const requestedAccountUID = req.context.get(AUTH_ACCOUNT_UID);
-  const selectedAccount = requestedAccountUID
-    ? accounts.getUsableAccount(requestedAccountUID)
-    : accounts.usableActiveAccountValue;
+  // 3. Resolve Target Account (Using updated Signal architecture)
+  const requestedUid = req.context.get(AUTH_ACCOUNT_UID);
+  const targetAccount = requestedUid
+    ? accounts.getUsableAccount(requestedUid)
+    : accounts.usableActiveAccount();
 
-  const accessToken = selectedAccount?.token ?? null;
-  const { apiBaseUrl } = environment;
+  if (!targetAccount) {
+    return next(req);
+  }
 
-  const isApiRequest = req.url.startsWith(apiBaseUrl);
-  const isAuthRequest = req.url.startsWith(`${apiBaseUrl}/auth/`);
-  const isRefreshRequest = req.url.startsWith(`${apiBaseUrl}/auth/refresh`);
-
-  // 3. Reusable Helpers
-  const withToken = (request: HttpRequest<unknown>, token: string) =>
+  // 4. Core Utilities
+  const attachToken = (request: HttpRequest<unknown>, token: string) =>
     request.clone({ setHeaders: { Authorization: `Bearer ${token}` } });
 
-  const handleExpiredAccount = (error: unknown) => {
-    if (selectedAccount?.uid) {
-      accounts.markExpired(selectedAccount.uid);
-    }
-
-    const nextAccount = accounts.findNextAvailableAccount(selectedAccount?.uid);
+  const handleFatalAuthError = (error: unknown) => {
+    accounts.markExpired(targetAccount.uid);
     toast.error(getAuthErrorMessage(error));
 
-    // Consolidated routing logic
-    if (!requestedAccountUID && nextAccount) {
-      accounts.switchAccount(nextAccount.uid);
-      globalThis.location.assign('/app/dashboard');
+    const fallbackAccount = accounts.findNextAvailableAccount(targetAccount.uid);
+
+    if (!requestedUid && fallbackAccount) {
+      accounts.switchAccount(fallbackAccount.uid);
+      // Hard reload prevents previous tenant/account data from leaking into the new view
+      globalThis.location.assign('/app/dashboard'); 
     } else {
       void router.navigate(['/sign-in']);
     }
@@ -53,61 +63,52 @@ export const authInterceptor: HttpInterceptorFn = (req, next) => {
     return throwError(() => error);
   };
 
-  const handleRefreshFailure = (error: unknown) => {
-    // Inverted logic for clarity
-    if (error instanceof HttpErrorResponse && error.status === 401) {
-      return handleExpiredAccount(error);
+  /**
+   * Safely executes a refresh, ensuring concurrent requests share the same API call.
+   */
+  const getRefreshedToken = (): Observable<string> => {
+    if (!targetAccount.refreshToken) {
+      return handleFatalAuthError(new Error('No refresh token available'));
     }
-    
-    toast.error(getAuthErrorMessage(error));
-    return throwError(() => error);
+
+    // If a refresh is already happening for this user, wait for it instead of starting a new one
+    if (inFlightRefreshes.has(targetAccount.uid)) {
+      return inFlightRefreshes.get(targetAccount.uid)!;
+    }
+
+    const refresh$ = authService.refresh(targetAccount.refreshToken, targetAccount.uid).pipe(
+      map(res => res.accessToken),
+      catchError(err => handleFatalAuthError(err)),
+      // Clean up the lock once the request completes or fails
+      finalize(() => inFlightRefreshes.delete(targetAccount.uid)),
+      // CRITICAL: Multicast this observable to all waiting subscribers
+      share() 
+    );
+
+    inFlightRefreshes.set(targetAccount.uid, refresh$);
+    return refresh$;
   };
 
-  // 4. Initial Request Setup
-  const authReq = (accessToken && isApiRequest && !req.headers.has('Authorization'))
-    ? withToken(req, accessToken)
-    : req;
+  // 5. Execution Flow
 
-  // 5. Core Execution & Reactive Refresh (Catches 401s)
-  const executeRequest = (request = authReq) => next(request).pipe(
-    catchError(error => {
-      const isUnauthorized = error instanceof HttpErrorResponse && error.status === 401;
-      const isEligibleForRefresh = isApiRequest && !isAuthRequest && !isRefreshRequest && isUnauthorized;
-
-      if (!isEligibleForRefresh) {
-        return throwError(() => error);
-      }
-
-      if (!selectedAccount?.refreshToken) {
-        return handleExpiredAccount(error);
-      }
-
-      return authService.refresh(selectedAccount.refreshToken, selectedAccount.uid).pipe(
-        // Passes to `next` directly to prevent infinite loops if the refreshed request also 401s
-        switchMap(response => next(withToken(request, response.accessToken))),
-        catchError(handleRefreshFailure)
-      );
-    })
-  );
-
-  // 6. Proactive Refresh (Checks expiration before sending)
-  const shouldProactivelyRefresh = Boolean(
-    selectedAccount?.refreshToken &&
-    accessToken &&
-    isApiRequest &&
-    !isAuthRequest &&
-    !isRefreshRequest &&
-    isJwtExpired(accessToken)
-  );
-
-  if (shouldProactivelyRefresh && selectedAccount?.refreshToken) {
-    return authService.refresh(selectedAccount.refreshToken, selectedAccount.uid).pipe(
-      // Passes back to `executeRequest` so we still catch 401s just in case
-      switchMap(response => executeRequest(withToken(req, response.accessToken))),
-      catchError(handleRefreshFailure)
+  // Strategy A: Proactive Refresh (Token is known to be expired before sending)
+  if (isJwtExpired(targetAccount.token)) {
+    return getRefreshedToken().pipe(
+      // Calling next() directly prevents the retry from looping back through this interceptor
+      switchMap(newToken => next(attachToken(req, newToken)))
     );
   }
 
-  // 7. Default Fallthrough
-  return executeRequest();
+  // Strategy B: Reactive Refresh (Token seems fine, but backend throws 401)
+  return next(attachToken(req, targetAccount.token)).pipe(
+    catchError((error) => {
+      if (error instanceof HttpErrorResponse && error.status === 401) {
+        return getRefreshedToken().pipe(
+          switchMap(newToken => next(attachToken(req, newToken)))
+        );
+      }
+      // If it's a 500, 403, 404, etc., just pass the error along
+      return throwError(() => error);
+    })
+  );
 };

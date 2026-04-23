@@ -6,7 +6,8 @@ export const guestGuard: CanActivateFn = () => {
   const accounts = inject(AccountRegistryService);
   const router = inject(Router);
 
-  if (accounts.usableActiveAccountValue) {
+  // Invoke the computed signal
+  if (accounts.usableActiveAccount()) {
     return router.createUrlTree(['/app/dashboard']);
   }
 

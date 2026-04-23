@@ -1,15 +1,14 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { firstValueFrom, from, Observable } from 'rxjs';
+import { forkJoin, Observable, of, throwError } from 'rxjs';
+import { catchError, map, switchMap } from 'rxjs/operators';
 import { environment } from '../../../environments/environment';
 import { withAccountUID } from '../interceptors/account-request-context';
 import { AccountRegistryService } from './account-registry.service';
 import type { Lead } from './leads.types';
-import type { Organization } from './organization.service';
 import { OrganizationService } from './organization.service';
 import type { QuoteResponse } from './quotes.types';
 import { UserService } from './user.service';
-import type { UserProfile } from './user.types';
 
 export interface TransferDestinationAccount {
   uid: string;
@@ -38,105 +37,120 @@ export class CrossOrgTransferService {
   private readonly organizations = inject(OrganizationService);
   private readonly apiBaseUrl = environment.apiBaseUrl;
 
+  /**
+   * Scans all inactive accounts to find valid transfer destinations.
+   * Executes network requests in parallel using forkJoin.
+   */
   listDestinationAccounts(): Observable<TransferDestinationAccount[]> {
-    return from(this.listDestinationAccountsInternal());
+    const activeUID = this.accounts.activeAccount()?.uid;
+    const candidates = this.accounts.accounts().filter(
+      account => !account.isExpired && account.uid !== activeUID
+    );
+
+    if (candidates.length === 0) {
+      return of([]);
+    }
+
+    const verificationRequests = candidates.map(account => 
+      this.verifyDestinationCandidate(account.uid, account.email).pipe(
+        catchError(() => of(null)) // Gracefully ignore accounts that fail verification
+      )
+    );
+
+    return forkJoin(verificationRequests).pipe(
+      map(results => results.filter((item): item is TransferDestinationAccount => item !== null)),
+      // FIX: Spread the array to prevent mutating the stream in-place (SonarLint S4043)
+      map(results => [...results].sort((a, b) => 
+        a.organizationName.localeCompare(b.organizationName, undefined, { sensitivity: 'base' })
+      ))
+    );
   }
 
   transferLead(lead: Lead, destinationUID: string): Observable<LeadTransferResult> {
-    return from(this.transferLeadInternal(lead, destinationUID));
-  }
-
-  transferQuote(quote: QuoteResponse, _lead: Lead | null, destinationUID: string): Observable<QuoteTransferResult> {
-    return from(this.transferQuoteInternal(quote, null, destinationUID));
-  }
-
-  private async listDestinationAccountsInternal(): Promise<TransferDestinationAccount[]> {
-    const activeUID = this.accounts.activeAccountValue?.uid ?? null;
-    const candidates = this.accounts.accounts().filter(account => !account.isExpired && account.uid !== activeUID);
-
-    const resolved = await Promise.all(
-      candidates.map(async (account) => {
-        const context = withAccountUID(account.uid);
-
-        try {
-          const [profile, organization] = await Promise.all([
-            this.readProfile(context),
-            this.readOrganization(context),
-          ]);
-
-          if (!this.isAdminProfile(profile)) {
-            return null;
-          }
-
-          return {
-            uid: account.uid,
-            email: account.email,
-            organizationId: organization.id,
-            organizationName: organization.name,
-          } satisfies TransferDestinationAccount;
-        } catch {
-          return null;
-        }
-      }),
+    return this.resolveDestination(destinationUID).pipe(
+      switchMap(destination => 
+        this.http.post<{ lead: Lead; destinationOrganizationId: string }>(
+          `${this.apiBaseUrl}/admin/leads/${lead.id}/transfer`, 
+          { destinationOrganizationId: destination.organizationId }
+        ).pipe(
+          map(response => ({
+            destination,
+            createdLeadId: response.lead.id,
+          }))
+        )
+      )
     );
-
-    return resolved
-      .filter((item): item is TransferDestinationAccount => item !== null)
-      .sort((left, right) => left.organizationName.localeCompare(right.organizationName, undefined, { sensitivity: 'base' }));
   }
 
-  private async transferLeadInternal(lead: Lead, destinationUID: string): Promise<LeadTransferResult> {
-    const destination = await this.resolveDestination(destinationUID);
-    const response = await firstValueFrom(this.http.post<{
-      lead: Lead;
-      destinationOrganizationId: string;
-    }>(`${this.apiBaseUrl}/admin/leads/${lead.id}/transfer`, {
-      destinationOrganizationId: destination.organizationId,
-    }));
-
-    return {
-      destination,
-      createdLeadId: response.lead.id,
-    };
+  // FIX: Renamed 'p0' to '_lead' so TypeScript ignores the unused variable, but keeps the signature intact
+  transferQuote(quote: QuoteResponse, _lead: Lead | null, destinationUID: string): Observable<QuoteTransferResult> {
+    return this.resolveDestination(destinationUID).pipe(
+      switchMap(destination => 
+        this.http.post<{
+          quote: QuoteResponse;
+          destinationLeadId: string;
+          destinationOrganizationId: string;
+          sourceLeadDeleted: boolean;
+        }>(
+          `${this.apiBaseUrl}/admin/quotes/${quote.id}/transfer`, 
+          { destinationOrganizationId: destination.organizationId }
+        ).pipe(
+          map(response => ({
+            destination,
+            createdLeadId: response.destinationLeadId,
+            createdQuoteId: response.quote.id,
+            sourceLeadDeleted: response.sourceLeadDeleted,
+          }))
+        )
+      )
+    );
   }
 
-  private async transferQuoteInternal(quote: QuoteResponse, _lead: Lead | null, destinationUID: string): Promise<QuoteTransferResult> {
-    const destination = await this.resolveDestination(destinationUID);
-    const response = await firstValueFrom(this.http.post<{
-      quote: QuoteResponse;
-      destinationLeadId: string;
-      destinationOrganizationId: string;
-      sourceLeadDeleted: boolean;
-    }>(`${this.apiBaseUrl}/admin/quotes/${quote.id}/transfer`, {
-      destinationOrganizationId: destination.organizationId,
-    }));
+  // --- Private Implementation Details ---
 
-    return {
-      destination,
-      createdLeadId: response.destinationLeadId,
-      createdQuoteId: response.quote.id,
-      sourceLeadDeleted: response.sourceLeadDeleted,
-    };
-  }
-
-  private async resolveDestination(destinationUID: string): Promise<TransferDestinationAccount> {
-    const destinations = await this.listDestinationAccountsInternal();
-    const destination = destinations.find(item => item.uid === destinationUID) ?? null;
-    if (!destination) {
-      throw new Error('Destination organization is not available');
+  /**
+   * Directly validates a SINGLE destination UID without iterating over all accounts.
+   * Changes O(N) network calls to O(1).
+   */
+  private resolveDestination(destinationUID: string): Observable<TransferDestinationAccount> {
+    const account = this.accounts.getAccount(destinationUID);
+    
+    if (!account || account.isExpired) {
+      return throwError(() => new Error('Destination account is not available or expired.'));
     }
 
-    return destination;
-  }
-  private isAdminProfile(profile: UserProfile): boolean {
-    return profile.roles.includes('admin');
+    return this.verifyDestinationCandidate(account.uid, account.email).pipe(
+      map(destination => {
+        if (!destination) {
+          throw new Error('Destination account lacks admin privileges or organization context.');
+        }
+        return destination;
+      })
+    );
   }
 
-  private readProfile(context: ReturnType<typeof withAccountUID>): Promise<UserProfile> {
-    return firstValueFrom(this.users.getProfile({ context }));
-  }
+  /**
+   * Executes parallel profile and organization fetches for a specific context.
+   */
+  private verifyDestinationCandidate(uid: string, email: string): Observable<TransferDestinationAccount | null> {
+    const context = withAccountUID(uid);
 
-  private readOrganization(context: ReturnType<typeof withAccountUID>): Promise<Organization> {
-    return firstValueFrom(this.organizations.getOrganization({ context }));
+    return forkJoin({
+      profile: this.users.getProfile({ context }),
+      organization: this.organizations.getOrganization({ context })
+    }).pipe(
+      map(({ profile, organization }) => {
+        if (!profile.roles.includes('admin')) {
+          return null;
+        }
+
+        return {
+          uid,
+          email,
+          organizationId: organization.id,
+          organizationName: organization.name,
+        };
+      })
+    );
   }
 }

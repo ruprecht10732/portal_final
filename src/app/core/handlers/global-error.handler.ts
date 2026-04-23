@@ -1,11 +1,56 @@
-import { ErrorHandler, Injectable, inject } from '@angular/core';
+import { ErrorHandler, Injectable, Injector, inject, isDevMode } from '@angular/core';
 import { ErrorReportingService } from '../services/error-reporting.service';
+import { ToastService } from '../services/toast.service';
 
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {
-  private readonly reporter = inject(ErrorReportingService);
+  /**
+   * We inject the Injector rather than the services directly.
+   * This prevents circular dependency errors during the early 
+   * bootstrap phase of the application.
+   */
+  private readonly injector = inject(Injector);
+  
+  private isReporting = false;
 
   handleError(error: unknown): void {
-    this.reporter.report(error, { source: 'runtime' });
+    // 1. Always log to console so developers can see it immediately.
+    console.error('Global Error Caught:', error);
+
+    // 2. Prevent recursive error loops if the reporting service itself fails.
+    if (this.isReporting) {
+      return;
+    }
+
+    this.isReporting = true;
+
+    try {
+      this.reportAndNotify(error);
+    } catch (unhandledCriticalError) {
+      // Fallback if everything else fails.
+      console.error('Critical failure in GlobalErrorHandler:', unhandledCriticalError);
+    } finally {
+      this.isReporting = false;
+    }
+  }
+
+  private reportAndNotify(error: unknown): void {
+    // Lazily resolve services only when an error actually occurs.
+    const reporter = this.injector.get(ErrorReportingService);
+    const toast = this.injector.get(ToastService);
+
+    // Remote logging
+    reporter.report(error, { 
+      source: 'runtime',
+      url: globalThis.location?.href 
+    });
+
+    // User notification
+    const message = isDevMode() 
+      ? (error as Error)?.message || 'An unknown error occurred'
+      : 'Something went wrong. Our team has been notified.';
+
+    // Fixed: Removed the options object to match your service signature
+    toast.error(message);
   }
 }
