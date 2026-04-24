@@ -26,52 +26,13 @@
             [ariaLabel]="item.label | translate"
             (clicked)="handleNavItemClick()"
           >
-            @switch (item.icon) {
-              @case ('dashboard') {
-                <lucide-icon name="layout-dashboard" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
-              @case ('leads') {
-                <span class="relative inline-flex">
-                  <lucide-icon name="users" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-                  @if (unreadLeadNotifications() > 0) {
-                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadLeadNotifications() }}</span>
-                  }
-                </span>
-              }
-              @case ('tasks') {
-                <lucide-icon name="list-checks" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
-              @case ('inbox') {
-                <span class="relative inline-flex">
-                  <lucide-icon name="mail" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-                  @if (unreadMessagingCount() > 0) {
-                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadMessagingCount() }}</span>
-                  }
-                </span>
-              }
-              @case ('partners') {
-                <lucide-icon name="briefcase" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
-              @case ('appointments') {
-                <lucide-icon name="calendar-check" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
-              @case ('offertes') {
-                <span class="relative inline-flex">
-                  <lucide-icon name="file-text" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-                  @if (unreadQuoteNotifications() > 0) {
-                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadQuoteNotifications() }}</span>
-                  }
-                </span>
-              }
-              @case ('settings') {
-                <lucide-icon name="settings" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
-              @case ('agentWhatsapp') {
-                <lucide-icon name="bot" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
-              @case ('profile') {
-                <lucide-icon name="user" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
-              }
+            @if (badgeFor(item.icon) > 0) {
+              <span class="relative inline-flex">
+                <lucide-icon [name]="iconName(item.icon)" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
+                <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ badgeFor(item.icon) }}</span>
+              </span>
+            } @else {
+              <lucide-icon [name]="iconName(item.icon)" class="h-6 w-6 md:h-5 md:w-5"></lucide-icon>
             }
           </shared-button>
         </div>

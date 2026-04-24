@@ -5,36 +5,17 @@ import { LucideAngularModule } from 'lucide-angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, map, of } from 'rxjs';
 import { AccountRegistryService } from '../../core/services/account-registry.service';
-import { AuthService } from '../../core/services/auth.service';
 import { NotificationsService } from '../../core/services/notifications.service';
 import { UserService } from '../../core/services/user.service';
 import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
 import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
-import { isJwtExpired } from '../../core/utils/jwt-token.utils';
 import type { UserProfile } from '../../core/services/user.types';
 import { AddAccountSheetComponent } from '../../shared/components/add-account-sheet/add-account-sheet.component';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
 import { AIJobBellComponent } from '../../shared/components/ai-job-bell/ai-job-bell.component';
 import { MenuComponent, MenuItem, MenuSection } from '../../shared/components/menu/menu.component';
-
-type MobileNavIcon =
-  | 'dashboard'
-  | 'leads'
-  | 'tasks'
-  | 'inbox'
-  | 'partners'
-  | 'appointments'
-  | 'offertes'
-  | 'settings'
-  | 'agentWhatsapp'
-  | 'profile';
-
-interface MobileNavItem {
-  label: string;
-  route: string;
-  matchPrefixes?: readonly string[];
-  icon: MobileNavIcon;
-}
+import { buildNavItems, computeAvatarColor, computeUserInitials, isNavItemActive, type NavItem } from './user-nav.utils';
+import { UserNavService } from './user-nav.service';
 
 @Component({
   selector: 'app-authenticated-mobile-nav',
@@ -66,52 +47,13 @@ interface MobileNavItem {
             [routerLink]="item.route"
             [attr.aria-label]="item.label | translate"
           >
-            @switch (item.icon) {
-              @case ('dashboard') {
-                <lucide-icon name="layout-dashboard" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('leads') {
-                <span class="relative inline-flex">
-                  <lucide-icon name="users" class="h-5 w-5"></lucide-icon>
-                  @if (unreadLeadNotifications() > 0) {
-                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadLeadNotifications() }}</span>
-                  }
-                </span>
-              }
-              @case ('tasks') {
-                <lucide-icon name="list-checks" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('inbox') {
-                <span class="relative inline-flex">
-                  <lucide-icon name="mail" class="h-5 w-5"></lucide-icon>
-                  @if (unreadMessagingCount() > 0) {
-                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadMessagingCount() }}</span>
-                  }
-                </span>
-              }
-              @case ('partners') {
-                <lucide-icon name="briefcase" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('appointments') {
-                <lucide-icon name="calendar-check" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('offertes') {
-                <span class="relative inline-flex">
-                  <lucide-icon name="file-text" class="h-5 w-5"></lucide-icon>
-                  @if (unreadQuoteNotifications() > 0) {
-                    <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ unreadQuoteNotifications() }}</span>
-                  }
-                </span>
-              }
-              @case ('settings') {
-                <lucide-icon name="settings" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('agentWhatsapp') {
-                <lucide-icon name="bot" class="h-5 w-5"></lucide-icon>
-              }
-              @case ('profile') {
-                <lucide-icon name="user" class="h-5 w-5"></lucide-icon>
-              }
+            @if (badgeFor(item.icon) > 0) {
+              <span class="relative inline-flex">
+                <lucide-icon [name]="iconName(item.icon)" class="h-5 w-5"></lucide-icon>
+                <span class="absolute -right-1.5 -top-1.5 inline-flex h-4 min-w-4 items-center justify-center rounded-full bg-red-600 px-1 text-[10px] font-bold leading-none text-white" aria-hidden="true">{{ badgeFor(item.icon) }}</span>
+              </span>
+            } @else {
+              <lucide-icon [name]="iconName(item.icon)" class="h-5 w-5"></lucide-icon>
             }
             <span class="text-[10px] leading-tight">{{ item.label | translate }}</span>
           </a>
@@ -162,11 +104,11 @@ interface MobileNavItem {
 export class AuthenticatedMobileNavComponent {
   private readonly router = inject(Router);
   private readonly accountRegistry = inject(AccountRegistryService);
-  private readonly authService = inject(AuthService);
   private readonly notificationsService = inject(NotificationsService);
   private readonly userService = inject(UserService);
   private readonly imapUnreadCountService = inject(IMAPUnreadCountService);
   private readonly whatsappUnreadCountService = inject(WhatsAppUnreadCountService);
+  private readonly userNavService = inject(UserNavService);
 
   protected readonly showAddAccountSheet = signal(false);
 
@@ -186,32 +128,8 @@ export class AuthenticatedMobileNavComponent {
   private readonly isAdmin = computed(() => this.user()?.roles?.includes('admin') ?? false);
   private readonly isSuperAdmin = computed(() => this.user()?.roles?.includes('superadmin') ?? false);
 
-  private static readonly AVATAR_COLORS = [
-    '#e53935', '#d81b60', '#8e24aa', '#5e35b1',
-    '#1e88e5', '#039be5', '#00897b', '#43a047',
-    '#f4511e', '#fb8c00', '#fdd835', '#6d4c41',
-  ];
-
-  protected readonly userInitials = computed(() => {
-    const user = this.user();
-    if (!user) return '?';
-
-    const first = user.firstName?.trim().charAt(0).toUpperCase() ?? '';
-    const last = user.lastName?.trim().charAt(0).toUpperCase() ?? '';
-    return first + last || user.email.charAt(0).toUpperCase();
-  });
-
-  protected readonly avatarColor = computed(() => {
-    const user = this.user();
-    const seed = user ? (user.firstName ?? user.email) : '';
-    let hash = 0;
-    for (let index = 0; index < seed.length; index++) {
-      hash = (seed.codePointAt(index) ?? 0) + ((hash << 5) - hash);
-    }
-
-    const colors = AuthenticatedMobileNavComponent.AVATAR_COLORS;
-    return colors[Math.abs(hash) % colors.length];
-  });
+  protected readonly userInitials = computed(() => computeUserInitials(this.user()));
+  protected readonly avatarColor = computed(() => computeAvatarColor(this.user()));
 
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
   protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
@@ -254,59 +172,42 @@ export class AuthenticatedMobileNavComponent {
     ];
   });
 
-  protected readonly items = computed<MobileNavItem[]>(() => {
-    const base: MobileNavItem[] = [
-      { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
-      { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
-      { label: 'navigation.messages', route: '/app/inbox', icon: 'inbox' },
-      { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },
-      { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
-      { label: 'navigation.partners', route: '/app/partners', matchPrefixes: ['/app/offers'], icon: 'partners' },
-      { label: 'navigation.tasks', route: '/app/tasks', icon: 'tasks' },
-      { label: 'navigation.settings', route: '/app/settings', icon: 'settings' },
-    ];
-    if (this.isSuperAdmin()) {
-      base.push({ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'agentWhatsapp' });
-    }
-    return base;
-  });
+  protected readonly items = computed<NavItem[]>(() => buildNavItems(this.isSuperAdmin()));
 
-  protected isNavItemActive(item: MobileNavItem): boolean {
-    const currentUrl = this.currentUrl();
-    if (currentUrl === item.route || currentUrl.startsWith(item.route + '/')) return true;
-    return item.matchPrefixes?.some((prefix) => currentUrl === prefix || currentUrl.startsWith(prefix + '/')) ?? false;
+  protected iconName(icon: string): string {
+    const map: Record<string, string> = {
+      dashboard: 'layout-dashboard',
+      leads: 'users',
+      tasks: 'list-checks',
+      inbox: 'mail',
+      partners: 'briefcase',
+      appointments: 'calendar-check',
+      offertes: 'file-text',
+      settings: 'settings',
+      agentWhatsapp: 'bot',
+      profile: 'user',
+    };
+    return map[icon] ?? 'circle';
+  }
+
+  protected badgeFor(icon: string): number {
+    switch (icon) {
+      case 'leads': return this.unreadLeadNotifications();
+      case 'inbox': return this.unreadMessagingCount();
+      case 'offertes': return this.unreadQuoteNotifications();
+      default: return 0;
+    }
+  }
+
+  protected isNavItemActive(item: NavItem): boolean {
+    return isNavItemActive(this.currentUrl(), item);
   }
 
   protected handleProfileMenuSelection(item: MenuItem): void {
     if (!item.value) return;
 
     if (item.value.startsWith('switch:')) {
-      const uid = item.value.replace('switch:', '');
-      const targetAccount = this.accountRegistry.getAccount(uid);
-      
-      if (!targetAccount || targetAccount.isExpired) return;
-
-      if (isJwtExpired(targetAccount.token)) {
-        if (!targetAccount.refreshToken) {
-          this.accountRegistry.markExpired(targetAccount.uid);
-          return;
-        }
-
-        // Pass both token and UID to utilize the multi-tenant lock we built
-        this.authService.refresh(targetAccount.refreshToken, targetAccount.uid).subscribe({
-          next: () => {
-            if (this.accountRegistry.switchAccount(uid)) {
-              globalThis.location.assign('/app/dashboard');
-            }
-          },
-          error: () => this.accountRegistry.markExpired(targetAccount.uid),
-        });
-        return;
-      }
-
-      if (this.accountRegistry.switchAccount(uid)) {
-        globalThis.location.assign('/app/dashboard');
-      }
+      this.userNavService.switchAccount(item.value.replace('switch:', ''));
       return;
     }
 
@@ -315,10 +216,10 @@ export class AuthenticatedMobileNavComponent {
         this.showAddAccountSheet.set(true);
         break;
       case 'sign-out-current':
-        this.signOutCurrentAccount();
+        this.userNavService.signOutCurrentAccount();
         break;
       case 'sign-out-all':
-        this.signOutAllAccounts();
+        this.userNavService.signOutAllAccounts();
         break;
     }
   }
@@ -330,46 +231,5 @@ export class AuthenticatedMobileNavComponent {
   protected handleAccountAdded(): void {
     this.showAddAccountSheet.set(false);
     globalThis.location.assign('/app/dashboard');
-  }
-
-  private signOutCurrentAccount(): void {
-    // Replaced the deprecated getter with the signal execution
-    const activeAccount = this.accountRegistry.activeAccount();
-    if (!activeAccount) {
-      void this.router.navigate(['/sign-in']);
-      return;
-    }
-
-    this.authService.signOut(activeAccount.refreshToken).subscribe({
-      next: () => this.finishCurrentAccountSignOut(activeAccount.uid),
-      error: () => this.finishCurrentAccountSignOut(activeAccount.uid),
-    });
-  }
-
-  private finishCurrentAccountSignOut(uid: string): void {
-    const removal = this.accountRegistry.removeAccount(uid);
-    if (removal.nextActive && !removal.nextActive.isExpired) {
-      globalThis.location.assign('/app/dashboard');
-      return;
-    }
-
-    void this.router.navigate(['/sign-in']);
-  }
-
-  private signOutAllAccounts(): void {
-    if (this.accountRegistry.accounts().length > 0) {
-      this.authService.signOutAllAccounts().subscribe({
-        next: () => this.completeSignOutAll(),
-        error: () => this.completeSignOutAll(),
-      });
-      return;
-    }
-
-    this.completeSignOutAll();
-  }
-
-  private completeSignOutAll(): void {
-    this.accountRegistry.logoutAll();
-    void this.router.navigate(['/sign-in']);
   }
 }

@@ -5,7 +5,7 @@ import { LucideAngularModule } from 'lucide-angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, map, of } from 'rxjs';
 import { UserService } from '../../core/services/user.service';
-import { SidebarPanelItem } from './sidebar-panel.config';
+import { filterPanelItemsForCurrentUser, isRouteActive, isRouteExact, resolvePanelItems } from './panel-utils';
 
 @Component({
   selector: 'app-mobile-section-tabs',
@@ -25,7 +25,7 @@ import { SidebarPanelItem } from './sidebar-panel.config';
           @for (item of panelItems(); track item.route) {
             <a
               class="inline-flex shrink-0 items-center gap-1.5 rounded-full border px-3 py-1.5 text-xs font-medium whitespace-nowrap transition-colors"
-              [class]="isActive(item.route, item.exact ?? false)
+              [class]="(item.exact ? isExactActive(item.route) : isActive(item.route))
                 ? 'border-black bg-black text-white'
                 : 'border-zinc-200 bg-zinc-50 text-zinc-600 active:bg-zinc-100'"
               [routerLink]="item.route"
@@ -64,42 +64,22 @@ export class MobileSectionTabsComponent {
   private readonly rawPanelItems = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.resolvePanelItems()),
+      map(() => resolvePanelItems(this.route)),
     ),
-    { initialValue: this.resolvePanelItems() },
+    { initialValue: resolvePanelItems(this.route) },
   );
 
-  protected readonly panelItems = computed(() => this.filterPanelItemsForCurrentUser(this.rawPanelItems()));
+  protected readonly panelItems = computed(() =>
+    filterPanelItemsForCurrentUser(this.rawPanelItems(), this.user()?.roles ?? []),
+  );
 
   protected readonly showTabs = computed(() => this.panelItems().length > 1);
 
-  protected isActive(route: string, exact: boolean): boolean {
-    const url = this.currentUrl();
-    return exact ? url === route : url.startsWith(route);
+  protected isActive(route: string): boolean {
+    return isRouteActive(this.currentUrl(), route);
   }
 
-  private resolvePanelItems(): SidebarPanelItem[] {
-    let current: ActivatedRoute | null = this.route.root;
-    let items: SidebarPanelItem[] = [];
-
-    while (current) {
-      if (current.snapshot?.data?.['panelItems']) {
-        items = current.snapshot.data['panelItems'];
-      }
-      current = current.firstChild;
-    }
-
-    return items;
-  }
-
-  private filterPanelItemsForCurrentUser(items: SidebarPanelItem[]): SidebarPanelItem[] {
-    const roles = this.user()?.roles ?? [];
-    return items.filter((item) => {
-      if (!item.roles || item.roles.length === 0) {
-        return true;
-      }
-
-      return item.roles.some((role) => roles.includes(role));
-    });
+  protected isExactActive(route: string): boolean {
+    return isRouteExact(this.currentUrl(), route);
   }
 }

@@ -1,19 +1,15 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnDestroy, signal } from '@angular/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ActivatedRoute, NavigationEnd, Router, RouterLink } from '@angular/router';
-import {
-  LucideAngularModule
-} from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 import { TranslatePipe } from '@ngx-translate/core';
 import { catchError, filter, map, of } from 'rxjs';
 import { AccountRegistryService } from '../../core/services/account-registry.service';
-import { isJwtExpired } from '../../core/utils/jwt-token.utils';
 import { ButtonComponent } from '../../shared/components/button/button.component';
 import { AddAccountSheetComponent } from '../../shared/components/add-account-sheet/add-account-sheet.component';
 import { MenuComponent, MenuItem, MenuSection } from '../../shared/components/menu/menu.component';
 import { AuthenticatedSidebarPanelComponent } from './authenticated-sidebar-panel.component';
 import { SidebarPanelItem } from './sidebar-panel.config';
-import { AuthService } from '../../core/services/auth.service';
 import { NotificationsService } from '../../core/services/notifications.service';
 import { UserService } from '../../core/services/user.service';
 import { NotificationBellComponent } from '../../shared/components/notification-bell/notification-bell.component';
@@ -22,23 +18,9 @@ import { AgentApprovalsService } from '../../core/services/agent-approvals.servi
 import { IMAPUnreadCountService } from '../../core/services/imap-unread-count.service';
 import { WhatsAppUnreadCountService } from '../../core/services/whatsapp-unread-count.service';
 import type { UserProfile } from '../../core/services/user.types';
-
-interface SidebarItem {
-  label: string;
-  route: string;
-  matchPrefixes?: readonly string[];
-  icon:
-    | 'dashboard'
-    | 'leads'
-    | 'tasks'
-    | 'inbox'
-    | 'partners'
-    | 'appointments'
-    | 'offertes'
-    | 'settings'
-    | 'agentWhatsapp'
-    | 'profile';
-}
+import { buildNavItems, computeAvatarColor, computeUserInitials, isNavItemActive, type NavItem } from './user-nav.utils';
+import { filterPanelItemsForCurrentUser, isRouteActive, isRouteExact, resolvePanelItems } from './panel-utils';
+import { UserNavService } from './user-nav.service';
 
 interface SidebarTooltip {
   route: string;
@@ -68,12 +50,12 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
   private readonly router = inject(Router);
   private readonly route = inject(ActivatedRoute);
   private readonly accountRegistry = inject(AccountRegistryService);
-  private readonly authService = inject(AuthService);
   private readonly notificationsService = inject(NotificationsService);
   private readonly imapUnreadCountService = inject(IMAPUnreadCountService);
   private readonly whatsappUnreadCountService = inject(WhatsAppUnreadCountService);
   private readonly userService = inject(UserService);
   private readonly agentApprovalsService = inject(AgentApprovalsService);
+  private readonly userNavService = inject(UserNavService);
   private readonly stopPollingCount: () => void;
 
   constructor() {
@@ -98,39 +80,15 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
   protected readonly showAddAccountSheet = signal(false);
 
   private readonly user = toSignal(
-    this.userService.getProfile().pipe(
-      catchError(() => of(null)),
-    ),
+    this.userService.getProfile().pipe(catchError(() => of(null))),
     { initialValue: null as UserProfile | null },
   );
 
   protected readonly isAdmin = computed(() => this.user()?.roles?.includes('admin') ?? false);
   protected readonly isSuperAdmin = computed(() => this.user()?.roles?.includes('superadmin') ?? false);
 
-  protected readonly userInitials = computed(() => {
-    const u = this.user();
-    if (!u) return '?';
-    const first = u.firstName?.trim().charAt(0).toUpperCase() ?? '';
-    const last = u.lastName?.trim().charAt(0).toUpperCase() ?? '';
-    return first + last || u.email.charAt(0).toUpperCase();
-  });
-
-  private static readonly AVATAR_COLORS = [
-    '#e53935', '#d81b60', '#8e24aa', '#5e35b1',
-    '#1e88e5', '#039be5', '#00897b', '#43a047',
-    '#f4511e', '#fb8c00', '#fdd835', '#6d4c41',
-  ];
-
-  protected readonly avatarColor = computed(() => {
-    const u = this.user();
-    const seed = u ? (u.firstName ?? u.email) : '';
-    let hash = 0;
-    for (let i = 0; i < seed.length; i++) {
-      hash = (seed.codePointAt(i) ?? 0) + ((hash << 5) - hash);
-    }
-    const colors = AuthenticatedSidebarComponent.AVATAR_COLORS;
-    return colors[Math.abs(hash) % colors.length];
-  });
+  protected readonly userInitials = computed(() => computeUserInitials(this.user()));
+  protected readonly avatarColor = computed(() => computeAvatarColor(this.user()));
 
   protected readonly unreadLeadNotifications = this.notificationsService.unreadLeadCount;
   protected readonly unreadQuoteNotifications = this.notificationsService.unreadQuoteCount;
@@ -142,33 +100,18 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
     return emailCount + whatsAppCount;
   });
 
-  protected readonly items = computed<SidebarItem[]>(() => {
-    const base: SidebarItem[] = [
-      { label: 'navigation.dashboard', route: '/app/dashboard', icon: 'dashboard' },
-      { label: 'navigation.leads', route: '/app/leads', icon: 'leads' },
-      { label: 'navigation.messages', route: '/app/inbox', icon: 'inbox' },
-      { label: 'navigation.offertes', route: '/app/offertes', icon: 'offertes' },
-      { label: 'navigation.appointments', route: '/app/appointments', icon: 'appointments' },
-      { label: 'navigation.partners', route: '/app/partners', matchPrefixes: ['/app/offers'], icon: 'partners' },
-      { label: 'navigation.tasks', route: '/app/tasks', icon: 'tasks' },
-      { label: 'navigation.settings', route: '/app/settings', icon: 'settings' },
-    ];
-    if (this.isSuperAdmin()) {
-      base.push({ label: 'navigation.agentWhatsApp', route: '/app/agent-whatsapp', icon: 'agentWhatsapp' });
-    }
-    return base;
-  });
+  protected readonly items = computed<NavItem[]>(() => buildNavItems(this.isSuperAdmin()));
 
   private readonly rawPanelItems = toSignal(
     this.router.events.pipe(
       filter((event): event is NavigationEnd => event instanceof NavigationEnd),
-      map(() => this.getPanelItemsFromRoute()),
+      map(() => resolvePanelItems(this.route)),
     ),
-    { initialValue: this.getPanelItemsFromRoute() },
+    { initialValue: resolvePanelItems(this.route) },
   );
 
   protected readonly panelItems = computed(() => {
-    const items = this.filterPanelItemsForCurrentUser(this.rawPanelItems());
+    const items = filterPanelItemsForCurrentUser(this.rawPanelItems(), this.user()?.roles ?? []);
     const pending = this.agentApprovalsService.pendingCount();
     return items.map((item) =>
       item.route === '/app/settings/agent-approvals' && pending > 0
@@ -188,29 +131,15 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
     return item?.label ?? '';
   });
 
-  protected isNavItemActive(item: SidebarItem): boolean {
-    if (this.isRouteActive(item.route, false)) {
-      return true;
-    }
-
-    return item.matchPrefixes?.some((prefix) => this.isRouteActive(prefix, false)) ?? false;
+  protected isNavItemActive(item: NavItem): boolean {
+    return isNavItemActive(this.currentUrl(), item);
   }
 
   private getActivePanelItem(): SidebarPanelItem | undefined {
+    const url = this.currentUrl();
     return this.panelItems()
-      .filter((item) => this.isRouteActive(item.route, item.exact ?? false))
+      .filter((item) => (item.exact ?? false) ? isRouteExact(url, item.route) : isRouteActive(url, item.route))
       .sort((left, right) => right.route.length - left.route.length)[0];
-  }
-
-  private filterPanelItemsForCurrentUser(items: SidebarPanelItem[]): SidebarPanelItem[] {
-    const roles = this.user()?.roles ?? [];
-    return items.filter((item) => {
-      if (!item.roles || item.roles.length === 0) {
-        return true;
-      }
-
-      return item.roles.some((role) => roles.includes(role));
-    });
   }
 
   protected readonly profileMenu = computed<MenuSection[]>(() => {
@@ -222,12 +151,8 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
         disabled: account.isExpired || account.isActive,
       };
 
-      if (account.isActive) {
-        item.detail = 'auth.account.current';
-      }
-      if (account.isExpired) {
-        item.badge = 'auth.account.sessionExpired';
-      }
+      if (account.isActive) item.detail = 'auth.account.current';
+      if (account.isExpired) item.badge = 'auth.account.sessionExpired';
 
       return item;
     });
@@ -243,33 +168,34 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
     }
 
     return [
-      {
-        label: 'menu.account',
-        items: accountItems,
-      },
-      {
-        items: actionItems,
-      },
+      { label: 'menu.account', items: accountItems },
+      { items: actionItems },
     ];
   });
 
-  private isRouteActive(route: string, exact: boolean): boolean {
-    const url = this.currentUrl();
-    return exact ? url === route : url.startsWith(route);
+  protected iconName(icon: string): string {
+    const map: Record<string, string> = {
+      dashboard: 'layout-dashboard',
+      leads: 'users',
+      tasks: 'list-checks',
+      inbox: 'mail',
+      partners: 'briefcase',
+      appointments: 'calendar-check',
+      offertes: 'file-text',
+      settings: 'settings',
+      agentWhatsapp: 'bot',
+      profile: 'user',
+    };
+    return map[icon] ?? 'circle';
   }
 
-  private getPanelItemsFromRoute(): SidebarPanelItem[] {
-    let currentRoute: ActivatedRoute | null = this.route.root;
-    let panelItems: SidebarPanelItem[] = [];
-
-    while (currentRoute) {
-      if (currentRoute.snapshot?.data?.['panelItems']) {
-        panelItems = currentRoute.snapshot.data['panelItems'];
-      }
-      currentRoute = currentRoute.firstChild;
+  protected badgeFor(icon: string): number {
+    switch (icon) {
+      case 'leads': return this.unreadLeadNotifications();
+      case 'inbox': return this.unreadMessagingCount();
+      case 'offertes': return this.unreadQuoteNotifications();
+      default: return 0;
     }
-
-    return panelItems;
   }
 
   protected toggleExpanded(): void {
@@ -302,47 +228,10 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
   }
 
   protected handleProfileMenuSelection(item: MenuItem): void {
-    if (!item.value) {
-      return;
-    }
+    if (!item.value) return;
 
     if (item.value.startsWith('switch:')) {
-      const uid = item.value.replace('switch:', '');
-      const targetAccount = this.accountRegistry.getAccount(uid);
-      if (!targetAccount) {
-        return;
-      }
-
-      if (targetAccount.isExpired) {
-        return;
-      }
-
-      if (isJwtExpired(targetAccount.token)) {
-        if (!targetAccount.refreshToken) {
-          this.accountRegistry.markExpired(targetAccount.uid);
-          return;
-        }
-
-        // Fix: Pass targetAccount.uid to utilize the concurrency lock
-        this.authService.refresh(targetAccount.refreshToken, targetAccount.uid).subscribe({
-          next: () => {
-            if (!this.accountRegistry.switchAccount(uid)) {
-              return;
-            }
-            globalThis.location.assign('/app/dashboard');
-          },
-          error: () => {
-            this.accountRegistry.markExpired(targetAccount.uid);
-          },
-        });
-        return;
-      }
-
-      if (!this.accountRegistry.switchAccount(uid)) {
-        return;
-      }
-
-      globalThis.location.assign('/app/dashboard');
+      this.userNavService.switchAccount(item.value.replace('switch:', ''));
       return;
     }
 
@@ -351,10 +240,10 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
         this.showAddAccountSheet.set(true);
         return;
       case 'sign-out-current':
-        this.signOutCurrentAccount();
+        this.userNavService.signOutCurrentAccount();
         return;
       case 'sign-out-all':
-        this.signOutAllAccounts();
+        this.userNavService.signOutAllAccounts();
         return;
       default:
         return;
@@ -368,46 +257,5 @@ export class AuthenticatedSidebarComponent implements OnDestroy {
   protected handleAccountAdded(): void {
     this.showAddAccountSheet.set(false);
     globalThis.location.assign('/app/dashboard');
-  }
-
-  private signOutCurrentAccount(): void {
-    // Fix: Execute the computed signal instead of the deprecated getter
-    const activeAccount = this.accountRegistry.activeAccount();
-    if (!activeAccount) {
-      void this.router.navigate(['/sign-in']);
-      return;
-    }
-
-    this.authService.signOut(activeAccount.refreshToken).subscribe({
-      next: () => this.finishCurrentAccountSignOut(activeAccount.uid),
-      error: () => this.finishCurrentAccountSignOut(activeAccount.uid),
-    });
-  }
-
-  private finishCurrentAccountSignOut(uid: string): void {
-    const removal = this.accountRegistry.removeAccount(uid);
-    if (removal.nextActive && !removal.nextActive.isExpired) {
-      globalThis.location.assign('/app/dashboard');
-      return;
-    }
-
-    void this.router.navigate(['/sign-in']);
-  }
-
-  private signOutAllAccounts(): void {
-    if (this.accountRegistry.accounts().length > 0) {
-      this.authService.signOutAllAccounts().subscribe({
-        next: () => this.completeSignOutAll(),
-        error: () => this.completeSignOutAll(),
-      });
-      return;
-    }
-
-    this.completeSignOutAll();
-  }
-
-  private completeSignOutAll(): void {
-    this.accountRegistry.logoutAll();
-    void this.router.navigate(['/sign-in']);
   }
 }
