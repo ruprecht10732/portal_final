@@ -5,7 +5,7 @@ import { TranslateModule, TranslateService } from '@ngx-translate/core';
 import { catchError, forkJoin, map, Observable, of } from 'rxjs';
 import { CatalogService, type Product, type ProductType, type ListProductsParams, type VatRate, type UpdateProductRequest } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
-import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { reportCatalogError } from '../catalog.utils';
 import { ToastService } from '../../../core/services/toast.service';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
@@ -275,9 +275,7 @@ export class CatalogListComponent {
         return this.catalogService.updateProduct(row.id, updateRequest).pipe(
           map(() => ({ ok: true })),
           catchError((err) => {
-            const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
-            this.error.set(message);
-            this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+            this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.updateProduct'));
             return of({ ok: false });
           })
         );
@@ -322,9 +320,7 @@ export class CatalogListComponent {
         this.refreshFromLastRequest();
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.deleteProduct'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.deleteProduct'));
         this.deleteInProgress.set(false);
       },
     });
@@ -344,9 +340,7 @@ export class CatalogListComponent {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadProducts'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadProducts'));
         this.loading.set(false);
       },
     });
@@ -365,19 +359,22 @@ export class CatalogListComponent {
     }
 
     for (const filter of request.filters) {
-      if (filter.columnId === 'type') {
-        params.type = filter.value as ProductType;
-      }
-      if (filter.columnId === 'isDraft') {
-        const normalized = String(filter.value ?? '').trim().toLowerCase();
-        if (['true', '1', 'yes', 'ja'].includes(normalized)) {
-          params.isDraft = true;
-        } else if (['false', '0', 'no', 'nee'].includes(normalized)) {
-          params.isDraft = false;
+      switch (filter.columnId) {
+        case 'type':
+          params.type = filter.value as ProductType;
+          break;
+        case 'isDraft': {
+          const normalized = String(filter.value ?? '').trim().toLowerCase();
+          if (['true', '1', 'yes', 'ja'].includes(normalized)) {
+            params.isDraft = true;
+          } else if (['false', '0', 'no', 'nee'].includes(normalized)) {
+            params.isDraft = false;
+          }
+          break;
         }
-      }
-      if (filter.columnId === 'vatRateId') {
-        params.vatRateId = filter.value;
+        case 'vatRateId':
+          params.vatRateId = filter.value;
+          break;
       }
     }
 
@@ -407,8 +404,7 @@ export class CatalogListComponent {
         this.vatRatesLoading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadVatRates'));
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadVatRates');
         this.vatRatesLoading.set(false);
       },
     });
@@ -472,31 +468,13 @@ export class CatalogListComponent {
     )));
   }
 
+  private readonly sortFieldMap: Record<string, string> = {
+    fixedPriceValue: 'priceCents',
+    unitPriceValue: 'unitPriceCents',
+  };
+
   private mapSortField(columnId?: string | null): string {
-    switch (columnId) {
-      case 'reference':
-        return 'reference';
-      case 'title':
-        return 'title';
-      case 'type':
-        return 'type';
-      case 'isDraft':
-        return 'isDraft';
-      case 'vatRateId':
-        return 'vatRateId';
-      case 'fixedPriceValue':
-        return 'priceCents';
-      case 'unitPriceValue':
-        return 'unitPriceCents';
-      case 'unitLabel':
-        return 'unitLabel';
-      case 'createdAt':
-        return 'createdAt';
-      case 'updatedAt':
-        return 'updatedAt';
-      default:
-        return 'createdAt';
-    }
+    return this.sortFieldMap[columnId ?? ''] ?? columnId ?? 'createdAt';
   }
 
   private normalizePriceValue(value: PriceInput): number | null {

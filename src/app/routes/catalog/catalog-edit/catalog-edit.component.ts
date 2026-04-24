@@ -14,7 +14,7 @@ import {
 } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { formatFileSize, reportCatalogError } from '../catalog.utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { FileUploaderComponent, type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
@@ -133,9 +133,7 @@ export class CatalogEditComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadProduct'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadProduct'));
         this.loading.set(false);
       },
     });
@@ -147,9 +145,7 @@ export class CatalogEditComponent implements OnInit {
         this.vatRates.set(response.items);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadVatRates'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadVatRates'));
       },
     });
   }
@@ -162,9 +158,7 @@ export class CatalogEditComponent implements OnInit {
         this.materialsLoading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadMaterials'));
         this.materialsLoading.set(false);
       },
     });
@@ -179,9 +173,7 @@ export class CatalogEditComponent implements OnInit {
         this.assetsLoading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
-        this.assetsError.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetsError.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadAssets'));
         this.assetsLoading.set(false);
       },
     });
@@ -246,9 +238,7 @@ export class CatalogEditComponent implements OnInit {
         this.router.navigate(['/app/settings/catalog', product.id]);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.updateProduct'));
         this.saving.set(false);
       },
     });
@@ -346,9 +336,7 @@ export class CatalogEditComponent implements OnInit {
         this.termsUploading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.createTerms'));
-        this.assetsError.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetsError.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.createTerms'));
         this.termsUploading.set(false);
       },
     });
@@ -367,9 +355,7 @@ export class CatalogEditComponent implements OnInit {
         this.assetDeletingId.set(null);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.deleteAsset'));
-        this.assetsError.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetsError.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.deleteAsset'));
         this.assetDeletingId.set(null);
       },
     });
@@ -389,9 +375,7 @@ export class CatalogEditComponent implements OnInit {
         window.open(response.downloadUrl, '_blank');
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
-        this.assetsError.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetsError.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadAssetDownload'));
       },
     });
   }
@@ -400,13 +384,7 @@ export class CatalogEditComponent implements OnInit {
     return asset.fileName || asset.url || this.translate.instant('catalog.products.assets.untitled');
   }
 
-  protected formatFileSize(bytes?: number): string {
-    if (!bytes) return '—';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-  }
+  protected readonly formatFileSize = formatFileSize;
 
   protected getAssetTypeLabel(type: CatalogAssetType): string {
     return this.translate.instant(`catalog.products.assets.types.${type}`);
@@ -434,9 +412,7 @@ export class CatalogEditComponent implements OnInit {
         this.availableMaterials.set(response.items.filter(m => !linkedIds.has(m.id)));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadMaterials'));
       },
     });
   }
@@ -488,9 +464,7 @@ export class CatalogEditComponent implements OnInit {
         this.toast.success(this.translate.instant('catalog.products.materialsAdded'));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.addMaterials'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.addMaterials'));
         this.addingMaterials.set(false);
       },
     });
@@ -508,9 +482,7 @@ export class CatalogEditComponent implements OnInit {
         this.toast.success(this.translate.instant('catalog.products.materialRemoved'));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.removeMaterial'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.removeMaterial'));
         this.removingMaterialId.set(null);
       },
     });
@@ -532,9 +504,7 @@ export class CatalogEditComponent implements OnInit {
         this.toast.success(this.translate.instant('catalog.products.materialModeUpdated'));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.addMaterials'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.addMaterials'));
         this.updatingMaterialModeId.set(null);
       },
     });

@@ -13,7 +13,12 @@ import {
 } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { extractErrorMessage } from '../../../core/utils/error-utils';
+import {
+  formatFileSize,
+  formatMaterialPrice,
+  formatMaterialPriceFromProduct,
+  reportCatalogError,
+} from '../catalog.utils';
 import type { CatalogDetailResolved } from './catalog-detail.resolver';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { type ChipVariant } from '../../../shared/components/chip/chip.component';
@@ -155,9 +160,8 @@ export class CatalogDetailComponent implements OnInit {
   protected readonly onOpenAsset = (asset: CatalogAsset): void => this.openAsset(asset);
   protected readonly onPreviewAsset = (asset: CatalogAsset): void => this.openPreview(asset);
   protected readonly onDownloadAsset = (asset: CatalogAsset): void => this.openAsset(asset);
-  protected readonly onFormatFileSize = (bytes?: number): string => this.formatFileSize(bytes);
-  protected readonly onFormatMaterialPrice = (product: Product): string =>
-    this.formatMaterialPrice(product.priceCents, product.unitPriceCents, product.unitLabel);
+  protected readonly onFormatFileSize = formatFileSize;
+  protected readonly onFormatMaterialPrice = formatMaterialPriceFromProduct;
   protected readonly onAssetUploaded = (asset: CatalogAsset): void => this.handleAssetUploaded(asset);
   protected readonly onAssetError = (event: FileUploadError | null): void => this.handleAssetError(event);
   protected readonly onDeleteAsset = (asset: CatalogAsset): void => this.requestDeleteAsset(asset);
@@ -214,9 +218,7 @@ export class CatalogDetailComponent implements OnInit {
         this.materialsLoading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadMaterials'));
         this.materialsLoading.set(false);
       },
     });
@@ -233,9 +235,7 @@ export class CatalogDetailComponent implements OnInit {
         this.loadImagePreviews(productId, response.items);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssets'));
-        this.assetsError.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetsError.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadAssets'));
         this.assetsLoading.set(false);
       },
     });
@@ -308,24 +308,14 @@ export class CatalogDetailComponent implements OnInit {
         this.router.navigate(['/app/settings/catalog']);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.deleteProduct'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.deleteProduct'));
         this.deleting.set(false);
         this.closeDeleteDialog();
       },
     });
   }
 
-  protected formatMaterialPrice(priceCents: number, unitPriceCents?: number, unitLabel?: string): string {
-    if (unitLabel && typeof unitPriceCents === 'number' && unitPriceCents >= 0) {
-      return `€${CatalogService.centsToPrice(unitPriceCents).toFixed(2)} / ${unitLabel}`;
-    }
-    if (priceCents >= 0) {
-      return `€${CatalogService.centsToPrice(priceCents).toFixed(2)}`;
-    }
-    return '—';
-  }
+  protected readonly formatMaterialPrice = formatMaterialPrice;
 
   protected openAsset(asset: CatalogAsset): void {
     const product = this.product();
@@ -343,9 +333,7 @@ export class CatalogDetailComponent implements OnInit {
         this.downloadingAssetId.set(null);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
-        this.assetsError.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetsError.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadAssetDownload'));
         this.downloadingAssetId.set(null);
       },
     });
@@ -372,9 +360,7 @@ export class CatalogDetailComponent implements OnInit {
         this.previewLoading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadAssetDownload'));
-        this.previewError.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.previewError.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadAssetDownload'));
         this.previewLoading.set(false);
       },
     });
@@ -388,27 +374,17 @@ export class CatalogDetailComponent implements OnInit {
     this.previewAsset.set(null);
   }
 
-  protected formatFileSize(bytes?: number): string {
-    if (!bytes) return '—';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-  }
+  protected readonly formatFileSize = formatFileSize;
+
+  private readonly typeVariantMap: Record<ProductType, ChipVariant> = {
+    service: 'info',
+    digital_service: 'warning',
+    product: 'success',
+    material: 'neutral',
+  };
 
   protected getTypeVariant(type: ProductType): ChipVariant {
-    switch (type) {
-      case 'service':
-        return 'info';
-      case 'digital_service':
-        return 'warning';
-      case 'product':
-        return 'success';
-      case 'material':
-        return 'neutral';
-      default:
-        return 'default';
-    }
+    return this.typeVariantMap[type] ?? 'default';
   }
 
   private async updateVatRate(vatRateId: string): Promise<void> {
@@ -450,19 +426,23 @@ export class CatalogDetailComponent implements OnInit {
     this.deleteAssetById(asset.id);
   }
 
+  private readonly deleteAssetCopyMap: Record<string, { title: string; message: string }> = {
+    document: {
+      title: 'catalog.assets.deleteAssetTitleDocument',
+      message: 'catalog.assets.deleteAssetMessageDocument',
+    },
+    terms_url: {
+      title: 'catalog.assets.deleteAssetTitleUrl',
+      message: 'catalog.assets.deleteAssetMessageUrl',
+    },
+  };
+
   private getDeleteAssetCopyKey(
     target: 'title' | 'message',
     type?: CatalogAsset['assetType'],
   ): string {
-    switch (type) {
-      case 'document':
-        return `catalog.assets.deleteAsset${target === 'title' ? 'Title' : 'Message'}Document`;
-      case 'terms_url':
-        return `catalog.assets.deleteAsset${target === 'title' ? 'Title' : 'Message'}Url`;
-      case 'image':
-      default:
-        return `catalog.assets.deleteAsset${target === 'title' ? 'Title' : 'Message'}Image`;
-    }
+    return this.deleteAssetCopyMap[type ?? '']?.[target]
+      ?? `catalog.assets.deleteAsset${target === 'title' ? 'Title' : 'Message'}Image`;
   }
 
   private deleteAssetById(assetId: string): void {
@@ -486,9 +466,7 @@ export class CatalogDetailComponent implements OnInit {
         }
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.deleteAsset'));
-        this.assetsError.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.assetsError.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.deleteAsset'));
       },
     });
   }
@@ -504,9 +482,7 @@ export class CatalogDetailComponent implements OnInit {
       this.product.set(updated);
       this.toast.success(this.translate.instant('catalog.products.updateSuccess'));
     } catch (err) {
-      const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.updateProduct'));
-      this.error.set(message);
-      this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.updateProduct'));
     }
   }
   protected handleAssetUploaded(asset: CatalogAsset): void {
@@ -598,9 +574,7 @@ export class CatalogDetailComponent implements OnInit {
         ...(label && { label }),
       }));
     } catch (err) {
-      const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.createTerms'));
-      this.assetsError.set(message);
-      this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      this.assetsError.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.createTerms'));
       return null;
     }
   }
@@ -623,9 +597,7 @@ export class CatalogDetailComponent implements OnInit {
         this.availableMaterials.set(response.items.filter(m => !linkedIds.has(m.id)));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadMaterials'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadMaterials'));
       },
     });
   }
@@ -654,9 +626,7 @@ export class CatalogDetailComponent implements OnInit {
         this.toast.success(this.translate.instant('catalog.products.materialsAdded'));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.addMaterials'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.addMaterials'));
         this.addingMaterials.set(false);
       },
     });

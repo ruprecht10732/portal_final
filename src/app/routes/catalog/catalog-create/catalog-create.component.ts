@@ -10,7 +10,8 @@ import {
 } from '../../../core/services/catalog.service';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { firstValueFrom } from 'rxjs';
+import { reportCatalogError } from '../catalog.utils';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { CatalogFormComponent, type CatalogFormValue } from '../catalog-form/catalog-form.component';
 
@@ -78,9 +79,7 @@ export class CatalogCreateComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.loadVatRates'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.loadVatRates'));
         this.loading.set(false);
       },
     });
@@ -128,9 +127,7 @@ export class CatalogCreateComponent implements OnInit {
         this.createAndAttachMaterials(product.id, materialPayloads, rows.map(row => row.pricingMode));
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.createProduct'));
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.createProduct'));
         this.saving.set(false);
       },
     });
@@ -280,43 +277,35 @@ export class CatalogCreateComponent implements OnInit {
     return null;
   }
 
-  private createAndAttachMaterials(serviceId: string, materialPayloads: CreateProductRequest[], pricingModes: MaterialPricingMode[]): void {
+  private async createAndAttachMaterials(
+    serviceId: string,
+    materialPayloads: CreateProductRequest[],
+    pricingModes: MaterialPricingMode[],
+  ): Promise<void> {
     const createdMaterials: { id: string; pricingMode: MaterialPricingMode }[] = [];
 
-    const createNext = (index: number): void => {
-      if (index >= materialPayloads.length) {
-        this.catalogService.addProductMaterials(serviceId, {
-          materials: createdMaterials.map(item => ({ materialId: item.id, pricingMode: item.pricingMode })),
-        }).subscribe({
-          next: () => {
-            this.toast.success(this.translate.instant('catalog.products.createSuccess'));
-            this.router.navigate(['/app/settings/catalog', serviceId]);
-          },
-          error: (err) => {
-            const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.addMaterials'));
-            this.error.set(message);
-            this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-            this.saving.set(false);
-          },
-        });
+    for (let i = 0; i < materialPayloads.length; i++) {
+      try {
+        const created = await firstValueFrom(this.catalogService.createProduct(materialPayloads[i]!));
+        createdMaterials.push({ id: created.id, pricingMode: pricingModes[i] ?? 'additional' });
+      } catch (err) {
+        this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.createProduct'));
+        this.saving.set(false);
         return;
       }
+    }
 
-      this.catalogService.createProduct(materialPayloads[index]!).subscribe({
-        next: (created) => {
-          createdMaterials.push({ id: created.id, pricingMode: pricingModes[index] ?? 'additional' });
-          createNext(index + 1);
-        },
-        error: (err) => {
-          const message = extractErrorMessage(err, this.translate.instant('catalog.products.errors.createProduct'));
-          this.error.set(message);
-          this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-          this.saving.set(false);
-        },
-      });
-    };
-
-    createNext(0);
+    try {
+      await firstValueFrom(this.catalogService.addProductMaterials(serviceId, {
+        materials: createdMaterials.map(item => ({ materialId: item.id, pricingMode: item.pricingMode })),
+      }));
+      this.toast.success(this.translate.instant('catalog.products.createSuccess'));
+      this.router.navigate(['/app/settings/catalog', serviceId]);
+    } catch (err) {
+      this.error.set(reportCatalogError(err, this.reporter, this.translate, 'catalog.products.errors.addMaterials'));
+    } finally {
+      this.saving.set(false);
+    }
   }
 
 }
