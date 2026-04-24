@@ -1,14 +1,12 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
-import { getAuthErrorMessage } from '../../../core/utils/auth-error-mapper';
-import { getEmailError } from '../../../core/utils/auth-form.utils';
-import { catchError, finalize, EMPTY } from 'rxjs';
+import { createEmailError } from '../../../core/utils/auth-form.utils';
+import { handleAuthSubmit } from '../../../core/utils/rx-operators';
 
 @Component({
   selector: 'auth-forgot-password',
@@ -27,16 +25,11 @@ export class ForgotPasswordComponent {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
 
-  protected readonly emailError = computed(() => {
-    const raw = getEmailError(this.email());
-    return raw ? this.translate.instant('auth.form.emailError') : '';
-  });
+  protected readonly emailError = createEmailError(this.email, this.translate);
 
   protected readonly canSubmit = computed(() =>
     !this.isSubmitting() && !!this.email() && !this.emailError()
   );
-
-  // removed empty constructor to satisfy lint rule
 
   protected onSubmit(event: Event): void {
     event.preventDefault();
@@ -45,14 +38,7 @@ export class ForgotPasswordComponent {
     this.isSubmitting.set(true);
 
     this.authService.forgotPassword({ email: this.email() })
-      .pipe(
-        catchError(error => {
-          this.toast.error(getAuthErrorMessage(error));
-          return EMPTY;
-        }),
-        finalize(() => this.isSubmitting.set(false)),
-        takeUntilDestroyed(this.destroyRef)
-      )
+      .pipe(handleAuthSubmit(this.destroyRef, this.isSubmitting, this.toast))
       .subscribe(() => {
         void this.router.navigate(['/check-email'], { queryParams: { mode: 'reset' } });
       });

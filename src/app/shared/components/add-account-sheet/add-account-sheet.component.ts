@@ -1,12 +1,10 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, input, output, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { EMPTY, catchError, finalize } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AuthService } from '../../../core/services/auth.service';
 import { MIN_LENGTH } from '../../../core/config';
 import { ToastService } from '../../../core/services/toast.service';
-import { getAuthErrorMessage } from '../../../core/utils/auth-error-mapper';
-import { getEmailError, getPasswordMinLengthError } from '../../../core/utils/auth-form.utils';
+import { createEmailError, createPasswordError } from '../../../core/utils/auth-form.utils';
+import { handleAuthSubmit } from '../../../core/utils/rx-operators';
 import { ButtonComponent } from '../button/button.component';
 import { InputComponent } from '../input/input.component';
 import { RightSidebarComponent } from '../right-sidebar/right-sidebar.component';
@@ -32,15 +30,8 @@ export class AddAccountSheetComponent {
   private readonly toast = inject(ToastService);
   private readonly translate = inject(TranslateService);
 
-  protected readonly emailError = computed(() => {
-    const raw = getEmailError(this.email());
-    return raw ? this.translate.instant('auth.form.emailError') : '';
-  });
-
-  protected readonly passwordError = computed(() => {
-    const raw = getPasswordMinLengthError(this.password(), MIN_LENGTH.password);
-    return raw ? this.translate.instant('auth.form.passwordError', { minLength: MIN_LENGTH.password }) : '';
-  });
+  protected readonly emailError = createEmailError(this.email, this.translate);
+  protected readonly passwordError = createPasswordError(this.password, MIN_LENGTH.password, this.translate);
 
   protected readonly canSubmit = computed(() =>
     !this.isSubmitting() && !!this.email() && !!this.password() && !this.emailError() && !this.passwordError()
@@ -60,14 +51,7 @@ export class AddAccountSheetComponent {
     this.isSubmitting.set(true);
 
     this.authService.signIn({ email: this.email(), password: this.password() })
-      .pipe(
-        catchError(error => {
-          this.toast.error(getAuthErrorMessage(error));
-          return EMPTY;
-        }),
-        finalize(() => this.isSubmitting.set(false)),
-        takeUntilDestroyed(this.destroyRef)
-      )
+      .pipe(handleAuthSubmit(this.destroyRef, this.isSubmitting, this.toast))
       .subscribe(() => {
         this.email.set('');
         this.password.set('');

@@ -1,19 +1,19 @@
 import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, RouterLink } from '@angular/router';
-import { takeUntilDestroyed, toSignal } from '@angular/core/rxjs-interop';
-import { EMPTY, catchError, finalize, map } from 'rxjs';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { map } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { AuthService } from '../../../core/services/auth.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { MIN_LENGTH } from '../../../core/config';
-import { getAuthErrorMessage } from '../../../core/utils/auth-error-mapper';
+import { handleAuthSubmit } from '../../../core/utils/rx-operators';
 import {
+  createPasswordChecks,
+  createPasswordError,
+  createPasswordRules,
   getConfirmPasswordError,
-  getPasswordChecks,
-  getPasswordMinLengthError,
-  type PasswordRule,
 } from '../../../core/utils/auth-form.utils';
 
 @Component({
@@ -42,23 +42,9 @@ export class ResetPasswordComponent {
 
   protected readonly isTokenValid = computed(() => !!this.token());
 
-  protected readonly passwordChecks = computed(() => getPasswordChecks(this.password(), MIN_LENGTH.password));
-
-  protected readonly passwordRules = computed<PasswordRule[]>(() => {
-    const checks = this.passwordChecks();
-    const minLength = MIN_LENGTH.password;
-    return [
-      { label: this.translate.instant('auth.passwordRules.minLength', { minLength }), met: checks.hasMinLength },
-      { label: this.translate.instant('auth.passwordRules.hasNumber'), met: checks.hasNumber },
-      { label: this.translate.instant('auth.passwordRules.hasUppercase'), met: checks.hasUppercase },
-      { label: this.translate.instant('auth.passwordRules.hasSpecial'), met: checks.hasSpecial },
-    ];
-  });
-
-  protected readonly passwordError = computed(() => {
-    const raw = getPasswordMinLengthError(this.password(), MIN_LENGTH.password);
-    return raw ? this.translate.instant('auth.form.passwordError', { minLength: MIN_LENGTH.password }) : '';
-  });
+  protected readonly passwordChecks = createPasswordChecks(this.password, MIN_LENGTH.password);
+  protected readonly passwordRules = createPasswordRules(this.passwordChecks, MIN_LENGTH.password, this.translate);
+  protected readonly passwordError = createPasswordError(this.password, MIN_LENGTH.password, this.translate);
 
   protected readonly confirmError = computed(() => {
     const raw = getConfirmPasswordError(this.password(), this.confirmPassword());
@@ -68,8 +54,6 @@ export class ResetPasswordComponent {
   protected readonly canSubmit = computed(() =>
     this.isTokenValid() && !this.isSubmitting() && !!this.password() && !this.passwordError() && !this.confirmError()
   );
-
-  // removed empty constructor to satisfy lint rule
 
   protected onSubmit(event: Event): void {
     event.preventDefault();
@@ -81,14 +65,7 @@ export class ResetPasswordComponent {
     this.isSubmitting.set(true);
 
     this.authService.resetPassword({ token: tokenValue, newPassword: this.password() })
-      .pipe(
-        catchError(error => {
-          this.toast.error(getAuthErrorMessage(error));
-          return EMPTY;
-        }),
-        finalize(() => this.isSubmitting.set(false)),
-        takeUntilDestroyed(this.destroyRef)
-      )
+      .pipe(handleAuthSubmit(this.destroyRef, this.isSubmitting, this.toast))
       .subscribe(() => {
         void this.router.navigate(['/sign-in']);
       });
