@@ -535,6 +535,13 @@ export class LeadDetailComponent implements OnInit {
     }));
   });
 
+  protected readonly serviceTypeLabels = computed<Record<string, string>>(() =>
+    this.serviceTypes().reduce((acc, item) => {
+      acc[item.name] = item.name;
+      return acc;
+    }, {} as Record<string, string>)
+  );
+
   protected readonly serviceTypeOptions = computed(() =>
     this.serviceTypes().map(item => ({
       label: item.name,
