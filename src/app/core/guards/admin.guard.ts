@@ -9,7 +9,7 @@ export const adminGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   return userService.getProfile().pipe(
-    map(profile => profile.roles?.includes(ROLES.admin) ? true : router.createUrlTree(['/app/dashboard'])),
+    map(profile => profile.roles?.includes(ROLES.admin) || router.createUrlTree(['/app/dashboard'])),
     catchError(() => of(router.createUrlTree(['/app/dashboard']))),
   );
 };

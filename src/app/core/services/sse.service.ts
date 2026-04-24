@@ -3,7 +3,7 @@ import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ToastService } from './toast.service';
-import { TokenStorageService } from './token-storage.service';
+import { AccountRegistryService } from './account-registry.service';
 
 // SSE event types from the backend
 export type SSEEventType =
@@ -70,7 +70,7 @@ export interface SSEConnectionState {
 
 @Injectable({ providedIn: 'root' })
 export class SSEService {
-  private readonly tokens = inject(TokenStorageService);
+  private readonly accounts = inject(AccountRegistryService);
   private readonly toast = inject(ToastService);
   private readonly zone = inject(NgZone);
   private readonly destroyRef = inject(DestroyRef);
@@ -118,7 +118,7 @@ export class SSEService {
       return; // Already connected
     }
 
-    const token = this.tokens.accessTokenValue;
+    const token = this.accounts.usableActiveAccount()?.token ?? null;
     if (!token) {
       // Not authenticated, skip connection
       return;
@@ -420,7 +420,7 @@ export class SSEService {
 
     this.reconnectTimer = setTimeout(() => {
       this.reconnectTimer = null;
-      if (this.tokens.accessTokenValue) {
+      if (this.accounts.usableActiveAccount()?.token) {
         this.connect();
       }
     }, delay);

@@ -14,22 +14,7 @@ export const superadminGuard: CanActivateFn = () => {
   const router = inject(Router);
 
   return userService.getProfile().pipe(
-    map((profile) => {
-      const roles = profile?.roles ?? [];
-      const hasAccess = roles.includes(ROLES.superadmin);
-
-      if (hasAccess) {
-        return true;
-      }
-
-      // Unauthorized for this specific area? Divert to the main dashboard.
-      return router.createUrlTree(['/app/dashboard']);
-    }),
-    catchError(() => {
-      // If the profile can't be fetched, we cannot prove superadmin status.
-      // We divert to dashboard and let the global error handler or interceptor
-      // deal with the underlying network/auth issue.
-      return of(router.createUrlTree(['/app/dashboard']));
-    })
+    map(profile => profile?.roles?.includes(ROLES.superadmin) || router.createUrlTree(['/app/dashboard'])),
+    catchError(() => of(router.createUrlTree(['/app/dashboard']))),
   );
 };
