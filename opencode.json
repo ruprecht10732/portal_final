@@ -1,0 +1,133 @@
+{
+  "$schema": "https://opencode.ai/config.json",
+  "provider": {
+    "canopy": {
+      "npm": "@ai-sdk/openai-compatible",
+      "name": "Canopy Wave1",
+      "options": {
+        "baseURL": "https://inference.canopywave.io/v1",
+        "headers": {
+          "Authorization": "Bearer 2N9THxcm_ZPsmgSfKDK3PYyM5lJkMupSYhX3ZFdYDkM"
+        }
+      },
+      "models": {
+        "moonshotai/kimi-k2.6": {
+          "name": "Kimi K2.6"
+        }
+      }
+    }
+  },
+  "model": "canopy/moonshotai/kimi-k2.6",
+  "agent": {
+    "build": {
+      "mode": "primary",
+      "model": "canopy/moonshotai/kimi-k2.6",
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "*": "ask",
+          "git status*": "allow",
+          "git log*": "allow",
+          "git diff*": "allow",
+          "npm test": "allow",
+          "ng test": "allow",
+          "ng lint": "allow",
+          "go test ./...": "allow",
+          "go vet ./...": "allow"
+        }
+      }
+    },
+    "plan": {
+      "mode": "primary",
+      "model": "canopy/moonshotai/kimi-k2.6",
+      "permission": {
+        "edit": "deny",
+        "bash": {
+          "*": "deny",
+          "git log*": "allow",
+          "git diff*": "allow"
+        }
+      }
+    },
+    "angular-dev": {
+      "description": "Angular 21 frontend development specialist",
+      "mode": "subagent",
+      "model": "canopy/moonshotai/kimi-k2.6",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "*": "ask",
+          "ng generate*": "allow",
+          "ng test": "allow",
+          "ng lint": "allow",
+          "npm run*": "allow"
+        }
+      }
+    },
+    "go-backend": {
+      "description": "Go backend API development specialist",
+      "mode": "subagent",
+      "model": "canopy/moonshotai/kimi-k2.6",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "*": "ask",
+          "go test ./...": "allow",
+          "go vet ./...": "allow",
+          "go fmt ./...": "allow",
+          "go mod tidy": "allow",
+          "go build ./...": "allow"
+        }
+      }
+    },
+    "db-admin": {
+      "description": "PostgreSQL database schema and query specialist",
+      "mode": "subagent",
+      "model": "canopy/moonshotai/kimi-k2.6",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "*": "ask",
+          "psql*": "allow",
+          "pg_dump*": "allow"
+        }
+      }
+    },
+    "fullstack-review": {
+      "description": "Fullstack code reviewer for Angular + Go + Postgres stack",
+      "mode": "subagent",
+      "model": "canopy/moonshotai/kimi-k2.6",
+      "temperature": 0.1,
+      "permission": {
+        "edit": "deny",
+        "bash": {
+          "*": "deny",
+          "git diff*": "allow",
+          "git log*": "allow",
+          "git show*": "allow"
+        }
+      }
+    },
+    "api-designer": {
+      "description": "API contract designer between Angular frontend and Go backend",
+      "mode": "subagent",
+      "model": "canopy/moonshotai/kimi-k2.6",
+      "temperature": 0.2,
+      "permission": {
+        "edit": "allow",
+        "bash": {
+          "*": "ask"
+        }
+      }
+    }
+  },
+  "permission": {
+    "skill": {
+      "*": "allow",
+      "internal-*": "deny"
+    }
+  }
+}
