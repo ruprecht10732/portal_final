@@ -64,33 +64,25 @@ export class StaleLeadsComponent {
     setTimeout(() => this.copiedId.set(null), 2000);
   }
 
+  private readonly channelBadgeMap: Record<string, string> = {
+    whatsapp: 'bg-green-50 text-green-700 ring-green-600/10',
+    email: 'bg-sky-50 text-sky-700 ring-sky-600/10',
+    phone: 'bg-violet-50 text-violet-700 ring-violet-600/10',
+  };
+
   protected channelBadgeClass(channel: string | undefined): string {
-    switch (channel) {
-      case 'whatsapp':
-        return 'bg-green-50 text-green-700 ring-green-600/10';
-      case 'email':
-        return 'bg-sky-50 text-sky-700 ring-sky-600/10';
-      case 'phone':
-        return 'bg-violet-50 text-violet-700 ring-violet-600/10';
-      default:
-        return 'bg-zinc-50 text-zinc-700 ring-zinc-600/10';
-    }
+    return this.channelBadgeMap[channel ?? ''] ?? 'bg-zinc-50 text-zinc-700 ring-zinc-600/10';
   }
 
+  private readonly reasonBadgeMap: Record<string, string> = {
+    no_activity: 'bg-red-50 text-red-700 ring-red-600/10',
+    stuck_nurturing: 'bg-amber-50 text-amber-700 ring-amber-600/10',
+    no_quote_sent: 'bg-orange-50 text-orange-700 ring-orange-600/10',
+    stale_draft: 'bg-blue-50 text-blue-700 ring-blue-600/10',
+    needs_rescheduling: 'bg-purple-50 text-purple-700 ring-purple-600/10',
+  };
+
   protected reasonBadgeClass(reason: string): string {
-    switch (reason) {
-      case 'no_activity':
-        return 'bg-red-50 text-red-700 ring-red-600/10';
-      case 'stuck_nurturing':
-        return 'bg-amber-50 text-amber-700 ring-amber-600/10';
-      case 'no_quote_sent':
-        return 'bg-orange-50 text-orange-700 ring-orange-600/10';
-      case 'stale_draft':
-        return 'bg-blue-50 text-blue-700 ring-blue-600/10';
-      case 'needs_rescheduling':
-        return 'bg-purple-50 text-purple-700 ring-purple-600/10';
-      default:
-        return 'bg-zinc-50 text-zinc-700 ring-zinc-600/10';
-    }
+    return this.reasonBadgeMap[reason] ?? 'bg-zinc-50 text-zinc-700 ring-zinc-600/10';
   }
 }

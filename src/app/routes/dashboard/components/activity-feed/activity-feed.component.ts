@@ -69,41 +69,36 @@ export class ActivityFeedComponent {
     return formatter.format(-days, 'day');
   }
 
-  protected categoryLabel(category: ActivityCategory): string {
-    const keyMap: Record<ActivityCategory, string> = {
-      leads: 'dashboard.activityFeed.filters.leads',
-      quotes: 'dashboard.activityFeed.filters.quotes',
-      appointments: 'dashboard.activityFeed.filters.appointments',
-      ai: 'dashboard.activityFeed.filters.ai',
-    };
-
-    return keyMap[category];
-  }
+  private readonly categoryIconMap: Record<ActivityCategory, string> = {
+    leads: 'user',
+    quotes: 'file-text',
+    appointments: 'calendar',
+    ai: 'sparkles',
+  };
 
   protected categoryIcon(event: ActivityEvent): string {
-    switch (event.category) {
-      case 'leads':        return 'user';
-      case 'quotes':       return 'file-text';
-      case 'appointments': return 'calendar';
-      case 'ai':           return 'sparkles';
-    }
+    return this.categoryIconMap[event.category];
   }
+
+  private readonly categoryColorMap: Record<ActivityCategory, string> = {
+    leads: 'bg-blue-500',
+    quotes: 'bg-indigo-500',
+    appointments: 'bg-emerald-500',
+    ai: 'bg-violet-500',
+  };
 
   protected categoryColor(event: ActivityEvent): string {
-    switch (event.category) {
-      case 'leads':        return 'bg-blue-500';
-      case 'quotes':       return 'bg-indigo-500';
-      case 'appointments': return 'bg-emerald-500';
-      case 'ai':           return 'bg-violet-500';
-    }
+    return this.categoryColorMap[event.category];
   }
 
+  private readonly categoryPillMap: Record<ActivityCategory, string> = {
+    leads: 'bg-blue-100 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400',
+    quotes: 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400',
+    appointments: 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
+    ai: 'bg-violet-100 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400',
+  };
+
   protected categoryPillActive(key: ActivityCategory): string {
-    switch (key) {
-      case 'leads':        return 'bg-blue-100 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400';
-      case 'quotes':       return 'bg-indigo-100 text-indigo-600 dark:bg-indigo-950/50 dark:text-indigo-400';
-      case 'appointments': return 'bg-emerald-100 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400';
-      case 'ai':           return 'bg-violet-100 text-violet-600 dark:bg-violet-950/50 dark:text-violet-400';
-    }
+    return this.categoryPillMap[key];
   }
 }

@@ -6,6 +6,7 @@ import { Chart, registerables } from 'chart.js';
 import { DashboardMetricsService } from '../../../../core/services/dashboard-metrics.service';
 import type { DashboardMetricsResponse } from '../../../../core/services/dashboard.types';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
+import { themeColor } from '../../dashboard.utils';
 
 Chart.register(...registerables);
 
@@ -88,11 +89,11 @@ export class PipelineOverviewComponent implements AfterViewInit, OnDestroy {
 
     const yMin = sameValue ? Math.max(0, minValue - Math.max(1, Math.round(maxValue * 0.1))) : Math.max(0, Math.floor(minValue * 0.9));
     const yMax = sameValue ? maxValue + Math.max(1, Math.round((maxValue || 1) * 0.2)) : Math.ceil(maxValue * 1.15);
-    const pipelineColor = this.themeColor('--color-blue-600');
-    const avgValueColor = this.themeColor('--color-emerald-500');
-    const axisTextColor = this.themeColor('--color-zinc-700');
-    const subtleGridColor = this.themeColor('--color-zinc-200');
-    const mediumGridColor = this.themeColor('--color-zinc-300');
+    const pipelineColor = themeColor('--color-blue-600');
+    const avgValueColor = themeColor('--color-emerald-500');
+    const axisTextColor = themeColor('--color-zinc-700');
+    const subtleGridColor = themeColor('--color-zinc-200');
+    const mediumGridColor = themeColor('--color-zinc-300');
 
     this.chart = new Chart(canvas, {
       type: 'line',
@@ -196,12 +197,5 @@ export class PipelineOverviewComponent implements AfterViewInit, OnDestroy {
     this.chart = null;
   }
 
-  private themeColor(variableName: string): string {
-    if (typeof document === 'undefined') {
-      return 'currentColor';
-    }
 
-    const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
-    return value || 'currentColor';
-  }
 }

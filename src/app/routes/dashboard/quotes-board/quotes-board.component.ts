@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
+import { formatFullName, loadAllPages } from '../dashboard.utils';
 import { QuotesService } from '../../../core/services/quotes.service';
 import { QUOTE_STATUS_COLORS, QuoteResponse, QuoteStatus } from '../../../core/services/quotes.types';
 import { ToastService } from '../../../core/services/toast.service';
@@ -141,14 +141,12 @@ export class QuotesBoardComponent {
   }
 
   protected getCustomerName(quote: QuoteResponse): string {
-    const firstName = quote.customerFirstName?.trim() ?? '';
-    const lastName = quote.customerLastName?.trim() ?? '';
-    return `${firstName} ${lastName}`.trim() || '—';
+    return formatFullName(quote.customerFirstName, quote.customerLastName);
   }
 
   private load(): void {
     this.loading.set(true);
-    this.loadAllQuotes()
+    loadAllPages(params => this.quotesService.list(params), PAGE_SIZE, MAX_AUTO_PAGES)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: result => {
@@ -163,28 +161,6 @@ export class QuotesBoardComponent {
           this.loading.set(false);
         },
       });
-  }
-
-  private loadAllQuotes(pageSize = PAGE_SIZE, maxPages = MAX_AUTO_PAGES): Observable<{ items: QuoteResponse[]; truncated: boolean }> {
-    return this.quotesService.list({ page: 1, pageSize }).pipe(
-      expand(response =>
-        response.page < response.totalPages && response.page < maxPages
-          ? this.quotesService.list({ page: response.page + 1, pageSize })
-          : EMPTY,
-      ),
-      reduce(
-        (acc, response) => ({
-          items: [...acc.items, ...(response.items ?? [])],
-          lastPage: response.page,
-          totalPages: response.totalPages,
-        }),
-        { items: [] as QuoteResponse[], lastPage: 0, totalPages: 0 },
-      ),
-      map(acc => ({
-        items: acc.items,
-        truncated: acc.lastPage < acc.totalPages,
-      })),
-    );
   }
 
   private updateQuoteStatus(quote: QuoteResponse, toStatus: QuoteStatus): void {

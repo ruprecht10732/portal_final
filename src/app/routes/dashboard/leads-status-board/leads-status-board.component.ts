@@ -4,7 +4,7 @@ import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signa
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { RouterLink } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
-import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
+import { formatFullName, loadAllPages } from '../dashboard.utils';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import {
   ALLOWED_STATUS_TRANSITIONS,
@@ -141,14 +141,12 @@ export class LeadsStatusBoardComponent {
   }
 
   protected getLeadName(lead: Lead): string {
-    const firstName = lead.consumer.firstName?.trim() ?? '';
-    const lastName = lead.consumer.lastName?.trim() ?? '';
-    return `${firstName} ${lastName}`.trim() || '—';
+    return formatFullName(lead.consumer.firstName, lead.consumer.lastName);
   }
 
   private load(): void {
     this.loading.set(true);
-    this.loadAllLeads()
+    loadAllPages(params => this.leadsService.list(params), PAGE_SIZE, MAX_AUTO_PAGES)
       .pipe(takeUntilDestroyed(this.destroyRef))
       .subscribe({
         next: result => {
@@ -163,28 +161,6 @@ export class LeadsStatusBoardComponent {
           this.loading.set(false);
         },
       });
-  }
-
-  private loadAllLeads(pageSize = PAGE_SIZE, maxPages = MAX_AUTO_PAGES): Observable<{ items: Lead[]; truncated: boolean }> {
-    return this.leadsService.list({ page: 1, pageSize }).pipe(
-      expand(response =>
-        response.page < response.totalPages && response.page < maxPages
-          ? this.leadsService.list({ page: response.page + 1, pageSize })
-          : EMPTY,
-      ),
-      reduce(
-        (acc, response) => ({
-          items: [...acc.items, ...(response.items ?? [])],
-          lastPage: response.page,
-          totalPages: response.totalPages,
-        }),
-        { items: [] as Lead[], lastPage: 0, totalPages: 0 },
-      ),
-      map(acc => ({
-        items: acc.items,
-        truncated: acc.lastPage < acc.totalPages,
-      })),
-    );
   }
 
   private updateLeadStatus(lead: Lead, toStatus: LeadStatus): void {

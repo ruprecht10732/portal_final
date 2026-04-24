@@ -44,15 +44,14 @@ export class UpcomingScheduleComponent {
     return this.translate.instant(keyMap[type]);
   }
 
+  private readonly typeIconMap: Record<AppointmentType, string> = {
+    lead_visit: 'house',
+    standalone: 'calendar-check',
+    blocked: 'lock',
+  };
+
   protected typeIcon(type: AppointmentType): string {
-    switch (type) {
-      case 'lead_visit':
-        return 'house';
-      case 'standalone':
-        return 'calendar-check';
-      case 'blocked':
-        return 'lock';
-    }
+    return this.typeIconMap[type];
   }
 
   protected statusLabel(status: AppointmentStatus): string {
@@ -77,31 +76,27 @@ export class UpcomingScheduleComponent {
     return appt.lead?.address ?? appt.location ?? null;
   }
 
+  private readonly apptIconBgMap: Record<AppointmentType, string> = {
+    lead_visit: 'bg-blue-500',
+    standalone: 'bg-emerald-500',
+    blocked: 'bg-zinc-400',
+  };
+
   /** Tailwind bg classes for the icon avatar per appointment type. */
   protected apptIconBg(appt: AppointmentResponse): string {
-    switch (appt.type) {
-      case 'lead_visit':
-        return 'bg-blue-500';
-      case 'standalone':
-        return 'bg-emerald-500';
-      case 'blocked':
-        return 'bg-zinc-400';
-    }
+    return this.apptIconBgMap[appt.type];
   }
+
+  private readonly apptStatusChipMap: Record<AppointmentStatus, string> = {
+    scheduled: 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400',
+    requested: 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400',
+    completed: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400',
+    cancelled: 'bg-red-50 text-red-500 dark:bg-red-950/50 dark:text-red-400',
+    no_show: 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400',
+  };
 
   /** Tailwind classes for the status chip. */
   protected apptStatusChip(status: AppointmentStatus): string {
-    switch (status) {
-      case 'scheduled':
-        return 'bg-blue-50 text-blue-600 dark:bg-blue-950/50 dark:text-blue-400';
-      case 'requested':
-        return 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400';
-      case 'completed':
-        return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400';
-      case 'cancelled':
-        return 'bg-red-50 text-red-500 dark:bg-red-950/50 dark:text-red-400';
-      case 'no_show':
-        return 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400';
-    }
+    return this.apptStatusChipMap[status];
   }
 }

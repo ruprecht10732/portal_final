@@ -76,17 +76,17 @@ export class DraftApprovalsComponent {
     return `${score}%`;
   }
 
+  private readonly confidenceBadgeMap: { threshold: number; class: string }[] = [
+    { threshold: 80, class: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400' },
+    { threshold: 50, class: 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400' },
+  ];
+
   protected getConfidenceBadgeClass(score: number | undefined): string {
     if (typeof score !== 'number') {
       return 'bg-zinc-100 text-zinc-500 dark:bg-zinc-800 dark:text-zinc-400';
     }
-    if (score >= 80) {
-      return 'bg-emerald-50 text-emerald-600 dark:bg-emerald-950/50 dark:text-emerald-400';
-    }
-    if (score >= 50) {
-      return 'bg-amber-50 text-amber-600 dark:bg-amber-950/50 dark:text-amber-400';
-    }
-    return 'bg-red-50 text-red-500 dark:bg-red-950/50 dark:text-red-400';
+    return this.confidenceBadgeMap.find(entry => score >= entry.threshold)?.class
+      ?? 'bg-red-50 text-red-500 dark:bg-red-950/50 dark:text-red-400';
   }
 
   private loadItems(): void {

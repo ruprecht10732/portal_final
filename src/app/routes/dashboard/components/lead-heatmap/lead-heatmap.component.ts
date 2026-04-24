@@ -6,6 +6,7 @@ import { DashboardHeatmapService } from '../../../../core/services/dashboard-hea
 import type { LeadHeatmapPoint } from '../../../../core/services/dashboard.types';
 import { ButtonComponent } from '../../../../shared/components/button/button.component';
 import { InputComponent } from '../../../../shared/components/input/input.component';
+import { themeColor } from '../../dashboard.utils';
 
 @Component({
   selector: 'app-dashboard-lead-heatmap',
@@ -115,11 +116,7 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
       });
   }
 
-  private updateHeatLayer(): void {
-    void this.updateHeatLayerAsync();
-  }
-
-  private async updateHeatLayerAsync(): Promise<void> {
+  private async updateHeatLayer(): Promise<void> {
     if (this.map === null) return;
 
     const container = this.mapContainer()?.nativeElement;
@@ -140,10 +137,10 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
     const points = this.points();
     const heatData: [number, number, number][] = points.map(point => [point.latitude, point.longitude, 0.7]);
     const heatGradient: Record<number, string> = {
-      0.2: this.themeColor('--color-cyan-400'),
-      0.45: this.themeColor('--color-blue-500'),
-      0.7: this.themeColor('--color-indigo-500'),
-      1: this.themeColor('--color-red-500'),
+      0.2: themeColor('--color-cyan-400'),
+      0.45: themeColor('--color-blue-500'),
+      0.7: themeColor('--color-indigo-500'),
+      1: themeColor('--color-red-500'),
     };
     const heatLayerOptions = {
       radius: 25,
@@ -166,12 +163,5 @@ export class LeadHeatmapComponent implements AfterViewInit, OnDestroy {
     }
   }
 
-  private themeColor(variableName: string): string {
-    if (typeof document === 'undefined') {
-      return 'currentColor';
-    }
 
-    const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
-    return value || 'currentColor';
-  }
 }
