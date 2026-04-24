@@ -16,7 +16,7 @@ import {
 import { LeadsService } from '../../../core/services/leads.service';
 import { ToastService } from '../../../core/services/toast.service';
 
-const PAGE_SIZE = 200;
+const PAGE_SIZE = 100;
 const MAX_AUTO_PAGES = 10;
 
 const STATUS_ORDER: LeadStatus[] = [

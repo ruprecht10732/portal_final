@@ -14,7 +14,7 @@ import { LeadsService } from '../../../core/services/leads.service';
 import { ToastService } from '../../../core/services/toast.service';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 
-const PAGE_SIZE = 200;
+const PAGE_SIZE = 100;
 const MAX_AUTO_PAGES = 10;
 
 const PIPELINE_ORDER: PipelineStage[] = [
