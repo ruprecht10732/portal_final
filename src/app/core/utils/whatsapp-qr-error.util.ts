@@ -92,13 +92,11 @@ function parseWhatsAppQrErrorText(text: string): WhatsAppQrErrorPayload | null {
   }
 
   try {
-    const parsed = JSON.parse(normalizedText) as unknown;
+    const parsed = JSON.parse(normalizedText);
     if (parsed && typeof parsed === 'object') {
       return parsed as WhatsAppQrErrorPayload;
     }
-  } catch {
-    return { message: normalizedText };
-  }
+  } catch { /* not JSON */ }
 
   return { message: normalizedText };
 }

@@ -11,35 +11,30 @@ interface ErrorResponse {
 }
 
 const extractNestedError = (error: unknown): string | null => {
-  if (!error || typeof error !== 'object' || !('error' in error)) {
-    return null;
-  }
+  if (!error || typeof error !== 'object') return null;
 
-  const nested = (error as { error?: { error?: string } | string }).error;
+  const obj = error as Record<string, unknown>;
+  const nested = obj['error'];
   if (typeof nested === 'string') return nested;
-  if (nested && typeof nested === 'object' && 'error' in nested && typeof nested.error === 'string') {
-    return nested.error;
+  if (nested && typeof nested === 'object') {
+    const deep = (nested as Record<string, unknown>)['error'];
+    if (typeof deep === 'string') return deep;
   }
 
   return null;
 };
 
 const extractMessageField = (error: unknown): string | null => {
-  if (!error || typeof error !== 'object') {
-    return null;
-  }
+  if (!error || typeof error !== 'object') return null;
 
-  const directMessage = (error as { message?: unknown }).message;
-  if (typeof directMessage === 'string' && directMessage) {
-    return directMessage;
-  }
+  const obj = error as Record<string, unknown>;
+  const msg = obj['message'];
+  if (typeof msg === 'string' && msg.length > 0) return msg;
 
-  const nested = (error as { error?: unknown }).error;
+  const nested = obj['error'];
   if (nested && typeof nested === 'object') {
-    const nestedMessage = (nested as { message?: unknown }).message;
-    if (typeof nestedMessage === 'string' && nestedMessage) {
-      return nestedMessage;
-    }
+    const nestedMsg = (nested as Record<string, unknown>)['message'];
+    if (typeof nestedMsg === 'string' && nestedMsg.length > 0) return nestedMsg;
   }
 
   return null;

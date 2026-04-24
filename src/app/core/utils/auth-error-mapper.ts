@@ -11,38 +11,26 @@ const AUTH_ERROR_MAP = {
 
 type AuthErrorKey = keyof typeof AUTH_ERROR_MAP;
 
-const getMappedMessage = (key: AuthErrorKey): string => AUTH_ERROR_MAP[key];
+const SUBSTRING_PATTERNS: { test: (s: string) => boolean; key: AuthErrorKey }[] = [
+  { test: s => s.includes('invalid credential'), key: 'invalid credentials' },
+  { test: s => s.includes('token') && s.includes('expired'), key: 'token expired' },
+  { test: s => s.includes('token') && s.includes('invalid'), key: 'token invalid' },
+  { test: s => s.includes('user not found') || s.includes('account not found'), key: 'user not found' },
+  { test: s => s.includes('email') && s.includes('already'), key: 'email already exists' },
+  { test: s => s.includes('weak password') || s.includes('password too short'), key: 'weak password' },
+];
 
 export const getAuthErrorMessage = (error: unknown): string => {
   const message = getErrorMessage(error);
   const normalized = message.trim().toLowerCase();
 
   if (normalized in AUTH_ERROR_MAP) {
-    return getMappedMessage(normalized as AuthErrorKey);
+    return AUTH_ERROR_MAP[normalized as AuthErrorKey];
   }
 
-  if (normalized.includes('invalid credential')) {
-    return getMappedMessage('invalid credentials');
-  }
-
-  if (normalized.includes('token') && normalized.includes('expired')) {
-    return getMappedMessage('token expired');
-  }
-
-  if (normalized.includes('token') && normalized.includes('invalid')) {
-    return getMappedMessage('token invalid');
-  }
-
-  if (normalized.includes('user not found') || normalized.includes('account not found')) {
-    return getMappedMessage('user not found');
-  }
-
-  if (normalized.includes('email') && normalized.includes('already')) {
-    return getMappedMessage('email already exists');
-  }
-
-  if (normalized.includes('weak password') || normalized.includes('password too short')) {
-    return getMappedMessage('weak password');
+  const match = SUBSTRING_PATTERNS.find(p => p.test(normalized));
+  if (match) {
+    return AUTH_ERROR_MAP[match.key];
   }
 
   return message;

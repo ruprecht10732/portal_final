@@ -2,30 +2,20 @@ import { parsePhoneNumberFromString, type CountryCode } from 'libphonenumber-js'
 
 const DEFAULT_REGION: CountryCode = 'NL';
 
-export function normalizePhoneE164(input: string, region: CountryCode = DEFAULT_REGION): string {
+function parsePhone(input: string, region: CountryCode = DEFAULT_REGION) {
   const trimmed = input.trim();
   if (!trimmed) {
-    return trimmed;
+    return null;
   }
+  return parsePhoneNumberFromString(trimmed, region);
+}
 
-  const parsed = parsePhoneNumberFromString(trimmed, region);
-  if (!parsed?.isValid()) {
-    return trimmed;
-  }
-
-  return parsed.format('E.164');
+export function normalizePhoneE164(input: string, region: CountryCode = DEFAULT_REGION): string {
+  const parsed = parsePhone(input, region);
+  return parsed?.isValid() ? parsed.format('E.164') : input.trim();
 }
 
 export function formatPhoneDisplay(input: string, region: CountryCode = DEFAULT_REGION): string {
-  const trimmed = input.trim();
-  if (!trimmed) {
-    return trimmed;
-  }
-
-  const parsed = parsePhoneNumberFromString(trimmed, region);
-  if (!parsed?.isValid()) {
-    return trimmed;
-  }
-
-  return parsed.formatInternational();
+  const parsed = parsePhone(input, region);
+  return parsed?.isValid() ? parsed.formatInternational() : input.trim();
 }
