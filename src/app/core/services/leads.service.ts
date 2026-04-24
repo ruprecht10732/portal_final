@@ -53,33 +53,7 @@ export class LeadsService extends BaseCrudService<
   private readonly baseUrl = `${environment.apiBaseUrl}/leads`;
 
   list(params: ListLeadsParams = {}): Observable<LeadListResponse> {
-    return this.http.get<LeadListResponse>(this.baseUrl, { params: this.buildListParams(params) });
-  }
-
-  private buildListParams(params: ListLeadsParams) {
-    const entries: Record<string, string | number | undefined | null> = {
-      status: params.status,
-      serviceType: params.serviceType,
-      search: params.search,
-      firstName: params.firstName,
-      lastName: params.lastName,
-      phone: params.phone,
-      email: params.email,
-      role: params.role,
-      street: params.street,
-      houseNumber: params.houseNumber,
-      zipCode: params.zipCode,
-      city: params.city,
-      assignedAgentId: params.assignedAgentId,
-      createdAtFrom: params.createdAtFrom,
-      createdAtTo: params.createdAtTo,
-      page: params.page,
-      pageSize: params.pageSize,
-      sortBy: params.sortBy,
-      sortOrder: params.sortOrder,
-    };
-
-    return toHttpParams(entries);
+    return this.http.get<LeadListResponse>(this.baseUrl, { params: toHttpParams(params) });
   }
 
   getById(id: string): Observable<Lead> {
@@ -91,11 +65,10 @@ export class LeadsService extends BaseCrudService<
   }
 
   getTimeline(id: string, serviceId?: string): Observable<LeadTimelineResponse> {
-    const params: Record<string, string> = {};
-    if (serviceId) {
-      params['serviceId'] = serviceId;
-    }
-    return this.http.get<LeadTimelineResponse>(`${this.baseUrl}/${id}/timeline`, { params });
+    return this.http.get<LeadTimelineResponse>(
+      `${this.baseUrl}/${id}/timeline`,
+      serviceId ? { params: toHttpParams({ serviceId }) } : {}
+    );
   }
 
   getInboxCommunications(id: string): Observable<LeadInboxCommunicationsResponse> {
@@ -171,7 +144,7 @@ export class LeadsService extends BaseCrudService<
 
   // AI Analysis methods
   analyzeWithAI(id: string, serviceId: string, force = false): Observable<AnalyzeLeadResponse> {
-    const params = toHttpParams({ serviceId, force: force ? true : undefined });
+    const params = toHttpParams({ serviceId, force: force || undefined });
     return this.http.post<AnalyzeLeadResponse>(`${this.baseUrl}/${id}/analyze`, {}, { params });
   }
 
@@ -247,7 +220,9 @@ export class LeadsService extends BaseCrudService<
       sizeBytes: file.size,
     }).pipe(
       switchMap(presigned =>
-        this.uploadToPresignedUrl(presigned.uploadUrl, file).pipe(
+        this.http.put<void>(presigned.uploadUrl, file, {
+          headers: { 'Content-Type': file.type },
+        }).pipe(
           switchMap(() =>
             this.createAttachment(leadId, serviceId, {
               fileKey: presigned.fileKey,
@@ -259,25 +234,5 @@ export class LeadsService extends BaseCrudService<
         )
       )
     );
-  }
-
-  private uploadToPresignedUrl(uploadUrl: string, file: File): Observable<void> {
-    return new Observable(observer => {
-      const xhr = new XMLHttpRequest();
-      xhr.open('PUT', uploadUrl, true);
-      xhr.setRequestHeader('Content-Type', file.type);
-
-      xhr.onload = () => {
-        if (xhr.status >= 200 && xhr.status < 300) {
-          observer.next();
-          observer.complete();
-          return;
-        }
-        observer.error(new Error(`Upload failed with status ${xhr.status}`));
-      };
-
-      xhr.onerror = () => observer.error(new Error('Upload failed'));
-      xhr.send(file);
-    });
   }
 }

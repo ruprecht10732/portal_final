@@ -180,9 +180,10 @@ export class AIJobService {
         }
 
         // Merge with any in-flight jobs state (SSE updates, local tracked polling) to avoid regressions.
+        // Local state takes precedence over server state.
         this.jobsState.update(current => ({
-          ...current,
           ...byId,
+          ...current,
         }));
 
         this.loadingState.set(false);
@@ -196,10 +197,7 @@ export class AIJobService {
   delete(jobId: string): Observable<void> {
     const target = this.jobsState()[jobId];
     if (!target) {
-      return new Observable<void>(subscriber => {
-        subscriber.next();
-        subscriber.complete();
-      });
+      return of(void 0);
     }
 
     if (target.kind !== 'quote_generation') {
@@ -207,10 +205,7 @@ export class AIJobService {
         const { [jobId]: _, ...rest } = current;
         return rest;
       });
-      return new Observable<void>(subscriber => {
-        subscriber.next();
-        subscriber.complete();
-      });
+      return of(void 0);
     }
 
     return this.quotesService.deleteGenerateJob(jobId).pipe(
@@ -232,10 +227,7 @@ export class AIJobService {
   cancel(jobId: string, reason?: string): Observable<void> {
     const target = this.jobsState()[jobId];
     if (target?.kind !== 'quote_generation') {
-      return new Observable<void>(subscriber => {
-        subscriber.next();
-        subscriber.complete();
-      });
+      return of(void 0);
     }
 
     return this.quotesService.cancelGenerateJob(jobId, reason).pipe(
@@ -253,10 +245,7 @@ export class AIJobService {
   submitFeedback(jobId: string, rating: -1 | 1, comment?: string): Observable<void> {
     const target = this.jobsState()[jobId];
     if (target?.kind !== 'quote_generation') {
-      return new Observable<void>(subscriber => {
-        subscriber.next();
-        subscriber.complete();
-      });
+      return of(void 0);
     }
 
     const payload = comment ? { rating, comment } : { rating };
@@ -275,10 +264,7 @@ export class AIJobService {
   markViewed(jobId: string): Observable<void> {
     const target = this.jobsState()[jobId];
     if (!target || target.viewedAt) {
-      return new Observable<void>(subscriber => {
-        subscriber.next();
-        subscriber.complete();
-      });
+      return of(void 0);
     }
 
     if (target.kind !== 'quote_generation') {
@@ -289,10 +275,7 @@ export class AIJobService {
           viewedAt: new Date().toISOString(),
         },
       }));
-      return new Observable<void>(subscriber => {
-        subscriber.next();
-        subscriber.complete();
-      });
+      return of(void 0);
     }
 
     return this.quotesService.markGenerateJobViewed(jobId).pipe(
@@ -487,6 +470,8 @@ export class AIJobService {
 
   private detectStaleJobs(): void {
     const now = Date.now();
+    const staleIds: string[] = [];
+
     this.jobsState.update(current => {
       let changed = false;
       const next = { ...current };
@@ -495,6 +480,7 @@ export class AIJobService {
         const elapsed = now - new Date(job.updatedAt).getTime();
         if (elapsed > this.staleThresholdMs) {
           changed = true;
+          staleIds.push(jobId);
           next[jobId] = {
             ...job,
             status: 'failed',
@@ -503,11 +489,14 @@ export class AIJobService {
             updatedAt: new Date().toISOString(),
             finishedAt: new Date().toISOString(),
           };
-          this.removeTrackedJob(jobId);
         }
       }
       return changed ? next : current;
     });
+
+    for (const id of staleIds) {
+      this.removeTrackedJob(id);
+    }
   }
 
   private startPollingLoop(): void {
@@ -563,21 +552,19 @@ export class AIJobService {
 
   private addTrackedJob(jobId: string): void {
     if (!jobId) return;
-    this.trackedJobIds.update(current => {
-      if (current.includes(jobId)) return current;
-      const next = [...current, jobId];
-      this.persistTrackedJobs(next);
-      return next;
-    });
+    const current = this.trackedJobIds();
+    if (current.includes(jobId)) return;
+    const next = [...current, jobId];
+    this.trackedJobIds.set(next);
+    this.persistTrackedJobs(next);
   }
 
   private removeTrackedJob(jobId: string): void {
-    this.trackedJobIds.update(current => {
-      if (!current.includes(jobId)) return current;
-      const next = current.filter(id => id !== jobId);
-      this.persistTrackedJobs(next);
-      return next;
-    });
+    const current = this.trackedJobIds();
+    if (!current.includes(jobId)) return;
+    const next = current.filter(id => id !== jobId);
+    this.trackedJobIds.set(next);
+    this.persistTrackedJobs(next);
   }
 
   private persistTrackedJobs(ids: string[]): void {

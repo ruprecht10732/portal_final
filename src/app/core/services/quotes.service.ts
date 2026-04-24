@@ -24,6 +24,8 @@ import type {
   GenerateQuoteJobFeedbackRequest,
   GenerateQuoteJobResponse,
   GenerateQuoteJobsListResponse,
+  StartSubsidyAnalysisResponse,
+  SubsidyAnalysisJobResponse,
 
   ExternalAccountingProvider,
   ProviderIntegrationStatusResponse,
@@ -275,8 +277,8 @@ export class QuotesService {
   // ── Subsidy Analyzer Methods ──────────────────────────────────────────────
 
   /** Start a subsidy analysis job for a quote */
-  startSubsidyAnalysis(quoteId: string): Observable<import('./quotes.types').StartSubsidyAnalysisResponse> {
-    return this.http.post<import('./quotes.types').StartSubsidyAnalysisResponse>(
+  startSubsidyAnalysis(quoteId: string): Observable<StartSubsidyAnalysisResponse> {
+    return this.http.post<StartSubsidyAnalysisResponse>(
       `${this.baseUrl}/${quoteId}/analyze-subsidy`,
       {},
     );
@@ -288,8 +290,8 @@ export class QuotesService {
   }
 
   /** Get the status of a subsidy analysis job */
-  getSubsidyAnalysisJob(jobId: string): Observable<import('./quotes.types').SubsidyAnalysisJobResponse> {
-    return this.http.get<import('./quotes.types').SubsidyAnalysisJobResponse>(
+  getSubsidyAnalysisJob(jobId: string): Observable<SubsidyAnalysisJobResponse> {
+    return this.http.get<SubsidyAnalysisJobResponse>(
       `${this.baseUrl}/subsidy-analysis-jobs/${jobId}`,
     );
   }
@@ -308,32 +310,32 @@ export class QuotesService {
   private normalizeGenerateJobResponse(input: unknown): GenerateQuoteJobResponse {
     const source = (input ?? {}) as Record<string, unknown>;
 
-    const readString = (camel: string, snake: string): string | undefined =>
+    const readStringField = (camel: string, snake: string): string | undefined =>
       this.readString(source, camel) ?? this.readString(source, snake);
 
-    const readNumber = (camel: string, snake: string): number | undefined =>
+    const readNumberField = (camel: string, snake: string): number | undefined =>
       this.readNumber(source, camel) ?? this.readNumber(source, snake);
 
-    const error = readString('error', 'error');
-    const quoteId = readString('quoteId', 'quote_id');
-    const quoteNumber = readString('quoteNumber', 'quote_number');
-    const itemCount = readNumber('itemCount', 'item_count');
-    const finishedAt = readString('finishedAt', 'finished_at');
-    const feedbackComment = readString('feedbackComment', 'feedback_comment');
-    const feedbackAt = readString('feedbackAt', 'feedback_at') ?? readString('feedbackSubmittedAt', 'feedback_submitted_at');
-    const cancellationReason = readString('cancellationReason', 'cancellation_reason');
-    const viewedAt = readString('viewedAt', 'viewed_at');
-    const feedbackRating = readNumber('feedbackRating', 'feedback_rating');
+    const error = readStringField('error', 'error');
+    const quoteId = readStringField('quoteId', 'quote_id');
+    const quoteNumber = readStringField('quoteNumber', 'quote_number');
+    const itemCount = readNumberField('itemCount', 'item_count');
+    const finishedAt = readStringField('finishedAt', 'finished_at');
+    const feedbackComment = readStringField('feedbackComment', 'feedback_comment');
+    const feedbackAt = readStringField('feedbackAt', 'feedback_at') ?? readStringField('feedbackSubmittedAt', 'feedback_submitted_at');
+    const cancellationReason = readStringField('cancellationReason', 'cancellation_reason');
+    const viewedAt = readStringField('viewedAt', 'viewed_at');
+    const feedbackRating = readNumberField('feedbackRating', 'feedback_rating');
 
     const normalized: GenerateQuoteJobResponse = {
-      jobId: readString('jobId', 'job_id') ?? '',
-      status: this.normalizeGenerateStatus(readString('status', 'status')),
-      step: readString('step', 'step') ?? '',
-      progressPercent: readNumber('progressPercent', 'progress_percent') ?? 0,
-      leadId: readString('leadId', 'lead_id') ?? '',
-      leadServiceId: readString('leadServiceId', 'lead_service_id') ?? '',
-      startedAt: readString('startedAt', 'started_at') ?? '',
-      updatedAt: readString('updatedAt', 'updated_at') ?? '',
+      jobId: readStringField('jobId', 'job_id') ?? '',
+      status: this.normalizeGenerateStatus(readStringField('status', 'status')),
+      step: readStringField('step', 'step') ?? '',
+      progressPercent: readNumberField('progressPercent', 'progress_percent') ?? 0,
+      leadId: readStringField('leadId', 'lead_id') ?? '',
+      leadServiceId: readStringField('leadServiceId', 'lead_service_id') ?? '',
+      startedAt: readStringField('startedAt', 'started_at') ?? '',
+      updatedAt: readStringField('updatedAt', 'updated_at') ?? '',
     };
 
     if (error !== undefined) normalized.error = error;

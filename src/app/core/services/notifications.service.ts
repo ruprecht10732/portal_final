@@ -102,13 +102,10 @@ export class NotificationsService {
   }
 
   markAsRead(id: string): Observable<void> {
-    const wasUnread = this.notificationsState().some(item => item.id === id && !item.isRead);
-    const wasUnreadLead = this.notificationsState().some(
-      item => item.id === id && !item.isRead && (item.resourceType === 'lead' || item.resourceType === 'lead_feed'),
-    );
-    const wasUnreadQuote = this.notificationsState().some(
-      item => item.id === id && !item.isRead && item.resourceType === 'quote',
-    );
+    const target = this.notificationsState().find(item => item.id === id);
+    const wasUnread = target && !target.isRead;
+    const wasUnreadLead = wasUnread && (target.resourceType === 'lead' || target.resourceType === 'lead_feed');
+    const wasUnreadQuote = wasUnread && target.resourceType === 'quote';
 
     return this.http.patch<NotificationStatusResponse>(`${this.baseUrl}/${id}/read`, {}).pipe(
       tap(() => {
@@ -136,25 +133,28 @@ export class NotificationsService {
   }
 
   markAllAsRead(): Observable<void> {
-    const unreadCount = this.notificationsState().filter(item => !item.isRead).length;
-    const unreadLeadCount = this.notificationsState().filter(
-      item => !item.isRead && (item.resourceType === 'lead' || item.resourceType === 'lead_feed'),
-    ).length;
-    const unreadQuoteCount = this.notificationsState().filter(
-      item => !item.isRead && item.resourceType === 'quote',
-    ).length;
+    const counts = this.notificationsState().reduce(
+      (acc, item) => {
+        if (item.isRead) return acc;
+        acc.unread++;
+        if (item.resourceType === 'lead' || item.resourceType === 'lead_feed') acc.lead++;
+        if (item.resourceType === 'quote') acc.quote++;
+        return acc;
+      },
+      { unread: 0, lead: 0, quote: 0 }
+    );
 
     return this.http.patch<NotificationStatusResponse>(`${this.baseUrl}/read-all`, {}).pipe(
       tap(() => {
         this.notificationsState.update(items => items.map(item => item.isRead ? item : { ...item, isRead: true }));
-        if (unreadCount > 0) {
-          this.unreadCountState.update(count => Math.max(0, count - unreadCount));
+        if (counts.unread > 0) {
+          this.unreadCountState.update(count => Math.max(0, count - counts.unread));
         }
-        if (unreadLeadCount > 0) {
-          this.unreadLeadCountState.update(count => Math.max(0, count - unreadLeadCount));
+        if (counts.lead > 0) {
+          this.unreadLeadCountState.update(count => Math.max(0, count - counts.lead));
         }
-        if (unreadQuoteCount > 0) {
-          this.unreadQuoteCountState.update(count => Math.max(0, count - unreadQuoteCount));
+        if (counts.quote > 0) {
+          this.unreadQuoteCountState.update(count => Math.max(0, count - counts.quote));
         }
       }),
       catchError(error => {
@@ -171,17 +171,20 @@ export class NotificationsService {
 
   delete(id: string): Observable<void> {
     const target = this.notificationsState().find(item => item.id === id);
+    const wasUnread = target && !target.isRead;
+    const wasUnreadLead = wasUnread && (target.resourceType === 'lead' || target.resourceType === 'lead_feed');
+    const wasUnreadQuote = wasUnread && target.resourceType === 'quote';
 
     return this.http.delete<NotificationStatusResponse>(`${this.baseUrl}/${id}`).pipe(
       tap(() => {
         this.notificationsState.update(items => items.filter(item => item.id !== id));
-        if (target && !target.isRead) {
+        if (wasUnread) {
           this.unreadCountState.update(count => Math.max(0, count - 1));
         }
-        if (target && !target.isRead && (target.resourceType === 'lead' || target.resourceType === 'lead_feed')) {
+        if (wasUnreadLead) {
           this.unreadLeadCountState.update(count => Math.max(0, count - 1));
         }
-        if (target && !target.isRead && target.resourceType === 'quote') {
+        if (wasUnreadQuote) {
           this.unreadQuoteCountState.update(count => Math.max(0, count - 1));
         }
       }),

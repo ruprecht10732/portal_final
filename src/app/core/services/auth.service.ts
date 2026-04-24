@@ -1,6 +1,6 @@
 import { HttpClient, HttpHeaders } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
-import { forkJoin, map, Observable, finalize, shareReplay, tap, throwError } from 'rxjs';
+import { forkJoin, Observable, finalize, shareReplay, tap, throwError } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { AccountRegistryService } from './account-registry.service';
 import { decodeJwtClaims } from '../utils/jwt-token.utils';
@@ -129,17 +129,12 @@ export class AuthService {
     const targetAccount = this.accounts.activeAccount();
     const resolvedToken = refreshToken ?? targetAccount?.refreshToken;
     
-    let headers = new HttpHeaders();
-    if (targetAccount?.token) {
-      headers = headers.set('Authorization', `Bearer ${targetAccount.token}`);
-    }
-
     return this.http.post<MessageResponse>(
       `${this.baseUrl}/auth/sign-out`,
       resolvedToken ? { refreshToken: resolvedToken } : null,
       { 
         withCredentials: !resolvedToken,
-        headers 
+        headers: this.buildAuthHeaders(targetAccount?.token)
       }
     );
   }
@@ -150,25 +145,18 @@ export class AuthService {
       return throwError(() => new Error('No accounts available to sign out.'));
     }
 
-    const requests = currentAccounts.map(account => {
-      let headers = new HttpHeaders();
-      if (account.token) {
-        headers = headers.set('Authorization', `Bearer ${account.token}`);
-      }
-
-      return this.http.post<MessageResponse>(
+    const requests = currentAccounts.map(account =>
+      this.http.post<MessageResponse>(
         `${this.baseUrl}/auth/sign-out`,
         account.refreshToken ? { refreshToken: account.refreshToken } : null,
         { 
           withCredentials: !account.refreshToken,
-          headers
+          headers: this.buildAuthHeaders(account.token)
         }
-      );
-    });
-
-    return forkJoin(requests).pipe(
-      map(responses => responses.filter(Boolean))
+      )
     );
+
+    return forkJoin(requests);
   }
 
   verifyToken(token: string): Observable<VerifyTokenResponse> {
@@ -193,5 +181,13 @@ export class AuthService {
     return this.http.get<ResolveInviteResponse>(`${this.baseUrl}/auth/invites/resolve`, {
       params: { token }
     });
+  }
+
+  private buildAuthHeaders(token?: string): HttpHeaders {
+    let headers = new HttpHeaders();
+    if (token) {
+      headers = headers.set('Authorization', `Bearer ${token}`);
+    }
+    return headers;
   }
 }

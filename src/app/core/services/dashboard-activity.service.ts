@@ -45,6 +45,9 @@ export class DashboardActivityService {
   /** Track IDs we already have to prevent SSE duplicates after initial load. */
   private readonly seenKeys = new Set<string>();
 
+  /** Simple monotonic counter for SSE event IDs (avoids crypto.randomUUID overhead). */
+  private nextEventId = 0;
+
   /** All collected events. */
   readonly events = this._events.asReadonly();
 
@@ -111,9 +114,10 @@ export class DashboardActivityService {
           // Merge: keep any SSE events that arrived before the HTTP response,
           // then append historical events that aren't duplicates.
           this._events.update(prev => {
+            const existingIds = new Set(prev.map(p => p.id));
             const combined = [...prev];
             for (const e of mapped) {
-              if (!prev.some(p => p.id === e.id)) {
+              if (!existingIds.has(e.id)) {
                 combined.push(e);
               }
             }
@@ -155,7 +159,7 @@ export class DashboardActivityService {
   private eventKey(e: ActivityEvent): string {
     // Prefer a stable ID when available (HTTP history items have a backend-generated ID).
     // SSE events don't provide a stable event id today, so we fall back to a composite key.
-    if (e.id) {
+    if (e.id && !e.id.startsWith('evt-')) {
       return e.id;
     }
 
@@ -175,7 +179,7 @@ export class DashboardActivityService {
 
   private mapEvent(raw: SSEEvent): ActivityEvent | null {
     const base: Omit<ActivityEvent, 'category' | 'title' | 'link'> = {
-      id: crypto.randomUUID(),
+      id: `evt-${++this.nextEventId}`,
       type: raw.type,
       timestamp: raw.timestamp ?? new Date().toISOString(),
       data: raw.data
@@ -303,17 +307,8 @@ export class DashboardActivityService {
   }
 
   private prefixLink(link: string[] | undefined): string[] | undefined {
-    if (!link || link.length === 0) {
-      return link;
-    }
-    const [first] = link;
-    if (!first) {
-      return link;
-    }
-    if (first.startsWith('/')) {
-      return link;
-    }
-    return ['/app', ...link];
+    if (!link?.length) return link;
+    return link[0]!.startsWith('/') ? link : ['/app', ...link];
   }
 
   private appointmentLeadLabel(data: Record<string, unknown> | undefined): string | undefined {

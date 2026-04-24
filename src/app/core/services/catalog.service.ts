@@ -249,7 +249,7 @@ export class CatalogService {
 
   listVatRates(params: ListVatRatesParams = {}): Observable<PaginatedResponse<VatRate>> {
     return this.http.get<PaginatedResponse<VatRate>>(`${this.baseUrl}/vat-rates`, {
-      params: this.buildVatRatesParams(params),
+      params: toHttpParams(params),
     });
   }
 
@@ -275,7 +275,7 @@ export class CatalogService {
 
   listProducts(params: ListProductsParams = {}): Observable<PaginatedResponse<Product>> {
     return this.http.get<PaginatedResponse<Product>>(`${this.baseUrl}/products`, {
-      params: this.buildProductsParams(params),
+      params: toHttpParams(params),
     });
   }
 
@@ -321,9 +321,8 @@ export class CatalogService {
   // ========================================================================
 
   listProductAssets(productId: string, type?: CatalogAssetType): Observable<CatalogAssetListResponse> {
-    const params = type ? toHttpParams({ type }) : undefined;
     return this.http.get<CatalogAssetListResponse>(`${this.baseUrl}/products/${productId}/assets`, {
-      ...(params !== undefined && { params }),
+      ...(type ? { params: toHttpParams({ type }) } : {}),
     });
   }
 
@@ -354,36 +353,5 @@ export class CatalogService {
     return this.http.delete<{ message: string }>(`${this.adminBaseUrl}/products/${productId}/materials`, {
       body: data,
     });
-  }
-
-  // ==========================================================================
-  // Private Methods
-  // ==========================================================================
-
-  private buildVatRatesParams(params: ListVatRatesParams) {
-    const entries: Record<string, string | number | undefined | null> = {
-      search: params.search,
-      page: params.page,
-      pageSize: params.pageSize,
-      sortBy: params.sortBy,
-      sortOrder: params.sortOrder,
-    };
-
-    return toHttpParams(entries);
-  }
-
-  private buildProductsParams(params: ListProductsParams) {
-    const entries: Record<string, string | number | boolean | undefined | null> = {
-      search: params.search,
-      type: params.type,
-      isDraft: params.isDraft,
-      vatRateId: params.vatRateId,
-      page: params.page,
-      pageSize: params.pageSize,
-      sortBy: params.sortBy,
-      sortOrder: params.sortOrder,
-    };
-
-    return toHttpParams(entries);
   }
 }

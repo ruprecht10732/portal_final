@@ -1,7 +1,7 @@
 import { HttpParams } from '@angular/common/http';
 
 export function toHttpParams(
-  params: Record<string, string | number | boolean | undefined | null>
+  params: object
 ): HttpParams {
   let httpParams = new HttpParams();
 

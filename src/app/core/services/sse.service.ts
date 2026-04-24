@@ -145,70 +145,35 @@ export class SSEService {
           });
         };
 
-        this.eventSource.addEventListener('photo_analysis_complete', (event) => {
-          this.zone.run(() => {
-            this.handleEventMessage(event, 'photo_analysis_complete');
-          });
-        });
+        const namedEventTypes: SSEEventType[] = [
+          'photo_analysis_complete',
+          'analysis_complete',
+          'ai_job_progress',
+          'subsidy_analysis_progress',
+          'in_app_notification',
+          'lead_updated',
+          'whatsapp_conversation_updated',
+          'whatsapp_message_received',
+          'whatsapp_message_sent',
+          'whatsapp_message_updated',
+          'quote_sent',
+          'quote_viewed',
+          'quote_item_toggled',
+          'quote_annotated',
+          'quote_accepted',
+          'quote_rejected',
+          'lead_preferences_updated',
+          'lead_attachment_uploaded',
+          'lead_attachment_deleted',
+          'lead_info_added',
+          'lead_appointment_requested',
+          'lead_status_changed',
+          'appointment_created',
+          'appointment_updated',
+          'appointment_status_changed',
+        ];
 
-        this.eventSource.addEventListener('analysis_complete', (event) => {
-          this.zone.run(() => {
-            this.handleEventMessage(event, 'analysis_complete');
-          });
-        });
-
-        this.eventSource.addEventListener('ai_job_progress', (event) => {
-          this.zone.run(() => {
-            this.handleEventMessage(event, 'ai_job_progress');
-          });
-        });
-
-        this.eventSource.addEventListener('subsidy_analysis_progress', (event) => {
-          this.zone.run(() => {
-            this.handleEventMessage(event, 'subsidy_analysis_progress');
-          });
-        });
-
-        this.eventSource.addEventListener('in_app_notification', (event) => {
-          this.zone.run(() => {
-            this.handleEventMessage(event, 'in_app_notification');
-          });
-        });
-
-        this.eventSource.addEventListener('lead_updated', (event) => {
-          this.zone.run(() => {
-            this.handleEventMessage(event, 'lead_updated');
-          });
-        });
-
-        for (const evtType of ['whatsapp_conversation_updated', 'whatsapp_message_received', 'whatsapp_message_sent', 'whatsapp_message_updated'] as const) {
-          this.eventSource.addEventListener(evtType, (event) => {
-            this.zone.run(() => {
-              this.handleEventMessage(event, evtType);
-            });
-          });
-        }
-
-        // Quote events
-        for (const evtType of ['quote_sent', 'quote_viewed', 'quote_item_toggled', 'quote_annotated', 'quote_accepted', 'quote_rejected'] as const) {
-          this.eventSource.addEventListener(evtType, (event) => {
-            this.zone.run(() => {
-              this.handleEventMessage(event, evtType);
-            });
-          });
-        }
-
-        // Lead/customer activity events
-        for (const evtType of ['lead_preferences_updated', 'lead_attachment_uploaded', 'lead_attachment_deleted', 'lead_info_added', 'lead_appointment_requested', 'lead_status_changed'] as const) {
-          this.eventSource.addEventListener(evtType, (event) => {
-            this.zone.run(() => {
-              this.handleEventMessage(event, evtType);
-            });
-          });
-        }
-
-        // Appointment events
-        for (const evtType of ['appointment_created', 'appointment_updated', 'appointment_status_changed'] as const) {
+        for (const evtType of namedEventTypes) {
           this.eventSource.addEventListener(evtType, (event) => {
             this.zone.run(() => {
               this.handleEventMessage(event, evtType);
@@ -273,17 +238,21 @@ export class SSEService {
   private dispatchEvent(event: SSEEvent): void {
     this.allEvents$.next(event);
 
-    if (event.type === 'photo_analysis_complete') {
-      this.photoAnalysisComplete$.next(event as SSEEvent & { data: PhotoAnalysisEventData });
-    }
-    if (event.type === 'in_app_notification') {
-      this.inAppNotification$.next(event);
-    }
-    if (event.type === 'lead_updated') {
-      this.leadUpdated$.next(event);
-    }
-    if (event.type === 'appointment_created' || event.type === 'appointment_updated' || event.type === 'appointment_status_changed') {
-      this.appointmentEvent$.next(event);
+    switch (event.type) {
+      case 'photo_analysis_complete':
+        this.photoAnalysisComplete$.next(event as SSEEvent & { data: PhotoAnalysisEventData });
+        break;
+      case 'in_app_notification':
+        this.inAppNotification$.next(event);
+        break;
+      case 'lead_updated':
+        this.leadUpdated$.next(event);
+        break;
+      case 'appointment_created':
+      case 'appointment_updated':
+      case 'appointment_status_changed':
+        this.appointmentEvent$.next(event);
+        break;
     }
 
     // Quote events — show global toasts so agents are notified from any page
