@@ -93,7 +93,7 @@
             [showChevron]="false"
             [sections]="desktopMenuSections()"
             [ariaLabel]="'offertes.actions'"
-            (itemSelected)="handleDesktopMenuSelection($event)"
+            (itemSelected)="handleMenuSelection($event)"
           >
             <lucide-icon menuTrigger name="ellipsis-vertical" class="h-4 w-4 text-slate-700" aria-hidden="true"></lucide-icon>
           </shared-menu>
@@ -114,7 +114,7 @@
           [showChevron]="false"
           [sections]="mobileMenuSections()"
           [ariaLabel]="'offertes.actions'"
-          (itemSelected)="handleMobileMenuSelection($event)"
+          (itemSelected)="handleMenuSelection($event)"
         >
           <lucide-icon menuTrigger name="ellipsis-vertical" class="h-5 w-5 text-slate-700" aria-hidden="true"></lucide-icon>
         </shared-menu>

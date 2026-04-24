@@ -109,45 +109,36 @@ export class LeadDetailHeaderComponent {
     return sections;
   });
 
-  protected handleDesktopMenuSelection(item: MenuItem): void {
-    this.handleAction(item.value);
-  }
-
-  protected handleMobileMenuSelection(item: MenuItem): void {
-    this.handleAction(item.value);
-  }
-
-  private handleAction(value: string | undefined): void {
-    switch (value as LeadHeaderAction | undefined) {
+  protected handleMenuSelection(item: MenuItem): void {
+    const value = item.value as LeadHeaderAction | undefined;
+    switch (value) {
       case 'edit':
         this.editLead.emit();
-        return;
+        break;
       case 'quote':
         this.createQuote.emit();
-        return;
+        break;
       case 'run-ai':
         this.triggerAiWorkflow.emit();
-        return;
+        break;
       case 'call':
         this.callClicked.emit();
-        return;
+        break;
       case 'email':
         this.emailClicked.emit();
-        return;
+        break;
       case 'whatsapp':
         this.whatsappClicked.emit();
-        return;
+        break;
       case 'navigate':
         this.navigateClicked.emit();
-        return;
+        break;
       case 'log-call':
         this.logCallClicked.emit();
-        return;
+        break;
       case 'send-to-org':
         this.transferClicked.emit();
-        return;
-      default:
-        return;
+        break;
     }
   }
 }

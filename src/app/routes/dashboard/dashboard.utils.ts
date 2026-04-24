@@ -1,4 +1,5 @@
 import { EMPTY, Observable, expand, map, reduce } from 'rxjs';
+export { formatFullName } from '../../core/utils/format-utils';
 
 export function themeColor(variableName: string): string {
   if (typeof document === 'undefined') {
@@ -6,12 +7,6 @@ export function themeColor(variableName: string): string {
   }
   const value = getComputedStyle(document.documentElement).getPropertyValue(variableName).trim();
   return value || 'currentColor';
-}
-
-export function formatFullName(firstName?: string | null, lastName?: string | null): string {
-  const first = (firstName ?? '').trim();
-  const last = (lastName ?? '').trim();
-  return `${first} ${last}`.trim() || '—';
 }
 
 export function loadAllPages<T>(

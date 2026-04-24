@@ -3,14 +3,8 @@ import { CatalogService } from '../../core/services/catalog.service';
 import { ErrorReportingService } from '../../core/services/error-reporting.service';
 import { TranslateService } from '@ngx-translate/core';
 import { extractErrorMessage } from '../../core/utils/error-utils';
+export { formatFileSize } from '../../core/utils/format-utils';
 
-export function formatFileSize(bytes?: number): string {
-  if (!bytes) return '—';
-  const k = 1024;
-  const sizes = ['B', 'KB', 'MB', 'GB'];
-  const i = Math.floor(Math.log(bytes) / Math.log(k));
-  return `${Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1))} ${sizes[i]}`;
-}
 
 export function formatMaterialPrice(
   priceCents: number,

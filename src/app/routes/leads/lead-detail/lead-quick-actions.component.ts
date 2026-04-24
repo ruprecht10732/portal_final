@@ -28,6 +28,10 @@ export class LeadQuickActionsComponent {
   }
 
   protected handleEmailClick(): void {
+    const email = this.email();
+    if (email) {
+      globalThis.location.href = `mailto:${email}`;
+    }
     this.emailClicked.emit();
   }
 }

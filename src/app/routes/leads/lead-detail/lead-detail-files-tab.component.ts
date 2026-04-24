@@ -2,6 +2,7 @@ import { ChangeDetectionStrategy, Component, input, output } from '@angular/core
 import type { AppointmentAttachmentResponse } from '../../../core/services/appointments.types';
 import { TranslatePipe } from '@ngx-translate/core';
 import type { LeadServiceAttachment } from '../../../core/services/leads.types';
+import { formatFileSize } from '../../../core/utils/format-utils';
 import { FileUploaderComponent, type FileUploadError, type PresignedUpload } from '../../../shared/components/file-uploader/file-uploader.component';
 
 @Component({
@@ -19,7 +20,7 @@ export class LeadDetailFilesTabComponent {
   serviceAttachments = input<LeadServiceAttachment[]>([]);
   serviceAttachmentDeleting = input<string | null>(null);
   maxServiceAttachmentSizeBytes = input<number>(0);
-  formatFileSize = input<(value: number) => string>(String);
+  formatFileSize = input<(value: number) => string>(formatFileSize as (value: number) => string);
   selectedAppointmentTitle = input<string | null>(null);
   appointmentAttachmentsLoading = input<boolean>(false);
   appointmentAttachments = input<AppointmentAttachmentResponse[]>([]);

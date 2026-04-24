@@ -19,6 +19,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { UserService } from '../../../core/services/user.service';
 import type { UserSummary } from '../../../core/services/user.types';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
+import { formatFullName } from '../../../core/utils/format-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 
 type StatusFilter = 'open' | 'completed' | 'cancelled';
@@ -77,7 +78,9 @@ export class LeadDetailTasksTabComponent {
 
     toObservable(this.loadParams)
       .pipe(
-        distinctUntilChanged((a, b) => JSON.stringify(a) === JSON.stringify(b)),
+        distinctUntilChanged((a, b) =>
+          a.leadId === b.leadId && a.status === b.status && a.refresh === b.refresh,
+        ),
         tap(() => {
           this.loading.set(true);
           this.error.set(null);
@@ -251,41 +254,33 @@ export class LeadDetailTasksTabComponent {
   }
 
   protected assigneeLabel(task: TaskItem): string {
-    const first = task.assigneeFirstName?.trim() ?? '';
-    const last = task.assigneeLastName?.trim() ?? '';
-    return `${first} ${last}`.trim() || task.assigneeEmail;
+    const name = formatFullName(task.assigneeFirstName, task.assigneeLastName);
+    return name === '—' ? task.assigneeEmail : name;
   }
 
   protected trackTask(_: number, task: TaskItem): string {
     return task.id;
   }
 
+  private readonly statusClassMap: Record<string, string> = {
+    open: 'bg-blue-50 text-blue-700',
+    completed: 'bg-emerald-50 text-emerald-700',
+    cancelled: 'bg-red-50 text-red-500',
+  };
+
   protected statusClass(status: string): string {
-    switch (status) {
-      case 'open':
-        return 'bg-blue-50 text-blue-700';
-      case 'completed':
-        return 'bg-emerald-50 text-emerald-700';
-      case 'cancelled':
-        return 'bg-red-50 text-red-500';
-      default:
-        return 'bg-zinc-100 text-zinc-500';
-    }
+    return this.statusClassMap[status] ?? 'bg-zinc-100 text-zinc-500';
   }
 
+  private readonly priorityClassMap: Record<string, string> = {
+    low: 'bg-zinc-100 text-zinc-500',
+    normal: 'bg-sky-50 text-sky-600',
+    high: 'bg-orange-50 text-orange-600',
+    urgent: 'bg-red-50 text-red-600',
+  };
+
   protected priorityClass(priority: string): string {
-    switch (priority) {
-      case 'low':
-        return 'bg-zinc-100 text-zinc-500';
-      case 'normal':
-        return 'bg-sky-50 text-sky-600';
-      case 'high':
-        return 'bg-orange-50 text-orange-600';
-      case 'urgent':
-        return 'bg-red-50 text-red-600';
-      default:
-        return 'bg-zinc-100 text-zinc-500';
-    }
+    return this.priorityClassMap[priority] ?? 'bg-zinc-100 text-zinc-500';
   }
 
   private loadUsers(): void {
@@ -327,8 +322,8 @@ export class LeadDetailTasksTabComponent {
 }
 
 function buildUserLabel(user: UserSummary): string {
-  const fullName = `${user.firstName ?? ''} ${user.lastName ?? ''}`.trim();
-  return fullName ? `${fullName} · ${user.email}` : user.email;
+  const fullName = formatFullName(user.firstName, user.lastName);
+  return fullName === '—' ? user.email : `${fullName} · ${user.email}`;
 }
 
 function toIsoString(value: string): string | null {

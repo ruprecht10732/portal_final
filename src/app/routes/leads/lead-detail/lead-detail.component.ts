@@ -9,6 +9,7 @@ import { ToastService } from '../../../core/services/toast.service';
 import { WhatsAppDeviceStatusService } from '../../../core/services/whatsapp-device-status.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { formatFullAddress } from '../../../core/utils/address.util';
+import { formatFileSize, formatFullName } from '../../../core/utils/format-utils';
 import { LeadsService } from '../../../core/services/leads.service';
 import { OrganizationService, type WorkflowEngineWorkflow } from '../../../core/services/organization.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
@@ -534,13 +535,6 @@ export class LeadDetailComponent implements OnInit {
     }));
   });
 
-  protected readonly serviceTypeLabels = computed<Record<string, string>>(() =>
-    this.serviceTypes().reduce((acc, item) => {
-      acc[item.name] = item.name;
-      return acc;
-    }, {} as Record<string, string>)
-  );
-
   protected readonly serviceTypeOptions = computed(() =>
     this.serviceTypes().map(item => ({
       label: item.name,
@@ -576,7 +570,7 @@ export class LeadDetailComponent implements OnInit {
   protected readonly headerServiceTypeLabel = computed(() => {
     const service = this.selectedService();
     if (!service) return null;
-    return this.serviceTypeLabels()[service.serviceType] ?? service.serviceType;
+    return service.serviceType;
   });
 
   private resolveSelectedService(lead: Lead | null, selectedId: string | null): LeadService | null {
@@ -832,12 +826,12 @@ export class LeadDetailComponent implements OnInit {
     this.appointmentsLoading.set(true);
     this.quotesLoading.set(true);
     this.inboxCommunicationsLoading.set(true);
-    this.leadsService.getDetailContext(id).subscribe({
+    this.leadsService.getDetailContext(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (context) => {
         this.applyLeadDetailContext(context);
         this.loading.set(false);
         this.loadTimeline(context.lead.id, this.selectedService()?.id);
-        this.leadsService.markViewed(id).subscribe();
+        this.leadsService.markViewed(id).pipe(takeUntilDestroyed(this.destroyRef), catchError(() => EMPTY)).subscribe();
       },
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_LEAD_TRANSLATION_KEY));
@@ -913,7 +907,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   private refreshLeadSnapshot(id: string): void {
-    this.leadsService.getDetailContext(id).subscribe({
+    this.leadsService.getDetailContext(id).pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (context) => {
         this.applyLeadDetailContext(context);
       },
@@ -924,7 +918,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   private loadProfile(): void {
-    this.userService.getProfile().subscribe({
+    this.userService.getProfile().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: profile => this.user.set(profile),
       error: (err) => {
         const message = extractErrorMessage(err, this.translate.instant(ERROR_LOAD_PROFILE_TRANSLATION_KEY));
@@ -935,7 +929,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   private loadUsers(): void {
-    this.userService.listUsers().subscribe({
+    this.userService.listUsers().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: users => {
         const options = [
           { label: this.translate.instant(UNASSIGNED_TRANSLATION_KEY), value: null },
@@ -955,7 +949,7 @@ export class LeadDetailComponent implements OnInit {
   }
 
   private loadServiceTypes(): void {
-    this.serviceTypesService.listActive().subscribe({
+    this.serviceTypesService.listActive().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (response) => {
         const items = response.items ?? [];
         this.serviceTypes.set(items);
@@ -975,7 +969,7 @@ export class LeadDetailComponent implements OnInit {
   protected getFullName(): string {
     const lead = this.lead();
     if (!lead) return '';
-    return `${lead.consumer.firstName} ${lead.consumer.lastName}`;
+    return formatFullName(lead.consumer.firstName, lead.consumer.lastName);
   }
 
   protected getFullAddress(): string {
@@ -2638,7 +2632,7 @@ export class LeadDetailComponent implements OnInit {
 
   private loadWorkflowProfiles(): void {
     this.workflowError.set(null);
-    this.orgService.getWorkflowEngineWorkflows().subscribe({
+    this.orgService.getWorkflowEngineWorkflows().pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
       next: (workflows) => {
         this.workflowProfiles.set(workflows);
       },
@@ -3156,13 +3150,7 @@ export class LeadDetailComponent implements OnInit {
     });
   }
 
-  protected formatFileSize(bytes: number): string {
-    if (bytes === 0) return '0 B';
-    const k = 1024;
-    const sizes = ['B', 'KB', 'MB', 'GB'];
-    const i = Math.floor(Math.log(bytes) / Math.log(k));
-    return Number.parseFloat((bytes / Math.pow(k, i)).toFixed(1)) + ' ' + sizes[i];
-  }
+  protected readonly formatFileSize = formatFileSize;
 
   protected maxServiceAttachmentSizeBytes(): number {
     return 100 * 1024 * 1024;

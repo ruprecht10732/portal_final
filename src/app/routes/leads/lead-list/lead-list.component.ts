@@ -14,6 +14,7 @@ import { UserService } from '../../../core/services/user.service';
 import { SSEService } from '../../../core/services/sse.service';
 import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { formatFullAddress } from '../../../core/utils/address.util';
+import { formatFullName } from '../../../core/utils/format-utils';
 import type { Lead, LeadStatus, PipelineStage, ListLeadsParams, SortField, CreateLeadRequest, UpdateLeadRequest } from '../../../core/services/leads.types';
 import { buildLeadStatusLabels, buildPipelineStageLabels, CONSUMER_ROLE_OPTIONS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
@@ -485,10 +486,8 @@ export class LeadListComponent implements OnInit {
   }
 
   private formatUserLabel(user: UserSummary): string {
-    const first = (user.firstName ?? '').trim();
-    const last = (user.lastName ?? '').trim();
-    const fullName = `${first} ${last}`.trim();
-    const base = fullName || user.email;
+    const fullName = formatFullName(user.firstName, user.lastName);
+    const base = fullName === '—' ? user.email : fullName;
     return user.roles.length ? `${base} (${user.roles.join(', ')})` : base;
   }
 
@@ -730,7 +729,7 @@ export class LeadListComponent implements OnInit {
   }
 
   protected onSaveLeads(rows: LeadRow[]): void {
-    rows.forEach(row => {
+    for (const row of rows) {
       // If it's a new row, we need to create it
       // Note: DataGrid component should provide the data in a format we can use
       // or we handle mapping here.
@@ -833,7 +832,7 @@ export class LeadListComponent implements OnInit {
           }
         });
       }
-    });
+    }
   }
 
 }
