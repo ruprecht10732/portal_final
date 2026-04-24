@@ -68,7 +68,7 @@
                 <shared-button
                   variant="secondary"
                   size="compact"
-                  [loading]="isProcessing() === approval.id && showRejectDialog() === false"
+                  [loading]="processingId() === approval.id"
                   (clicked)="onRejectClick(approval)"
                 >
                   {{ 'agentApprovals.reject' | translate }}
@@ -76,7 +76,7 @@
                 <shared-button
                   variant="primary"
                   size="compact"
-                  [loading]="isProcessing() === approval.id && showRejectDialog() === false"
+                  [loading]="processingId() === approval.id"
                   (clicked)="onApprove(approval)"
                 >
                   {{ 'agentApprovals.approve' | translate }}

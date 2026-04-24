@@ -3,7 +3,7 @@ import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, OnIni
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
-import { catchError, finalize, of } from 'rxjs';
+import { catchError, finalize, of, type Observable } from 'rxjs';
 import { AgentApprovalsService } from '../../core/services/agent-approvals.service';
 import type { AgentApproval } from '../../core/services/agent-approvals.types';
 import { ToastService } from '../../core/services/toast.service';
@@ -12,6 +12,12 @@ import { CardComponent } from '../../shared/components/card/card.component';
 import { ConfirmDialogComponent } from '../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageLayoutComponent } from '../../shared/components/page-layout/page-layout.component';
 import { SkeletonComponent } from '../../shared/components/skeleton/skeleton.component';
+
+const DECISION_CLASSES: Record<string, string> = {
+  approved: 'bg-emerald-100 text-emerald-700',
+  rejected: 'bg-red-100 text-red-700',
+  expired: 'bg-amber-100 text-amber-700',
+};
 
 @Component({
   selector: 'app-agent-approvals',
@@ -44,6 +50,9 @@ export class AgentApprovalsComponent implements OnInit {
   protected readonly selectedApproval = signal<AgentApproval | null>(null);
 
   protected readonly hasPending = computed(() => this.approvals().length > 0);
+  protected readonly processingId = computed(() =>
+    this.isProcessing() && !this.showRejectDialog() ? this.isProcessing() : null
+  );
 
   ngOnInit(): void {
     this.loadApprovals();
@@ -69,22 +78,12 @@ export class AgentApprovalsComponent implements OnInit {
   }
 
   protected onApprove(approval: AgentApproval): void {
-    this.isProcessing.set(approval.id);
-    this.approvalsService
-      .approve(approval.id)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.isProcessing.set(null)),
-        catchError(() => {
-          this.toast.error(this.translate.instant('agentApprovals.approveFailed'));
-          return of(null);
-        }),
-      )
-      .subscribe(() => {
-        this.toast.success(this.translate.instant('agentApprovals.approved'));
-        this.removeApproval(approval.id);
-        this.approvalsService.pendingCount.update((c) => Math.max(0, c - 1));
-      });
+    this.processDecision(
+      approval,
+      (id) => this.approvalsService.approve(id),
+      'agentApprovals.approved',
+      'agentApprovals.approveFailed'
+    );
   }
 
   protected onRejectClick(approval: AgentApproval): void {
@@ -97,23 +96,12 @@ export class AgentApprovalsComponent implements OnInit {
     if (!approval) return;
 
     this.showRejectDialog.set(false);
-    this.isProcessing.set(approval.id);
-
-    this.approvalsService
-      .reject(approval.id)
-      .pipe(
-        takeUntilDestroyed(this.destroyRef),
-        finalize(() => this.isProcessing.set(null)),
-        catchError(() => {
-          this.toast.error(this.translate.instant('agentApprovals.rejectFailed'));
-          return of(null);
-        }),
-      )
-      .subscribe(() => {
-        this.toast.success(this.translate.instant('agentApprovals.rejected'));
-        this.removeApproval(approval.id);
-        this.approvalsService.pendingCount.update((c) => Math.max(0, c - 1));
-      });
+    this.processDecision(
+      approval,
+      (id) => this.approvalsService.reject(id),
+      'agentApprovals.rejected',
+      'agentApprovals.rejectFailed'
+    );
   }
 
   protected onCancelReject(): void {
@@ -135,16 +123,31 @@ export class AgentApprovalsComponent implements OnInit {
   }
 
   protected decisionClass(decision: string): string {
-    switch (decision) {
-      case 'approved':
-        return 'bg-emerald-100 text-emerald-700';
-      case 'rejected':
-        return 'bg-red-100 text-red-700';
-      case 'expired':
-        return 'bg-amber-100 text-amber-700';
-      default:
-        return 'bg-blue-100 text-blue-700';
-    }
+    return DECISION_CLASSES[decision] ?? 'bg-blue-100 text-blue-700';
+  }
+
+  private processDecision(
+    approval: AgentApproval,
+    action: (id: string) => Observable<unknown>,
+    successKey: string,
+    errorKey: string
+  ): void {
+    this.isProcessing.set(approval.id);
+
+    action(approval.id)
+      .pipe(
+        takeUntilDestroyed(this.destroyRef),
+        finalize(() => this.isProcessing.set(null)),
+        catchError(() => {
+          this.toast.error(this.translate.instant(errorKey));
+          return of(null);
+        }),
+      )
+      .subscribe(() => {
+        this.toast.success(this.translate.instant(successKey));
+        this.removeApproval(approval.id);
+        this.approvalsService.pendingCount.update((c) => Math.max(0, c - 1));
+      });
   }
 
   private removeApproval(id: string): void {
