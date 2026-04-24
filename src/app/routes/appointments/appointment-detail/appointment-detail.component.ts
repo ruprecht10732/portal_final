@@ -9,10 +9,9 @@ import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-i
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
-import { extractErrorMessage } from '../../../core/utils/error-utils';
-import type { 
-  AppointmentResponse, 
-  AppointmentVisitReportResponse, 
+import type {
+  AppointmentResponse,
+  AppointmentVisitReportResponse,
   AppointmentStatus,
   UpdateAppointmentRequest,
   UpsertVisitReportRequest,
@@ -29,6 +28,7 @@ import { CardComponent } from '../../../shared/components/card/card.component';
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
+import { formatDateTimeLocal, reportHttpError } from '../appointments.utils';
 
 @Component({
   selector: 'app-appointment-detail',
@@ -136,12 +136,7 @@ export class AppointmentDetailComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.load'), {
-                  allowErrorMessage: true,
-                  allowMessageField: true,
-                });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.detail.errors.load'));
         this.loading.set(false);
       },
     });
@@ -150,13 +145,13 @@ export class AppointmentDetailComponent implements OnInit {
   private populateEditForm(apt: AppointmentResponse): void {
     const startDate = new Date(apt.startTime);
     const endDate = new Date(apt.endTime);
-    
+
     this.editTitle.set(apt.title);
     this.editDescription.set(apt.description ?? '');
     this.editLocation.set(apt.location ?? '');
     this.editMeetingLink.set(apt.meetingLink ?? '');
-    this.editStartTime.set(this.formatDateTimeLocal(startDate));
-    this.editEndTime.set(this.formatDateTimeLocal(endDate));
+    this.editStartTime.set(formatDateTimeLocal(startDate));
+    this.editEndTime.set(formatDateTimeLocal(endDate));
     this.editAllDay.set(apt.allDay);
     this.hasEditLocationInput.set(false);
     this.editLocationOptions.set([]);
@@ -167,15 +162,6 @@ export class AppointmentDetailComponent implements OnInit {
     this.reportMeasurements.set(report.measurements ?? '');
     this.reportAccessDifficulty.set(report.accessDifficulty ?? '');
     this.reportNotes.set(report.notes ?? '');
-  }
-
-  private formatDateTimeLocal(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
   protected toggleEdit(): void {
@@ -220,12 +206,7 @@ export class AppointmentDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.save'), {
-                  allowErrorMessage: true,
-                  allowMessageField: true,
-                });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.detail.errors.save'));
         this.saving.set(false);
       },
     });
@@ -295,12 +276,7 @@ export class AppointmentDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.saveReport'), {
-                  allowErrorMessage: true,
-                  allowMessageField: true,
-                });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.detail.errors.saveReport'));
         this.saving.set(false);
       },
     });
@@ -318,12 +294,7 @@ export class AppointmentDetailComponent implements OnInit {
         this.saving.set(false);
       },
       error: (err) => {
-                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.updateStatus'), {
-                  allowErrorMessage: true,
-                  allowMessageField: true,
-                });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.detail.errors.updateStatus'));
         this.saving.set(false);
       },
     });
@@ -350,12 +321,7 @@ export class AppointmentDetailComponent implements OnInit {
         this.router.navigate(['/app/appointments']);
       },
       error: (err) => {
-                const message = extractErrorMessage(err, this.translate.instant('appointments.detail.errors.delete'), {
-                  allowErrorMessage: true,
-                  allowMessageField: true,
-                });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.detail.errors.delete'));
         this.deleteInProgress.set(false);
       },
     });
@@ -379,5 +345,4 @@ export class AppointmentDetailComponent implements OnInit {
     };
     return map[status] ?? '';
   }
-
 }

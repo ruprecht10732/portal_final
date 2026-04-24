@@ -1,18 +1,19 @@
 import { ChangeDetectionStrategy, Component, computed, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { firstValueFrom, map, Observable } from 'rxjs';
+import { from, map, Observable } from 'rxjs';
+import { concatMap, toArray } from 'rxjs/operators';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import type { AppointmentResponse, AppointmentStatus, AppointmentType, ListAppointmentsParams } from '../../../core/services/appointments.types';
-import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { FabButtonComponent } from '../../../shared/components/fab-button/fab-button.component';
 import { DataGridComponent } from '../../../shared/components/data-grid/data-grid.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import type { GridColumn, GridConfig, DataRequest, DataResponse } from '../../../shared/components/data-grid/data-grid.types';
 import { DEFAULT_PAGE_SIZE, MOBILE_BREAKPOINT } from '../../../core/config';
+import { reportHttpError } from '../appointments.utils';
 
 type AppointmentRow = AppointmentResponse & Record<string, unknown>;
 
@@ -170,6 +171,11 @@ export class AppointmentsListComponent implements OnInit {
     rowDeleteActionEnabled: true,
   };
 
+  private readonly filterMappers: Record<string, (value: unknown) => Partial<ListAppointmentsParams>> = {
+    type: (value) => ({ type: value as AppointmentType }),
+    status: (value) => ({ status: value as AppointmentStatus }),
+  };
+
   protected readonly fetchDataFn = this.fetchData.bind(this);
 
   ngOnInit(): void {
@@ -186,12 +192,7 @@ export class AppointmentsListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('appointments.list.errors.loadAppointments'), {
-          allowErrorMessage: true,
-          allowMessageField: true,
-        });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.list.errors.loadAppointments'));
         this.loading.set(false);
       },
     });
@@ -214,17 +215,10 @@ export class AppointmentsListComponent implements OnInit {
       ...(request.sort?.direction && { sortOrder: request.sort.direction }),
     };
 
-    // Map filters
     for (const filter of request.filters) {
-      switch (filter.columnId) {
-        case 'type':
-          params.type = filter.value as AppointmentType;
-          break;
-        case 'status':
-          params.status = filter.value as AppointmentStatus;
-          break;
-        default:
-          break;
+      const mapper = this.filterMappers[filter.columnId];
+      if (mapper) {
+        Object.assign(params, mapper(filter.value));
       }
     }
 
@@ -251,12 +245,7 @@ export class AppointmentsListComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('appointments.list.errors.loadAppointments'), {
-          allowErrorMessage: true,
-          allowMessageField: true,
-        });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.list.errors.loadAppointments'));
         this.loading.set(false);
       },
     });
@@ -292,26 +281,19 @@ export class AppointmentsListComponent implements OnInit {
     }
 
     this.deleteInProgress.set(true);
-    
-    // Delete sequentially since bulk delete may not be supported
-    const deletePromises = rows.map(row => 
-      firstValueFrom(this.appointmentsService.delete(row.id))
-    );
 
-    Promise.all(deletePromises)
-      .then(() => {
+    from(rows).pipe(
+      concatMap(row => this.appointmentsService.delete(row.id)),
+      toArray()
+    ).subscribe({
+      next: () => {
         this.closeDeleteDialog();
         this.loadInitialData();
-      })
-      .catch((err) => {
-        const message = extractErrorMessage(err, this.translate.instant('appointments.list.errors.deleteAppointments'), {
-          allowErrorMessage: true,
-          allowMessageField: true,
-        });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+      },
+      error: (err) => {
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.list.errors.deleteAppointments'));
         this.deleteInProgress.set(false);
-      });
+      },
+    });
   }
-
 }

@@ -28,7 +28,7 @@
         <div class="space-y-5">
           <shared-select
             [label]="'appointments.form.type' | translate"
-            [options]="typeOptions"
+            [options]="typeOptions()"
             [value]="type()"
             (valueChange)="type.set($event!)"
             [required]="true"

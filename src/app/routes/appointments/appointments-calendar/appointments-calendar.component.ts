@@ -1,14 +1,16 @@
 import { DatePipe } from '@angular/common';
 import { ChangeDetectionStrategy, Component, computed, effect, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
-import { TranslatePipe } from '@ngx-translate/core';
+import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import type { AppointmentResponse, ListAppointmentsParams } from '../../../core/services/appointments.types';
+import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { CalendarGridComponent, type CalendarEvent } from '../../../shared/components/calendar-grid/calendar-grid.component';
 import { BottomSheetComponent } from '../../../shared/components/bottom-sheet/bottom-sheet.component';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PageLayoutComponent } from '../../../shared/components/page-layout/page-layout.component';
 import { AppointmentFormComponent } from '../appointment-form/appointment-form.component';
+import { formatDateLocal, reportHttpError } from '../appointments.utils';
 
 @Component({
   selector: 'app-appointments-calendar',
@@ -23,6 +25,8 @@ import { AppointmentFormComponent } from '../appointment-form/appointment-form.c
 export class AppointmentsCalendarComponent {
   private readonly appointmentsService = inject(AppointmentsService);
   private readonly router = inject(Router);
+  private readonly reporter = inject(ErrorReportingService);
+  private readonly translate = inject(TranslateService);
 
   protected readonly view = signal<'day' | 'week' | 'month'>('month');
   protected readonly appointments = signal<AppointmentResponse[]>([]);
@@ -53,8 +57,8 @@ export class AppointmentsCalendarComponent {
     endOfMonth.setDate(endOfMonth.getDate() + 7);
 
     const params: ListAppointmentsParams = {
-      startFrom: this.formatDate(startOfMonth),
-      startTo: this.formatDate(endOfMonth),
+      startFrom: formatDateLocal(startOfMonth),
+      startTo: formatDateLocal(endOfMonth),
       pageSize: 100,
     };
 
@@ -64,7 +68,8 @@ export class AppointmentsCalendarComponent {
         this.appointments.set(response.items);
         this.loading.set(false);
       },
-      error: () => {
+      error: (err) => {
+        reportHttpError(err, this.reporter, this.translate, 'appointments.calendar.errors.load');
         this.loading.set(false);
       },
     });
@@ -80,10 +85,6 @@ export class AppointmentsCalendarComponent {
       status: apt.status,
       data: apt,
     };
-  }
-
-  private formatDate(date: Date): string {
-    return date.toISOString().split('T')[0] ?? '';
   }
 
   protected onEventClick(event: CalendarEvent): void {

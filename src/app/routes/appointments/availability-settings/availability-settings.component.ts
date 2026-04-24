@@ -9,20 +9,19 @@ import { concatMap, toArray } from 'rxjs/operators';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import type { AvailabilityRuleResponse, AvailabilityOverrideResponse, CreateAvailabilityRuleRequest, CreateAvailabilityOverrideRequest } from '../../../core/services/appointments.types';
-import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { SelectComponent, type SelectOption } from '../../../shared/components/select/select.component';
 import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.component';
 import { ConfirmDialogComponent } from '../../../shared/components/confirm-dialog/confirm-dialog.component';
 import { CardComponent } from '../../../shared/components/card/card.component';
+import { reportHttpError } from '../appointments.utils';
 
 interface WeekdayOption {
   value: number;
   label: string;
 }
 
-// Common timezones for quick selection
 const COMMON_TIMEZONES = [
   'Europe/Amsterdam',
   'Europe/London',
@@ -54,7 +53,6 @@ export class AvailabilitySettingsComponent implements OnInit {
     initialValue: { lang: 'en', translations: {} },
   });
 
-  // State
   protected readonly rules = signal<AvailabilityRuleResponse[]>([]);
   protected readonly overrides = signal<AvailabilityOverrideResponse[]>([]);
   protected readonly loading = signal(false);
@@ -68,21 +66,17 @@ export class AvailabilitySettingsComponent implements OnInit {
   protected readonly deleteInProgress = signal(false);
   protected readonly quickSetupInProgress = signal(false);
 
-  // Timezone - default to browser timezone
   protected readonly selectedTimezone = signal(Intl.DateTimeFormat().resolvedOptions().timeZone);
 
-  // Quick setup form signals
   protected readonly showQuickSetup = signal(false);
-  protected readonly quickSetupDays = signal<number[]>([1, 2, 3, 4, 5]); // Mon-Fri
+  protected readonly quickSetupDays = signal<number[]>([1, 2, 3, 4, 5]);
   protected readonly quickSetupStartTime = signal('09:00');
   protected readonly quickSetupEndTime = signal('17:00');
 
-  // Rule form signals
   protected readonly ruleWeekday = signal<string>('1');
   protected readonly ruleStartTime = signal('09:00');
   protected readonly ruleEndTime = signal('17:00');
 
-  // Override form signals
   protected readonly overrideDate = signal('');
   protected readonly overrideIsAvailable = signal(false);
   protected readonly overrideStartTime = signal('09:00');
@@ -146,7 +140,6 @@ export class AvailabilitySettingsComponent implements OnInit {
       next: (data) => {
         this.rules.set(data.rules);
         this.overrides.set(data.overrides);
-        // Auto-select timezone from existing rules if available
         const firstRule = data.rules[0];
         if (firstRule?.timezone) {
           this.selectedTimezone.set(firstRule.timezone);
@@ -154,12 +147,7 @@ export class AvailabilitySettingsComponent implements OnInit {
         this.loading.set(false);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.load'), {
-          allowErrorMessage: true,
-          allowMessageField: true,
-        });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.availability.errors.load'));
         this.loading.set(false);
       },
     });
@@ -169,7 +157,6 @@ export class AvailabilitySettingsComponent implements OnInit {
     return this.weekdays().find(w => w.value === weekday)?.label ?? String(weekday);
   }
 
-  // Rule form methods
   protected openRuleForm(): void {
     this.editingRuleId.set(null);
     this.ruleWeekday.set('1');
@@ -214,20 +201,14 @@ export class AvailabilitySettingsComponent implements OnInit {
         this.loadData();
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.saveRule'), {
-          allowErrorMessage: true,
-          allowMessageField: true,
-        });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.availability.errors.saveRule'));
         this.loading.set(false);
       },
     });
   }
 
-  // Quick setup methods
   protected openQuickSetup(): void {
-    this.quickSetupDays.set([1, 2, 3, 4, 5]); // Mon-Fri default
+    this.quickSetupDays.set([1, 2, 3, 4, 5]);
     this.quickSetupStartTime.set('09:00');
     this.quickSetupEndTime.set('17:00');
     this.showQuickSetup.set(true);
@@ -257,7 +238,6 @@ export class AvailabilitySettingsComponent implements OnInit {
     this.quickSetupInProgress.set(true);
     this.error.set(null);
 
-    // Delete all existing rules first, then create new ones
     const existingRules = this.rules();
     const deleteRules$ = existingRules.length > 0
       ? from(existingRules).pipe(
@@ -266,49 +246,29 @@ export class AvailabilitySettingsComponent implements OnInit {
         )
       : of([]);
 
-    deleteRules$.subscribe({
-      next: () => {
-        // Now create new rules for selected days
-        const createRequests = days.map(weekday => ({
+    deleteRules$.pipe(
+      concatMap(() => from(days).pipe(
+        concatMap(weekday => this.appointmentsService.createAvailabilityRule({
           weekday,
           startTime: this.quickSetupStartTime(),
           endTime: this.quickSetupEndTime(),
           timezone: this.selectedTimezone(),
-        }));
-
-        from(createRequests).pipe(
-          concatMap(data => this.appointmentsService.createAvailabilityRule(data)),
-          toArray()
-        ).subscribe({
-          next: () => {
-            this.quickSetupInProgress.set(false);
-            this.closeQuickSetup();
-            this.loadData();
-          },
-          error: (err) => {
-            const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.saveRule'), {
-              allowErrorMessage: true,
-              allowMessageField: true,
-            });
-            this.error.set(message);
-            this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
-            this.quickSetupInProgress.set(false);
-          },
-        });
+        })),
+        toArray()
+      ))
+    ).subscribe({
+      next: () => {
+        this.quickSetupInProgress.set(false);
+        this.closeQuickSetup();
+        this.loadData();
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.delete'), {
-          allowErrorMessage: true,
-          allowMessageField: true,
-        });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.availability.errors.saveRule'));
         this.quickSetupInProgress.set(false);
       },
     });
   }
 
-  // Override form methods
   protected openOverrideForm(): void {
     this.editingOverrideId.set(null);
     const today = new Date().toISOString().split('T')[0] ?? '';
@@ -360,18 +320,12 @@ export class AvailabilitySettingsComponent implements OnInit {
         this.loadData();
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.saveOverride'), {
-          allowErrorMessage: true,
-          allowMessageField: true,
-        });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.availability.errors.saveOverride'));
         this.loading.set(false);
       },
     });
   }
 
-  // Delete methods
   protected promptDeleteRule(id: string): void {
     this.pendingDeleteId.set(id);
     this.pendingDeleteType.set('rule');
@@ -405,15 +359,9 @@ export class AvailabilitySettingsComponent implements OnInit {
         this.loadData();
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('appointments.availability.errors.delete'), {
-          allowErrorMessage: true,
-          allowMessageField: true,
-        });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.availability.errors.delete'));
         this.deleteInProgress.set(false);
       },
     });
   }
-
 }

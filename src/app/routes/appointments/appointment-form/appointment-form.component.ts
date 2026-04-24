@@ -4,14 +4,13 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import { LucideAngularModule } from 'lucide-angular';
 import { catchError, debounceTime, distinctUntilChanged, filter, map, of, switchMap } from 'rxjs';
-import { takeUntilDestroyed, toObservable } from '@angular/core/rxjs-interop';
+import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { ErrorReportingService } from '../../../core/services/error-reporting.service';
 import { AppointmentsService } from '../../../core/services/appointments.service';
 import { AddressService, type AddressSuggestion } from '../../../core/services/address.service';
 import type { AppointmentResponse, CreateAppointmentRequest, AppointmentType } from '../../../core/services/appointments.types';
 import { LeadsService } from '../../../core/services/leads.service';
 import type { Lead, LeadService } from '../../../core/services/leads.types';
-import { extractErrorMessage } from '../../../core/utils/error-utils';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { InputComponent } from '../../../shared/components/input/input.component';
 import { TextareaComponent } from '../../../shared/components/textarea/textarea.component';
@@ -20,6 +19,7 @@ import { CheckboxComponent } from '../../../shared/components/checkbox/checkbox.
 import { AutocompleteComponent, type AutocompleteOption } from '../../../shared/components/autocomplete/autocomplete.component';
 import { PageHeaderComponent } from '../../../shared/components/page-header/page-header.component';
 import { DEBOUNCE_MS, MIN_LENGTH } from '../../../core/config';
+import { formatDateTimeLocal, reportHttpError } from '../appointments.utils';
 
 @Component({
   selector: 'app-appointment-form',
@@ -38,6 +38,9 @@ export class AppointmentFormComponent implements OnInit {
   private readonly reporter = inject(ErrorReportingService);
   private readonly translate = inject(TranslateService);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly lang = toSignal(this.translate.onLangChange, {
+    initialValue: { lang: 'en', translations: {} },
+  });
 
   protected readonly saving = signal(false);
   protected readonly error = signal<string | null>(null);
@@ -48,11 +51,14 @@ export class AppointmentFormComponent implements OnInit {
   readonly formCreated = output<AppointmentResponse>();
   readonly formCancelled = output<void>();
 
-  protected readonly typeOptions: SelectOption<AppointmentType>[] = [
-    { value: 'lead_visit', label: 'Lead Visit' },
-    { value: 'standalone', label: 'Standalone' },
-    { value: 'blocked', label: 'Blocked Time' },
-  ];
+  protected readonly typeOptions = computed<SelectOption<AppointmentType>[]>(() => {
+    this.lang();
+    return [
+      { value: 'lead_visit', label: this.translate.instant('appointments.type.leadVisit') },
+      { value: 'standalone', label: this.translate.instant('appointments.type.standalone') },
+      { value: 'blocked', label: this.translate.instant('appointments.type.blocked') },
+    ];
+  });
 
   protected readonly type = signal<AppointmentType>('standalone');
   protected readonly title = signal('');
@@ -90,7 +96,6 @@ export class AppointmentFormComponent implements OnInit {
     const hasBasicInfo = this.title().trim() !== '' && this.startTime() !== '' && this.endTime() !== '';
     if (!hasBasicInfo) return false;
 
-    // For lead_visit type, lead and service are required
     if (this.isLeadVisit()) {
       return this.selectedLead() !== null && this.selectedLeadServiceId() !== null;
     }
@@ -102,7 +107,6 @@ export class AppointmentFormComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    // Pre-fill from query params if provided (from calendar slot click)
     const date = this.isModal() ? this.initialDate() : this.route.snapshot.queryParams['date'];
     const timeParam = this.isModal() ? this.initialTime() : this.route.snapshot.queryParams['time'];
     if (date) {
@@ -112,27 +116,25 @@ export class AppointmentFormComponent implements OnInit {
       } else if (timeParam) {
         time = Number.parseInt(String(timeParam), 10);
       }
-      
+
       const startDate = new Date(date);
       startDate.setHours(Math.floor(time / 60), time % 60, 0, 0);
-      
-      const endDate = new Date(startDate);
-      endDate.setMinutes(endDate.getMinutes() + 60); // Default 1 hour duration
 
-      this.startTime.set(this.formatDateTimeLocal(startDate));
-      this.endTime.set(this.formatDateTimeLocal(endDate));
+      const endDate = new Date(startDate);
+      endDate.setMinutes(endDate.getMinutes() + 60);
+
+      this.startTime.set(formatDateTimeLocal(startDate));
+      this.endTime.set(formatDateTimeLocal(endDate));
     } else {
-      // Default to current date/time
       const now = new Date();
       now.setMinutes(0, 0, 0);
       const end = new Date(now);
       end.setHours(end.getHours() + 1);
 
-      this.startTime.set(this.formatDateTimeLocal(now));
-      this.endTime.set(this.formatDateTimeLocal(end));
+      this.startTime.set(formatDateTimeLocal(now));
+      this.endTime.set(formatDateTimeLocal(end));
     }
 
-    // Check for leadId in query params (from lead profile page)
     const leadId = this.isModal() ? this.initialLeadId() : this.route.snapshot.queryParams['leadId'];
     if (leadId) {
       this.type.set('lead_visit');
@@ -145,12 +147,10 @@ export class AppointmentFormComponent implements OnInit {
       next: lead => {
         this.selectedLead.set(lead);
         this.leadSearchQuery.set(this.formatLeadLabel(lead));
-        // Auto-select first service
         const firstService = lead.services?.[0];
         if (firstService) {
           this.selectedLeadServiceId.set(firstService.id);
         }
-        // Pre-fill location from lead address
         if (lead.address && !this.location()) {
           this.location.set(`${lead.address.street} ${lead.address.houseNumber}, ${lead.address.zipCode} ${lead.address.city}`);
         }
@@ -241,10 +241,8 @@ export class AppointmentFormComponent implements OnInit {
     if (lead) {
       this.selectedLead.set(lead);
       this.leadSearchQuery.set(this.formatLeadLabel(lead));
-      // Reset service selection and auto-select first
       const firstService = lead.services?.[0];
       this.selectedLeadServiceId.set(firstService?.id ?? null);
-      // Pre-fill location from lead address
       if (lead.address) {
         this.location.set(`${lead.address.street} ${lead.address.houseNumber}, ${lead.address.zipCode} ${lead.address.city}`);
       }
@@ -257,15 +255,6 @@ export class AppointmentFormComponent implements OnInit {
     this.leadOptions.set([]);
     this.leadSuggestions.set([]);
     this.selectedLeadServiceId.set(null);
-  }
-
-  private formatDateTimeLocal(date: Date): string {
-    const year = date.getFullYear();
-    const month = String(date.getMonth() + 1).padStart(2, '0');
-    const day = String(date.getDate()).padStart(2, '0');
-    const hours = String(date.getHours()).padStart(2, '0');
-    const minutes = String(date.getMinutes()).padStart(2, '0');
-    return `${year}-${month}-${day}T${hours}:${minutes}`;
   }
 
   protected createAppointment(): void {
@@ -289,7 +278,6 @@ export class AppointmentFormComponent implements OnInit {
       ...(meetingLink && { meetingLink }),
     };
 
-    // Add lead-specific fields for lead_visit type
     if (this.isLeadVisit()) {
       const leadId = this.selectedLead()?.id;
       const leadServiceId = this.selectedLeadServiceId();
@@ -311,12 +299,7 @@ export class AppointmentFormComponent implements OnInit {
         this.router.navigate(['/app/appointments', created.id]);
       },
       error: (err) => {
-        const message = extractErrorMessage(err, this.translate.instant('appointments.form.errors.create'), {
-          allowErrorMessage: true,
-          allowMessageField: true,
-        });
-        this.error.set(message);
-        this.reporter.report(err, { source: 'http', silent: true, userMessage: message });
+        this.error.set(reportHttpError(err, this.reporter, this.translate, 'appointments.form.errors.create'));
         this.saving.set(false);
       },
     });
@@ -329,5 +312,4 @@ export class AppointmentFormComponent implements OnInit {
     }
     this.router.navigate(['/app/appointments']);
   }
-
 }
