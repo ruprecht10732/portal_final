@@ -33,7 +33,6 @@
     "kind": {
       "quoteGeneration": "Quote generation",
       "leadAnalysis": "Lead analysis",
-      "photoAnalysis": "Photo analysis",
       "subsidyAnalysis": "Subsidy analysis"
     },
     "step": {

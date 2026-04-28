@@ -100,16 +100,6 @@ export class AIJobService {
           this.completeAutomationJob('lead_analysis', event.leadId, event.serviceId);
           return;
         }
-
-        if (event.type === 'photo_analysis_complete') {
-          const success = event.data?.['success'];
-          if (success === false) {
-            const error = typeof event.data?.['error'] === 'string' ? event.data['error'] : event.message;
-            this.completeAutomationJob('photo_analysis', event.leadId, event.serviceId, 'failed', error);
-            return;
-          }
-          this.completeAutomationJob('photo_analysis', event.leadId, event.serviceId);
-        }
       });
 
     this.sse.events
@@ -404,7 +394,6 @@ export class AIJobService {
     switch (kind) {
       case 'quote_generation': return this.translate.instant('aiJobs.kind.quoteGeneration');
       case 'lead_analysis': return this.translate.instant('aiJobs.kind.leadAnalysis');
-      case 'photo_analysis': return this.translate.instant('aiJobs.kind.photoAnalysis');
       case 'subsidy_analysis': return this.translate.instant('aiJobs.kind.subsidyAnalysis');
       default: return kind;
     }
@@ -458,8 +447,6 @@ export class AIJobService {
     for (const job of activeJobs) {
       if (job.kind === 'lead_analysis') {
         this.fetchLeadAnalysisJob(job);
-      } else if (job.kind === 'photo_analysis') {
-        this.fetchPhotoAnalysisJob(job);
       } else if (job.kind === 'subsidy_analysis') {
         this.fetchSubsidyAnalysisJob(job);
       }
@@ -701,20 +688,6 @@ export class AIJobService {
       next: (response: LeadAIAnalysisResponse) => {
         if (response.analysis && !response.isDefault) {
           this.completeAutomationJob('lead_analysis', job.leadId, job.leadServiceId);
-          this.resetPollDelay();
-        }
-      },
-      error: () => {
-        this.increasePollDelay();
-      },
-    });
-  }
-
-  private fetchPhotoAnalysisJob(job: AIJobState): void {
-    this.leadsService.getPhotoAnalysis(job.leadId, job.leadServiceId).subscribe({
-      next: (response) => {
-        if (response.analysis) {
-          this.completeAutomationJob('photo_analysis', job.leadId, job.leadServiceId);
           this.resetPollDelay();
         }
       },

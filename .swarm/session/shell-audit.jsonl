@@ -1,0 +1,7 @@
+{"ts":"2026-04-28T18:32:30.462Z","sessionID":"ses_22ad6c21cffe7gvfYIE448tkwp","agent":"build","tool":"bash","command":"ls /home/robin/Documents/portal_final/package.json"}
+{"ts":"2026-04-28T18:43:10.675Z","sessionID":"ses_22ad6c21cffe7gvfYIE448tkwp","agent":"build","tool":"bash","command":"npx ng build 2>&1 | head -80"}
+{"ts":"2026-04-28T18:52:35.756Z","sessionID":"ses_22ad6c21cffe7gvfYIE448tkwp","agent":"build","tool":"bash","command":"npx ng build 2>&1 | head -80"}
+{"ts":"2026-04-28T18:53:23.576Z","sessionID":"ses_22ad6c21cffe7gvfYIE448tkwp","agent":"build","tool":"bash","command":"npx ng build 2>&1 | head -80"}
+{"ts":"2026-04-28T18:59:11.825Z","sessionID":"ses_22ad6c21cffe7gvfYIE448tkwp","agent":"build","tool":"bash","command":"npx ng build 2>&1 | head -80"}
+{"ts":"2026-04-28T19:05:47.081Z","sessionID":"ses_22ad6c21cffe7gvfYIE448tkwp","agent":"build","tool":"bash","command":"npx ng build 2>&1 | head -80"}
+{"ts":"2026-04-28T19:13:06.315Z","sessionID":"ses_22ad6c21cffe7gvfYIE448tkwp","agent":"build","tool":"bash","command":"npx ng build 2>&1 | head -80"}

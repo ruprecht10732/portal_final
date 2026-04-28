@@ -319,7 +319,6 @@ export interface AttachWhatsAppMessageToLeadResponse {
   attachmentId: string;
   leadId: string;
   serviceId: string;
-  photoAnalysisQueued: boolean;
 }
 
 export interface SaveWhatsAppMessagesToLeadRequest {

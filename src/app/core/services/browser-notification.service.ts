@@ -127,19 +127,6 @@ export class BrowserNotificationService {
         };
       }
 
-      case 'photo_analysis_complete': {
-        if (event.data?.['success'] !== true) {
-          return null;
-        }
-
-        const leadId = this.readNestedString(event.data?.['analysis'], 'leadId');
-        return {
-          title: 'AI foto-analyse voltooid',
-          body: 'De AI heeft zojuist nieuwe foto\'s geanalyseerd.',
-          urlToOpen: leadId ? ['/app/leads', leadId] : null,
-        };
-      }
-
       default:
         return null;
     }

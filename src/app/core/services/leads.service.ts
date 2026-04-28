@@ -22,7 +22,6 @@ import type {
   UpdateServiceTypeRequest,
   CompleteServiceRequest,
   LeadAIAnalysisResponse,
-  TriggerPhotoAnalysisResponse,
   LeadAIAnalysisListResponse,
   LeadDetailContextResponse,
   AnalyzeLeadResponse,
@@ -34,7 +33,6 @@ import type {
   Attachment,
   AttachmentListResponse,
   PresignedDownloadResponse,
-  PhotoAnalysisResponse,
   LeadInboxCommunicationsResponse,
   LeadTimelineResponse,
   TimelineWhatsAppSendResponse,
@@ -156,18 +154,6 @@ export class LeadsService extends BaseCrudService<
   listAnalyses(id: string, serviceId: string): Observable<LeadAIAnalysisListResponse> {
     const params = toHttpParams({ serviceId });
     return this.http.get<LeadAIAnalysisListResponse>(`${this.baseUrl}/${id}/analysis/history`, { params });
-  }
-
-  // Photo Analysis - AI vision analysis of lead images
-  getPhotoAnalysis(leadId: string, serviceId: string): Observable<PhotoAnalysisResponse> {
-    return this.http.get<PhotoAnalysisResponse>(`${this.baseUrl}/${leadId}/services/${serviceId}/photo-analysis`);
-  }
-
-  triggerPhotoAnalysis(leadId: string, serviceId: string, context?: string): Observable<TriggerPhotoAnalysisResponse> {
-    return this.http.post<TriggerPhotoAnalysisResponse>(
-      `${this.baseUrl}/${leadId}/services/${serviceId}/analyze-photos`,
-      { context: context ?? '' },
-    );
   }
 
   // Call Logger - processes post-call summaries into structured actions

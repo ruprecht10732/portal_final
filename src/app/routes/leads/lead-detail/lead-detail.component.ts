@@ -16,7 +16,7 @@ import { AppointmentsService } from '../../../core/services/appointments.service
 import { SSEService, type SSEEvent } from '../../../core/services/sse.service';
 import { ServiceTypesService } from '../../../core/services/service-types.service';
 import type { ServiceTypeItem } from '../../../core/services/service-types.types';
-import type { Lead, LeadAIAnalysis, LeadDetailContextResponse, LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, PhotoAnalysis, LeadTimelineItem, TimelinePhotoAnalysisSummary, CompleteServiceRequest } from '../../../core/services/leads.types';
+import type { Lead, LeadAIAnalysis, LeadDetailContextResponse, LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadNote, LeadNoteType, LeadService, LeadServiceAttachment, LeadStatus, LogCallResponse, LeadTimelineItem, CompleteServiceRequest } from '../../../core/services/leads.types';
 import { ALLOWED_STATUS_TRANSITIONS, buildLeadStatusLabels, MANUAL_STATUS_OPTIONS, STATUS_COLORS, STATUS_LABELS } from '../../../core/services/leads.types';
 import { PartnersService } from '../../../core/services/partners.service';
 import type { OfferResponse, Partner } from '../../../core/services/partners.types';
@@ -347,10 +347,6 @@ export class LeadDetailComponent implements OnInit {
     }
     return service.pipelineStage === 'Triage' || service.pipelineStage === 'Nurturing';
   });
-
-  // Photo Analysis
-  protected readonly photoAnalysis = signal<PhotoAnalysis | null>(null);
-  protected readonly photoAnalysisLoading = signal(false);
 
   // Timeline
   protected readonly timelineItems = signal<LeadTimelineItem[]>([]);
@@ -876,8 +872,6 @@ export class LeadDetailComponent implements OnInit {
       this.aiAnalysis.set(null);
       this.aiAnalysisIsDefault.set(true);
       this.aiAnalysisLoading.set(false);
-      this.photoAnalysis.set(null);
-      this.photoAnalysisLoading.set(false);
       this.loadedAnalysisServiceId = null;
     } else if (selectedService.id === currentService.id) {
       this.aiAnalysis.set(context.currentServiceAnalysis?.analysis ?? null);
@@ -885,8 +879,6 @@ export class LeadDetailComponent implements OnInit {
       this.aiAnalysisError.set(null);
       this.aiAnalysisNoNewInfo.set(false);
       this.aiAnalysisLoading.set(false);
-      this.photoAnalysis.set(context.currentServicePhotoAnalysis ?? null);
-      this.photoAnalysisLoading.set(false);
       this.loadedAnalysisServiceId = currentService.id;
     } else {
       this.loadedAnalysisServiceId = null;
@@ -1868,9 +1860,6 @@ export class LeadDetailComponent implements OnInit {
         this.aiAnalysisLoading.set(false);
       },
     });
-
-    // Also load photo analysis
-    this.loadPhotoAnalysis(leadId, serviceId);
   }
 
   private refreshAutomationState(leadId: string, serviceId?: string): void {
@@ -1901,21 +1890,6 @@ export class LeadDetailComponent implements OnInit {
       });
   }
 
-  private loadPhotoAnalysis(leadId: string, serviceId: string): void {
-    this.photoAnalysisLoading.set(true);
-    this.leadsService.getPhotoAnalysis(leadId, serviceId).subscribe({
-      next: (response) => {
-        this.photoAnalysis.set(response.analysis);
-        this.photoAnalysisLoading.set(false);
-      },
-      error: () => {
-        // Photo analysis is optional, don't show error
-        this.photoAnalysis.set(null);
-        this.photoAnalysisLoading.set(false);
-      },
-    });
-  }
-
   protected refreshAIAnalysis(force = false): void {
     const lead = this.lead();
     const service = this.selectedService();
@@ -1939,8 +1913,6 @@ export class LeadDetailComponent implements OnInit {
           } else {
             this.aiAnalysisNoNewInfo.set(false);
             this.announce(this.translate.instant(ANNOUNCEMENT_AI_UPDATED_TRANSLATION_KEY));
-            // Reload photo analysis as it may have been updated during AI analysis
-            this.loadPhotoAnalysis(lead.id, service.id);
           }
         } else if (response.message) {
           if (response.run) {
@@ -2255,30 +2227,6 @@ export class LeadDetailComponent implements OnInit {
       }
     }
     return null;
-  };
-
-  protected readonly getTimelinePhotoAnalysis = (item: LeadTimelineItem): TimelinePhotoAnalysisSummary | null => {
-    const m = item.metadata;
-    if (m['photoCount'] === undefined || !Array.isArray(m['observations'])) {
-      return null;
-    }
-    const extractedText = Array.isArray(m['extractedText']) ? (m['extractedText'] as string[]) : [];
-    const needsOnsiteMeasurement = Array.isArray(m['needsOnsiteMeasurement']) ? (m['needsOnsiteMeasurement'] as string[]) : [];
-    return {
-      photoCount: typeof m['photoCount'] === 'number' ? m['photoCount'] : 0,
-      confidenceLevel: typeof m['confidenceLevel'] === 'string' ? m['confidenceLevel'] : '',
-      observations: Array.isArray(m['observations']) ? (m['observations'] as string[]) : [],
-      scopeAssessment: typeof m['scopeAssessment'] === 'string' ? m['scopeAssessment'] : '',
-      costIndicators: typeof m['costIndicators'] === 'string' ? m['costIndicators'] : '',
-      safetyConcerns: Array.isArray(m['safetyConcerns']) ? (m['safetyConcerns'] as string[]) : [],
-      measurements: Array.isArray(m['measurements']) ? (m['measurements'] as { description: string; value: number; unit: string; type: string; confidence: string }[]) : [],
-      needsOnsiteMeasurement,
-      discrepancies: Array.isArray(m['discrepancies']) ? (m['discrepancies'] as string[]) : [],
-      extractedText,
-      suggestedSearchTerms: Array.isArray(m['suggestedSearchTerms']) ? (m['suggestedSearchTerms'] as string[]) : [],
-      hasOcrEvidence: extractedText.length > 0,
-      hasOnsiteRequirement: needsOnsiteMeasurement.length > 0,
-    };
   };
 
   protected viewDraftQuote(quoteId: string): void {

@@ -13,7 +13,6 @@ import { NumberInputComponent } from '../../../../shared/components/number-input
 import { PageLayoutComponent } from '../../../../shared/components/page-layout/page-layout.component';
 import { SelectComponent, type SelectOption } from '../../../../shared/components/select/select.component';
 import { SkeletonComponent } from '../../../../shared/components/skeleton/skeleton.component';
-import { TextareaComponent } from '../../../../shared/components/textarea/textarea.component';
 
 type CouncilConsensusMode = 'weighted' | 'majority' | 'estimator_final';
 
@@ -37,7 +36,6 @@ interface ScenarioAnalyticsItem {
     PercentPipe,
     SelectComponent,
     SkeletonComponent,
-    TextareaComponent,
     TranslatePipe,
   ],
   templateUrl: './organization-ai-settings.component.html',
@@ -75,27 +73,6 @@ export class OrganizationAiSettingsComponent {
 
   protected readonly catalogGapLookbackDays = signal<number | null>(30);
   private readonly initialCatalogGapLookbackDays = signal(30);
-
-  protected readonly photoAnalysisPreprocessingEnabled = signal(true);
-  private readonly initialPhotoAnalysisPreprocessingEnabled = signal(true);
-
-  protected readonly photoAnalysisOcrAssistEnabled = signal(false);
-  private readonly initialPhotoAnalysisOcrAssistEnabled = signal(false);
-
-  protected readonly photoAnalysisOcrAssistServiceTypes = signal('');
-  private readonly initialPhotoAnalysisOcrAssistServiceTypes = signal('');
-
-  protected readonly photoAnalysisLensCorrectionEnabled = signal(false);
-  private readonly initialPhotoAnalysisLensCorrectionEnabled = signal(false);
-
-  protected readonly photoAnalysisLensCorrectionServiceTypes = signal('');
-  private readonly initialPhotoAnalysisLensCorrectionServiceTypes = signal('');
-
-  protected readonly photoAnalysisPerspectiveNormalizationEnabled = signal(false);
-  private readonly initialPhotoAnalysisPerspectiveNormalizationEnabled = signal(false);
-
-  protected readonly photoAnalysisPerspectiveNormalizationServiceTypes = signal('');
-  private readonly initialPhotoAnalysisPerspectiveNormalizationServiceTypes = signal('');
 
   protected readonly whatsAppDefaultReplyScenario = signal<ReplySuggestionScenario>('generic');
   private readonly initialWhatsAppDefaultReplyScenario = signal<ReplySuggestionScenario>('generic');
@@ -148,13 +125,6 @@ export class OrganizationAiSettingsComponent {
     this.aiCouncilConsensusMode() !== this.initialAiCouncilConsensusMode() ||
     (this.catalogGapThreshold() ?? this.initialCatalogGapThreshold()) !== this.initialCatalogGapThreshold() ||
     (this.catalogGapLookbackDays() ?? this.initialCatalogGapLookbackDays()) !== this.initialCatalogGapLookbackDays() ||
-    this.photoAnalysisPreprocessingEnabled() !== this.initialPhotoAnalysisPreprocessingEnabled() ||
-    this.photoAnalysisOcrAssistEnabled() !== this.initialPhotoAnalysisOcrAssistEnabled() ||
-    this.photoAnalysisOcrAssistServiceTypes() !== this.initialPhotoAnalysisOcrAssistServiceTypes() ||
-    this.photoAnalysisLensCorrectionEnabled() !== this.initialPhotoAnalysisLensCorrectionEnabled() ||
-    this.photoAnalysisLensCorrectionServiceTypes() !== this.initialPhotoAnalysisLensCorrectionServiceTypes() ||
-    this.photoAnalysisPerspectiveNormalizationEnabled() !== this.initialPhotoAnalysisPerspectiveNormalizationEnabled() ||
-    this.photoAnalysisPerspectiveNormalizationServiceTypes() !== this.initialPhotoAnalysisPerspectiveNormalizationServiceTypes() ||
     this.whatsAppDefaultReplyScenario() !== this.initialWhatsAppDefaultReplyScenario() ||
     this.emailDefaultReplyScenario() !== this.initialEmailDefaultReplyScenario() ||
     this.quoteRelatedReplyScenario() !== this.initialQuoteRelatedReplyScenario() ||
@@ -221,30 +191,6 @@ export class OrganizationAiSettingsComponent {
         this.catalogGapLookbackDays.set(settings.catalogGapLookbackDays);
         this.initialCatalogGapLookbackDays.set(settings.catalogGapLookbackDays);
 
-        this.photoAnalysisPreprocessingEnabled.set(settings.photoAnalysisPreprocessingEnabled);
-        this.initialPhotoAnalysisPreprocessingEnabled.set(settings.photoAnalysisPreprocessingEnabled);
-
-        this.photoAnalysisOcrAssistEnabled.set(settings.photoAnalysisOcrAssistEnabled);
-        this.initialPhotoAnalysisOcrAssistEnabled.set(settings.photoAnalysisOcrAssistEnabled);
-
-        const ocrAssistServiceTypes = this.joinServiceTypes(settings.photoAnalysisOcrAssistServiceTypes);
-        this.photoAnalysisOcrAssistServiceTypes.set(ocrAssistServiceTypes);
-        this.initialPhotoAnalysisOcrAssistServiceTypes.set(ocrAssistServiceTypes);
-
-        this.photoAnalysisLensCorrectionEnabled.set(settings.photoAnalysisLensCorrectionEnabled);
-        this.initialPhotoAnalysisLensCorrectionEnabled.set(settings.photoAnalysisLensCorrectionEnabled);
-
-        const lensCorrectionServiceTypes = this.joinServiceTypes(settings.photoAnalysisLensCorrectionServiceTypes);
-        this.photoAnalysisLensCorrectionServiceTypes.set(lensCorrectionServiceTypes);
-        this.initialPhotoAnalysisLensCorrectionServiceTypes.set(lensCorrectionServiceTypes);
-
-        this.photoAnalysisPerspectiveNormalizationEnabled.set(settings.photoAnalysisPerspectiveNormalizationEnabled);
-        this.initialPhotoAnalysisPerspectiveNormalizationEnabled.set(settings.photoAnalysisPerspectiveNormalizationEnabled);
-
-        const perspectiveServiceTypes = this.joinServiceTypes(settings.photoAnalysisPerspectiveNormalizationServiceTypes);
-        this.photoAnalysisPerspectiveNormalizationServiceTypes.set(perspectiveServiceTypes);
-        this.initialPhotoAnalysisPerspectiveNormalizationServiceTypes.set(perspectiveServiceTypes);
-
         this.whatsAppDefaultReplyScenario.set((settings.whatsAppDefaultReplyScenario as ReplySuggestionScenario | undefined) ?? 'generic');
         this.initialWhatsAppDefaultReplyScenario.set((settings.whatsAppDefaultReplyScenario as ReplySuggestionScenario | undefined) ?? 'generic');
 
@@ -310,13 +256,6 @@ export class OrganizationAiSettingsComponent {
         aiCouncilConsensusMode: this.aiCouncilConsensusMode(),
         ...(this.catalogGapThreshold() == null ? {} : { catalogGapThreshold: this.catalogGapThreshold()! }),
         ...(this.catalogGapLookbackDays() == null ? {} : { catalogGapLookbackDays: this.catalogGapLookbackDays()! }),
-        photoAnalysisPreprocessingEnabled: this.photoAnalysisPreprocessingEnabled(),
-        photoAnalysisOcrAssistEnabled: this.photoAnalysisOcrAssistEnabled(),
-        photoAnalysisOcrAssistServiceTypes: this.parseServiceTypes(this.photoAnalysisOcrAssistServiceTypes()),
-        photoAnalysisLensCorrectionEnabled: this.photoAnalysisLensCorrectionEnabled(),
-        photoAnalysisLensCorrectionServiceTypes: this.parseServiceTypes(this.photoAnalysisLensCorrectionServiceTypes()),
-        photoAnalysisPerspectiveNormalizationEnabled: this.photoAnalysisPerspectiveNormalizationEnabled(),
-        photoAnalysisPerspectiveNormalizationServiceTypes: this.parseServiceTypes(this.photoAnalysisPerspectiveNormalizationServiceTypes()),
         whatsAppDefaultReplyScenario: this.whatsAppDefaultReplyScenario(),
         emailDefaultReplyScenario: this.emailDefaultReplyScenario(),
         quoteRelatedReplyScenario: this.quoteRelatedReplyScenario(),
@@ -362,30 +301,6 @@ export class OrganizationAiSettingsComponent {
         this.catalogGapLookbackDays.set(settings.catalogGapLookbackDays);
         this.initialCatalogGapLookbackDays.set(settings.catalogGapLookbackDays);
 
-        this.photoAnalysisPreprocessingEnabled.set(settings.photoAnalysisPreprocessingEnabled);
-        this.initialPhotoAnalysisPreprocessingEnabled.set(settings.photoAnalysisPreprocessingEnabled);
-
-        this.photoAnalysisOcrAssistEnabled.set(settings.photoAnalysisOcrAssistEnabled);
-        this.initialPhotoAnalysisOcrAssistEnabled.set(settings.photoAnalysisOcrAssistEnabled);
-
-        const ocrAssistServiceTypes = this.joinServiceTypes(settings.photoAnalysisOcrAssistServiceTypes);
-        this.photoAnalysisOcrAssistServiceTypes.set(ocrAssistServiceTypes);
-        this.initialPhotoAnalysisOcrAssistServiceTypes.set(ocrAssistServiceTypes);
-
-        this.photoAnalysisLensCorrectionEnabled.set(settings.photoAnalysisLensCorrectionEnabled);
-        this.initialPhotoAnalysisLensCorrectionEnabled.set(settings.photoAnalysisLensCorrectionEnabled);
-
-        const lensCorrectionServiceTypes = this.joinServiceTypes(settings.photoAnalysisLensCorrectionServiceTypes);
-        this.photoAnalysisLensCorrectionServiceTypes.set(lensCorrectionServiceTypes);
-        this.initialPhotoAnalysisLensCorrectionServiceTypes.set(lensCorrectionServiceTypes);
-
-        this.photoAnalysisPerspectiveNormalizationEnabled.set(settings.photoAnalysisPerspectiveNormalizationEnabled);
-        this.initialPhotoAnalysisPerspectiveNormalizationEnabled.set(settings.photoAnalysisPerspectiveNormalizationEnabled);
-
-        const perspectiveServiceTypes = this.joinServiceTypes(settings.photoAnalysisPerspectiveNormalizationServiceTypes);
-        this.photoAnalysisPerspectiveNormalizationServiceTypes.set(perspectiveServiceTypes);
-        this.initialPhotoAnalysisPerspectiveNormalizationServiceTypes.set(perspectiveServiceTypes);
-
         this.whatsAppDefaultReplyScenario.set((settings.whatsAppDefaultReplyScenario as ReplySuggestionScenario | undefined) ?? 'generic');
         this.initialWhatsAppDefaultReplyScenario.set((settings.whatsAppDefaultReplyScenario as ReplySuggestionScenario | undefined) ?? 'generic');
 
@@ -407,16 +322,5 @@ export class OrganizationAiSettingsComponent {
 
   protected scenarioLabel(value: string): string {
     return this.replyScenarioLabelMap.get((value as ReplySuggestionScenario) ?? 'generic') ?? value;
-  }
-
-  private parseServiceTypes(value: string): string[] {
-    return value
-      .split(/\r?\n|,/) 
-      .map(item => item.trim())
-      .filter((item, index, items) => item.length > 0 && items.indexOf(item) === index);
-  }
-
-  private joinServiceTypes(values: string[] | null | undefined): string {
-    return (values ?? []).join('\n');
   }
 }

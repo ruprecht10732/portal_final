@@ -205,13 +205,6 @@ export class DashboardActivityService {
           title: raw.message || 'Gatekeeper analyse voltooid',
           link: raw.leadId ? this.prefixLink(['leads', raw.leadId]) : undefined,
         };
-      case 'photo_analysis_complete':
-        return {
-          ...base,
-          category: 'ai',
-          title: raw.message || 'Foto-analyse voltooid',
-          link: raw.leadId ? this.prefixLink(['leads', raw.leadId]) : undefined,
-        };
 
       // --- Quote events ---
       case 'quote_sent':

@@ -1,5 +1,4 @@
-import { DestroyRef, inject, Injectable, NgZone, signal } from '@angular/core';
-import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
+import { inject, Injectable, NgZone, signal } from '@angular/core';
 import { Subject } from 'rxjs';
 import { environment } from '../../../environments/environment';
 import { ToastService } from './toast.service';
@@ -11,7 +10,6 @@ export type SSEEventType =
   | 'subsidy_analysis_progress'
   | 'in_app_notification'
   | 'analysis_complete'
-  | 'photo_analysis_complete'
   | 'lead_updated'
   | 'whatsapp_conversation_updated'
   | 'whatsapp_message_received'
@@ -43,25 +41,6 @@ export interface SSEEvent {
   timestamp?: string;
 }
 
-// Photo analysis specific event data
-export interface PhotoAnalysisEventData {
-  success: boolean;
-  analysis?: {
-    id: string;
-    leadId: string;
-    serviceId: string;
-    summary: string;
-    observations: string[];
-    scopeAssessment: string;
-    costIndicators: string;
-    safetyConcerns?: string[];
-    additionalInfo?: string[];
-    photoCount: number;
-    confidenceLevel: string;
-  };
-  error?: string;
-}
-
 export interface SSEConnectionState {
   connected: boolean;
   reconnectAttempts: number;
@@ -73,8 +52,6 @@ export class SSEService {
   private readonly accounts = inject(AccountRegistryService);
   private readonly toast = inject(ToastService);
   private readonly zone = inject(NgZone);
-  private readonly destroyRef = inject(DestroyRef);
-
   private eventSource: EventSource | null = null;
   private reconnectTimer: ReturnType<typeof setTimeout> | null = null;
   private readonly maxReconnectAttempts = 5;
@@ -87,14 +64,12 @@ export class SSEService {
   });
 
   // Event subjects for different event types
-  private readonly photoAnalysisComplete$ = new Subject<SSEEvent & { data: PhotoAnalysisEventData }>();
   private readonly inAppNotification$ = new Subject<SSEEvent>();
   private readonly leadUpdated$ = new Subject<SSEEvent>();
   private readonly appointmentEvent$ = new Subject<SSEEvent>();
   private readonly allEvents$ = new Subject<SSEEvent>();
 
   readonly state = this.connectionState.asReadonly();
-  readonly photoAnalysisComplete = this.photoAnalysisComplete$.asObservable();
   readonly inAppNotification = this.inAppNotification$.asObservable();
   readonly leadUpdated = this.leadUpdated$.asObservable();
   readonly appointmentEvent = this.appointmentEvent$.asObservable();
@@ -103,11 +78,6 @@ export class SSEService {
   constructor() {
     // Auto-connect when service is instantiated
     this.connect();
-
-    // Subscribe to photo analysis events and show toasts
-    this.photoAnalysisComplete
-      .pipe(takeUntilDestroyed(this.destroyRef))
-      .subscribe(event => this.handlePhotoAnalysisEvent(event));
   }
 
   /**
@@ -146,7 +116,6 @@ export class SSEService {
         };
 
         const namedEventTypes: SSEEventType[] = [
-          'photo_analysis_complete',
           'analysis_complete',
           'ai_job_progress',
           'subsidy_analysis_progress',
@@ -239,9 +208,6 @@ export class SSEService {
     this.allEvents$.next(event);
 
     switch (event.type) {
-      case 'photo_analysis_complete':
-        this.photoAnalysisComplete$.next(event as SSEEvent & { data: PhotoAnalysisEventData });
-        break;
       case 'in_app_notification':
         this.inAppNotification$.next(event);
         break;
@@ -309,32 +275,6 @@ export class SSEService {
         url: ['/app/offertes', quoteId],
       },
     });
-  }
-
-  private handlePhotoAnalysisEvent(event: SSEEvent & { data: PhotoAnalysisEventData }): void {
-    const data = event.data;
-
-    if (data.success && data.analysis) {
-      // Show success toast with link to the lead
-      this.toast.show({
-        message: event.message || 'Foto-analyse voltooid',
-        title: 'AI Analyse',
-        variant: 'success',
-        dismissible: true,
-        durationMs: 10000, // 10 seconds - longer for important notifications
-        link: {
-          label: 'Bekijk analyse →',
-          url: ['/leads', data.analysis.leadId],
-        },
-      });
-    } else {
-      this.toast.show({
-        message: data.error || 'Foto-analyse mislukt',
-        title: 'AI Analyse',
-        variant: 'error',
-        dismissible: true,
-      });
-    }
   }
 
   private handleLeadActivityToast(event: SSEEvent): void {

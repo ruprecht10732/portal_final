@@ -511,7 +511,7 @@ export interface LeadAIAnalysisResponse {
   isDefault: boolean;
 }
 
-export type AutomationRunKind = 'lead_analysis' | 'photo_analysis';
+export type AutomationRunKind = 'lead_analysis';
 
 export interface AutomationRunResponse {
   jobId: string;
@@ -525,7 +525,6 @@ export interface AutomationRunResponse {
   updatedAt: string;
   finishedAt?: string;
   message?: string;
-  photoCount?: number;
 }
 
 export interface AnalyzeLeadResponse {
@@ -534,66 +533,6 @@ export interface AnalyzeLeadResponse {
   analysis?: LeadAIAnalysis;
   leadId?: string;
   run?: AutomationRunResponse;
-}
-
-export interface TriggerPhotoAnalysisResponse {
-  status: 'queued' | 'processing' | 'error';
-  message: string;
-  photoCount: number;
-  run?: AutomationRunResponse;
-}
-
-// Photo Analysis types
-export type PhotoAnalysisConfidence = 'High' | 'Medium' | 'Low';
-export type PhotoMeasurementType = 'dimension' | 'area' | 'count' | 'volume';
-
-export interface PhotoMeasurement {
-  description: string;
-  value: number;
-  unit: string;
-  type: PhotoMeasurementType;
-  confidence: PhotoAnalysisConfidence;
-  photoRef: string;
-}
-
-export interface PhotoAnalysis {
-  id: string;
-  leadId: string;
-  serviceId: string;
-  summary: string;
-  observations: string[];
-  scopeAssessment: string;
-  costIndicators: string;
-  safetyConcerns: string[];
-  additionalInfo: string[];
-  confidenceLevel: PhotoAnalysisConfidence;
-  photoCount: number;
-  measurements: PhotoMeasurement[];
-  needsOnsiteMeasurement: string[];
-  discrepancies: string[];
-  extractedText: string[];
-  suggestedSearchTerms: string[];
-  createdAt: string;
-}
-
-export interface TimelinePhotoAnalysisSummary {
-  photoCount: number;
-  confidenceLevel: string;
-  observations: string[];
-  scopeAssessment: string;
-  costIndicators: string;
-  safetyConcerns: string[];
-  measurements: { description: string; value: number; unit: string; type: string; confidence: string }[];
-  needsOnsiteMeasurement: string[];
-  discrepancies: string[];
-  extractedText: string[];
-  suggestedSearchTerms: string[];
-  hasOcrEvidence: boolean;
-  hasOnsiteRequirement: boolean;
-}
-
-export interface PhotoAnalysisResponse {
-  analysis: PhotoAnalysis | null;
 }
 
 export interface LeadDetailAnalysisContext {
@@ -627,7 +566,6 @@ export interface LeadDetailContextResponse {
   communications: LeadInboxCommunicationsResponse;
   workflow?: LeadDetailWorkflowContext | null;
   currentServiceAnalysis?: LeadDetailAnalysisContext | null;
-  currentServicePhotoAnalysis?: PhotoAnalysis | null;
 }
 
 // Call Logger types

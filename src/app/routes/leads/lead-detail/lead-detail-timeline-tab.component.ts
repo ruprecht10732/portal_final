@@ -1,6 +1,6 @@
 import { ChangeDetectionStrategy, Component, input, output, inject } from '@angular/core';
 import { TranslateService } from '@ngx-translate/core';
-import type { LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadTimelineItem, PipelineStage, TimelinePhotoAnalysisSummary } from '../../../core/services/leads.types';
+import type { LeadLinkedEmailMessage, LeadLinkedWhatsAppConversation, LeadTimelineItem, PipelineStage } from '../../../core/services/leads.types';
 import { PIPELINE_STAGE_I18N_KEYS } from '../../../core/services/leads.types';
 import { ButtonComponent } from '../../../shared/components/button/button.component';
 import { PhoneFormatPipe } from '../../../shared/pipes/phone-format.pipe';
@@ -41,7 +41,6 @@ export class LeadDetailTimelineTabComponent {
   getTimelineScore = input<(item: LeadTimelineItem) => { score: number; preAi?: number; version?: string } | null>(() => null);
   getTimelineDraftedQuote = input<(item: LeadTimelineItem) => { quoteId: string; quoteNumber: string; itemCount: number; catalogItems: number; adHocItems: number } | null>(() => null);
   getTimelineAppointmentApproval = input<(item: LeadTimelineItem) => { appointmentId: string } | null>(() => null);
-  getTimelinePhotoAnalysis = input<(item: LeadTimelineItem) => TimelinePhotoAnalysisSummary | null>(() => null);
 
   openCallLogger = output<void>();
   sendWhatsApp = output<{ itemId: string }>();
@@ -106,7 +105,6 @@ export class LeadDetailTimelineTabComponent {
       || this.getTimelineResolvedInformation()(item).length > 0
       || this.getTimelineExtractedFacts()(item).length > 0
       || Boolean(this.getTimelineDraftedQuote()(item))
-      || Boolean(this.getTimelinePhotoAnalysis()(item))
       || this.getTimelineRecommendedAction()(item) === 'CallImmediately'
       || Boolean(this.getTimelineContactMessage()(item));
   }

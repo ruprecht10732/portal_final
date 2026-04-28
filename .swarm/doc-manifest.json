@@ -1,0 +1,13 @@
+{
+  "schema_version": 1,
+  "scanned_at": "2026-04-28T17:34:26.026Z",
+  "files": [
+    {
+      "path": "README.md",
+      "title": "MyPortalApp",
+      "summary": "This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 21.1.1. - Node.js 22.12.0 or newer - npm 11.4.1 or newer The Docker build installs npm 11.4.1 explicit...",
+      "lines": 69,
+      "mtime": 1777209016896.5344
+    }
+  ]
+}

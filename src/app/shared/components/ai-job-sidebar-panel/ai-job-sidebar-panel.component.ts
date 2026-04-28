@@ -109,9 +109,6 @@ export class AIJobSidebarPanelComponent {
 	if (job.kind === 'lead_analysis') {
 	  return this.translate.instant('aiJobs.kind.leadAnalysis');
 	}
-	if (job.kind === 'photo_analysis') {
-	  return this.translate.instant('aiJobs.kind.photoAnalysis');
-	}
 	if (job.kind === 'subsidy_analysis') {
 	  return this.translate.instant('aiJobs.kind.subsidyAnalysis');
 	}
