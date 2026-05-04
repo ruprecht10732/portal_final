@@ -54,3 +54,9 @@ report/
 
 # Generated documentation
 /documentation/
+.swarm/context.md
+.swarm/repo-graph.json
+.swarm/evidence/agent-tools-init-1777908980980.json
+.swarm/evidence/agent-tools-init-1777908925252.json
+.swarm/session/state.json
+.swarm/telemetry.jsonl
