@@ -16,6 +16,7 @@ export class QuoteStatusBannerComponent {
   readonly acceptedAt = input<string | null>(null);
   readonly downloading = input(false);
   readonly variant = input<'mobile' | 'desktop'>('mobile');
+  readonly downloadError = input<string | null>(null);
 
   readonly download = output<void>();
 }

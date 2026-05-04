@@ -375,6 +375,7 @@
       "expiredLink": "Deze offerte-link is verlopen.",
       "notFound": "Offerte niet gevonden.",
       "loadError": "Er ging iets mis bij het laden van de offerte.",
+      "downloadError": "PDF downloaden mislukt. Probeer het later opnieuw.",
       "customerLabel": "Klant",
       "fromLabel": "Van",
       "forLabel": "Voor",

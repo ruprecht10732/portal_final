@@ -55,6 +55,8 @@ export class LeadTrackComponent implements OnInit {
   protected readonly infoSuccess = signal(false);
   protected readonly preferencesSuccess = signal(false);
   protected readonly slotRequestSuccess = signal(false);
+  protected readonly downloadingPdf = signal(false);
+  protected readonly pdfDownloadError = signal<string | null>(null);
   protected readonly token = signal('');
   protected readonly showUploadSheet = signal(false);
   protected readonly activePreferenceSheet = signal<'budget' | 'timeframe' | 'availability' | 'extraNotes' | null>(null);
@@ -678,6 +680,29 @@ export class LeadTrackComponent implements OnInit {
       error: () => {
         this.requestingAppointment.set(false);
         this.slotError.set('Afspraak aanvragen mislukt. Probeer het opnieuw.');
+      },
+    });
+  }
+
+  protected downloadPdf(): void {
+    const d = this.data();
+    if (!d?.quote.downloadLink) return;
+
+    this.downloadingPdf.set(true);
+    this.pdfDownloadError.set(null);
+    this.service.downloadPdf(d.quote.downloadLink).subscribe({
+      next: blob => {
+        const url = URL.createObjectURL(blob);
+        const a = document.createElement('a');
+        a.href = url;
+        a.download = `Offerte.pdf`;
+        a.click();
+        URL.revokeObjectURL(url);
+        this.downloadingPdf.set(false);
+      },
+      error: () => {
+        this.downloadingPdf.set(false);
+        this.pdfDownloadError.set('PDF downloaden mislukt. Probeer het later opnieuw.');
       },
     });
   }

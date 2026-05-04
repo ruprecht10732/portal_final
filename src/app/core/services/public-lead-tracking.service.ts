@@ -83,4 +83,9 @@ export class PublicLeadTrackingService {
       data,
     );
   }
+
+  /** Download a PDF from the given absolute URL as a blob */
+  downloadPdf(url: string): Observable<Blob> {
+    return this.http.get(url, { responseType: 'blob' });
+  }
 }

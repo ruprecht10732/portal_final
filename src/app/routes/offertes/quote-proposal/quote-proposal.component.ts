@@ -70,6 +70,7 @@ export class QuoteProposalComponent implements OnInit {
   protected readonly accepting = signal(false);
   protected readonly rejecting = signal(false);
   protected readonly downloadingPdf = signal(false);
+  protected readonly pdfDownloadError = signal<string | null>(null);
 
   // Accept form
   protected readonly signatureName = signal('');
@@ -408,6 +409,7 @@ export class QuoteProposalComponent implements OnInit {
     if (!t || !q) return;
 
     this.downloadingPdf.set(true);
+    this.pdfDownloadError.set(null);
     this.publicQuoteService.downloadPdf(t).subscribe({
       next: blob => {
         const url = URL.createObjectURL(blob);
@@ -420,6 +422,7 @@ export class QuoteProposalComponent implements OnInit {
       },
       error: () => {
         this.downloadingPdf.set(false);
+        this.pdfDownloadError.set(this.translate.instant('offertes.proposal.downloadError'));
       },
     });
   }

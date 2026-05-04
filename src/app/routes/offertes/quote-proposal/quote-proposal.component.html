@@ -77,6 +77,7 @@
                     [acceptedAt]="q.acceptedAt ?? null"
                     [downloading]="downloadingPdf()"
                     [variant]="'mobile'"
+                    [downloadError]="pdfDownloadError()"
                     (download)="downloadPdf()"
                   />
                 </div>
@@ -185,6 +186,7 @@
                 [acceptedAt]="q.acceptedAt ?? null"
                 [downloading]="downloadingPdf()"
                 [variant]="'desktop'"
+                [downloadError]="pdfDownloadError()"
                 (download)="downloadPdf()"
               />
             </div>
