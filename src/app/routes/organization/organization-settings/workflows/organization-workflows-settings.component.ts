@@ -1,10 +1,12 @@
 import { ChangeDetectionStrategy, Component, computed, DestroyRef, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
-import { catchError, EMPTY, finalize, forkJoin, switchMap } from 'rxjs';
+import { type Observable, catchError, EMPTY, finalize, forkJoin, map, of, switchMap } from 'rxjs';
 import { TranslatePipe, TranslateService } from '@ngx-translate/core';
 import {
+  type CreateWorkflowEngineWorkflowRequest,
+  type UpdateWorkflowEngineWorkflowRequest,
+  type UpdateWorkflowStepRequest,
   type UpsertWorkflowAssignmentRuleRequest,
-  type UpsertWorkflowRequest,
   type UpsertWorkflowStepRequest,
   type WorkflowAssignmentRule,
   type WorkflowEngineWorkflow,
@@ -71,6 +73,7 @@ interface WorkflowCardConfig {
 }
 
 interface WorkflowFormState {
+  id?: string;
   enabled: boolean;
   delayMinutes: number;
   templateSubject: string;
@@ -135,6 +138,7 @@ export class OrganizationWorkflowsSettingsComponent {
   protected readonly successMessage = signal('');
 
   private readonly initialSnapshot = signal('');
+  private readonly initialProfiles = signal<WorkflowProfileState[]>([]);
   private readonly workflowProfiles = signal<WorkflowProfileState[]>([]);
   private readonly assignmentRules = signal<WorkflowAssignmentRule[]>([]);
 
@@ -690,6 +694,7 @@ export class OrganizationWorkflowsSettingsComponent {
       : null;
 
     this.selectedDefaultWorkflowKey.set(defaultProfile?.workflowKey ?? (first?.workflowKey ?? ''));
+    this.initialProfiles.set(structuredClone(mapped));
     this.initialSnapshot.set(JSON.stringify(this.serializeState()));
   }
 
@@ -713,6 +718,7 @@ export class OrganizationWorkflowsSettingsComponent {
       if (!key) continue;
 
       cards[key] = {
+        ...(step.id ? { id: step.id } : {}),
         enabled: !!step.enabled,
         delayMinutes: this.normalizeDelay(step.delayMinutes),
         templateSubject: step.templateSubject ?? '',
@@ -965,51 +971,117 @@ export class OrganizationWorkflowsSettingsComponent {
     this.errorMessage.set('');
     this.successMessage.set('');
 
-    const workflowPayload = this.workflowProfiles().map(profile => this.mapProfileToUpsert(profile));
+    const currentProfiles = this.workflowProfiles();
+    const previousProfiles = this.initialProfiles();
 
-    this.orgService
-      .replaceWorkflowEngineWorkflows({ workflows: workflowPayload })
-      .pipe(
-        switchMap(savedWorkflows => {
-          const defaultKey = this.selectedDefaultWorkflowKey();
-          const defaultWorkflow = savedWorkflows.find(workflow => workflow.workflowKey === defaultKey) ?? savedWorkflows[0];
-          if (!defaultWorkflow) {
-            return EMPTY;
-          }
+    const newProfiles = currentProfiles.filter(p => !p.id);
+    const deletedProfiles = previousProfiles.filter(pp => pp.id && !currentProfiles.some(cp => cp.id === pp.id));
+    const existingProfiles = currentProfiles.filter(p => p.id);
 
-          const existingRules = this.assignmentRules();
-          const previousDefault = this.findDefaultRule(existingRules);
-          const preservedRules = existingRules.filter(rule => !this.isDefaultRule(rule));
+    const requests: Array<Observable<unknown>> = [];
 
-          const defaultRule: UpsertWorkflowAssignmentRuleRequest = {
-            ...(previousDefault?.id ? { id: previousDefault.id } : {}),
-            workflowId: defaultWorkflow.id,
-            name: 'Default workflow',
-            enabled: true,
-            priority: 1_000_000,
-            leadSource: null,
-            leadServiceType: null,
-            pipelineStage: null,
-          };
+    // 1. Delete removed workflows
+    for (const profile of deletedProfiles) {
+      if (profile.id) {
+        requests.push(this.orgService.deleteWorkflowEngineWorkflow(profile.id));
+      }
+    }
 
-          return this.orgService.replaceWorkflowAssignmentRules({ rules: [...preservedRules, defaultRule] }).pipe(
-            switchMap(() => forkJoin({
-              workflows: this.orgService.getWorkflowEngineWorkflows(),
-              rules: this.orgService.getWorkflowAssignmentRules(),
-            }))
+    // 2. Create new workflows
+    for (const profile of newProfiles) {
+      requests.push(this.orgService.createWorkflowEngineWorkflow(this.mapProfileToCreateRequest(profile)));
+    }
+
+    // 3. Update existing workflows metadata and steps
+    for (const profile of existingProfiles) {
+      const previousProfile = previousProfiles.find(pp => pp.id === profile.id);
+      if (!previousProfile || !profile.id) continue;
+
+      // Metadata changes
+      const metadataChanged =
+        profile.name !== previousProfile.name ||
+        profile.enabled !== previousProfile.enabled ||
+        profile.workflowKey !== previousProfile.workflowKey;
+
+      if (metadataChanged) {
+        const payload: UpdateWorkflowEngineWorkflowRequest = {
+          workflowKey: profile.workflowKey,
+          name: profile.name.trim() || profile.workflowKey,
+          enabled: profile.enabled,
+        };
+        requests.push(this.orgService.updateWorkflowEngineWorkflow(profile.id, payload));
+      }
+
+      // Step changes
+      for (const card of this.cards) {
+        const currentStep = profile.cards[card.key];
+        const previousStep = previousProfile.cards[card.key];
+        if (!previousStep || !currentStep.id) continue;
+
+        const stepChanged =
+          currentStep.enabled !== previousStep.enabled ||
+          currentStep.delayMinutes !== previousStep.delayMinutes ||
+          currentStep.templateSubject !== previousStep.templateSubject ||
+          currentStep.templateText !== previousStep.templateText;
+
+        if (stepChanged) {
+          requests.push(
+            this.orgService.updateWorkflowStep(profile.id, currentStep.id, this.buildStepUpdateRequest(card, currentStep))
           );
-        }),
-        catchError(() => {
-          this.errorMessage.set(this.translate.instant('organization.settings.workflows.saveFailed'));
+        }
+      }
+    }
+
+    // If there are no workflow mutations but the default workflow changed,
+    // we still need to proceed to assignment rule update.
+    const workflowOps$: Observable<void> = requests.length > 0
+      ? forkJoin(requests).pipe(map(() => undefined))
+      : of(undefined);
+
+    workflowOps$.pipe(
+      switchMap(() => forkJoin({
+        workflows: this.orgService.getWorkflowEngineWorkflows(),
+        rules: this.orgService.getWorkflowAssignmentRules(),
+      })),
+      switchMap(({ workflows, rules }) => {
+        const defaultKey = this.selectedDefaultWorkflowKey();
+        const defaultWorkflow = workflows.find(workflow => workflow.workflowKey === defaultKey) ?? workflows[0];
+        if (!defaultWorkflow) {
           return EMPTY;
-        }),
-        finalize(() => this.isSaving.set(false)),
-        takeUntilDestroyed(this.destroyRef)
-      )
-      .subscribe(({ workflows, rules }) => {
-        this.applyWorkflowEngineData(workflows, rules);
-        this.successMessage.set(this.translate.instant('organization.settings.workflows.saved'));
-      });
+        }
+
+        const previousDefault = this.findDefaultRule(rules);
+        const preservedRules = rules.filter(rule => !this.isDefaultRule(rule));
+
+        const defaultRule: UpsertWorkflowAssignmentRuleRequest = {
+          ...(previousDefault?.id ? { id: previousDefault.id } : {}),
+          workflowId: defaultWorkflow.id,
+          name: 'Default workflow',
+          enabled: true,
+          priority: 1_000_000,
+          leadSource: null,
+          leadServiceType: null,
+          pipelineStage: null,
+        };
+
+        return this.orgService.replaceWorkflowAssignmentRules({ rules: [...preservedRules, defaultRule] }).pipe(
+          switchMap(() => forkJoin({
+            workflows: this.orgService.getWorkflowEngineWorkflows(),
+            rules: this.orgService.getWorkflowAssignmentRules(),
+          }))
+        );
+      }),
+      catchError(() => {
+        this.errorMessage.set(this.translate.instant('organization.settings.workflows.saveFailed'));
+        return EMPTY;
+      }),
+      finalize(() => this.isSaving.set(false)),
+      takeUntilDestroyed(this.destroyRef)
+    )
+    .subscribe(({ workflows, rules }) => {
+      this.applyWorkflowEngineData(workflows, rules);
+      this.successMessage.set(this.translate.instant('organization.settings.workflows.saved'));
+    });
   }
 
   private serializeState(): {
@@ -1024,7 +1096,7 @@ export class OrganizationWorkflowsSettingsComponent {
     };
   }
 
-  private mapProfileToUpsert(profile: WorkflowProfileState): UpsertWorkflowRequest {
+  private mapProfileToCreateRequest(profile: WorkflowProfileState): CreateWorkflowEngineWorkflowRequest {
     const steps: UpsertWorkflowStepRequest[] = this.cards.map((card, index) => {
       const state = profile.cards[card.key];
       const trimmedTemplateSubject = state.templateSubject.trim();
@@ -1049,11 +1121,32 @@ export class OrganizationWorkflowsSettingsComponent {
     });
 
     return {
-      ...(profile.id ? { id: profile.id } : {}),
       workflowKey: profile.workflowKey,
       name: profile.name.trim() || profile.workflowKey,
       enabled: profile.enabled,
       steps,
+    };
+  }
+
+  private buildStepUpdateRequest(card: WorkflowCardConfig, state: WorkflowFormState): UpdateWorkflowStepRequest {
+    const trimmedTemplateSubject = state.templateSubject.trim();
+    let templateSubject: string | null = null;
+    if (card.channel === 'email' && trimmedTemplateSubject !== '') {
+      templateSubject = trimmedTemplateSubject;
+    }
+
+    return {
+      trigger: card.trigger,
+      channel: card.channel,
+      audience: card.audience,
+      action: 'send_message',
+      stepOrder: this.cards.indexOf(card) + 1,
+      delayMinutes: this.normalizeDelay(state.delayMinutes),
+      enabled: state.enabled,
+      recipientConfig: this.defaultRecipientConfig(card.audience),
+      templateSubject,
+      templateBody: state.templateText.trim() ? state.templateText.trim() : null,
+      stopOnReply: false,
     };
   }
 

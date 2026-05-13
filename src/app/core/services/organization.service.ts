@@ -310,6 +310,53 @@ export interface ReplaceWorkflowEngineWorkflowsRequest {
   workflows: UpsertWorkflowRequest[];
 }
 
+export interface CreateWorkflowEngineWorkflowRequest {
+  workflowKey: string;
+  name: string;
+  description?: string | null;
+  enabled: boolean;
+  quoteValidDaysOverride?: number | null;
+  quotePaymentDaysOverride?: number | null;
+  steps: UpsertWorkflowStepRequest[];
+}
+
+export interface UpdateWorkflowEngineWorkflowRequest {
+  workflowKey: string;
+  name: string;
+  description?: string | null;
+  enabled: boolean;
+  quoteValidDaysOverride?: number | null;
+  quotePaymentDaysOverride?: number | null;
+}
+
+export interface CreateWorkflowStepRequest {
+  trigger: string;
+  channel: 'whatsapp' | 'email';
+  audience: 'lead' | 'partner' | 'agent' | 'internal' | 'custom';
+  action: 'send_message' | 'send_template';
+  stepOrder: number;
+  delayMinutes: number;
+  enabled: boolean;
+  recipientConfig: WorkflowStepRecipientConfig;
+  templateSubject?: string | null;
+  templateBody?: string | null;
+  stopOnReply: boolean;
+}
+
+export interface UpdateWorkflowStepRequest {
+  trigger: string;
+  channel: 'whatsapp' | 'email';
+  audience: 'lead' | 'partner' | 'agent' | 'internal' | 'custom';
+  action: 'send_message' | 'send_template';
+  stepOrder: number;
+  delayMinutes: number;
+  enabled: boolean;
+  recipientConfig: WorkflowStepRecipientConfig;
+  templateSubject?: string | null;
+  templateBody?: string | null;
+  stopOnReply: boolean;
+}
+
 export interface ListWorkflowEngineWorkflowsResponse {
   workflows: WorkflowEngineWorkflow[];
 }
@@ -463,6 +510,60 @@ export class OrganizationService {
       map(response => response.workflows),
       tap(workflows => {
         this.workflowEngineWorkflowsCache = workflows;
+        this.workflowEngineWorkflowsRequest = null;
+      })
+    );
+  }
+
+  createWorkflowEngineWorkflow(payload: CreateWorkflowEngineWorkflowRequest): Observable<WorkflowEngineWorkflow> {
+    return this.http.post<WorkflowEngineWorkflow>(`${this.baseUrl}/me/workflow-engine/workflows`, payload).pipe(
+      tap(() => {
+        this.workflowEngineWorkflowsCache = null;
+        this.workflowEngineWorkflowsRequest = null;
+      })
+    );
+  }
+
+  updateWorkflowEngineWorkflow(workflowId: string, payload: UpdateWorkflowEngineWorkflowRequest): Observable<WorkflowEngineWorkflow> {
+    return this.http.patch<WorkflowEngineWorkflow>(`${this.baseUrl}/me/workflow-engine/workflows/${workflowId}`, payload).pipe(
+      tap(() => {
+        this.workflowEngineWorkflowsCache = null;
+        this.workflowEngineWorkflowsRequest = null;
+      })
+    );
+  }
+
+  deleteWorkflowEngineWorkflow(workflowId: string): Observable<{ status: string }> {
+    return this.http.delete<{ status: string }>(`${this.baseUrl}/me/workflow-engine/workflows/${workflowId}`).pipe(
+      tap(() => {
+        this.workflowEngineWorkflowsCache = null;
+        this.workflowEngineWorkflowsRequest = null;
+      })
+    );
+  }
+
+  createWorkflowStep(workflowId: string, payload: CreateWorkflowStepRequest): Observable<WorkflowStep> {
+    return this.http.post<WorkflowStep>(`${this.baseUrl}/me/workflow-engine/workflows/${workflowId}/steps`, payload).pipe(
+      tap(() => {
+        this.workflowEngineWorkflowsCache = null;
+        this.workflowEngineWorkflowsRequest = null;
+      })
+    );
+  }
+
+  updateWorkflowStep(workflowId: string, stepId: string, payload: UpdateWorkflowStepRequest): Observable<WorkflowStep> {
+    return this.http.patch<WorkflowStep>(`${this.baseUrl}/me/workflow-engine/workflows/${workflowId}/steps/${stepId}`, payload).pipe(
+      tap(() => {
+        this.workflowEngineWorkflowsCache = null;
+        this.workflowEngineWorkflowsRequest = null;
+      })
+    );
+  }
+
+  deleteWorkflowStep(workflowId: string, stepId: string): Observable<void> {
+    return this.http.delete<void>(`${this.baseUrl}/me/workflow-engine/workflows/${workflowId}/steps/${stepId}`).pipe(
+      tap(() => {
+        this.workflowEngineWorkflowsCache = null;
         this.workflowEngineWorkflowsRequest = null;
       })
     );
