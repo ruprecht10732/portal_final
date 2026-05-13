@@ -1004,41 +1004,57 @@ export class OrganizationWorkflowsSettingsComponent {
     const deletedProfiles = previousProfiles.filter(pp => pp.id && !currentProfiles.some(cp => cp.id === pp.id));
     const existingProfiles = currentProfiles.filter(p => p.id);
 
+    return [
+      ...this.buildDeleteRequests(deletedProfiles),
+      ...this.buildCreateRequests(newProfiles),
+      ...this.buildUpdateRequests(existingProfiles, previousProfiles),
+    ];
+  }
+
+  private buildDeleteRequests(profiles: WorkflowProfileState[]): Array<Observable<unknown>> {
+    return profiles
+      .filter(p => p.id)
+      .map(p => this.orgService.deleteWorkflowEngineWorkflow(p.id!));
+  }
+
+  private buildCreateRequests(profiles: WorkflowProfileState[]): Array<Observable<unknown>> {
+    return profiles.map(p => this.orgService.createWorkflowEngineWorkflow(this.mapProfileToCreateRequest(p)));
+  }
+
+  private buildUpdateRequests(existingProfiles: WorkflowProfileState[], previousProfiles: WorkflowProfileState[]): Array<Observable<unknown>> {
     const requests: Array<Observable<unknown>> = [];
-
-    for (const profile of deletedProfiles) {
-      if (profile.id) {
-        requests.push(this.orgService.deleteWorkflowEngineWorkflow(profile.id));
-      }
-    }
-
-    for (const profile of newProfiles) {
-      requests.push(this.orgService.createWorkflowEngineWorkflow(this.mapProfileToCreateRequest(profile)));
-    }
 
     for (const profile of existingProfiles) {
       const previousProfile = previousProfiles.find(pp => pp.id === profile.id);
       if (!previousProfile || !profile.id) continue;
 
-      if (this.hasMetadataChanged(profile, previousProfile)) {
-        const payload: UpdateWorkflowEngineWorkflowRequest = {
-          workflowKey: profile.workflowKey,
-          name: profile.name.trim() || profile.workflowKey,
-          enabled: profile.enabled,
-        };
-        requests.push(this.orgService.updateWorkflowEngineWorkflow(profile.id, payload));
-      }
+      requests.push(...this.buildWorkflowUpdateRequests(profile, previousProfile));
+    }
 
-      for (const card of this.cards) {
-        const currentStep = profile.cards[card.key];
-        const previousStep = previousProfile.cards[card.key];
-        if (!previousStep || !currentStep.id) continue;
+    return requests;
+  }
 
-        if (this.hasStepChanged(currentStep, previousStep)) {
-          requests.push(
-            this.orgService.updateWorkflowStep(profile.id, currentStep.id, this.buildStepUpdateRequest(card, currentStep))
-          );
-        }
+  private buildWorkflowUpdateRequests(profile: WorkflowProfileState, previousProfile: WorkflowProfileState): Array<Observable<unknown>> {
+    const requests: Array<Observable<unknown>> = [];
+
+    if (this.hasMetadataChanged(profile, previousProfile)) {
+      const payload: UpdateWorkflowEngineWorkflowRequest = {
+        workflowKey: profile.workflowKey,
+        name: profile.name.trim() || profile.workflowKey,
+        enabled: profile.enabled,
+      };
+      requests.push(this.orgService.updateWorkflowEngineWorkflow(profile.id!, payload));
+    }
+
+    for (const card of this.cards) {
+      const currentStep = profile.cards[card.key];
+      const previousStep = previousProfile.cards[card.key];
+      if (!previousStep || !currentStep.id) continue;
+
+      if (this.hasStepChanged(currentStep, previousStep)) {
+        requests.push(
+          this.orgService.updateWorkflowStep(profile.id!, currentStep.id, this.buildStepUpdateRequest(card, currentStep))
+        );
       }
     }
 
