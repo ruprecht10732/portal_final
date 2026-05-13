@@ -252,12 +252,16 @@ export interface WorkflowStepRecipientConfig {
   customPhones?: string[];
 }
 
+export type WorkflowChannel = 'whatsapp' | 'email';
+export type WorkflowAudience = 'lead' | 'partner' | 'agent' | 'internal' | 'custom';
+export type WorkflowAction = 'send_message' | 'send_template';
+
 export interface WorkflowStep {
   id?: string;
   trigger: string;
-  channel: 'whatsapp' | 'email';
-  audience: 'lead' | 'partner' | 'agent' | 'internal' | 'custom';
-  action: 'send_message' | 'send_template';
+  channel: WorkflowChannel;
+  audience: WorkflowAudience;
+  action: WorkflowAction;
   stepOrder: number;
   delayMinutes: number;
   enabled: boolean;
@@ -283,9 +287,9 @@ export interface WorkflowEngineWorkflow {
 export interface UpsertWorkflowStepRequest {
   id?: string;
   trigger: string;
-  channel: 'whatsapp' | 'email';
-  audience: 'lead' | 'partner' | 'agent' | 'internal' | 'custom';
-  action: 'send_message' | 'send_template';
+  channel: WorkflowChannel;
+  audience: WorkflowAudience;
+  action: WorkflowAction;
   stepOrder: number;
   delayMinutes: number;
   enabled: boolean;
@@ -331,9 +335,9 @@ export interface UpdateWorkflowEngineWorkflowRequest {
 
 export interface CreateWorkflowStepRequest {
   trigger: string;
-  channel: 'whatsapp' | 'email';
-  audience: 'lead' | 'partner' | 'agent' | 'internal' | 'custom';
-  action: 'send_message' | 'send_template';
+  channel: WorkflowChannel;
+  audience: WorkflowAudience;
+  action: WorkflowAction;
   stepOrder: number;
   delayMinutes: number;
   enabled: boolean;
@@ -345,9 +349,9 @@ export interface CreateWorkflowStepRequest {
 
 export interface UpdateWorkflowStepRequest {
   trigger: string;
-  channel: 'whatsapp' | 'email';
-  audience: 'lead' | 'partner' | 'agent' | 'internal' | 'custom';
-  action: 'send_message' | 'send_template';
+  channel: WorkflowChannel;
+  audience: WorkflowAudience;
+  action: WorkflowAction;
   stepOrder: number;
   delayMinutes: number;
   enabled: boolean;
