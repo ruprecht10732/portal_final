@@ -7,6 +7,19 @@
         <p class="text-sm text-zinc-500">{{ message() }}</p>
       </header>
 
+      @if (email()) {
+        <div class="rounded-lg border border-zinc-200 bg-zinc-50 px-3.5 py-2.5 text-sm font-medium text-zinc-900">
+          {{ email() }}
+        </div>
+      } @else {
+        <shared-input
+          [label]="'auth.form.email' | translate"
+          [placeholder]="'auth.form.emailPlaceholder' | translate"
+          [(value)]="customEmail"
+          inputType="email"
+        />
+      }
+
       <div class="border border-zinc-200 bg-zinc-50 px-4 py-4 text-xs uppercase tracking-widest font-semibold text-zinc-500">
         {{ 'auth.checkEmail.spamNote' | translate }}
       </div>
@@ -14,16 +27,17 @@
       <div class="space-y-3">
         <shared-button
           variant="secondary"
-          [disabled]="cooldown() > 0"
+          [disabled]="cooldown() > 0 || isResending() || !email()"
           [ariaLabel]="resendLabel()"
           (clicked)="resend()"
         >
           {{ resendLabel() }}
         </shared-button>
-        <a class="text-xs uppercase tracking-widest font-semibold text-black hover:text-zinc-600" routerLink="/sign-in">
+        <a class="text-xs uppercase tracking-widest font-semibold text-black hover:text-zinc-600 block text-center" routerLink="/sign-in">
           {{ 'auth.checkEmail.backToSignIn' | translate }}
         </a>
       </div>
     </div>
   </section>
 </main>
+

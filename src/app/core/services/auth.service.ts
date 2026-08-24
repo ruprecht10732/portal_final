@@ -177,6 +177,10 @@ export class AuthService {
     return this.http.post<MessageResponse>(`${this.baseUrl}/auth/verify-email`, payload);
   }
 
+  resendVerification(email: string): Observable<MessageResponse> {
+    return this.http.post<MessageResponse>(`${this.baseUrl}/auth/resend-verification`, { email });
+  }
+
   resolveInvite(token: string): Observable<ResolveInviteResponse> {
     return this.http.get<ResolveInviteResponse>(`${this.baseUrl}/auth/invites/resolve`, {
       params: { token }

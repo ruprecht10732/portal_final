@@ -7,6 +7,23 @@
         <p class="text-sm text-zinc-500">{{ 'auth.signIn.subtitle' | translate }}</p>
       </header>
 
+      @if (isUnverified()) {
+        <div class="rounded-lg border border-amber-200 bg-amber-50 p-4 text-xs text-amber-900 space-y-3 text-left">
+          <div>
+            <p class="font-bold uppercase tracking-wider text-[10px] text-amber-700">{{ 'auth.signIn.unverifiedTitle' | translate }}</p>
+            <p class="mt-1 text-zinc-700">{{ 'auth.signIn.unverifiedBody' | translate }}</p>
+          </div>
+          <shared-button
+            variant="secondary"
+            [loading]="isResendingVerification()"
+            (clicked)="onResendVerification()"
+            [ariaLabel]="'auth.signIn.resendVerification' | translate"
+          >
+            {{ 'auth.signIn.resendVerification' | translate }}
+          </shared-button>
+        </div>
+      }
+
       <form class="space-y-5" (submit)="onSubmit($event)">
         <shared-input
           [(value)]="email"

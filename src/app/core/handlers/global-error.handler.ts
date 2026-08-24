@@ -1,6 +1,5 @@
 import { ErrorHandler, Injectable, Injector, inject, isDevMode } from '@angular/core';
 import { ErrorReportingService } from '../services/error-reporting.service';
-import { ToastService } from '../services/toast.service';
 
 @Injectable()
 export class GlobalErrorHandler implements ErrorHandler {
@@ -37,20 +36,17 @@ export class GlobalErrorHandler implements ErrorHandler {
   private reportAndNotify(error: unknown): void {
     // Lazily resolve services only when an error actually occurs.
     const reporter = this.injector.get(ErrorReportingService);
-    const toast = this.injector.get(ToastService);
 
-    // Remote logging
-    reporter.report(error, { 
-      source: 'runtime',
-      url: globalThis.location?.href 
-    });
-
-    // User notification
+    // User notification message
     const message = isDevMode() 
       ? (error as Error)?.message || 'An unknown error occurred'
       : 'Something went wrong. Our team has been notified.';
 
-    // Fixed: Removed the options object to match your service signature
-    toast.error(message);
+    // Remote logging and single toast notification
+    reporter.report(error, { 
+      source: 'runtime',
+      url: globalThis.location?.href,
+      userMessage: message,
+    });
   }
 }

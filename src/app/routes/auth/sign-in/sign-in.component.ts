@@ -26,6 +26,9 @@ export class SignInComponent {
   protected readonly password = signal('');
   protected readonly isSubmitting = signal(false);
   protected readonly isPasskeyLoading = signal(false);
+  protected readonly isUnverified = signal(false);
+  protected readonly unverifiedEmail = signal('');
+  protected readonly isResendingVerification = signal(false);
 
   private readonly destroyRef = inject(DestroyRef);
   private readonly authService = inject(AuthService);
@@ -53,10 +56,36 @@ export class SignInComponent {
     const password = this.password();
 
     this.isSubmitting.set(true);
+    this.isUnverified.set(false);
 
     this.authService.signIn({ email, password })
-      .pipe(handleAuthSubmit(this.destroyRef, this.isSubmitting, this.toast))
+      .pipe(
+        handleAuthSubmit(this.destroyRef, this.isSubmitting, this.toast, {
+          ignore: (error) => {
+            const errStr = (error as { error?: { error?: string } })?.error?.error || '';
+            if (errStr.includes('not verified') || errStr.includes('unverified')) {
+              this.isUnverified.set(true);
+              this.unverifiedEmail.set(email);
+              return false; // Still show toast, but we captured the state
+            }
+            return false;
+          },
+        })
+      )
       .subscribe(() => this.postLoginRedirect());
+  }
+
+  protected onResendVerification(): void {
+    const targetEmail = this.unverifiedEmail() || this.email().trim().toLowerCase();
+    if (!targetEmail) return;
+
+    this.isResendingVerification.set(true);
+    this.authService.resendVerification(targetEmail)
+      .pipe(handleAuthSubmit(this.destroyRef, this.isResendingVerification, this.toast))
+      .subscribe(() => {
+        this.toast.success(this.translate.instant('auth.checkEmail.resendSuccess') || 'Verification email resent! Please check your inbox.');
+        void this.router.navigate(['/check-email'], { queryParams: { mode: 'signup', email: targetEmail } });
+      });
   }
 
   protected onPasskeyLogin(): void {

@@ -89,7 +89,7 @@ export class SignUpComponent implements OnInit {
     this.authService.signUp(payload)
       .pipe(handleAuthSubmit(this.destroyRef, this.isSubmitting, this.toast))
       .subscribe(() => {
-        void this.router.navigate(['/check-email'], { queryParams: { mode: 'signup' } });
+        void this.router.navigate(['/check-email'], { queryParams: { mode: 'signup', email: payload.email } });
       });
   }
 }

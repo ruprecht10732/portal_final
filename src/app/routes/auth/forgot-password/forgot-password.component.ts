@@ -37,10 +37,11 @@ export class ForgotPasswordComponent {
 
     this.isSubmitting.set(true);
 
-    this.authService.forgotPassword({ email: this.email() })
+    const emailVal = this.email().trim().toLowerCase();
+    this.authService.forgotPassword({ email: emailVal })
       .pipe(handleAuthSubmit(this.destroyRef, this.isSubmitting, this.toast))
       .subscribe(() => {
-        void this.router.navigate(['/check-email'], { queryParams: { mode: 'reset' } });
+        void this.router.navigate(['/check-email'], { queryParams: { mode: 'reset', email: emailVal } });
       });
   }
 }

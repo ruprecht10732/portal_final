@@ -27,12 +27,15 @@ export const errorReportingInterceptor: HttpInterceptorFn = (req, next) => {
       const errorPayload = error.error as { error?: string } | string | null;
       const errorMessage = typeof errorPayload === 'string' ? errorPayload : errorPayload?.error;
 
-      const isOnboardingRoute = router.url.includes('onboarding');
-      const isOrgRequired = error.status === 403 && errorMessage === 'organization required';
+      const isOnboardingRoute = router.url.includes('onboarding') || router.url.includes('sign-in') || router.url === '/';
+      const isOrgRequired = error.status === 403 && (errorMessage === 'organization required' || req.url.endsWith('/organization'));
+      const isAuthRefresh = error.status === 401;
 
       const isSilent = Boolean(
         skipGlobalReporting ||
         isAuthRequest ||
+        isAuthRefresh ||
+        isOrgRequired ||
         (isOnboardingRoute && isOrgRequired)
       );
 
